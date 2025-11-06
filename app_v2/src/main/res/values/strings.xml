@@ -88,6 +88,13 @@
     <string name="destinations_list">Destinations (0-9)</string>
     <string name="destinations_description">Up to 10 destination resources. Each has a color and number (0-9).</string>
     <string name="add_destination">Add Destination</string>
+    
+    <!-- Languages array -->
+    <string-array name="languages">
+        <item>English</item>
+        <item>Русский</item>
+        <item>Українська</item>
+    </string-array>
 </resources>
 
 

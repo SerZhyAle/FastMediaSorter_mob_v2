@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -433,28 +434,65 @@ class DestinationsSettingsFragment : Fragment() {
         
         // Add button
         binding.btnAddDestination.setOnClickListener {
-            // TODO: Show dialog to select resource from available resources
+            showAddDestinationDialog()
+        }
+    }
+    
+    private fun showAddDestinationDialog() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val availableResources = viewModel.getWritableNonDestinationResources()
+            
+            if (availableResources.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    "No writable resources available for destinations",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+            
+            val items = availableResources.map { "${it.name} (${it.path})" }.toTypedArray()
+            
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("Select Destination")
+                .setItems(items) { dialog, which ->
+                    val selectedResource = availableResources[which]
+                    viewModel.addDestination(selectedResource)
+                    Toast.makeText(
+                        requireContext(),
+                        "Destination added: ${selectedResource.name}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
         }
     }
     
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.settings.collect { settings ->
-                    // Update switches
-                    binding.switchEnableCopying.isChecked = settings.enableCopying
-                    binding.switchGoToNextAfterCopy.isChecked = settings.goToNextAfterCopy
-                    binding.switchOverwriteOnCopy.isChecked = settings.overwriteOnCopy
-                    binding.switchEnableMoving.isChecked = settings.enableMoving
-                    binding.switchOverwriteOnMove.isChecked = settings.overwriteOnMove
-                    
-                    updateCopyOptionsVisibility(settings.enableCopying)
-                    updateMoveOptionsVisibility(settings.enableMoving)
+                launch {
+                    viewModel.settings.collect { settings ->
+                        // Update switches
+                        binding.switchEnableCopying.isChecked = settings.enableCopying
+                        binding.switchGoToNextAfterCopy.isChecked = settings.goToNextAfterCopy
+                        binding.switchOverwriteOnCopy.isChecked = settings.overwriteOnCopy
+                        binding.switchEnableMoving.isChecked = settings.enableMoving
+                        binding.switchOverwriteOnMove.isChecked = settings.overwriteOnMove
+                        
+                        updateCopyOptionsVisibility(settings.enableCopying)
+                        updateMoveOptionsVisibility(settings.enableMoving)
+                    }
+                }
+                
+                launch {
+                    viewModel.destinations.collect { destinations ->
+                        adapter.submitList(destinations)
+                    }
                 }
             }
         }
-        
-        // TODO: Observe destinations from database
     }
     
     private fun updateCopyOptionsVisibility(enabled: Boolean) {
@@ -466,11 +504,32 @@ class DestinationsSettingsFragment : Fragment() {
     }
     
     private fun moveDestination(position: Int, direction: Int) {
-        // TODO: Implement destination reordering
+        val destinations = viewModel.destinations.value
+        if (position < 0 || position >= destinations.size) return
+        
+        val resource = destinations[position]
+        viewModel.moveDestination(resource, direction)
     }
     
     private fun deleteDestination(position: Int) {
-        // TODO: Implement destination deletion
+        val destinations = viewModel.destinations.value
+        if (position < 0 || position >= destinations.size) return
+        
+        val resource = destinations[position]
+        
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle("Remove Destination")
+            .setMessage("Remove '${resource.name}' from destinations?")
+            .setPositiveButton("Remove") { _, _ ->
+                viewModel.removeDestination(resource)
+                Toast.makeText(
+                    requireContext(),
+                    "Destination removed: ${resource.name}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
     
     inner class DestinationsAdapter(

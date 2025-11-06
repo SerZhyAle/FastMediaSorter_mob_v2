@@ -35,8 +35,19 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     private fun setupViews() {
-        binding.btnLanguage.setOnClickListener {
-            // TODO: Show language selection dialog
+        // Language spinner setup
+        binding.spinnerLanguage.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val languageCodes = arrayOf("en", "ru", "uk")
+                val selectedLanguage = languageCodes[position]
+                val current = viewModel.settings.value
+                if (current.language != selectedLanguage) {
+                    viewModel.updateSettings(current.copy(language = selectedLanguage))
+                    // TODO: Show restart dialog if language changed
+                }
+            }
+            
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
         }
         
         binding.switchPreventSleep.setOnCheckedChangeListener { _, isChecked ->
@@ -86,6 +97,13 @@ class GeneralSettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.settings.collect { settings ->
+                    // Set language spinner selection
+                    val languageCodes = arrayOf("en", "ru", "uk")
+                    val languageIndex = languageCodes.indexOf(settings.language).coerceAtLeast(0)
+                    if (binding.spinnerLanguage.selectedItemPosition != languageIndex) {
+                        binding.spinnerLanguage.setSelection(languageIndex)
+                    }
+                    
                     binding.switchPreventSleep.isChecked = settings.preventSleep
                     binding.switchSmallControls.isChecked = settings.showSmallControls
                     
