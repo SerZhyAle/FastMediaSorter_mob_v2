@@ -1,0 +1,118 @@
+<resources>
+    <string name="app_name">FastMediaSorter</string>
+    <string name="action_settings">Settings</string>
+    <string name="slideshow">Slide show</string>
+    <string name="connect">Connect</string>
+    <string name="sort">Sort..</string>
+    <string name="settings">Settings</string>
+    <string name="server_address">Server Address</string>
+    <string name="folder_address">Folder Address (e.g. 192.168.1.100\photos)</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="folder_path">Folder Path</string>
+    <string name="interval">1-300 sec</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="no_images_found">No images found</string>
+    <string name="loading">Loading...</string>
+    <string name="saved_connections">Saved Connections</string>
+    <string name="connection_name">Connection Name</string>
+    <string name="save">Save</string>
+    <string name="test">Test</string>
+    <string name="scan_and_add_shares">🔍 Scan &amp; Add Shares</string>
+    <string name="delete">Delete</string>
+    <string name="enter_connection_name">Please enter connection name</string>
+    <string name="connection_saved">Connection saved</string>
+    <string name="connection_deleted">Connection deleted</string>
+    <string name="back">Back</string>
+    <string name="footer_text">sza@ukr.net v251028</string>
+    <string name="touch_zones_title">Touch Control Zones</string>
+    <string name="touch_zones_description">Diagram showing touch zones in slideshow mode</string>
+    <string name="touch_zones_hint">Tap corresponding areas during slideshow to control playback</string>
+    <string name="local_folders">Local Folders</string>
+    <string name="network">Network</string>
+    <string name="scan_folders">SCAN</string>
+    <string name="add_custom_folder">+ Add Custom Folder</string>
+    <string name="no_media_permission">Media access permission required. Go to Settings to grant access and restart application.</string>
+    <string name="scanning_folders">Scanning folders...</string>
+    <string name="scan_complete">Scan complete. Found %d folders</string>
+    <string name="tab_sort_to">Sort to..</string>
+    <string name="tab_slideshow">Slideshow</string>
+    <string name="tab_video">Video</string>
+    <string name="tab_settings">Other</string>
+    <string name="subtab_destinations">Destinations</string>
+    <string name="subtab_sort_settings">Settings</string>
+    <!-- Video Settings -->
+    <string name="video_playback_settings">Video Playback Settings</string>
+    <string name="enable_video_playback">Enable video playback</string>
+    <string name="max_video_file_size">Maximum video file size (MB):</string>
+    <string name="valid_range_mb">Valid range: 1-999999 MB</string>
+    <string name="supported_formats">Supported formats: MP4, MKV, AVI, MOV, WEBM, 3GP</string>
+    <string name="video_streaming_note">Note: Videos stream from SMB without full download. Auto-play with sound.</string>
+    <string name="show_detailed_video_errors">Show detailed video error information</string>
+    <string name="detailed_errors_description">Enable to see detailed diagnostic information when video playback fails</string>
+    <string name="play_video_till_end">Show video till the end during slideshow</string>
+    <string name="play_video_till_end_description">When enabled, videos will play to completion regardless of slideshow interval. Otherwise, videos will be skipped after the interval time.</string>
+    <!-- Sort Help -->
+    <string name="sort_destinations_title">Sort Destinations (0-9)</string>
+    <string name="add_destination">+ Add Destination</string>
+    <string name="no_destinations_message">No destinations added\nTap + to add from connections</string>
+    <string name="back_button">← Back</string>
+    <string name="abc_rnd">ABC/RND</string>
+    <string name="prev_button">◄ Prev</string>
+    <string name="pause_play">▐▐ / ▶</string>
+    <!-- Toast Messages -->
+    <string name="scan_failed">Scan failed: %1$s</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+    <string name="select_connection_first">Please select a connection first</string>
+    <!-- Item layouts -->
+    <string name="connection_name_placeholder">Connection Name</string>
+    <string name="server_path_placeholder">server/path</string>
+    <string name="folder_count_placeholder">0</string>
+    <string name="photos_placeholder">photos</string>
+    <string name="ip_path_example">192.168.1.10\\photos</string>
+    <!-- Settings -->
+    <string name="application_settings">Application Settings</string>
+    <string name="sorting_settings">Sorting Settings</string>
+    <string name="allow_to_copy">Allow to Copy</string>
+    <string name="go_next_after_copy">Go to next file after copy</string>
+    <string name="allow_to_move">Allow to Move</string>
+    <string name="allow_to_delete">Allow to Delete</string>
+    <string name="request_user_for_deletion">Request user for deletion</string>
+    <string name="allow_renaming">Allow renaming</string>
+    <string name="use_small_buttons">Use small buttons</string>
+    <string name="slideshow_settings">Slideshow Settings</string>
+    <string name="show_controls">Show Controls</string>
+    <string name="general_settings">General Settings</string>
+    <string name="language">Language</string>
+    <string name="select_language">Select Language</string>
+    <string name="language_english">English</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_ukrainian">Українська</string>
+    <string name="restart_required">Restart required to apply language change</string>
+    <string name="not_allow_device_to_sleep">Not allow device to sleep</string>
+    <string name="local_storage_access">Local Storage Access</string>
+    <string name="grant_media_access">Grant Media Access</string>
+    <string name="help">Help</string>
+    <string name="user_guide">User Guide</string>
+    <string name="debug">Debug</string>
+    <string name="view_logs">View Application Logs</string>
+    <string name="view_session_logs">View Session Logs</string>
+    <string name="logs_title">Application Logs (Last 1000 lines)</string>
+    <string name="session_logs_title">Session Logs (Current Session)</string>
+    <string name="logs_empty">No logs available</string>
+    <string name="copy_logs">Copy Logs</string>
+    <string name="logs_copied">Logs copied to clipboard</string>
+    <!-- Network Fragment -->
+    <string name="add_also_to_destinations_list">Add also to destinations list</string>
+    <!-- Slideshow Help -->
+    <string name="next_button">Next ►</string>
+    <string name="rotate_left">↺ Rotate</string>
+    <string name="rotate_right">Rotate ↻</string>
+    <string name="button_controls_description">Button controls are enabled. During slideshow, you will see a panel with buttons at the bottom of the screen:\n\n• Back - Exit slideshow\n• Previous - Go to previous media\n• Pause/Play - Pause or resume slideshow\n• Next - Go to next media\n• Rotate Left - Rotate image counter-clockwise\n• Rotate Right - Rotate image clockwise\n• Shuffle - Toggle random/alphabetical order\n• Jump to Begin - Refresh folder and go to first media\n\nTo use invisible touch zones instead, turn off Show Controls in Settings.</string>
+    
+    <!-- Restart after permission -->
+    <string name="permission_granted_title">Permission Granted</string>
+    <string name="permission_granted_message">Media access permission has been granted. The application needs to restart to apply the changes. Would you like to restart now?</string>
+    <string name="restart_now">Restart</string>
+    <string name="restart_later">Later</string>
+</resources>

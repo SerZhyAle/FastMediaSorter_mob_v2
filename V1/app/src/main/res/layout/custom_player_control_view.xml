@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Bottom control bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:background="#CC000000"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp">
+
+        <!-- Progress bar -->
+        <androidx.media3.ui.DefaultTimeBar
+            android:id="@id/exo_progress"
+            android:layout_width="match_parent"
+            android:layout_height="26dp"
+            android:layout_marginBottom="8dp"
+            app:played_color="#FFFFFF"
+            app:scrubber_color="#FFFFFF"
+            app:unplayed_color="#33FFFFFF" />
+
+        <!-- Control buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Time display -->
+            <TextView
+                android:id="@id/exo_position"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:includeFontPadding="false"
+                android:paddingEnd="8dp" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Previous button -->
+            <ImageButton
+                android:id="@id/exo_prev"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/exo_icon_previous"
+                android:contentDescription="@string/exo_controls_previous_description"
+                android:tint="#FFFFFF" />
+
+            <!-- Rewind button -->
+            <ImageButton
+                android:id="@id/exo_rew"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/exo_icon_rewind"
+                android:contentDescription="@string/exo_controls_rewind_description"
+                android:tint="#FFFFFF" />
+
+            <!-- Play/pause button -->
+            <ImageButton
+                android:id="@id/exo_play_pause"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/exo_controls_play_description"
+                android:tint="#FFFFFF" />
+
+            <!-- Fast forward button -->
+            <ImageButton
+                android:id="@id/exo_ffwd"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/exo_icon_fastforward"
+                android:contentDescription="@string/exo_controls_fastforward_description"
+                android:tint="#FFFFFF" />
+
+            <!-- Next button -->
+            <ImageButton
+                android:id="@id/exo_next"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/exo_icon_next"
+                android:contentDescription="@string/exo_controls_next_description"
+                android:tint="#FFFFFF" />
+
+            <!-- Spacer -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <!-- Duration display -->
+            <TextView
+                android:id="@id/exo_duration"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:includeFontPadding="false"
+                android:paddingStart="8dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -1,0 +1,118 @@
+<resources>
+    <string name="app_name">FastMediaSorter</string>
+    <string name="action_settings">Налаштування</string>
+    <string name="slideshow">Слайд</string>
+    <string name="connect">Підключитися</string>
+    <string name="sort">Сорт..</string>
+    <string name="settings">Налаштування</string>
+    <string name="server_address">Адреса сервера</string>
+    <string name="folder_address">Адреса папки (наприклад, 192.168.1.100\\photos)</string>
+    <string name="username">Ім\'я користувача</string>
+    <string name="password">Пароль</string>
+    <string name="folder_path">Шлях до папки</string>
+    <string name="interval">1-300 сек</string>
+    <string name="connection_failed">Помилка підключення</string>
+    <string name="no_images_found">Медіафайли не знайдено</string>
+    <string name="loading">Завантаження...</string>
+    <string name="saved_connections">Збережені підключення</string>
+    <string name="connection_name">Ім\'я підключення</string>
+    <string name="save">Зберегти</string>
+    <string name="test">Тест</string>
+    <string name="scan_and_add_shares">🔍 Сканувати та додати папки</string>
+    <string name="delete">Видалити</string>
+    <string name="enter_connection_name">Введіть ім\'я підключення</string>
+    <string name="connection_saved">Підключення збережено</string>
+    <string name="connection_deleted">Підключення видалено</string>
+    <string name="back">Назад</string>
+    <string name="footer_text">sza@ukr.net v251028</string>
+    <string name="touch_zones_title">Сенсорні зони керування</string>
+    <string name="touch_zones_description">Діаграма, що показує сенсорні зони в режимі слайд-шоу</string>
+    <string name="touch_zones_hint">Торкайтеся відповідних областей під час слайд-шоу для керування відтворенням</string>
+    <string name="local_folders">Локальні папки</string>
+    <string name="network">Мережа</string>
+    <string name="scan_folders">СКАНУВАТИ</string>
+    <string name="add_custom_folder">+ Додати папку</string>
+    <string name="no_media_permission">Потрібен дозвіл на доступ до медіафайлів. Перейдіть до налаштувань, щоб надати дозвіл і перезапустити програму.</string>
+    <string name="scanning_folders">Сканування папок...</string>
+    <string name="scan_complete">Сканування завершено. Знайдено %d папок</string>
+    <string name="tab_sort_to">Сортування..</string>
+    <string name="tab_slideshow">Слайд-шоу</string>
+    <string name="tab_video">Відео</string>
+    <string name="tab_settings">Інше</string>
+    <string name="subtab_destinations">Призначення</string>
+    <string name="subtab_sort_settings">Налаштування</string>
+    <!-- Video Settings -->
+    <string name="video_playback_settings">Налаштування відтворення відео</string>
+    <string name="enable_video_playback">Увімкнути відтворення відео</string>
+    <string name="max_video_file_size">Максимальний розмір відеофайлу (МБ):</string>
+    <string name="valid_range_mb">Допустимий діапазон: 1-999999 МБ</string>
+    <string name="supported_formats">Підтримувані формати: MP4, MKV, AVI, MOV, WEBM, 3GP</string>
+    <string name="video_streaming_note">Примітка: Відео транслюється з SMB без повного завантаження. Автовідтворення зі звуком.</string>
+    <string name="show_detailed_video_errors">Показувати детальну інформацію про помилки відео</string>
+    <string name="detailed_errors_description">Увімкніть для відображення детальної діагностичної інформації при збоях відтворення відео</string>
+    <string name="play_video_till_end">Показувати відео до кінця під час слайдшоу</string>
+    <string name="play_video_till_end_description">Коли увімкнено, відео буде відтворюватися до завершення незалежно від інтервалу слайдшоу. Інакше відео буде пропущено після закінчення часу інтервалу.</string>
+    <!-- Sort Help -->
+    <string name="sort_destinations_title">Папки призначення (0-9)</string>
+    <string name="add_destination">+ Додати папку</string>
+    <string name="no_destinations_message">Папки не додано\nНатисніть + для додавання з підключень</string>
+    <string name="back_button">← Назад</string>
+    <string name="abc_rnd">АБВ/ВИП</string>
+    <string name="prev_button">◄ Попер</string>
+    <string name="pause_play">▐▐ / ▶</string>
+    <!-- Toast Messages -->
+    <string name="scan_failed">Помилка сканування: %1$s</string>
+    <string name="copied_to_clipboard">Скопійовано до буфера обміну</string>
+    <string name="select_connection_first">Спершу виберіть підключення</string>
+    <!-- Item layouts -->
+    <string name="connection_name_placeholder">Ім\'я підключення</string>
+    <string name="server_path_placeholder">сервер/шлях</string>
+    <string name="folder_count_placeholder">0</string>
+    <string name="photos_placeholder">фото</string>
+    <string name="ip_path_example">192.168.1.10\\photo</string>
+    <!-- Settings -->
+    <string name="application_settings">Налаштування програми</string>
+    <string name="sorting_settings">Налаштування сортування</string>
+    <string name="allow_to_copy">Дозволити копіювання</string>
+    <string name="go_next_after_copy">Переходити до наступного файлу після копіювання</string>
+    <string name="allow_to_move">Дозволити переміщення</string>
+    <string name="allow_to_delete">Дозволити видалення</string>
+    <string name="request_user_for_deletion">Запитувати підтвердження видалення</string>
+    <string name="allow_renaming">Дозволити перейменування</string>
+    <string name="use_small_buttons">Використовувати маленькі кнопки</string>
+    <string name="slideshow_settings">Налаштування слайд-шоу</string>
+    <string name="show_controls">Показувати елементи керування</string>
+    <string name="general_settings">Загальні налаштування</string>
+    <string name="language">Мова</string>
+    <string name="select_language">Оберіть мову</string>
+    <string name="language_english">English</string>
+    <string name="language_russian">Русский</string>
+    <string name="language_ukrainian">Українська</string>
+    <string name="restart_required">Потрібен перезапуск для застосування зміни мови</string>
+    <string name="not_allow_device_to_sleep">Не дозволяти пристрою засинати</string>
+    <string name="local_storage_access">Доступ до локального сховища</string>
+    <string name="grant_media_access">Надати доступ до медіафайлів</string>
+    <string name="help">Довідка</string>
+    <string name="user_guide">Керівництво користувача</string>
+    <string name="debug">Налагодження</string>
+    <string name="view_logs">Переглянути логи програми</string>
+    <string name="view_session_logs">Логи поточної сесії</string>
+    <string name="logs_title">Логи програми (Останні 1000 рядків)</string>
+    <string name="session_logs_title">Логи сесії (Поточна сесія)</string>
+    <string name="logs_empty">Логи недоступні</string>
+    <string name="copy_logs">Копіювати логи</string>
+    <string name="logs_copied">Логи скопійовано в буфер обміну</string>
+    <!-- Network Fragment -->
+    <string name="add_also_to_destinations_list">Додати також до списку призначень</string>
+    <!-- Slideshow Help -->
+    <string name="next_button">Наст ►</string>
+    <string name="rotate_left">↺ Поворот</string>
+    <string name="rotate_right">Поворот ↻</string>
+    <string name="button_controls_description">Елементи керування кнопками увімкнено. Під час слайд-шоу внизу екрана буде панель з кнопками:\n\n• Назад - Вийти зі слайд-шоу\n• Попередній - Попередній файл\n• Пауза/Відтворення - Призупинити або продовжити слайд-шоу\n• Наступний - Наступний файл\n• Поворот ліворуч - Повернути зображення проти годинникової стрілки\n• Поворот праворуч - Повернути зображення за годинниковою стрілкою\n• Перемішати - Увімкнути випадковий/алфавітний порядок\n• На початок - Оновити папку та перейти до першого файлу\n\nЩоб використовувати невидимі сенсорні зони, вимкніть Показувати елементи керування в налаштуваннях.</string>
+    
+    <!-- Restart after permission -->
+    <string name="permission_granted_title">Дозвіл надано</string>
+    <string name="permission_granted_message">Дозвіл на доступ до медіафайлів надано. Додаток необхідно перезапустити для застосування змін. Перезапустити зараз?</string>
+    <string name="restart_now">Перезапустити</string>
+    <string name="restart_later">Пізніше</string>
+</resources>

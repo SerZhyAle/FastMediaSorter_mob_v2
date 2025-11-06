@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Background -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#F5F5F5"/>
+        </shape>
+    </item>
+    
+    <!-- Warning circle -->
+    <item
+        android:width="120dp"
+        android:height="120dp"
+        android:gravity="center">
+        <shape android:shape="oval">
+            <solid android:color="#FFE57373"/>
+            <stroke android:width="3dp" android:color="#FFD32F2F"/>
+        </shape>
+    </item>
+    
+    <!-- Warning symbol (exclamation mark represented by shapes) -->
+    <item
+        android:width="8dp"
+        android:height="50dp"
+        android:gravity="center|top"
+        android:top="160dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFD32F2F"/>
+            <corners android:radius="4dp"/>
+        </shape>
+    </item>
+    
+    <item
+        android:width="8dp"
+        android:height="8dp"
+        android:gravity="center"
+        android:top="230dp">
+        <shape android:shape="oval">
+            <solid android:color="#FFD32F2F"/>
+        </shape>
+    </item>
+</layer-list>

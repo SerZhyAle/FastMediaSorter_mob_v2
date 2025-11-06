@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="360" height="640" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="360" height="640" fill="#E8E8E8"/>
+  
+  <!-- Sample Image -->
+  <rect x="20" y="160" width="320" height="320" fill="#CCCCCC" rx="8"/>
+  <text x="180" y="320" font-family="Arial" font-size="24" fill="#666666" text-anchor="middle">Image</text>
+  
+  <!-- Top Zone - Back (left) and Shuffle (right) -->
+  <g opacity="0.7">
+    <!-- Back Zone (Left) -->
+    <rect x="0" y="0" width="180" height="80" fill="#FF6B6B" stroke="#CC0000" stroke-width="2"/>
+    <text x="90" y="35" font-family="Arial" font-size="16" font-weight="bold" fill="white" text-anchor="middle">← BACK</text>
+    <text x="90" y="55" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Return to</text>
+    <text x="90" y="70" font-family="Arial" font-size="12" fill="white" text-anchor="middle">connection list</text>
+    
+    <!-- Shuffle Zone (Right) -->
+    <rect x="180" y="0" width="180" height="80" fill="#4ECDC4" stroke="#00A896" stroke-width="2"/>
+    <text x="270" y="35" font-family="Arial" font-size="16" font-weight="bold" fill="white" text-anchor="middle">ABC ⇄ RND</text>
+    <text x="270" y="55" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Toggle order:</text>
+    <text x="270" y="70" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Name / Random</text>
+  </g>
+  
+  <!-- Middle Zone - Controls (3 parts) -->
+  <g opacity="0.7">
+    <!-- Previous -->
+    <rect x="0" y="80" width="120" height="480" fill="#95E1D3" stroke="#00A896" stroke-width="2"/>
+    <text x="60" y="310" font-family="Arial" font-size="16" font-weight="bold" fill="white" text-anchor="middle">◄ PREV</text>
+    <text x="60" y="330" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Previous image</text>
+    <text x="60" y="345" font-family="Arial" font-size="12" fill="white" text-anchor="middle">+ Auto-pause</text>
+    
+    <!-- Pause/Resume -->
+    <rect x="120" y="80" width="120" height="480" fill="#F38181" stroke="#CC0000" stroke-width="2"/>
+    <text x="180" y="310" font-family="Arial" font-size="16" font-weight="bold" fill="white" text-anchor="middle">⏸ / ▶</text>
+    <text x="180" y="330" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Pause/Resume</text>
+    <text x="180" y="345" font-family="Arial" font-size="12" fill="white" text-anchor="middle">slideshow</text>
+    
+    <!-- Next -->
+    <rect x="240" y="80" width="120" height="480" fill="#95E1D3" stroke="#00A896" stroke-width="2"/>
+    <text x="300" y="310" font-family="Arial" font-size="16" font-weight="bold" fill="white" text-anchor="middle">NEXT ►</text>
+    <text x="300" y="330" font-family="Arial" font-size="12" fill="white" text-anchor="middle">Next image</text>
+    <text x="300" y="345" font-family="Arial" font-size="12" fill="white" text-anchor="middle">+ Reset timer</text>
+  </g>
+  
+  <!-- Bottom Zone - Rotation (2 parts) -->
+  <g opacity="0.7">
+    <!-- Rotate Left -->
+    <rect x="0" y="560" width="180" height="80" fill="#FFD93D" stroke="#F6C90E" stroke-width="2"/>
+    <text x="90" y="595" font-family="Arial" font-size="16" font-weight="bold" fill="#333333" text-anchor="middle">↶ ROTATE</text>
+    <text x="90" y="615" font-family="Arial" font-size="12" fill="#333333" text-anchor="middle">Left (-90°)</text>
+    
+    <!-- Rotate Right -->
+    <rect x="180" y="560" width="180" height="80" fill="#FFD93D" stroke="#F6C90E" stroke-width="2"/>
+    <text x="270" y="595" font-family="Arial" font-size="16" font-weight="bold" fill="#333333" text-anchor="middle">ROTATE ↷</text>
+    <text x="270" y="615" font-family="Arial" font-size="12" fill="#333333" text-anchor="middle">Right (+90°)</text>
+  </g>
+  
+  <!-- Legend/Title -->
+  <rect x="0" y="0" width="360" height="640" fill="none" stroke="#333333" stroke-width="3"/>
+  <rect x="10" y="10" width="340" height="30" fill="white" opacity="0.9" rx="4"/>
+  <text x="180" y="30" font-family="Arial" font-size="18" font-weight="bold" fill="#333333" text-anchor="middle">Touch Control Zones</text>
+</svg>
