@@ -61,13 +61,13 @@
 
 ## 📂 Browse Screen Improvements (3 tasks)
 
-- [ ] **Browse Screen: Implement multi-selection**
+- [x] **Browse Screen: Implement multi-selection**
   - According to specification, long press should select file range
-  - ⚠️ DISCREPANCY: Current implementation in MediaFileAdapter supports single file selection
-  - Need: range selection of files (from previous to current) on long press
+  - ✅ IMPLEMENTED: Range selection logic in BrowseViewModel.selectFileRange()
+  - ✅ IMPLEMENTED: Long press selects range from last selected to current file
   - If no file was selected: long press selects file without launching player
   - If file already selected: long press adds all files between current and previously selected
-  - Selected files are highlighted, counter in header
+  - Selected files are highlighted with blue background, counter in header
 
 - [x] **Browse Screen: Add Rename button**
   - ✅ IMPLEMENTED: btnRename added to activity_browse.xml between btnMove and btnDelete
