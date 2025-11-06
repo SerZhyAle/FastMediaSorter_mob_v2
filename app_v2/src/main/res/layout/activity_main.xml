@@ -23,10 +23,27 @@
         android:layout_margin="8dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/layoutControlButtons"
-        app:layout_constraintBottom_toTopOf="@id/layoutButtons"
+        app:layout_constraintBottom_toTopOf="@id/tvFilterWarning"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_resource" />
+
+    <TextView
+        android:id="@+id/tvFilterWarning"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:layout_marginBottom="4dp"
+        android:padding="8dp"
+        android:textSize="12sp"
+        android:textColor="@android:color/holo_orange_dark"
+        android:background="@android:color/darker_gray"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@id/layoutButtons"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="Filters: Type: LOCAL, NETWORK | Media: Images, Videos | Name: 'test'"
+        tools:visibility="visible" />
 
     <LinearLayout
         android:id="@+id/layoutControlButtons"

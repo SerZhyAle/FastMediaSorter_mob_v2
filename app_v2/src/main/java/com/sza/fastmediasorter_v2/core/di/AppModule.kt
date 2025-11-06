@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter_v2.core.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter_v2.data.local.LocalMediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import dagger.Binds
@@ -13,6 +16,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import javax.inject.Qualifier
 import javax.inject.Singleton
+
+private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
@@ -48,6 +53,12 @@ object AppModule {
     @Provides
     @Singleton
     fun provideDefaultDispatcher(): CoroutineDispatcher = Dispatchers.Default
+    
+    @Provides
+    @Singleton
+    fun provideDataStore(@ApplicationContext context: Context): DataStore<Preferences> {
+        return context.dataStore
+    }
 }
 
 @Module

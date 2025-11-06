@@ -5,25 +5,30 @@ import android.os.Environment
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
+import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.util.Date
 import javax.inject.Inject
 
 class ScanLocalFoldersUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val mediaScanner: MediaScanner
+    private val mediaScanner: MediaScanner,
+    private val repository: ResourceRepository
 ) {
     suspend operator fun invoke(): Result<List<MediaResource>> = withContext(Dispatchers.IO) {
         try {
+            val existingResources = repository.getAllResources().first()
+            val existingPaths = existingResources.map { it.path }.toSet()
+            
             val resources = mutableListOf<MediaResource>()
             val predefinedFolders = getPredefinedFolders()
             
             predefinedFolders.forEach { folder ->
-                if (folder.exists()) {
+                if (folder.exists() && folder.absolutePath !in existingPaths) {
                     val fileCount = try {
                         mediaScanner.getFileCount(
                             folder.absolutePath,
@@ -43,7 +48,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
                     
                     resources.add(
                         MediaResource(
-                            id = 0,
+                            id = 1,
                             name = folder.name,
                             path = folder.absolutePath,
                             type = ResourceType.LOCAL,

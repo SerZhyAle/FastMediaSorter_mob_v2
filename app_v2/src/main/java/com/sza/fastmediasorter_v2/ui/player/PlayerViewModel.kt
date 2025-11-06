@@ -4,6 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
+import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +17,9 @@ import javax.inject.Inject
 class PlayerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val getResourcesUseCase: GetResourcesUseCase,
-    private val getMediaFilesUseCase: GetMediaFilesUseCase
+    private val getMediaFilesUseCase: GetMediaFilesUseCase,
+    val fileOperationUseCase: FileOperationUseCase,
+    val getDestinationsUseCase: GetDestinationsUseCase
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(

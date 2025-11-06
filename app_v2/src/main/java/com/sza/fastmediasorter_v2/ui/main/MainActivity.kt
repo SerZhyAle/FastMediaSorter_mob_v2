@@ -13,6 +13,7 @@ import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityMainBinding
 import com.sza.fastmediasorter_v2.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter_v2.ui.browse.BrowseActivity
+import com.sza.fastmediasorter_v2.ui.settings.SettingsActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -66,18 +67,27 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         
         binding.btnSettings.setOnClickListener {
-            // TODO: Навигация к настройкам
-            Timber.d("Open settings")
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
         
         binding.btnFilter.setOnClickListener {
-            // TODO: Показать диалог фильтрации
-            Timber.d("Open filter")
+            val currentState = viewModel.state.value
+            FilterResourceDialog.newInstance(
+                sortMode = currentState.sortMode,
+                resourceTypes = currentState.filterByType,
+                mediaTypes = currentState.filterByMediaType,
+                nameFilter = currentState.filterByName,
+                onApply = { sortMode, filterByType, filterByMediaType, filterByName ->
+                    viewModel.setSortMode(sortMode)
+                    viewModel.setFilterByType(filterByType)
+                    viewModel.setFilterByMediaType(filterByMediaType)
+                    viewModel.setFilterByName(filterByName)
+                }
+            ).show(supportFragmentManager, "FilterResourceDialog")
         }
         
         binding.btnRefresh.setOnClickListener {
-            // TODO: Обновить список ресурсов
-            Timber.d("Refresh resources")
+            viewModel.refreshResources()
         }
         
         binding.btnCopyResource.setOnClickListener {
@@ -97,6 +107,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     resourceAdapter.setSelectedResource(state.selectedResource?.id)
                     
                     binding.btnStartPlayer.isEnabled = state.selectedResource != null
+                    
+                    updateFilterWarning(state)
                 }
             }
         }
@@ -132,6 +144,33 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     }
                 }
             }
+        }
+    }
+    
+    private fun updateFilterWarning(state: MainState) {
+        val hasFilters = state.filterByType != null || 
+                         state.filterByMediaType != null || 
+                         !state.filterByName.isNullOrBlank()
+        
+        if (hasFilters) {
+            val parts = mutableListOf<String>()
+            
+            state.filterByType?.let { types ->
+                parts.add("Type: ${types.joinToString(", ")}")
+            }
+            
+            state.filterByMediaType?.let { mediaTypes ->
+                parts.add("Media: ${mediaTypes.joinToString(", ")}")
+            }
+            
+            state.filterByName?.takeIf { it.isNotBlank() }?.let { name ->
+                parts.add("Name: '$name'")
+            }
+            
+            binding.tvFilterWarning.text = "Filters: ${parts.joinToString(" | ")}"
+            binding.tvFilterWarning.isVisible = true
+        } else {
+            binding.tvFilterWarning.isVisible = false
         }
     }
     

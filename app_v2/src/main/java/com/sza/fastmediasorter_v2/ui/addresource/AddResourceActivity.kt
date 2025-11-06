@@ -24,8 +24,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     ) { uri ->
         if (uri != null) {
             Timber.d("Selected folder: $uri")
-            // TODO: Добавить ресурс из выбранной папки
-            Toast.makeText(this, "Selected: $uri", Toast.LENGTH_SHORT).show()
+            viewModel.addManualFolder(uri)
         }
     }
 

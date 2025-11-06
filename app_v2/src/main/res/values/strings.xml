@@ -50,6 +50,44 @@
     <string name="refresh">Refresh</string>
     <string name="copy_resource">Copy Resource</string>
     <string name="exit">Exit</string>
+    
+    <!-- Settings -->
+    <string name="general">General</string>
+    <string name="media_files">Media Files</string>
+    <string name="playback">Playback and Sorting</string>
+    <string name="destinations">Destinations</string>
+    <string name="language">Language</string>
+    <string name="prevent_sleep">Prevent sleep</string>
+    <string name="small_controls">Small controls</string>
+    <string name="default_smb_user">Default SMB user</string>
+    <string name="default_smb_password">Default SMB password</string>
+    <string name="manage_permissions">Manage permissions</string>
+    <string name="show_logs">Show logs</string>
+    <string name="support_images">Support Images</string>
+    <string name="support_gif">Support GIF</string>
+    <string name="support_video">Support Video</string>
+    <string name="support_audio">Support Audio</string>
+    <string name="image_size_limits">Image size limits (MB)</string>
+    <string name="video_size_limits">Video size limits (GB)</string>
+    <string name="audio_size_limits">Audio size limits (MB)</string>
+    <string name="default_sort_mode">Default sort mode</string>
+    <string name="slideshow_interval">Slideshow interval</string>
+    <string name="play_video_to_end">Play video to end</string>
+    <string name="allow_rename">Allow rename</string>
+    <string name="allow_delete">Allow delete</string>
+    <string name="confirm_delete">Confirm delete</string>
+    <string name="grid_mode">Grid mode</string>
+    <string name="full_screen_mode">Full screen mode</string>
+    <string name="show_detailed_errors">Show detailed errors</string>
+    <string name="default_icon_size">Default icon size (pixels)</string>
+    <string name="enable_copying">Enable copying</string>
+    <string name="go_to_next_after_copy">Go to next file after copying</string>
+    <string name="overwrite_on_copy">Overwrite existing file when copying</string>
+    <string name="enable_moving">Enable moving</string>
+    <string name="overwrite_on_move">Overwrite existing file when moving</string>
+    <string name="destinations_list">Destinations (0-9)</string>
+    <string name="destinations_description">Up to 10 destination resources. Each has a color and number (0-9).</string>
+    <string name="add_destination">Add Destination</string>
 </resources>
 
 

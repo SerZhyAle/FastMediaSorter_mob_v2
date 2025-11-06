@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Support static images -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchSupportImages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Support static images"
+            android:checked="true"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Supported: JPG, PNG, BMP, WEBP"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvImageSizeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Image size limit"
+            android:textSize="14sp"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvImageSizeRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1 KB - 10 MB"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/sliderImageSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="100"
+            android:stepSize="1"
+            app:values="@array/image_size_default_range"
+            android:layout_marginStart="36dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Support GIF animation -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchSupportGifs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Support GIF animation"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Support video -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchSupportVideos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Support video"
+            android:checked="true"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Supported: MP4, MKV, AVI, MOV, WEBM"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvVideoSizeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Video file size limit"
+            android:textSize="14sp"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvVideoSizeRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="100 KB - 1 GB"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/sliderVideoSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="100"
+            android:stepSize="1"
+            app:values="@array/video_size_default_range"
+            android:layout_marginStart="36dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Support audio -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchSupportAudio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Support audio"
+            android:checked="true"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Supported: MP3, AAC, FLAC, OGG, WAV"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvAudioSizeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Audio file size limit"
+            android:textSize="14sp"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/tvAudioSizeRange"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="10 KB - 100 MB"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="4dp" />
+
+        <com.google.android.material.slider.RangeSlider
+            android:id="@+id/sliderAudioSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="0"
+            android:valueTo="100"
+            android:stepSize="1"
+            app:values="@array/audio_size_default_range"
+            android:layout_marginStart="36dp"
+            android:layout_marginEnd="16dp"
+            android:layout_marginBottom="16dp" />
+
+    </LinearLayout>
+
+</ScrollView>

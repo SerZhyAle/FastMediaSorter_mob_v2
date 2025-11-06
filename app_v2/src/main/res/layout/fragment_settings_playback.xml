@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/default_sort_mode"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.textfield.MaterialAutoCompleteTextView
+            android:id="@+id/spinnerSortMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="none"
+            android:layout_marginBottom="24dp"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/slideshow_interval"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvSlideshowValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:layout_marginBottom="4dp"/>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/sliderSlideshow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="1"
+            android:valueTo="3600"
+            android:stepSize="1"
+            android:layout_marginBottom="24dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchPlayToEnd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/play_video_to_end"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchAllowRename"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/allow_rename"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchAllowDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/allow_delete"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchConfirmDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/confirm_delete"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchGridMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/grid_mode"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchFullScreen"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/full_screen_mode"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/switchDetailedErrors"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/show_detailed_errors"
+            android:layout_marginBottom="24dp"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/default_icon_size"
+            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvIconSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:layout_marginBottom="4dp"/>
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/sliderIconSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="32"
+            android:valueTo="256"
+            android:stepSize="8"
+            android:layout_marginBottom="16dp"/>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

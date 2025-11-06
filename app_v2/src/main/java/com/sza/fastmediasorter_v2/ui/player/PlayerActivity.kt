@@ -20,6 +20,9 @@ import coil.load
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityPlayerBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
+import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
+import com.sza.fastmediasorter_v2.ui.dialog.RenameDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import java.io.File
@@ -35,6 +38,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
     private val slideShowHandler = Handler(Looper.getMainLooper())
     private val hideControlsHandler = Handler(Looper.getMainLooper())
     private lateinit var gestureDetector: GestureDetector
+    private val touchZoneDetector = TouchZoneDetector()
+    private var useTouchZones = true // Use touch zones for images, gestures for video
 
     private val slideShowRunnable = object : Runnable {
         override fun run() {
@@ -68,12 +73,20 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
     private fun setupGestureDetector() {
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                viewModel.toggleControls()
-                scheduleHideControls()
+                // For static images, use touch zones instead of toggling controls
+                val currentFile = viewModel.state.value.currentFile
+                if (currentFile?.type == MediaType.IMAGE && useTouchZones) {
+                    handleTouchZone(e.x, e.y)
+                } else {
+                    // For video and audio, toggle controls on single tap
+                    viewModel.toggleControls()
+                    scheduleHideControls()
+                }
                 return true
             }
 
             override fun onDoubleTap(e: MotionEvent): Boolean {
+                // Double tap still works for quick navigation (fallback)
                 val screenWidth = binding.root.width
                 if (e.x < screenWidth / 3) {
                     viewModel.previousFile()
@@ -94,6 +107,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
                 velocityX: Float,
                 velocityY: Float
             ): Boolean {
+                // Fling still works for quick swipe navigation
                 if (e1 != null && Math.abs(velocityX) > Math.abs(velocityY)) {
                     if (velocityX > 0) {
                         viewModel.previousFile()
@@ -110,6 +124,105 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
             gestureDetector.onTouchEvent(event)
             true
         }
+    }
+    
+    /**
+     * Handle touch zones for static images (3x3 grid)
+     */
+    private fun handleTouchZone(x: Float, y: Float) {
+        val screenWidth = binding.root.width
+        val screenHeight = binding.root.height
+        
+        val zone = touchZoneDetector.detectZone(x, y, screenWidth, screenHeight)
+        
+        when (zone) {
+            TouchZone.BACK -> {
+                finish()
+            }
+            TouchZone.COPY -> {
+                showCopyDialog()
+            }
+            TouchZone.RENAME -> {
+                showRenameDialog()
+            }
+            TouchZone.PREVIOUS -> {
+                viewModel.previousFile()
+            }
+            TouchZone.MOVE -> {
+                showMoveDialog()
+            }
+            TouchZone.NEXT -> {
+                viewModel.nextFile()
+            }
+            TouchZone.COMMAND_PANEL -> {
+                // TODO: Toggle command panel mode
+                Toast.makeText(this, "Command Panel mode - not implemented yet", Toast.LENGTH_SHORT).show()
+            }
+            TouchZone.DELETE -> {
+                deleteCurrentFile()
+            }
+            TouchZone.SLIDESHOW -> {
+                viewModel.toggleSlideShow()
+                updateSlideShowButton()
+                updateSlideShow()
+            }
+            TouchZone.NONE -> {
+                // No action
+            }
+        }
+    }
+    
+    private fun showCopyDialog() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        val resourceId = intent.getLongExtra("resourceId", -1)
+        
+        CopyToDialog(
+            context = this,
+            sourceFiles = listOf(File(currentFile.path)),
+            sourceFolderName = "Current folder", // TODO: Get actual resource name
+            currentResourceId = resourceId,
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            getDestinationsUseCase = viewModel.getDestinationsUseCase,
+            overwriteFiles = false, // TODO: Get from settings
+            onComplete = {
+                // Refresh current view or go to next file based on settings
+                // TODO: Check settings for goToNextAfterCopy
+            }
+        ).show()
+    }
+    
+    private fun showMoveDialog() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        val resourceId = intent.getLongExtra("resourceId", -1)
+        
+        MoveToDialog(
+            context = this,
+            sourceFiles = listOf(File(currentFile.path)),
+            sourceFolderName = "Current folder", // TODO: Get actual resource name
+            currentResourceId = resourceId,
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            getDestinationsUseCase = viewModel.getDestinationsUseCase,
+            overwriteFiles = false, // TODO: Get from settings
+            onComplete = {
+                // Go to next file after move
+                viewModel.nextFile()
+            }
+        ).show()
+    }
+    
+    private fun showRenameDialog() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        RenameDialog(
+            context = this,
+            files = listOf(File(currentFile.path)),
+            sourceFolderName = "Current folder", // TODO: Get actual resource name
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            onComplete = {
+                // Refresh current file display
+                // TODO: Reload file list to reflect new name
+            }
+        ).show()
     }
 
     private fun setupToolbar() {

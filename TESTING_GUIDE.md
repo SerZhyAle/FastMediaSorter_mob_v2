@@ -2,6 +2,156 @@
 
 This document provides step-by-step scenarios for manual testing of FastMediaSorter v2 on both virtual (emulator) and physical Android devices.
 
+## Current Implementation Status
+
+**✅ IMPLEMENTED (Ready to Test):**
+- Main Screen: resource list, selection, delete, copy button
+- Add Resource Screen: scan local folders, add manually
+- Browse Screen: file list/grid, sorting, multi-selection with range, rename, slideshow
+- Player Screen: image/video playback, basic gestures
+- File Operations: copy, move, rename, delete with dialogs
+- Destinations: up to 10 destinations, color buttons
+- Filtering: Main Screen resource filtering by type, media type, name
+- Refresh: Resource rescan for file count and writable status
+
+**⚠️ PARTIALLY IMPLEMENTED:**
+- Settings Screen (basic structure, not all options)
+- Network/Cloud resources (structure only, not functional)
+
+**❌ NOT IMPLEMENTED:**
+- Player touch zones (3x3 grid)
+- Player command panel mode
+- Operation undo mechanism
+- Some advanced settings options
+
+---
+
+## How to Use This Guide
+
+For each scenario:
+- **[  ]** - Not tested yet
+- **[✓]** - Tested, works as expected
+- **[!]** - Tested, found issues (describe in Notes)
+- **[X]** - Not applicable (feature not implemented)
+
+Format for notes:
+```
+[!] Brief issue description
+    Details: what happened vs expected
+    Device: API level, manufacturer
+```
+
+---
+
+## Quick Start - Testable Scenarios
+
+### ✅ Ready to Test NOW (26 scenarios)
+
+**Section 1: First Launch (2 scenarios)**
+- 1.1 First Time App Launch
+- 1.2 Media Permissions Request
+
+**Section 2: Adding Resources (3 scenarios)**
+- 2.1 Scan Local Folders
+- 2.2 Add Local Folder Manually
+- 2.3 Add Resource to Main List
+
+**Section 3: Main Screen (10 scenarios)**
+- 3.1 Select Resource
+- 3.2 Double-Click to Browse
+- 3.3 Long Press to Browse
+- 3.4 Copy Resource
+- 3.7 Delete Resource
+- 3.8 Exit Application
+- 3.9 Filter Resources (NEW)
+- 3.10 Sort Resources (NEW)
+- 3.11 Filter by Media Type (NEW)
+- 3.12 Refresh Resources (NEW)
+
+**Section 4: Browse Screen (8 scenarios)**
+- 4.1 View Media Files List
+- 4.2 Toggle Grid/List View
+- 4.3 Sort Media Files
+- 4.4 Single File Selection
+- 4.5 Multi-Selection with Range (Long Press)
+- 4.6 Play Single File
+- 4.8 Start Slideshow
+- 4.9 Rename Files
+
+**Section 5: Player Screen (3 scenarios)**
+- 5.1 Play Image
+- 5.2 Play Video
+- 5.4 Navigate Between Files
+
+### ⚠️ Partially Testable (require manual setup)
+
+**Section 6: File Operations (4 scenarios)**
+- 6.1 Copy Files to Destination
+- 6.2 Move Files to Destination
+- 6.3 Rename Files
+- 6.4 Delete Files
+
+**Section 7: Destinations (3 scenarios)**
+- 7.1 Add Destination
+- 7.2 Use Destination Buttons
+- 7.3 Remove Destination
+
+### ❌ Not Testable (not implemented)
+
+- 3.5 Edit Resource (partially)
+- 3.6 Move Resource Position (TODO)
+- 5.3 Touch Zones for Images (not implemented)
+- 5.5 Command Panel Mode (not implemented)
+- Section 8: Settings (most options not implemented)
+- Section 9: Network/Cloud (not implemented)
+- Section 10: Edge Cases (partially)
+
+---
+
+## Recommended Testing Order
+
+### 🎯 Phase 1: Basic Flow (Start Here - 30 min)
+1. **1.1** First Time App Launch
+2. **1.2** Media Permissions Request
+3. **2.1** Scan Local Folders
+4. **2.3** Add Resource to Main List
+5. **3.1** Select Resource
+6. **3.2** Double-Click to Browse
+7. **4.1** View Media Files List
+8. **4.6** Play Single File
+9. **5.1** Play Image
+10. **5.2** Play Video
+
+### 🔧 Phase 2: Main Features (45 min)
+11. **3.9** Filter Resources by Type
+12. **3.10** Filter Resources by Media Type
+13. **3.11** Filter Resources by Name
+14. **3.12** Sort Resources
+15. **3.13** Refresh Resources
+16. **4.2** Toggle Grid/List View
+17. **4.3** Sort Media Files
+18. **4.4** Single File Selection
+19. **4.5** Multi-Selection with Range
+20. **4.9** Rename Files
+
+### 🚀 Phase 3: Advanced (60 min)
+21. **6.1** Copy Files to Destination
+22. **6.2** Move Files to Destination
+23. **7.1** Add Destination
+24. **7.2** Use Destination Buttons
+25. **4.8** Start Slideshow
+26. **3.4** Copy Resource
+27. **3.7** Delete Resource
+28. **3.14** Combined Filters
+
+### 🐛 Phase 4: Edge Cases (30 min)
+29. Empty folders, large file counts (1000+)
+30. Special characters in filenames
+31. Very long filenames
+32. Different media formats (PNG, JPG, MP4, AVI, etc.)
+
+---
+
 ## Testing Environment Setup
 
 ### Prerequisites
@@ -22,6 +172,9 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 ### 1. First Launch and Permissions
 
 #### Scenario 1.1: First Time App Launch
+**Status:** [  ] Ready to test  
+**Priority:** HIGH (Basic functionality)
+
 **Steps:**
 1. Install the APK on a fresh device (or clear app data)
 2. Launch FastMediaSorter v2
@@ -36,9 +189,17 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 **Test on:** Emulator, Physical device
 
+**Notes:**
+```
+[Record issues here]
+```
+
 ---
 
 #### Scenario 1.2: Media Permissions Request
+**Status:** [  ] Ready to test  
+**Priority:** HIGH (Required for functionality)
+
 **Steps:**
 1. From Main Screen, tap "Add Resource" button
 2. Select "Local Folder" type
@@ -53,11 +214,19 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 **Test on:** Physical device (API 28-32), Emulator (API 33+)
 
+**Notes:**
+```
+[Record issues here]
+```
+
 ---
 
 ### 2. Adding Local Resources
 
 #### Scenario 2.1: Scan Local Folders
+**Status:** [  ] Ready to test  
+**Priority:** HIGH (Core feature)
+
 **Preparation:**
 - Ensure device has media files in standard folders (Camera, Pictures, Download)
 
@@ -79,9 +248,17 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 **Test on:** Physical device, Emulator with prepared media
 
+**Notes:**
+```
+[Record issues here]
+```
+
 ---
 
 #### Scenario 2.2: Add Local Folder Manually
+**Status:** [  ] Ready to test  
+**Priority:** HIGH (Core feature)
+
 **Steps:**
 1. Open Main Screen
 2. Tap "Add Resource" button
@@ -99,9 +276,17 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 **Test on:** Physical device, Emulator
 
+**Notes:**
+```
+[Record issues here]
+```
+
 ---
 
 #### Scenario 2.3: Add Resource to Main List
+**Status:** [  ] Ready to test  
+**Priority:** HIGH (Core feature)
+
 **Preparation:**
 - Complete Scenario 2.1 or 2.2
 
@@ -126,11 +311,19 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 **Test on:** Emulator, Physical device
 
+**Notes:**
+```
+[Record issues here]
+```
+
 ---
 
 ### 3. Main Screen Operations
 
 #### Scenario 3.1: Select Resource
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Have at least 3 resources in the list
 
@@ -149,7 +342,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.2: Double-Click to Browse
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Have at least one resource with media files
 
@@ -166,7 +366,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.3: Long Press to Browse
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Long press on a resource
 2. Observe navigation
@@ -179,7 +386,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.4: Copy Resource
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Select a resource
 2. Tap "Copy Resource" button (copy icon)
@@ -197,7 +411,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.5: Edit Resource
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. Tap "Edit" icon (✏️) on a resource
 2. Modify resource name or settings
@@ -214,7 +435,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.6: Move Resource Position
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. Tap "Up" arrow on a resource (not first in list)
 2. Tap "Down" arrow on a resource (not last in list)
@@ -228,7 +456,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.7: Delete Resource
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Tap "Delete" icon (🗑️) on a resource
 2. Confirm deletion in dialog
@@ -245,7 +480,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 3.8: Exit Application
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. From Main Screen, tap "Exit" button (door icon)
 
@@ -258,9 +500,196 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
+#### Scenario 3.9: Filter Resources by Type
+**Status:** [  ] Ready to test (NEW)  
+**Priority:** HIGH
+
+**Preparation:**
+- Have at least 3 resources in list
+
+**Steps:**
+1. Tap "Filter" button (search icon)
+2. In dialog, select resource types (LOCAL/NETWORK/CLOUD/SFTP)
+3. Tap "Apply"
+4. Observe filtered list
+
+**Expected Results:**
+- FilterResourceDialog opens with current filter state
+- ChipGroup shows resource types with checkable chips
+- After Apply: list shows only selected types
+- Filter warning appears at bottom: "Filters: Type: LOCAL, NETWORK"
+- Clear button removes all filters
+
+**Test on:** Emulator, Physical device
+
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
+#### Scenario 3.10: Filter Resources by Media Type
+**Status:** [  ] Ready to test (NEW)  
+**Priority:** HIGH
+
+**Preparation:**
+- Have resources with different media types
+
+**Steps:**
+1. Tap "Filter" button
+2. In dialog, select media types (Images/Videos/Audio/GIFs)
+3. Tap "Apply"
+4. Observe filtered list
+
+**Expected Results:**
+- ChipGroup shows media types (I/V/A/G chips)
+- After Apply: only resources supporting selected media types shown
+- Filter warning: "Filters: Media: Images, Videos"
+- Combining type filters: both must match
+
+**Test on:** Emulator, Physical device
+
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
+#### Scenario 3.11: Filter Resources by Name
+**Status:** [  ] Ready to test (NEW)  
+**Priority:** MEDIUM
+
+**Preparation:**
+- Have resources with different names
+
+**Steps:**
+1. Tap "Filter" button
+2. In dialog, enter text in "Filter by name" field (e.g., "Camera")
+3. Tap "Apply"
+4. Observe filtered list
+
+**Expected Results:**
+- TextInputLayout accepts text input
+- Filter is case-insensitive
+- Searches both name and path
+- Filter warning: "Filters: Name: 'Camera'"
+- Empty search shows all resources
+
+**Test on:** Emulator, Physical device
+
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
+#### Scenario 3.12: Sort Resources
+**Status:** [  ] Ready to test (NEW)  
+**Priority:** MEDIUM
+
+**Preparation:**
+- Have at least 5 resources with different names, dates, file counts
+
+**Steps:**
+1. Tap "Filter" button
+2. In dialog, select sort mode:
+   - Name (A-Z / Z-A)
+   - Date (Oldest / Newest)
+   - Size (Smallest / Largest)
+3. Tap "Apply"
+4. Observe sorted list
+
+**Expected Results:**
+- RadioGroup shows 6 sort options
+- Only one sort mode can be selected
+- List updates with selected sort order
+- Sort persists after closing/reopening dialog
+- Default is Name A-Z
+
+**Test on:** Emulator, Physical device
+
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
+#### Scenario 3.13: Refresh Resources
+**Status:** [  ] Ready to test (NEW)  
+**Priority:** HIGH
+
+**Preparation:**
+- Have 2+ resources in list
+- Add/delete files in one folder externally (file manager)
+
+**Steps:**
+1. Note current file counts for resources
+2. Add 3-5 new media files to one folder (via file manager)
+3. Return to app, tap "Refresh" button (sync icon)
+4. Wait for progress indicator
+5. Observe updated file counts
+
+**Expected Results:**
+- Progress indicator shows during scan
+- File counts update for all resources
+- Writable status re-checked (lock icon appears/disappears)
+- Toast message: "Resources refreshed"
+- List remains in same order
+
+**Test on:** Physical device (easier to manipulate files)
+
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
+#### Scenario 3.14: Combined Filters
+**Status:** [  ] Ready to test (NEW)  
+**Priority:** MEDIUM
+
+**Preparation:**
+- Have 5+ resources with various types and media types
+
+**Steps:**
+1. Tap "Filter" button
+2. Select: Type=LOCAL, Media=Images, Name contains "Pic"
+3. Tap "Apply"
+4. Observe combined filter results
+
+**Expected Results:**
+- All three filters apply simultaneously (AND logic)
+- Filter warning shows all active filters
+- Only resources matching ALL criteria shown
+- Clear button removes all filters at once
+
+**Test on:** Emulator, Physical device
+
+**Notes:**
+```
+[Record issues here]
+```
+
+---
+
 ### 4. Browse Screen Operations
 
 #### Scenario 4.1: View Media Files List
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Navigate to Browse Screen from resource with 10+ files
 
@@ -286,7 +715,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.2: Toggle Grid/List View
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. From Browse Screen, tap "Toggle View" button
 2. Observe layout change
@@ -302,7 +738,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.3: Sort Media Files
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Tap "Sort" button
 2. Select different sort mode (e.g., Date Descending)
@@ -321,7 +764,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.4: Single File Selection (Checkbox)
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Tap checkbox on a file
 2. Tap checkbox on another file
@@ -338,7 +788,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.5: Multi-Selection with Range (Long Press)
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Navigate to Browse Screen with 20+ files
 
@@ -359,7 +816,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.6: Play Single File
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Tap on a file's thumbnail or name
 2. Wait for Player Screen to open
@@ -375,7 +839,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.7: Play Button for File
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Tap "Play" button (▶️) on a file
 
@@ -387,7 +858,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.8: Start Slideshow
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. From Browse Screen, tap "Slideshow" button
 2. Observe playback
@@ -403,7 +881,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.9: Rename Single File
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Navigate to writable folder (isWritable = true)
 
@@ -425,7 +910,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.10: Rename Multiple Files
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Select 3 files
 2. Tap "Rename" button
@@ -442,7 +934,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.11: Delete Files (with Confirmation)
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Ensure "Confirm deletion" setting is ON
 
@@ -465,7 +964,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.12: Copy Files to Destination
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Add at least 2 resources, one marked as destination
 
@@ -491,7 +997,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.13: Move Files to Destination
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Writable source folder with destinations configured
 
@@ -512,7 +1025,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 4.14: Button Visibility Based on Permissions
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Test with both writable and read-only folders
 
@@ -538,9 +1058,16 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 ### 5. Player Screen Operations
 
 #### Scenario 5.1: Image Playback
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Open image file from Browse Screen
 2. Observe display
@@ -558,7 +1085,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 5.2: Video Playback
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Open video file
 2. Observe playback
@@ -578,7 +1112,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 5.3: Navigate Between Files (Swipe)
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Open any media file
 2. Swipe left to go to next file
@@ -596,7 +1137,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 5.4: Slideshow Mode
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Start slideshow from Browse Screen
 2. Observe automatic progression
@@ -614,7 +1162,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 5.5: Return to Browse Screen
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. From Player Screen, tap "Back" button or gesture
 2. Observe navigation
@@ -629,9 +1184,16 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 ### 6. Data Persistence
 
 #### Scenario 6.1: App Restart
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Add 3-5 resources with various settings
 2. Mark 2 as destinations
@@ -650,7 +1212,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 6.2: Database Integrity
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Add 10+ resources
 2. Delete 3 resources
@@ -669,9 +1238,16 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 ### 7. Edge Cases and Error Handling
 
 #### Scenario 7.1: Empty Folder
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Create empty folder on device
 2. Add it as resource
@@ -687,7 +1263,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.2: Large File List (Performance)
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Folder with 500+ media files
 
@@ -709,7 +1292,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.3: Very Long File Names
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Create file with 100+ character name
 2. Add folder containing this file
@@ -725,7 +1315,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.4: Special Characters in Names
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Test files with names containing:
    - Unicode characters (中文, Español, Українська)
@@ -743,7 +1340,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.5: Corrupted Media File
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Add corrupted/incomplete media file to folder
 2. Scan folder
@@ -760,7 +1364,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.6: Storage Permission Revoked
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Add resources and browse files
 2. Go to device Settings → Apps → FastMediaSorter
@@ -779,7 +1390,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.7: Low Storage Space
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Preparation:**
 - Device with <100MB free space
 
@@ -797,7 +1415,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 7.8: Destination Limit (10 Resources)
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. Add 10 resources, all marked as destinations
 2. Try to add 11th resource with destination checkbox
@@ -813,9 +1438,16 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 ### 8. UI/UX Testing
 
 #### Scenario 8.1: Portrait/Landscape Orientation
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. Navigate through all screens
 2. Rotate device at each screen
@@ -832,7 +1464,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 8.2: Different Screen Sizes
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Test on:**
 - Small phone (5-5.5")
 - Regular phone (6-6.5")
@@ -847,7 +1486,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 8.3: Touch Target Sizes
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. Test all buttons with finger tap
 2. Try to tap small icons/checkboxes
@@ -862,7 +1508,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 8.4: Loading States
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Observe loading indicators during:
    - Resource scanning
@@ -880,9 +1533,16 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 ### 9. Stress Testing
 
 #### Scenario 9.1: Rapid Button Tapping
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Steps:**
 1. Rapidly tap "Add Resource" button 10 times
 2. Rapidly switch between resources
@@ -898,7 +1558,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 9.2: Background/Foreground Switching
+**Status:** [  ] Ready to test  
+**Priority:** MEDIUM
+
 **Steps:**
 1. Start file operation (copy/move)
 2. Switch to another app
@@ -915,7 +1582,14 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ---
 
+**Notes:**
+```
+[Record issues here]
+```
 #### Scenario 9.3: Low Memory Conditions
+**Status:** [  ] Ready to test  
+**Priority:** HIGH
+
 **Preparation:**
 - Device with limited RAM (<2GB)
 - Multiple apps running
@@ -937,6 +1611,10 @@ This document provides step-by-step scenarios for manual testing of FastMediaSor
 
 ## Test Execution Checklist
 
+**Notes:**
+```
+[Record issues here]
+```
 ### Pre-Release Testing (Minimum)
 - [ ] Fresh install on emulator (API 28)
 - [ ] Fresh install on emulator (API 33)
@@ -1025,6 +1703,60 @@ Always / Sometimes / Rarely
 [ ] Ready for release
 [ ] Needs fixes before release
 [ ] Major issues found - not ready
+```
+
+---
+
+## Test Session Report Template
+
+Copy and fill this template after each testing session:
+
+```markdown
+## Test Session Report
+
+**Date:** YYYY-MM-DD  
+**Tester:** [Your name]  
+**Device:** [Manufacturer Model, Android Version]  
+**Build:** [App version, e.g., v2.0.0-alpha]
+
+### Scenarios Tested
+- [✓] 1.1 First Time App Launch
+- [✓] 2.1 Scan Local Folders
+- [!] 3.9 Filter Resources (issue found)
+- [X] 5.3 Touch Zones (not implemented)
+
+### Summary
+**Passed:** 15/20  
+**Failed:** 3/20  
+**Skipped:** 2/20 (not implemented)
+
+### Issues Found
+1. **[CRITICAL]** App crashes when filtering by media type
+   - Scenario: 3.10
+   - Steps: Filter > Select Videos > Apply
+   - Error: NullPointerException in MainViewModel
+   
+2. **[MAJOR]** File count not updating after refresh
+   - Scenario: 3.13
+   - Expected: Updated count
+   - Actual: Count stays same
+
+3. **[MINOR]** Filter warning text too long, cuts off
+   - Scenario: 3.14
+   - UI issue: Text overflows container
+
+### Performance Notes
+- Smooth scrolling with 200 files
+- Thumbnail loading fast
+- Memory usage acceptable (~150MB)
+
+### Overall Rating
+[  ] Ready for release  
+[X] Needs bug fixes  
+[  ] Major rework required
+
+**Notes:**
+Great progress! Core features work well. Fix critical filter crash before next test.
 ```
 
 ---

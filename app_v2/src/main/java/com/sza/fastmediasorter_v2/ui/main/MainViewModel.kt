@@ -4,11 +4,13 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
+import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -22,6 +24,7 @@ data class MainState(
     val selectedResource: MediaResource? = null,
     val sortMode: SortMode = SortMode.NAME_ASC,
     val filterByType: Set<ResourceType>? = null,
+    val filterByMediaType: Set<MediaType>? = null,
     val filterByName: String? = null
 )
 
@@ -39,6 +42,7 @@ class MainViewModel @Inject constructor(
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
+    private val mediaScanner: MediaScanner,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -66,10 +70,21 @@ class MainViewModel @Inject constructor(
     private fun applyFiltersAndSort(resources: List<MediaResource>): List<MediaResource> {
         var filtered = resources
         
+        // Filter by resource type
         state.value.filterByType?.let { types ->
             filtered = filtered.filter { it.type in types }
         }
         
+        // Filter by supported media types
+        state.value.filterByMediaType?.let { mediaTypes ->
+            filtered = filtered.filter { resource ->
+                mediaTypes.any { mediaType ->
+                    resource.supportedMediaTypes.contains(mediaType)
+                }
+            }
+        }
+        
+        // Filter by name substring
         state.value.filterByName?.let { name ->
             if (name.isNotBlank()) {
                 filtered = filtered.filter {
@@ -79,6 +94,7 @@ class MainViewModel @Inject constructor(
             }
         }
         
+        // Sort
         return when (state.value.sortMode) {
             SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
             SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
@@ -142,6 +158,11 @@ class MainViewModel @Inject constructor(
         loadResources()
     }
 
+    fun setFilterByMediaType(mediaTypes: Set<MediaType>?) {
+        updateState { it.copy(filterByMediaType = mediaTypes) }
+        loadResources()
+    }
+
     fun setFilterByName(name: String?) {
         updateState { it.copy(filterByName = name) }
         loadResources()
@@ -151,6 +172,7 @@ class MainViewModel @Inject constructor(
         updateState { 
             it.copy(
                 filterByType = null,
+                filterByMediaType = null,
                 filterByName = null
             ) 
         }
@@ -167,5 +189,53 @@ class MainViewModel @Inject constructor(
         // TODO: Открыть диалог/экран для редактирования копии ресурса
         Timber.d("Copy resource: ${selected.name}")
         sendEvent(MainEvent.ShowMessage("Resource copy not yet implemented"))
+    }
+    
+    fun refreshResources() {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            try {
+                getResourcesUseCase()
+                    .catch { e ->
+                        Timber.e(e, "Error refreshing resources")
+                        handleError(e)
+                    }
+                    .collect { resources ->
+                        val updated = resources.map { resource ->
+                            val fileCount = try {
+                                mediaScanner.getFileCount(resource.path, resource.supportedMediaTypes)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Error counting files for ${resource.name}")
+                                resource.fileCount
+                            }
+                            
+                            val isWritable = try {
+                                mediaScanner.isWritable(resource.path)
+                            } catch (e: Exception) {
+                                Timber.e(e, "Error checking write access for ${resource.name}")
+                                resource.isWritable
+                            }
+                            
+                            if (fileCount != resource.fileCount || isWritable != resource.isWritable) {
+                                val updatedResource = resource.copy(
+                                    fileCount = fileCount,
+                                    isWritable = isWritable
+                                )
+                                updateResourceUseCase(updatedResource)
+                                updatedResource
+                            } else {
+                                resource
+                            }
+                        }
+                        
+                        sendEvent(MainEvent.ShowMessage("Resources refreshed"))
+                    }
+            } catch (e: Exception) {
+                Timber.e(e, "Error refreshing resources")
+                handleError(e)
+            } finally {
+                setLoading(false)
+            }
+        }
     }
 }

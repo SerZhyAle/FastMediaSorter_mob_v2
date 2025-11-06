@@ -38,14 +38,15 @@
   - ✅ IMPLEMENTED: onItemDoubleClick implemented in MainActivity and calls startPlayer()
   - Single click - select resource, double click - open Browse, long press - also Browse
 
-- [ ] **Main Screen: Add filter and sorting**
-  - btnFilter button exists, but resource list filtering and sorting functionality not implemented
-  - Need filtering dialog by resource type (LOCAL/NETWORK/CLOUD/SFTP)
-  - When filter applied, show warning at bottom with filter description
+- [x] **Main Screen: Add filter and sorting**
+  - ✅ IMPLEMENTED: FilterResourceDialog created with filter and sort options
+  - ✅ IMPLEMENTED: Filtering by resource type (LOCAL/NETWORK/CLOUD/SFTP), media type (I/V/A/G), name substring
+  - ✅ IMPLEMENTED: Sorting by name/date/size (asc/desc)
+  - ✅ IMPLEMENTED: Filter warning displayed at bottom with active filter description
 
-- [ ] **Main Screen: Implement resource refresh**
-  - btnRefresh button exists, but existing folder rescanning procedure not implemented
-  - On refresh: rescan all resources, update fileCount, check isWritable
+- [x] **Main Screen: Implement resource refresh**
+  - ✅ IMPLEMENTED: btnRefresh calls refreshResources() in MainViewModel
+  - ✅ IMPLEMENTED: Rescans all resources, updates fileCount and isWritable via MediaScanner
 
 ---
 
@@ -86,12 +87,17 @@
 
 ## 🎬 Player Screen Improvements (3 tasks)
 
-- [ ] **Player Screen: Implement touch zones for images**
-  - According to specification, static image screen should have 9 touch zones (3x3)
+- [x] **Player Screen: Implement touch zones for images**
+  - ✅ IMPLEMENTED: TouchZoneDetector class with 3x3 grid detection logic
+  - ✅ IMPLEMENTED: 9 touch zones for static images in full-screen mode
   - Zones: Back (30%x30% top-left), Copy (40%x30% top), Rename (30%x30% top-right)
   - Previous (30%x40% left-center), Move (40%x40% center), Next (30%x40% right-center)
   - Command Panel (30%x30% bottom-left), Delete (40%x30% bottom), Slideshow (30%x30% bottom-right)
-  - Currently using gestures (single tap, double tap, fling)
+  - ✅ IMPLEMENTED: Integration with Copy/Move/Rename dialogs in PlayerActivity
+  - ✅ IMPLEMENTED: FileOperationUseCase and GetDestinationsUseCase injected into PlayerViewModel
+  - Double-tap and fling gestures kept as fallback for quick navigation
+  - ⏳ TODO: Get actual resource name for dialog headers (currently shows "Current folder")
+  - ⏳ TODO: Integrate with settings (overwrite files, go to next after copy)
 
 - [ ] **Player Screen: Add 'with command panel' mode**
   - According to specification, there should be mode with command panel above/below image
@@ -171,16 +177,15 @@
   - In resource list: destination mark (arrow →)
   - Copy/move dialogs: buttons only for available destinations (except current)
 
-- [ ] **AddResource: Show 'to add' list**
-  - According to specification, after SCAN or Add Manually should show list of resources to add
-  - Each element:
-    - "Add" checkbox (enabled by default)
-    - Short name (editable field)
-    - Number of found media files
-    - "To destinations" checkbox (only for isWritable = true, disabled by default)
-  - "Add to resources" button below list (appears if list not empty)
-  - On click: add all with "Add" checkbox enabled
-  - If destinations full: toast message, resource added without destination flag
+- [x] **AddResource: Show 'to add' list**
+  - ✅ IMPLEMENTED: ResourceToAddAdapter displays list of resources before adding
+  - ✅ IMPLEMENTED: Each resource has "Add" checkbox (enabled by default), editable name field, file count display
+  - ✅ IMPLEMENTED: "To destinations" checkbox visible only for isWritable = true resources (disabled by default)
+  - ✅ IMPLEMENTED: "Add to resources" button appears when list not empty
+  - ✅ IMPLEMENTED: SCAN checks for duplicates with existing resources in DB
+  - ✅ IMPLEMENTED: Add Manually adds folders to 'to add' list instead of direct DB insert
+  - ✅ IMPLEMENTED: AddMultipleResult tracks destinations logic (max 10), shows toast if full
+  - ✅ IMPLEMENTED: Resources added to DB only on "Add to resources" button click
 
 ---
 
@@ -188,14 +193,17 @@
 
 ## ⚙️ Settings & Configuration (4 tasks)
 
-- [ ] **Settings: Implement all settings from specification**
-  - Confirm deletion (Boolean, default true)
-  - Enable operation undo (Boolean, default true)
-  - Overwrite existing files on copy/move (Boolean, default false)
-  - Show rename button in Browse (Boolean, default true)
-  - Default view mode (List/Grid)
-  - Slideshow interval (seconds, default 3)
-  - Theme selection (Light/Dark/System)
+- [x] **Settings: Implement all settings from specification**
+  - ✅ IMPLEMENTED: SettingsActivity with tab-based navigation (General, Media, Playback, Destinations)
+  - ✅ IMPLEMENTED: SettingsRepository with DataStore for persistence
+  - ✅ IMPLEMENTED: AppSettings data model with all required fields
+  - ✅ IMPLEMENTED: General tab with language, prevent sleep, small controls, default credentials, permissions, logs
+  - ✅ IMPLEMENTED: Media Files tab (images/GIF/video/audio support with RangeSliders for size limits, exponential scaling)
+  - ✅ IMPLEMENTED: Playback and Sorting tab (sort mode dropdown, slideshow interval slider, switches for all options, icon size slider)
+  - ✅ IMPLEMENTED: Destinations tab (enable copy/move switches with subordinate options, RecyclerView for destinations list with reorder/delete buttons)
+  - Navigation from MainActivity via Settings button works
+  - Settings persist across app restarts via DataStore Preferences
+  - ⏳ TODO: Complete destinations functionality (observe from DB, add destination dialog, reordering logic)
 
 - [ ] **Settings: Add destination color picker**
   - Allow users to customize colors for destination buttons (1-10)
