@@ -133,8 +133,9 @@ V1 приложения находится в папке `V1/` и служит �
 
 ## 👤 Автор
 
-**FastMediaSorter Developer**
-- Email: sza@ukr.net
+**Serhii Zhyhunenko**
+- Email: serzhyale@gmail.com
+- GitHub: [@serzhyale](https://github.com/serzhyale)
 
 ## 📊 Статус проекта
 
