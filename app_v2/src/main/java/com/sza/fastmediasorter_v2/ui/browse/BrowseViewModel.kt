@@ -21,6 +21,7 @@ data class BrowseState(
     val resource: MediaResource? = null,
     val mediaFiles: List<MediaFile> = emptyList(),
     val selectedFiles: Set<String> = emptySet(),
+    val lastSelectedPath: String? = null,
     val sortMode: SortMode = SortMode.NAME_ASC,
     val displayMode: DisplayMode = DisplayMode.LIST
 )
@@ -112,12 +113,55 @@ class BrowseViewModel @Inject constructor(
             } else {
                 newSelected.add(filePath)
             }
-            state.copy(selectedFiles = newSelected)
+            state.copy(
+                selectedFiles = newSelected,
+                lastSelectedPath = filePath
+            )
+        }
+    }
+    
+    fun selectFileRange(filePath: String) {
+        updateState { state ->
+            val lastPath = state.lastSelectedPath
+            
+            // If no file was selected before, just select this file
+            if (lastPath == null || state.selectedFiles.isEmpty()) {
+                Timber.d("First selection: $filePath")
+                return@updateState state.copy(
+                    selectedFiles = setOf(filePath),
+                    lastSelectedPath = filePath
+                )
+            }
+            
+            // Find indices of last selected and current file
+            val currentIndex = state.mediaFiles.indexOfFirst { it.path == filePath }
+            val lastIndex = state.mediaFiles.indexOfFirst { it.path == lastPath }
+            
+            if (currentIndex == -1 || lastIndex == -1) {
+                Timber.w("File not found in list: current=$currentIndex, last=$lastIndex")
+                return@updateState state
+            }
+            
+            // Select all files between last and current (inclusive)
+            val startIndex = minOf(currentIndex, lastIndex)
+            val endIndex = maxOf(currentIndex, lastIndex)
+            
+            val newSelected = state.selectedFiles.toMutableSet()
+            for (i in startIndex..endIndex) {
+                newSelected.add(state.mediaFiles[i].path)
+            }
+            
+            Timber.d("Range selection: from $lastIndex to $currentIndex, selected ${newSelected.size} files")
+            
+            state.copy(
+                selectedFiles = newSelected,
+                lastSelectedPath = filePath
+            )
         }
     }
 
     fun clearSelection() {
-        updateState { it.copy(selectedFiles = emptySet()) }
+        updateState { it.copy(selectedFiles = emptySet(), lastSelectedPath = null) }
     }
 
     fun openFile(file: MediaFile) {

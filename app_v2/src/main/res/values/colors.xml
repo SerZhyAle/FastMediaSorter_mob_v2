@@ -9,5 +9,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="ic_launcher_background">#FF6200EE</color>
     <color name="delete_button">#FFD32F2F</color>
+    <color name="item_selected">#FFE3F2FD</color>
+    <color name="item_normal">#FFFFFFFF</color>
 </resources>
 

@@ -1,32 +1,32 @@
 # FastMediaSorter v2 🚀
 
-Android приложение для быстрой сортировки медиа-файлов (изображения, видео, аудио) из локальных папок, сетевых ресурсов (SMB/SFTP) и облачных хранилищ.
+Android application for quickly sorting media files (images, videos, audio) from local folders, network shares (SMB/SFTP), and cloud storage.
 
-## 📋 О проекте
+## 📋 About the Project
 
-FastMediaSorter v2 - это полная переработка оригинального приложения с использованием современных Android-технологий и архитектурных паттернов.
+FastMediaSorter v2 is a complete rewrite of the original application using modern Android technologies and architectural patterns.
 
-### Ключевые особенности
+### Key Features
 
-- ✅ **Чистая архитектура** (Clean Architecture) с разделением на Domain, Data, Presentation слои
-- ✅ **Современный стек**: Kotlin, Hilt, Room, Coroutines, Flow
-- ✅ **Java 21** (LTS) - последняя версия Java runtime
-- ✅ **Material Design 2** для удобного UI/UX
-- ✅ **ExoPlayer** для воспроизведения медиа
-- ✅ **Поддержка темной темы**
-- ✅ **Мультиязычность** (English, Russian, Ukrainian)
+- ✅ **Clean Architecture** with separation into Domain, Data, and Presentation layers
+- ✅ **Modern Stack**: Kotlin, Hilt, Room, Coroutines, Flow
+- ✅ **Java 21** (LTS) - the latest version of the Java runtime
+- ✅ **Material Design 2** for a user-friendly UI/UX
+- ✅ **ExoPlayer** for media playback
+- ✅ **Dark Theme Support**
+- ✅ **Multilingual** (English, Russian, Ukrainian)
 
-## 🏗️ Архитектура
+## 🏗️ Architecture
 
 ```
 app_v2/
-├── core/          # Базовые компоненты (DI, UI базовые классы)
-├── data/          # Источники данных (DB, сеть, локальное хранилище)
-├── domain/        # Бизнес-логика (модели, use cases, репозитории)
-└── ui/            # Презентационный слой (Activities, ViewModels, адаптеры)
+├── core/          # Base components (DI, UI base classes)
+├── data/          # Data sources (DB, network, local storage)
+├── domain/        # Business logic (models, use cases, repositories)
+└── ui/            # Presentation layer (Activities, ViewModels, adapters)
 ```
 
-### Технологический стек
+### Technology Stack
 
 - **Language**: Kotlin 1.9.22
 - **Runtime**: Java 21 (LTS)
@@ -40,110 +40,110 @@ app_v2/
 - **Network**: SMBJ 0.12.1, SSHJ 0.37.0
 - **Logging**: Timber 5.0.1
 
-## 🚀 Быстрый старт
+## 🚀 Quick Start
 
-### Требования
+### Requirements
 
-- Android Studio Hedgehog (2023.1.1) или новее
+- Android Studio Hedgehog (2023.1.1) or newer
 - JDK 21
 - Android SDK 34
-- Минимальная версия Android: 9.0 (API 28)
+- Minimum Android version: 9.0 (API 28)
 
-### Установка
+### Installation
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/FastMediaSorter_mob_v2.git
 cd FastMediaSorter_mob_v2
 ```
 
-2. Откройте проект в Android Studio
+2. Open the project in Android Studio
 
-3. Синхронизируйте Gradle:
+3. Sync Gradle:
 ```bash
 ./gradlew build
 ```
 
-4. Запустите приложение на эмуляторе или устройстве
+4. Run the application on an emulator or device
 
-## 📱 Основные функции
+## 📱 Core Features
 
-### Реализовано ✅
+### Implemented ✅
 
-- **Управление ресурсами**: добавление, редактирование, удаление папок-ресурсов
-- **Просмотр медиа**: список/сетка файлов с превью
-- **Воспроизведение**: встроенный плеер для изображений, видео, аудио
-- **Сортировка**: по имени, дате, размеру, типу
-- **Операции с файлами**: копирование, перемещение, переименование, удаление
-- **Destinations**: до 10 папок назначения для быстрой сортировки
-- **Слайдшоу**: автоматическое воспроизведение медиа
-- **Индикатор прав записи**: визуальное отображение read-only папок
+- **Resource Management**: add, edit, delete resource folders
+- **Media Browsing**: list/grid view of files with previews
+- **Playback**: built-in player for images, videos, audio
+- **Sorting**: by name, date, size, type
+- **File Operations**: copy, move, rename, delete
+- **Destinations**: up to 10 destination folders for quick sorting
+- **Slideshow**: automatic media playback
+- **Write Permission Indicator**: visual display for read-only folders
 
-### В разработке 🔨
+### In Development 🔨
 
-- Мультивыбор файлов диапазоном (long press)
-- Фильтрация ресурсов на главном экране
-- Обновление (rescan) ресурсов
-- Touch-зоны в Player Screen (9-зонная схема)
-- Command Panel режим в Player
-- Настройки приложения
-- Сетевые ресурсы (SMB, SFTP)
-- Облачные хранилища (Google Drive, Dropbox)
+- Multi-selection of files by range (long press)
+- Filtering resources on the main screen
+- Updating (rescan) resources
+- Touch zones in Player Screen (9-zone scheme)
+- Command Panel mode in Player
+- Application settings
+- Network resources (SMB, SFTP)
+- Cloud storage (Google Drive, Dropbox)
 
-### Запланировано 📋
+### Planned 📋
 
-- Тестирование (Unit, UI, Integration)
-- Оптимизация производительности
+- Testing (Unit, UI, Integration)
+- Performance optimization
 - Accessibility features
 - CI/CD pipeline
-- Публикация в Google Play
+- Publication to Google Play
 
-## 📚 Документация
+## 📚 Documentation
 
-- [V2 Specification](V2_Specification.md) - полная спецификация v2
-- [Architecture Overview](V2_architecture_overview.md) - обзор архитектуры
-- [TODO](TODO_V2.md) - список задач и прогресс
-- [Changelog](CHANGELOG_SESSION.md) - история изменений
+- [V2 Specification](V2_Specification.md) - full v2 specification
+- [Architecture Overview](V2_architecture_overview.md) - architecture overview
+- [TODO](TODO_V2.md) - task list and progress
+- [Changelog](CHANGELOG_SESSION.md) - change history
 
-## 🔄 Миграция с v1
+## 🔄 Migration from v1
 
-V1 приложения находится в папке `V1/` и служит референсом для функциональности. Основные отличия v2:
+The V1 application is located in the `V1/` folder and serves as a reference for functionality. Key differences in v2:
 
-| Аспект | V1 | V2 |
-|--------|----|----|
-| Архитектура | Monolithic | Clean Architecture |
-| DI | Manual | Hilt |
-| Database | Room (basic) | Room + Coroutines |
-| Navigation | Fragments | Activities + Navigation Component |
-| Java Version | 17 | 21 (LTS) |
-| Build System | Gradle 7.x | Gradle 8.2 |
+| Aspect       | V1           | V2                                |
+|--------------|--------------|-----------------------------------|
+| Architecture | Monolithic   | Clean Architecture                |
+| DI           | Manual       | Hilt                              |
+| Database     | Room (basic) | Room + Coroutines                 |
+| Navigation   | Fragments    | Activities + Navigation Component |
+| Java Version | 17           | 21 (LTS)                          |
+| Build System | Gradle 7.x   | Gradle 8.2                        |
 
-## 🤝 Вклад в проект
+## 🤝 Contributing
 
-Проект находится в активной разработке. Приветствуются:
+The project is under active development. Contributions are welcome:
 
-- 🐛 Отчеты об ошибках
-- 💡 Предложения по улучшению
-- 📝 Улучшения документации
-- ✨ Pull requests с новой функциональностью
+- 🐛 Bug reports
+- 💡 Suggestions for improvement
+- 📝 Documentation improvements
+- ✨ Pull requests with new functionality
 
-## 📄 Лицензия
+## 📄 License
 
-Этот проект разработан для личного использования и обучения.
+This project is developed for personal use and learning.
 
-## 👤 Автор
+## 👤 Author
 
 **Serhii Zhyhunenko**
 - Email: serzhyale@gmail.com
 - GitHub: [@serzhyale](https://github.com/serzhyale)
 
-## 📊 Статус проекта
+## 📊 Project Status
 
-**Milestone 2 (базовая функциональность):** ✅ Завершена  
-**Specification improvements:** 🔄 В процессе (6/19 задач)  
-**Дополнительные функции:** 📋 Запланированы (50+ задач)
+**Milestone 2 (base functionality):** ✅ Completed
+**Specification improvements:** 🔄 In progress (6/19 tasks)
+**Additional features:** 📋 Planned (50+ tasks)
 
 ---
 
-**Последнее обновление:** 06.11.2025  
-**Версия:** 2.0.0-alpha1
+**Last updated:** 06.11.2025
+**Version:** 2.0.0-alpha1

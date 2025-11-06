@@ -40,7 +40,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.openFile(file)
             },
             onFileLongClick = { file ->
-                viewModel.selectFile(file.path)
+                // According to specification: long press selects range
+                viewModel.selectFileRange(file.path)
             },
             onSelectionChanged = { file, _ ->
                 viewModel.selectFile(file.path)

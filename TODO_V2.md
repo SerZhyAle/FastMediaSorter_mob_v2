@@ -26,16 +26,16 @@
 
 - [x] **Main Screen: Add Copy Resource button**
   - According to specification, there should be 'Copy Resource' button (copy of selected resource)
-  - ✅ РЕАЛИЗОВАНО: btnCopyResource добавлена в activity_main.xml и обработана в MainActivity
+  - ✅ IMPLEMENTED: btnCopyResource added to activity_main.xml and handled in MainActivity
   - When copying, all values are taken from selected resource, user changes only differences
 
 - [x] **Main Screen: Add Exit button**
   - According to specification, there should be exit button with 'Exit Door' icon
-  - ✅ РЕАЛИЗОВАНО: btnExit добавлена в activity_main.xml и вызывает finish()
+  - ✅ IMPLEMENTED: btnExit added to activity_main.xml and calls finish()
 
 - [x] **Main Screen: Implement double-click on resource**
   - According to specification, double-click on resource should open Browse Screen
-  - ✅ РЕАЛИЗОВАНО: onItemDoubleClick реализован в MainActivity и вызывает startPlayer()
+  - ✅ IMPLEMENTED: onItemDoubleClick implemented in MainActivity and calls startPlayer()
   - Single click - select resource, double click - open Browse, long press - also Browse
 
 - [ ] **Main Screen: Add filter and sorting**
@@ -52,8 +52,8 @@
 ## 🎨 Item Resource Improvements (1 task)
 
 - [x] **Item Resource: Add Writable flag**
-  - ✅ РЕАЛИЗОВАНО: добавлен tvWritableIndicator (🔒) в item_resource.xml
-  - ✅ РЕАЛИЗОВАНО: логика отображения в ResourceAdapter (видно только если isWritable = false)
+  - ✅ IMPLEMENTED: tvWritableIndicator (🔒) added to item_resource.xml
+  - ✅ IMPLEMENTED: display logic in ResourceAdapter (visible only if isWritable = false)
   - Display icon/text if isWritable = false
   - Permissions determined during scanning via LocalMediaScanner.isWritable()
 
@@ -63,22 +63,22 @@
 
 - [ ] **Browse Screen: Implement multi-selection**
   - According to specification, long press should select file range
-  - ⚠️ РАСХОЖДЕНИЕ: Текущая реализация в MediaFileAdapter поддерживает выбор одного файла
-  - Нужно: выбор диапазона файлов (от предыдущего до текущего) при долгом нажатии
+  - ⚠️ DISCREPANCY: Current implementation in MediaFileAdapter supports single file selection
+  - Need: range selection of files (from previous to current) on long press
   - If no file was selected: long press selects file without launching player
   - If file already selected: long press adds all files between current and previously selected
   - Selected files are highlighted, counter in header
 
 - [x] **Browse Screen: Add Rename button**
-  - ✅ РЕАЛИЗОВАНО: btnRename добавлена в activity_browse.xml между btnMove и btnDelete
-  - ✅ РЕАЛИЗОВАНО: видимость зависит от isWritable = true и наличия выбранных файлов
-  - ✅ РЕАЛИЗОВАНО: обработчик showRenameDialog() в BrowseActivity
+  - ✅ IMPLEMENTED: btnRename added to activity_browse.xml between btnMove and btnDelete
+  - ✅ IMPLEMENTED: visibility depends on isWritable = true and presence of selected files
+  - ✅ IMPLEMENTED: showRenameDialog() handler in BrowseActivity
   - Visible only if current folder has isWritable = true
   - Can be disabled in settings
 
 - [x] **Browse Screen: Add SlideShow button**
-  - ✅ РЕАЛИЗОВАНО: btnSlideshow добавлена рядом с btnPlay в activity_browse.xml
-  - ✅ РЕАЛИЗОВАНО: startSlideshow() запускает PlayerActivity с флагом slideshow_mode
+  - ✅ IMPLEMENTED: btnSlideshow added next to btnPlay in activity_browse.xml
+  - ✅ IMPLEMENTED: startSlideshow() launches PlayerActivity with slideshow_mode flag
   - Launches Player Screen in slideshow mode
   - If no file selected - starts from first
 

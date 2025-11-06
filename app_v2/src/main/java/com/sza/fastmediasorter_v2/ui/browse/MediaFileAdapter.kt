@@ -52,11 +52,22 @@ class MediaFileAdapter(
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             binding.apply {
+                val isSelected = file.path in selectedPaths
+                
                 cbSelect.setOnCheckedChangeListener(null)
-                cbSelect.isChecked = file.path in selectedPaths
+                cbSelect.isChecked = isSelected
                 cbSelect.setOnCheckedChangeListener { _, isChecked ->
                     onSelectionChanged(file, isChecked)
                 }
+                
+                // Highlight selected items
+                root.setCardBackgroundColor(
+                    if (isSelected) {
+                        root.context.getColor(com.sza.fastmediasorter_v2.R.color.item_selected)
+                    } else {
+                        root.context.getColor(com.sza.fastmediasorter_v2.R.color.item_normal)
+                    }
+                )
                 
                 tvFileName.text = file.name
                 tvFileInfo.text = buildFileInfo(file)
