@@ -129,6 +129,7 @@ dependencies {
     
     // Image Loading
     implementation("io.coil-kt:coil:2.5.0")
+    implementation("io.coil-kt:coil-video:2.5.0")
     
     // Network - SMB
     implementation("com.hierynomus:smbj:0.12.1")

@@ -58,7 +58,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun setupViews() {
-        binding.toolbar.setNavigationOnClickListener {
+        binding.btnBack.setOnClickListener {
             finish()
         }
 
@@ -128,7 +128,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
 
                     state.resource?.let { resource ->
-                        binding.toolbar.title = resource.name
                         binding.tvResourceInfo.text = buildResourceInfo(state)
                     }
 

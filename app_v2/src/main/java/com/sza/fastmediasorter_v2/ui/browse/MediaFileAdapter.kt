@@ -1,14 +1,27 @@
 package com.sza.fastmediasorter_v2.ui.browse
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.media.MediaMetadataRetriever
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
+import coil.request.ErrorResult
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import coil.transform.RoundedCornersTransformation
+import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import java.io.File
 import java.util.Date
 import kotlin.math.ln
 import kotlin.math.pow
@@ -72,15 +85,8 @@ class MediaFileAdapter(
                 tvFileName.text = file.name
                 tvFileInfo.text = buildFileInfo(file)
                 
-                // Иконка по типу файла
-                ivThumbnail.setImageResource(
-                    when (file.type) {
-                        MediaType.IMAGE -> android.R.drawable.ic_menu_gallery
-                        MediaType.VIDEO -> android.R.drawable.ic_menu_slideshow
-                        MediaType.AUDIO -> android.R.drawable.ic_lock_silent_mode_off
-                        MediaType.GIF -> android.R.drawable.ic_menu_gallery
-                    }
-                )
+                // Load thumbnail using Coil
+                loadThumbnail(file)
                 
                 ivThumbnail.setOnClickListener {
                     onFileClick(file)
@@ -99,6 +105,63 @@ class MediaFileAdapter(
                     onPlayClick(file)
                 }
             }
+        }
+        
+        private fun loadThumbnail(file: MediaFile) {
+            binding.ivThumbnail.apply {
+                when (file.type) {
+                    MediaType.IMAGE, MediaType.GIF -> {
+                        // Load image/GIF thumbnail using Coil
+                        load(File(file.path)) {
+                            crossfade(true)
+                            placeholder(R.drawable.ic_image_placeholder)
+                            error(R.drawable.ic_image_error)
+                            transformations(RoundedCornersTransformation(8f))
+                        }
+                    }
+                    MediaType.VIDEO -> {
+                        // Load video first frame using Coil with video frame decoder
+                        load(File(file.path)) {
+                            crossfade(true)
+                            placeholder(R.drawable.ic_video_placeholder)
+                            error(R.drawable.ic_video_error)
+                            transformations(RoundedCornersTransformation(8f))
+                        }
+                    }
+                    MediaType.AUDIO -> {
+                        // For audio files, create a bitmap with file extension
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        val bitmap = createExtensionBitmap(extension)
+                        setImageBitmap(bitmap)
+                    }
+                }
+            }
+        }
+        
+        private fun createExtensionBitmap(extension: String): Bitmap {
+            val size = 200
+            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+            
+            // Background
+            val bgPaint = Paint().apply {
+                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
+                style = Paint.Style.FILL
+            }
+            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+            
+            // Text
+            val textPaint = Paint().apply {
+                color = Color.WHITE
+                textSize = 60f
+                textAlign = Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            val xPos = size / 2f
+            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
+            canvas.drawText(extension, xPos, yPos, textPaint)
+            
+            return bitmap
         }
         
         private fun buildFileInfo(file: MediaFile): String {

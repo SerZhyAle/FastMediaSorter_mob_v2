@@ -11,5 +11,6 @@
     <color name="delete_button">#FFD32F2F</color>
     <color name="item_selected">#FFE3F2FD</color>
     <color name="item_normal">#FFFFFFFF</color>
+    <color name="audio_icon_bg">#FF607D8B</color>
 </resources>
 

@@ -386,6 +386,26 @@
   - Icons now clearly distinguish Cancel vs Reset actions
   - Commit: (pending)
 
+### 2025-01-07 (Evening Session 2)
+- [x] **Browse Screen: Remove toolbar and move Back button to command bar**
+  - Removed MaterialToolbar from activity_browse.xml
+  - Added Back button (btnBack) at the beginning of layoutControls
+  - Updated BrowseActivity.kt: removed toolbar setup, added btnBack click handler
+  - Removed toolbar.title update in observeData()
+  - Matches specification requirement: no separate header bar
+
+- [x] **Browse Screen: Implement thumbnail loading with Coil**
+  - Added Coil video frames library (io.coil-kt:coil-video:2.5.0) to build.gradle.kts
+  - Updated MediaFileAdapter to load real thumbnails instead of generic icons
+  - Images/GIFs: load actual image preview using Coil
+  - Videos: load first frame using Coil video decoder
+  - Audio: generate bitmap with file extension text (e.g., "MP3", "WAV")
+  - Created placeholder drawables: ic_image_placeholder, ic_video_placeholder
+  - Created error drawables: ic_image_error, ic_video_error
+  - Added audio_icon_bg color (#FF607D8B) for audio file icons
+  - All thumbnails use RoundedCornersTransformation(8f) for consistent look
+  - Commit: (pending)
+
 ---
 
 ## 📊 Project Status
