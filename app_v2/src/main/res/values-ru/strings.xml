@@ -90,4 +90,30 @@
     <string name="destinations_list">Получатели (0-9)</string>
     <string name="destinations_description">До 10 ресурсов-получателей. Каждый имеет цвет и номер (0-9).</string>
     <string name="add_destination">Добавить получателя</string>
+    
+    <!-- Edit Resource -->
+    <string name="edit_resource">Редактирование ресурса</string>
+    <string name="resource_name">Название ресурса</string>
+    <string name="resource_path">Путь ресурса</string>
+    <string name="resource_type">Тип ресурса</string>
+    <string name="created_date">Дата создания</string>
+    <string name="file_count">Количество файлов</string>
+    <string name="supported_media_types">Поддерживаемые типы медиа</string>
+    <string name="images">Изображения</string>
+    <string name="video">Видео</string>
+    <string name="audio">Аудио</string>
+    <string name="gif_animations">GIF анимации</string>
+    <string name="use_as_destination">Использовать как получателя</string>
+    <string name="back">Назад</string>
+    <string name="test">Тест</string>
+    <string name="reset">Сброс</string>
+    <string name="save">Сохранить</string>
+    <string name="resource_updated">Ресурс обновлён</string>
+    <string name="test_successful">Тест соединения успешен</string>
+    <string name="test_failed">Тест соединения не удался: %1$s</string>
+    
+    <!-- Language Change -->
+    <string name="restart_app_title">Перезапуск приложения</string>
+    <string name="restart_app_message">Для применения нового языка (%1$s) требуется перезапуск приложения. Продолжить?</string>
+    <string name="restart">Перезапустить</string>
 </resources>

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityMainBinding
 import com.sza.fastmediasorter_v2.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter_v2.ui.browse.BrowseActivity
+import com.sza.fastmediasorter_v2.ui.editresource.EditResourceActivity
 import com.sza.fastmediasorter_v2.ui.settings.SettingsActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -42,8 +43,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.startPlayer()
             },
             onEditClick = { resource ->
-                // TODO: Навигация к экрану редактирования
-                Timber.d("Edit resource: ${resource.name}")
+                val intent = Intent(this, EditResourceActivity::class.java).apply {
+                    putExtra("resourceId", resource.id)
+                }
+                startActivity(intent)
             },
             onDeleteClick = { resource ->
                 showDeleteConfirmation(resource)

@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter_v2.core.ui
 
+import android.content.Context
 import android.os.Bundle
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewbinding.ViewBinding
+import com.sza.fastmediasorter_v2.core.util.LocaleHelper
 import timber.log.Timber
 
 /**
@@ -11,6 +13,7 @@ import timber.log.Timber
  * - Handles keep screen awake
  * - Provides logging
  * - Manages ViewBinding lifecycle
+ * - Applies locale
  */
 abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
@@ -21,6 +24,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
     abstract fun getViewBinding(): VB
     abstract fun setupViews()
     abstract fun observeData()
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

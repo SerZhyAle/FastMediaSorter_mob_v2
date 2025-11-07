@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter_v2
 
 import android.app.Application
+import android.content.Context
+import com.sza.fastmediasorter_v2.core.util.LocaleHelper
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 
@@ -9,6 +11,9 @@ class FastMediaSorterApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        
+        // Apply saved locale
+        LocaleHelper.applyLocale(this)
         
         // Initialize Timber logging
         if (BuildConfig.DEBUG) {
@@ -25,6 +30,10 @@ class FastMediaSorterApp : Application() {
             })
         }
         
-        Timber.d("FastMediaSorter v2 initialized")
+        Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
+    }
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(base))
     }
 }

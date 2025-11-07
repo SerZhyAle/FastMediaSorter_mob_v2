@@ -90,4 +90,30 @@
     <string name="destinations_list">Отримувачі (0-9)</string>
     <string name="destinations_description">До 10 ресурсів-отримувачів. Кожен має колір і номер (0-9).</string>
     <string name="add_destination">Додати отримувача</string>
+    
+    <!-- Edit Resource -->
+    <string name="edit_resource">Редагування ресурсу</string>
+    <string name="resource_name">Назва ресурсу</string>
+    <string name="resource_path">Шлях ресурсу</string>
+    <string name="resource_type">Тип ресурсу</string>
+    <string name="created_date">Дата створення</string>
+    <string name="file_count">Кількість файлів</string>
+    <string name="supported_media_types">Підтримувані типи медіа</string>
+    <string name="images">Зображення</string>
+    <string name="video">Відео</string>
+    <string name="audio">Аудіо</string>
+    <string name="gif_animations">GIF анімації</string>
+    <string name="use_as_destination">Використовувати як отримувача</string>
+    <string name="back">Назад</string>
+    <string name="test">Тест</string>
+    <string name="reset">Скинути</string>
+    <string name="save">Зберегти</string>
+    <string name="resource_updated">Ресурс оновлено</string>
+    <string name="test_successful">Тест з\'єднання успішний</string>
+    <string name="test_failed">Тест з\'єднання не вдався: %1$s</string>
+    
+    <!-- Language Change -->
+    <string name="restart_app_title">Перезапуск додатку</string>
+    <string name="restart_app_message">Для застосування нової мови (%1$s) потрібен перезапуск додатку. Продовжити?</string>
+    <string name="restart">Перезапустити</string>
 </resources>

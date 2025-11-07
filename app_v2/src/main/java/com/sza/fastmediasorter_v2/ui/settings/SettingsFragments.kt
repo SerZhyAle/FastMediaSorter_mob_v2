@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -16,6 +17,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlin.math.roundToInt
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter_v2.R
+import com.sza.fastmediasorter_v2.core.util.LocaleHelper
 import com.sza.fastmediasorter_v2.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter_v2.databinding.FragmentSettingsMediaBinding
 import com.sza.fastmediasorter_v2.databinding.FragmentSettingsPlaybackBinding
@@ -618,16 +621,29 @@ class GeneralSettingsFragment : Fragment() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerLanguage.adapter = adapter
         
+        // Set initial language selection
+        val currentLanguage = LocaleHelper.getLanguage(requireContext())
+        binding.spinnerLanguage.setSelection(LocaleHelper.getLanguageIndex(currentLanguage), false)
+        
         binding.spinnerLanguage.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val current = viewModel.settings.value
-                val languageCode = when (position) {
+                val newLanguageCode = when (position) {
                     0 -> "en"
                     1 -> "ru"
                     2 -> "uk"
                     else -> "en"
                 }
-                viewModel.updateSettings(current.copy(language = languageCode))
+                
+                // Check if language actually changed
+                val oldLanguageCode = LocaleHelper.getLanguage(requireContext())
+                if (newLanguageCode != oldLanguageCode) {
+                    // Update settings
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(language = newLanguageCode))
+                    
+                    // Show restart dialog
+                    showRestartDialog(newLanguageCode)
+                }
             }
 
             override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -811,6 +827,26 @@ class GeneralSettingsFragment : Fragment() {
         val clip = android.content.ClipData.newPlainText("Log", text)
         clipboard.setPrimaryClip(clip)
         Toast.makeText(requireContext(), "Log copied to clipboard", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showRestartDialog(languageCode: String) {
+        val languageName = LocaleHelper.getLanguageName(languageCode)
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.restart_app_title)
+            .setMessage(getString(R.string.restart_app_message, languageName))
+            .setPositiveButton(R.string.restart) { _, _ ->
+                // Save language and restart app
+                LocaleHelper.changeLanguage(requireActivity(), languageCode)
+            }
+            .setNegativeButton(R.string.cancel) { dialog, _ ->
+                // Revert spinner to previous language
+                val oldLanguageCode = LocaleHelper.getLanguage(requireContext())
+                binding.spinnerLanguage.setSelection(LocaleHelper.getLanguageIndex(oldLanguageCode), false)
+                dialog.dismiss()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     override fun onDestroyView() {

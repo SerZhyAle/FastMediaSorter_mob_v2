@@ -91,6 +91,32 @@
     <string name="destinations_description">Up to 10 destination resources. Each has a color and number (0-9).</string>
     <string name="add_destination">Add Destination</string>
     
+    <!-- Edit Resource -->
+    <string name="edit_resource">Edit Resource</string>
+    <string name="resource_name">Resource Name</string>
+    <string name="resource_path">Resource Path</string>
+    <string name="resource_type">Resource Type</string>
+    <string name="created_date">Created Date</string>
+    <string name="file_count">File Count</string>
+    <string name="supported_media_types">Supported Media Types</string>
+    <string name="images">Images</string>
+    <string name="video">Video</string>
+    <string name="audio">Audio</string>
+    <string name="gif_animations">GIF Animations</string>
+    <string name="use_as_destination">Use as Destination</string>
+    <string name="back">Back</string>
+    <string name="test">Test</string>
+    <string name="reset">Reset</string>
+    <string name="save">Save</string>
+    <string name="resource_updated">Resource updated</string>
+    <string name="test_successful">Connection test successful</string>
+    <string name="test_failed">Connection test failed: %1$s</string>
+    
+    <!-- Language Change -->
+    <string name="restart_app_title">Restart Application</string>
+    <string name="restart_app_message">To apply the new language (%1$s), the application needs to restart. Continue?</string>
+    <string name="restart">Restart</string>
+    
     <!-- Languages array -->
     <string-array name="languages">
         <item>English</item>
