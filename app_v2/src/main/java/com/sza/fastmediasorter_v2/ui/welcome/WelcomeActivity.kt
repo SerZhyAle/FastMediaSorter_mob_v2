@@ -3,12 +3,15 @@ package com.sza.fastmediasorter_v2.ui.welcome
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
-import androidx.recyclerview.widget.RecyclerView
+import androidx.appcompat.app.AlertDialog
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter_v2.R
-import com.sza.fastmediasorter_v2.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
+import com.sza.fastmediasorter_v2.core.util.LocaleHelper
+import com.sza.fastmediasorter_v2.core.util.PermissionHelper
+import com.sza.fastmediasorter_v2.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter_v2.ui.main.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,6 +22,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private var currentPage = 0
+    private var permissionsGranted = false
 
     override fun getViewBinding(): ActivityWelcomeBinding =
         ActivityWelcomeBinding.inflate(layoutInflater)
@@ -130,9 +134,97 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private fun finishWelcome() {
         viewModel.setWelcomeCompleted()
+        requestPermissions()
+    }
+
+    private fun requestPermissions() {
+        // Request storage permission first
+        if (!PermissionHelper.hasStoragePermission(this)) {
+            showPermissionDialog(
+                title = getString(R.string.permission_storage_title),
+                message = PermissionHelper.getStoragePermissionMessage(this),
+                onGrant = {
+                    PermissionHelper.requestStoragePermission(this)
+                },
+                onSkip = {
+                    // Storage permission skipped, check internet permission
+                    checkAndFinish()
+                }
+            )
+        } else {
+            // Storage already granted, check and finish
+            checkAndFinish()
+        }
+    }
+
+    private fun showPermissionDialog(
+        title: String,
+        message: String,
+        onGrant: () -> Unit,
+        onSkip: () -> Unit
+    ) {
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(R.string.grant_permission) { _, _ ->
+                onGrant()
+            }
+            .setNegativeButton(R.string.skip_permission) { _, _ ->
+                onSkip()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun checkAndFinish() {
+        if (permissionsGranted) {
+            // Permissions were granted, restart app
+            Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
+            restartApp()
+        } else {
+            // No permissions granted, just go to MainActivity
+            goToMainActivity()
+        }
+    }
+
+    private fun goToMainActivity() {
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
+    }
+
+    private fun restartApp() {
+        LocaleHelper.restartApp(this)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        
+        when (requestCode) {
+            PermissionHelper.REQUEST_CODE_MANAGE_STORAGE -> {
+                if (PermissionHelper.hasStoragePermission(this)) {
+                    permissionsGranted = true
+                }
+                checkAndFinish()
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        
+        when (requestCode) {
+            PermissionHelper.REQUEST_CODE_STORAGE -> {
+                if (PermissionHelper.hasStoragePermission(this)) {
+                    permissionsGranted = true
+                }
+                checkAndFinish()
+            }
+        }
     }
 }

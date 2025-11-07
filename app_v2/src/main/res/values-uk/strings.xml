@@ -129,6 +129,16 @@
     <string name="welcome_title_3">Багато джерел</string>
     <string name="welcome_description_3">Додавайте локальні папки та мережеві ресурси (SMB). Налаштуйте до 10 папок призначення для швидкої організації файлів.</string>
     
+    <!-- Permissions -->
+    <string name="permission_storage_title">Доступ до сховища</string>
+    <string name="permission_storage_rationale">FastMediaSorter потребує доступу до сховища для сканування та відображення медіафайлів.</string>
+    <string name="permission_storage_rationale_r">FastMediaSorter потребує дозволу на управління всіма файлами для доступу до локальних папок та медіафайлів.</string>
+    <string name="permission_internet_title">Мережевий доступ</string>
+    <string name="permission_internet_rationale">FastMediaSorter потребує доступу до мережі для підключення до SMB/SFTP та хмарних сховищ.</string>
+    <string name="grant_permission">Надати</string>
+    <string name="skip_permission">Пропустити</string>
+    <string name="permissions_granted">Дозволи надано. Додаток перезапуститься.</string>
+    
     <!-- Error Dialog -->
     <string name="error">Помилка</string>
     <string name="close">Закрити</string>

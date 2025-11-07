@@ -64,7 +64,7 @@ object LocaleHelper {
     /**
      * Restart the application
      */
-    private fun restartApp(activity: Activity) {
+    fun restartApp(activity: Activity) {
         val intent = activity.packageManager.getLaunchIntentForPackage(activity.packageName)
         intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

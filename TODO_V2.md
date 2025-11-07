@@ -36,8 +36,13 @@
   - ✅ Проверка первого запуска в MainActivity
   - ✅ Переводы для en, ru, uk
   - ✅ Зарегистрирована WelcomeActivity в AndroidManifest.xml
-  - ⏳ TODO: Запрос разрешений после Welcome Screen
-  - ⏳ TODO: Перезагрузка приложения если разрешения даны
+  - ✅ Создан PermissionHelper для управления разрешениями
+  - ✅ Реализован запрос READ_EXTERNAL_STORAGE для Android 6-10
+  - ✅ Реализован запрос MANAGE_EXTERNAL_STORAGE для Android 11+
+  - ✅ Диалоги с rationale перед запросом разрешений
+  - ✅ Обработка onRequestPermissionsResult и onActivityResult
+  - ✅ Перезагрузка приложения через LocaleHelper.restartApp() если разрешения даны
+  - ✅ Переводы permission dialogs для en, ru, uk
 
 
 - [x] Языки приложения четко описаны в спецификации. Все текстовые сообщения и надписи должны быть продублированы для трёх языкав. А после смены языка в окне "Settings" из "General" программа должна сохранить язык, перезагрузиться и показать уже везде новый выбранный язык.

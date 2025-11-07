@@ -135,6 +135,16 @@
     <string name="welcome_title_3">Multiple Sources</string>
     <string name="welcome_description_3">Add local folders and network shares (SMB). Set up to 10 destination folders for quick file organization.</string>
     
+    <!-- Permissions -->
+    <string name="permission_storage_title">Storage Access</string>
+    <string name="permission_storage_rationale">FastMediaSorter needs access to your device storage to scan and display media files.</string>
+    <string name="permission_storage_rationale_r">FastMediaSorter needs permission to manage all files on your device to access local folders and media files.</string>
+    <string name="permission_internet_title">Network Access</string>
+    <string name="permission_internet_rationale">FastMediaSorter needs network access to connect to SMB/SFTP shares and cloud storage.</string>
+    <string name="grant_permission">Grant Permission</string>
+    <string name="skip_permission">Skip</string>
+    <string name="permissions_granted">Permissions granted. App will restart.</string>
+    
     <!-- Languages array -->
     <string-array name="languages">
         <item>English</item>
