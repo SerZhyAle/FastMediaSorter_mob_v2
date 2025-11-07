@@ -149,4 +149,12 @@
     <string name="close">Закрити</string>
     <string name="copy_to_clipboard">Копіювати в буфер</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
+    
+    <!-- Add Resource -->
+    <string name="network_folder">Мережева тека</string>
+    <string name="network_folder_description">Додати SMB мережеві ресурси</string>
+    <string name="cloud_folder">Хмарна тека</string>
+    <string name="cloud_folder_description">Додати Google Drive, Dropbox, OneDrive</string>
+    <string name="sftp_folder">SFTP</string>
+    <string name="sftp_folder_description">Додати віддалені теки SFTP</string>
 </resources>

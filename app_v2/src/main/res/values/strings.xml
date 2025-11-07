@@ -156,6 +156,15 @@
         <item>Русский</item>
         <item>Українська</item>
     </string-array>
+    
+    <!-- Add Resource -->
+    <string name="network_folder">Network Folder</string>
+    <string name="network_folder_description">Add SMB network shares</string>
+    <string name="cloud_folder">Cloud Folder</string>
+    <string name="cloud_folder_description">Add Google Drive, Dropbox, OneDrive</string>
+    <string name="sftp_folder">SFTP</string>
+    <string name="sftp_folder_description">Add SFTP remote folders</string>
+    
 </resources>
 
 
