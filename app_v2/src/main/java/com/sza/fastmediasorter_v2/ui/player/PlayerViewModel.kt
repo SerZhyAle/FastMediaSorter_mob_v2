@@ -41,6 +41,7 @@ class PlayerViewModel @Inject constructor(
 
     sealed class PlayerEvent {
         data class ShowError(val message: String) : PlayerEvent()
+        data class ShowMessage(val message: String) : PlayerEvent()
         object FinishActivity : PlayerEvent()
     }
 
@@ -142,5 +143,56 @@ class PlayerViewModel @Inject constructor(
 
     fun toggleCommandPanel() {
         updateState { it.copy(showCommandPanel = !it.showCommandPanel) }
+    }
+    
+    /**
+     * Delete the current file and navigate to next/previous file.
+     * @return true if file deleted successfully and navigation occurred, false if deletion failed, null if no files remain (should finish activity)
+     */
+    fun deleteCurrentFile(): Boolean? {
+        val currentFile = state.value.currentFile
+        if (currentFile == null) {
+            sendEvent(PlayerEvent.ShowError("No file to delete"))
+            return false
+        }
+        
+        val file = java.io.File(currentFile.path)
+        if (!file.exists()) {
+            sendEvent(PlayerEvent.ShowError("File not found"))
+            return false
+        }
+        
+        return try {
+            if (file.delete()) {
+                // Remove deleted file from the list
+                val updatedFiles = state.value.files.toMutableList()
+                val deletedIndex = state.value.currentIndex
+                updatedFiles.removeAt(deletedIndex)
+                
+                if (updatedFiles.isEmpty()) {
+                    // No files left, close activity
+                    sendEvent(PlayerEvent.ShowMessage("File deleted. No more files to display."))
+                    sendEvent(PlayerEvent.FinishActivity)
+                    null
+                } else {
+                    // Navigate to next file, or previous if we deleted the last one
+                    val newIndex = if (deletedIndex >= updatedFiles.size) {
+                        updatedFiles.size - 1 // Move to last file
+                    } else {
+                        deletedIndex // Stay at same index (which now points to next file)
+                    }
+                    
+                    updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                    sendEvent(PlayerEvent.ShowMessage("File deleted successfully"))
+                    true
+                }
+            } else {
+                sendEvent(PlayerEvent.ShowError("Failed to delete file"))
+                false
+            }
+        } catch (e: Exception) {
+            sendEvent(PlayerEvent.ShowError("Error deleting file: ${e.message}"))
+            false
+        }
     }
 }

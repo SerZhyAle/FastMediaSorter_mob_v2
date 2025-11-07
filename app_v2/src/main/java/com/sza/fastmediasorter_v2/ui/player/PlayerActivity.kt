@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter_v2.ui.player
 
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -17,6 +18,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import coil.load
+import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaType
@@ -488,13 +490,32 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun deleteCurrentFile() {
-        Toast.makeText(this, "Delete functionality coming soon", Toast.LENGTH_SHORT).show()
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, "No file to delete", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Show confirmation dialog
+        AlertDialog.Builder(this)
+            .setTitle(R.string.delete_confirmation)
+            .setMessage(getString(R.string.delete_file_confirmation, currentFile.name, ""))
+            .setPositiveButton(R.string.delete) { _, _ ->
+                // Call ViewModel to delete file
+                viewModel.deleteCurrentFile()
+                // Result is handled through PlayerEvent.ShowMessage/ShowError/FinishActivity
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
 
     private fun handleEvent(event: PlayerViewModel.PlayerEvent) {
         when (event) {
             is PlayerViewModel.PlayerEvent.ShowError -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_LONG).show()
+            }
+            is PlayerViewModel.PlayerEvent.ShowMessage -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
             }
             PlayerViewModel.PlayerEvent.FinishActivity -> {
                 finish()
