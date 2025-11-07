@@ -51,6 +51,9 @@
     <string name="refresh">Оновити</string>
     <string name="copy_resource">Копіювати ресурс</string>
     <string name="exit">Вихід</string>
+    <string name="sort">Сортування</string>
+    <string name="toggle_view">Перемкнути вид</string>
+    <string name="play">Відтворити</string>
     <string name="empty_state_message">Додайте ресурси для сортування та відтворення медіафайлів</string>
     
     <!-- Settings -->

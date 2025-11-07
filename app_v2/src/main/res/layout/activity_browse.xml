@@ -27,86 +27,101 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Small space after Back (in toolbar) -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Sort -->
         <ImageButton
             android:id="@+id/btnSort"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Sort"
+            android:contentDescription="@string/sort"
             android:src="@android:drawable/ic_menu_sort_by_size" />
 
+        <!-- Filter -->
         <ImageButton
             android:id="@+id/btnFilter"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Filter"
+            android:contentDescription="@string/filter"
             android:src="@android:drawable/ic_menu_search" />
 
+        <!-- Grid/List toggle -->
         <ImageButton
             android:id="@+id/btnToggleView"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Toggle View"
+            android:contentDescription="@string/toggle_view"
             android:src="@android:drawable/ic_menu_view" />
 
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
+        <!-- Copy -->
         <ImageButton
             android:id="@+id/btnCopy"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Copy"
+            android:contentDescription="@string/copy"
             android:src="@android:drawable/ic_menu_save"
             android:visibility="gone" />
 
+        <!-- Move -->
         <ImageButton
             android:id="@+id/btnMove"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Move"
+            android:contentDescription="@string/move"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone" />
 
+        <!-- Rename -->
         <ImageButton
             android:id="@+id/btnRename"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Rename"
+            android:contentDescription="@string/rename"
             android:src="@android:drawable/ic_menu_edit"
             android:visibility="gone" />
 
+        <!-- Delete -->
         <ImageButton
             android:id="@+id/btnDelete"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Delete"
+            android:contentDescription="@string/delete"
             android:src="@android:drawable/ic_menu_delete"
             android:visibility="gone" />
 
+        <!-- Undo -->
+        <ImageButton
+            android:id="@+id/btnUndo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/undo"
+            android:src="@android:drawable/ic_menu_revert"
+            android:visibility="gone" />
+
+        <!-- Small space -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Play -->
         <ImageButton
             android:id="@+id/btnPlay"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Play"
+            android:contentDescription="@string/play"
             android:src="@android:drawable/ic_media_play" />
-
-        <ImageButton
-            android:id="@+id/btnSlideshow"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Slideshow"
-            android:src="@android:drawable/ic_media_ff" />
 
     </LinearLayout>
 

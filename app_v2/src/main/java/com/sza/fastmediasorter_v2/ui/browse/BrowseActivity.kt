@@ -87,10 +87,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.openFile(firstFile)
             }
         }
-        
-        binding.btnSlideshow.setOnClickListener {
-            startSlideshow()
-        }
     }
 
     override fun observeData() {

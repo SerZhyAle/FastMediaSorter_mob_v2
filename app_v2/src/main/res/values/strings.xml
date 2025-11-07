@@ -51,6 +51,9 @@
     <string name="refresh">Refresh</string>
     <string name="copy_resource">Copy Resource</string>
     <string name="exit">Exit</string>
+    <string name="sort">Sort</string>
+    <string name="toggle_view">Toggle View</string>
+    <string name="play">Play</string>
     <string name="empty_state_message">Add resources for sorting and playing media files</string>
     
     <!-- Settings -->
