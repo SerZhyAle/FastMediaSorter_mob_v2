@@ -2,10 +2,8 @@
 
 ## 📋 Актуальні задачі для розработки
 
-- [ ] В списке ресурсов не работают кнопки "низ", "вверх" на строках ресурсов
-- [ ] В списке ресурсов у меня не получается выбрать выделить ресурс, они както странно мигают
+_(все задачи из этого раздела выполнены)_
 
-- [ ] В отне фильтра/отбора ресурсов кнопки "отмена" и "сброс" очень похожи. Нужны разные иконки
 ---
 
 ## � Permissions & Security (3 tasks)
@@ -364,6 +362,30 @@
   - Material Design guideline: минимум 48dp для touch targets
   - Исправлено во всех фрагментах: General (2 switches), Media (4 switches), Playback (7 switches), Destinations (5 switches)
   - Улучшена доступность: легче попадать по галочкам, больше пространство для нажатия
+
+### 2025-01-07 (Evening Session)
+- [x] **Main Screen: Fix resource move up/down buttons**
+  - Added SortMode.MANUAL enum value for manual ordering
+  - Changed default sort mode from NAME_ASC to MANUAL
+  - Updated applyFiltersAndSort() to sort by displayOrder in MANUAL mode
+  - moveResourceUp/moveResourceDown now switch to MANUAL mode after reordering
+  - Updated FilterResourceDialog to include "Manual Order" option
+  - Commit: (pending)
+
+- [x] **Main Screen: Fix resource selection flickering**
+  - Fixed GestureDetector touch event handling in ResourceAdapter
+  - Changed from always returning true to only consuming handled gestures
+  - Added performClick() call for unhandled ACTION_UP events
+  - Resources now select properly without visual flickering
+  - Commit: (pending)
+
+- [x] **Main Screen: Fix filter dialog button icons**
+  - Created new ic_refresh.xml icon (circular arrow) for Clear/Reset button
+  - Changed btnClear icon from ic_clear (X) to ic_refresh
+  - btnCancel keeps ic_cancel (X in circle)
+  - btnApply keeps ic_check (checkmark)
+  - Icons now clearly distinguish Cancel vs Reset actions
+  - Commit: (pending)
 
 ---
 

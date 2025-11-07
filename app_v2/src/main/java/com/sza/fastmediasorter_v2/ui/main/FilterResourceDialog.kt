@@ -77,6 +77,7 @@ class FilterResourceDialog : DialogFragment() {
 
     private fun setupSortSpinner() {
         val sortOptions = listOf(
+            "Manual Order" to SortMode.MANUAL,
             "Name (A → Z)" to SortMode.NAME_ASC,
             "Name (Z → A)" to SortMode.NAME_DESC,
             "Date (Oldest First)" to SortMode.DATE_ASC,
@@ -166,12 +167,12 @@ class FilterResourceDialog : DialogFragment() {
     }
 
     private fun clearFilters() {
-        currentSortMode = SortMode.NAME_ASC
+        currentSortMode = SortMode.MANUAL
         selectedResourceTypes.clear()
         selectedMediaTypes.clear()
         nameFilter = ""
         
-        binding.spinnerSort.setSelection(0) // NAME_ASC is first
+        binding.spinnerSort.setSelection(0) // MANUAL is first
         binding.etNameFilter.text?.clear()
         
         setupResourceTypeChips()
@@ -185,7 +186,7 @@ class FilterResourceDialog : DialogFragment() {
 
     companion object {
         fun newInstance(
-            sortMode: SortMode = SortMode.NAME_ASC,
+            sortMode: SortMode = SortMode.MANUAL,
             resourceTypes: Set<ResourceType>? = null,
             mediaTypes: Set<MediaType>? = null,
             nameFilter: String? = null,

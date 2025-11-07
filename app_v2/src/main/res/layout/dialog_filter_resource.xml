@@ -129,7 +129,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:contentDescription="@string/clear_all"
-                app:icon="@drawable/ic_clear"
+                app:icon="@drawable/ic_refresh"
                 app:iconGravity="textStart"
                 app:iconPadding="0dp"
                 style="@style/Widget.Material3.Button.OutlinedButton"

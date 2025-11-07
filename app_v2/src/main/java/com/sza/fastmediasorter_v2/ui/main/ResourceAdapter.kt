@@ -93,8 +93,12 @@ class ResourceAdapter(
                 })
                 
                 root.setOnTouchListener { v, event ->
-                    gestureDetector.onTouchEvent(event)
-                    true
+                    val result = gestureDetector.onTouchEvent(event)
+                    // Don't consume all events - let the view handle selection state changes
+                    if (!result && event.action == MotionEvent.ACTION_UP) {
+                        v.performClick()
+                    }
+                    result
                 }
                 
                 btnEdit.setOnClickListener {

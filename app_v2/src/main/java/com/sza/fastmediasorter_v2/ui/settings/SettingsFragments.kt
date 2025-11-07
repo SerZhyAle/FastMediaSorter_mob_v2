@@ -397,6 +397,7 @@ class PlaybackSettingsFragment : Fragment() {
     
     private fun getSortModeName(mode: SortMode): String {
         return when (mode) {
+            SortMode.MANUAL -> "Manual Order"
             SortMode.NAME_ASC -> "Name (A-Z)"
             SortMode.NAME_DESC -> "Name (Z-A)"
             SortMode.DATE_ASC -> "Date (Old first)"

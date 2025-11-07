@@ -51,6 +51,7 @@ class GetMediaFilesUseCase @Inject constructor(
 
     private fun sortFiles(files: List<MediaFile>, mode: SortMode): List<MediaFile> {
         return when (mode) {
+            SortMode.MANUAL -> files // Keep original order for manual mode
             SortMode.NAME_ASC -> files.sortedBy { it.name.lowercase() }
             SortMode.NAME_DESC -> files.sortedByDescending { it.name.lowercase() }
             SortMode.DATE_ASC -> files.sortedBy { it.createdDate }

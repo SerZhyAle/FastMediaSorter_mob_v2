@@ -25,7 +25,7 @@ import javax.inject.Inject
 data class MainState(
     val resources: List<MediaResource> = emptyList(),
     val selectedResource: MediaResource? = null,
-    val sortMode: SortMode = SortMode.NAME_ASC,
+    val sortMode: SortMode = SortMode.MANUAL,
     val filterByType: Set<ResourceType>? = null,
     val filterByMediaType: Set<MediaType>? = null,
     val filterByName: String? = null
@@ -100,6 +100,7 @@ class MainViewModel @Inject constructor(
         
         // Sort
         return when (state.value.sortMode) {
+            SortMode.MANUAL -> filtered.sortedBy { it.displayOrder }
             SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
             SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
             SortMode.DATE_ASC -> filtered.sortedBy { it.createdDate }
@@ -143,7 +144,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun moveResourceUp(resource: MediaResource) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val currentList = state.value.resources
             val currentIndex = currentList.indexOfFirst { it.id == resource.id }
             
@@ -157,13 +158,15 @@ class MainViewModel @Inject constructor(
                 updateResourceUseCase(updatedResource)
                 updateResourceUseCase(updatedPrevious)
                 
+                // Switch to manual sort mode to preserve user's ordering
+                updateState { it.copy(sortMode = SortMode.MANUAL) }
                 loadResources()
             }
         }
     }
 
     fun moveResourceDown(resource: MediaResource) {
-        viewModelScope.launch {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val currentList = state.value.resources
             val currentIndex = currentList.indexOfFirst { it.id == resource.id }
             
@@ -177,6 +180,8 @@ class MainViewModel @Inject constructor(
                 updateResourceUseCase(updatedResource)
                 updateResourceUseCase(updatedNext)
                 
+                // Switch to manual sort mode to preserve user's ordering
+                updateState { it.copy(sortMode = SortMode.MANUAL) }
                 loadResources()
             }
         }

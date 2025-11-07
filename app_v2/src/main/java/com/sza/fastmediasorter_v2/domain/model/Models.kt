@@ -24,6 +24,7 @@ enum class MediaType {
  * Sort mode enum matching specification
  */
 enum class SortMode {
+    MANUAL,      // Manual ordering by displayOrder (used when user manually reorders items)
     NAME_ASC,
     NAME_DESC,
     DATE_ASC,
