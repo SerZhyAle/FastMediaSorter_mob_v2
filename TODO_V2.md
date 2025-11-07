@@ -108,15 +108,19 @@
   - ✅ DestinationAdapter already uses destinationColor for button backgrounds in CopyToDialog/MoveToDialog
   - 📝 Note: Touch zones in Player Screen don't currently use destination colors - deferred to future enhancement
 
-- [ ] **Settings: Add file type filters**
-  - Enable/disable file types: Images, Videos, Audio, GIFs
-  - Apply globally to all resources
-  - Show in Settings Screen with checkboxes
+- [x] **Settings: Add file type filters**
+  - ✅ Already implemented in MediaSettingsFragment (switchSupportImages, switchSupportGifs, switchSupportVideos, switchSupportAudio)
+  - ✅ AppSettings model contains supportImages, supportGifs, supportVideos, supportAudio flags
+  - ✅ File size sliders for each type (imageSizeMin/Max, videoSizeMin/Max, audioSizeMin/Max)
+  - ✅ Filters stored in SettingsRepositoryImpl via SharedPreferences
+  - ✅ Applied globally to all resources
 
-- [ ] **Settings: Add language selection**
-  - Support English, Russian, Ukrainian (as per V1)
-  - Use Android localization resources (values-en, values-ru, values-uk)
-  - Apply immediately on selection
+- [x] **Settings: Add language selection**
+  - ✅ Already implemented in GeneralSettingsFragment (spinnerLanguage)
+  - ✅ Support for English, Russian, Ukrainian (values-en, values-ru, values-uk)
+  - ✅ LocaleHelper for managing locale changes
+  - ✅ Restart dialog when language changed
+  - ✅ Language saved to AppSettings and applied immediately
 
 ---
 
