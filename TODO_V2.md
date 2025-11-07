@@ -427,6 +427,18 @@
   - All results handled via events (ShowMessage/ShowError/FinishActivity)
   - Commit: d764649
 
+- [x] **Settings/Destinations: Fix list item layout**
+  - Fixed button container orientation from vertical to horizontal
+  - Buttons now display in a single row instead of column
+  - Increased button size from 40dp to 48dp for better touch targets
+  - Added 4dp margins between buttons for spacing
+  - Increased text size for better readability:
+    * tvDestinationName: textAppearanceBodyLarge → textAppearanceTitleMedium
+    * tvDestinationPath: textAppearanceBodySmall → textAppearanceBodyMedium
+  - Added 8dp left margin to button container
+  - All three buttons (Move Up, Move Down, Delete) now properly visible in row
+  - Commit: 38a697a
+
 ---
   - Audio: generate bitmap with file extension text (e.g., "MP3", "WAV")
   - Created placeholder drawables: ic_image_placeholder, ic_video_placeholder
