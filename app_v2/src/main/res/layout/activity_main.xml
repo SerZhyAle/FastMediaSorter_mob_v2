@@ -78,38 +78,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageButton
-            android:id="@+id/btnFilter"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/filter"
-            android:src="@android:drawable/ic_menu_search" />
-
-        <ImageButton
-            android:id="@+id/btnRefresh"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/refresh"
-            android:src="@android:drawable/ic_popup_sync" />
-
-        <ImageButton
-            android:id="@+id/btnCopyResource"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/copy_resource"
-            android:src="@android:drawable/ic_menu_set_as" />
-
+        <!-- Start Player - double sized PLAY icon -->
         <ImageButton
             android:id="@+id/btnStartPlayer"
-            android:layout_width="48dp"
+            android:layout_width="96dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/start_player"
-            android:src="@android:drawable/ic_media_play" />
+            android:src="@android:drawable/ic_media_play"
+            android:scaleType="fitCenter" />
 
+        <!-- Add Resource -->
         <ImageButton
             android:id="@+id/btnAddResource"
             android:layout_width="48dp"
@@ -118,6 +97,44 @@
             android:contentDescription="@string/add"
             android:src="@android:drawable/ic_menu_add" />
 
+        <!-- Copy Resource -->
+        <ImageButton
+            android:id="@+id/btnCopyResource"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/copy_resource"
+            android:src="@android:drawable/ic_menu_set_as" />
+
+        <!-- Small space -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Filter and Sort -->
+        <ImageButton
+            android:id="@+id/btnFilter"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/filter"
+            android:src="@android:drawable/ic_menu_search" />
+
+        <!-- Refresh -->
+        <ImageButton
+            android:id="@+id/btnRefresh"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/refresh"
+            android:src="@android:drawable/ic_popup_sync" />
+
+        <!-- Small space -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Settings -->
         <ImageButton
             android:id="@+id/btnSettings"
             android:layout_width="48dp"
@@ -126,11 +143,7 @@
             android:contentDescription="@string/settings"
             android:src="@android:drawable/ic_menu_preferences" />
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
+        <!-- Exit -->
         <ImageButton
             android:id="@+id/btnExit"
             android:layout_width="48dp"
