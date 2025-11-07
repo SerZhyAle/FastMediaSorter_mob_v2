@@ -139,6 +139,11 @@
     <string name="skip_permission">Пропустити</string>
     <string name="permissions_granted">Дозволи надано. Додаток перезапуститься.</string>
     
+    <!-- Color Picker -->
+    <string name="select_color">Виберіть колір</string>
+    <string name="current_color">Поточний колір:</string>
+    <string name="selected">Обрано</string>
+    
     <!-- Error Dialog -->
     <string name="error">Помилка</string>
     <string name="close">Закрити</string>

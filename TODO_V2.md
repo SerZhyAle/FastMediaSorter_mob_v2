@@ -96,9 +96,15 @@
 
 
 - [ ] **Settings: Add destination color picker**
-  - Allow users to customize colors for destination buttons (1-10)
-  - Default colors: color palette with good contrast
-  - Preview of button appearance in dialogs
+  - ✅ destinationColor field already exists in MediaResource and ResourceEntity models
+  - ✅ Created ColorPalette utility with DEFAULT_COLORS (10 colors) and EXTENDED_PALETTE (20 colors)
+  - ✅ Created ColorPickerDialog with color grid (5 columns)
+  - ✅ Created item_color.xml layout for color cells
+  - ✅ Added ic_check_circle.xml drawable for selection indicator
+  - ✅ Color preview with name display
+  - ✅ Translations for EN/RU/UK
+  - ⏳ TODO: Integrate ColorPickerDialog into DestinationsSettingsFragment
+  - ⏳ TODO: Apply destination colors in CopyToDialog/MoveToDialog buttons
 
 - [ ] **Settings: Add file type filters**
   - Enable/disable file types: Images, Videos, Audio, GIFs

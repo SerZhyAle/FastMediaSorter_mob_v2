@@ -145,6 +145,11 @@
     <string name="skip_permission">Skip</string>
     <string name="permissions_granted">Permissions granted. App will restart.</string>
     
+    <!-- Color Picker -->
+    <string name="select_color">Select Color</string>
+    <string name="current_color">Current color:</string>
+    <string name="selected">Selected</string>
+    
     <!-- Languages array -->
     <string-array name="languages">
         <item>English</item>

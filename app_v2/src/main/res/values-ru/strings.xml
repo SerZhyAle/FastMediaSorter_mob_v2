@@ -139,6 +139,11 @@
     <string name="skip_permission">Пропустить</string>
     <string name="permissions_granted">Разрешения предоставлены. Приложение перезапустится.</string>
     
+    <!-- Color Picker -->
+    <string name="select_color">Выберите цвет</string>
+    <string name="current_color">Текущий цвет:</string>
+    <string name="selected">Выбрано</string>
+    
     <!-- Error Dialog -->
     <string name="error">Ошибка</string>
     <string name="close">Закрыть</string>
