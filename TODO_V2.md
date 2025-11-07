@@ -4,10 +4,9 @@
 
 - [ ] в окне диалога "сортировка" для BrowseActivity вместо нормального текста для выбора - код. Пользователю может быть неудобно.
 
-- [ ] Проверь, что элементы (наличие и порядок) BrowseActivity отвечают спецификации.
+- [ ] Проверь, что элементы (наличие и порядок) BrowseActivity отвечают оригинальнойспецификации.
 
-
-Дополнительно к спивку нужны
+- [ ] Для BrowseActivity нужно изменить спецификацию и добвать новое: дополнительно нужны кнопки "Выбрать все" и "снять выбор со всех" в виде иконок наверху. А вот кнопки операций - копирование, переименование, перенос, удаление, пробел, запуск слайдшоу - пусть появляются внизу под списком (таблицей/сеткой). После реализации нужно внести изменения в спецификацию
 ---
 
 ## � Permissions & Security (3 tasks)
@@ -404,6 +403,28 @@
   - Updated MediaFileAdapter to load real thumbnails instead of generic icons
   - Images/GIFs: load actual image preview using Coil
   - Videos: load first frame using Coil video decoder
+  - Audio: generated custom bitmap with file extension text (e.g., "MP3")
+  - Created placeholder/error drawables (ic_image_*, ic_video_*)
+  - All thumbnails use RoundedCornersTransformation(8f) for consistent appearance
+  - Commit: 58d3f72
+
+### 2025-01-07 (Evening Session 3)
+- [x] **Player Screen: Implement Delete file functionality**
+  - Added PlayerEvent.ShowMessage event for success messages
+  - Implemented deleteCurrentFile() in PlayerViewModel:
+    * Deletes file from filesystem using File.delete()
+    * Removes deleted file from files list
+    * Navigates to next file if available
+    * Navigates to previous if deleted last file
+    * Closes activity if no files remain (sends FinishActivity event)
+    * Returns Boolean? (true=success, false=error, null=closing)
+  - Replaced "Delete functionality coming soon" stub in PlayerActivity
+  - Added AlertDialog with confirmation (uses delete_file_confirmation string)
+  - Added missing imports (AlertDialog, R)
+  - All results handled via events (ShowMessage/ShowError/FinishActivity)
+  - Commit: d764649
+
+---
   - Audio: generate bitmap with file extension text (e.g., "MP3", "WAV")
   - Created placeholder drawables: ic_image_placeholder, ic_video_placeholder
   - Created error drawables: ic_image_error, ic_video_error
