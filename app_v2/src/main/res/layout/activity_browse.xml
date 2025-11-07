@@ -144,10 +144,25 @@
         android:padding="4dp"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@id/tvResourceInfo"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/tvFilterWarning"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_media_file" />
+
+    <TextView
+        android:id="@+id/tvFilterWarning"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="#FFF9C4"
+        android:padding="8dp"
+        android:textSize="12sp"
+        android:textColor="#000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="⚠ Filter active: name contains 'photo', created after 01.01.2024"
+        tools:visibility="visible" />
 
     <TextView
         android:id="@+id/tvEmpty"

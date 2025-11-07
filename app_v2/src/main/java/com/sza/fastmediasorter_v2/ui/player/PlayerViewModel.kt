@@ -4,10 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -20,7 +22,7 @@ class PlayerViewModel @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     val fileOperationUseCase: FileOperationUseCase,
     val getDestinationsUseCase: GetDestinationsUseCase,
-    private val settingsRepository: com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
+    private val settingsRepository: SettingsRepository
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -80,7 +82,18 @@ class PlayerViewModel @Inject constructor(
                     return@launch
                 }
 
-                val files = getMediaFilesUseCase(resource).first()
+                // Get current settings for size filters
+                val settings = settingsRepository.getSettings().first()
+                val sizeFilter = SizeFilter(
+                    imageSizeMin = settings.imageSizeMin,
+                    imageSizeMax = settings.imageSizeMax,
+                    videoSizeMin = settings.videoSizeMin,
+                    videoSizeMax = settings.videoSizeMax,
+                    audioSizeMin = settings.audioSizeMin,
+                    audioSizeMax = settings.audioSizeMax
+                )
+
+                val files = getMediaFilesUseCase(resource, sizeFilter = sizeFilter).first()
                 if (files.isEmpty()) {
                     sendEvent(PlayerEvent.ShowError("No media files found"))
                     sendEvent(PlayerEvent.FinishActivity)

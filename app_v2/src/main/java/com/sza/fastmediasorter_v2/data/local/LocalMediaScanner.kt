@@ -5,6 +5,7 @@ import android.webkit.MimeTypeMap
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
+import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -26,58 +27,76 @@ class LocalMediaScanner @Inject constructor(
         private val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "wav", "flac", "aac", "ogg", "wma", "opus")
     }
 
-    override suspend fun scanFolder(path: String, supportedTypes: Set<MediaType>): List<MediaFile> = 
-        withContext(Dispatchers.IO) {
-            try {
-                val folder = File(path)
-                if (!folder.exists() || !folder.isDirectory) {
-                    Timber.w("Folder does not exist or is not a directory: $path")
-                    return@withContext emptyList()
-                }
+    override suspend fun scanFolder(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?
+    ): List<MediaFile> = withContext(Dispatchers.IO) {
+        try {
+            val folder = File(path)
+            if (!folder.exists() || !folder.isDirectory) {
+                Timber.w("Folder does not exist or is not a directory: $path")
+                return@withContext emptyList()
+            }
 
-                val files = folder.listFiles() ?: return@withContext emptyList()
-                
-                files.mapNotNull { file ->
-                    if (file.isFile) {
-                        val mediaType = getMediaType(file)
-                        if (mediaType != null && supportedTypes.contains(mediaType)) {
-                            MediaFile(
-                                name = file.name,
-                                path = file.absolutePath,
-                                size = file.length(),
-                                createdDate = file.lastModified(),
-                                type = mediaType
-                            )
-                        } else null
+            val files = folder.listFiles() ?: return@withContext emptyList()
+            
+            files.mapNotNull { file ->
+                if (file.isFile) {
+                    val mediaType = getMediaType(file)
+                    if (mediaType != null && supportedTypes.contains(mediaType)) {
+                        // Apply size filter if provided
+                        if (sizeFilter != null && !isFileSizeInRange(file.length(), mediaType, sizeFilter)) {
+                            return@mapNotNull null
+                        }
+                        
+                        MediaFile(
+                            name = file.name,
+                            path = file.absolutePath,
+                            size = file.length(),
+                            createdDate = file.lastModified(),
+                            type = mediaType
+                        )
                     } else null
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error scanning folder: $path")
-                emptyList()
+                } else null
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning folder: $path")
+            emptyList()
         }
+    }
 
-    override suspend fun getFileCount(path: String, supportedTypes: Set<MediaType>): Int = 
-        withContext(Dispatchers.IO) {
-            try {
-                val folder = File(path)
-                if (!folder.exists() || !folder.isDirectory) {
-                    return@withContext 0
-                }
+    override suspend fun getFileCount(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?
+    ): Int = withContext(Dispatchers.IO) {
+        try {
+            val folder = File(path)
+            if (!folder.exists() || !folder.isDirectory) {
+                return@withContext 0
+            }
 
-                val files = folder.listFiles() ?: return@withContext 0
-                
-                files.count { file ->
-                    if (file.isFile) {
-                        val mediaType = getMediaType(file)
-                        mediaType != null && supportedTypes.contains(mediaType)
+            val files = folder.listFiles() ?: return@withContext 0
+            
+            files.count { file ->
+                if (file.isFile) {
+                    val mediaType = getMediaType(file)
+                    if (mediaType != null && supportedTypes.contains(mediaType)) {
+                        // Apply size filter if provided
+                        if (sizeFilter != null) {
+                            isFileSizeInRange(file.length(), mediaType, sizeFilter)
+                        } else {
+                            true
+                        }
                     } else false
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error counting files in: $path")
-                0
+                } else false
             }
+        } catch (e: Exception) {
+            Timber.e(e, "Error counting files in: $path")
+            0
         }
+    }
 
     override suspend fun isWritable(path: String): Boolean = withContext(Dispatchers.IO) {
         try {
@@ -97,6 +116,14 @@ class LocalMediaScanner @Inject constructor(
             VIDEO_EXTENSIONS.contains(extension) -> MediaType.VIDEO
             AUDIO_EXTENSIONS.contains(extension) -> MediaType.AUDIO
             else -> null
+        }
+    }
+    
+    private fun isFileSizeInRange(size: Long, mediaType: MediaType, filter: SizeFilter): Boolean {
+        return when (mediaType) {
+            MediaType.IMAGE, MediaType.GIF -> size in filter.imageSizeMin..filter.imageSizeMax
+            MediaType.VIDEO -> size in filter.videoSizeMin..filter.videoSizeMax
+            MediaType.AUDIO -> size in filter.audioSizeMin..filter.audioSizeMax
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter_v2.ui.settings
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -37,41 +38,9 @@ class MediaSettingsFragment : Fragment() {
     private val viewModel: SettingsViewModel by activityViewModels()
 
     companion object {
-        // Image size: 0-1GB, slider 0-100
-        private const val IMAGE_MIN_SIZE = 0L
-        private const val IMAGE_MAX_SIZE = 1073741824L // 1GB
-        
-        // Video size: 0-1TB, slider 0-100
-        private const val VIDEO_MIN_SIZE = 0L
-        private const val VIDEO_MAX_SIZE = 1099511627776L // 1TB
-        
-        // Audio size: 0-10GB, slider 0-100
-        private const val AUDIO_MIN_SIZE = 0L
-        private const val AUDIO_MAX_SIZE = 10737418240L // 10GB
-        
-        // Convert slider position (0-100) to file size using exponential scale
-        private fun sliderToSize(value: Float, minSize: Long, maxSize: Long): Long {
-            val normalized = value / 100f
-            val size = minSize + (maxSize - minSize) * normalized.pow(2)
-            return size.toLong()
-        }
-        
-        // Convert file size to slider position (0-100)
-        private fun sizeToSlider(size: Long, minSize: Long, maxSize: Long): Float {
-            val normalized = (size - minSize).toDouble() / (maxSize - minSize)
-            val sliderValue = (normalized.pow(0.5) * 100).coerceIn(0.0, 100.0)
-            return sliderValue.roundToInt().toFloat()
-        }
-        
-        // Format size for display
-        private fun formatSize(bytes: Long): String {
-            return when {
-                bytes >= 1073741824 -> "%.1f GB".format(bytes / 1073741824.0)
-                bytes >= 1048576 -> "%.1f MB".format(bytes / 1048576.0)
-                bytes >= 1024 -> "%.1f KB".format(bytes / 1024.0)
-                else -> "$bytes B"
-            }
-        }
+        // Conversion constants
+        private const val KB_TO_BYTES = 1024L
+        private const val MB_TO_BYTES = 1024L * 1024L
     }
 
     override fun onCreateView(
@@ -94,27 +63,39 @@ class MediaSettingsFragment : Fragment() {
         binding.switchSupportImages.setOnCheckedChangeListener { _, isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(supportImages = isChecked))
-            updateImageSizeVisibility(isChecked)
+            updateImageSizeVisibility(isChecked, current.supportGifs)
         }
         
-        binding.sliderImageSize.addOnChangeListener { slider, _, _ ->
-            val values = slider.values
-            val minSize = sliderToSize(values[0], IMAGE_MIN_SIZE, IMAGE_MAX_SIZE)
-            val maxSize = sliderToSize(values[1], IMAGE_MIN_SIZE, IMAGE_MAX_SIZE)
-            
-            binding.tvImageSizeRange.text = "${formatSize(minSize)} - ${formatSize(maxSize)}"
-            
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(
-                imageSizeMin = minSize,
-                imageSizeMax = maxSize
-            ))
+        // Image size text fields (in KB)
+        binding.etImageSizeMin.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etImageSizeMin.text.toString()
+                val kb = text.toLongOrNull() ?: 1
+                val bytes = kb * KB_TO_BYTES
+                val current = viewModel.settings.value
+                if (bytes != current.imageSizeMin) {
+                    viewModel.updateSettings(current.copy(imageSizeMin = bytes))
+                }
+            }
+        }
+        
+        binding.etImageSizeMax.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etImageSizeMax.text.toString()
+                val kb = text.toLongOrNull() ?: 10240 // 10MB default
+                val bytes = kb * KB_TO_BYTES
+                val current = viewModel.settings.value
+                if (bytes != current.imageSizeMax) {
+                    viewModel.updateSettings(current.copy(imageSizeMax = bytes))
+                }
+            }
         }
         
         // Support GIFs
         binding.switchSupportGifs.setOnCheckedChangeListener { _, isChecked ->
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(supportGifs = isChecked))
+            updateImageSizeVisibility(current.supportImages, isChecked)
         }
         
         // Support Videos
@@ -124,18 +105,29 @@ class MediaSettingsFragment : Fragment() {
             updateVideoSizeVisibility(isChecked)
         }
         
-        binding.sliderVideoSize.addOnChangeListener { slider, _, _ ->
-            val values = slider.values
-            val minSize = sliderToSize(values[0], VIDEO_MIN_SIZE, VIDEO_MAX_SIZE)
-            val maxSize = sliderToSize(values[1], VIDEO_MIN_SIZE, VIDEO_MAX_SIZE)
-            
-            binding.tvVideoSizeRange.text = "${formatSize(minSize)} - ${formatSize(maxSize)}"
-            
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(
-                videoSizeMin = minSize,
-                videoSizeMax = maxSize
-            ))
+        // Video size text fields (in MB)
+        binding.etVideoSizeMin.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etVideoSizeMin.text.toString()
+                val mb = text.toLongOrNull() ?: 1
+                val bytes = mb * MB_TO_BYTES
+                val current = viewModel.settings.value
+                if (bytes != current.videoSizeMin) {
+                    viewModel.updateSettings(current.copy(videoSizeMin = bytes))
+                }
+            }
+        }
+        
+        binding.etVideoSizeMax.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etVideoSizeMax.text.toString()
+                val mb = text.toLongOrNull() ?: 1024 // 1GB default
+                val bytes = mb * MB_TO_BYTES
+                val current = viewModel.settings.value
+                if (bytes != current.videoSizeMax) {
+                    viewModel.updateSettings(current.copy(videoSizeMax = bytes))
+                }
+            }
         }
         
         // Support Audio
@@ -145,18 +137,29 @@ class MediaSettingsFragment : Fragment() {
             updateAudioSizeVisibility(isChecked)
         }
         
-        binding.sliderAudioSize.addOnChangeListener { slider, _, _ ->
-            val values = slider.values
-            val minSize = sliderToSize(values[0], AUDIO_MIN_SIZE, AUDIO_MAX_SIZE)
-            val maxSize = sliderToSize(values[1], AUDIO_MIN_SIZE, AUDIO_MAX_SIZE)
-            
-            binding.tvAudioSizeRange.text = "${formatSize(minSize)} - ${formatSize(maxSize)}"
-            
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(
-                audioSizeMin = minSize,
-                audioSizeMax = maxSize
-            ))
+        // Audio size text fields (in MB)
+        binding.etAudioSizeMin.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etAudioSizeMin.text.toString()
+                val mb = text.toLongOrNull() ?: 1
+                val bytes = mb * MB_TO_BYTES
+                val current = viewModel.settings.value
+                if (bytes != current.audioSizeMin) {
+                    viewModel.updateSettings(current.copy(audioSizeMin = bytes))
+                }
+            }
+        }
+        
+        binding.etAudioSizeMax.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etAudioSizeMax.text.toString()
+                val mb = text.toLongOrNull() ?: 100 // 100MB default
+                val bytes = mb * MB_TO_BYTES
+                val current = viewModel.settings.value
+                if (bytes != current.audioSizeMax) {
+                    viewModel.updateSettings(current.copy(audioSizeMax = bytes))
+                }
+            }
         }
     }
 
@@ -164,32 +167,52 @@ class MediaSettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.settings.collect { settings ->
-                    // Update switches
-                    binding.switchSupportImages.isChecked = settings.supportImages
-                    binding.switchSupportGifs.isChecked = settings.supportGifs
-                    binding.switchSupportVideos.isChecked = settings.supportVideos
-                    binding.switchSupportAudio.isChecked = settings.supportAudio
+                    // Update switches (only if changed)
+                    if (binding.switchSupportImages.isChecked != settings.supportImages) {
+                        binding.switchSupportImages.isChecked = settings.supportImages
+                    }
+                    if (binding.switchSupportGifs.isChecked != settings.supportGifs) {
+                        binding.switchSupportGifs.isChecked = settings.supportGifs
+                    }
+                    if (binding.switchSupportVideos.isChecked != settings.supportVideos) {
+                        binding.switchSupportVideos.isChecked = settings.supportVideos
+                    }
+                    if (binding.switchSupportAudio.isChecked != settings.supportAudio) {
+                        binding.switchSupportAudio.isChecked = settings.supportAudio
+                    }
                     
-                    // Update image size slider
-                    val imageMinSlider = sizeToSlider(settings.imageSizeMin, IMAGE_MIN_SIZE, IMAGE_MAX_SIZE)
-                    val imageMaxSlider = sizeToSlider(settings.imageSizeMax, IMAGE_MIN_SIZE, IMAGE_MAX_SIZE)
-                    binding.sliderImageSize.values = listOf(imageMinSlider, imageMaxSlider)
-                    binding.tvImageSizeRange.text = "${formatSize(settings.imageSizeMin)} - ${formatSize(settings.imageSizeMax)}"
+                    // Update image size text fields (in KB)
+                    val imageMinKB = (settings.imageSizeMin / KB_TO_BYTES).toString()
+                    val imageMaxKB = (settings.imageSizeMax / KB_TO_BYTES).toString()
+                    if (binding.etImageSizeMin.text.toString() != imageMinKB) {
+                        binding.etImageSizeMin.setText(imageMinKB)
+                    }
+                    if (binding.etImageSizeMax.text.toString() != imageMaxKB) {
+                        binding.etImageSizeMax.setText(imageMaxKB)
+                    }
                     
-                    // Update video size slider
-                    val videoMinSlider = sizeToSlider(settings.videoSizeMin, VIDEO_MIN_SIZE, VIDEO_MAX_SIZE)
-                    val videoMaxSlider = sizeToSlider(settings.videoSizeMax, VIDEO_MIN_SIZE, VIDEO_MAX_SIZE)
-                    binding.sliderVideoSize.values = listOf(videoMinSlider, videoMaxSlider)
-                    binding.tvVideoSizeRange.text = "${formatSize(settings.videoSizeMin)} - ${formatSize(settings.videoSizeMax)}"
+                    // Update video size text fields (in MB)
+                    val videoMinMB = (settings.videoSizeMin / MB_TO_BYTES).toString()
+                    val videoMaxMB = (settings.videoSizeMax / MB_TO_BYTES).toString()
+                    if (binding.etVideoSizeMin.text.toString() != videoMinMB) {
+                        binding.etVideoSizeMin.setText(videoMinMB)
+                    }
+                    if (binding.etVideoSizeMax.text.toString() != videoMaxMB) {
+                        binding.etVideoSizeMax.setText(videoMaxMB)
+                    }
                     
-                    // Update audio size slider
-                    val audioMinSlider = sizeToSlider(settings.audioSizeMin, AUDIO_MIN_SIZE, AUDIO_MAX_SIZE)
-                    val audioMaxSlider = sizeToSlider(settings.audioSizeMax, AUDIO_MIN_SIZE, AUDIO_MAX_SIZE)
-                    binding.sliderAudioSize.values = listOf(audioMinSlider, audioMaxSlider)
-                    binding.tvAudioSizeRange.text = "${formatSize(settings.audioSizeMin)} - ${formatSize(settings.audioSizeMax)}"
+                    // Update audio size text fields (in MB)
+                    val audioMinMB = (settings.audioSizeMin / MB_TO_BYTES).toString()
+                    val audioMaxMB = (settings.audioSizeMax / MB_TO_BYTES).toString()
+                    if (binding.etAudioSizeMin.text.toString() != audioMinMB) {
+                        binding.etAudioSizeMin.setText(audioMinMB)
+                    }
+                    if (binding.etAudioSizeMax.text.toString() != audioMaxMB) {
+                        binding.etAudioSizeMax.setText(audioMaxMB)
+                    }
                     
                     // Update visibility
-                    updateImageSizeVisibility(settings.supportImages)
+                    updateImageSizeVisibility(settings.supportImages, settings.supportGifs)
                     updateVideoSizeVisibility(settings.supportVideos)
                     updateAudioSizeVisibility(settings.supportAudio)
                 }
@@ -197,22 +220,21 @@ class MediaSettingsFragment : Fragment() {
         }
     }
     
-    private fun updateImageSizeVisibility(visible: Boolean) {
+    private fun updateImageSizeVisibility(supportImages: Boolean, supportGifs: Boolean) {
+        // Show size limit if either static images or GIFs are enabled
+        val visible = supportImages || supportGifs
         binding.tvImageSizeLabel.isVisible = visible
-        binding.tvImageSizeRange.isVisible = visible
-        binding.sliderImageSize.isVisible = visible
+        binding.layoutImageSizeInputs.isVisible = visible
     }
     
     private fun updateVideoSizeVisibility(visible: Boolean) {
         binding.tvVideoSizeLabel.isVisible = visible
-        binding.tvVideoSizeRange.isVisible = visible
-        binding.sliderVideoSize.isVisible = visible
+        binding.layoutVideoSizeInputs.isVisible = visible
     }
     
     private fun updateAudioSizeVisibility(visible: Boolean) {
         binding.tvAudioSizeLabel.isVisible = visible
-        binding.tvAudioSizeRange.isVisible = visible
-        binding.sliderAudioSize.isVisible = visible
+        binding.layoutAudioSizeInputs.isVisible = visible
     }
 
     override fun onDestroyView() {
@@ -243,7 +265,7 @@ class PlaybackSettingsFragment : Fragment() {
     }
     
     private fun setupViews() {
-        // Sort mode spinner
+        // Sort mode dropdown
         val sortModes = arrayOf(
             "Name (A-Z)", "Name (Z-A)", 
             "Date (Old first)", "Date (New first)",
@@ -258,13 +280,20 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(defaultSortMode = sortMode))
         }
         
-        // Slideshow interval slider
-        binding.sliderSlideshow.addOnChangeListener { slider, value, _ ->
-            val seconds = value.toInt()
-            binding.tvSlideshowValue.text = formatDuration(seconds)
-            
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(slideshowInterval = seconds))
+        // Slideshow interval text field
+        binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etSlideshowInterval.text.toString()
+                val seconds = text.toIntOrNull() ?: 5
+                val clampedSeconds = seconds.coerceIn(1, 3600)
+                if (seconds != clampedSeconds) {
+                    binding.etSlideshowInterval.setText(clampedSeconds.toString())
+                }
+                val current = viewModel.settings.value
+                if (clampedSeconds != current.slideshowInterval) {
+                    viewModel.updateSettings(current.copy(slideshowInterval = clampedSeconds))
+                }
+            }
         }
         
         // Switches
@@ -303,13 +332,20 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showDetailedErrors = isChecked))
         }
         
-        // Icon size slider
-        binding.sliderIconSize.addOnChangeListener { slider, value, _ ->
-            val size = value.toInt()
-            binding.tvIconSize.text = "${size}px"
-            
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(defaultIconSize = size))
+        // Icon size text field
+        binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etIconSize.text.toString()
+                val size = text.toIntOrNull() ?: 96
+                val clampedSize = size.coerceIn(32, 256)
+                if (size != clampedSize) {
+                    binding.etIconSize.setText(clampedSize.toString())
+                }
+                val current = viewModel.settings.value
+                if (clampedSize != current.defaultIconSize) {
+                    viewModel.updateSettings(current.copy(defaultIconSize = clampedSize))
+                }
+            }
         }
     }
     
@@ -321,38 +357,40 @@ class PlaybackSettingsFragment : Fragment() {
                     binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
                     
                     // Slideshow interval
-                    binding.sliderSlideshow.value = settings.slideshowInterval.toFloat()
-                    binding.tvSlideshowValue.text = formatDuration(settings.slideshowInterval)
+                    val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
+                    if (currentSlideshow != settings.slideshowInterval) {
+                        binding.etSlideshowInterval.setText(settings.slideshowInterval.toString())
+                    }
                     
-                    // Switches
-                    binding.switchPlayToEnd.isChecked = settings.playToEndInSlideshow
-                    binding.switchAllowRename.isChecked = settings.allowRename
-                    binding.switchAllowDelete.isChecked = settings.allowDelete
-                    binding.switchConfirmDelete.isChecked = settings.confirmDelete
-                    binding.switchGridMode.isChecked = settings.defaultGridMode
-                    binding.switchFullScreen.isChecked = settings.fullScreenMode
-                    binding.switchDetailedErrors.isChecked = settings.showDetailedErrors
+                    // Switches (only update if value changed)
+                    if (binding.switchPlayToEnd.isChecked != settings.playToEndInSlideshow) {
+                        binding.switchPlayToEnd.isChecked = settings.playToEndInSlideshow
+                    }
+                    if (binding.switchAllowRename.isChecked != settings.allowRename) {
+                        binding.switchAllowRename.isChecked = settings.allowRename
+                    }
+                    if (binding.switchAllowDelete.isChecked != settings.allowDelete) {
+                        binding.switchAllowDelete.isChecked = settings.allowDelete
+                    }
+                    if (binding.switchConfirmDelete.isChecked != settings.confirmDelete) {
+                        binding.switchConfirmDelete.isChecked = settings.confirmDelete
+                    }
+                    if (binding.switchGridMode.isChecked != settings.defaultGridMode) {
+                        binding.switchGridMode.isChecked = settings.defaultGridMode
+                    }
+                    if (binding.switchFullScreen.isChecked != settings.fullScreenMode) {
+                        binding.switchFullScreen.isChecked = settings.fullScreenMode
+                    }
+                    if (binding.switchDetailedErrors.isChecked != settings.showDetailedErrors) {
+                        binding.switchDetailedErrors.isChecked = settings.showDetailedErrors
+                    }
                     
                     // Icon size
-                    binding.sliderIconSize.value = settings.defaultIconSize.toFloat()
-                    binding.tvIconSize.text = "${settings.defaultIconSize}px"
+                    val currentIconSize = binding.etIconSize.text.toString().toIntOrNull()
+                    if (currentIconSize != settings.defaultIconSize) {
+                        binding.etIconSize.setText(settings.defaultIconSize.toString())
+                    }
                 }
-            }
-        }
-    }
-    
-    private fun formatDuration(seconds: Int): String {
-        return when {
-            seconds < 60 -> "$seconds sec"
-            seconds < 3600 -> {
-                val min = seconds / 60
-                val sec = seconds % 60
-                if (sec == 0) "$min min" else "$min min $sec sec"
-            }
-            else -> {
-                val hours = seconds / 3600
-                val min = (seconds % 3600) / 60
-                if (min == 0) "$hours h" else "$hours h $min min"
             }
         }
     }
@@ -605,6 +643,9 @@ class GeneralSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: SettingsViewModel by activityViewModels()
+    
+    // Flag to prevent infinite loop when programmatically updating spinner
+    private var isUpdatingSpinner = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -617,8 +658,14 @@ class GeneralSettingsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupVersionInfo()
         setupViews()
         observeData()
+    }
+    
+    private fun setupVersionInfo() {
+        val versionInfo = "${com.sza.fastmediasorter_v2.BuildConfig.VERSION_NAME} | Build ${com.sza.fastmediasorter_v2.BuildConfig.VERSION_CODE} | sza@ukr.net"
+        binding.tvVersionInfo.text = versionInfo
     }
 
     private fun setupViews() {
@@ -628,12 +675,11 @@ class GeneralSettingsFragment : Fragment() {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         binding.spinnerLanguage.adapter = adapter
         
-        // Set initial language selection
-        val currentLanguage = LocaleHelper.getLanguage(requireContext())
-        binding.spinnerLanguage.setSelection(LocaleHelper.getLanguageIndex(currentLanguage), false)
-        
         binding.spinnerLanguage.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                // Skip if we're programmatically updating the spinner
+                if (isUpdatingSpinner) return
+                
                 val newLanguageCode = when (position) {
                     0 -> "en"
                     1 -> "ru"
@@ -641,12 +687,11 @@ class GeneralSettingsFragment : Fragment() {
                     else -> "en"
                 }
                 
-                // Check if language actually changed
-                val oldLanguageCode = LocaleHelper.getLanguage(requireContext())
-                if (newLanguageCode != oldLanguageCode) {
+                // Check if language actually changed compared to current settings
+                val currentSettings = viewModel.settings.value
+                if (newLanguageCode != currentSettings.language) {
                     // Update settings
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(language = newLanguageCode))
+                    viewModel.updateSettings(currentSettings.copy(language = newLanguageCode))
                     
                     // Show restart dialog
                     showRestartDialog(newLanguageCode)
@@ -692,6 +737,12 @@ class GeneralSettingsFragment : Fragment() {
             }
         }
         
+        // User Guide Button
+        binding.btnUserGuide.setOnClickListener {
+            val intent = Intent(requireContext(), com.sza.fastmediasorter_v2.ui.welcome.WelcomeActivity::class.java)
+            startActivity(intent)
+        }
+        
         // Permissions Buttons
         binding.btnLocalFilesPermission.setOnClickListener {
             Toast.makeText(requireContext(), "Permission request functionality - TODO", Toast.LENGTH_SHORT).show()
@@ -723,7 +774,13 @@ class GeneralSettingsFragment : Fragment() {
                         else -> 0
                     }
                     if (binding.spinnerLanguage.selectedItemPosition != languagePosition) {
-                        binding.spinnerLanguage.setSelection(languagePosition)
+                        // Set flag to prevent triggering onItemSelected
+                        isUpdatingSpinner = true
+                        binding.spinnerLanguage.setSelection(languagePosition, false)
+                        // Reset flag after a short delay to allow UI to settle
+                        binding.spinnerLanguage.post {
+                            isUpdatingSpinner = false
+                        }
                     }
                     
                     // Update switches
@@ -843,13 +900,30 @@ class GeneralSettingsFragment : Fragment() {
             .setTitle(R.string.restart_app_title)
             .setMessage(getString(R.string.restart_app_message, languageName))
             .setPositiveButton(R.string.restart) { _, _ ->
-                // Save language and restart app
-                LocaleHelper.changeLanguage(requireActivity(), languageCode)
+                // Language already saved in DataStore by updateSettings()
+                // Sync to SharedPreferences for app restart
+                LocaleHelper.saveLanguage(requireActivity(), languageCode)
+                // Restart app
+                LocaleHelper.restartApp(requireActivity())
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
-                // Revert spinner to previous language
-                val oldLanguageCode = LocaleHelper.getLanguage(requireContext())
-                binding.spinnerLanguage.setSelection(LocaleHelper.getLanguageIndex(oldLanguageCode), false)
+                // User declined restart - revert spinner to current active language
+                // (the language that was loaded at app start, not the new selection)
+                val currentLanguage = LocaleHelper.getLanguage(requireContext())
+                val currentPosition = when (currentLanguage) {
+                    "en" -> 0
+                    "ru" -> 1
+                    "uk" -> 2
+                    else -> 0
+                }
+                isUpdatingSpinner = true
+                binding.spinnerLanguage.setSelection(currentPosition, false)
+                binding.spinnerLanguage.post { isUpdatingSpinner = false }
+                
+                // Revert settings to current active language
+                val currentSettings = viewModel.settings.value
+                viewModel.updateSettings(currentSettings.copy(language = currentLanguage))
+                
                 dialog.dismiss()
             }
             .setCancelable(false)

@@ -4,6 +4,7 @@ import android.view.View
 import androidx.activity.viewModels
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
+import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivitySettingsBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,10 +36,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
-                0 -> "General"
-                1 -> "Media"
-                2 -> "Playback"
-                3 -> "Destinations"
+                0 -> getString(R.string.settings_tab_general)
+                1 -> getString(R.string.settings_tab_media)
+                2 -> getString(R.string.settings_tab_playback)
+                3 -> getString(R.string.settings_tab_destinations)
                 else -> ""
             }
         }.attach()

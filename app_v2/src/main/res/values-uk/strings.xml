@@ -14,6 +14,12 @@
     <string name="yes">Так</string>
     <string name="no">Ні</string>
     
+    <!-- Settings Tabs -->
+    <string name="settings_tab_general">Загальні</string>
+    <string name="settings_tab_media">Медіа</string>
+    <string name="settings_tab_playback">Відтворення</string>
+    <string name="settings_tab_destinations">Призначення</string>
+    
     <!-- Copy Dialog -->
     <string name="copying_files">Копіювання файлів</string>
     <string name="copying_n_files_from_folder">Копіювання %1$d файлів з %2$s</string>
@@ -76,18 +82,34 @@
     <string name="small_controls">Малі елементи керування</string>
     <string name="default_smb_user">SMB користувач за замовчуванням</string>
     <string name="default_smb_password">SMB пароль за замовчуванням</string>
+    <string name="user_guide">Керівництво користувача</string>
     <string name="manage_permissions">Керування дозволами</string>
     <string name="show_logs">Показати логи</string>
     <string name="support_images">Підтримка зображень</string>
+    <string name="support_images_description">Підтримка статичних зображень</string>
+    <string name="supported_image_formats">Підтримуються: JPG, PNG, BMP, WEBP</string>
+    <string name="image_size_limit">Обмеження розміру зображень</string>
+    <string name="image_size_range">1 КБ - 10 МБ</string>
     <string name="support_gif">Підтримка GIF</string>
+    <string name="support_gif_description">Підтримка GIF анімації</string>
     <string name="support_video">Підтримка відео</string>
+    <string name="support_video_description">Підтримка відео</string>
+    <string name="supported_video_formats">Підтримуються: MP4, MKV, AVI, MOV, WEBM</string>
+    <string name="video_size_limit">Обмеження розміру відео</string>
+    <string name="video_size_range">100 КБ - 1 ГБ</string>
     <string name="support_audio">Підтримка аудіо</string>
+    <string name="support_audio_description">Підтримка аудіо</string>
+    <string name="supported_audio_formats">Підтримуються: MP3, AAC, FLAC, OGG, WAV</string>
+    <string name="audio_size_limit">Обмеження розміру аудіо</string>
+    <string name="audio_size_range">10 КБ - 100 МБ</string>
     <string name="image_size_limits">Обмеження розміру зображень (МБ)</string>
     <string name="video_size_limits">Обмеження розміру відео (ГБ)</string>
     <string name="audio_size_limits">Обмеження розміру аудіо (МБ)</string>
     <string name="default_sort_mode">Режим сортування за замовчуванням</string>
     <string name="slideshow_interval">Інтервал слайдшоу</string>
-    <string name="play_video_to_end">Відтворювати відео до кінця</string>
+    <string name="seconds">Секунд</string>
+    <string name="minutes">Хвилин</string>
+    <string name="play_video_to_end">Відтворювати відео/аудіо в слайдшоу до кінця</string>
     <string name="allow_rename">Дозволити перейменування</string>
     <string name="allow_delete">Дозволити видалення</string>
     <string name="confirm_delete">Підтверджувати видалення</string>
@@ -95,10 +117,10 @@
     <string name="full_screen_mode">Повноекранний режим</string>
     <string name="show_detailed_errors">Показувати детальні помилки</string>
     <string name="default_icon_size">Розмір іконок за замовчуванням (пікселі)</string>
-    <string name="enable_copying">Увімкнути копіювання</string>
+    <string name="enable_copying">Дозволити копіювання</string>
     <string name="go_to_next_after_copy">Переходити до наступного після копіювання</string>
     <string name="overwrite_on_copy">Перезаписувати при копіюванні</string>
-    <string name="enable_moving">Увімкнути переміщення</string>
+    <string name="enable_moving">Дозволити переміщення</string>
     <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
     <string name="destinations_list">Отримувачі (0-9)</string>
     <string name="destinations_description">До 10 ресурсів-отримувачів. Кожен має колір і номер (0-9).</string>
@@ -135,12 +157,12 @@
     <string name="previous">Назад</string>
     <string name="next">Далі</string>
     <string name="finish">Готово</string>
-    <string name="welcome_title_1">Ласкаво просимо в FastMediaSorter!</string>
-    <string name="welcome_description_1">Сортуйте медіафайли швидко і легко. Гортайте фото та відео, організовуйте їх у папки за допомогою простих жестів.</string>
+    <string name="welcome_title_1">Ласкаво просимо до FastMediaSorter!</string>
+    <string name="welcome_description_1">FastMediaSorter - потужний інструмент для організації медіафайлів.\n\n• Перегляд фото, відео, GIF та аудіо\n• Сортування та фільтрація за ім\'ям, датою або розміром\n• Копіювання та переміщення жестами\n• Підтримка локальних папок, мережевих ресурсів (SMB) та SFTP\n• До 10 швидких папок призначення\n• Режим слайд-шоу\n\nПочнемо з короткого огляду!</string>
     <string name="welcome_title_2">Керування жестами</string>
-    <string name="welcome_description_2">Використовуйте сенсорні зони для керування:\n• Натисніть ліворуч/праворуч для навігації\n• Свайп вгору для копіювання\n• Свайп вниз для переміщення\n• Довге натискання для опцій</string>
-    <string name="welcome_title_3">Багато джерел</string>
-    <string name="welcome_description_3">Додавайте локальні папки та мережеві ресурси (SMB). Налаштуйте до 10 папок призначення для швидкої організації файлів.</string>
+    <string name="welcome_description_2">Керуйте переглядом медіа інтуїтивними жестами:\n\nНАВІГАЦІЯ:\n• Натискання ЛІВОРУЧ на екрані - попередній файл\n• Натискання ПРАВОРУЧ на екрані - наступний файл\n• Свайп ВЛІВО/ВПРАВО - швидка навігація\n\nОПЕРАЦІЇ З ФАЙЛАМИ:\n• Свайп ВГОРУ - копіювати до призначення\n• Свайп ВНИЗ - перемістити до призначення\n• Довге натискання - меню опцій файлу\n\nВІДТВОРЕННЯ:\n• Натискання по ЦЕНТРУ - пауза/відтворення\n• Подвійне натискання - повноекранний режим</string>
+    <string name="welcome_title_3">Ресурси та призначення</string>
+    <string name="welcome_description_3">Ефективно організуйте робочий процес:\n\nРЕСУРСИ (вихідні папки):\n• Додавайте локальні папки (Камера, Завантаження тощо)\n• Підключайтеся до мережевих ресурсів через SMB/CIFS\n• Доступ до SFTP серверів\n• Для кожного ресурсу показується кількість та типи файлів\n\nПРИЗНАЧЕННЯ (швидке копіювання/переміщення):\n• Налаштуйте до 10 папок призначення\n• Призначте колір кожній папці\n• Швидкий доступ через жести або кнопки\n• Підтримка локальних та мережевих розташувань\n\nВсе можна налаштувати в Налаштуваннях пізніше!</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ до сховища</string>
@@ -149,6 +171,12 @@
     <string name="permission_internet_title">Мережевий доступ</string>
     <string name="permission_internet_rationale">FastMediaSorter потребує доступу до мережі для підключення до SMB/SFTP та хмарних сховищ.</string>
     <string name="grant_permission">Надати</string>
+    <string name="grant_local_files_permission">НАДАТИ ДОСТУП ДО ЛОКАЛЬНИХ ФАЙЛІВ</string>
+    <string name="grant_network_permission">НАДАТИ ДОСТУП ДО МЕРЕЖІ</string>
+    <string name="show_log">ПОКАЗАТИ ЛОГ</string>
+    <string name="show_current_session_log">ПОКАЗАТИ ЛОГ ПОТОЧНОЇ СЕСІЇ</string>
+    <string name="default_user">Користувач за замовчуванням</string>
+    <string name="default_password">Пароль за замовчуванням</string>
     <string name="skip_permission">Пропустити</string>
     <string name="permissions_granted">Дозволи надано. Додаток перезапуститься.</string>
     

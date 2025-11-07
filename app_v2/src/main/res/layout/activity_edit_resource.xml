@@ -68,59 +68,69 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Resource Type (read-only) -->
-            <TextView
-                android:id="@+id/tvResourceTypeLabel"
-                android:layout_width="wrap_content"
+            <!-- Resource Type and Created Date (in one row) -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="@string/resource_type"
-                android:textSize="12sp"
-                android:textColor="?android:textColorSecondary" />
+                android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvResourceType"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="16sp"
-                tools:text="LOCAL" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-            <!-- Created Date (read-only) -->
-            <TextView
-                android:id="@+id/tvCreatedDateLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/created_date"
-                android:textSize="12sp"
-                android:textColor="?android:textColorSecondary" />
+                    <TextView
+                        android:id="@+id/tvResourceTypeLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/resource_type"
+                        android:textSize="12sp"
+                        android:textColor="?android:textColorSecondary" />
 
-            <TextView
-                android:id="@+id/tvCreatedDate"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:textSize="16sp"
-                tools:text="2025-11-07 12:00:00" />
+                    <TextView
+                        android:id="@+id/tvResourceType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textSize="16sp"
+                        tools:text="LOCAL" />
+                </LinearLayout>
 
-            <!-- File Count (read-only) -->
-            <TextView
-                android:id="@+id/tvFileCountLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="@string/file_count"
-                android:textSize="12sp"
-                android:textColor="?android:textColorSecondary" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
+                    <TextView
+                        android:id="@+id/tvCreatedDateLabel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/created_date"
+                        android:textSize="12sp"
+                        android:textColor="?android:textColorSecondary" />
+
+                    <TextView
+                        android:id="@+id/tvCreatedDate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:textSize="16sp"
+                        tools:text="2025-11-07 22:54:19" />
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- File Count (without duplicate label) -->
             <TextView
                 android:id="@+id/tvFileCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="16dp"
                 android:textSize="16sp"
-                tools:text="42 files" />
+                tools:text="Количество файлов: 9" />
 
             <!-- Slideshow Interval -->
             <TextView
@@ -139,28 +149,53 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <com.google.android.material.slider.Slider
-                    android:id="@+id/sliderSlideshowInterval"
+                <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:valueFrom="1"
-                    android:valueTo="3600"
-                    android:stepSize="1"
-                    android:value="10" />
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
-                <TextView
-                    android:id="@+id/tvSlideshowIntervalValue"
-                    android:layout_width="80dp"
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSlideshowInterval"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:maxLength="2"
+                        android:hint="1-60" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButtonToggleGroup
+                    android:id="@+id/toggleSlideshowUnit"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:gravity="end"
-                    android:textSize="14sp"
-                    tools:text="10 sec" />
+                    app:singleSelection="true"
+                    app:selectionRequired="true">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSeconds"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/seconds"
+                        android:textSize="12sp"
+                        android:paddingHorizontal="12dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMinutes"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/minutes"
+                        android:textSize="12sp"
+                        android:paddingHorizontal="12dp" />
+
+                </com.google.android.material.button.MaterialButtonToggleGroup>
 
             </LinearLayout>
 
-            <!-- Supported Media Types -->
+            <!-- Supported Media Types (2x2 grid) -->
             <TextView
                 android:id="@+id/tvMediaTypesLabel"
                 android:layout_width="wrap_content"
@@ -170,30 +205,55 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbSupportImages"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/images" />
+                android:orientation="vertical">
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbSupportVideo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/video" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbSupportAudio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/audio" />
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportImages"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/images" />
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbSupportGif"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/gif_animations" />
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportVideo"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/video" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportAudio"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/audio" />
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportGif"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/gif_animations" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
             <!-- Is Destination -->
             <com.google.android.material.switchmaterial.SwitchMaterial

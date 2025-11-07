@@ -28,22 +28,22 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="General" />
+            android:text="@string/settings_tab_general" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Media" />
+            android:text="@string/settings_tab_media" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Playback" />
+            android:text="@string/settings_tab_playback" />
 
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Destinations" />
+            android:text="@string/settings_tab_destinations" />
 
     </com.google.android.material.tabs.TabLayout>
 

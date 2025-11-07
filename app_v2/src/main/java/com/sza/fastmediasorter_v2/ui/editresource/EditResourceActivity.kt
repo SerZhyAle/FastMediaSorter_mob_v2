@@ -33,10 +33,17 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             finish()
         }
 
-        // Slideshow interval slider
-        binding.sliderSlideshowInterval.addOnChangeListener { _, value, _ ->
-            updateSlideshowIntervalText(value.toInt())
-            viewModel.updateSlideshowInterval(value.toInt())
+        // Slideshow interval - text input with unit toggle
+        binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                updateSlideshowIntervalFromInput()
+            }
+        }
+        
+        binding.toggleSlideshowUnit.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (isChecked) {
+                updateSlideshowIntervalFromInput()
+            }
         }
 
         // Media type checkboxes
@@ -88,9 +95,8 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         binding.tvCreatedDate.text = dateFormat.format(Date(resource.createdDate))
                         binding.tvFileCount.text = getString(R.string.file_count) + ": ${resource.fileCount}"
 
-                        // Slideshow interval
-                        binding.sliderSlideshowInterval.value = resource.slideshowInterval.toFloat()
-                        updateSlideshowIntervalText(resource.slideshowInterval)
+                        // Slideshow interval - convert to input field
+                        updateSlideshowIntervalUI(resource.slideshowInterval)
 
                         // Media types
                         binding.cbSupportImages.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
@@ -145,19 +151,33 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         }
     }
 
-    private fun updateSlideshowIntervalText(value: Int) {
-        val text = if (value < 60) {
-            "$value sec"
+    private fun updateSlideshowIntervalUI(totalSeconds: Int) {
+        // Determine best unit (prefer seconds if <= 60, otherwise minutes)
+        if (totalSeconds <= 60) {
+            binding.etSlideshowInterval.setText(totalSeconds.toString())
+            binding.btnSeconds.isChecked = true
         } else {
-            val minutes = value / 60
-            val seconds = value % 60
-            if (seconds == 0) {
-                "$minutes min"
-            } else {
-                "$minutes min $seconds sec"
-            }
+            val minutes = totalSeconds / 60
+            binding.etSlideshowInterval.setText(minutes.toString())
+            binding.btnMinutes.isChecked = true
         }
-        binding.tvSlideshowIntervalValue.text = text
+    }
+
+    private fun updateSlideshowIntervalFromInput() {
+        val inputValue = binding.etSlideshowInterval.text.toString().toIntOrNull() ?: return
+        val clampedValue = inputValue.coerceIn(1, 60)
+        
+        if (inputValue != clampedValue) {
+            binding.etSlideshowInterval.setText(clampedValue.toString())
+        }
+        
+        val totalSeconds = if (binding.btnMinutes.isChecked) {
+            clampedValue * 60
+        } else {
+            clampedValue
+        }
+        
+        viewModel.updateSlideshowInterval(totalSeconds)
     }
 
     private fun updateMediaTypes() {

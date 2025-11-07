@@ -8,9 +8,28 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
+data class SizeFilter(
+    val imageSizeMin: Long,
+    val imageSizeMax: Long,
+    val videoSizeMin: Long,
+    val videoSizeMax: Long,
+    val audioSizeMin: Long,
+    val audioSizeMax: Long
+)
+
 interface MediaScanner {
-    suspend fun scanFolder(path: String, supportedTypes: Set<MediaType>): List<MediaFile>
-    suspend fun getFileCount(path: String, supportedTypes: Set<MediaType>): Int
+    suspend fun scanFolder(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter? = null
+    ): List<MediaFile>
+    
+    suspend fun getFileCount(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter? = null
+    ): Int
+    
     suspend fun isWritable(path: String): Boolean
 }
 
@@ -19,11 +38,13 @@ class GetMediaFilesUseCase @Inject constructor(
 ) {
     operator fun invoke(
         resource: MediaResource,
-        sortMode: SortMode = SortMode.NAME_ASC
+        sortMode: SortMode = SortMode.NAME_ASC,
+        sizeFilter: SizeFilter? = null
     ): Flow<List<MediaFile>> = flow {
         val files = mediaScanner.scanFolder(
             path = resource.path,
-            supportedTypes = resource.supportedMediaTypes
+            supportedTypes = resource.supportedMediaTypes,
+            sizeFilter = sizeFilter
         )
         emit(sortFiles(files, sortMode))
     }

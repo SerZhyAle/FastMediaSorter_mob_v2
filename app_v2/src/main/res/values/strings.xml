@@ -14,6 +14,12 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     
+    <!-- Settings Tabs -->
+    <string name="settings_tab_general">General</string>
+    <string name="settings_tab_media">Media</string>
+    <string name="settings_tab_playback">Playback</string>
+    <string name="settings_tab_destinations">Destinations</string>
+    
     <!-- Copy Dialog -->
     <string name="copying_files">Copying Files</string>
     <string name="copying_n_files_from_folder">Copying %1$d files from %2$s</string>
@@ -76,18 +82,34 @@
     <string name="small_controls">Small controls</string>
     <string name="default_smb_user">Default SMB user</string>
     <string name="default_smb_password">Default SMB password</string>
+    <string name="user_guide">User Guide</string>
     <string name="manage_permissions">Manage permissions</string>
     <string name="show_logs">Show logs</string>
     <string name="support_images">Support Images</string>
+    <string name="support_images_description">Support static images</string>
+    <string name="supported_image_formats">Supported: JPG, PNG, BMP, WEBP</string>
+    <string name="image_size_limit">Image size limit</string>
+    <string name="image_size_range">1 KB - 10 MB</string>
     <string name="support_gif">Support GIF</string>
+    <string name="support_gif_description">Support GIF animation</string>
     <string name="support_video">Support Video</string>
+    <string name="support_video_description">Support video</string>
+    <string name="supported_video_formats">Supported: MP4, MKV, AVI, MOV, WEBM</string>
+    <string name="video_size_limit">Video file size limit</string>
+    <string name="video_size_range">100 KB - 1 GB</string>
     <string name="support_audio">Support Audio</string>
+    <string name="support_audio_description">Support audio</string>
+    <string name="supported_audio_formats">Supported: MP3, AAC, FLAC, OGG, WAV</string>
+    <string name="audio_size_limit">Audio file size limit</string>
+    <string name="audio_size_range">10 KB - 100 MB</string>
     <string name="image_size_limits">Image size limits (MB)</string>
     <string name="video_size_limits">Video size limits (GB)</string>
     <string name="audio_size_limits">Audio size limits (MB)</string>
     <string name="default_sort_mode">Default sort mode</string>
     <string name="slideshow_interval">Slideshow interval</string>
-    <string name="play_video_to_end">Play video to end</string>
+    <string name="seconds">Seconds</string>
+    <string name="minutes">Minutes</string>
+    <string name="play_video_to_end">Play video/audio in slideshow to end</string>
     <string name="allow_rename">Allow rename</string>
     <string name="allow_delete">Allow delete</string>
     <string name="confirm_delete">Confirm delete</string>
@@ -95,10 +117,10 @@
     <string name="full_screen_mode">Full screen mode</string>
     <string name="show_detailed_errors">Show detailed errors</string>
     <string name="default_icon_size">Default icon size (pixels)</string>
-    <string name="enable_copying">Enable copying</string>
+    <string name="enable_copying">Allow copying</string>
     <string name="go_to_next_after_copy">Go to next file after copying</string>
     <string name="overwrite_on_copy">Overwrite existing file when copying</string>
-    <string name="enable_moving">Enable moving</string>
+    <string name="enable_moving">Allow moving</string>
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
     <string name="destinations_list">Destinations (0-9)</string>
     <string name="destinations_description">Up to 10 destination resources. Each has a color and number (0-9).</string>
@@ -142,11 +164,11 @@
     <string name="next">Next</string>
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
-    <string name="welcome_description_1">Sort and manage your media files quickly and easily. Swipe through photos and videos, organize them into folders with simple gestures.</string>
+    <string name="welcome_description_1">FastMediaSorter is a powerful tool for organizing your media files.\n\n• Browse photos, videos, GIFs, and audio files\n• Sort and filter by name, date, or size\n• Copy or move files with simple gestures\n• Support for local folders, network shares (SMB), and SFTP\n• Set up to 10 quick destination folders\n• Slideshow mode for media playback\n\nLet\'s get started with a quick tour!</string>
     <string name="welcome_title_2">Gesture Controls</string>
-    <string name="welcome_description_2">Use touch zones to control playback:\n• Tap left/right sides to navigate\n• Swipe up to copy files\n• Swipe down to move files\n• Long press for options</string>
-    <string name="welcome_title_3">Multiple Sources</string>
-    <string name="welcome_description_3">Add local folders and network shares (SMB). Set up to 10 destination folders for quick file organization.</string>
+    <string name="welcome_description_2">Control media playback with intuitive touch gestures:\n\nNAVIGATION:\n• Tap LEFT side of screen - previous file\n• Tap RIGHT side of screen - next file\n• Swipe LEFT/RIGHT - quick navigation\n\nFILE OPERATIONS:\n• Swipe UP - copy to destination\n• Swipe DOWN - move to destination\n• Long press - show file options menu\n\nPLAYBACK:\n• Tap CENTER - pause/play (for video/audio)\n• Double tap - toggle fullscreen mode</string>
+    <string name="welcome_title_3">Resources and Destinations</string>
+    <string name="welcome_description_3">Organize your media workflow efficiently:\n\nRESOURCES (Source Folders):\n• Add local device folders (Camera, Downloads, etc.)\n• Connect to network shares via SMB/CIFS\n• Access SFTP servers\n• Each resource shows media file count and types\n\nDESTINATIONS (Quick Copy/Move):\n• Configure up to 10 destination folders\n• Assign colors to each destination\n• Quick access via gestures or buttons\n• Support both local and network locations\n\nYou can configure everything in Settings later!</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Storage Access</string>
@@ -155,6 +177,12 @@
     <string name="permission_internet_title">Network Access</string>
     <string name="permission_internet_rationale">FastMediaSorter needs network access to connect to SMB/SFTP shares and cloud storage.</string>
     <string name="grant_permission">Grant Permission</string>
+    <string name="grant_local_files_permission">GRANT LOCAL FILES PERMISSION</string>
+    <string name="grant_network_permission">GRANT NETWORK PERMISSION</string>
+    <string name="show_log">SHOW LOG</string>
+    <string name="show_current_session_log">SHOW CURRENT SESSION LOG</string>
+    <string name="default_user">Default User</string>
+    <string name="default_password">Default Password</string>
     <string name="skip_permission">Skip</string>
     <string name="permissions_granted">Permissions granted. App will restart.</string>
     

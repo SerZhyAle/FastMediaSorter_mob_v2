@@ -11,13 +11,14 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchEnableCopying"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/enable_copying"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
         <LinearLayout
@@ -29,32 +30,35 @@
             android:paddingEnd="0dp"
             android:layout_marginBottom="16dp">
 
-            <com.google.android.material.materialswitch.MaterialSwitch
+            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchGoToNextAfterCopy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
                 android:text="@string/go_to_next_after_copy"
-                android:textOn=""
-                android:textOff=""
                 android:layout_marginBottom="4dp"/>
 
-            <com.google.android.material.materialswitch.MaterialSwitch
+            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchOverwriteOnCopy"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
                 android:text="@string/overwrite_on_copy"
-                android:textOn=""
-                android:textOff=""
                 android:layout_marginBottom="4dp"/>
         </LinearLayout>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchEnableMoving"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/enable_moving"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
         <LinearLayout
@@ -66,43 +70,55 @@
             android:paddingEnd="0dp"
             android:layout_marginBottom="24dp">
 
-            <com.google.android.material.materialswitch.MaterialSwitch
+            <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchOverwriteOnMove"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
                 android:text="@string/overwrite_on_move"
-                android:textOn=""
-                android:textOff=""
                 android:layout_marginBottom="4dp"/>
         </LinearLayout>
 
+        <!-- Destinations Header -->
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/destinations_list"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textAppearance="?attr/textAppearanceTitleLarge"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/destinations_description"
-            android:textAppearance="?attr/textAppearanceBodySmall"
-            android:layout_marginBottom="12dp"/>
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textSize="14sp"
+            android:layout_marginBottom="16dp"/>
 
+        <!-- Add Destination Button (before list) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddDestination"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/add_destination"
+            android:textSize="16sp"
+            android:paddingHorizontal="24dp"
+            android:paddingVertical="12dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Destinations List -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvDestinations"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="200dp"
             android:layout_marginBottom="12dp"/>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddDestination"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/add_destination"
-            style="@style/Widget.Material3.Button.OutlinedButton"/>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

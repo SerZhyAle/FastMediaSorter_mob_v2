@@ -1,10 +1,11 @@
 # TODO V2 - FastMediaSorter v2
 
-## � Актуальные задачи для разработки
+## 📋 Актуальні задачі для розработки
 
-- [ ] Не похоже, что переключение языков "работает".  Надписи в настройках остаются на английском.
+- [ ] В списке ресурсов не работают кнопки "низ", "вверх" на строках ресурсов
+- [ ] В списке ресурсов у меня не получается выбрать выделить ресурс, они както странно мигают
 
-
+- [ ] В отне фильтра/отбора ресурсов кнопки "отмена" и "сброс" очень похожи. Нужны разные иконки
 ---
 
 ## � Permissions & Security (3 tasks)
@@ -309,6 +310,60 @@
   - Monitor user feature requests
   - Fix reported bugs in timely manner
   - Maintain compatibility with new Android versions
+
+---
+
+## ✅ Completed Tasks (Session History)
+
+### 2025-01-07 (Current Session)
+- [x] **Settings: Fix language switching**
+  - Fixed language reset bug (Ukrainian → English on Settings navigation)
+  - Synchronized DataStore and SharedPreferences for language storage
+  - LocaleHelper now reads correct language from SharedPreferences in attachBaseContext
+  - Commit: d7f1c6e
+
+- [x] **Settings: Fix Playback tab crash**
+  - Fixed slider validation error (defaultIconSize 100 incompatible with stepSize 8)
+  - Changed defaultIconSize: 100 → 96 with validation (must be 32 + 8*N)
+  - Commit: 91884c6
+
+- [x] **Browse Screen: Add filter status indicator**
+  - Added TextView at bottom of Browse Screen to show active filter description
+  - Indicator shows: name filter, date range, size range in yellow background
+  - Automatically hides when no filter active
+  - Matches V2_Specification.md requirement: "When a filter is applied on this screen, a warning with a description of the applied filter appears at the bottom"
+
+- [x] **Browse Screen: Implement delete operation with undo**
+  - Implemented deleteSelectedFiles() in BrowseViewModel
+  - Delete operation now creates UndoOperation with list of deleted files
+  - Undo button appears after delete (restores files if possible)
+  - Shows success/error messages with deleted count and failures
+
+- [x] **Browse Screen: Add undo support for rename operations**
+  - Single file rename now saves UndoOperation with old/new path pair
+  - Multiple file rename saves all renamed pairs for batch undo
+  - Undo button appears after rename, restores original file names
+  - Works for both single and multiple rename dialogs
+
+- [x] **Settings: Fix infinite update loop in Media/Playback fragments**
+  - Fixed бесконечный цикл: observeData() обновлял UI → listeners вызывали updateSettings() → снова observeData()
+  - Добавлены проверки перед обновлением UI: обновление только при реальном изменении значений
+  - MediaSettingsFragment: проверка switches и range sliders (imageSizeMin/Max, videoSizeMin/Max, audioSizeMin/Max)
+  - PlaybackSettingsFragment: проверка switches и sliders (slideshowInterval, defaultIconSize)
+  - GeneralSettingsFragment: уже имел защиту от цикла
+
+- [x] **Settings: Fix language settings not applying**
+  - GeneralSettingsFragment: убрана инициализация spinner из LocaleHelper.getLanguage() (SharedPreferences до загрузки из DataStore)
+  - onItemSelected: сравнение с viewModel.settings.value.language вместо LocaleHelper.getLanguage()
+  - observeData: добавлен параметр `false` в setSelection() для предотвращения триггера onItemSelected
+  - Settings tab names: использованы string resources вместо хардкода ("General" → R.string.settings_tab_general)
+  - Добавлены переводы для табов: английский, русский, украинский (Общие/Загальні, Медиа, Воспроизведение/Відтворення, Назначения/Призначення)
+
+- [x] **Settings: Fix switch sizes and touch targets**
+  - Все MaterialSwitch/SwitchMaterial элементы: добавлены minHeight="48dp" и paddingVertical="12dp"
+  - Material Design guideline: минимум 48dp для touch targets
+  - Исправлено во всех фрагментах: General (2 switches), Media (4 switches), Playback (7 switches), Destinations (5 switches)
+  - Улучшена доступность: легче попадать по галочкам, больше пространство для нажатия
 
 ---
 

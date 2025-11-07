@@ -23,7 +23,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Language"
+                android:text="@string/language"
                 android:textSize="16sp" />
 
             <Spinner
@@ -40,7 +40,10 @@
             android:id="@+id/switchPreventSleep"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Not allow device to sleep"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/prevent_sleep"
             android:checked="true"
             android:layout_marginBottom="16dp" />
 
@@ -49,7 +52,10 @@
             android:id="@+id/switchSmallControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show small controls"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/small_controls"
             android:layout_marginBottom="16dp" />
 
         <!-- Default User and Password -->
@@ -63,7 +69,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Default User"
+                android:hint="@string/default_user"
                 android:layout_marginEnd="8dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -78,7 +84,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Default Password"
+                android:hint="@string/default_password"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -91,13 +97,24 @@
 
         </LinearLayout>
 
+        <!-- User Guide -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnUserGuide"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/user_guide"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:icon="@android:drawable/ic_menu_help" />
+
         <!-- Permissions -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLocalFilesPermission"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Grant Local Files Permission"
+            android:text="@string/grant_local_files_permission"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
@@ -106,7 +123,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Grant Network Permission"
+            android:text="@string/grant_network_permission"
             android:layout_marginBottom="16dp" />
 
         <!-- Logs -->
@@ -115,7 +132,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show Log"
+            android:text="@string/show_log"
             android:layout_marginBottom="8dp" />
 
         <com.google.android.material.button.MaterialButton
@@ -123,7 +140,7 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Show Current Session Log"
+            android:text="@string/show_current_session_log"
             android:layout_marginBottom="16dp" />
 
         <!-- Version Info -->
@@ -131,7 +148,7 @@
             android:id="@+id/tvVersionInfo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="v2.0.0-alpha1 | Build 1 | sza@ukr.net"
+            android:text=""
             android:textSize="12sp"
             android:textColor="?android:textColorSecondary"
             android:layout_marginTop="16dp" />

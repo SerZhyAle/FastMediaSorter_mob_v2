@@ -11,128 +11,125 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
+        <!-- Sort Mode Dropdown -->
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/default_sort_mode"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:layout_marginBottom="8dp"/>
+            android:hint="@string/default_sort_mode"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_marginBottom="16dp">
 
-        <com.google.android.material.textfield.MaterialAutoCompleteTextView
-            android:id="@+id/spinnerSortMode"
+            <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                android:id="@+id/spinnerSortMode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="none"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Slideshow Interval Text Field -->
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="none"
-            android:layout_marginBottom="24dp"/>
+            android:hint="@string/slideshow_interval"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/slideshow_interval"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:layout_marginBottom="8dp"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etSlideshowInterval"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="5"/>
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvSlideshowValue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:layout_marginBottom="4dp"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/sliderSlideshow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="1"
-            android:valueTo="3600"
-            android:stepSize="1"
-            android:layout_marginBottom="24dp"/>
-
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchPlayToEnd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/play_video_to_end"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchAllowRename"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/allow_rename"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchAllowDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/allow_delete"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchConfirmDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/confirm_delete"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchGridMode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/grid_mode"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchFullScreen"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/full_screen_mode"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
+        <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchDetailedErrors"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
             android:text="@string/show_detailed_errors"
-            android:textOn=""
-            android:textOff=""
             android:layout_marginBottom="24dp"/>
 
-        <com.google.android.material.textview.MaterialTextView
+        <!-- Icon Size Text Field -->
+        <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/default_icon_size"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:layout_marginBottom="8dp"/>
+            android:hint="@string/default_icon_size"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_marginBottom="16dp">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/tvIconSize"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:layout_marginBottom="4dp"/>
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etIconSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="3"/>
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/sliderIconSize"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="32"
-            android:valueTo="256"
-            android:stepSize="8"
-            android:layout_marginBottom="16dp"/>
+        </com.google.android.material.textfield.TextInputLayout>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

@@ -10,11 +10,14 @@ import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.UndoOperation
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -40,6 +43,7 @@ sealed class BrowseEvent {
 class BrowseViewModel @Inject constructor(
     private val getResourcesUseCase: GetResourcesUseCase,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
+    private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -87,7 +91,18 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
-            getMediaFilesUseCase(resource, state.value.sortMode)
+            // Get current settings for size filters
+            val settings = settingsRepository.getSettings().first()
+            val sizeFilter = SizeFilter(
+                imageSizeMin = settings.imageSizeMin,
+                imageSizeMax = settings.imageSizeMax,
+                videoSizeMin = settings.videoSizeMin,
+                videoSizeMax = settings.videoSizeMax,
+                audioSizeMin = settings.audioSizeMin,
+                audioSizeMax = settings.audioSizeMax
+            )
+            
+            getMediaFilesUseCase(resource, state.value.sortMode, sizeFilter)
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
                     handleError(e)
@@ -179,15 +194,62 @@ class BrowseViewModel @Inject constructor(
 
     fun deleteSelectedFiles() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            val selectedPaths = state.value.selectedFiles
+            val selectedPaths = state.value.selectedFiles.toList()
             if (selectedPaths.isEmpty()) {
                 sendEvent(BrowseEvent.ShowMessage("No files selected"))
                 return@launch
             }
             
-            // TODO: Реализовать удаление файлов
-            Timber.d("Delete files: $selectedPaths")
-            sendEvent(BrowseEvent.ShowMessage("Delete: ${selectedPaths.size} files"))
+            setLoading(true)
+            
+            val deletedFiles = mutableListOf<String>()
+            val failedFiles = mutableListOf<String>()
+            
+            selectedPaths.forEach { path ->
+                val file = java.io.File(path)
+                if (file.exists()) {
+                    try {
+                        if (file.delete()) {
+                            deletedFiles.add(path)
+                            Timber.d("Deleted file: $path")
+                        } else {
+                            failedFiles.add(file.name)
+                            Timber.w("Failed to delete file: $path")
+                        }
+                    } catch (e: Exception) {
+                        failedFiles.add(file.name)
+                        Timber.e(e, "Error deleting file: $path")
+                    }
+                } else {
+                    Timber.w("File not found: $path")
+                }
+            }
+            
+            // Save undo operation for deleted files
+            if (deletedFiles.isNotEmpty()) {
+                val undoOp = UndoOperation(
+                    type = com.sza.fastmediasorter_v2.domain.model.FileOperationType.DELETE,
+                    sourceFiles = deletedFiles,
+                    destinationFolder = null,
+                    copiedFiles = null,
+                    oldNames = null
+                )
+                saveUndoOperation(undoOp)
+            }
+            
+            // Clear selection and reload files
+            clearSelection()
+            loadResource()
+            
+            // Show result message
+            val message = when {
+                deletedFiles.isEmpty() -> "No files were deleted"
+                failedFiles.isEmpty() -> "Deleted ${deletedFiles.size} file(s)"
+                else -> "Deleted ${deletedFiles.size} file(s), failed: ${failedFiles.joinToString(", ")}"
+            }
+            sendEvent(BrowseEvent.ShowMessage(message))
+            
+            setLoading(false)
         }
     }
     
@@ -284,7 +346,18 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
-            getMediaFilesUseCase(resource, state.value.sortMode)
+            // Get current settings for size filters
+            val settings = settingsRepository.getSettings().first()
+            val sizeFilter = SizeFilter(
+                imageSizeMin = settings.imageSizeMin,
+                imageSizeMax = settings.imageSizeMax,
+                videoSizeMin = settings.videoSizeMin,
+                videoSizeMax = settings.videoSizeMax,
+                audioSizeMin = settings.audioSizeMin,
+                audioSizeMax = settings.audioSizeMax
+            )
+            
+            getMediaFilesUseCase(resource, state.value.sortMode, sizeFilter)
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
                     sendEvent(BrowseEvent.ShowError("Failed to load media files: ${e.message}"))

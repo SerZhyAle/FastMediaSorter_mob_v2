@@ -1,0 +1,66 @@
+# Build script with automatic version increment
+# Version format: YYMMDDHHmm (e.g., 2511072217)
+# versionCode format: shorter to fit Int max value (2147483647)
+# Using format: MMDDHHmm (e.g., 11072217)
+
+$ErrorActionPreference = "Stop"
+
+# Generate version code from current date/time
+$now = Get-Date
+$versionCodeFull = $now.ToString("yyMMddHHmm")  # Full format for display
+$versionCodeInt = [int]$now.ToString("MMddHHmm")  # Short format for versionCode (fits in Int)
+$versionName = "2.0.0-build$versionCodeFull"
+
+Write-Host "==================================" -ForegroundColor Cyan
+Write-Host "Building with version:" -ForegroundColor Cyan
+Write-Host "  versionCode: $versionCodeInt (MMddHHmm)" -ForegroundColor Green
+Write-Host "  versionName: $versionName (YYMMddHHmm)" -ForegroundColor Green
+Write-Host "==================================" -ForegroundColor Cyan
+
+# Path to build.gradle.kts
+$buildGradlePath = "app_v2\build.gradle.kts"
+
+# Read current file
+$content = Get-Content $buildGradlePath -Raw
+
+# Backup original file
+$backupPath = "$buildGradlePath.backup"
+Copy-Item $buildGradlePath $backupPath -Force
+Write-Host "Backup created: $backupPath" -ForegroundColor Yellow
+
+# Replace versionCode
+$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
+
+# Replace versionName
+$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
+
+# Write updated content
+Set-Content $buildGradlePath $content -NoNewline
+
+Write-Host "build.gradle.kts updated" -ForegroundColor Green
+
+# Run gradle build
+Write-Host "`nStarting Gradle build..." -ForegroundColor Cyan
+& .\gradlew.bat :app_v2:assembleDebug
+
+if ($LASTEXITCODE -eq 0) {
+    Write-Host "`n==================================" -ForegroundColor Green
+    Write-Host "BUILD SUCCESSFUL" -ForegroundColor Green
+    Write-Host "Version: $versionName" -ForegroundColor Green
+    Write-Host "==================================" -ForegroundColor Green
+    
+    # Keep the new version
+    Remove-Item $backupPath -Force
+    Write-Host "Version committed to build.gradle.kts" -ForegroundColor Green
+} else {
+    Write-Host "`n==================================" -ForegroundColor Red
+    Write-Host "BUILD FAILED" -ForegroundColor Red
+    Write-Host "==================================" -ForegroundColor Red
+    
+    # Restore backup
+    Move-Item $backupPath $buildGradlePath -Force
+    Write-Host "build.gradle.kts restored from backup" -ForegroundColor Yellow
+    exit 1
+}
+
+Write-Host "`nAPK location: app_v2\build\outputs\apk\debug\" -ForegroundColor Cyan

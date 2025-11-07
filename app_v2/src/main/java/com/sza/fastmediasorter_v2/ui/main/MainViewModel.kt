@@ -7,14 +7,17 @@ import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
+import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,6 +46,7 @@ class MainViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
     private val mediaScanner: MediaScanner,
+    private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -225,6 +229,17 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             try {
+                // Get current settings for size filters
+                val settings = settingsRepository.getSettings().first()
+                val sizeFilter = SizeFilter(
+                    imageSizeMin = settings.imageSizeMin,
+                    imageSizeMax = settings.imageSizeMax,
+                    videoSizeMin = settings.videoSizeMin,
+                    videoSizeMax = settings.videoSizeMax,
+                    audioSizeMin = settings.audioSizeMin,
+                    audioSizeMax = settings.audioSizeMax
+                )
+                
                 getResourcesUseCase()
                     .catch { e ->
                         Timber.e(e, "Error refreshing resources")
@@ -233,7 +248,7 @@ class MainViewModel @Inject constructor(
                     .collect { resources ->
                         val updated = resources.map { resource ->
                             val fileCount = try {
-                                mediaScanner.getFileCount(resource.path, resource.supportedMediaTypes)
+                                mediaScanner.getFileCount(resource.path, resource.supportedMediaTypes, sizeFilter)
                             } catch (e: Exception) {
                                 Timber.e(e, "Error counting files for ${resource.name}")
                                 resource.fileCount

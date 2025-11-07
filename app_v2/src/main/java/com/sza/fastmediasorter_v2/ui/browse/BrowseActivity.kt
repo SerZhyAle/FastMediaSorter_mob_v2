@@ -132,6 +132,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         binding.tvResourceInfo.text = buildResourceInfo(state)
                     }
 
+                    // Show filter warning at bottom
+                    if (state.filter != null && !state.filter.isEmpty()) {
+                        binding.tvFilterWarning.isVisible = true
+                        binding.tvFilterWarning.text = buildFilterDescription(state.filter)
+                    } else {
+                        binding.tvFilterWarning.isVisible = false
+                    }
+
                     binding.tvEmpty.isVisible = state.mediaFiles.isEmpty() && !viewModel.loading.value
 
                     val hasSelection = state.selectedFiles.isNotEmpty()
@@ -188,6 +196,32 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             " • ${state.selectedFiles.size} selected"
         }
         return "${resource.name} • ${resource.path}$selected"
+    }
+
+    private fun buildFilterDescription(filter: FileFilter): String {
+        val parts = mutableListOf<String>()
+        
+        filter.nameContains?.let {
+            parts.add("name contains '$it'")
+        }
+        
+        if (filter.minDate != null && filter.maxDate != null) {
+            parts.add("created ${formatDate(filter.minDate)} - ${formatDate(filter.maxDate)}")
+        } else if (filter.minDate != null) {
+            parts.add("created after ${formatDate(filter.minDate)}")
+        } else if (filter.maxDate != null) {
+            parts.add("created before ${formatDate(filter.maxDate)}")
+        }
+        
+        if (filter.minSizeMb != null && filter.maxSizeMb != null) {
+            parts.add("size ${filter.minSizeMb} - ${filter.maxSizeMb} MB")
+        } else if (filter.minSizeMb != null) {
+            parts.add("size >= ${filter.minSizeMb} MB")
+        } else if (filter.maxSizeMb != null) {
+            parts.add("size <= ${filter.maxSizeMb} MB")
+        }
+        
+        return "⚠ Filter active: " + parts.joinToString(", ")
     }
 
     private fun updateDisplayMode(mode: DisplayMode) {
@@ -382,7 +416,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             
             try {
                 if (file.renameTo(newFile)) {
-                    // TODO: Save undo operation
+                    // Save undo operation
+                    val undoOp = com.sza.fastmediasorter_v2.domain.model.UndoOperation(
+                        type = com.sza.fastmediasorter_v2.domain.model.FileOperationType.RENAME,
+                        sourceFiles = listOf(file.absolutePath),
+                        destinationFolder = null,
+                        copiedFiles = null,
+                        oldNames = listOf(file.absolutePath to newFile.absolutePath)
+                    )
+                    viewModel.saveUndoOperation(undoOp)
+                    
                     viewModel.reloadFiles()
                     Toast.makeText(
                         this,
@@ -434,6 +477,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             val newNames = adapter.getFileNames()
             var renamedCount = 0
             val errors = mutableListOf<String>()
+            val renamedPairs = mutableMapOf<String, String>() // old path -> new path
             
             files.forEachIndexed { index, file ->
                 val newName = newNames[index].trim()
@@ -450,6 +494,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 try {
                     if (file.renameTo(newFile)) {
                         renamedCount++
+                        renamedPairs[file.absolutePath] = newFile.absolutePath
                     } else {
                         errors.add("Failed to rename ${file.name}")
                     }
@@ -458,7 +503,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
             
-            // TODO: Save undo operation
+            // Save undo operation for renamed files
+            if (renamedPairs.isNotEmpty()) {
+                val undoOp = com.sza.fastmediasorter_v2.domain.model.UndoOperation(
+                    type = com.sza.fastmediasorter_v2.domain.model.FileOperationType.RENAME,
+                    sourceFiles = renamedPairs.keys.toList(),
+                    destinationFolder = null,
+                    copiedFiles = null,
+                    oldNames = renamedPairs.toList()
+                )
+                viewModel.saveUndoOperation(undoOp)
+            }
+            
             viewModel.reloadFiles()
             
             if (renamedCount > 0) {
