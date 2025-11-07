@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.chip.Chip
@@ -44,29 +46,8 @@ class FilterResourceDialog : DialogFragment() {
     }
 
     private fun setupViews() {
-        // Sort mode radio buttons
-        binding.radioGroupSort.setOnCheckedChangeListener { _, checkedId ->
-            currentSortMode = when (checkedId) {
-                binding.rbNameAsc.id -> SortMode.NAME_ASC
-                binding.rbNameDesc.id -> SortMode.NAME_DESC
-                binding.rbDateAsc.id -> SortMode.DATE_ASC
-                binding.rbDateDesc.id -> SortMode.DATE_DESC
-                binding.rbSizeAsc.id -> SortMode.SIZE_ASC
-                binding.rbSizeDesc.id -> SortMode.SIZE_DESC
-                else -> SortMode.NAME_ASC
-            }
-        }
-
-        // Set current sort mode
-        when (currentSortMode) {
-            SortMode.NAME_ASC -> binding.rbNameAsc.isChecked = true
-            SortMode.NAME_DESC -> binding.rbNameDesc.isChecked = true
-            SortMode.DATE_ASC -> binding.rbDateAsc.isChecked = true
-            SortMode.DATE_DESC -> binding.rbDateDesc.isChecked = true
-            SortMode.SIZE_ASC -> binding.rbSizeAsc.isChecked = true
-            SortMode.SIZE_DESC -> binding.rbSizeDesc.isChecked = true
-            else -> binding.rbNameAsc.isChecked = true
-        }
+        // Sort mode spinner
+        setupSortSpinner()
 
         // Resource type chips
         setupResourceTypeChips()
@@ -91,6 +72,42 @@ class FilterResourceDialog : DialogFragment() {
 
         binding.btnCancel.setOnClickListener {
             dismiss()
+        }
+    }
+
+    private fun setupSortSpinner() {
+        val sortOptions = listOf(
+            "Name (A → Z)" to SortMode.NAME_ASC,
+            "Name (Z → A)" to SortMode.NAME_DESC,
+            "Date (Oldest First)" to SortMode.DATE_ASC,
+            "Date (Newest First)" to SortMode.DATE_DESC,
+            "File Count (Low → High)" to SortMode.SIZE_ASC,
+            "File Count (High → Low)" to SortMode.SIZE_DESC
+        )
+
+        val adapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_spinner_item,
+            sortOptions.map { it.first }
+        )
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerSort.adapter = adapter
+
+        // Set current selection
+        val currentIndex = sortOptions.indexOfFirst { it.second == currentSortMode }
+        if (currentIndex >= 0) {
+            binding.spinnerSort.setSelection(currentIndex)
+        }
+
+        // Handle selection
+        binding.spinnerSort.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                currentSortMode = sortOptions[position].second
+            }
+
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                // Keep current sort mode
+            }
         }
     }
 
@@ -154,7 +171,7 @@ class FilterResourceDialog : DialogFragment() {
         selectedMediaTypes.clear()
         nameFilter = ""
         
-        binding.rbNameAsc.isChecked = true
+        binding.spinnerSort.setSelection(0) // NAME_ASC is first
         binding.etNameFilter.text?.clear()
         
         setupResourceTypeChips()

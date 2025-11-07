@@ -18,19 +18,20 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import coil.load
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
-import com.sza.fastmediasorter_v2.databinding.ActivityPlayerBinding
+import com.sza.fastmediasorter_v2.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.RenameDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.io.File
 
 @AndroidEntryPoint
-class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
-    override fun getViewBinding(): ActivityPlayerBinding {
-        return ActivityPlayerBinding.inflate(layoutInflater)
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
+    override fun getViewBinding(): ActivityPlayerUnifiedBinding {
+        return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
 
     private val viewModel: PlayerViewModel by viewModels()
@@ -64,6 +65,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
         setupGestureDetector()
         setupToolbar()
         setupControls()
+        setupCommandPanelControls()
+        setupTouchZones()
     }
 
     override fun observeData() {
@@ -128,12 +131,26 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
     
     /**
      * Handle touch zones for static images (3x3 grid)
+     * For video: only upper 75% of screen is touch-sensitive
      */
     private fun handleTouchZone(x: Float, y: Float) {
+        val currentFile = viewModel.state.value.currentFile
         val screenWidth = binding.root.width
         val screenHeight = binding.root.height
         
-        val zone = touchZoneDetector.detectZone(x, y, screenWidth, screenHeight)
+        // For video, limit touch zones to upper 75% to leave space for ExoPlayer controls
+        val effectiveHeight = if (currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO) {
+            (screenHeight * 0.75f).toInt()
+        } else {
+            screenHeight
+        }
+        
+        // If touch is below effective height (in bottom 25% for video), ignore
+        if (y > effectiveHeight) {
+            return
+        }
+        
+        val zone = touchZoneDetector.detectZone(x, y, screenWidth, effectiveHeight)
         
         when (zone) {
             TouchZone.BACK -> {
@@ -155,8 +172,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
                 viewModel.nextFile()
             }
             TouchZone.COMMAND_PANEL -> {
-                // TODO: Toggle command panel mode
-                Toast.makeText(this, "Command Panel mode - not implemented yet", Toast.LENGTH_SHORT).show()
+                viewModel.toggleCommandPanel()
             }
             TouchZone.DELETE -> {
                 deleteCurrentFile()
@@ -264,6 +280,79 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
         }
     }
 
+    private fun setupCommandPanelControls() {
+        binding.btnBack.setOnClickListener {
+            finish()
+        }
+
+        binding.btnPreviousCmd.setOnClickListener {
+            viewModel.previousFile()
+        }
+
+        binding.btnNextCmd.setOnClickListener {
+            viewModel.nextFile()
+        }
+
+        binding.btnRenameCmd.setOnClickListener {
+            showRenameDialog()
+        }
+
+        binding.btnDeleteCmd.setOnClickListener {
+            deleteCurrentFile()
+        }
+
+        binding.btnSlideshowCmd.setOnClickListener {
+            viewModel.toggleSlideShow()
+            updateSlideShowButton()
+            updateSlideShow()
+        }
+    }
+
+    private fun setupTouchZones() {
+        binding.touchZonePrevious.setOnClickListener {
+            viewModel.previousFile()
+        }
+
+        binding.touchZoneNext.setOnClickListener {
+            viewModel.nextFile()
+        }
+    }
+    
+    /**
+     * Adjust touch zones height based on media type
+     * For video in command panel mode: only upper 50% to leave space for ExoPlayer controls
+     */
+    private fun adjustTouchZonesForVideo(isVideo: Boolean) {
+        if (!viewModel.state.value.showCommandPanel) {
+            // In fullscreen mode, touch zones are handled differently (via handleTouchZone)
+            return
+        }
+        
+        // In command panel mode, adjust overlay height
+        val overlay = binding.touchZonesOverlay
+        val layoutParams = overlay.layoutParams
+        
+        if (isVideo) {
+            // For video: touch zones only upper 50% of media area
+            layoutParams.height = 0 // Will be calculated dynamically
+            overlay.layoutParams = layoutParams
+            
+            // Post to ensure layout is ready
+            overlay.post {
+                val mediaAreaHeight = binding.mediaContentArea.height
+                val touchZoneHeight = (mediaAreaHeight * 0.5f).toInt()
+                
+                val newParams = overlay.layoutParams
+                newParams.height = touchZoneHeight
+                overlay.layoutParams = newParams
+            }
+        } else {
+            // For images: touch zones cover full media area
+            layoutParams.height = android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            overlay.layoutParams = layoutParams
+        }
+    }
+
     private fun observeViewModel() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -293,16 +382,51 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
             binding.toolbar.title = "${state.currentIndex + 1}/${state.files.size} - ${file.name}"
             binding.btnPrevious.isEnabled = state.hasPrevious
             binding.btnNext.isEnabled = state.hasNext
+            binding.btnPreviousCmd.isEnabled = state.hasPrevious
+            binding.btnNextCmd.isEnabled = state.hasNext
 
+            val isVideo = file.type == MediaType.VIDEO || file.type == MediaType.AUDIO
+            
             when (file.type) {
                 MediaType.IMAGE, MediaType.GIF -> displayImage(file.path)
                 MediaType.VIDEO, MediaType.AUDIO -> playVideo(file.path)
             }
+            
+            // Adjust touch zones for video
+            adjustTouchZonesForVideo(isVideo)
         }
 
-        binding.controlsOverlay.isVisible = state.showControls
+        // Update visibility based on showCommandPanel flag
+        updatePanelVisibility(state.showCommandPanel)
+
+        // Controls overlay is only visible in fullscreen mode and when showControls is true
+        binding.controlsOverlay.isVisible = !state.showCommandPanel && state.showControls
         updatePlayPauseButton()
         updateSlideShowButton()
+    }
+
+    /**
+     * Update panel visibility based on mode
+     */
+    private fun updatePanelVisibility(showCommandPanel: Boolean) {
+        if (showCommandPanel) {
+            // Command panel mode
+            binding.topCommandPanel.isVisible = true
+            binding.touchZonesOverlay.isVisible = true
+            binding.copyToPanel.isVisible = true
+            binding.moveToPanel.isVisible = true
+            binding.controlsOverlay.isVisible = false
+            
+            // Populate destination buttons
+            populateDestinationButtons()
+        } else {
+            // Fullscreen mode
+            binding.topCommandPanel.isVisible = false
+            binding.touchZonesOverlay.isVisible = false
+            binding.copyToPanel.isVisible = false
+            binding.moveToPanel.isVisible = false
+            // controlsOverlay visibility is controlled in updateUI based on showControls
+        }
     }
 
     private fun displayImage(path: String) {
@@ -374,6 +498,129 @@ class PlayerActivity : BaseActivity<ActivityPlayerBinding>() {
             }
             PlayerViewModel.PlayerEvent.FinishActivity -> {
                 finish()
+            }
+        }
+    }
+
+    /**
+     * Populate destination buttons dynamically based on destinations from DB
+     */
+    private fun populateDestinationButtons() {
+        val resourceId = intent.getLongExtra("resourceId", -1)
+        
+        lifecycleScope.launch {
+            try {
+                val destinations = viewModel.getDestinationsUseCase().first()
+                    .filter { it.id != resourceId } // Exclude current resource
+                
+                // Clear existing buttons
+                binding.copyToButtonsGrid.removeAllViews()
+                binding.moveToButtonsGrid.removeAllViews()
+                
+                // Calculate grid dimensions (max 5 columns, up to 2 rows)
+                val buttonCount = destinations.size.coerceAtMost(10)
+                
+                destinations.take(10).forEachIndexed { index, destination ->
+                    // Create copy button
+                    createDestinationButton(destination, index, true).let { btn ->
+                        binding.copyToButtonsGrid.addView(btn)
+                    }
+                    
+                    // Create move button
+                    createDestinationButton(destination, index, false).let { btn ->
+                        binding.moveToButtonsGrid.addView(btn)
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@PlayerActivity, "Failed to load destinations", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun createDestinationButton(
+        destination: com.sza.fastmediasorter_v2.domain.model.MediaResource,
+        index: Int,
+        isCopy: Boolean
+    ): com.google.android.material.button.MaterialButton {
+        return com.google.android.material.button.MaterialButton(this).apply {
+            text = destination.name
+            textSize = 10f
+            setTextColor(android.graphics.Color.WHITE)
+            
+            // Set button color from destination
+            setBackgroundColor(destination.destinationColor)
+            
+            // Calculate button size based on count
+            val buttonCount = binding.copyToButtonsGrid.childCount + 1
+            val columnsCount = if (buttonCount <= 5) buttonCount else 5
+            val buttonWidth = (resources.displayMetrics.widthPixels / columnsCount) - 8
+            
+            layoutParams = android.widget.GridLayout.LayoutParams().apply {
+                width = buttonWidth
+                height = 80
+                setMargins(4, 4, 4, 4)
+            }
+            
+            setOnClickListener {
+                if (isCopy) {
+                    performCopyOperation(destination)
+                } else {
+                    performMoveOperation(destination)
+                }
+            }
+        }
+    }
+
+    private fun performCopyOperation(destination: com.sza.fastmediasorter_v2.domain.model.MediaResource) {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        lifecycleScope.launch {
+            try {
+                val operation = com.sza.fastmediasorter_v2.domain.usecase.FileOperation.Copy(
+                    sources = listOf(File(currentFile.path)),
+                    destination = File(destination.path),
+                    overwrite = false // TODO: Get from settings
+                )
+                val result = viewModel.fileOperationUseCase.execute(operation)
+                
+                when (result) {
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Success -> {
+                        Toast.makeText(this@PlayerActivity, "File copied to ${destination.name}", Toast.LENGTH_SHORT).show()
+                        // TODO: Check settings for goToNextAfterCopy
+                    }
+                    else -> {
+                        Toast.makeText(this@PlayerActivity, "Copy failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@PlayerActivity, "Copy failed: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun performMoveOperation(destination: com.sza.fastmediasorter_v2.domain.model.MediaResource) {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        lifecycleScope.launch {
+            try {
+                val operation = com.sza.fastmediasorter_v2.domain.usecase.FileOperation.Move(
+                    sources = listOf(File(currentFile.path)),
+                    destination = File(destination.path),
+                    overwrite = false // TODO: Get from settings
+                )
+                val result = viewModel.fileOperationUseCase.execute(operation)
+                
+                when (result) {
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Success -> {
+                        Toast.makeText(this@PlayerActivity, "File moved to ${destination.name}", Toast.LENGTH_SHORT).show()
+                        viewModel.nextFile() // Go to next file after move
+                    }
+                    else -> {
+                        Toast.makeText(this@PlayerActivity, "Move failed", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@PlayerActivity, "Move failed: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

@@ -139,13 +139,43 @@ class MainViewModel @Inject constructor(
     }
 
     fun moveResourceUp(resource: MediaResource) {
-        // TODO: Реализовать изменение порядка в БД
-        Timber.d("Move up: ${resource.name}")
+        viewModelScope.launch {
+            val currentList = state.value.resources
+            val currentIndex = currentList.indexOfFirst { it.id == resource.id }
+            
+            if (currentIndex > 0) {
+                val previousResource = currentList[currentIndex - 1]
+                
+                // Swap display orders
+                val updatedResource = resource.copy(displayOrder = previousResource.displayOrder)
+                val updatedPrevious = previousResource.copy(displayOrder = resource.displayOrder)
+                
+                updateResourceUseCase(updatedResource)
+                updateResourceUseCase(updatedPrevious)
+                
+                loadResources()
+            }
+        }
     }
 
     fun moveResourceDown(resource: MediaResource) {
-        // TODO: Реализовать изменение порядка в БД
-        Timber.d("Move down: ${resource.name}")
+        viewModelScope.launch {
+            val currentList = state.value.resources
+            val currentIndex = currentList.indexOfFirst { it.id == resource.id }
+            
+            if (currentIndex >= 0 && currentIndex < currentList.size - 1) {
+                val nextResource = currentList[currentIndex + 1]
+                
+                // Swap display orders
+                val updatedResource = resource.copy(displayOrder = nextResource.displayOrder)
+                val updatedNext = nextResource.copy(displayOrder = resource.displayOrder)
+                
+                updateResourceUseCase(updatedResource)
+                updateResourceUseCase(updatedNext)
+                
+                loadResources()
+            }
+        }
     }
 
     fun setSortMode(sortMode: SortMode) {

@@ -97,6 +97,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.btnExit.setOnClickListener {
             finish()
         }
+        
+        binding.emptyStateView.setOnClickListener {
+            viewModel.addResource()
+        }
     }
 
     override fun observeData() {
@@ -107,6 +111,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     resourceAdapter.setSelectedResource(state.selectedResource?.id)
                     
                     binding.btnStartPlayer.isEnabled = state.selectedResource != null
+                    
+                    // Show/hide empty state
+                    if (state.resources.isEmpty()) {
+                        binding.emptyStateView.isVisible = true
+                        binding.rvResources.isVisible = false
+                    } else {
+                        binding.emptyStateView.isVisible = false
+                        binding.rvResources.isVisible = true
+                    }
                     
                     updateFilterWarning(state)
                 }

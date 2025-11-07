@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FastMediaSorter v2</string>
+    <string name="start_player">Запустити плеєр</string>
+    <string name="add">Додати</string>
+    <string name="settings">Налаштування</string>
+    <string name="copy">Копіювати</string>
+    <string name="move">Перемістити</string>
+    <string name="delete">Видалити</string>
+    <string name="rename">Перейменувати</string>
+    <string name="undo">Скасувати</string>
+    <string name="cancel">Відміна</string>
+    <string name="ok">OK</string>
+    <string name="yes">Так</string>
+    <string name="no">Ні</string>
+    
+    <!-- Copy Dialog -->
+    <string name="copying_files">Копіювання файлів</string>
+    <string name="copying_n_files_from_folder">Копіювання %1$d файлів з %2$s</string>
+    <string name="copied_n_files">Скопійовано %1$d файлів</string>
+    <string name="copied_n_of_m_files">Скопійовано %1$d з %2$d файлів</string>
+    <string name="copy_failed">Помилка копіювання: %1$s</string>
+    <string name="no_destinations_available">Немає доступних отримувачів</string>
+    
+    <!-- Move Dialog -->
+    <string name="moving_files">Переміщення файлів</string>
+    <string name="moving_n_files_from_folder">Переміщення %1$d файлів з %2$s</string>
+    <string name="moved_n_files">Переміщено %1$d файлів</string>
+    <string name="moved_n_of_m_files">Переміщено %1$d з %2$d файлів</string>
+    <string name="move_failed">Помилка переміщення: %1$s</string>
+    
+    <!-- Rename Dialog -->
+    <string name="renaming_files">Перейменування файлів</string>
+    <string name="renaming_n_files_from_folder">Перейменування %1$d файлів з %2$s</string>
+    <string name="renamed_n_files">Перейменовано %1$d файлів</string>
+    <string name="rename_failed">Помилка перейменування: %1$s</string>
+    <string name="file_already_exists">Файл вже існує: %1$s</string>
+    
+    <!-- Delete Dialog -->
+    <string name="delete_confirmation">Підтвердження видалення</string>
+    <string name="delete_file_confirmation">Ви впевнені, що хочете видалити файл %1$s з %2$s?</string>
+    <string name="delete_files_confirmation">Ви впевнені, що хочете видалити %1$d файлів з %2$s?</string>
+    <string name="deleted_n_files">Видалено %1$d файлів</string>
+    <string name="delete_failed">Помилка видалення: %1$s</string>
+    
+    <!-- Common -->
+    <string name="apply">Застосувати</string>
+    <string name="clear_all">Очистити все</string>
+    <string name="file_name">Ім\'я файлу</string>
+    <string name="filter">Фільтр</string>
+    <string name="refresh">Оновити</string>
+    <string name="copy_resource">Копіювати ресурс</string>
+    <string name="exit">Вихід</string>
+    <string name="empty_state_message">Додайте ресурси для сортування та відтворення медіафайлів</string>
+    
+    <!-- Settings -->
+    <string name="general">Загальні</string>
+    <string name="media_files">Медіафайли</string>
+    <string name="playback">Відтворення та сортування</string>
+    <string name="destinations">Отримувачі</string>
+    <string name="language">Мова</string>
+    <string name="prevent_sleep">Заборонити сон пристрою</string>
+    <string name="small_controls">Малі елементи керування</string>
+    <string name="default_smb_user">SMB користувач за замовчуванням</string>
+    <string name="default_smb_password">SMB пароль за замовчуванням</string>
+    <string name="manage_permissions">Керування дозволами</string>
+    <string name="show_logs">Показати логи</string>
+    <string name="support_images">Підтримка зображень</string>
+    <string name="support_gif">Підтримка GIF</string>
+    <string name="support_video">Підтримка відео</string>
+    <string name="support_audio">Підтримка аудіо</string>
+    <string name="image_size_limits">Обмеження розміру зображень (МБ)</string>
+    <string name="video_size_limits">Обмеження розміру відео (ГБ)</string>
+    <string name="audio_size_limits">Обмеження розміру аудіо (МБ)</string>
+    <string name="default_sort_mode">Режим сортування за замовчуванням</string>
+    <string name="slideshow_interval">Інтервал слайдшоу</string>
+    <string name="play_video_to_end">Відтворювати відео до кінця</string>
+    <string name="allow_rename">Дозволити перейменування</string>
+    <string name="allow_delete">Дозволити видалення</string>
+    <string name="confirm_delete">Підтверджувати видалення</string>
+    <string name="grid_mode">Режим сітки</string>
+    <string name="full_screen_mode">Повноекранний режим</string>
+    <string name="show_detailed_errors">Показувати детальні помилки</string>
+    <string name="default_icon_size">Розмір іконок за замовчуванням (пікселі)</string>
+    <string name="enable_copying">Увімкнути копіювання</string>
+    <string name="go_to_next_after_copy">Переходити до наступного після копіювання</string>
+    <string name="overwrite_on_copy">Перезаписувати при копіюванні</string>
+    <string name="enable_moving">Увімкнути переміщення</string>
+    <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
+    <string name="destinations_list">Отримувачі (0-9)</string>
+    <string name="destinations_description">До 10 ресурсів-отримувачів. Кожен має колір і номер (0-9).</string>
+    <string name="add_destination">Додати отримувача</string>
+</resources>

@@ -83,7 +83,8 @@ class ResourceRepositoryImpl @Inject constructor(
             destinationOrder = destinationOrder,
             destinationColor = destinationColor,
             isWritable = isWritable,
-            createdDate = createdDate
+            createdDate = createdDate,
+            displayOrder = displayOrder
         )
     }
     
@@ -111,7 +112,8 @@ class ResourceRepositoryImpl @Inject constructor(
             destinationOrder = destinationOrder ?: -1,
             destinationColor = destinationColor,
             isWritable = isWritable,
-            createdDate = createdDate
+            createdDate = createdDate,
+            displayOrder = displayOrder
         )
     }
 }

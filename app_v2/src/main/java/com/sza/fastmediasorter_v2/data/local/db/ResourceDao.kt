@@ -25,13 +25,13 @@ interface ResourceDao {
     @Query("SELECT * FROM resources WHERE id = :id")
     suspend fun getResourceByIdSync(id: Long): ResourceEntity?
     
-    @Query("SELECT * FROM resources WHERE type = :type ORDER BY name ASC")
+    @Query("SELECT * FROM resources WHERE type = :type ORDER BY displayOrder ASC, name ASC")
     fun getResourcesByType(type: ResourceType): Flow<List<ResourceEntity>>
     
-    @Query("SELECT * FROM resources ORDER BY name ASC")
+    @Query("SELECT * FROM resources ORDER BY displayOrder ASC, name ASC")
     fun getAllResources(): Flow<List<ResourceEntity>>
     
-    @Query("SELECT * FROM resources ORDER BY name ASC")
+    @Query("SELECT * FROM resources ORDER BY displayOrder ASC, name ASC")
     suspend fun getAllResourcesSync(): List<ResourceEntity>
     
     @Query("SELECT * FROM resources WHERE isDestination = 1 ORDER BY destinationOrder ASC")

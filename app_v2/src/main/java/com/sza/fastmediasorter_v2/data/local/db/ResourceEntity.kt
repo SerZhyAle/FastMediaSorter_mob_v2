@@ -30,5 +30,7 @@ data class ResourceEntity(
     val destinationColor: Int = 0xFF4CAF50.toInt(), // Default green color
     val isWritable: Boolean = false,
     
-    val createdDate: Long = System.currentTimeMillis()
+    val createdDate: Long = System.currentTimeMillis(),
+    
+    val displayOrder: Int = 0 // Order for display in resource list
 )

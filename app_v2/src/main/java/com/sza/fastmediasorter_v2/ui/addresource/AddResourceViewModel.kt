@@ -18,6 +18,7 @@ import javax.inject.Inject
 
 data class AddResourceState(
     val resourcesToAdd: List<MediaResource> = emptyList(),
+    val selectedPaths: Set<String> = emptySet(),
     val isScanning: Boolean = false
 )
 
@@ -62,12 +63,12 @@ class AddResourceViewModel @Inject constructor(
 
     fun toggleResourceSelection(resource: MediaResource, selected: Boolean) {
         updateState { state ->
-            val updated = state.resourcesToAdd.map { r ->
-                if (r.path == resource.path) {
-                    r.copy(id = if (selected) 1 else 0) // Используем id для отметки выбранных
-                } else r
+            val newSelectedPaths = if (selected) {
+                state.selectedPaths + resource.path
+            } else {
+                state.selectedPaths - resource.path
             }
-            state.copy(resourcesToAdd = updated)
+            state.copy(selectedPaths = newSelectedPaths)
         }
     }
 
@@ -97,7 +98,11 @@ class AddResourceViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
-            val selectedResources = state.value.resourcesToAdd.filter { it.id > 0 }
+            val currentState = state.value
+            val selectedResources = currentState.resourcesToAdd.filter { 
+                it.path in currentState.selectedPaths 
+            }.map { it.copy(id = 0) } // Ensure id=0 for autoincrement
+            
             if (selectedResources.isEmpty()) {
                 sendEvent(AddResourceEvent.ShowMessage("No resources selected"))
                 setLoading(false)

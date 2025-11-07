@@ -45,11 +45,13 @@
     
     <!-- Common -->
     <string name="apply">Apply</string>
+    <string name="clear_all">Clear All</string>
     <string name="file_name">File name</string>
     <string name="filter">Filter</string>
     <string name="refresh">Refresh</string>
     <string name="copy_resource">Copy Resource</string>
     <string name="exit">Exit</string>
+    <string name="empty_state_message">Add resources for sorting and playing media files</string>
     
     <!-- Settings -->
     <string name="general">General</string>

@@ -18,6 +18,39 @@
         app:layout_constraintEnd_toEndOf="parent"
         tools:listitem="@layout/item_resource" />
 
+    <!-- Empty state view -->
+    <LinearLayout
+        android:id="@+id/emptyStateView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/rvResources"
+        app:layout_constraintBottom_toBottomOf="@id/rvResources"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:visibility="visible">
+
+        <ImageView
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:src="@android:drawable/ic_input_add"
+            android:contentDescription="Add resource"
+            android:alpha="0.6" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/empty_state_message"
+            android:textSize="16sp"
+            android:textAlignment="center"
+            android:gravity="center"
+            android:alpha="0.6" />
+    </LinearLayout>
+
     <TextView
         android:id="@+id/tvFilterWarning"
         android:layout_width="0dp"
@@ -83,7 +116,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add"
-            android:src="@android:drawable/ic_input_add" />
+            android:src="@android:drawable/ic_menu_add" />
 
         <ImageButton
             android:id="@+id/btnSettings"

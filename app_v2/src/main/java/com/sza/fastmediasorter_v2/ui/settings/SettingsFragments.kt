@@ -14,6 +14,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
+import kotlin.math.roundToInt
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter_v2.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter_v2.databinding.FragmentSettingsMediaBinding
@@ -54,7 +55,8 @@ class MediaSettingsFragment : Fragment() {
         // Convert file size to slider position (0-100)
         private fun sizeToSlider(size: Long, minSize: Long, maxSize: Long): Float {
             val normalized = (size - minSize).toDouble() / (maxSize - minSize)
-            return (normalized.pow(0.5) * 100).toFloat().coerceIn(0f, 100f)
+            val sliderValue = (normalized.pow(0.5) * 100).coerceIn(0.0, 100.0)
+            return sliderValue.roundToInt().toFloat()
         }
         
         // Format size for display
@@ -584,5 +586,235 @@ class DestinationsSettingsFragment : Fragment() {
                 binding.btnDelete.setOnClickListener { onDelete(position) }
             }
         }
+    }
+}
+
+class GeneralSettingsFragment : Fragment() {
+
+    private var _binding: com.sza.fastmediasorter_v2.databinding.FragmentSettingsGeneralBinding? = null
+    private val binding get() = _binding!!
+    
+    private val viewModel: SettingsViewModel by activityViewModels()
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = com.sza.fastmediasorter_v2.databinding.FragmentSettingsGeneralBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupViews()
+        observeData()
+    }
+
+    private fun setupViews() {
+        // Language Spinner
+        val languages = resources.getStringArray(com.sza.fastmediasorter_v2.R.array.languages)
+        val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, languages)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        binding.spinnerLanguage.adapter = adapter
+        
+        binding.spinnerLanguage.setOnItemSelectedListener(object : android.widget.AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val current = viewModel.settings.value
+                val languageCode = when (position) {
+                    0 -> "en"
+                    1 -> "ru"
+                    2 -> "uk"
+                    else -> "en"
+                }
+                viewModel.updateSettings(current.copy(language = languageCode))
+            }
+
+            override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+        })
+        
+        // Prevent Sleep
+        binding.switchPreventSleep.setOnCheckedChangeListener { _, isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(preventSleep = isChecked))
+        }
+        
+        // Small Controls
+        binding.switchSmallControls.setOnCheckedChangeListener { _, isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showSmallControls = isChecked))
+        }
+        
+        // Default User
+        binding.etDefaultUser.setText(viewModel.settings.value.defaultUser)
+        binding.etDefaultUser.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val current = viewModel.settings.value
+                val newUser = binding.etDefaultUser.text.toString()
+                if (current.defaultUser != newUser) {
+                    viewModel.updateSettings(current.copy(defaultUser = newUser))
+                }
+            }
+        }
+        
+        // Default Password
+        binding.etDefaultPassword.setText(viewModel.settings.value.defaultPassword)
+        binding.etDefaultPassword.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val current = viewModel.settings.value
+                val newPassword = binding.etDefaultPassword.text.toString()
+                if (current.defaultPassword != newPassword) {
+                    viewModel.updateSettings(current.copy(defaultPassword = newPassword))
+                }
+            }
+        }
+        
+        // Permissions Buttons
+        binding.btnLocalFilesPermission.setOnClickListener {
+            Toast.makeText(requireContext(), "Permission request functionality - TODO", Toast.LENGTH_SHORT).show()
+        }
+        
+        binding.btnNetworkPermission.setOnClickListener {
+            Toast.makeText(requireContext(), "Permission request functionality - TODO", Toast.LENGTH_SHORT).show()
+        }
+        
+        // Log Buttons
+        binding.btnShowLog.setOnClickListener {
+            showLogDialog(fullLog = true)
+        }
+        
+        binding.btnShowSessionLog.setOnClickListener {
+            showLogDialog(fullLog = false)
+        }
+    }
+
+    private fun observeData() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.settings.collect { settings ->
+                    // Update language spinner
+                    val languagePosition = when (settings.language) {
+                        "en" -> 0
+                        "ru" -> 1
+                        "uk" -> 2
+                        else -> 0
+                    }
+                    if (binding.spinnerLanguage.selectedItemPosition != languagePosition) {
+                        binding.spinnerLanguage.setSelection(languagePosition)
+                    }
+                    
+                    // Update switches
+                    if (binding.switchPreventSleep.isChecked != settings.preventSleep) {
+                        binding.switchPreventSleep.isChecked = settings.preventSleep
+                    }
+                    if (binding.switchSmallControls.isChecked != settings.showSmallControls) {
+                        binding.switchSmallControls.isChecked = settings.showSmallControls
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showLogDialog(fullLog: Boolean) {
+        val logText = if (fullLog) {
+            getFullLog()
+        } else {
+            getSessionLog()
+        }
+        
+        // Inflate custom view with small text
+        val dialogView = layoutInflater.inflate(
+            com.sza.fastmediasorter_v2.R.layout.dialog_log_view,
+            null
+        )
+        val textView = dialogView.findViewById<TextView>(com.sza.fastmediasorter_v2.R.id.tvLogText)
+        textView.text = logText
+        
+        val dialog = android.app.AlertDialog.Builder(requireContext())
+            .setTitle(if (fullLog) "Application Log" else "Current Session Log")
+            .setView(dialogView)
+            .setPositiveButton("Copy to Clipboard") { _, _ ->
+                copyToClipboard(logText)
+            }
+            .setNegativeButton("Close", null)
+            .create()
+        
+        dialog.show()
+    }
+
+    private fun getFullLog(): String {
+        return try {
+            val process = Runtime.getRuntime().exec("logcat -d -v time")
+            val bufferedReader = java.io.BufferedReader(
+                java.io.InputStreamReader(process.inputStream)
+            )
+            
+            val log = StringBuilder()
+            var lineCount = 0
+            val maxLines = 512
+            
+            // Read last 512 lines
+            val lines = bufferedReader.readLines()
+            val startIndex = maxOf(0, lines.size - maxLines)
+            
+            for (i in startIndex until lines.size) {
+                log.append(lines[i]).append("\n")
+                lineCount++
+            }
+            
+            bufferedReader.close()
+            
+            if (log.isEmpty()) {
+                "No log entries found"
+            } else {
+                "Last $lineCount lines of log:\n\n$log"
+            }
+        } catch (e: Exception) {
+            "Error reading log: ${e.message}"
+        }
+    }
+
+    private fun getSessionLog(): String {
+        return try {
+            val packageName = requireContext().packageName
+            val process = Runtime.getRuntime().exec("logcat -d -v time")
+            val bufferedReader = java.io.BufferedReader(
+                java.io.InputStreamReader(process.inputStream)
+            )
+            
+            val log = StringBuilder()
+            var lineCount = 0
+            
+            bufferedReader.forEachLine { line ->
+                // Filter only lines from current app
+                if (line.contains(packageName, ignoreCase = true) || 
+                    line.contains("FastMediaSorter", ignoreCase = true)) {
+                    log.append(line).append("\n")
+                    lineCount++
+                }
+            }
+            
+            bufferedReader.close()
+            
+            if (log.isEmpty()) {
+                "No log entries found for current session"
+            } else {
+                "Current session log ($lineCount lines):\n\n$log"
+            }
+        } catch (e: Exception) {
+            "Error reading log: ${e.message}"
+        }
+    }
+
+    private fun copyToClipboard(text: String) {
+        val clipboard = requireContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("Log", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(requireContext(), "Log copied to clipboard", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

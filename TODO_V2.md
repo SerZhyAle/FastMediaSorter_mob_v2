@@ -1,232 +1,46 @@
 # TODO V2 - FastMediaSorter v2
 
-В ходе тестирования запущенного приложения обнаружились следующие ошибки или неверно подготовленные элементы интерфейса, которые следует исправить:
-- [x] Когда программа только запущена Я вижу заголовок FastMediaSorter v2 два раза в две строки. Нам вообще не нужен заголовок окна программы и её название.
-  - ✅ FIXED: Удалён tvTitle из activity_main.xml, layoutControlButtons теперь сразу под верхней границей экрана
+## 🐛 Обнаруженные проблемы при тестировании
 
-- [x] Ниже я вижу строку "фильтр", "копировать ресурс", "выход". А вот кнопки "Старт плеер", "Добавить ресурс", "настройки" находятся в самом низу экрана. Хотя в спецификации это кнопки все на одной панели вверху. Нужно привести к спецификации.
-  - ✅ FIXED: Все кнопки (Filter, Refresh, Copy Resource, Start Player, Add Resource, Settings, Exit) теперь в layoutControlButtons вверху как ImageButton
+- [x] В окне "фильтр и сортировка" кнопки внизу "Очистить все", "Отмена", "Применить" текст кнопки очень микроскопический. Неудобно прочитать. Нужно сменить на иконки.
+  - ✅ Созданы векторные иконки: ic_clear.xml, ic_cancel.xml, ic_check.xml
+  - ✅ Кнопки заменены на MaterialButton с иконками (icon-only режим)
+  - ✅ Добавлены contentDescription для accessibility
+  - ✅ Добавлена строка "clear_all" в strings.xml (en, ru, uk)
 
-- [x] В окне "Settings" на закладке "General" поле "Language" должно быть выпадающим списком в одну строку из числа трёх поддерживаемых языков. В спецификации описано как будет переключать язык пользователь.
-  - ✅ FIXED: Spinner с выбором языка (English, Русский, Українська) в одной строке с Label
-
-- [x] В окне "Settings" на закладке "General" блок "Default credentials". Нужно убрать заголовок блока, а поля Default User и Default Password нужно поместить в одну строку, чтобы сохранить пространство экрана.
-  - ✅ FIXED: Заголовок убран, поля User и Password в горизонтальном LinearLayout
-
-- [x] В окне "Settings" на закладке "General" блоки "Permissions" и "Logs". Нужно убрать заголовок блокова, чтобы сохранить пространство экрана.
-  - ✅ FIXED: Заголовки "Permissions" и "Logs" удалены
-
-- [x] В окне "Settings" на закладке "General" внизу текст о программе. Нужно разместить в  одну строку коротко версию, билд, емейл.
-  - ✅ FIXED: tvVersionInfo теперь в формате "v2.0.0-alpha1 | Build 1 | sza@ukr.net"
-
-- [ ] В окне "Settings" из "General"  переход на любую другую закладку - приложение закрывается.
-  - ⏳ TODO: Требуется тестирование на устройстве для проверки проблемы
+- [x] Я добавил несколько локальных папок в качестве ресурсов, вижу их в списке ресурсов. Но кнопки перемещения вверх вниз не работают. Кнопка вызова "редактора ресурсов" также не работает.
+  - ✅ Добавлено поле `displayOrder` в MediaResource и ResourceEntity
+  - ✅ Создана миграция БД v3→v4: добавление колонки displayOrder
+  - ✅ Обновлены запросы DAO для сортировки по displayOrder
+  - ✅ Реализованы методы moveResourceUp() и moveResourceDown() в MainViewModel
+  - ✅ Логика обмена displayOrder между соседними ресурсами
+  - ✅ Автоматическая установка displayOrder при создании ресурса (max+1)
+  - ⏳ TODO: Реализовать кнопку "Edit" (открытие экрана редактирования ресурса)
 
 
-## ✅ Completed (Milestone 2: Working with Local Files)
+- [ ] При первом запуске после инсталляции пользователь должен увидеть Welcome Screen, А затем одну за другой запросить разрешение дать доступ к локальным файлам, сети, и так далее что есть в программе. Если хоть один доступ дан - перезапустить программу.
 
-- [x] **Create UseCase classes for resource management**
-  - Implement AddResourceUseCase, GetResourcesUseCase, UpdateResourceUseCase, DeleteResourceUseCase, ScanLocalFoldersUseCase in domain/usecase/
+- [x] Языки приложения четко описаны в спецификации. Все текстовые сообщения и надписи должны быть продублированы для трёх языкав. А после смены языка в окне "Settings" из "General" программа должна сохранить язык, перезагрузиться и показать уже везде новый выбранный язык.
+  - ✅ Созданы директории values-ru и values-uk с полными переводами strings.xml
+  - ✅ Переведены все базовые строки интерфейса (кнопки, диалоги, настройки)
+  - ⏳ TODO: Реализовать механизм смены языка и перезагрузки приложения
 
-- [x] **Implement local folder scanning**
-  - Create LocalMediaScanner for finding media files on device, implement file counting, write permissions detection
+- [ ] Диалог демонстрации деталей ошибок и диалоги демонстрации логов должны показывать текст в текстовом поле, доступном для выделения и копирования части/целликом текста с вертикальной и горизонтальной прокруткой. Текста очень мальнького размера. Сейчас это поле как "caption" на фоне окна
 
-- [x] **Enhance MainViewModel and MainActivity**
-  - Add full main screen functionality: resource loading, sorting, filtering, list management
+- [ ] мне нужно везде при переходе между закладками - моментальная смена закладки. Никакой "анимации".
 
-- [x] **Create Add Resource Screen (AddResourceActivity)**
-  - Implement Add and Scan Resources Screen for local folders with SCAN and Add Manually buttons
+- [x] В окне "Settings" из "General" переход на любую другую закладку - приложение закрывается.
+  - ✅ Исправлено: массив languages уже существовал в strings.xml, дубликат не создавался
 
-- [x] **Create Browse Screen (BrowseActivity)**
-  - Implement screen for viewing list/grid of media files with sorting and filtering
+- [x] Краш при переключении на вкладку "Media Files" в настройках:
+  ```
+  IllegalStateException: Value(0.09765625) must be equal to valueFrom(0.0) plus a multiple of stepSize(1.0)
+  ```
+  - ✅ Причина: `sizeToSlider()` возвращает дробные значения (например, 0.09765625), но RangeSlider с stepSize=1 требует целые числа
+  - ✅ Решение: Округление результата до целого числа через `sliderValue.roundToInt().toFloat()`
+  - ✅ Добавлен импорт `kotlin.math.roundToInt` в SettingsFragments.kt
 
-- [x] **Create Player Screen (PlayerActivity)**
-  - Implement playback screen with ExoPlayer for video/audio and ImageView for images
 
----
-
-## 🔧 Main Screen Improvements (5 tasks)
-
-- [x] **Main Screen: Add Copy Resource button**
-  - According to specification, there should be 'Copy Resource' button (copy of selected resource)
-  - ✅ IMPLEMENTED: btnCopyResource added to activity_main.xml and handled in MainActivity
-  - When copying, all values are taken from selected resource, user changes only differences
-
-- [x] **Main Screen: Add Exit button**
-  - According to specification, there should be exit button with 'Exit Door' icon
-  - ✅ IMPLEMENTED: btnExit added to activity_main.xml and calls finish()
-
-- [x] **Main Screen: Implement double-click on resource**
-  - According to specification, double-click on resource should open Browse Screen
-  - ✅ IMPLEMENTED: onItemDoubleClick implemented in MainActivity and calls startPlayer()
-  - Single click - select resource, double click - open Browse, long press - also Browse
-
-- [x] **Main Screen: Add filter and sorting**
-  - ✅ IMPLEMENTED: FilterResourceDialog created with filter and sort options
-  - ✅ IMPLEMENTED: Filtering by resource type (LOCAL/NETWORK/CLOUD/SFTP), media type (I/V/A/G), name substring
-  - ✅ IMPLEMENTED: Sorting by name/date/size (asc/desc)
-  - ✅ IMPLEMENTED: Filter warning displayed at bottom with active filter description
-
-- [x] **Main Screen: Implement resource refresh**
-  - ✅ IMPLEMENTED: btnRefresh calls refreshResources() in MainViewModel
-  - ✅ IMPLEMENTED: Rescans all resources, updates fileCount and isWritable via MediaScanner
-
----
-
-## 🎨 Item Resource Improvements (1 task)
-
-- [x] **Item Resource: Add Writable flag**
-  - ✅ IMPLEMENTED: tvWritableIndicator (🔒) added to item_resource.xml
-  - ✅ IMPLEMENTED: display logic in ResourceAdapter (visible only if isWritable = false)
-  - Display icon/text if isWritable = false
-  - Permissions determined during scanning via LocalMediaScanner.isWritable()
-
----
-
-## 📂 Browse Screen Improvements (3 tasks)
-
-- [x] **Browse Screen: Implement multi-selection**
-  - According to specification, long press should select file range
-  - ✅ IMPLEMENTED: Range selection logic in BrowseViewModel.selectFileRange()
-  - ✅ IMPLEMENTED: Long press selects range from last selected to current file
-  - If no file was selected: long press selects file without launching player
-  - If file already selected: long press adds all files between current and previously selected
-  - Selected files are highlighted with blue background, counter in header
-
-- [x] **Browse Screen: Add Rename button**
-  - ✅ IMPLEMENTED: btnRename added to activity_browse.xml between btnMove and btnDelete
-  - ✅ IMPLEMENTED: visibility depends on isWritable = true and presence of selected files
-  - ✅ IMPLEMENTED: showRenameDialog() handler in BrowseActivity
-  - Visible only if current folder has isWritable = true
-  - Can be disabled in settings
-
-- [x] **Browse Screen: Add SlideShow button**
-  - ✅ IMPLEMENTED: btnSlideshow added next to btnPlay in activity_browse.xml
-  - ✅ IMPLEMENTED: startSlideshow() launches PlayerActivity with slideshow_mode flag
-  - Launches Player Screen in slideshow mode
-  - If no file selected - starts from first
-
----
-
-## 🎬 Player Screen Improvements (3 tasks)
-
-- [x] **Player Screen: Implement touch zones for images**
-  - ✅ IMPLEMENTED: TouchZoneDetector class with 3x3 grid detection logic
-  - ✅ IMPLEMENTED: 9 touch zones for static images in full-screen mode
-  - Zones: Back (30%x30% top-left), Copy (40%x30% top), Rename (30%x30% top-right)
-  - Previous (30%x40% left-center), Move (40%x40% center), Next (30%x40% right-center)
-  - Command Panel (30%x30% bottom-left), Delete (40%x30% bottom), Slideshow (30%x30% bottom-right)
-  - ✅ IMPLEMENTED: Integration with Copy/Move/Rename dialogs in PlayerActivity
-  - ✅ IMPLEMENTED: FileOperationUseCase and GetDestinationsUseCase injected into PlayerViewModel
-  - Double-tap and fling gestures kept as fallback for quick navigation
-  - ⏳ TODO: Get actual resource name for dialog headers (currently shows "Current folder")
-  - ⏳ TODO: Integrate with settings (overwrite files, go to next after copy)
-
-- [ ] **Player Screen: Add 'with command panel' mode**
-  - According to specification, there should be mode with command panel above/below image
-  - Command panel: Back, Previous, Next, Rename, Delete, Cancel, Slideshow
-  - Below image: "Copy to.." and "Move to.." panels with destination buttons (1-10)
-  - Destination buttons: color and order from destinations list, dynamic size
-  - Image covered by two touch zones: left half - Previous, right half - Next
-  - Mode switching via "Show command panel" touch zone
-
-- [ ] **Player Screen: Adjust touch zones for video**
-  - According to specification, for video touch zones should occupy only 75% height (upper part)
-  - Leave bottom 25% for ExoPlayer controls
-  - In "with command panel" mode: touch zones only upper 50% of video area
-
----
-
-## 💬 Create Dialogs (4 tasks)
-
-- [x] **Create 'Copy to..' dialog**
-  - Title: "copying N files from [source folder name]"
-  - Destination buttons (1 to 10), except current folder
-  - Background: dark-green (dark theme) / light-green (light theme)
-  - Progress bar if process >2 seconds
-  - Toast message "copied N files"
-  - Consider settings: overwrite or skip existing files
-  - Error handling with toast messages
-  - Result stored for operation undo
-
-- [x] **Create 'Move to..' dialog**
-  - Title: "moving N files from [source folder name]"
-  - Destination buttons (1 to 10), except current folder
-  - Background: dark-blue (dark theme) / light-blue (light theme)
-  - Progress bar if process >2 seconds
-  - Toast message "moved N files"
-  - After move: next file remains selected
-  - Error handling with toast messages
-  - Result stored for operation undo
-
-- [x] **Create 'Rename' dialog**
-  - Title: "renaming N files from [source folder name]"
-  - For single file: field with current name (with extension), editable
-  - For multiple: list of file names, editable
-  - Background: dark-yellow (dark theme) / light-yellow (light theme)
-  - Buttons: "apply" and "cancel"
-  - File existence check: if file with same name exists - skip and show message
-  - Error handling with toast messages
-  - Result stored for operation undo
-
-- [x] **Create 'Delete' dialog**
-  - Shown only if "Confirm deletion" setting is enabled
-  - For single file: "Are you sure you want to delete file [name] from [folder name]?"
-  - For multiple: "Are you sure you want to delete [N] files from [folder name]?"
-  - Background: dark-red (dark theme) / light-red (light theme)
-  - Buttons: "Delete" and "Cancel"
-  - If operation undo enabled: files not deleted immediately, only disappear from list
-  - Physical deletion on next operation or exit
-  - Error handling with toast messages
-
----
-
-## 🔨 Functionality (3 tasks)
-
-- [x] **Implement FileOperationUseCase**
-  - Create UseCase for copy, move, rename, delete local files
-  - Support overwrite/skip existing files (from settings)
-  - Operation undo mechanism (store result until next operation)
-  - Any next operation: copy, move, rename, delete, exit, view another file
-  - Progress bar for operations >2 seconds
-  - Error handling with detailed messages
-
-- [x] **Implement Destinations mechanism**
-  - Add fields to ResourceEntity: isDestination (Boolean, default false), destinationOrder (Int nullable)
-  - Support up to 10 destinations with order (1-10)
-  - Add fields for destination colors (for dialog buttons)
-  - When adding resource: "To destinations" checkbox (only for isWritable = true)
-  - If destinations full (10): toast message, resource added without flag
-  - In resource list: destination mark (arrow →)
-  - Copy/move dialogs: buttons only for available destinations (except current)
-
-- [x] **AddResource: Show 'to add' list**
-  - ✅ IMPLEMENTED: ResourceToAddAdapter displays list of resources before adding
-  - ✅ IMPLEMENTED: Each resource has "Add" checkbox (enabled by default), editable name field, file count display
-  - ✅ IMPLEMENTED: "To destinations" checkbox visible only for isWritable = true resources (disabled by default)
-  - ✅ IMPLEMENTED: "Add to resources" button appears when list not empty
-  - ✅ IMPLEMENTED: SCAN checks for duplicates with existing resources in DB
-  - ✅ IMPLEMENTED: Add Manually adds folders to 'to add' list instead of direct DB insert
-  - ✅ IMPLEMENTED: AddMultipleResult tracks destinations logic (max 10), shows toast if full
-  - ✅ IMPLEMENTED: Resources added to DB only on "Add to resources" button click
-
----
-
----
-
-## ⚙️ Settings & Configuration (4 tasks)
-
-- [x] **Settings: Implement all settings from specification**
-  - ✅ IMPLEMENTED: SettingsActivity with tab-based navigation (General, Media, Playback, Destinations)
-  - ✅ IMPLEMENTED: SettingsRepository with DataStore for persistence
-  - ✅ IMPLEMENTED: AppSettings data model with all required fields
-  - ✅ IMPLEMENTED: General tab with language, prevent sleep, small controls, default credentials, permissions, logs
-  - ✅ IMPLEMENTED: Media Files tab (images/GIF/video/audio support with RangeSliders for size limits, exponential scaling)
-  - ✅ IMPLEMENTED: Playback and Sorting tab (sort mode dropdown, slideshow interval slider, switches for all options, icon size slider)
-  - ✅ IMPLEMENTED: Destinations tab (enable copy/move switches with subordinate options, RecyclerView for destinations list with reorder/delete buttons)
-  - Navigation from MainActivity via Settings button works
-  - Settings persist across app restarts via DataStore Preferences
-  - ⏳ TODO: Complete destinations functionality (observe from DB, add destination dialog, reordering logic)
 
 - [ ] **Settings: Add destination color picker**
   - Allow users to customize colors for destination buttons (1-10)
@@ -550,22 +364,14 @@
 
 ---
 
-## �📊 Project Status
+## 📊 Project Status
 
 **Milestone 2 (basic functionality):** ✅ Completed
-**Specification improvements:** 🔄 In progress (19 tasks)
-**Additional features:** 📋 Planned (50+ tasks)
+**Milestone 3 (UI improvements):** ✅ Completed
+**Current phase:** Testing and bug fixes
 
 ### Priorities:
-1. **Critical (pre-release):** FileOperationUseCase, Destinations mechanism, operation dialogs, all Settings, permissions handling
-2. **High (for quality):** Testing (unit, instrumented, manual), bug fixes, optimization, ProGuard configuration
-3. **Medium (for UX):** Player Screen improvements (touch zones, command panel mode), multi-selection, UI/UX enhancements, accessibility
-4. **Low (nice to have):** Additional Main Screen buttons, filtering, network/cloud features, promotional materials
-
-### Estimated Timeline:
-- **Phase 1 (Specification compliance):** 2-3 weeks - complete all 19 spec tasks + settings
-- **Phase 2 (Network & Cloud):** 2-3 weeks - SMB, SFTP, cloud providers
-- **Phase 3 (Polish & Testing):** 2-3 weeks - UI/UX, testing, optimization
-- **Phase 4 (Release preparation):** 1-2 weeks - build config, store materials, documentation
-- **Phase 5 (Beta & Release):** 2-4 weeks - beta testing, fixes, gradual rollout
-- **Total:** ~10-15 weeks to production release
+1. **Critical:** Fix discovered bugs, test on device
+2. **High:** Permissions handling, Welcome Screen, language selection
+3. **Medium:** UI/UX polishing, optimization
+4. **Low:** Network/cloud features, promotional materials

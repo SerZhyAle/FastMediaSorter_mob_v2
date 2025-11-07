@@ -29,55 +29,12 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
-        <RadioGroup
-            android:id="@+id/radioGroupSort"
+        <Spinner
+            android:id="@+id/spinnerSort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <RadioButton
-                android:id="@+id/rbNameAsc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Name (A → Z)"
-                android:padding="8dp" />
-
-            <RadioButton
-                android:id="@+id/rbNameDesc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Name (Z → A)"
-                android:padding="8dp" />
-
-            <RadioButton
-                android:id="@+id/rbDateAsc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Date (Oldest First)"
-                android:padding="8dp" />
-
-            <RadioButton
-                android:id="@+id/rbDateDesc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Date (Newest First)"
-                android:padding="8dp" />
-
-            <RadioButton
-                android:id="@+id/rbSizeAsc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="File Count (Low → High)"
-                android:padding="8dp" />
-
-            <RadioButton
-                android:id="@+id/rbSizeDesc"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="File Count (High → Low)"
-                android:padding="8dp" />
-
-        </RadioGroup>
+            android:minHeight="48dp"
+            android:padding="8dp" />
 
         <!-- Divider -->
         <View
@@ -167,27 +124,46 @@
             android:layout_marginTop="24dp"
             android:gravity="end">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Clear All"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_marginEnd="8dp" />
+                android:contentDescription="@string/clear_all"
+                app:icon="@drawable/ic_clear"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_marginEnd="8dp"
+                android:minWidth="48dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCancel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cancel"
+                android:contentDescription="@string/cancel"
+                app:icon="@drawable/ic_cancel"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
                 style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginEnd="8dp"
+                android:minWidth="48dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnApply"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Apply" />
+                android:contentDescription="@string/apply"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="0dp"
+                style="@style/Widget.Material3.Button"
+                android:minWidth="48dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp" />
 
         </LinearLayout>
 

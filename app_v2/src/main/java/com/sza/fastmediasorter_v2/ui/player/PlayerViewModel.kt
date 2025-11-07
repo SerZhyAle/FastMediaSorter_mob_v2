@@ -19,7 +19,8 @@ class PlayerViewModel @Inject constructor(
     private val getResourcesUseCase: GetResourcesUseCase,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     val fileOperationUseCase: FileOperationUseCase,
-    val getDestinationsUseCase: GetDestinationsUseCase
+    val getDestinationsUseCase: GetDestinationsUseCase,
+    private val settingsRepository: com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -28,7 +29,8 @@ class PlayerViewModel @Inject constructor(
         val isSlideShowActive: Boolean = false,
         val slideShowInterval: Long = 3000,
         val showControls: Boolean = true,
-        val isPaused: Boolean = false
+        val isPaused: Boolean = false,
+        val showCommandPanel: Boolean = false
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         val hasPrevious: Boolean get() = currentIndex > 0
@@ -51,6 +53,19 @@ class PlayerViewModel @Inject constructor(
 
     init {
         loadMediaFiles()
+        loadSettings()
+    }
+
+    private fun loadSettings() {
+        viewModelScope.launch {
+            try {
+                val settings = settingsRepository.getSettings().first()
+                // If fullScreenMode is true, showCommandPanel should be false (and vice versa)
+                updateState { it.copy(showCommandPanel = !settings.fullScreenMode) }
+            } catch (e: Exception) {
+                // Use default value (fullscreen mode)
+            }
+        }
     }
 
     private fun loadMediaFiles() {
@@ -110,5 +125,9 @@ class PlayerViewModel @Inject constructor(
 
     fun togglePause() {
         updateState { it.copy(isPaused = !it.isPaused) }
+    }
+
+    fun toggleCommandPanel() {
+        updateState { it.copy(showCommandPanel = !it.showCommandPanel) }
     }
 }

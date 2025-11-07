@@ -20,7 +20,12 @@ class AddResourceUseCase @Inject constructor(
     
     suspend operator fun invoke(resource: MediaResource): Result<Long> {
         return try {
-            val id = repository.addResource(resource)
+            // Set displayOrder to max + 1
+            val existingResources = repository.getAllResources().first()
+            val maxDisplayOrder = existingResources.maxOfOrNull { it.displayOrder } ?: -1
+            val resourceWithOrder = resource.copy(displayOrder = maxDisplayOrder + 1)
+            
+            val id = repository.addResource(resourceWithOrder)
             Result.success(id)
         } catch (e: Exception) {
             Result.failure(e)
@@ -36,17 +41,22 @@ class AddResourceUseCase @Inject constructor(
                 .filter { it.isDestination }
                 .maxOfOrNull { it.destinationOrder ?: 0 } ?: 0
             
+            // Calculate max displayOrder for new resources
+            var nextDisplayOrder = existingResources.maxOfOrNull { it.displayOrder } ?: -1
+            
             var skippedDestinations = 0
             val resourcesToAdd = resources.map { resource ->
+                nextDisplayOrder++
+                
                 if (resource.isDestination && availableDestinationSlots > 0) {
                     nextDestinationOrder++
                     availableDestinationSlots--
-                    resource.copy(destinationOrder = nextDestinationOrder)
+                    resource.copy(destinationOrder = nextDestinationOrder, displayOrder = nextDisplayOrder)
                 } else if (resource.isDestination && availableDestinationSlots <= 0) {
                     skippedDestinations++
-                    resource.copy(isDestination = false, destinationOrder = null)
+                    resource.copy(isDestination = false, destinationOrder = null, displayOrder = nextDisplayOrder)
                 } else {
-                    resource
+                    resource.copy(displayOrder = nextDisplayOrder)
                 }
             }
             

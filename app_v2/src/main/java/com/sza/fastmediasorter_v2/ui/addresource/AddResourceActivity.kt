@@ -77,6 +77,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     resourceToAddAdapter.submitList(state.resourcesToAdd)
+                    resourceToAddAdapter.setSelectedPaths(state.selectedPaths)
                     
                     val hasResources = state.resourcesToAdd.isNotEmpty()
                     binding.tvResourcesToAdd.isVisible = hasResources

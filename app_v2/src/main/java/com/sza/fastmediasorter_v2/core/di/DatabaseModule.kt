@@ -23,6 +23,7 @@ object DatabaseModule {
             AppDatabase::class.java,
             "fastmediasorter_v2.db"
         )
+            .addMigrations(AppDatabase.MIGRATION_3_4)
             .fallbackToDestructiveMigration()
             .build()
     }

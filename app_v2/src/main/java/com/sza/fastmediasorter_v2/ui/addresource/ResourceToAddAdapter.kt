@@ -17,6 +17,13 @@ class ResourceToAddAdapter(
     private val onDestinationChanged: (MediaResource, Boolean) -> Unit
 ) : ListAdapter<MediaResource, ResourceToAddAdapter.ViewHolder>(ResourceDiffCallback()) {
 
+    private var selectedPaths: Set<String> = emptySet()
+
+    fun setSelectedPaths(paths: Set<String>) {
+        selectedPaths = paths
+        notifyDataSetChanged()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemResourceToAddBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -57,7 +64,7 @@ class ResourceToAddAdapter(
             
             binding.apply {
                 cbAdd.setOnCheckedChangeListener(null)
-                cbAdd.isChecked = resource.id > 0
+                cbAdd.isChecked = resource.path in selectedPaths
                 cbAdd.setOnCheckedChangeListener { _, isChecked ->
                     onSelectionChanged(resource, isChecked)
                 }
