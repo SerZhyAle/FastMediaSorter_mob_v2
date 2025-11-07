@@ -43,6 +43,20 @@ enum class DisplayMode {
 }
 
 /**
+ * Filter criteria for media files
+ * According to specification: filename (case-insensitive), creation date (>=Date;<=Date), file size (>=Mb;<=Mb)
+ */
+data class FileFilter(
+    val nameContains: String? = null,
+    val minDate: Long? = null,
+    val maxDate: Long? = null,
+    val minSizeMb: Float? = null,
+    val maxSizeMb: Float? = null
+) {
+    fun isEmpty(): Boolean = nameContains.isNullOrBlank() && minDate == null && maxDate == null && minSizeMb == null && maxSizeMb == null
+}
+
+/**
  * Domain model for Resource (Folder)
  * Represents a folder that can contain media files
  */
@@ -79,4 +93,27 @@ data class MediaFile(
     val duration: Long? = null,
     val width: Int? = null,
     val height: Int? = null
+)
+
+/**
+ * File operation type for undo functionality
+ */
+enum class FileOperationType {
+    COPY,
+    MOVE,
+    RENAME,
+    DELETE
+}
+
+/**
+ * File operation record for undo functionality
+ * According to specification: store operation details to enable undo
+ */
+data class UndoOperation(
+    val type: FileOperationType,
+    val sourceFiles: List<String>, // Original file paths
+    val destinationFolder: String? = null, // For COPY/MOVE operations
+    val copiedFiles: List<String>? = null, // Destination paths for copied/moved files
+    val oldNames: List<Pair<String, String>>? = null, // (oldPath, newPath) for RENAME
+    val timestamp: Long = System.currentTimeMillis()
 )

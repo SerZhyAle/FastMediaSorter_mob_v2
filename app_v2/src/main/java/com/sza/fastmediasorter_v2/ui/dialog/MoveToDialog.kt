@@ -10,6 +10,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.DialogMoveToBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
+import com.sza.fastmediasorter_v2.domain.model.FileOperationType
+import com.sza.fastmediasorter_v2.domain.model.UndoOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
@@ -25,7 +27,7 @@ class MoveToDialog(
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val overwriteFiles: Boolean,
-    private val onComplete: () -> Unit
+    private val onComplete: (UndoOperation?) -> Unit
 ) : Dialog(context) {
 
     private lateinit var binding: DialogMoveToBinding
@@ -110,7 +112,18 @@ class MoveToDialog(
                             context.getString(R.string.moved_n_files, result.processedCount),
                             Toast.LENGTH_SHORT
                         ).show()
-                        onComplete()
+                        
+                        // Create UndoOperation for move
+                        val undoOp = UndoOperation(
+                            type = FileOperationType.MOVE,
+                            sourceFiles = sourceFiles.map { it.absolutePath },
+                            destinationFolder = destinationFolder.absolutePath,
+                            copiedFiles = result.copiedFilePaths,
+                            oldNames = null,
+                            timestamp = System.currentTimeMillis()
+                        )
+                        
+                        onComplete(undoOp)
                         dismiss()
                     }
                     is FileOperationResult.PartialSuccess -> {
@@ -120,7 +133,7 @@ class MoveToDialog(
                             result.processedCount + result.failedCount
                         )
                         Toast.makeText(context, message, Toast.LENGTH_LONG).show()
-                        onComplete()
+                        onComplete(null)
                         dismiss()
                     }
                     is FileOperationResult.Failure -> {

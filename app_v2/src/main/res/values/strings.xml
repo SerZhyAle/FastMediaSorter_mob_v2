@@ -56,6 +56,16 @@
     <string name="play">Play</string>
     <string name="empty_state_message">Add resources for sorting and playing media files</string>
     
+    <!-- Filter Dialog -->
+    <string name="filter_by_name">Filter by name (case-insensitive)</string>
+    <string name="filter_by_date">Filter by creation date</string>
+    <string name="filter_by_size">Filter by file size (MB)</string>
+    <string name="min_date">Min date</string>
+    <string name="max_date">Max date</string>
+    <string name="min_size_mb">Min size</string>
+    <string name="max_size_mb">Max size</string>
+    <string name="filter_active">Filter active: %1$s</string>
+    
     <!-- Settings -->
     <string name="general">General</string>
     <string name="media_files">Media Files</string>

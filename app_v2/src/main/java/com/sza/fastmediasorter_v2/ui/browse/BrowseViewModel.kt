@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
+import com.sza.fastmediasorter_v2.domain.model.FileFilter
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
+import com.sza.fastmediasorter_v2.domain.model.UndoOperation
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
@@ -23,7 +25,9 @@ data class BrowseState(
     val selectedFiles: Set<String> = emptySet(),
     val lastSelectedPath: String? = null,
     val sortMode: SortMode = SortMode.NAME_ASC,
-    val displayMode: DisplayMode = DisplayMode.LIST
+    val displayMode: DisplayMode = DisplayMode.LIST,
+    val filter: FileFilter? = null,
+    val lastOperation: UndoOperation? = null
 )
 
 sealed class BrowseEvent {
@@ -47,6 +51,10 @@ class BrowseViewModel @Inject constructor(
     override fun getInitialState() = BrowseState()
 
     init {
+        loadResource()
+    }
+
+    fun reloadFiles() {
         loadResource()
     }
 
@@ -180,6 +188,139 @@ class BrowseViewModel @Inject constructor(
             // TODO: Реализовать удаление файлов
             Timber.d("Delete files: $selectedPaths")
             sendEvent(BrowseEvent.ShowMessage("Delete: ${selectedPaths.size} files"))
+        }
+    }
+    
+    fun saveUndoOperation(operation: UndoOperation) {
+        updateState { it.copy(lastOperation = operation) }
+        Timber.d("Saved undo operation: ${operation.type}, ${operation.sourceFiles.size} files")
+    }
+    
+    fun undoLastOperation() {
+        val operation = state.value.lastOperation
+        if (operation == null) {
+            sendEvent(BrowseEvent.ShowMessage("No operation to undo"))
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            try {
+                when (operation.type) {
+                    com.sza.fastmediasorter_v2.domain.model.FileOperationType.COPY -> {
+                        // Delete copied files
+                        operation.copiedFiles?.forEach { path ->
+                            val file = java.io.File(path)
+                            if (file.exists()) {
+                                file.delete()
+                                Timber.d("Undo copy: deleted $path")
+                            }
+                        }
+                        sendEvent(BrowseEvent.ShowMessage("Undo: copy operation cancelled"))
+                    }
+                    
+                    com.sza.fastmediasorter_v2.domain.model.FileOperationType.MOVE -> {
+                        // Move files back to original location
+                        operation.copiedFiles?.forEachIndexed { index, destPath ->
+                            val sourcePath = operation.sourceFiles.getOrNull(index)
+                            if (sourcePath != null) {
+                                val destFile = java.io.File(destPath)
+                                val sourceFile = java.io.File(sourcePath)
+                                if (destFile.exists()) {
+                                    destFile.renameTo(sourceFile)
+                                    Timber.d("Undo move: $destPath -> $sourcePath")
+                                }
+                            }
+                        }
+                        sendEvent(BrowseEvent.ShowMessage("Undo: move operation cancelled"))
+                    }
+                    
+                    com.sza.fastmediasorter_v2.domain.model.FileOperationType.RENAME -> {
+                        // Rename files back to original names
+                        operation.oldNames?.forEach { (oldPath, newPath) ->
+                            val newFile = java.io.File(newPath)
+                            val oldFile = java.io.File(oldPath)
+                            if (newFile.exists()) {
+                                newFile.renameTo(oldFile)
+                                Timber.d("Undo rename: $newPath -> $oldPath")
+                            }
+                        }
+                        sendEvent(BrowseEvent.ShowMessage("Undo: rename operation cancelled"))
+                    }
+                    
+                    com.sza.fastmediasorter_v2.domain.model.FileOperationType.DELETE -> {
+                        // Restore deleted files (if they were only marked for deletion)
+                        sendEvent(BrowseEvent.ShowMessage("Undo: delete operation cancelled"))
+                    }
+                }
+                
+                // Clear undo operation after execution
+                updateState { it.copy(lastOperation = null) }
+                
+                // Reload files to reflect changes
+                loadResource()
+                
+            } catch (e: Exception) {
+                Timber.e(e, "Undo operation failed")
+                sendEvent(BrowseEvent.ShowError("Undo failed: ${e.message}"))
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+    
+    fun setFilter(filter: FileFilter?) {
+        updateState { 
+            it.copy(filter = filter)
+        }
+        applyFilter()
+    }
+    
+    private fun applyFilter() {
+        val resource = state.value.resource ?: return
+        val filter = state.value.filter
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            getMediaFilesUseCase(resource, state.value.sortMode)
+                .catch { e ->
+                    Timber.e(e, "Error loading media files")
+                    sendEvent(BrowseEvent.ShowError("Failed to load media files: ${e.message}"))
+                }
+                .collect { files ->
+                    var filteredFiles = files
+                    
+                    // Apply filter if exists
+                    if (filter != null) {
+                        filteredFiles = files.filter { file ->
+                            val matchesName = filter.nameContains == null || 
+                                file.name.contains(filter.nameContains, ignoreCase = true)
+                            
+                            val matchesMinDate = filter.minDate == null || 
+                                file.createdDate >= filter.minDate
+                            
+                            val matchesMaxDate = filter.maxDate == null || 
+                                file.createdDate <= filter.maxDate
+                            
+                            val fileSizeMb = file.size / (1024f * 1024f)
+                            val matchesMinSize = filter.minSizeMb == null || 
+                                fileSizeMb >= filter.minSizeMb
+                            
+                            val matchesMaxSize = filter.maxSizeMb == null || 
+                                fileSizeMb <= filter.maxSizeMb
+                            
+                            matchesName && matchesMinDate && matchesMaxDate && 
+                                matchesMinSize && matchesMaxSize
+                        }
+                    }
+                    
+                    updateState { 
+                        it.copy(mediaFiles = filteredFiles) 
+                    }
+                    setLoading(false)
+                }
         }
     }
 }

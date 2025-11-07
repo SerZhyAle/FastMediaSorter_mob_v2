@@ -1,7 +1,12 @@
 package com.sza.fastmediasorter_v2.ui.browse
 
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -11,20 +16,42 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
+import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter_v2.databinding.DialogFilterBinding
+import com.sza.fastmediasorter_v2.databinding.DialogRenameMultipleBinding
+import com.sza.fastmediasorter_v2.databinding.DialogRenameSingleBinding
+import com.sza.fastmediasorter_v2.databinding.ItemRenameFileBinding
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
+import com.sza.fastmediasorter_v2.domain.model.FileFilter
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
+import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.player.PlayerActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private val viewModel: BrowseViewModel by viewModels()
     private lateinit var mediaFileAdapter: MediaFileAdapter
+    
+    @Inject
+    lateinit var fileOperationUseCase: FileOperationUseCase
+    
+    @Inject
+    lateinit var getDestinationsUseCase: GetDestinationsUseCase
 
     override fun getViewBinding(): ActivityBrowseBinding {
         return ActivityBrowseBinding.inflate(layoutInflater)
@@ -58,7 +85,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
 
         binding.btnFilter.setOnClickListener {
-            Toast.makeText(this, "Filter - Coming Soon", Toast.LENGTH_SHORT).show()
+            showFilterDialog()
         }
 
         binding.btnToggleView.setOnClickListener {
@@ -66,11 +93,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
 
         binding.btnCopy.setOnClickListener {
-            Toast.makeText(this, "Copy - Coming Soon", Toast.LENGTH_SHORT).show()
+            showCopyDialog()
         }
 
         binding.btnMove.setOnClickListener {
-            Toast.makeText(this, "Move - Coming Soon", Toast.LENGTH_SHORT).show()
+            showMoveDialog()
         }
 
         binding.btnRename.setOnClickListener {
@@ -79,6 +106,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
         binding.btnDelete.setOnClickListener {
             showDeleteConfirmation()
+        }
+        
+        binding.btnUndo.setOnClickListener {
+            viewModel.undoLastOperation()
         }
 
         binding.btnPlay.setOnClickListener {
@@ -110,6 +141,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnMove.isVisible = hasSelection && isWritable
                     binding.btnRename.isVisible = hasSelection && isWritable
                     binding.btnDelete.isVisible = hasSelection && isWritable
+                    binding.btnUndo.isVisible = state.lastOperation != null
 
                     updateDisplayMode(state.displayMode)
                 }
@@ -165,6 +197,103 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
+    private fun showFilterDialog() {
+        val dialogBinding = DialogFilterBinding.inflate(LayoutInflater.from(this))
+        val currentFilter = viewModel.state.value.filter
+        
+        // Pre-fill current filter values
+        dialogBinding.etFilterName.setText(currentFilter?.nameContains ?: "")
+        
+        // Date pickers
+        var minDate = currentFilter?.minDate
+        var maxDate = currentFilter?.maxDate
+        
+        if (minDate != null) {
+            dialogBinding.etMinDate.setText(formatDate(minDate))
+        }
+        if (maxDate != null) {
+            dialogBinding.etMaxDate.setText(formatDate(maxDate))
+        }
+        
+        dialogBinding.etMinDate.setOnClickListener {
+            showDatePicker(minDate) { selectedDate ->
+                minDate = selectedDate
+                dialogBinding.etMinDate.setText(formatDate(selectedDate))
+            }
+        }
+        
+        dialogBinding.etMaxDate.setOnClickListener {
+            showDatePicker(maxDate) { selectedDate ->
+                maxDate = selectedDate
+                dialogBinding.etMaxDate.setText(formatDate(selectedDate))
+            }
+        }
+        
+        // Size filters
+        currentFilter?.minSizeMb?.let {
+            dialogBinding.etMinSize.setText(it.toString())
+        }
+        currentFilter?.maxSizeMb?.let {
+            dialogBinding.etMaxSize.setText(it.toString())
+        }
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.filter)
+            .setView(dialogBinding.root)
+            .create()
+        
+        dialogBinding.btnClearFilter.setOnClickListener {
+            viewModel.setFilter(null)
+            dialog.dismiss()
+        }
+        
+        dialogBinding.btnCancelFilter.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialogBinding.btnApplyFilter.setOnClickListener {
+            val nameFilter = dialogBinding.etFilterName.text?.toString()?.trim()
+            val minSizeText = dialogBinding.etMinSize.text?.toString()?.trim()
+            val maxSizeText = dialogBinding.etMaxSize.text?.toString()?.trim()
+            
+            val filter = FileFilter(
+                nameContains = nameFilter?.ifBlank { null },
+                minDate = minDate,
+                maxDate = maxDate,
+                minSizeMb = minSizeText?.toFloatOrNull(),
+                maxSizeMb = maxSizeText?.toFloatOrNull()
+            )
+            
+            viewModel.setFilter(if (filter.isEmpty()) null else filter)
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
+    private fun showDatePicker(currentDate: Long?, onDateSelected: (Long) -> Unit) {
+        val calendar = java.util.Calendar.getInstance()
+        if (currentDate != null) {
+            calendar.timeInMillis = currentDate
+        }
+        
+        DatePickerDialog(
+            this,
+            { _, year, month, dayOfMonth ->
+                calendar.set(year, month, dayOfMonth)
+                onDateSelected(calendar.timeInMillis)
+            },
+            calendar.get(java.util.Calendar.YEAR),
+            calendar.get(java.util.Calendar.MONTH),
+            calendar.get(java.util.Calendar.DAY_OF_MONTH)
+        ).show()
+    }
+    
+    private fun formatDate(timestamp: Long): String {
+        val format = java.text.SimpleDateFormat("dd.MM.yyyy", java.util.Locale.getDefault())
+        return format.format(java.util.Date(timestamp))
+    }
+
     private fun showSortDialog() {
         val sortModes = SortMode.values()
         val items = sortModes.map { it.name }.toTypedArray()
@@ -193,8 +322,192 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
     
     private fun showRenameDialog() {
-        Toast.makeText(this, "Rename dialog - Coming Soon", Toast.LENGTH_SHORT).show()
-        // TODO: Show RenameDialog with selected files
+        val selectedPaths = viewModel.state.value.selectedFiles.toList()
+        if (selectedPaths.isEmpty()) {
+            Toast.makeText(this, "No files selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val selectedFiles = viewModel.state.value.mediaFiles.filter { 
+            it.path in selectedPaths 
+        }
+        
+        if (selectedFiles.size == 1) {
+            showRenameSingleDialog(selectedFiles.first().path)
+        } else {
+            showRenameMultipleDialog(selectedFiles.map { it.path })
+        }
+    }
+    
+    private fun showRenameSingleDialog(filePath: String) {
+        val file = java.io.File(filePath)
+        val currentName = file.name
+        
+        val dialogBinding = DialogRenameSingleBinding.inflate(LayoutInflater.from(this))
+        dialogBinding.etFileName.setText(currentName)
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.renaming_files)
+            .setView(dialogBinding.root)
+            .create()
+        
+        // Set yellow background per specification
+        window?.setBackgroundDrawableResource(android.R.color.transparent)
+        
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialogBinding.btnApply.setOnClickListener {
+            val newName = dialogBinding.etFileName.text?.toString()?.trim()
+            if (newName.isNullOrBlank()) {
+                Toast.makeText(this, "File name cannot be empty", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            
+            if (newName == currentName) {
+                dialog.dismiss()
+                return@setOnClickListener
+            }
+            
+            val newFile = java.io.File(file.parent, newName)
+            if (newFile.exists()) {
+                Toast.makeText(
+                    this, 
+                    getString(R.string.file_already_exists, newName), 
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+            
+            try {
+                if (file.renameTo(newFile)) {
+                    // TODO: Save undo operation
+                    viewModel.reloadFiles()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.renamed_n_files, 1),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(
+                        this,
+                        getString(R.string.rename_failed, "Unknown error"),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.rename_failed, e.message),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+        
+        dialog.show()
+    }
+    
+    private fun showRenameMultipleDialog(filePaths: List<String>) {
+        val files = filePaths.map { java.io.File(it) }
+        val fileNames = files.map { it.name }.toMutableList()
+        
+        val dialogBinding = DialogRenameMultipleBinding.inflate(LayoutInflater.from(this))
+        
+        val adapter = RenameFilesAdapter(fileNames)
+        dialogBinding.rvFileNames.apply {
+            layoutManager = LinearLayoutManager(this@BrowseActivity)
+            this.adapter = adapter
+        }
+        
+        val dialog = MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.renaming_n_files_from_folder, files.size, viewModel.state.value.resource?.name ?: ""))
+            .setView(dialogBinding.root)
+            .create()
+        
+        dialogBinding.btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+        
+        dialogBinding.btnApply.setOnClickListener {
+            val newNames = adapter.getFileNames()
+            var renamedCount = 0
+            val errors = mutableListOf<String>()
+            
+            files.forEachIndexed { index, file ->
+                val newName = newNames[index].trim()
+                if (newName.isBlank() || newName == file.name) {
+                    return@forEachIndexed
+                }
+                
+                val newFile = java.io.File(file.parent, newName)
+                if (newFile.exists()) {
+                    errors.add(getString(R.string.file_already_exists, newName))
+                    return@forEachIndexed
+                }
+                
+                try {
+                    if (file.renameTo(newFile)) {
+                        renamedCount++
+                    } else {
+                        errors.add("Failed to rename ${file.name}")
+                    }
+                } catch (e: Exception) {
+                    errors.add("${file.name}: ${e.message}")
+                }
+            }
+            
+            // TODO: Save undo operation
+            viewModel.reloadFiles()
+            
+            if (renamedCount > 0) {
+                Toast.makeText(
+                    this,
+                    getString(R.string.renamed_n_files, renamedCount),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            
+            if (errors.isNotEmpty()) {
+                Toast.makeText(
+                    this,
+                    errors.joinToString("\n"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            
+            dialog.dismiss()
+        }
+        
+        dialog.show()
+    }
+    
+    private inner class RenameFilesAdapter(
+        private val fileNames: MutableList<String>
+    ) : RecyclerView.Adapter<RenameFilesAdapter.ViewHolder>() {
+        
+        inner class ViewHolder(val binding: ItemRenameFileBinding) : RecyclerView.ViewHolder(binding.root)
+        
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val binding = ItemRenameFileBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            return ViewHolder(binding)
+        }
+        
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.binding.etFileName.setText(fileNames[position])
+            holder.binding.etFileName.addTextChangedListener(object : TextWatcher {
+                override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+                override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+                override fun afterTextChanged(s: Editable?) {
+                    fileNames[position] = s?.toString() ?: ""
+                }
+            })
+        }
+        
+        override fun getItemCount() = fileNames.size
+        
+        fun getFileNames() = fileNames.toList()
     }
     
     private fun startSlideshow() {
@@ -214,6 +527,70 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         } else {
             Toast.makeText(this, "No files to play", Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun showCopyDialog() {
+        val selectedPaths = viewModel.state.value.selectedFiles.toList()
+        if (selectedPaths.isEmpty()) {
+            Toast.makeText(this, "No files selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val resource = viewModel.state.value.resource
+        if (resource == null) {
+            Toast.makeText(this, "Resource not loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val selectedFiles = selectedPaths.map { File(it) }
+        
+        val dialog = CopyToDialog(
+            context = this,
+            sourceFiles = selectedFiles,
+            sourceFolderName = resource.name,
+            currentResourceId = resource.id,
+            fileOperationUseCase = fileOperationUseCase,
+            getDestinationsUseCase = getDestinationsUseCase,
+            overwriteFiles = false,
+            onComplete = { undoOp ->
+                undoOp?.let { viewModel.saveUndoOperation(it) }
+                viewModel.reloadFiles()
+                viewModel.clearSelection()
+            }
+        )
+        dialog.show()
+    }
+    
+    private fun showMoveDialog() {
+        val selectedPaths = viewModel.state.value.selectedFiles.toList()
+        if (selectedPaths.isEmpty()) {
+            Toast.makeText(this, "No files selected", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val resource = viewModel.state.value.resource
+        if (resource == null) {
+            Toast.makeText(this, "Resource not loaded", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val selectedFiles = selectedPaths.map { File(it) }
+        
+        val dialog = MoveToDialog(
+            context = this,
+            sourceFiles = selectedFiles,
+            sourceFolderName = resource.name,
+            currentResourceId = resource.id,
+            fileOperationUseCase = fileOperationUseCase,
+            getDestinationsUseCase = getDestinationsUseCase,
+            overwriteFiles = false,
+            onComplete = { undoOp ->
+                undoOp?.let { viewModel.saveUndoOperation(it) }
+                viewModel.reloadFiles()
+                viewModel.clearSelection()
+            }
+        )
+        dialog.show()
     }
 
     companion object {

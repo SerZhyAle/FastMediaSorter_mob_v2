@@ -13,7 +13,11 @@ sealed class FileOperation {
 }
 
 sealed class FileOperationResult {
-    data class Success(val processedCount: Int, val operation: FileOperation) : FileOperationResult()
+    data class Success(
+        val processedCount: Int, 
+        val operation: FileOperation,
+        val copiedFilePaths: List<String> = emptyList() // Paths of destination files for undo
+    ) : FileOperationResult()
     data class PartialSuccess(val processedCount: Int, val failedCount: Int, val errors: List<String>) : FileOperationResult()
     data class Failure(val error: String) : FileOperationResult()
 }
@@ -47,6 +51,7 @@ class FileOperationUseCase @Inject constructor() {
     
     private fun executeCopy(operation: FileOperation.Copy): FileOperationResult {
         val errors = mutableListOf<String>()
+        val copiedPaths = mutableListOf<String>()
         var successCount = 0
         
         operation.sources.forEach { source ->
@@ -64,6 +69,7 @@ class FileOperationUseCase @Inject constructor() {
                 }
                 
                 source.copyTo(destFile, operation.overwrite)
+                copiedPaths.add(destFile.absolutePath)
                 successCount++
                 
             } catch (e: Exception) {
@@ -72,7 +78,7 @@ class FileOperationUseCase @Inject constructor() {
         }
         
         return when {
-            successCount == operation.sources.size -> FileOperationResult.Success(successCount, operation)
+            successCount == operation.sources.size -> FileOperationResult.Success(successCount, operation, copiedPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All copy operations failed")
         }
@@ -80,6 +86,7 @@ class FileOperationUseCase @Inject constructor() {
     
     private fun executeMove(operation: FileOperation.Move): FileOperationResult {
         val errors = mutableListOf<String>()
+        val movedPaths = mutableListOf<String>()
         var successCount = 0
         
         operation.sources.forEach { source ->
@@ -97,10 +104,12 @@ class FileOperationUseCase @Inject constructor() {
                 }
                 
                 if (source.renameTo(destFile)) {
+                    movedPaths.add(destFile.absolutePath)
                     successCount++
                 } else {
                     source.copyTo(destFile, operation.overwrite)
                     if (source.delete()) {
+                        movedPaths.add(destFile.absolutePath)
                         successCount++
                     } else {
                         errors.add("Failed to delete source after copy: ${source.name}")
@@ -113,7 +122,7 @@ class FileOperationUseCase @Inject constructor() {
         }
         
         return when {
-            successCount == operation.sources.size -> FileOperationResult.Success(successCount, operation)
+            successCount == operation.sources.size -> FileOperationResult.Success(successCount, operation, movedPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All move operations failed")
         }
@@ -132,7 +141,7 @@ class FileOperationUseCase @Inject constructor() {
             }
             
             if (operation.file.renameTo(newFile)) {
-                return FileOperationResult.Success(1, operation)
+                return FileOperationResult.Success(1, operation, listOf(newFile.absolutePath))
             } else {
                 return FileOperationResult.Failure("Failed to rename ${operation.file.name}")
             }
@@ -144,6 +153,7 @@ class FileOperationUseCase @Inject constructor() {
     
     private fun executeDelete(operation: FileOperation.Delete): FileOperationResult {
         val errors = mutableListOf<String>()
+        val deletedPaths = mutableListOf<String>()
         var successCount = 0
         
         operation.files.forEach { file ->
@@ -153,7 +163,9 @@ class FileOperationUseCase @Inject constructor() {
                     return@forEach
                 }
                 
+                val filePath = file.absolutePath
                 if (file.delete()) {
+                    deletedPaths.add(filePath)
                     successCount++
                 } else {
                     errors.add("Failed to delete: ${file.name}")
@@ -165,7 +177,7 @@ class FileOperationUseCase @Inject constructor() {
         }
         
         return when {
-            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation)
+            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All delete operations failed")
         }

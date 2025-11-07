@@ -56,6 +56,16 @@
     <string name="play">Відтворити</string>
     <string name="empty_state_message">Додайте ресурси для сортування та відтворення медіафайлів</string>
     
+    <!-- Filter Dialog -->
+    <string name="filter_by_name">Фільтр за іменем (без урахування регістру)</string>
+    <string name="filter_by_date">Фільтр за датою створення</string>
+    <string name="filter_by_size">Фільтр за розміром файлу (МБ)</string>
+    <string name="min_date">Мін. дата</string>
+    <string name="max_date">Макс. дата</string>
+    <string name="min_size_mb">Мін. розмір</string>
+    <string name="max_size_mb">Макс. розмір</string>
+    <string name="filter_active">Фільтр активний: %1$s</string>
+    
     <!-- Settings -->
     <string name="general">Загальні</string>
     <string name="media_files">Медіафайли</string>
