@@ -32,7 +32,7 @@ data class AppSettings(
     val allowDelete: Boolean = true,
     val confirmDelete: Boolean = true,
     val defaultGridMode: Boolean = false,
-    val defaultIconSize: Int = 100, // dp
+    val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val fullScreenMode: Boolean = true,
     val showDetailedErrors: Boolean = false,
     

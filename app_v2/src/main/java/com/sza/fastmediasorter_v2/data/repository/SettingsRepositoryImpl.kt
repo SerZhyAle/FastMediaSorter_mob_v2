@@ -100,7 +100,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     allowDelete = preferences[KEY_ALLOW_DELETE] ?: true,
                     confirmDelete = preferences[KEY_CONFIRM_DELETE] ?: true,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
-                    defaultIconSize = preferences[KEY_DEFAULT_ICON_SIZE] ?: 100,
+                    defaultIconSize = run {
+                        val savedSize = preferences[KEY_DEFAULT_ICON_SIZE] ?: 96
+                        // Validate: must be 32 + 8*N (valid range: 32..256)
+                        if (savedSize < 32 || savedSize > 256 || (savedSize - 32) % 8 != 0) 96 else savedSize
+                    },
                     fullScreenMode = preferences[KEY_FULL_SCREEN_MODE] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     
