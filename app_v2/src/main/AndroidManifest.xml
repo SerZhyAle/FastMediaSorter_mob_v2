@@ -74,6 +74,13 @@
             android:screenOrientation="unspecified"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 
+        <activity
+            android:name=".ui.welcome.WelcomeActivity"
+            android:exported="false"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.FastMediaSorter.NoActionBar" />
+
     </application>
 
 </manifest>

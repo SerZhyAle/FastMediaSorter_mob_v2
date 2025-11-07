@@ -117,6 +117,18 @@
     <string name="restart_app_message">Для применения нового языка (%1$s) требуется перезапуск приложения. Продолжить?</string>
     <string name="restart">Перезапустить</string>
     
+    <!-- Welcome Screen -->
+    <string name="skip">Пропустить</string>
+    <string name="previous">Назад</string>
+    <string name="next">Далее</string>
+    <string name="finish">Готово</string>
+    <string name="welcome_title_1">Добро пожаловать в FastMediaSorter!</string>
+    <string name="welcome_description_1">Сортируйте медиафайлы быстро и легко. Листайте фото и видео, организуйте их в папки с помощью простых жестов.</string>
+    <string name="welcome_title_2">Управление жестами</string>
+    <string name="welcome_description_2">Используйте сенсорные зоны для управления:\n• Нажмите слева/справа для навигации\n• Свайп вверх для копирования\n• Свайп вниз для перемещения\n• Долгое нажатие для опций</string>
+    <string name="welcome_title_3">Множество источников</string>
+    <string name="welcome_description_3">Добавляйте локальные папки и сетевые ресурсы (SMB). Настройте до 10 папок назначения для быстрой организации файлов.</string>
+    
     <!-- Error Dialog -->
     <string name="error">Ошибка</string>
     <string name="close">Закрыть</string>

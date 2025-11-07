@@ -15,18 +15,33 @@ import com.sza.fastmediasorter_v2.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter_v2.ui.browse.BrowseActivity
 import com.sza.fastmediasorter_v2.ui.editresource.EditResourceActivity
 import com.sza.fastmediasorter_v2.ui.settings.SettingsActivity
+import com.sza.fastmediasorter_v2.ui.welcome.WelcomeActivity
+import com.sza.fastmediasorter_v2.ui.welcome.WelcomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val viewModel: MainViewModel by viewModels()
+    private val welcomeViewModel: WelcomeViewModel by viewModels()
     private lateinit var resourceAdapter: ResourceAdapter
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
+    }
+    
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Check if this is first launch
+        if (!welcomeViewModel.isWelcomeCompleted()) {
+            startActivity(Intent(this, WelcomeActivity::class.java))
+            finish()
+            return
+        }
     }
 
     override fun setupViews() {

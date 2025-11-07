@@ -15,4 +15,9 @@
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
     </style>
+
+    <style name="Theme.FastMediaSorter.NoActionBar" parent="Theme.FastMediaSorter">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
 </resources>

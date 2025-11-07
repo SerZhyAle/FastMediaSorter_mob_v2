@@ -123,6 +123,18 @@
     <string name="copy_to_clipboard">Copy to Clipboard</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
     
+    <!-- Welcome Screen -->
+    <string name="skip">Skip</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="finish">Finish</string>
+    <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
+    <string name="welcome_description_1">Sort and manage your media files quickly and easily. Swipe through photos and videos, organize them into folders with simple gestures.</string>
+    <string name="welcome_title_2">Gesture Controls</string>
+    <string name="welcome_description_2">Use touch zones to control playback:\n• Tap left/right sides to navigate\n• Swipe up to copy files\n• Swipe down to move files\n• Long press for options</string>
+    <string name="welcome_title_3">Multiple Sources</string>
+    <string name="welcome_description_3">Add local folders and network shares (SMB). Set up to 10 destination folders for quick file organization.</string>
+    
     <!-- Languages array -->
     <string-array name="languages">
         <item>English</item>
