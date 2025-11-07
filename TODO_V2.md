@@ -95,10 +95,14 @@
 
 
 
-- [ ] **Settings: Add destination color picker**
+- [x] **Settings: Add destination color picker**
   - ✅ destinationColor field already exists in MediaResource and ResourceEntity models
   - ✅ Created ColorPalette utility with DEFAULT_COLORS (10 colors) and EXTENDED_PALETTE (20 colors)
   - ✅ Created ColorPickerDialog with color grid (5 columns)
+  - ✅ Integrated ColorPickerDialog into DestinationsSettingsFragment
+  - ✅ Added updateDestinationColor() to SettingsViewModel
+  - ✅ DestinationAdapter already uses destinationColor for button backgrounds in CopyToDialog/MoveToDialog
+  - 📝 Note: Touch zones in Player Screen don't currently use destination colors - deferred to future enhancement
   - ✅ Created item_color.xml layout for color cells
   - ✅ Added ic_check_circle.xml drawable for selection indicator
   - ✅ Color preview with name display
