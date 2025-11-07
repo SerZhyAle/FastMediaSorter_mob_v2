@@ -16,6 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/enable_copying"
+            android:textOn=""
+            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
         <LinearLayout
@@ -32,6 +34,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/go_to_next_after_copy"
+                android:textOn=""
+                android:textOff=""
                 android:layout_marginBottom="4dp"/>
 
             <com.google.android.material.materialswitch.MaterialSwitch
@@ -39,6 +43,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/overwrite_on_copy"
+                android:textOn=""
+                android:textOff=""
                 android:layout_marginBottom="4dp"/>
         </LinearLayout>
 
@@ -47,6 +53,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/enable_moving"
+            android:textOn=""
+            android:textOff=""
             android:layout_marginBottom="8dp"/>
 
         <LinearLayout
@@ -63,6 +71,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/overwrite_on_move"
+                android:textOn=""
+                android:textOff=""
                 android:layout_marginBottom="4dp"/>
         </LinearLayout>
 
