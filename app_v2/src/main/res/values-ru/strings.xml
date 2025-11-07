@@ -116,4 +116,10 @@
     <string name="restart_app_title">Перезапуск приложения</string>
     <string name="restart_app_message">Для применения нового языка (%1$s) требуется перезапуск приложения. Продолжить?</string>
     <string name="restart">Перезапустить</string>
+    
+    <!-- Error Dialog -->
+    <string name="error">Ошибка</string>
+    <string name="close">Закрыть</string>
+    <string name="copy_to_clipboard">Копировать в буфер</string>
+    <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
 </resources>

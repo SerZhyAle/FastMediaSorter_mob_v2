@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter_v2.ui.settings
 
+import android.view.View
 import androidx.activity.viewModels
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivitySettingsBinding
@@ -22,6 +24,14 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         
         val adapter = SettingsPagerAdapter(this)
         binding.viewPager.adapter = adapter
+        
+        // Disable animations between tabs (as per V2 Specification)
+        // Use instant page transformer - no animation
+        binding.viewPager.setPageTransformer { page, position ->
+            page.translationX = 0f
+            page.alpha = if (position == 0f) 1f else 0f
+        }
+        binding.viewPager.offscreenPageLimit = 1
         
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {

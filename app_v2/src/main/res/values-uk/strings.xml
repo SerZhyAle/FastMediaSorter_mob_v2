@@ -116,4 +116,10 @@
     <string name="restart_app_title">Перезапуск додатку</string>
     <string name="restart_app_message">Для застосування нової мови (%1$s) потрібен перезапуск додатку. Продовжити?</string>
     <string name="restart">Перезапустити</string>
+    
+    <!-- Error Dialog -->
+    <string name="error">Помилка</string>
+    <string name="close">Закрити</string>
+    <string name="copy_to_clipboard">Копіювати в буфер</string>
+    <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
 </resources>
