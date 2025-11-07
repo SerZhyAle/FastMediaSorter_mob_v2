@@ -61,6 +61,10 @@
     <string name="toggle_view">Перемкнути вид</string>
     <string name="play">Відтворити</string>
     <string name="empty_state_message">Додайте ресурси для сортування та відтворення медіафайлів</string>
+    <string name="no_media_files_found">У цій папці немає медіафайлів</string>
+    <string name="no_files_match_criteria">Немає файлів, що відповідають критеріям</string>
+    <string name="connection_failed">Помилка підключення</string>
+    <string name="retry">Повторити</string>
     
     <!-- Filter Dialog -->
     <string name="filter_by_name">Фільтр за іменем (без урахування регістру)</string>

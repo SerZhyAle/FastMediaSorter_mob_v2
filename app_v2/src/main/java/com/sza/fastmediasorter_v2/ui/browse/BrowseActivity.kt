@@ -140,7 +140,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         binding.tvFilterWarning.isVisible = false
                     }
 
-                    binding.tvEmpty.isVisible = state.mediaFiles.isEmpty() && !viewModel.loading.value
+                    // Show empty state with context-appropriate message
+                    val isEmpty = state.mediaFiles.isEmpty() && !viewModel.loading.value
+                    binding.tvEmpty.isVisible = isEmpty
+                    if (isEmpty) {
+                        binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
+                            getString(R.string.no_files_match_criteria)
+                        } else {
+                            getString(R.string.no_media_files_found)
+                        }
+                    }
 
                     val hasSelection = state.selectedFiles.isNotEmpty()
                     val isWritable = state.resource?.isWritable ?: false

@@ -61,6 +61,10 @@
     <string name="toggle_view">Переключить вид</string>
     <string name="play">Воспроизвести</string>
     <string name="empty_state_message">Добавьте ресурсы для сортировки и воспроизведения медиафайлов</string>
+    <string name="no_media_files_found">В этой папке нет медиафайлов</string>
+    <string name="no_files_match_criteria">Нет файлов, соответствующих критериям</string>
+    <string name="connection_failed">Сбой подключения</string>
+    <string name="retry">Повторить</string>
     
     <!-- Filter Dialog -->
     <string name="filter_by_name">Фильтр по имени (без учёта регистра)</string>

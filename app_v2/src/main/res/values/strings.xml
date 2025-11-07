@@ -61,6 +61,10 @@
     <string name="toggle_view">Toggle View</string>
     <string name="play">Play</string>
     <string name="empty_state_message">Add resources for sorting and playing media files</string>
+    <string name="no_media_files_found">No media files found in this folder</string>
+    <string name="no_files_match_criteria">No files match your criteria</string>
+    <string name="connection_failed">Connection failed</string>
+    <string name="retry">Retry</string>
     
     <!-- Filter Dialog -->
     <string name="filter_by_name">Filter by name (case-insensitive)</string>
