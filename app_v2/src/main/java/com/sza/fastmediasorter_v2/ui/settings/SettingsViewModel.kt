@@ -129,4 +129,15 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    fun updateDestinationColor(resource: MediaResource, color: Int) {
+        viewModelScope.launch {
+            try {
+                updateResourceUseCase(resource.copy(destinationColor = color))
+                Timber.d("Destination color updated successfully")
+            } catch (e: Exception) {
+                Timber.e(e, "Error updating destination color")
+            }
+        }
+    }
 }

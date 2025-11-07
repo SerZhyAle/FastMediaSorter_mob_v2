@@ -19,6 +19,8 @@
             android:layout_width="4dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true"
             tools:background="#FF5722"/>
 
         <LinearLayout

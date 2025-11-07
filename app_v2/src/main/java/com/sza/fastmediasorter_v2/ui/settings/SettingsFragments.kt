@@ -25,6 +25,7 @@ import com.sza.fastmediasorter_v2.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter_v2.databinding.ItemDestinationBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import com.sza.fastmediasorter_v2.ui.dialog.ColorPickerDialog
 import kotlinx.coroutines.launch
 import kotlin.math.pow
 
@@ -376,12 +377,6 @@ class DestinationsSettingsFragment : Fragment() {
     private val viewModel: SettingsViewModel by activityViewModels()
     private lateinit var adapter: DestinationsAdapter
     
-    private val destinationColors = listOf(
-        0xFFFF5722.toInt(), 0xFF4CAF50.toInt(), 0xFF2196F3.toInt(), 0xFFFFC107.toInt(),
-        0xFF9C27B0.toInt(), 0xFF00BCD4.toInt(), 0xFFFF9800.toInt(), 0xFF8BC34A.toInt(),
-        0xFFE91E63.toInt(), 0xFF607D8B.toInt()
-    )
-    
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsDestinationsBinding.inflate(inflater, container, false)
         return binding.root
@@ -432,7 +427,8 @@ class DestinationsSettingsFragment : Fragment() {
         adapter = DestinationsAdapter(
             onMoveUp = { position -> moveDestination(position, -1) },
             onMoveDown = { position -> moveDestination(position, 1) },
-            onDelete = { position -> deleteDestination(position) }
+            onDelete = { position -> deleteDestination(position) },
+            onColorClick = { resource -> showColorPicker(resource) }
         )
         binding.rvDestinations.layoutManager = LinearLayoutManager(requireContext())
         binding.rvDestinations.adapter = adapter
@@ -472,6 +468,15 @@ class DestinationsSettingsFragment : Fragment() {
                 .setNegativeButton("Cancel", null)
                 .show()
         }
+    }
+    
+    private fun showColorPicker(resource: MediaResource) {
+        ColorPickerDialog.newInstance(
+            initialColor = resource.destinationColor,
+            onColorSelected = { color ->
+                viewModel.updateDestinationColor(resource, color)
+            }
+        ).show(parentFragmentManager, "ColorPickerDialog")
     }
     
     private fun observeData() {
@@ -540,7 +545,8 @@ class DestinationsSettingsFragment : Fragment() {
     inner class DestinationsAdapter(
         private val onMoveUp: (Int) -> Unit,
         private val onMoveDown: (Int) -> Unit,
-        private val onDelete: (Int) -> Unit
+        private val onDelete: (Int) -> Unit,
+        private val onColorClick: (MediaResource) -> Unit
     ) : RecyclerView.Adapter<DestinationsAdapter.ViewHolder>() {
         
         private var destinations: List<MediaResource> = emptyList()
@@ -572,9 +578,10 @@ class DestinationsSettingsFragment : Fragment() {
                 binding.tvDestinationName.text = resource.name
                 binding.tvDestinationPath.text = resource.path
                 
-                // Set color indicator
-                if (order in 0..9) {
-                    binding.viewColorIndicator.setBackgroundColor(destinationColors[order])
+                // Set color indicator from database
+                binding.viewColorIndicator.setBackgroundColor(resource.destinationColor)
+                binding.viewColorIndicator.setOnClickListener {
+                    onColorClick(resource)
                 }
                 
                 // Move up button
