@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter_v2.data.repository
 
+import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.sza.fastmediasorter_v2.domain.model.AppSettings
 import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
@@ -15,6 +17,7 @@ import javax.inject.Singleton
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val dataStore: DataStore<Preferences>
 ) : SettingsRepository {
 
@@ -70,9 +73,18 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
             }
             .map { preferences ->
+                val language = preferences[KEY_LANGUAGE] ?: "en"
+                
+                // Sync language to SharedPreferences for LocaleHelper (if not already synced)
+                val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+                val savedLanguage = sharedPrefs.getString("selected_language", null)
+                if (savedLanguage != language) {
+                    sharedPrefs.edit().putString("selected_language", language).apply()
+                }
+                
                 AppSettings(
                     // General
-                    language = preferences[KEY_LANGUAGE] ?: "en",
+                    language = language,
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
@@ -120,6 +132,10 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateSettings(settings: AppSettings) {
+        // Sync language to SharedPreferences for LocaleHelper (synchronous access in attachBaseContext)
+        val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        sharedPrefs.edit().putString("selected_language", settings.language).apply()
+        
         dataStore.edit { preferences ->
             // General
             preferences[KEY_LANGUAGE] = settings.language
