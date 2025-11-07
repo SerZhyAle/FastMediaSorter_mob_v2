@@ -40,6 +40,17 @@
   - ✅ Решение: Округление результата до целого числа через `sliderValue.roundToInt().toFloat()`
   - ✅ Добавлен импорт `kotlin.math.roundToInt` в SettingsFragments.kt
 
+- [x] Краш NullPointerException при переключении на вкладку "Playback" (PlaybackSettingsFragment):
+  ```
+  NullPointerException: Attempt to invoke interface method 'int java.lang.CharSequence.length()' on a null object reference
+  at android.text.StaticLayout.<init>
+  at androidx.appcompat.widget.SwitchCompat.makeLayout
+  at androidx.appcompat.widget.SwitchCompat.onMeasure
+  ```
+  - ✅ Причина: MaterialSwitch наследует от SwitchCompat, который вызывает text.length() на null-значении textOn/textOff
+  - ✅ Решение: Добавлены `android:textOn=""` и `android:textOff=""` во все MaterialSwitch в fragment_settings_playback.xml и fragment_settings_destinations.xml
+  - ✅ Коммит: 959078d
+
 
 
 - [ ] **Settings: Add destination color picker**
