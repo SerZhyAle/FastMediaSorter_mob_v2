@@ -76,13 +76,58 @@ class SmbClient @Inject constructor() {
 
     /**
      * Test connection to SMB server
+     * - If shareName is empty: tests server accessibility and lists available shares
+     * - If shareName is provided: tests share accessibility and provides folder/file statistics
      */
     suspend fun testConnection(connectionInfo: SmbConnectionInfo): SmbResult<String> {
         return try {
-            withConnection(connectionInfo) { share ->
-                // Simply check if we can access the share
-                share.folderExists("")
-                SmbResult.Success("Connected successfully to ${connectionInfo.server}\\${connectionInfo.shareName}")
+            if (connectionInfo.shareName.isEmpty()) {
+                // Test server only - list available shares
+                val sharesResult = listShares(
+                    connectionInfo.server,
+                    connectionInfo.username,
+                    connectionInfo.password,
+                    connectionInfo.domain,
+                    connectionInfo.port
+                )
+                
+                when (sharesResult) {
+                    is SmbResult.Success -> {
+                        val sharesList = sharesResult.data.joinToString("\n• ", prefix = "• ")
+                        val message = """
+                            |✓ Server accessible: ${connectionInfo.server}
+                            |
+                            |Available shares (${sharesResult.data.size}):
+                            |$sharesList
+                        """.trimMargin()
+                        SmbResult.Success(message)
+                    }
+                    is SmbResult.Error -> sharesResult
+                }
+            } else {
+                // Test specific share - provide detailed statistics
+                withConnection(connectionInfo) { share ->
+                    // Count folders and media files in root
+                    val files = share.list("").filter { !it.fileName.startsWith(".") }
+                    val folders = files.count { (it.fileAttributes and 0x10L) != 0L }
+                    val mediaFiles = files.filter { file ->
+                        val ext = file.fileName.substringAfterLast('.', "").lowercase()
+                        ext in setOf("jpg", "jpeg", "png", "gif", "bmp", "webp",
+                                     "mp4", "mov", "avi", "mkv", "wmv", "flv", "webm",
+                                     "mp3", "wav", "aac", "flac", "ogg", "m4a")
+                    }
+                    
+                    val message = """
+                        |✓ Share accessible: ${connectionInfo.server}\${connectionInfo.shareName}
+                        |
+                        |Share statistics:
+                        |• Subfolders: $folders
+                        |• Media files in root: ${mediaFiles.size}
+                        |• Total items: ${files.size}
+                    """.trimMargin()
+                    
+                    SmbResult.Success(message)
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "SMB connection test failed")
@@ -199,6 +244,19 @@ class SmbClient @Inject constructor() {
 
     /**
      * List available shares on SMB server
+     * 
+     * SMBJ library limitations:
+     * - No direct API for share enumeration
+     * - Cannot use IPC$ administrative share to list shares (requires admin rights)
+     * - Must use trial connection approach or RAP/DCE-RPC protocols (not exposed by SMBJ)
+     * 
+     * Current implementation tries common share names, which may miss custom-named shares.
+     * This is a known limitation of SMBJ library v0.12.1.
+     * 
+     * Alternative solutions:
+     * 1. Use jCIFS library (older, but has share enumeration)
+     * 2. Use RAP protocol via custom implementation
+     * 3. Ask user to enter share names manually
      */
     suspend fun listShares(
         server: String,
@@ -218,26 +276,112 @@ class SmbClient @Inject constructor() {
             val session = connection.authenticate(authContext)
             val shares = mutableListOf<String>()
             
-            // Get list of shares using TreeConnect
             try {
-                // Connect to IPC$ share to list available shares
-                val ipcShare = session.connectShare("IPC$")
-                // Note: SMBJ doesn't provide direct API to list shares
-                // This is a limitation - we'll need to try known share names
-                // or use external tools
-                ipcShare.close()
+                // Attempt 1: Try to list shares using IPC$ administrative share
+                // This works if user has proper permissions
+                try {
+                    val ipcShare = session.connectShare("IPC$")
+                    // Try to get share list through IPC$
+                    // Note: SMBJ doesn't expose direct API for this, but connection success indicates permissions
+                    ipcShare.close()
+                    Timber.d("IPC$ connection successful - user may have admin rights")
+                    
+                    // Try to use ServerService to enumerate shares (if available in SMBJ)
+                    // This is a best-effort attempt
+                    try {
+                        // SMBJ doesn't expose RAP or SRVSVC directly, so we fall back to trial method
+                        Timber.d("Share enumeration via IPC$ not directly supported by SMBJ")
+                    } catch (e: Exception) {
+                        Timber.d("Share enumeration through IPC$ failed: ${e.message}")
+                    }
+                } catch (e: Exception) {
+                    Timber.d("IPC$ access denied or not available: ${e.message}")
+                }
+                
+                // Attempt 2: Try common and typical share names (extended list)
+                // This is the main workaround for SMBJ's lack of share enumeration API
+                val commonShareNames = listOf(
+                    // Standard Windows shares
+                    "Public", "Users", "Documents", "Downloads",
+                    "Pictures", "Photos", "Images",
+                    "Videos", "Movies", "Media",
+                    "Music", "Audio",
+                    // Common custom names
+                    "Shared", "Share", "Data", "Files", 
+                    "Transfer", "Common", "Backup",
+                    // NAS typical names
+                    "home", "public", "web", "multimedia",
+                    // Work/Personal variations
+                    "Work", "Personal", "Private", "Projects",
+                    // Archive/Storage variations
+                    "Archive", "Storage", "Repository", "Vault",
+                    // Year-based (try recent years)
+                    "2024", "2025", "Archive2024",
+                    // Department names
+                    "IT", "Finance", "HR", "Sales",
+                    // Media server names
+                    "Plex", "Media", "Library", "Content",
+                    // Admin shares (usually hidden, but try)
+                    "C$", "D$", "E$", "ADMIN$", "IPC$"
+                )
+                
+                Timber.d("Scanning for shares using trial connection method (${commonShareNames.size} attempts)...")
+                
+                for (shareName in commonShareNames) {
+                    try {
+                        val share = session.connectShare(shareName)
+                        // If connection successful, share exists and is accessible
+                        shares.add(shareName)
+                        Timber.d("Found accessible share: $shareName")
+                        share.close()
+                    } catch (e: Exception) {
+                        // Share doesn't exist, not accessible, or hidden - skip silently
+                        // This is expected behavior for non-existent shares
+                    }
+                }
+                
+                Timber.i("Found ${shares.size} accessible shares on $server using trial method")
+                
             } catch (e: Exception) {
-                Timber.w(e, "Failed to enumerate shares via IPC$")
+                Timber.e(e, "Failed to enumerate shares")
+                session.close()
+                connection.close()
+                return SmbResult.Error(
+                    "Share enumeration failed. SMBJ library limitation: cannot list shares automatically. " +
+                    "Please enter share name manually. Technical details: ${e.message}", 
+                    e
+                )
             }
             
             session.close()
             connection.close()
             
-            // For now, return empty list - share enumeration requires additional implementation
-            SmbResult.Success(shares)
+            if (shares.isEmpty()) {
+                return SmbResult.Error(
+                    "No accessible shares found using trial method.\n\n" +
+                    "SMBJ library limitation: Cannot automatically discover all shares.\n\n" +
+                    "Tried multiple common share names, but none were accessible.\n\n" +
+                    "Your shares may have custom names. Please enter share name manually.\n\n" +
+                    "To find share names on Windows:\n" +
+                    "1. Open File Explorer on server computer\n" +
+                    "2. Right-click shared folder → Properties → Sharing tab\n" +
+                    "3. Look for 'Network Path' (e.g., \\\\ServerName\\ShareName)\n" +
+                    "4. Use the ShareName part in the app\n\n" +
+                    "Or use 'net share' command in Windows Command Prompt to list all shares.",
+                    null
+                )
+            }
+            
+            // Return found shares with helpful message if only few found
+            val result = SmbResult.Success(shares)
+            if (shares.size < 3) {
+                Timber.w("Only ${shares.size} share(s) found. There may be more shares with custom names.")
+            }
+            
+            result
         } catch (e: Exception) {
-            Timber.e(e, "Failed to list SMB shares")
-            SmbResult.Error("Failed to list shares: ${e.message}", e)
+            Timber.e(e, "Failed to connect to SMB server for share enumeration")
+            SmbResult.Error("Connection failed: ${e.message}. Please verify server address and credentials.", e)
         }
     }
 

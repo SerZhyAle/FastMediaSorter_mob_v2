@@ -12,6 +12,7 @@ import com.sza.fastmediasorter_v2.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -121,8 +122,48 @@ class EditResourceViewModel @Inject constructor(
 
     fun updateIsDestination(isDestination: Boolean) {
         val current = state.value.currentResource ?: return
-        val updated = current.copy(isDestination = isDestination)
-        updateCurrentResource(updated)
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            if (isDestination && current.destinationOrder == null) {
+                // Need to assign destinationOrder - check if destinations are full
+                val allResources = getResourcesUseCase().first()
+                val currentDestinations = allResources.filter { res -> res.isDestination }
+                val maxDestinations = 10
+                
+                if (currentDestinations.size >= maxDestinations) {
+                    sendEvent(EditResourceEvent.ShowError(
+                        "Cannot add to destinations: maximum $maxDestinations destinations allowed. " +
+                        "Remove a destination first."
+                    ))
+                    return@launch
+                }
+                
+                // Find next available destination order
+                val nextOrder = (currentDestinations.maxOfOrNull { res -> res.destinationOrder ?: 0 } ?: 0) + 1
+                val color = com.sza.fastmediasorter_v2.core.util.DestinationColors.getColorForDestination(nextOrder)
+                
+                val updated = current.copy(
+                    isDestination = true,
+                    destinationOrder = nextOrder,
+                    destinationColor = color
+                )
+                updateCurrentResource(updated)
+                Timber.d("Added to destinations with order $nextOrder")
+            } else if (!isDestination) {
+                // Remove from destinations - clear order and color
+                val updated = current.copy(
+                    isDestination = false,
+                    destinationOrder = null,
+                    destinationColor = 0 // Set to 0 instead of null
+                )
+                updateCurrentResource(updated)
+                Timber.d("Removed from destinations")
+            } else {
+                // Already has destinationOrder, just update flag
+                val updated = current.copy(isDestination = isDestination)
+                updateCurrentResource(updated)
+            }
+        }
     }
     
     // SMB Credentials updates

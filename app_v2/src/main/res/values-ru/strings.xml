@@ -198,6 +198,8 @@
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
     
     <!-- Add Resource -->
+    <string name="add_local_folder">Добавить локальную папку</string>
+    <string name="add_network_folder">Добавить сетевую папку (SMB)</string>
     <string name="network_folder">Сетевая папка</string>
     <string name="network_folder_description">Добавить SMB сетевые ресурсы</string>
     <string name="cloud_folder">Облачная папка</string>
@@ -206,10 +208,11 @@
     <string name="sftp_folder_description">Добавить удалённые папки SFTP</string>
     
     <!-- SMB Network -->
-    <string name="smb_server">Сервер (IP или имя хоста)</string>
-    <string name="smb_server_hint">например 192.168.1.100 или myserver</string>
+    <string name="smb_server">IP сервера</string>
+    <string name="smb_server_hint">Введите только IP адрес (например 192.168.1.100)</string>
     <string name="smb_share_name">Имя общего ресурса</string>
     <string name="smb_share_name_hint">например Common, Photos, Documents</string>
+    <string name="smb_add_manually">Добавить вручную</string>
     <string name="smb_username">Имя пользователя</string>
     <string name="smb_password">Пароль</string>
     <string name="smb_domain">Домен (необязательно)</string>

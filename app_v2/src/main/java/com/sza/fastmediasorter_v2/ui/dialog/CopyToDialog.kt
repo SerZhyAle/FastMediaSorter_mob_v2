@@ -2,12 +2,15 @@ package com.sza.fastmediasorter_v2.ui.dialog
 
 import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
+import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.DialogCopyToBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
@@ -32,9 +35,6 @@ class CopyToDialog(
 ) : Dialog(context) {
 
     private lateinit var binding: DialogCopyToBinding
-    private val destinationAdapter = DestinationAdapter { destination ->
-        copyToDestination(destination)
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,28 +53,16 @@ class CopyToDialog(
                 sourceFolderName
             )
             
-            rvDestinations.apply {
-                layoutManager = LinearLayoutManager(context)
-                adapter = destinationAdapter
-            }
-            
             btnCancel.setOnClickListener { dismiss() }
         }
-        
-        // Set dialog background color (dark-green for dark theme, light-green for light theme)
-        window?.setBackgroundDrawableResource(R.drawable.bg_copy_dialog)
     }
 
     private fun loadDestinations() {
-        // Using context as CoroutineScope is not ideal, but for dialog it's acceptable
-        // In production, should pass CoroutineScope from caller
         kotlinx.coroutines.GlobalScope.launch {
             try {
                 val destinations = getDestinationsUseCase.getDestinationsExcluding(currentResourceId)
                 
                 (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
-                    destinationAdapter.submitList(destinations)
-                    
                     if (destinations.isEmpty()) {
                         Toast.makeText(
                             context,
@@ -82,6 +70,8 @@ class CopyToDialog(
                             Toast.LENGTH_SHORT
                         ).show()
                         dismiss()
+                    } else {
+                        createDestinationButtons(destinations)
                     }
                 }
             } catch (e: Exception) {
@@ -93,9 +83,69 @@ class CopyToDialog(
         }
     }
 
+    /**
+     * Create colored destination buttons dynamically based on count
+     * Per spec: 1-5 buttons per row, arranged in rows
+     */
+    private fun createDestinationButtons(destinations: List<MediaResource>) {
+        val container = binding.layoutDestinations
+        container.removeAllViews()
+        
+        val buttonsPerRow = when {
+            destinations.size == 1 -> 1
+            destinations.size == 2 -> 2
+            destinations.size == 3 -> 3
+            destinations.size == 4 -> 4
+            destinations.size <= 5 -> 5
+            destinations.size <= 8 -> 4
+            else -> 5
+        }
+        
+        var currentRow: LinearLayout? = null
+        
+        destinations.forEachIndexed { index, destination ->
+            // Create new row if needed
+            if (index % buttonsPerRow == 0) {
+                currentRow = LinearLayout(context).apply {
+                    orientation = LinearLayout.HORIZONTAL
+                    layoutParams = LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        if (index > 0) topMargin = 8
+                    }
+                    gravity = Gravity.CENTER
+                }
+                container.addView(currentRow)
+            }
+            
+            // Create button
+            val button = MaterialButton(context).apply {
+                text = destination.name
+                setBackgroundColor(destination.destinationColor)
+                setTextColor(Color.WHITE)
+                textSize = 14f
+                
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
+                ).apply {
+                    if (index % buttonsPerRow > 0) leftMargin = 8
+                }
+                
+                setOnClickListener {
+                    copyToDestination(destination)
+                }
+            }
+            
+            currentRow?.addView(button)
+        }
+    }
+
     private fun copyToDestination(destination: MediaResource) {
         binding.progressBar.visibility = View.VISIBLE
-        binding.rvDestinations.isEnabled = false
+        binding.layoutDestinations.isEnabled = false
         
         (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
             try {
@@ -147,13 +197,11 @@ class CopyToDialog(
                             Toast.LENGTH_LONG
                         ).show()
                         binding.progressBar.visibility = View.GONE
-                        binding.rvDestinations.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Copy error: ${e.message}", Toast.LENGTH_LONG).show()
                 binding.progressBar.visibility = View.GONE
-                binding.rvDestinations.isEnabled = true
             }
         }
     }

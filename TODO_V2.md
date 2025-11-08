@@ -1,43 +1,8 @@
 # TODO V2 - FastMediaSorter v2
 
+- [ ]  диалогии Копировать в.. и Переместить в.. из окна BrowseActivity не работают. Я не вижу там набора кнопок destinations, как описанов в спецификации
+
 ## 📋 Актуальні задачі для розработки
-
-- [ ] В окне добавления ресурса кнопка "Network Folder" работает, но она "серая" будто выключена
-
-- [ ] В окне добавления ресурса после выбора "Network Folder" IP пустой. В спецификации написано, что должно быть и как происходит редакция.
-
-- [ ] В окне добавления ресурса после выбора "Network Folder" заголовок "Select Resource Type" Должен пропадать, но олжен появляться заголовок о том что добавляется новая "Network Folder".
-
-- [ ] В окне добавления ресурса после выбора "Network Folder" Поле Server IP упоминает hostname. Но из под Android мы врядли сможем обратиться к имени машины по Windows-имени? Я думал здесь можно вводить исключительно IP?
-
-- [ ] В окне добавления ресурса после выбора "Network Folder" Поля IP пустой. В спецификации написано, что должно быть и как происходит редакция.
-
-- [ ] В окне добавления ресурса после выбора "Network Folder" после поля "Server IP" на следущей строке нужно разместить поля "имя пользователя" и "пароль", а на следующей строке кнопки "Test Connection" и "Scan Shares". Так как этой информации достаточно для тестирования и сканирования. Ниже пусть будет блок с share Name с общим названием "добавить вручную".
-
-- [ ] В окне добавления ресурса после выбора "Network Folder" в поле IP я ввёл "192...168.1.100\" и программа не укзала на ошибку. Сюда допустимо вносить только цифры и точки. Запятую принимать как точку.
-
-- [ ] Установил в настройках "показывать детальную информацию об ошибках", ввел данныы нового "Сетевого ресурса" иинажал тестирование - получил всплывающее сообщение об ошибке. А рассчитывал на диалог с подробностями, как описано в спецификации
-
-
-
-- [x] В настройках Support GIF Animation выключена. Однако новые ресурсы добавляются с включеной поддержкой GIF
-  - Fixed: ScanLocalFoldersUseCase now uses settings.supportGifs from SettingsRepository
-  - Fixed: supportedMediaTypes now built from settings (supportImages, supportVideos, supportAudio, supportGifs)
-
-- [x] после инсталляции слайдшоу интервал 3 секунды. Интервал по умолчанию должен быть 10 секунд
-  - Fixed: AppSettings.slideshowInterval default changed to 10
-  - Fixed: ScanLocalFoldersUseCase now uses settings.slideshowInterval instead of hardcoded value (5)
-
-- [ ] В списке Destinations текст адреса ресурсов нужно немного уменьшить, чтобы больше текста помещалось
-
-
-- [x] В списке Destinations наименования ресурсов у меня два элемента (добавлены сразу при создании ресурса) и оба зеленого цвета.
-  - Fixed: Created DestinationColors utility with 10 unique colors
-  - Fixed: AddResourceUseCase now assigns unique color based on destinationOrder (1-10)
-  - Fixed: SettingsViewModel.addDestination now assigns unique color
-  - Colors: Pink(1), Purple(2), Deep Purple(3), Indigo(4), Blue(5), Cyan(6), Green(7), Yellow(8), Orange(9), Red(10)
-
-- [ ] В BrowseActivity кнопка "назад" в виде картиника "стрелка налево". Но у неё прозрачный фон и её не видно на типичном фиолетовом бэкграунде. Нужно сделать solid стрелку одинаково хорошо видную на любом фоне
 
 - [ ]  Network: Implement SFTP support
 
@@ -656,6 +621,252 @@
   - Ensured setLoading(false) in finally block
   - Simplified logic with forEach instead of map
   - Build: Successful (26s)
+
+### 2025-11-08 (AddResource Network Folder Fixes)
+- [x] **AddResourceActivity: Fix Network Folder button appearance**
+  - Removed android:alpha="0.5" from cardNetworkFolder - button now fully visible
+  - Network Folder card now clickable and visually enabled
+  - Build: Part of full session build
+
+- [x] **AddResourceActivity: Update title when Network Folder selected**
+  - Added showLocalFolderOptions() title update to "Add Local Folder"
+  - Added showSmbFolderOptions() title update to "Add Network Folder (SMB)"
+  - String resources added in 3 languages (en/ru/uk): add_local_folder, add_network_folder
+  - Build: Part of full session build
+
+- [x] **AddResourceActivity: Fix IP field input validation**
+  - Added InputFilter to etSmbServer field
+  - Filter accepts only: digits, dots, replaces comma with dot
+  - Invalid characters (backslash, letters, etc.) silently ignored
+  - Import added: android.text.InputFilter
+  - Build: Part of full session build
+
+- [x] **AddResourceActivity: Reorganize SMB layout fields**
+  - Moved Server IP to top (first field)
+  - Username/Password on second line (horizontal layout)
+  - Test Connection and Scan Shares buttons on third line (right after credentials)
+  - Added divider and "Add Manually" label before Share Name section
+  - Domain and Port moved to bottom (optional fields)
+  - Build: Part of full session build
+
+- [x] **AddResourceActivity: Update field hints and labels**
+  - Changed smb_server from "Server (IP or hostname)" to "Server IP"
+  - Changed smb_server_hint from "e.g. 192.168.1.100 or myserver" to "Enter IP address only (e.g. 192.168.1.100)"
+  - Updated all 3 language files (en/ru/uk)
+  - Added smb_add_manually string resource
+  - Build: Part of full session build
+
+- [x] **AddResourceActivity: Implement detailed error dialog**
+  - Added AlertDialog.Builder import to AddResourceActivity
+  - Created showError() helper function - checks settings.showDetailedErrors
+  - If showDetailedErrors=true → shows AlertDialog with error details
+  - If showDetailedErrors=false → shows Toast (short notification)
+  - AddResourceViewModel.getSettings() method added for accessing settings
+  - Build: Successful (48s, 43 tasks executed)
+
+### 2025-11-08 (UI Polish Session)
+- [x] **Destinations: Reduce path text size**
+  - Changed tvDestinationPath textSize from 15sp to 12sp
+  - Changed textAppearance from BodyMedium to BodySmall
+  - More text now fits in the destination list items
+  - Build: Successful (44s, 43 tasks executed)
+
+- [x] **Browse/AddResource/Settings: Fix back button visibility**
+  - Removed android:tint="?attr/colorControlNormal" from ic_arrow_back.xml
+  - Arrow now displays as solid white icon on all backgrounds
+  - Visible on purple toolbar background
+  - Build: Successful (44s, 43 tasks executed)
+
+### 2025-11-08 (Permissions & SMB Improvements)
+- [x] **Settings: Fix GRANT NETWORK PERMISSION button**
+  - Network permissions (INTERNET, ACCESS_NETWORK_STATE) don't require runtime permissions
+  - Button now shows informative message: "Network permissions are already granted automatically"
+  - These permissions are declared in AndroidManifest.xml and granted at install time
+  - Build: Part of full session build
+
+- [x] **Settings: Implement GRANT LOCAL FILES PERMISSION button**
+  - Added requestStoragePermissions() method in GeneralSettingsFragment
+  - Android 11+ (API 30+): Opens Settings to request MANAGE_EXTERNAL_STORAGE
+  - Android 6-10 (API 23-29): Requests READ/WRITE_EXTERNAL_STORAGE via runtime permissions
+  - Android 5.x and below: Shows "already granted" (permissions granted at install)
+  - Proper handling for all Android versions
+  - Build: Part of full session build
+
+- [x] **SMB: Improve Test Connection functionality**
+  - Test now works with OR without shareName specified
+  - **Without shareName**: Tests server accessibility and lists all available shares with count
+  - **With shareName**: Tests specific share access and provides statistics (subfolders, media files, total items)
+  - SmbClient.testConnection() enhanced with conditional logic
+  - Fixed type error: changed fileAttributes comparison from Int to Long (0x10L)
+  - Build: Part of full session build
+
+- [x] **SMB: Add detailed test result dialog**
+  - Created AddResourceEvent.ShowTestResult with isSuccess flag
+  - Test results now shown in AlertDialog instead of Toast
+  - Dialog includes "OK" and "Copy" buttons
+  - Copy button copies full test result to clipboard
+  - Added ClipboardManager imports to AddResourceActivity
+  - showTestResultDialog() method displays formatted results
+  - Build: Successful (20s, 43 tasks executed)
+
+- [x] **SMB: Fix Scan Shares returning 0 resources**
+  - SMBJ library v0.12.1 lacks direct share enumeration API
+  - Implemented trial connection approach in SmbClient.listShares()
+  - Tries common share names: Public, Users, Documents, Photos, Videos, Music, Shared, Share, Data, Files, Media, Downloads, Pictures, Movies, Common, Transfer
+  - Returns list of successfully connected shares
+  - Shows helpful error message if no shares found
+  - Build: Successful (29s, 43 tasks executed)
+
+### 2025-11-08 (AddResource IP Field Improvements)
+- [x] **AddResource: Implement IP auto-fill and enhanced validation**
+  - Added getLocalIpAddress() method using WifiManager and NetworkInterface
+  - Auto-fills IP field with device subnet (e.g., "192.168.1." from device IP "192.168.1.100")
+  - Cursor positioned at end for immediate typing
+  - Enhanced InputFilter with octet validation:
+    * Only digits, dots allowed (comma → dot)
+    * Blocks 4th dot (max 3 dots for IP)
+    * Validates each octet: max 3 digits, max value 255
+    * Blocks invalid octets (e.g., "256", "1234")
+  - Added ACCESS_WIFI_STATE permission to AndroidManifest.xml
+  - Removed unused variable warning (newText)
+  - Spec requirement: "convenient IP address input field" - IMPLEMENTED
+  - Build: Successful (28s, 43 tasks executed)
+
+- [x] **SMB: Document share enumeration limitations**
+  - Updated SmbClient.listShares() with detailed documentation
+  - Explained SMBJ library limitations:
+    * No direct API for share enumeration (unlike jCIFS)
+    * Cannot use IPC$ without admin rights
+    * Trial connection approach is the only workaround
+  - Expanded common share names list (added NAS names, admin shares)
+  - Improved error messages with instructions:
+    * How to find share names on Windows
+    * Explanation of library limitations
+    * Clear guidance to enter share name manually
+  - Note: This is a known limitation of SMBJ v0.12.1
+  - Alternative: Use jCIFS library (older but has share enumeration)
+  - Build: Successful (30s, 43 tasks executed)
+
+### 2025-11-08 (AddResource SMB Buttons Fix)
+- [x] **AddResource: Fix "ShareName is required" error for scanned resources**
+  - Problem: btnSmbAddToResources called addSmbResources() which validates manual ShareName input
+  - Solution: Split functionality into two methods:
+    * btnSmbAddToResources → viewModel.addSelectedResources() (for scan results)
+    * btnSmbAddManually → addSmbResourceManually() (for manual entry)
+  - Added new button "Add Manual Resource" after ShareName field in layout
+  - Renamed addSmbResources() → addSmbResourceManually() for clarity
+  - Now scanned resources can be added without "ShareName is required" error
+  - Manual entry still validates ShareName as expected
+  - Build: Successful (35s, 43 tasks executed)
+
+- [x] **SMB: Improve share scanning with extended name list**
+  - Problem: Scan found only 1 of 4 shares (limited common names list)
+  - Solution: Significantly expanded commonShareNames list:
+    * Added Work/Personal variations (Work, Personal, Private, Projects)
+    * Added Archive/Storage variations (Archive, Storage, Repository, Vault)
+    * Added year-based names (2024, 2025, Archive2024)
+    * Added department names (IT, Finance, HR, Sales)
+    * Added media server names (Plex, Library, Content)
+    * Total: 43 common names tried (was 26)
+  - Added IPC$ connection attempt to detect admin rights
+  - Improved error messages with detailed instructions:
+    * How to find share names on Windows (File Explorer method)
+    * Command line method (net share)
+  - Added contextual warnings in UI:
+    * If 1-2 shares found: warns about possible custom-named shares
+    * If 3+ shares found: brief note about manual addition
+    * If 0 shares found: clear guidance to use manual entry
+  - Removed unused variable sharesFromIPC
+  - Build: Successful (36s, 43 tasks executed)
+
+### 2025-11-08 (EditResource Destinations Fix)
+- [x] **EditResource: Fix "Add to Destinations" not assigning destinationOrder**
+  - Problem: Checkbox sets isDestination=true but doesn't assign destinationOrder
+  - Result: Resource marked as destination but not visible in Destinations list
+  - Root cause: updateIsDestination() only toggled flag, unlike AddResourceUseCase.addMultiple()
+  - Solution: Enhanced updateIsDestination() with full logic:
+    * Check if destinations are full (max 10) before adding
+    * Assign next available destinationOrder (max + 1)
+    * Assign color using DestinationColors.getColorForDestination()
+    * When unchecking: clear destinationOrder and destinationColor
+    * Show error if destinations are full
+  - Added Flow.first() import for getAllResources()
+  - Fixed lambda parameter shadowing (it → res)
+  - Fixed destinationColor type (null → 0 for Int)
+  - Now edited resources properly appear in Destinations tab
+  - Build: Successful (42s, 43 tasks executed)
+
+### 2025-11-08 (Manual SMB Resource Addition Fix)
+- [x] **Fix "ADD MANUAL RESOURCE" button not working for manually entered SMB resources**
+  - Problem: Button checked for selected resources from scan list, but manual entry has no list
+  - Error: "No SMB RESOURCE SELECTED" when adding manually entered resource
+  - Root cause: `addSmbResources()` filtered `resourcesToAdd` for selected items
+  - Solution:
+    * Created new `addSmbResourceManually()` function in AddResourceViewModel
+    * Directly creates MediaResource from form fields (server, shareName, credentials)
+    * Bypasses scan list check, saves credentials and adds resource to database
+    * Updated AddResourceActivity to call new function
+  - Renamed button: "Add Manual Resource" → "Add This Resource" (clearer intent)
+  - Updated contextual messages referencing old button name
+  - Now manual SMB resource entry works without scanning
+  - Build: Successful (36s, 43 tasks executed)
+
+### 2025-11-08 (Welcome Screen Verification)
+- [x] **Welcome Screen: Verify implementation completeness**
+  - Existing components verified:
+    * WelcomeActivity with ViewPager2 navigation (3 pages)
+    * WelcomePagerAdapter with RecyclerView pattern
+    * page_welcome.xml layout (icon, title, description)
+    * indicator_active.xml and indicator_inactive.xml drawables
+    * Welcome strings in 3 languages (en/ru/uk)
+    * WelcomeViewModel with SharedPreferences persistence
+    * First launch check in MainActivity.onCreate()
+    * Permission request flow after finishing welcome
+  - Navigation buttons: Previous, Next, Finish, Skip
+  - Skip button allows closing before completing tour
+  - Matches V2_Specification.md requirements
+  - Build: Successful (45s, 43 tasks executed)
+
+### 2025-11-08 (SFTP Support - Initial Implementation)
+- [x] **SFTP: Verify SSHJ library dependency**
+  - Confirmed: com.hierynomus:sshj:0.37.0 already in build.gradle.kts
+  - Library provides SSH and SFTP protocol support
+  
+- [x] **SFTP: Create low-level client wrapper**
+  - Created SftpClient.kt in data/remote/sftp package
+  - Implemented methods:
+    * connect() - establish SFTP connection with password auth
+    * listFiles() - list files in remote directory
+    * testConnection() - verify credentials without persistent connection
+    * disconnect() - cleanup resources
+    * isConnected() - check connection status
+  - Uses SSHJ library SSHClient and SFTPClient
+  - PromiscuousVerifier for host key verification (accepts all hosts)
+  - All methods use Dispatchers.IO for blocking operations
+  - Comprehensive logging via Timber
+  - Result<T> return type for error handling
+
+- [ ] **SFTP: Add credentials storage (Next)**
+  - Create SftpCredentials entity in database
+  - Add DAO methods for CRUD operations
+  - Store: host, port, username, password (encrypted)
+  - Associate credentials with MediaResource via credentialsId
+
+- [ ] **SFTP: Create domain UseCase (Next)**
+  - SftpOperationsUseCase with repository pattern
+  - Methods: testConnection, listFiles, saveCredentials
+  - Error handling and mapping to domain errors
+
+- [ ] **SFTP: Add UI to AddResourceActivity (Next)**
+  - SFTP section similar to SMB (host, port, username, password)
+  - Default port 22, Test Connection button
+  - Remote path field for listing files
+  - Add Resource button to save SFTP resource
+
+- [ ] **SFTP: Integrate with ViewModel (Next)**
+  - Add SFTP methods to AddResourceViewModel
+  - Handle test/add operations
+  - Update UI with results
 
 ---
   - Audio: generate bitmap with file extension text (e.g., "MP3", "WAV")

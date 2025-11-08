@@ -28,6 +28,7 @@ data class AddResourceState(
 sealed class AddResourceEvent {
     data class ShowError(val message: String) : AddResourceEvent()
     data class ShowMessage(val message: String) : AddResourceEvent()
+    data class ShowTestResult(val message: String, val isSuccess: Boolean) : AddResourceEvent()
     object ResourcesAdded : AddResourceEvent()
 }
 
@@ -249,10 +250,11 @@ class AddResourceViewModel @Inject constructor(
                 port = port
             ).onSuccess { message ->
                 Timber.d("SMB connection test successful: $message")
-                sendEvent(AddResourceEvent.ShowMessage("Connection successful: $message"))
+                sendEvent(AddResourceEvent.ShowTestResult(message, isSuccess = true))
             }.onFailure { e ->
                 Timber.e(e, "SMB connection test failed")
-                sendEvent(AddResourceEvent.ShowError("Connection failed: ${e.message}"))
+                val errorMessage = "Connection failed:\n\n${e.message}"
+                sendEvent(AddResourceEvent.ShowTestResult(errorMessage, isSuccess = false))
             }
             
             setLoading(false)
@@ -309,7 +311,17 @@ class AddResourceViewModel @Inject constructor(
                     ) 
                 }
                 
-                sendEvent(AddResourceEvent.ShowMessage("Found ${shares.size} shares"))
+                // Show message with warning if only few shares found
+                val message = if (shares.size > 0 && shares.size < 3) {
+                    "Found ${shares.size} share(s). Note: SMBJ library can only detect shares with common names. " +
+                    "If you have more shares with custom names, please add them manually using 'Add This Resource' button."
+                } else if (shares.size >= 3) {
+                    "Found ${shares.size} shares. If you have more shares with custom names, add them manually."
+                } else {
+                    "No shares found. Your shares may have custom names. Please use 'Add This Resource' button."
+                }
+                
+                sendEvent(AddResourceEvent.ShowMessage(message))
             }.onFailure { e ->
                 Timber.e(e, "Failed to scan SMB shares")
                 sendEvent(AddResourceEvent.ShowError("Scan failed: ${e.message}"))
@@ -390,4 +402,63 @@ class AddResourceViewModel @Inject constructor(
             setLoading(false)
         }
     }
+    
+    /**
+     * Add manually entered SMB resource (without scanning)
+     */
+    fun addSmbResourceManually(
+        server: String,
+        shareName: String,
+        username: String,
+        password: String,
+        domain: String,
+        port: Int
+    ) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            // Save credentials first
+            smbOperationsUseCase.saveCredentials(
+                server = server,
+                shareName = shareName,
+                username = username,
+                password = password,
+                domain = domain,
+                port = port
+            ).onSuccess { credentialsId ->
+                Timber.d("Saved SMB credentials with ID: $credentialsId")
+                
+                // Create resource
+                val path = "smb://$server/$shareName"
+                val resource = MediaResource(
+                    id = 0, // Ensure autoincrement
+                    name = shareName,
+                    path = path,
+                    type = ResourceType.SMB,
+                    isDestination = false,
+                    credentialsId = credentialsId
+                )
+                
+                // Add resource to database
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
+                    Timber.d("Added manually entered SMB resource")
+                    sendEvent(AddResourceEvent.ShowMessage("SMB resource added successfully"))
+                    sendEvent(AddResourceEvent.ResourcesAdded)
+                }.onFailure { e ->
+                    Timber.e(e, "Failed to add SMB resource")
+                    sendEvent(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                }
+            }.onFailure { e ->
+                Timber.e(e, "Failed to save SMB credentials")
+                sendEvent(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+            }
+            
+            setLoading(false)
+        }
+    }
+    
+    /**
+     * Get current app settings (for showing detailed errors)
+     */
+    suspend fun getSettings() = settingsRepository.getSettings().first()
 }

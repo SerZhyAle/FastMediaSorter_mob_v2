@@ -746,11 +746,17 @@ class GeneralSettingsFragment : Fragment() {
         
         // Permissions Buttons
         binding.btnLocalFilesPermission.setOnClickListener {
-            Toast.makeText(requireContext(), "Permission request functionality - TODO", Toast.LENGTH_SHORT).show()
+            requestStoragePermissions()
         }
         
         binding.btnNetworkPermission.setOnClickListener {
-            Toast.makeText(requireContext(), "Permission request functionality - TODO", Toast.LENGTH_SHORT).show()
+            // Network permissions (INTERNET, ACCESS_NETWORK_STATE) are granted automatically
+            // They are declared in AndroidManifest.xml and don't require runtime permissions
+            Toast.makeText(
+                requireContext(), 
+                "Network permissions are already granted automatically", 
+                Toast.LENGTH_SHORT
+            ).show()
         }
         
         // Log Buttons
@@ -929,6 +935,45 @@ class GeneralSettingsFragment : Fragment() {
             }
             .setCancelable(false)
             .show()
+    }
+    
+    private fun requestStoragePermissions() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+            // Android 11+ (API 30+): Request MANAGE_EXTERNAL_STORAGE
+            if (!android.os.Environment.isExternalStorageManager()) {
+                try {
+                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                    intent.data = android.net.Uri.parse("package:${requireContext().packageName}")
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    // Fallback to general settings
+                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                    startActivity(intent)
+                }
+            } else {
+                Toast.makeText(requireContext(), "Storage permissions already granted", Toast.LENGTH_SHORT).show()
+            }
+        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            // Android 6-10 (API 23-29): Request READ/WRITE_EXTERNAL_STORAGE
+            val permissions = arrayOf(
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            )
+            
+            val needsPermission = permissions.any { 
+                androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), it) != 
+                android.content.pm.PackageManager.PERMISSION_GRANTED 
+            }
+            
+            if (needsPermission) {
+                requestPermissions(permissions, 100)
+            } else {
+                Toast.makeText(requireContext(), "Storage permissions already granted", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            // Android 5.x and below: permissions granted at install time
+            Toast.makeText(requireContext(), "Storage permissions already granted", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onDestroyView() {

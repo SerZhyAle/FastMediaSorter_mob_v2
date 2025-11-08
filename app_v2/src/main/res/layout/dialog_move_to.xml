@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@drawable/bg_move_dialog">
 
     <TextView
         android:id="@+id/tvDialogTitle"
@@ -31,12 +32,13 @@
         android:visibility="gone"
         app:indicatorColor="?attr/colorPrimary" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvDestinations"
+    <!-- Container for destination buttons (dynamically populated) -->
+    <LinearLayout
+        android:id="@+id/layoutDestinations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:nestedScrollingEnabled="false" />
+        android:orientation="vertical" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCancel"

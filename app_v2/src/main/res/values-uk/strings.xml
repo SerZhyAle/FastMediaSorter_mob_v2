@@ -198,6 +198,8 @@
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>
     
     <!-- Add Resource -->
+    <string name="add_local_folder">Додати локальну теку</string>
+    <string name="add_network_folder">Додати мережеву теку (SMB)</string>
     <string name="network_folder">Мережева тека</string>
     <string name="network_folder_description">Додати SMB мережеві ресурси</string>
     <string name="cloud_folder">Хмарна тека</string>
@@ -206,10 +208,11 @@
     <string name="sftp_folder_description">Додати віддалені теки SFTP</string>
     
     <!-- SMB Network -->
-    <string name="smb_server">Сервер (IP або ім\'я хоста)</string>
-    <string name="smb_server_hint">наприклад 192.168.1.100 або myserver</string>
+    <string name="smb_server">IP сервера</string>
+    <string name="smb_server_hint">Введіть тільки IP адресу (наприклад 192.168.1.100)</string>
     <string name="smb_share_name">Ім\'я загального ресурсу</string>
     <string name="smb_share_name_hint">наприклад Common, Photos, Documents</string>
+    <string name="smb_add_manually">Додати вручну</string>
     <string name="smb_username">Ім\'я користувача</string>
     <string name="smb_password">Пароль</string>
     <string name="smb_domain">Домен (необов\'язково)</string>
