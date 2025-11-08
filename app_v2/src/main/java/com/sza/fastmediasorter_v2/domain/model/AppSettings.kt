@@ -26,7 +26,7 @@ data class AppSettings(
     
     // Playback and Sorting settings
     val defaultSortMode: SortMode = SortMode.NAME_ASC,
-    val slideshowInterval: Int = 3, // seconds
+    val slideshowInterval: Int = 10, // seconds (default 10, range 1-3600)
     val playToEndInSlideshow: Boolean = false,
     val allowRename: Boolean = true,
     val allowDelete: Boolean = true,

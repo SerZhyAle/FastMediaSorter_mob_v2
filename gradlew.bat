@@ -74,7 +74,21 @@ set CLASSPATH=%APP_HOME%\gradle\wrapper\gradle-wrapper.jar
 
 
 @rem Execute Gradle
+@rem ### START MODIFICATION - SZA ###
+@rem Run PowerShell pre-build script to update version.
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$buildGradlePath = 'app_v2\build.gradle.kts'; $backupPath = ($buildGradlePath + '.backup'); if (Test-Path -LiteralPath $buildGradlePath) { if (-not (Test-Path -LiteralPath $backupPath)) { Copy-Item -LiteralPath $buildGradlePath -Destination $backupPath -Force; } $now = Get-Date; $versionCodeInt = [int]$now.ToString('MMddHHmm'); $versionName = '2.0.0-build' + $now.ToString('yyMMddHHmm'); $content = Get-Content -LiteralPath $buildGradlePath -Raw; $content = $content -replace '(versionCode\s*=\s*)\d+', ('${1}' + $versionCodeInt); $content = $content -replace '(?<=versionName\s*=\s*"")[^""]*(?="")', $versionName; Set-Content -LiteralPath $buildGradlePath -Value $content -NoNewline; echo ('[VCS] Updated build.gradle.kts with version: ' + $versionName); }"
+@rem ### END MODIFICATION - SZA ###
+
 "%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %GRADLE_OPTS% "-Dorg.gradle.appname=%APP_BASE_NAME%" -classpath "%CLASSPATH%" org.gradle.wrapper.GradleWrapperMain %*
+
+@rem ### START MODIFICATION - SZA ###
+@rem Check build result and handle backup.
+if %ERRORLEVEL% equ 0 (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$backupPath = 'app_v2\build.gradle.kts.backup'; if (Test-Path -LiteralPath $backupPath) { Remove-Item -LiteralPath $backupPath -Force; echo '[VCS] Build successful. Kept updated build.gradle.kts.'; }"
+) else (
+    powershell -NoProfile -ExecutionPolicy Bypass -Command "$buildGradlePath = 'app_v2\build.gradle.kts'; $backupPath = ($buildGradlePath + '.backup'); if (Test-Path -LiteralPath $backupPath) { Move-Item -LiteralPath $backupPath -Destination $buildGradlePath -Force; echo '[VCS] Build failed. Restored build.gradle.kts from backup.'; }"
+)
+@rem ### END MODIFICATION - SZA ###
 
 :end
 @rem End local scope for the variables with windows NT shell

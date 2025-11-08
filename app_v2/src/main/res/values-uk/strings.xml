@@ -13,6 +13,8 @@
     <string name="ok">OK</string>
     <string name="yes">Так</string>
     <string name="no">Ні</string>
+    <string name="select_all">Вибрати все</string>
+    <string name="deselect_all">Зняти вибір</string>
     
     <!-- Settings Tabs -->
     <string name="settings_tab_general">Загальні</string>
@@ -202,4 +204,19 @@
     <string name="cloud_folder_description">Додати Google Drive, Dropbox, OneDrive</string>
     <string name="sftp_folder">SFTP</string>
     <string name="sftp_folder_description">Додати віддалені теки SFTP</string>
+    
+    <!-- SMB Network -->
+    <string name="smb_server">Сервер (IP або ім\'я хоста)</string>
+    <string name="smb_server_hint">наприклад 192.168.1.100 або myserver</string>
+    <string name="smb_share_name">Ім\'я загального ресурсу</string>
+    <string name="smb_share_name_hint">наприклад Common, Photos, Documents</string>
+    <string name="smb_username">Ім\'я користувача</string>
+    <string name="smb_password">Пароль</string>
+    <string name="smb_domain">Домен (необов\'язково)</string>
+    <string name="smb_domain_hint">Залиште порожнім, якщо не потрібно</string>
+    <string name="smb_port">Порт</string>
+    <string name="smb_port_hint">За замовчуванням: 445</string>
+    <string name="smb_test_connection">Перевірити з\'єднання</string>
+    <string name="smb_scan_shares">Сканувати ресурси</string>
+    <string name="smb_credentials">Облікові дані SMB</string>
 </resources>

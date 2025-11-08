@@ -2,15 +2,67 @@
 
 ## 📋 Актуальні задачі для розработки
 
-- [ ] в окне диалога "сортировка" для BrowseActivity вместо нормального текста для выбора - код. Пользователю может быть неудобно.
+- [ ] В окне добавления ресурса кнопка "Network Folder" работает, но она "серая" будто выключена
 
-- [ ] Проверь, что элементы (наличие и порядок) BrowseActivity отвечают оригинальнойспецификации.
+- [ ] В окне добавления ресурса после выбора "Network Folder" IP пустой. В спецификации написано, что должно быть и как происходит редакция.
 
-- [ ] Для BrowseActivity нужно изменить спецификацию и добвать новое: дополнительно нужны кнопки "Выбрать все" и "снять выбор со всех" в виде иконок наверху. А вот кнопки операций - копирование, переименование, перенос, удаление, пробел, запуск слайдшоу - пусть появляются внизу под списком (таблицей/сеткой). После реализации нужно внести изменения в спецификацию
+- [ ] В окне добавления ресурса после выбора "Network Folder" заголовок "Select Resource Type" Должен пропадать, но олжен появляться заголовок о том что добавляется новая "Network Folder".
+
+- [ ] В окне добавления ресурса после выбора "Network Folder" Поле Server IP упоминает hostname. Но из под Android мы врядли сможем обратиться к имени машины по Windows-имени? Я думал здесь можно вводить исключительно IP?
+
+- [ ] В окне добавления ресурса после выбора "Network Folder" Поля IP пустой. В спецификации написано, что должно быть и как происходит редакция.
+
+- [ ] В окне добавления ресурса после выбора "Network Folder" после поля "Server IP" на следущей строке нужно разместить поля "имя пользователя" и "пароль", а на следующей строке кнопки "Test Connection" и "Scan Shares". Так как этой информации достаточно для тестирования и сканирования. Ниже пусть будет блок с share Name с общим названием "добавить вручную".
+
+- [ ] В окне добавления ресурса после выбора "Network Folder" в поле IP я ввёл "192...168.1.100\" и программа не укзала на ошибку. Сюда допустимо вносить только цифры и точки. Запятую принимать как точку.
+
+- [ ] Установил в настройках "показывать детальную информацию об ошибках", ввел данныы нового "Сетевого ресурса" иинажал тестирование - получил всплывающее сообщение об ошибке. А рассчитывал на диалог с подробностями, как описано в спецификации
 
 
 
----
+- [x] В настройках Support GIF Animation выключена. Однако новые ресурсы добавляются с включеной поддержкой GIF
+  - Fixed: ScanLocalFoldersUseCase now uses settings.supportGifs from SettingsRepository
+  - Fixed: supportedMediaTypes now built from settings (supportImages, supportVideos, supportAudio, supportGifs)
+
+- [x] после инсталляции слайдшоу интервал 3 секунды. Интервал по умолчанию должен быть 10 секунд
+  - Fixed: AppSettings.slideshowInterval default changed to 10
+  - Fixed: ScanLocalFoldersUseCase now uses settings.slideshowInterval instead of hardcoded value (5)
+
+- [ ] В списке Destinations текст адреса ресурсов нужно немного уменьшить, чтобы больше текста помещалось
+
+
+- [x] В списке Destinations наименования ресурсов у меня два элемента (добавлены сразу при создании ресурса) и оба зеленого цвета.
+  - Fixed: Created DestinationColors utility with 10 unique colors
+  - Fixed: AddResourceUseCase now assigns unique color based on destinationOrder (1-10)
+  - Fixed: SettingsViewModel.addDestination now assigns unique color
+  - Colors: Pink(1), Purple(2), Deep Purple(3), Indigo(4), Blue(5), Cyan(6), Green(7), Yellow(8), Orange(9), Red(10)
+
+- [ ] В BrowseActivity кнопка "назад" в виде картиника "стрелка налево". Но у неё прозрачный фон и её не видно на типичном фиолетовом бэкграунде. Нужно сделать solid стрелку одинаково хорошо видную на любом фоне
+
+- [ ]  Network: Implement SFTP support
+
+- [ ] Add SSHJ library for SFTP connections
+- [ ] Create SftpScanner for remote folders
+- [ ] Support authentication (username/password/key)
+- [ ] Handle connection pooling and errors
+- [ ]  Cloud: Integrate Google Drive API
+  - [ ] Add Google Sign-In and Drive API
+  - [ ] Implement folder browsing and file operations
+  - [ ] Handle OAuth2 flow and token storage
+  - [ ] Adapt copy/move for cloud files
+- [ ] Cloud: Integrate Dropbox API
+  - [ ] Add Dropbox SDK
+  - [ ] Implement authentication and file access
+  - [ ] Support folder sync and operations
+  - [ ] Ensure compatibility with existing file operations
+
+- [ ] Bug fix: Handle specification compliance issues
+
+- [ ] Optimization: Implement logging strategy
+
+- [ ] Document all gestures, touch zones, and workflows
+- [ ] Include screenshots and examples
+- [ ] Documentation: Update architecture docs
 
 ## � Permissions & Security (3 tasks)
 
@@ -438,6 +490,172 @@
   - Added 8dp left margin to button container
   - All three buttons (Move Up, Move Down, Delete) now properly visible in row
   - Commit: 38a697a
+
+### 2025-01-08 (Development Session)
+- [x] **Browse Screen: Fix sort dialog - show user-friendly names**
+  - Changed sort dialog from showing enum codes (NAME_ASC, DATE_DESC, etc.) to readable names
+  - Added getSortModeName() helper function in BrowseActivity
+  - Now displays: "Name (A-Z)", "Date (Old first)", "Size (Small first)", etc.
+  - Matches existing implementation in SettingsFragments
+  - Improves UX - users see clear, localized sort options
+  - Commit: (pending)
+
+- [x] **Browse Screen: Reorganize layout per specification**
+  - **Top bar changes:**
+    * Added Space (8dp) after Back button per spec
+    * Added btnSelectAll button with checkbox_on_background icon
+    * Added btnDeselectAll button with checkbox_off_background icon
+  - **Bottom operations bar (NEW):**
+    * Created layoutOperations LinearLayout at bottom
+    * Moved Copy, Move, Rename, Delete, Undo buttons to bottom bar
+    * Added flexible Space to push Play button to right
+    * Added elevation (4dp) and background (colorSurface) for distinction
+  - **RecyclerView:**
+    * Changed constraintBottom from tvFilterWarning to layoutOperations
+    * Now sandwiched between tvResourceInfo (top) and layoutOperations (bottom)
+  - **ViewModel:**
+    * Added selectAll() function to select all files in current list
+    * Updated clearSelection() usage for Deselect All button
+  - **Strings:**
+    * Added select_all / deselect_all in all 3 languages (en/ru/uk)
+  - **Result:** Operations buttons now at bottom, selection controls at top
+  - Commit: (pending)
+
+- [x] **Player Screen: Add Swipe UP/DOWN gestures for file operations**
+  - **Problem:** Copy/Move operations only available via touch zones (3x3 grid), not via vertical swipes per spec
+  - **Solution:**
+    * Updated onFling() in PlayerActivity to detect vertical vs horizontal gestures
+    * Horizontal fling (Left/Right) → navigate between files (Previous/Next)
+    * Vertical fling UP → showCopyDialog() (copy current file to destination)
+    * Vertical fling DOWN → showMoveDialog() (move current file to destination)
+  - **Existing infrastructure:**
+    * CopyToDialog, MoveToDialog, RenameDialog already implemented
+    * PlayerViewModel already has fileOperationUseCase and getDestinationsUseCase injected
+    * Touch zones (3x3 grid) still work for alternative access
+  - **Result:** Users can now Copy (SwipeUP) or Move (SwipeDown) files during playback
+  - **Build:** Successful (4s, 9 tasks executed, only warnings)
+  - Commit: (pending)
+
+### 2025-01-08 (SMB Integration Session)
+- [x] **AddResourceActivity: Add SMB network folder UI**
+  - **Layout Changes:**
+    * Created layoutSmbFolder in activity_add_resource.xml (ScrollView with LinearLayout)
+    * Added TextInputLayouts for: server (IP/hostname), shareName, username, password, domain, port
+    * Password field with toggle visibility (endIconMode="password_toggle")
+    * Port field defaults to 445 (standard SMB port)
+    * Added helper texts for server, shareName, domain, port fields
+    * Added buttons: Test Connection, Scan Shares, Add to Resources
+    * Added RecyclerView for resources to add (rvSmbResourcesToAdd)
+  - **String Resources:**
+    * Added SMB strings in values/strings.xml (English)
+    * Added SMB strings in values-ru/strings.xml (Russian)
+    * Added SMB strings in values-uk/strings.xml (Ukrainian)
+    * Strings: smb_server, smb_server_hint, smb_share_name, smb_share_name_hint, smb_username, smb_password, smb_domain, smb_domain_hint, smb_port, smb_port_hint, smb_test_connection, smb_scan_shares
+  - **Activity Code:**
+    * Activated cardNetworkFolder click handler to show layoutSmbFolder
+    * Added showSmbFolderOptions() to display SMB configuration UI
+    * Added testSmbConnection() with validation (requires server address)
+    * Added scanSmbShares() with validation (requires server address)
+    * Added addSmbResources() stub for future implementation
+    * All methods extract values from UI: server, shareName, username, password, domain, port
+  - **Next Steps:** Implement ViewModel logic (testSmbConnection, scanSmbFolder, saveSmbResource) using SmbOperationsUseCase
+  - **Build:** Successful (41s, 24 executed tasks, only warnings)
+  - Commit: (pending)
+
+- [x] **AddResourceViewModel: Add SMB network operations logic**
+  - **ViewModel Methods:**
+    * Added SmbOperationsUseCase injection to constructor
+    * testSmbConnection() - validates SMB connection with provided credentials, shows success/error messages
+    * scanSmbShares() - lists available shares on SMB server, creates MediaResource for each share (ResourceType.SMB)
+    * addSmbResources() - saves credentials via SmbOperationsUseCase, attaches credentialsId to resources, adds to database
+  - **Activity Integration:**
+    * Updated AddResourceActivity to call ViewModel methods instead of showing "Coming Soon" toasts
+    * Added smbResourceToAddAdapter for separate SMB resources RecyclerView
+    * Updated observeData() to filter resources by type (LOCAL vs SMB) and update both adapters
+    * Added validation in testSmbConnection() and addSmbResources() (requires shareName)
+  - **Resource Creation:**
+    * SMB resources created with path format: "smb://server/shareName"
+    * Resources marked as ResourceType.SMB with credentialsId link
+    * Default values: fileCount=0 (determined on scan), isWritable=true, slideshowInterval=10
+    * Supports all media types by default
+  - **Error Handling:**
+    * testSmbConnection: shows "Connection successful" or "Connection failed: [message]"
+    * scanSmbShares: shows "Found N shares" or "Scan failed: [message]"
+    * addSmbResources: shows "Added N SMB resources" or error messages
+  - **Build:** Successful (11s, 12 executed tasks)
+  - Commit: (pending)
+
+- [x] **EditResourceActivity: Add SMB credentials editing support**
+  - **ResourceRepositoryImpl:**
+    * Added SmbOperationsUseCase injection
+    * Implemented testConnection() for SMB resources - gets credentials by credentialsId, calls smbOperationsUseCase.testConnection()
+    * Local resources return "no connection test needed", CLOUD/SFTP return "not yet implemented"
+  - **Layout Changes (activity_edit_resource.xml):**
+    * Added layoutSmbCredentials section (LinearLayout, visibility=gone by default)
+    * SMB fields: server, shareName, username, password (with toggle), domain, port (default 445)
+    * Section only visible for SMB resource types
+  - **EditResourceViewModel:**
+    * Added SMB credential fields to EditResourceState: smbServer, smbShareName, smbUsername, smbPassword, smbDomain, smbPort, hasSmbCredentialsChanges
+    * Added loadSmbCredentials() method - loads credentials from database via SmbOperationsUseCase.getConnectionInfo()
+    * Added update methods: updateSmbServer(), updateSmbShareName(), updateSmbUsername(), updateSmbPassword(), updateSmbDomain(), updateSmbPort()
+    * Updated saveChanges() - saves new credentials when hasSmbCredentialsChanges=true, validates server/shareName, updates resource.credentialsId
+  - **EditResourceActivity:**
+    * Added focus change listeners for all SMB input fields
+    * Updated observeData() - shows/hides layoutSmbCredentials based on ResourceType.SMB, displays SMB credentials from state
+    * Save/Reset buttons enabled when hasChanges OR hasSmbCredentialsChanges
+  - **String Resources:**
+    * Added "SMB Network Credentials" in 3 languages (en/ru/uk)
+  - **Test Connection:**
+    * Button now works for SMB resources - tests connection with current credentials
+    * Shows success message or error with details
+  - **Build:** Successful (13s, 16 executed tasks)
+  - Commit: (pending)
+
+### 2025-11-08 (Bug Fixes & UI Improvements Session)
+- [x] **Settings: Fix GIF support and slideshow interval defaults**
+  - Fixed AppSettings.supportGifs default to false (was true)
+  - Fixed AppSettings.slideshowInterval default to 10 seconds (was 3)
+  - Fixed ScanLocalFoldersUseCase to use settings from SettingsRepository
+  - Fixed: supportedMediaTypes now built dynamically from settings (supportImages, supportVideos, supportAudio, supportGifs)
+  - Build: Successful (6s)
+
+- [x] **Destinations: UI improvements**
+  - Fixed: minHeight reduced from 56dp to 40dp in item_destination.xml
+  - Fixed: Text sizes already correct (tvDestinationName: 18sp, tvDestinationPath: 15sp)
+  - Fixed: Created DestinationColors utility with 10 unique predefined colors
+  - Fixed: AddResourceUseCase now assigns unique color based on destinationOrder (1-10)
+  - Fixed: SettingsViewModel.addDestination now assigns unique color
+  - Colors: Pink(1), Purple(2), Deep Purple(3), Indigo(4), Blue(5), Cyan(6), Green(7), Yellow(8), Orange(9), Red(10)
+  - Build: Successful (16s)
+
+- [x] **Browse Screen: Back button icon**
+  - Created ic_arrow_back.xml drawable (left arrow icon)
+  - Updated BrowseActivity, AddResourceActivity, SettingsActivity to use ic_arrow_back
+  - MainActivity Exit button keeps "X" icon (appropriate for app exit)
+  - Build: Successful (3s)
+
+- [x] **Browse Screen: Grid mode implementation**
+  - Created item_media_file_grid.xml layout (thumbnail + filename, no checkbox/play button)
+  - Updated MediaFileAdapter to support both LIST and GRID view types
+  - Added GridViewHolder with dynamic thumbnail sizing from settings.defaultIconSize
+  - Updated BrowseActivity.updateDisplayMode() to switch adapter mode and get icon size
+  - Added SettingsRepository injection and kotlinx.coroutines.flow.first import
+  - Grid layout uses GridLayoutManager with 3 columns
+  - Build: Successful (24s)
+
+- [x] **Browse Screen: Grid/List toggle icons**
+  - Created ic_view_list.xml (list icon with horizontal lines)
+  - Created ic_view_grid.xml (grid icon with squares)
+  - Updated BrowseActivity.updateDisplayMode() to change button icon dynamically
+  - Logic: LIST mode shows grid icon (to switch TO grid), GRID mode shows list icon (to switch TO list)
+  - Build: Successful (34s)
+
+- [x] **Main Screen: Fix infinite progress on refresh**
+  - Fixed: MainViewModel.refreshResources() was using .collect{} on Flow which never completes
+  - Changed to use .first() to get single snapshot of resources
+  - Ensured setLoading(false) in finally block
+  - Simplified logic with forEach instead of map
+  - Build: Successful (26s)
 
 ---
   - Audio: generate bitmap with file extension text (e.g., "MP3", "WAV")

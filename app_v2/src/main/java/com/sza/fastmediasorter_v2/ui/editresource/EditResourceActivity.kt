@@ -11,6 +11,7 @@ import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityEditResourceBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -64,6 +65,44 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         binding.switchIsDestination.setOnCheckedChangeListener { _, isChecked ->
             viewModel.updateIsDestination(isChecked)
         }
+        
+        // SMB credentials listeners
+        binding.etSmbServerEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSmbServer(binding.etSmbServerEdit.text.toString())
+            }
+        }
+        
+        binding.etSmbShareNameEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSmbShareName(binding.etSmbShareNameEdit.text.toString())
+            }
+        }
+        
+        binding.etSmbUsernameEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSmbUsername(binding.etSmbUsernameEdit.text.toString())
+            }
+        }
+        
+        binding.etSmbPasswordEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSmbPassword(binding.etSmbPasswordEdit.text.toString())
+            }
+        }
+        
+        binding.etSmbDomainEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSmbDomain(binding.etSmbDomainEdit.text.toString())
+            }
+        }
+        
+        binding.etSmbPortEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val port = binding.etSmbPortEdit.text.toString().toIntOrNull() ?: 445
+                viewModel.updateSmbPort(port)
+            }
+        }
 
         // Buttons
         binding.btnBack.setOnClickListener {
@@ -106,11 +145,24 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
 
                         // Is destination
                         binding.switchIsDestination.isChecked = resource.isDestination
+                        
+                        // Show/hide SMB credentials section
+                        binding.layoutSmbCredentials.isVisible = resource.type == ResourceType.SMB
+                    }
+                    
+                    // Update SMB credentials UI
+                    if (state.currentResource?.type == ResourceType.SMB) {
+                        binding.etSmbServerEdit.setText(state.smbServer)
+                        binding.etSmbShareNameEdit.setText(state.smbShareName)
+                        binding.etSmbUsernameEdit.setText(state.smbUsername)
+                        binding.etSmbPasswordEdit.setText(state.smbPassword)
+                        binding.etSmbDomainEdit.setText(state.smbDomain)
+                        binding.etSmbPortEdit.setText(state.smbPort.toString())
                     }
 
                     // Enable/disable Save button based on hasChanges
-                    binding.btnSave.isEnabled = state.hasChanges
-                    binding.btnReset.isEnabled = state.hasChanges
+                    binding.btnSave.isEnabled = state.hasChanges || state.hasSmbCredentialsChanges
+                    binding.btnReset.isEnabled = state.hasChanges || state.hasSmbCredentialsChanges
                 }
             }
         }

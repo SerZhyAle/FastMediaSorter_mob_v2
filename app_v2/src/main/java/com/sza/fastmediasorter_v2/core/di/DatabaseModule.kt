@@ -3,6 +3,7 @@ package com.sza.fastmediasorter_v2.core.di
 import android.content.Context
 import androidx.room.Room
 import com.sza.fastmediasorter_v2.data.local.db.AppDatabase
+import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.data.local.db.ResourceDao
 import dagger.Module
 import dagger.Provides
@@ -23,7 +24,10 @@ object DatabaseModule {
             AppDatabase::class.java,
             "fastmediasorter_v2.db"
         )
-            .addMigrations(AppDatabase.MIGRATION_3_4)
+            .addMigrations(
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5
+            )
             .fallbackToDestructiveMigration()
             .build()
     }
@@ -32,5 +36,11 @@ object DatabaseModule {
     @Singleton
     fun provideResourceDao(database: AppDatabase): ResourceDao {
         return database.resourceDao()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideNetworkCredentialsDao(database: AppDatabase): NetworkCredentialsDao {
+        return database.networkCredentialsDao()
     }
 }

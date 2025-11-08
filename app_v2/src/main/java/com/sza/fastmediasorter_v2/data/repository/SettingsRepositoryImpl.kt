@@ -106,7 +106,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultSortMode = SortMode.valueOf(
                         preferences[KEY_DEFAULT_SORT_MODE] ?: SortMode.NAME_ASC.name
                     ),
-                    slideshowInterval = preferences[KEY_SLIDESHOW_INTERVAL] ?: 3,
+                    slideshowInterval = preferences[KEY_SLIDESHOW_INTERVAL] ?: 10,
                     playToEndInSlideshow = preferences[KEY_PLAY_TO_END] ?: false,
                     allowRename = preferences[KEY_ALLOW_RENAME] ?: true,
                     allowDelete = preferences[KEY_ALLOW_DELETE] ?: true,

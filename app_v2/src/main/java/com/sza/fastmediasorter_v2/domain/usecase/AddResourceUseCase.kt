@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter_v2.domain.usecase
 
+import com.sza.fastmediasorter_v2.core.util.DestinationColors
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 import kotlinx.coroutines.flow.first
@@ -51,7 +52,12 @@ class AddResourceUseCase @Inject constructor(
                 if (resource.isDestination && availableDestinationSlots > 0) {
                     nextDestinationOrder++
                     availableDestinationSlots--
-                    resource.copy(destinationOrder = nextDestinationOrder, displayOrder = nextDisplayOrder)
+                    val color = DestinationColors.getColorForDestination(nextDestinationOrder)
+                    resource.copy(
+                        destinationOrder = nextDestinationOrder,
+                        destinationColor = color,
+                        displayOrder = nextDisplayOrder
+                    )
                 } else if (resource.isDestination && availableDestinationSlots <= 0) {
                     skippedDestinations++
                     resource.copy(isDestination = false, destinationOrder = null, displayOrder = nextDisplayOrder)

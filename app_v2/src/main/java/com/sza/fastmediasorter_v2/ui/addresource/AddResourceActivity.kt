@@ -18,6 +18,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val viewModel: AddResourceViewModel by viewModels()
     private lateinit var resourceToAddAdapter: ResourceToAddAdapter
+    private lateinit var smbResourceToAddAdapter: ResourceToAddAdapter
 
     private val folderPickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -50,13 +51,27 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         )
         
         binding.rvResourcesToAdd.adapter = resourceToAddAdapter
+        
+        smbResourceToAddAdapter = ResourceToAddAdapter(
+            onSelectionChanged = { resource, selected ->
+                viewModel.toggleResourceSelection(resource, selected)
+            },
+            onNameChanged = { resource, newName ->
+                viewModel.updateResourceName(resource, newName)
+            },
+            onDestinationChanged = { resource, isDestination ->
+                viewModel.toggleDestination(resource, isDestination)
+            }
+        )
+        
+        binding.rvSmbResourcesToAdd.adapter = smbResourceToAddAdapter
 
         binding.cardLocalFolder.setOnClickListener {
             showLocalFolderOptions()
         }
 
         binding.cardNetworkFolder.setOnClickListener {
-            Toast.makeText(this, "Network folders - Coming Soon", Toast.LENGTH_SHORT).show()
+            showSmbFolderOptions()
         }
 
         binding.btnScan.setOnClickListener {
@@ -70,19 +85,51 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.btnAddToResources.setOnClickListener {
             viewModel.addSelectedResources()
         }
+
+        // SMB buttons
+        binding.btnSmbTest.setOnClickListener {
+            testSmbConnection()
+        }
+
+        binding.btnSmbScan.setOnClickListener {
+            scanSmbShares()
+        }
+
+        binding.btnSmbAddToResources.setOnClickListener {
+            addSmbResources()
+        }
     }
 
     override fun observeData() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    resourceToAddAdapter.submitList(state.resourcesToAdd)
+                    // Filter resources by type
+                    val localResources = state.resourcesToAdd.filter { 
+                        it.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.LOCAL 
+                    }
+                    val smbResources = state.resourcesToAdd.filter { 
+                        it.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB 
+                    }
+                    
+                    // Update adapters
+                    resourceToAddAdapter.submitList(localResources)
                     resourceToAddAdapter.setSelectedPaths(state.selectedPaths)
                     
-                    val hasResources = state.resourcesToAdd.isNotEmpty()
-                    binding.tvResourcesToAdd.isVisible = hasResources
-                    binding.rvResourcesToAdd.isVisible = hasResources
-                    binding.btnAddToResources.isVisible = hasResources
+                    smbResourceToAddAdapter.submitList(smbResources)
+                    smbResourceToAddAdapter.setSelectedPaths(state.selectedPaths)
+                    
+                    // Local folder UI visibility
+                    val hasLocalResources = localResources.isNotEmpty()
+                    binding.tvResourcesToAdd.isVisible = hasLocalResources
+                    binding.rvResourcesToAdd.isVisible = hasLocalResources
+                    binding.btnAddToResources.isVisible = hasLocalResources
+                    
+                    // SMB folder UI visibility
+                    val hasSmbResources = smbResources.isNotEmpty()
+                    binding.tvSmbResourcesToAdd.isVisible = hasSmbResources
+                    binding.rvSmbResourcesToAdd.isVisible = hasSmbResources
+                    binding.btnSmbAddToResources.isVisible = hasSmbResources
                 }
             }
         }
@@ -117,5 +164,70 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private fun showLocalFolderOptions() {
         binding.layoutResourceTypes.isVisible = false
         binding.layoutLocalFolder.isVisible = true
+    }
+
+    private fun showSmbFolderOptions() {
+        binding.layoutResourceTypes.isVisible = false
+        binding.layoutSmbFolder.isVisible = true
+    }
+
+    private fun testSmbConnection() {
+        val server = binding.etSmbServer.text.toString().trim()
+        val shareName = binding.etSmbShareName.text.toString().trim()
+        val username = binding.etSmbUsername.text.toString().trim()
+        val password = binding.etSmbPassword.text.toString().trim()
+        val domain = binding.etSmbDomain.text.toString().trim()
+        val portStr = binding.etSmbPort.text.toString().trim()
+        val port = portStr.toIntOrNull() ?: 445
+
+        if (server.isEmpty()) {
+            Toast.makeText(this, "Server address is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (shareName.isEmpty()) {
+            Toast.makeText(this, "Share name is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        viewModel.testSmbConnection(server, shareName, username, password, domain, port)
+    }
+
+    private fun scanSmbShares() {
+        val server = binding.etSmbServer.text.toString().trim()
+        val username = binding.etSmbUsername.text.toString().trim()
+        val password = binding.etSmbPassword.text.toString().trim()
+        val domain = binding.etSmbDomain.text.toString().trim()
+        val portStr = binding.etSmbPort.text.toString().trim()
+        val port = portStr.toIntOrNull() ?: 445
+
+        if (server.isEmpty()) {
+            Toast.makeText(this, "Server address is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        viewModel.scanSmbShares(server, username, password, domain, port)
+    }
+
+    private fun addSmbResources() {
+        val server = binding.etSmbServer.text.toString().trim()
+        val shareName = binding.etSmbShareName.text.toString().trim()
+        val username = binding.etSmbUsername.text.toString().trim()
+        val password = binding.etSmbPassword.text.toString().trim()
+        val domain = binding.etSmbDomain.text.toString().trim()
+        val portStr = binding.etSmbPort.text.toString().trim()
+        val port = portStr.toIntOrNull() ?: 445
+
+        if (server.isEmpty()) {
+            Toast.makeText(this, "Server address is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (shareName.isEmpty()) {
+            Toast.makeText(this, "Share name is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        viewModel.addSmbResources(server, shareName, username, password, domain, port)
     }
 }

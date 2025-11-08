@@ -23,7 +23,12 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:src="@drawable/ic_arrow_back" />
+
+        <!-- Small space after Back -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
 
         <!-- Sort -->
         <ImageButton
@@ -51,6 +56,69 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/toggle_view"
             android:src="@android:drawable/ic_menu_view" />
+
+        <!-- Small space -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Select All -->
+        <ImageButton
+            android:id="@+id/btnSelectAll"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/select_all"
+            android:src="@android:drawable/checkbox_on_background" />
+
+        <!-- Deselect All -->
+        <ImageButton
+            android:id="@+id/btnDeselectAll"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/deselect_all"
+            android:src="@android:drawable/checkbox_off_background" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvResourceInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="8dp"
+        android:textSize="12sp"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintTop_toBottomOf="@id/layoutControls"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:text="Downloads • /storage/emulated/0/Download • 0 selected" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMediaFiles"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:padding="4dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintTop_toBottomOf="@id/tvResourceInfo"
+        app:layout_constraintBottom_toTopOf="@id/layoutOperations"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:listitem="@layout/item_media_file" />
+
+    <!-- Operations bar at bottom -->
+    <LinearLayout
+        android:id="@+id/layoutOperations"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="4dp"
+        android:background="?attr/colorSurface"
+        android:elevation="4dp"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@id/tvFilterWarning"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Copy -->
         <ImageButton
@@ -104,8 +172,9 @@
 
         <!-- Small space -->
         <Space
-            android:layout_width="8dp"
-            android:layout_height="1dp" />
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
 
         <!-- Play -->
         <ImageButton
@@ -117,30 +186,6 @@
             android:src="@android:drawable/ic_media_play" />
 
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvResourceInfo"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        android:textSize="12sp"
-        android:textColor="?android:textColorSecondary"
-        app:layout_constraintTop_toBottomOf="@id/layoutControls"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:text="Downloads • /storage/emulated/0/Download • 0 selected" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMediaFiles"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:padding="4dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        app:layout_constraintTop_toBottomOf="@id/tvResourceInfo"
-        app:layout_constraintBottom_toTopOf="@id/tvFilterWarning"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/item_media_file" />
 
     <TextView
         android:id="@+id/tvFilterWarning"

@@ -186,6 +186,11 @@ class BrowseViewModel @Inject constructor(
     fun clearSelection() {
         updateState { it.copy(selectedFiles = emptySet(), lastSelectedPath = null) }
     }
+    
+    fun selectAll() {
+        val allPaths = state.value.mediaFiles.map { it.path }.toSet()
+        updateState { it.copy(selectedFiles = allPaths, lastSelectedPath = allPaths.lastOrNull()) }
+    }
 
     fun openFile(file: MediaFile) {
         val index = state.value.mediaFiles.indexOf(file)

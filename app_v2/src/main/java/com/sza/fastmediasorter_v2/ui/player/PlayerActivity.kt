@@ -112,16 +112,31 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 velocityX: Float,
                 velocityY: Float
             ): Boolean {
-                // Fling still works for quick swipe navigation
-                if (e1 != null && Math.abs(velocityX) > Math.abs(velocityY)) {
+                if (e1 == null) return false
+                
+                val absX = Math.abs(velocityX)
+                val absY = Math.abs(velocityY)
+                
+                // Determine if gesture is more horizontal or vertical
+                if (absX > absY) {
+                    // Horizontal fling - navigate between files
                     if (velocityX > 0) {
                         viewModel.previousFile()
                     } else {
                         viewModel.nextFile()
                     }
                     return true
+                } else {
+                    // Vertical fling - file operations
+                    if (velocityY < 0) {
+                        // Swipe UP -> Copy
+                        showCopyDialog()
+                    } else {
+                        // Swipe DOWN -> Move
+                        showMoveDialog()
+                    }
+                    return true
                 }
-                return false
             }
         })
 

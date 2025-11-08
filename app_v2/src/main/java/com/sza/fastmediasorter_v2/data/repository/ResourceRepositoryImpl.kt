@@ -6,14 +6,17 @@ import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
+import com.sza.fastmediasorter_v2.domain.usecase.SmbOperationsUseCase
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class ResourceRepositoryImpl @Inject constructor(
-    private val resourceDao: ResourceDao
+    private val resourceDao: ResourceDao,
+    private val smbOperationsUseCase: SmbOperationsUseCase
 ) : ResourceRepository {
     
     override fun getAllResources(): Flow<List<MediaResource>> {
@@ -55,8 +58,47 @@ class ResourceRepositoryImpl @Inject constructor(
     }
     
     override suspend fun testConnection(resource: MediaResource): Result<String> {
-        // TODO: Implement connection testing based on resource type
-        return Result.success("Connection test not yet implemented")
+        return when (resource.type) {
+            ResourceType.LOCAL -> {
+                // Local resources don't need connection testing
+                Result.success("Local resource - no connection test needed")
+            }
+            ResourceType.SMB -> {
+                testSmbConnection(resource)
+            }
+            ResourceType.CLOUD, ResourceType.SFTP -> {
+                // Not yet implemented
+                Result.success("Connection test not yet implemented for ${resource.type}")
+            }
+        }
+    }
+    
+    private suspend fun testSmbConnection(resource: MediaResource): Result<String> {
+        val credentialsId = resource.credentialsId
+        if (credentialsId == null) {
+            Timber.w("SMB resource has no credentials ID")
+            return Result.failure(Exception("No credentials configured for this SMB resource"))
+        }
+        
+        // Get connection info from credentials
+        val connectionInfoResult = smbOperationsUseCase.getConnectionInfo(credentialsId)
+        if (connectionInfoResult.isFailure) {
+            val error = connectionInfoResult.exceptionOrNull()
+            Timber.e(error, "Failed to get SMB connection info")
+            return Result.failure(error ?: Exception("Failed to get connection info"))
+        }
+        
+        val connectionInfo = connectionInfoResult.getOrNull()!!
+        
+        // Test connection
+        return smbOperationsUseCase.testConnection(
+            server = connectionInfo.server,
+            shareName = connectionInfo.shareName,
+            username = connectionInfo.username,
+            password = connectionInfo.password,
+            domain = connectionInfo.domain,
+            port = connectionInfo.port
+        )
     }
     
     private fun ResourceEntity.toDomain(): MediaResource {

@@ -11,7 +11,7 @@ import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
-import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
+import com.sza.fastmediasorter_v2.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,7 +45,7 @@ class MainViewModel @Inject constructor(
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
-    private val mediaScanner: MediaScanner,
+    private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
@@ -245,41 +245,33 @@ class MainViewModel @Inject constructor(
                     audioSizeMax = settings.audioSizeMax
                 )
                 
-                getResourcesUseCase()
-                    .catch { e ->
-                        Timber.e(e, "Error refreshing resources")
-                        handleError(e)
+                val resources = getResourcesUseCase().first()
+                resources.forEach { resource ->
+                    val scanner = mediaScannerFactory.getScanner(resource.type)
+                    val fileCount = try {
+                        scanner.getFileCount(resource.path, resource.supportedMediaTypes, sizeFilter)
+                    } catch (e: Exception) {
+                        Timber.e(e, "Error counting files for ${resource.name}")
+                        resource.fileCount
                     }
-                    .collect { resources ->
-                        val updated = resources.map { resource ->
-                            val fileCount = try {
-                                mediaScanner.getFileCount(resource.path, resource.supportedMediaTypes, sizeFilter)
-                            } catch (e: Exception) {
-                                Timber.e(e, "Error counting files for ${resource.name}")
-                                resource.fileCount
-                            }
-                            
-                            val isWritable = try {
-                                mediaScanner.isWritable(resource.path)
-                            } catch (e: Exception) {
-                                Timber.e(e, "Error checking write access for ${resource.name}")
-                                resource.isWritable
-                            }
-                            
-                            if (fileCount != resource.fileCount || isWritable != resource.isWritable) {
-                                val updatedResource = resource.copy(
-                                    fileCount = fileCount,
-                                    isWritable = isWritable
-                                )
-                                updateResourceUseCase(updatedResource)
-                                updatedResource
-                            } else {
-                                resource
-                            }
-                        }
-                        
-                        sendEvent(MainEvent.ShowMessage("Resources refreshed"))
+                    
+                    val isWritable = try {
+                        scanner.isWritable(resource.path)
+                    } catch (e: Exception) {
+                        Timber.e(e, "Error checking write access for ${resource.name}")
+                        resource.isWritable
                     }
+                    
+                    if (fileCount != resource.fileCount || isWritable != resource.isWritable) {
+                        val updatedResource = resource.copy(
+                            fileCount = fileCount,
+                            isWritable = isWritable
+                        )
+                        updateResourceUseCase(updatedResource)
+                    }
+                }
+                
+                sendEvent(MainEvent.ShowMessage("Resources refreshed"))
             } catch (e: Exception) {
                 Timber.e(e, "Error refreshing resources")
                 handleError(e)

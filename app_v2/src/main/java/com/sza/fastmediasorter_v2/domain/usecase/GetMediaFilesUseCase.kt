@@ -34,14 +34,15 @@ interface MediaScanner {
 }
 
 class GetMediaFilesUseCase @Inject constructor(
-    private val mediaScanner: MediaScanner
+    private val mediaScannerFactory: MediaScannerFactory
 ) {
     operator fun invoke(
         resource: MediaResource,
         sortMode: SortMode = SortMode.NAME_ASC,
         sizeFilter: SizeFilter? = null
     ): Flow<List<MediaFile>> = flow {
-        val files = mediaScanner.scanFolder(
+        val scanner = mediaScannerFactory.getScanner(resource.type)
+        val files = scanner.scanFolder(
             path = resource.path,
             supportedTypes = resource.supportedMediaTypes,
             sizeFilter = sizeFilter

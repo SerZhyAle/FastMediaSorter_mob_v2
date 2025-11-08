@@ -13,6 +13,8 @@
     <string name="ok">OK</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
     
     <!-- Settings Tabs -->
     <string name="settings_tab_general">General</string>
@@ -209,6 +211,21 @@
     <string name="cloud_folder_description">Add Google Drive, Dropbox, OneDrive</string>
     <string name="sftp_folder">SFTP</string>
     <string name="sftp_folder_description">Add SFTP remote folders</string>
+    
+    <!-- SMB Network -->
+    <string name="smb_server">Server (IP or hostname)</string>
+    <string name="smb_server_hint">e.g. 192.168.1.100 or myserver</string>
+    <string name="smb_share_name">Share Name</string>
+    <string name="smb_share_name_hint">e.g. Common, Photos, Documents</string>
+    <string name="smb_username">Username</string>
+    <string name="smb_password">Password</string>
+    <string name="smb_domain">Domain (optional)</string>
+    <string name="smb_domain_hint">Leave empty if not needed</string>
+    <string name="smb_port">Port</string>
+    <string name="smb_port_hint">Default: 445</string>
+    <string name="smb_test_connection">Test Connection</string>
+    <string name="smb_scan_shares">Scan Shares</string>
+    <string name="smb_credentials">SMB Network Credentials</string>
     
 </resources>
 

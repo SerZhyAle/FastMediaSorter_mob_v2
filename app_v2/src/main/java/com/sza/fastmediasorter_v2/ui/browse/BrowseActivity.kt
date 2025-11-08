@@ -30,12 +30,14 @@ import com.sza.fastmediasorter_v2.databinding.ItemRenameFileBinding
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
 import com.sza.fastmediasorter_v2.domain.model.FileFilter
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.player.PlayerActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.io.File
@@ -52,6 +54,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     @Inject
     lateinit var getDestinationsUseCase: GetDestinationsUseCase
+    
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
 
     override fun getViewBinding(): ActivityBrowseBinding {
         return ActivityBrowseBinding.inflate(layoutInflater)
@@ -90,6 +95,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
         binding.btnToggleView.setOnClickListener {
             viewModel.toggleDisplayMode()
+        }
+        
+        binding.btnSelectAll.setOnClickListener {
+            viewModel.selectAll()
+        }
+        
+        binding.btnDeselectAll.setOnClickListener {
+            viewModel.clearSelection()
         }
 
         binding.btnCopy.setOnClickListener {
@@ -233,9 +246,29 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     private fun updateDisplayMode(mode: DisplayMode) {
-        binding.rvMediaFiles.layoutManager = when (mode) {
-            DisplayMode.LIST -> LinearLayoutManager(this)
-            DisplayMode.GRID -> GridLayoutManager(this, 3)
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val iconSize = settings.defaultIconSize
+            
+            // Update adapter mode
+            mediaFileAdapter.setGridMode(
+                enabled = mode == DisplayMode.GRID,
+                iconSize = iconSize
+            )
+            
+            // Update toggle button icon
+            binding.btnToggleView.setImageResource(
+                when (mode) {
+                    DisplayMode.LIST -> R.drawable.ic_view_grid // Show grid icon when in list mode
+                    DisplayMode.GRID -> R.drawable.ic_view_list // Show list icon when in grid mode
+                }
+            )
+            
+            // Update layout manager
+            binding.rvMediaFiles.layoutManager = when (mode) {
+                DisplayMode.LIST -> LinearLayoutManager(this@BrowseActivity)
+                DisplayMode.GRID -> GridLayoutManager(this@BrowseActivity, 3)
+            }
         }
     }
 
@@ -338,7 +371,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private fun showSortDialog() {
         val sortModes = SortMode.values()
-        val items = sortModes.map { it.name }.toTypedArray()
+        val items = sortModes.map { getSortModeName(it) }.toTypedArray()
         val currentIndex = sortModes.indexOf(viewModel.state.value.sortMode)
 
         AlertDialog.Builder(this)
@@ -349,6 +382,20 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+    
+    private fun getSortModeName(mode: SortMode): String {
+        return when (mode) {
+            SortMode.MANUAL -> "Manual Order"
+            SortMode.NAME_ASC -> "Name (A-Z)"
+            SortMode.NAME_DESC -> "Name (Z-A)"
+            SortMode.DATE_ASC -> "Date (Old first)"
+            SortMode.DATE_DESC -> "Date (New first)"
+            SortMode.SIZE_ASC -> "Size (Small first)"
+            SortMode.SIZE_DESC -> "Size (Large first)"
+            SortMode.TYPE_ASC -> "Type (A-Z)"
+            SortMode.TYPE_DESC -> "Type (Z-A)"
+        }
     }
 
     private fun showDeleteConfirmation() {

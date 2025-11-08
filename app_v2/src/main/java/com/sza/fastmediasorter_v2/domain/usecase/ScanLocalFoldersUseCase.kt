@@ -6,6 +6,7 @@ import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -16,23 +17,36 @@ import javax.inject.Inject
 
 class ScanLocalFoldersUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val mediaScanner: MediaScanner,
-    private val repository: ResourceRepository
+    private val mediaScannerFactory: MediaScannerFactory,
+    private val repository: ResourceRepository,
+    private val settingsRepository: SettingsRepository
 ) {
     suspend operator fun invoke(): Result<List<MediaResource>> = withContext(Dispatchers.IO) {
         try {
             val existingResources = repository.getAllResources().first()
             val existingPaths = existingResources.map { it.path }.toSet()
             
+            // Get current settings for default values
+            val settings = settingsRepository.getSettings().first()
+            
+            // Determine supported media types from settings
+            val supportedMediaTypes = mutableSetOf<MediaType>()
+            if (settings.supportImages) supportedMediaTypes.add(MediaType.IMAGE)
+            if (settings.supportVideos) supportedMediaTypes.add(MediaType.VIDEO)
+            if (settings.supportAudio) supportedMediaTypes.add(MediaType.AUDIO)
+            if (settings.supportGifs) supportedMediaTypes.add(MediaType.GIF)
+            
             val resources = mutableListOf<MediaResource>()
             val predefinedFolders = getPredefinedFolders()
+            
+            val mediaScanner = mediaScannerFactory.getScanner(ResourceType.LOCAL)
             
             predefinedFolders.forEach { folder ->
                 if (folder.exists() && folder.absolutePath !in existingPaths) {
                     val fileCount = try {
                         mediaScanner.getFileCount(
                             folder.absolutePath,
-                            MediaType.entries.toSet()
+                            supportedMediaTypes
                         )
                     } catch (e: Exception) {
                         Timber.e(e, "Error counting files in ${folder.absolutePath}")
@@ -52,13 +66,13 @@ class ScanLocalFoldersUseCase @Inject constructor(
                             name = folder.name,
                             path = folder.absolutePath,
                             type = ResourceType.LOCAL,
-                            supportedMediaTypes = MediaType.entries.toSet(),
+                            supportedMediaTypes = supportedMediaTypes,
                             createdDate = System.currentTimeMillis(),
                             fileCount = fileCount,
                             isDestination = false,
                             destinationOrder = null,
                             isWritable = isWritable,
-                            slideshowInterval = 5
+                            slideshowInterval = settings.slideshowInterval
                         )
                     )
                 }

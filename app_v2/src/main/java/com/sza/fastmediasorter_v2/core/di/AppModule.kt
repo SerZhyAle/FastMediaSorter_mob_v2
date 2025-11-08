@@ -65,7 +65,6 @@ object AppModule {
 @InstallIn(SingletonComponent::class)
 abstract class ScannerModule {
     
-    @Binds
-    @Singleton
-    abstract fun bindMediaScanner(impl: LocalMediaScanner): MediaScanner
+    // LocalMediaScanner and SmbMediaScanner will be automatically provided via @Inject constructor
+    // MediaScannerFactory will handle scanner selection based on resource type
 }

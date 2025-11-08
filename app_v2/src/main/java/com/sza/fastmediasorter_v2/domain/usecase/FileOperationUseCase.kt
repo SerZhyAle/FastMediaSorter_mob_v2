@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter_v2.domain.usecase
 
+import com.sza.fastmediasorter_v2.data.network.SmbFileOperationHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -28,17 +29,43 @@ data class OperationHistory(
     val timestamp: Long = System.currentTimeMillis()
 )
 
-class FileOperationUseCase @Inject constructor() {
+class FileOperationUseCase @Inject constructor(
+    private val smbFileOperationHandler: SmbFileOperationHandler
+) {
     
     private var lastOperation: OperationHistory? = null
     
     suspend fun execute(operation: FileOperation): FileOperationResult = withContext(Dispatchers.IO) {
         try {
-            val result = when (operation) {
-                is FileOperation.Copy -> executeCopy(operation)
-                is FileOperation.Move -> executeMove(operation)
-                is FileOperation.Rename -> executeRename(operation)
-                is FileOperation.Delete -> executeDelete(operation)
+            // Check if operation involves SMB paths
+            val hasSmbPath = when (operation) {
+                is FileOperation.Copy -> operation.sources.any { it.absolutePath.startsWith("smb://") } ||
+                                        operation.destination.absolutePath.startsWith("smb://")
+                is FileOperation.Move -> operation.sources.any { it.absolutePath.startsWith("smb://") } ||
+                                        operation.destination.absolutePath.startsWith("smb://")
+                is FileOperation.Delete -> operation.files.any { it.absolutePath.startsWith("smb://") }
+                is FileOperation.Rename -> operation.file.absolutePath.startsWith("smb://")
+            }
+
+            val result = if (hasSmbPath) {
+                // Use SMB handler for operations involving SMB paths
+                when (operation) {
+                    is FileOperation.Copy -> smbFileOperationHandler.executeCopy(operation)
+                    is FileOperation.Move -> smbFileOperationHandler.executeMove(operation)
+                    is FileOperation.Delete -> smbFileOperationHandler.executeDelete(operation)
+                    is FileOperation.Rename -> {
+                        // Rename not supported for SMB yet
+                        FileOperationResult.Failure("Rename not supported for SMB resources")
+                    }
+                }
+            } else {
+                // Use local file operations
+                when (operation) {
+                    is FileOperation.Copy -> executeCopy(operation)
+                    is FileOperation.Move -> executeMove(operation)
+                    is FileOperation.Rename -> executeRename(operation)
+                    is FileOperation.Delete -> executeDelete(operation)
+                }
             }
             
             lastOperation = OperationHistory(operation, result)

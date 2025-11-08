@@ -2,6 +2,7 @@ package com.sza.fastmediasorter_v2.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter_v2.core.util.DestinationColors
 import com.sza.fastmediasorter_v2.domain.model.AppSettings
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
@@ -119,11 +120,13 @@ class SettingsViewModel @Inject constructor(
                     return@launch
                 }
                 
+                val color = DestinationColors.getColorForDestination(nextOrder)
                 updateResourceUseCase(resource.copy(
                     isDestination = true,
-                    destinationOrder = nextOrder
+                    destinationOrder = nextOrder,
+                    destinationColor = color
                 ))
-                Timber.d("Destination added successfully with order $nextOrder")
+                Timber.d("Destination added successfully with order $nextOrder and color $color")
             } catch (e: Exception) {
                 Timber.e(e, "Error adding destination")
             }

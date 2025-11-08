@@ -8,6 +8,7 @@ import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -18,7 +19,14 @@ import javax.inject.Inject
 data class EditResourceState(
     val originalResource: MediaResource? = null,
     val currentResource: MediaResource? = null,
-    val hasChanges: Boolean = false
+    val hasChanges: Boolean = false,
+    val smbServer: String = "",
+    val smbShareName: String = "",
+    val smbUsername: String = "",
+    val smbPassword: String = "",
+    val smbDomain: String = "",
+    val smbPort: Int = 445,
+    val hasSmbCredentialsChanges: Boolean = false
 )
 
 sealed class EditResourceEvent {
@@ -33,6 +41,7 @@ class EditResourceViewModel @Inject constructor(
     private val getResourcesUseCase: GetResourcesUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val resourceRepository: ResourceRepository,
+    private val smbOperationsUseCase: SmbOperationsUseCase,
     savedStateHandle: SavedStateHandle,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<EditResourceState, EditResourceEvent>() {
@@ -65,7 +74,30 @@ class EditResourceViewModel @Inject constructor(
                 ) 
             }
             
+            // Load SMB credentials if resource is SMB type
+            if (resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB && resource.credentialsId != null) {
+                loadSmbCredentials(resource.credentialsId!!)
+            }
+            
             setLoading(false)
+        }
+    }
+    
+    private suspend fun loadSmbCredentials(credentialsId: String) {
+        smbOperationsUseCase.getConnectionInfo(credentialsId).onSuccess { connectionInfo ->
+            Timber.d("Loaded SMB credentials for resource")
+            updateState { state ->
+                state.copy(
+                    smbServer = connectionInfo.server,
+                    smbShareName = connectionInfo.shareName,
+                    smbUsername = connectionInfo.username,
+                    smbPassword = connectionInfo.password,
+                    smbDomain = connectionInfo.domain,
+                    smbPort = connectionInfo.port
+                )
+            }
+        }.onFailure { e ->
+            Timber.e(e, "Failed to load SMB credentials")
         }
     }
 
@@ -92,6 +124,31 @@ class EditResourceViewModel @Inject constructor(
         val updated = current.copy(isDestination = isDestination)
         updateCurrentResource(updated)
     }
+    
+    // SMB Credentials updates
+    fun updateSmbServer(server: String) {
+        updateState { it.copy(smbServer = server, hasSmbCredentialsChanges = true) }
+    }
+    
+    fun updateSmbShareName(shareName: String) {
+        updateState { it.copy(smbShareName = shareName, hasSmbCredentialsChanges = true) }
+    }
+    
+    fun updateSmbUsername(username: String) {
+        updateState { it.copy(smbUsername = username, hasSmbCredentialsChanges = true) }
+    }
+    
+    fun updateSmbPassword(password: String) {
+        updateState { it.copy(smbPassword = password, hasSmbCredentialsChanges = true) }
+    }
+    
+    fun updateSmbDomain(domain: String) {
+        updateState { it.copy(smbDomain = domain, hasSmbCredentialsChanges = true) }
+    }
+    
+    fun updateSmbPort(port: Int) {
+        updateState { it.copy(smbPort = port, hasSmbCredentialsChanges = true) }
+    }
 
     private fun updateCurrentResource(updated: MediaResource) {
         val original = state.value.originalResource ?: return
@@ -117,6 +174,7 @@ class EditResourceViewModel @Inject constructor(
 
     fun saveChanges() {
         val current = state.value.currentResource ?: return
+        val currentState = state.value
         
         if (current.name.isBlank()) {
             sendEvent(EditResourceEvent.ShowError("Resource name cannot be empty"))
@@ -131,15 +189,45 @@ class EditResourceViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
-            updateResourceUseCase(current).onSuccess {
-                Timber.d("Resource updated: ${current.name}")
+            var updatedResource = current
+            
+            // Save SMB credentials if changed and resource is SMB
+            if (current.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB && currentState.hasSmbCredentialsChanges) {
+                if (currentState.smbServer.isBlank() || currentState.smbShareName.isBlank()) {
+                    sendEvent(EditResourceEvent.ShowError("Server and Share Name are required for SMB resources"))
+                    setLoading(false)
+                    return@launch
+                }
+                
+                // Save new credentials
+                smbOperationsUseCase.saveCredentials(
+                    server = currentState.smbServer,
+                    shareName = currentState.smbShareName,
+                    username = currentState.smbUsername,
+                    password = currentState.smbPassword,
+                    domain = currentState.smbDomain,
+                    port = currentState.smbPort
+                ).onSuccess { newCredentialsId ->
+                    Timber.d("Saved new SMB credentials: $newCredentialsId")
+                    updatedResource = current.copy(credentialsId = newCredentialsId)
+                }.onFailure { e ->
+                    Timber.e(e, "Failed to save SMB credentials")
+                    sendEvent(EditResourceEvent.ShowError("Failed to save SMB credentials: ${e.message}"))
+                    setLoading(false)
+                    return@launch
+                }
+            }
+            
+            updateResourceUseCase(updatedResource).onSuccess {
+                Timber.d("Resource updated: ${updatedResource.name}")
                 sendEvent(EditResourceEvent.ResourceUpdated)
                 
                 // Update original to prevent hasChanges flag after save
                 updateState { 
                     it.copy(
-                        originalResource = current,
-                        hasChanges = false
+                        originalResource = updatedResource,
+                        hasChanges = false,
+                        hasSmbCredentialsChanges = false
                     ) 
                 }
             }.onFailure { e ->

@@ -17,7 +17,7 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11072224
+        versionCode = 11080301
         versionName = "2.0.0-build2511072224"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -92,8 +92,8 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("androidx.viewpager2:viewpager2:1.0.0")
     
-    // Material Design 2
-    implementation("com.google.android.material:material:1.11.0")
+    // Material Design 3
+    implementation("com.google.android.material:material:1.12.0")
     
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")

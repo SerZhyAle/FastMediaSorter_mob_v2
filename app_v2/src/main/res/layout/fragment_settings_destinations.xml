@@ -81,25 +81,6 @@
                 android:layout_marginBottom="4dp"/>
         </LinearLayout>
 
-        <!-- Destinations Header -->
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/destinations_list"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"/>
-
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/destinations_description"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textSize="14sp"
-            android:layout_marginBottom="16dp"/>
-
         <!-- Add Destination Button (before list) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddDestination"
