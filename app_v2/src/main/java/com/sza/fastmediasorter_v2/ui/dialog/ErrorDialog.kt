@@ -45,7 +45,7 @@ object ErrorDialog {
         AlertDialog.Builder(context)
             .setTitle(title)
             .setView(dialogView)
-            .setPositiveButton(R.string.copy_to_clipboard) { _, _ ->
+            .setNeutralButton(R.string.copy_to_clipboard) { _, _ ->
                 copyToClipboard(context, fullMessage)
             }
             .setNegativeButton(R.string.close, null)

@@ -69,6 +69,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 }
                 startActivity(intent)
             },
+            onCopyFromClick = { resource ->
+                viewModel.selectResource(resource)
+                viewModel.copySelectedResource()
+            },
             onDeleteClick = { resource ->
                 showDeleteConfirmation(resource)
             },
@@ -171,12 +175,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         is MainEvent.NavigateToBrowse -> {
                             startActivity(BrowseActivity.createIntent(this@MainActivity, event.resourceId))
                         }
+                        is MainEvent.NavigateToEditResource -> {
+                            val intent = Intent(this@MainActivity, EditResourceActivity::class.java).apply {
+                                putExtra("resourceId", event.resourceId)
+                            }
+                            startActivity(intent)
+                        }
                         is MainEvent.NavigateToAddResource -> {
                             startActivity(Intent(this@MainActivity, AddResourceActivity::class.java))
                         }
                         MainEvent.NavigateToSettings -> {
-                            // TODO: Навигация к Settings экрану
-                            Timber.d("Navigate to settings")
+                            startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
                         }
                     }
                 }

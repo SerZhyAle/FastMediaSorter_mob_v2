@@ -16,6 +16,7 @@ class ResourceAdapter(
     private val onItemDoubleClick: (MediaResource) -> Unit,
     private val onItemLongClick: (MediaResource) -> Unit,
     private val onEditClick: (MediaResource) -> Unit,
+    private val onCopyFromClick: (MediaResource) -> Unit,
     private val onDeleteClick: (MediaResource) -> Unit,
     private val onMoveUpClick: (MediaResource) -> Unit,
     private val onMoveDownClick: (MediaResource) -> Unit
@@ -103,6 +104,10 @@ class ResourceAdapter(
                 
                 btnEdit.setOnClickListener {
                     onEditClick(resource)
+                }
+                
+                btnCopyFrom.setOnClickListener {
+                    onCopyFromClick(resource)
                 }
                 
                 btnDelete.setOnClickListener {

@@ -53,9 +53,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var exoPlayer: ExoPlayer? = null
     private val slideShowHandler = Handler(Looper.getMainLooper())
     private val hideControlsHandler = Handler(Looper.getMainLooper())
+    private val loadingIndicatorHandler = Handler(Looper.getMainLooper())
+    private val countdownHandler = Handler(Looper.getMainLooper())
     private lateinit var gestureDetector: GestureDetector
     private val touchZoneDetector = TouchZoneDetector()
     private var useTouchZones = true // Use touch zones for images, gestures for video
+    private var countdownSeconds = 3 // Current countdown value
 
     // Injected dependencies for network playback
     @Inject
@@ -82,6 +85,75 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
+    private val showLoadingIndicatorRunnable = Runnable {
+        binding.progressBar.isVisible = true
+    }
+
+    private val countdownRunnable = object : Runnable {
+        override fun run() {
+            if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
+                if (countdownSeconds > 0) {
+                    binding.tvCountdown.text = "$countdownSeconds.."
+                    binding.tvCountdown.isVisible = true
+                    countdownSeconds--
+                    countdownHandler.postDelayed(this, 1000)
+                } else {
+                    binding.tvCountdown.isVisible = false
+                }
+            }
+        }
+    }
+
+    /**
+     * ExoPlayer listener for video/audio playback events
+     * Handles: STATE_READY (hide loading indicator), STATE_ENDED (auto-advance in slideshow)
+     */
+    private val exoPlayerListener = object : androidx.media3.common.Player.Listener {
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            val stateName = when (playbackState) {
+                androidx.media3.common.Player.STATE_IDLE -> "IDLE"
+                androidx.media3.common.Player.STATE_BUFFERING -> "BUFFERING"
+                androidx.media3.common.Player.STATE_READY -> "READY"
+                androidx.media3.common.Player.STATE_ENDED -> "ENDED"
+                else -> "UNKNOWN($playbackState)"
+            }
+            Timber.d("PlayerActivity.exoPlayerListener: onPlaybackStateChanged - state=$stateName")
+            
+            when (playbackState) {
+                androidx.media3.common.Player.STATE_READY -> {
+                    // Video is ready to play - cancel and hide loading indicator
+                    Timber.i("PlayerActivity.exoPlayerListener: Video READY - hiding loading indicator")
+                    loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                    binding.progressBar.isVisible = false
+                }
+                androidx.media3.common.Player.STATE_ENDED -> {
+                    Timber.d("PlayerActivity.exoPlayerListener: Playback ENDED")
+                    // Video/audio finished playing
+                    if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
+                        // Auto-advance to next file in slideshow mode
+                        Timber.d("PlayerActivity.exoPlayerListener: Slideshow active - advancing to next file")
+                        viewModel.nextFile()
+                    }
+                }
+                androidx.media3.common.Player.STATE_BUFFERING -> {
+                    Timber.d("PlayerActivity.exoPlayerListener: Video BUFFERING")
+                }
+            }
+        }
+        
+        override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+            Timber.e("PlayerActivity.exoPlayerListener: onPlayerError - errorCode=${error.errorCode}, message=${error.message}")
+            Timber.e("PlayerActivity.exoPlayerListener: Error cause: ${error.cause}")
+            Timber.e("PlayerActivity.exoPlayerListener: Stack trace: ${error.stackTraceToString()}")
+            
+            // Cancel and hide loading indicator on error
+            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+            binding.progressBar.isVisible = false
+            
+            showError("Playback error: ${error.message}", error.cause)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
     }
@@ -101,12 +173,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private fun setupGestureDetector() {
         gestureDetector = GestureDetector(this, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                // For static images, use touch zones instead of toggling controls
                 val currentFile = viewModel.state.value.currentFile
-                if (currentFile?.type == MediaType.IMAGE && useTouchZones) {
+                val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+                
+                Timber.d("PlayerActivity.onSingleTapConfirmed: tap at (${e.x}, ${e.y}), fullscreen=$isInFullscreenMode, useTouchZones=$useTouchZones, fileType=${currentFile?.type}")
+                
+                // In fullscreen mode, use touch zones for both images and videos
+                if (isInFullscreenMode && useTouchZones) {
+                    Timber.d("PlayerActivity.onSingleTapConfirmed: Calling handleTouchZone()")
                     handleTouchZone(e.x, e.y)
-                } else {
-                    // For video and audio, toggle controls on single tap
+                } else if (currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO) {
+                    // For video/audio in command panel mode, toggle controls
+                    Timber.d("PlayerActivity.onSingleTapConfirmed: Video in command panel mode - toggling controls")
                     viewModel.toggleControls()
                     scheduleHideControls()
                 }
@@ -164,8 +242,44 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         })
 
         binding.root.setOnTouchListener { _, event ->
+            // For video in fullscreen, allow touches in bottom 25% to pass through to PlayerView
+            val currentFile = viewModel.state.value.currentFile
+            val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+            val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+            
+            if (isVideo && isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
+                val screenHeight = binding.root.height
+                val effectiveHeight = (screenHeight * 0.75f).toInt()
+                
+                // If touch is in bottom 25%, don't consume the event - let it pass to PlayerView
+                if (event.y > effectiveHeight) {
+                    return@setOnTouchListener false
+                }
+            }
+            
+            // Let gesture detector handle the event
+            // For images and upper area of video, consume the event (return true)
             gestureDetector.onTouchEvent(event)
             true
+        }
+        
+        // Set touch listener on PlayerView to intercept touches before PlayerView handles them
+        binding.playerView.setOnTouchListener { _, event ->
+            val currentFile = viewModel.state.value.currentFile
+            val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+            val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+            
+            Timber.d("PlayerActivity.playerView.onTouch: event=${event.action}, fullscreen=$isInFullscreenMode, video=$isVideo, useTouchZones=$useTouchZones")
+            
+            // In fullscreen mode with touch zones enabled, let our gesture detector handle it
+            if (isInFullscreenMode && useTouchZones) {
+                Timber.d("PlayerActivity.playerView.onTouch: Delegating to gesture detector")
+                gestureDetector.onTouchEvent(event)
+                return@setOnTouchListener true // Consume event to prevent PlayerView from handling it
+            }
+            
+            // Otherwise, let PlayerView handle its own touches (controls)
+            false
         }
     }
     
@@ -178,6 +292,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val screenWidth = binding.root.width
         val screenHeight = binding.root.height
         
+        Timber.d("PlayerActivity.handleTouchZone: x=$x, y=$y, screenSize=${screenWidth}x${screenHeight}, fileType=${currentFile?.type}")
+        
         // For video, limit touch zones to upper 75% to leave space for ExoPlayer controls
         val effectiveHeight = if (currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO) {
             (screenHeight * 0.75f).toInt()
@@ -185,12 +301,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             screenHeight
         }
         
+        Timber.d("PlayerActivity.handleTouchZone: effectiveHeight=$effectiveHeight (75% for video)")
+        
         // If touch is below effective height (in bottom 25% for video), ignore
         if (y > effectiveHeight) {
+            Timber.d("PlayerActivity.handleTouchZone: Touch in bottom 25% - ignored")
             return
         }
         
         val zone = touchZoneDetector.detectZone(x, y, screenWidth, effectiveHeight)
+        Timber.d("PlayerActivity.handleTouchZone: Detected zone=$zone")
+        
+        // Stop slideshow on any touch zone except NEXT and SLIDESHOW (toggle handled separately)
+        if (zone != TouchZone.NEXT && zone != TouchZone.SLIDESHOW && zone != TouchZone.NONE) {
+            if (viewModel.state.value.isSlideShowActive) {
+                viewModel.toggleSlideShow()
+                updateSlideShow()
+            }
+        }
         
         when (zone) {
             TouchZone.BACK -> {
@@ -209,6 +337,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 showMoveDialog()
             }
             TouchZone.NEXT -> {
+                // Reset slideshow timer but keep slideshow running
+                if (viewModel.state.value.isSlideShowActive) {
+                    updateSlideShow()
+                }
                 viewModel.nextFile()
             }
             TouchZone.COMMAND_PANEL -> {
@@ -218,7 +350,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 deleteCurrentFile()
             }
             TouchZone.SLIDESHOW -> {
+                val wasActive = viewModel.state.value.isSlideShowActive
                 viewModel.toggleSlideShow()
+                
+                // Show popup when enabling slideshow
+                if (!wasActive && viewModel.state.value.isSlideShowActive) {
+                    showSlideshowEnabledMessage()
+                }
+                
                 updateSlideShowButton()
                 updateSlideShow()
             }
@@ -232,9 +371,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resourceId = intent.getLongExtra("resourceId", -1)
         
+        val sourceFile = File(currentFile.path)
+        Timber.d("PlayerActivity.showCopyDialog: currentFile.path=${currentFile.path}")
+        Timber.d("PlayerActivity.showCopyDialog: sourceFile.path=${sourceFile.path}")
+        Timber.d("PlayerActivity.showCopyDialog: sourceFile.absolutePath=${sourceFile.absolutePath}")
+        
         CopyToDialog(
             context = this,
-            sourceFiles = listOf(File(currentFile.path)),
+            sourceFiles = listOf(sourceFile),
             sourceFolderName = "Current folder", // TODO: Get actual resource name
             currentResourceId = resourceId,
             fileOperationUseCase = viewModel.fileOperationUseCase,
@@ -268,15 +412,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     private fun showRenameDialog() {
         val currentFile = viewModel.state.value.currentFile ?: return
+        val resource = viewModel.state.value.resource
         
         RenameDialog(
             context = this,
+            lifecycleOwner = this,
             files = listOf(File(currentFile.path)),
-            sourceFolderName = "Current folder", // TODO: Get actual resource name
+            sourceFolderName = resource?.name ?: "Current folder",
             fileOperationUseCase = viewModel.fileOperationUseCase,
             onComplete = {
-                // Refresh current file display
-                // TODO: Reload file list to reflect new name
+                // File list will be reloaded in BrowseActivity.onResume()
+                // No need to refresh here
             }
         ).show()
     }
@@ -308,7 +454,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
 
         binding.btnSlideShow.setOnClickListener {
+            val wasActive = viewModel.state.value.isSlideShowActive
             viewModel.toggleSlideShow()
+            
+            // Show popup when enabling slideshow
+            if (!wasActive && viewModel.state.value.isSlideShowActive) {
+                showSlideshowEnabledMessage()
+            }
+            
             updateSlideShowButton()
             updateSlideShow()
             scheduleHideControls()
@@ -342,7 +495,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
 
         binding.btnSlideshowCmd.setOnClickListener {
+            val wasActive = viewModel.state.value.isSlideShowActive
             viewModel.toggleSlideShow()
+            
+            // Show popup when enabling slideshow
+            if (!wasActive && viewModel.state.value.isSlideShowActive) {
+                showSlideshowEnabledMessage()
+            }
+            
             updateSlideShowButton()
             updateSlideShow()
         }
@@ -418,6 +578,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun updateUI(state: PlayerViewModel.PlayerState) {
+        Timber.d("PlayerActivity.updateUI: START - currentFile=${state.currentFile?.name}, type=${state.currentFile?.type}")
         state.currentFile?.let { file ->
             binding.toolbar.title = "${state.currentIndex + 1}/${state.files.size} - ${file.name}"
             binding.btnPrevious.isEnabled = state.hasPrevious
@@ -426,10 +587,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             binding.btnNextCmd.isEnabled = state.hasNext
 
             val isVideo = file.type == MediaType.VIDEO || file.type == MediaType.AUDIO
+            Timber.d("PlayerActivity.updateUI: isVideo=$isVideo, file.type=${file.type}")
             
             when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> displayImage(file.path)
-                MediaType.VIDEO, MediaType.AUDIO -> playVideo(file.path)
+                MediaType.IMAGE, MediaType.GIF -> {
+                    Timber.d("PlayerActivity.updateUI: Calling displayImage()")
+                    displayImage(file.path)
+                }
+                MediaType.VIDEO, MediaType.AUDIO -> {
+                    Timber.d("PlayerActivity.updateUI: Calling playVideo()")
+                    playVideo(file.path)
+                }
             }
             
             // Adjust touch zones for video
@@ -438,6 +606,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         // Update visibility based on showCommandPanel flag
         updatePanelVisibility(state.showCommandPanel)
+        
+        // Update command availability based on settings and permissions
+        updateCommandAvailability(state)
 
         // Controls overlay is only visible in fullscreen mode and when showControls is true
         binding.controlsOverlay.isVisible = !state.showCommandPanel && state.showControls
@@ -453,12 +624,31 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
             binding.touchZonesOverlay.isVisible = true
-            binding.copyToPanel.isVisible = true
-            binding.moveToPanel.isVisible = true
+            // Copy/Move panel visibility is controlled by updateCommandAvailability()
             binding.controlsOverlay.isVisible = false
             
             // Populate destination buttons
             populateDestinationButtons()
+
+            // Apply small controls setting if enabled
+            val state = viewModel.state.value
+            if (state.showSmallControls) {
+                // Reduce button heights to 50%
+                val buttons = listOf(
+                    binding.btnBack,
+                    binding.btnPreviousCmd,
+                    binding.btnNextCmd,
+                    binding.btnRenameCmd,
+                    binding.btnDeleteCmd,
+                    binding.btnUndoCmd,
+                    binding.btnSlideshowCmd
+                )
+                buttons.forEach { button ->
+                    val params = button.layoutParams
+                    params.height = (params.height * 0.5f).toInt()
+                    button.layoutParams = params
+                }
+            }
         } else {
             // Fullscreen mode
             binding.topCommandPanel.isVisible = false
@@ -469,10 +659,37 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
+    /**
+     * Update command availability based on settings and file permissions
+     */
+    private fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
+        val currentFile = state.currentFile ?: return
+        val file = File(currentFile.path)
+        
+        // Check file permissions
+        val canWrite = file.canWrite()
+        val canRead = file.canRead()
+        
+        // Rename: requires write permission and allowRename setting
+        binding.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
+        
+        // Delete: requires write permission on parent directory and allowDelete setting
+        val parentDir = file.parentFile
+        val canDeleteFile = parentDir?.canWrite() == true && canRead
+        binding.btnDeleteCmd.isEnabled = canDeleteFile && state.allowDelete
+        
+        // Copy/Move panels visibility based on settings
+        binding.copyToPanel.isVisible = state.showCommandPanel && state.enableCopying
+        binding.moveToPanel.isVisible = state.showCommandPanel && state.enableMoving
+    }
+
     private fun displayImage(path: String) {
         releasePlayer()
         binding.playerView.isVisible = false
         binding.imageView.isVisible = true
+
+        // Schedule loading indicator to show after 1 second
+        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
 
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
@@ -491,14 +708,25 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 .data(networkData)
                 .target(binding.imageView)
                 .listener(
+                    onStart = {
+                        // Loading started - indicator will show after 1 second if still loading
+                    },
                     onSuccess = { _, _ ->
+                        // Cancel and hide loading indicator
+                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                        binding.progressBar.isVisible = false
+                        
                         Timber.d("PlayerActivity: Network image loaded successfully")
                         // Preload next image in background (if it's an image)
                         preloadNextImageIfNeeded()
                     },
                     onError = { _, result ->
+                        // Cancel and hide loading indicator
+                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                        binding.progressBar.isVisible = false
+                        
                         Timber.e(result.throwable, "PlayerActivity: Failed to load network image")
-                        Toast.makeText(this, "Failed to load image: ${result.throwable.message}", Toast.LENGTH_SHORT).show()
+                        showError("Failed to load image: ${result.throwable.message}", result.throwable)
                     }
                 )
                 .build()
@@ -508,9 +736,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             // Local file - use standard File loading
             binding.imageView.load(File(path)) {
                 listener(
+                    onStart = {
+                        // Loading started - indicator will show after 1 second if still loading
+                    },
                     onSuccess = { _, _ ->
+                        // Cancel and hide loading indicator
+                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                        binding.progressBar.isVisible = false
+                        
                         // Preload next image for local files too
                         preloadNextImageIfNeeded()
+                    },
+                    onError = { _, _ ->
+                        // Cancel and hide loading indicator
+                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                        binding.progressBar.isVisible = false
                     }
                 )
             }
@@ -522,12 +762,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     /**
      * Preload next image in background for faster navigation
      * Only preloads if next file is IMAGE or GIF
+     * Supports circular navigation
      */
     private fun preloadNextImageIfNeeded() {
         val state = viewModel.state.value
-        if (!state.hasNext) return
+        if (state.files.size <= 1) return // Nothing to preload
         
-        val nextIndex = state.currentIndex + 1
+        // Calculate next index with circular wrap
+        val nextIndex = if (state.currentIndex >= state.files.size - 1) {
+            0 // Loop to first
+        } else {
+            state.currentIndex + 1
+        }
         val nextFile = state.files.getOrNull(nextIndex) ?: return
         
         // Only preload images and GIFs
@@ -573,39 +819,51 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun playVideo(path: String) {
+        Timber.d("PlayerActivity.playVideo: START - path=$path")
         binding.imageView.isVisible = false
         binding.playerView.isVisible = true
 
+        // Schedule loading indicator to show after 1 second
+        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
+
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
+        
+        Timber.d("PlayerActivity.playVideo: currentFile=$currentFile, resource=${resource?.name} (${resource?.type})")
         
         // Check if this is a network resource
         if (currentFile != null && resource != null &&
             (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP)) {
             
-            Timber.d("PlayerActivity: Loading network video: $path from ${resource.type}")
+            Timber.d("PlayerActivity.playVideo: Network resource detected - type=${resource.type}, credentialsId=${resource.credentialsId}")
             
             lifecycleScope.launch {
                 try {
                     val credentialsId = resource.credentialsId
                     if (credentialsId == null) {
-                        Toast.makeText(this@PlayerActivity, "No credentials found for resource", Toast.LENGTH_SHORT).show()
+                        Timber.e("PlayerActivity.playVideo: ERROR - No credentials found for resource")
+                        showError("No credentials found for resource")
                         return@launch
                     }
                     
                     // Get credentials from database
+                    Timber.d("PlayerActivity.playVideo: Fetching credentials for credentialsId=$credentialsId")
                     val credentials = credentialsRepository.getByCredentialId(credentialsId)
                     if (credentials == null) {
-                        Toast.makeText(this@PlayerActivity, "Credentials not found", Toast.LENGTH_SHORT).show()
+                        Timber.e("PlayerActivity.playVideo: ERROR - Credentials not found in database")
+                        showError("Credentials not found")
                         return@launch
                     }
+                    
+                    Timber.d("PlayerActivity.playVideo: Credentials loaded - server=${credentials.server}, share=${credentials.shareName}, user=${credentials.username}")
                     
                     // Release old player
                     releasePlayer()
                     
                     when (resource.type) {
                         ResourceType.SMB -> {
-                            // Create SMB connection info
+                            Timber.d("PlayerActivity.playVideo: Initializing SMB playback")
+                            Timber.d("PlayerActivity.playVideo: Creating SMB connection info")
                             val connectionInfo = SmbClient.SmbConnectionInfo(
                                 server = credentials.server,
                                 shareName = credentials.shareName ?: "",
@@ -615,24 +873,64 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                                 port = credentials.port
                             )
                             
+                            Timber.d("PlayerActivity.playVideo: Creating SmbDataSourceFactory")
                             // Create ExoPlayer with SmbDataSourceFactory
                             val dataSourceFactory = SmbDataSourceFactory(smbClient, connectionInfo)
+                            
+                            Timber.d("PlayerActivity.playVideo: Building ExoPlayer")
                             exoPlayer = ExoPlayer.Builder(this@PlayerActivity)
                                 .setMediaSourceFactory(
                                     DefaultMediaSourceFactory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
                                 )
                                 .build()
                             
+                            Timber.d("PlayerActivity.playVideo: Adding ExoPlayer listener")
+                            // Add listener for playback events (ready, ended)
+                            exoPlayer?.addListener(exoPlayerListener)
+                            
+                            Timber.d("PlayerActivity.playVideo: Setting player to PlayerView")
                             binding.playerView.player = exoPlayer
                             
-                            // Construct SMB URI
-                            val smbUri = Uri.parse("smb://${credentials.server}/${credentials.shareName}$path")
-                            val mediaItem = MediaItem.fromUri(smbUri)
-                            exoPlayer?.setMediaItem(mediaItem)
-                            exoPlayer?.prepare()
-                            exoPlayer?.playWhenReady = !viewModel.state.value.isPaused
+                            // Extract relative path from full SMB URI
+                            // Path comes in format: smb://192.168.1.100:445/shareName/relativePath/file.mp4
+                            // We need to extract: relativePath/file.mp4 (everything after shareName)
+                            val relativePath = if (path.startsWith("smb://")) {
+                                val uri = Uri.parse(path)
+                                val fullPath = uri.path ?: ""
+                                // Path is /shareName/relativePath/file.mp4
+                                // Remove leading slash and share name
+                                val pathWithoutLeadingSlash = fullPath.removePrefix("/")
+                                val sharePrefix = "${credentials.shareName}/"
+                                if (pathWithoutLeadingSlash.startsWith(sharePrefix)) {
+                                    pathWithoutLeadingSlash.substring(sharePrefix.length)
+                                } else {
+                                    // Fallback: just remove share name if present
+                                    pathWithoutLeadingSlash.removePrefix(credentials.shareName ?: "")
+                                }
+                            } else {
+                                // Already a relative path
+                                path.removePrefix("/")
+                            }
                             
-                            Timber.d("PlayerActivity: SMB video prepared: $smbUri")
+                            // Construct SMB URI with share name
+                            // relativePath should NOT start with /
+                            val cleanRelativePath = relativePath.removePrefix("/")
+                            val smbUri = Uri.parse("smb://${credentials.server}/${credentials.shareName}/$cleanRelativePath")
+                            Timber.d("PlayerActivity.playVideo: Constructed SMB URI: $smbUri")
+                            Timber.d("PlayerActivity.playVideo: Details - originalPath=$path, extractedRelativePath=$cleanRelativePath")
+                            
+                            val mediaItem = MediaItem.fromUri(smbUri)
+                            Timber.d("PlayerActivity.playVideo: Created MediaItem, calling setMediaItem()")
+                            exoPlayer?.setMediaItem(mediaItem)
+                            
+                            Timber.d("PlayerActivity.playVideo: Calling prepare()")
+                            exoPlayer?.prepare()
+                            
+                            val isPaused = viewModel.state.value.isPaused
+                            Timber.d("PlayerActivity.playVideo: Setting playWhenReady=${!isPaused}")
+                            exoPlayer?.playWhenReady = !isPaused
+                            
+                            Timber.i("PlayerActivity.playVideo: SMB video setup COMPLETE - URI=$smbUri, playWhenReady=${!isPaused}")
                         }
                         
                         ResourceType.SFTP -> {
@@ -650,6 +948,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                                     DefaultMediaSourceFactory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
                                 )
                                 .build()
+                            
+                            // Add listener for playback events (ready, ended)
+                            exoPlayer?.addListener(exoPlayerListener)
                             
                             binding.playerView.player = exoPlayer
                             
@@ -669,42 +970,63 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         }
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "PlayerActivity: Failed to play network video")
-                    Toast.makeText(this@PlayerActivity, "Failed to play video: ${e.message}", Toast.LENGTH_SHORT).show()
+                    // Cancel and hide loading indicator on error
+                    loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                    binding.progressBar.isVisible = false
+                    
+                    Timber.e(e, "PlayerActivity.playVideo: ERROR - Failed to play network video: ${e.message}")
+                    Timber.e("PlayerActivity.playVideo: Stack trace: ${e.stackTraceToString()}")
+                    showError("Failed to play video: ${e.message}", e)
                 }
             }
         } else {
             // Local file
+            Timber.d("PlayerActivity.playVideo: Playing local file")
             playLocalVideo(path)
         }
 
         slideShowHandler.removeCallbacks(slideShowRunnable)
+        Timber.d("PlayerActivity.playVideo: END")
     }
     
     private fun playLocalVideo(path: String) {
+        Timber.d("PlayerActivity.playLocalVideo: START - path=$path")
         if (exoPlayer == null) {
+            Timber.d("PlayerActivity.playLocalVideo: Creating new ExoPlayer")
             exoPlayer = ExoPlayer.Builder(this).build().also {
                 binding.playerView.player = it
+                
+                // Add listener for playback events (ready, ended)
+                it.addListener(exoPlayerListener)
             }
         }
 
+        Timber.d("PlayerActivity.playLocalVideo: Setting media item and preparing")
         exoPlayer?.apply {
             setMediaItem(MediaItem.fromUri(File(path).toURI().toString()))
             prepare()
             playWhenReady = !viewModel.state.value.isPaused
         }
+        Timber.d("PlayerActivity.playLocalVideo: END - playWhenReady=${!viewModel.state.value.isPaused}")
     }
 
     private fun updateSlideShow() {
         slideShowHandler.removeCallbacks(slideShowRunnable)
+        countdownHandler.removeCallbacks(countdownRunnable)
+        binding.tvCountdown.isVisible = false
+        
         if (viewModel.state.value.isSlideShowActive &&
             viewModel.state.value.currentFile?.type == MediaType.IMAGE &&
             !viewModel.state.value.isPaused
         ) {
-            slideShowHandler.postDelayed(
-                slideShowRunnable,
-                viewModel.state.value.slideShowInterval
-            )
+            val interval = viewModel.state.value.slideShowInterval
+            slideShowHandler.postDelayed(slideShowRunnable, interval)
+            
+            // Start countdown 3 seconds before file change
+            if (interval > 3000) {
+                countdownSeconds = 3
+                countdownHandler.postDelayed(countdownRunnable, interval - 3000)
+            }
         }
     }
 
@@ -747,7 +1069,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private fun handleEvent(event: PlayerViewModel.PlayerEvent) {
         when (event) {
             is PlayerViewModel.PlayerEvent.ShowError -> {
-                Toast.makeText(this, event.message, Toast.LENGTH_LONG).show()
+                showError(event.message)
             }
             is PlayerViewModel.PlayerEvent.ShowMessage -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
@@ -756,6 +1078,46 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 finish()
             }
         }
+    }
+
+    /**
+     * Show error message respecting showDetailedErrors setting
+     * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
+     * If showDetailedErrors=false: shows Toast (short notification)
+     */
+    private fun showError(message: String, throwable: Throwable? = null) {
+        lifecycleScope.launch {
+            val settings = viewModel.getSettings()
+            if (settings.showDetailedErrors) {
+                if (throwable != null) {
+                    // Use ErrorDialog with full stack trace
+                    com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                        context = this@PlayerActivity,
+                        title = getString(R.string.error),
+                        message = message,
+                        details = throwable.stackTraceToString()
+                    )
+                } else {
+                    // Use ErrorDialog without details
+                    com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                        context = this@PlayerActivity,
+                        title = getString(R.string.error),
+                        message = message
+                    )
+                }
+            } else {
+                Toast.makeText(this@PlayerActivity, message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /**
+     * Show popup message when slideshow is enabled
+     */
+    private fun showSlideshowEnabledMessage() {
+        val intervalSeconds = viewModel.state.value.slideShowInterval / 1000
+        val message = "Slideshow enabled with $intervalSeconds seconds interval"
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
     /**
@@ -799,23 +1161,35 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         isCopy: Boolean
     ): com.google.android.material.button.MaterialButton {
         return com.google.android.material.button.MaterialButton(this).apply {
-            text = destination.name
-            textSize = 10f
+            // Short name - take first 8 characters or first word
+            val shortName = when {
+                destination.name.length <= 10 -> destination.name
+                destination.name.contains(" ") -> destination.name.substringBefore(" ").take(10)
+                else -> destination.name.take(8) + ".."
+            }
+            text = shortName
+            
+            // Larger, readable text
+            textSize = 14f
             setTextColor(android.graphics.Color.WHITE)
             
             // Set button color from destination
             setBackgroundColor(destination.destinationColor)
             
-            // Calculate button size based on count
-            val buttonCount = binding.copyToButtonsGrid.childCount + 1
-            val columnsCount = if (buttonCount <= 5) buttonCount else 5
-            val buttonWidth = (resources.displayMetrics.widthPixels / columnsCount) - 8
+            // Square buttons with fixed size
+            val buttonSize = 120 // Square 120x120 dp
+            val density = resources.displayMetrics.density
+            val buttonSizePx = (buttonSize * density).toInt()
             
             layoutParams = android.widget.GridLayout.LayoutParams().apply {
-                width = buttonWidth
-                height = 80
-                setMargins(4, 4, 4, 4)
+                width = buttonSizePx
+                height = buttonSizePx
+                setMargins(8, 8, 8, 8)
             }
+            
+            // Center text and allow wrapping
+            gravity = android.view.Gravity.CENTER
+            maxLines = 2
             
             setOnClickListener {
                 if (isCopy) {
@@ -844,12 +1218,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         Toast.makeText(this@PlayerActivity, "File copied to ${destination.name}", Toast.LENGTH_SHORT).show()
                         // TODO: Check settings for goToNextAfterCopy
                     }
-                    else -> {
-                        Toast.makeText(this@PlayerActivity, "Copy failed", Toast.LENGTH_SHORT).show()
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.PartialSuccess -> {
+                        val message = buildString {
+                            append("Copied ${result.processedCount} files, but ${result.failedCount} failed.")
+                            if (result.errors.isNotEmpty()) {
+                                append("\n\nFirst error:\n${result.errors.first()}")
+                            }
+                        }
+                        showError(message)
+                    }
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Failure -> {
+                        showError("Copy failed: ${result.error}")
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@PlayerActivity, "Copy failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                showError("Copy failed: ${e.message}", e)
             }
         }
     }
@@ -871,12 +1254,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         Toast.makeText(this@PlayerActivity, "File moved to ${destination.name}", Toast.LENGTH_SHORT).show()
                         viewModel.nextFile() // Go to next file after move
                     }
-                    else -> {
-                        Toast.makeText(this@PlayerActivity, "Move failed", Toast.LENGTH_SHORT).show()
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.PartialSuccess -> {
+                        val message = buildString {
+                            append("Moved ${result.processedCount} files, but ${result.failedCount} failed.")
+                            if (result.errors.isNotEmpty()) {
+                                append("\n\nFirst error:\n${result.errors.first()}")
+                            }
+                        }
+                        showError(message)
+                    }
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Failure -> {
+                        showError("Move failed: ${result.error}")
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(this@PlayerActivity, "Move failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                showError("Move failed: ${e.message}", e)
             }
         }
     }
@@ -897,6 +1289,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         releasePlayer()
         slideShowHandler.removeCallbacks(slideShowRunnable)
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+        countdownHandler.removeCallbacks(countdownRunnable)
     }
 
     companion object {

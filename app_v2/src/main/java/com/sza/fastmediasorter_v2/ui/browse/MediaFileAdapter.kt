@@ -150,6 +150,24 @@ class MediaFileAdapter(
                 // Check if this is a network path (SMB/SFTP)
                 val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
                 
+                // For local files, check if file exists
+                if (!isNetworkPath) {
+                    val localFile = File(file.path)
+                    if (!localFile.exists()) {
+                        Timber.w("File no longer exists: ${file.path}")
+                        // Show error placeholder for deleted files
+                        when (file.type) {
+                            MediaType.IMAGE, MediaType.GIF -> setImageResource(R.drawable.ic_image_error)
+                            MediaType.VIDEO -> setImageResource(R.drawable.ic_video_error)
+                            MediaType.AUDIO -> {
+                                val extension = file.name.substringAfterLast('.', "").uppercase()
+                                setImageBitmap(createExtensionBitmap(extension))
+                            }
+                        }
+                        return
+                    }
+                }
+                
                 Timber.d("Loading thumbnail for: ${file.name}, isNetwork: $isNetworkPath, type: ${file.type}")
                 
                 when (file.type) {
@@ -307,6 +325,24 @@ class MediaFileAdapter(
             binding.ivThumbnail.apply {
                 // Check if this is a network path (SMB/SFTP)
                 val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
+                
+                // For local files, check if file exists
+                if (!isNetworkPath) {
+                    val localFile = File(file.path)
+                    if (!localFile.exists()) {
+                        Timber.w("File no longer exists: ${file.path}")
+                        // Show error placeholder for deleted files
+                        when (file.type) {
+                            MediaType.IMAGE, MediaType.GIF -> setImageResource(R.drawable.ic_image_error)
+                            MediaType.VIDEO -> setImageResource(R.drawable.ic_video_error)
+                            MediaType.AUDIO -> {
+                                val extension = file.name.substringAfterLast('.', "").uppercase()
+                                setImageBitmap(createExtensionBitmap(extension))
+                            }
+                        }
+                        return
+                    }
+                }
                 
                 when (file.type) {
                     MediaType.IMAGE, MediaType.GIF -> {

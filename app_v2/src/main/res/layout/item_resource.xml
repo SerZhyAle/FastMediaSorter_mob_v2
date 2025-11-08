@@ -99,38 +99,48 @@
 
         <ImageButton
             android:id="@+id/btnEdit"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Edit"
             android:src="@android:drawable/ic_menu_edit"
+            app:layout_constraintEnd_toStartOf="@+id/btnCopyFrom"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btnCopyFrom"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Copy from this source"
+            android:src="@android:drawable/ic_menu_upload"
             app:layout_constraintEnd_toStartOf="@+id/btnMoveUp"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
             android:id="@+id/btnMoveUp"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Move Up"
             android:src="@android:drawable/arrow_up_float"
-            app:layout_constraintEnd_toStartOf="@+id/btnMoveDown"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <ImageButton
-            android:id="@+id/btnMoveDown"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Move Down"
-            android:src="@android:drawable/arrow_down_float"
             app:layout_constraintEnd_toStartOf="@+id/btnDelete"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
+            android:id="@+id/btnMoveDown"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Move Down"
+            android:src="@android:drawable/arrow_down_float"
+            app:layout_constraintEnd_toStartOf="@+id/btnDelete"
+            app:layout_constraintTop_toBottomOf="@+id/btnMoveUp" />
+
+        <ImageButton
             android:id="@+id/btnDelete"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete"

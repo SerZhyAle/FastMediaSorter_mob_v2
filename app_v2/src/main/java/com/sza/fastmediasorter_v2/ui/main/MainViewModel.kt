@@ -7,6 +7,7 @@ import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.DeleteResourceUseCase
@@ -35,6 +36,7 @@ sealed class MainEvent {
     data class ShowError(val message: String) : MainEvent()
     data class ShowMessage(val message: String) : MainEvent()
     data class NavigateToBrowse(val resourceId: Long) : MainEvent()
+    data class NavigateToEditResource(val resourceId: Long) : MainEvent()
     object NavigateToAddResource : MainEvent()
     object NavigateToSettings : MainEvent()
 }
@@ -45,6 +47,7 @@ class MainViewModel @Inject constructor(
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val deleteResourceUseCase: DeleteResourceUseCase,
+    private val resourceRepository: ResourceRepository,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
@@ -59,55 +62,21 @@ class MainViewModel @Inject constructor(
     private fun loadResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
-            getResourcesUseCase()
-                .catch { e ->
-                    Timber.e(e, "Error loading resources")
-                    handleError(e)
-                }
-                .collect { resources ->
-                    updateState { it.copy(resources = applyFiltersAndSort(resources)) }
-                    setLoading(false)
-                }
-        }
-    }
-
-    private fun applyFiltersAndSort(resources: List<MediaResource>): List<MediaResource> {
-        var filtered = resources
-        
-        // Filter by resource type
-        state.value.filterByType?.let { types ->
-            filtered = filtered.filter { it.type in types }
-        }
-        
-        // Filter by supported media types
-        state.value.filterByMediaType?.let { mediaTypes ->
-            filtered = filtered.filter { resource ->
-                mediaTypes.any { mediaType ->
-                    resource.supportedMediaTypes.contains(mediaType)
-                }
+            try {
+                // Use DB-level filtering and sorting for better performance
+                val resources = getResourcesUseCase.getFiltered(
+                    filterByType = state.value.filterByType,
+                    filterByMediaType = state.value.filterByMediaType,
+                    filterByName = state.value.filterByName,
+                    sortMode = state.value.sortMode
+                )
+                updateState { it.copy(resources = resources) }
+            } catch (e: Exception) {
+                Timber.e(e, "Error loading resources")
+                handleError(e)
+            } finally {
+                setLoading(false)
             }
-        }
-        
-        // Filter by name substring
-        state.value.filterByName?.let { name ->
-            if (name.isNotBlank()) {
-                filtered = filtered.filter {
-                    it.name.contains(name, ignoreCase = true) ||
-                    it.path.contains(name, ignoreCase = true)
-                }
-            }
-        }
-        
-        // Sort
-        return when (state.value.sortMode) {
-            SortMode.MANUAL -> filtered.sortedBy { it.displayOrder }
-            SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
-            SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
-            SortMode.DATE_ASC -> filtered.sortedBy { it.createdDate }
-            SortMode.DATE_DESC -> filtered.sortedByDescending { it.createdDate }
-            SortMode.SIZE_ASC -> filtered.sortedBy { it.fileCount }
-            SortMode.SIZE_DESC -> filtered.sortedByDescending { it.fileCount }
-            else -> filtered
         }
     }
 
@@ -151,12 +120,8 @@ class MainViewModel @Inject constructor(
             if (currentIndex > 0) {
                 val previousResource = currentList[currentIndex - 1]
                 
-                // Swap display orders
-                val updatedResource = resource.copy(displayOrder = previousResource.displayOrder)
-                val updatedPrevious = previousResource.copy(displayOrder = resource.displayOrder)
-                
-                updateResourceUseCase(updatedResource)
-                updateResourceUseCase(updatedPrevious)
+                // Atomically swap display orders in single transaction
+                resourceRepository.swapResourceDisplayOrders(resource, previousResource)
                 
                 // Switch to manual sort mode to preserve user's ordering
                 updateState { it.copy(sortMode = SortMode.MANUAL) }
@@ -173,12 +138,8 @@ class MainViewModel @Inject constructor(
             if (currentIndex >= 0 && currentIndex < currentList.size - 1) {
                 val nextResource = currentList[currentIndex + 1]
                 
-                // Swap display orders
-                val updatedResource = resource.copy(displayOrder = nextResource.displayOrder)
-                val updatedNext = nextResource.copy(displayOrder = resource.displayOrder)
-                
-                updateResourceUseCase(updatedResource)
-                updateResourceUseCase(updatedNext)
+                // Atomically swap display orders in single transaction
+                resourceRepository.swapResourceDisplayOrders(resource, nextResource)
                 
                 // Switch to manual sort mode to preserve user's ordering
                 updateState { it.copy(sortMode = SortMode.MANUAL) }
@@ -225,9 +186,54 @@ class MainViewModel @Inject constructor(
             return
         }
         
-        // TODO: Открыть диалог/экран для редактирования копии ресурса
-        Timber.d("Copy resource: ${selected.name}")
-        sendEvent(MainEvent.ShowMessage("Resource copy not yet implemented"))
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            try {
+                // Create a copy with a new name
+                val copyName = generateCopyName(selected.name)
+                val copy = selected.copy(
+                    id = 0, // New resource will get a new ID
+                    name = copyName
+                )
+                
+                Timber.d("Copying resource: ${selected.name} -> $copyName")
+                val result = addResourceUseCase(copy)
+                
+                result.onSuccess { newResourceId ->
+                    Timber.d("Resource copied successfully with ID: $newResourceId")
+                    // Navigate to edit the copied resource
+                    sendEvent(MainEvent.NavigateToEditResource(newResourceId))
+                    loadResources()
+                }.onFailure { error ->
+                    Timber.e(error, "Failed to copy resource: ${selected.name}")
+                    sendEvent(MainEvent.ShowError("Failed to copy resource: ${error.message}"))
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to copy resource: ${selected.name}")
+                sendEvent(MainEvent.ShowError("Failed to copy resource: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
+     * Generate a unique copy name by appending " (copy)" or " (copy N)"
+     */
+    private fun generateCopyName(originalName: String): String {
+        val resources = state.value.resources
+        val existingNames = resources.map { it.name }.toSet()
+        
+        // Try "Name (copy)" first
+        var copyName = "$originalName (copy)"
+        if (!existingNames.contains(copyName)) {
+            return copyName
+        }
+        
+        // If it exists, try "Name (copy 2)", "Name (copy 3)", etc.
+        var counter = 2
+        while (existingNames.contains("$originalName (copy $counter)")) {
+            counter++
+        }
+        
+        return "$originalName (copy $counter)"
     }
     
     fun refreshResources() {

@@ -163,6 +163,146 @@ class SftpClient @Inject constructor() {
     }
 
     /**
+     * Download file from SFTP server to OutputStream
+     * @param remotePath Full path to remote file
+     * @param outputStream OutputStream to write downloaded data
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun downloadFile(
+        remotePath: String,
+        outputStream: java.io.OutputStream
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            Timber.d("SFTP downloading: $remotePath")
+            
+            val remoteFile = client.open(remotePath)
+            remoteFile.use { file ->
+                file.RemoteFileInputStream().use { inputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            
+            Timber.i("SFTP download success: $remotePath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP download failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP download error: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Upload file to SFTP server from InputStream
+     * @param remotePath Full path where file should be uploaded
+     * @param inputStream InputStream to read data from
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun uploadFile(
+        remotePath: String,
+        inputStream: java.io.InputStream
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            Timber.d("SFTP uploading: $remotePath")
+            
+            val remoteFile = client.open(remotePath, 
+                java.util.EnumSet.of(
+                    net.schmizz.sshj.sftp.OpenMode.WRITE,
+                    net.schmizz.sshj.sftp.OpenMode.CREAT,
+                    net.schmizz.sshj.sftp.OpenMode.TRUNC
+                )
+            )
+            
+            remoteFile.use { file ->
+                file.RemoteFileOutputStream().use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            
+            Timber.i("SFTP upload success: $remotePath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP upload failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP upload error: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Delete file on SFTP server
+     * @param remotePath Full path to file to delete
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun deleteFile(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            Timber.d("SFTP deleting: $remotePath")
+            client.rm(remotePath)
+            Timber.i("SFTP delete success: $remotePath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP delete failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP delete error: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Rename file on SFTP server
+     * @param oldPath Current file path
+     * @param newName New filename (without path)
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun renameFile(oldPath: String, newName: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            // Extract directory and construct new path
+            val directory = oldPath.substringBeforeLast('/', "")
+            val newPath = if (directory.isEmpty()) newName else "$directory/$newName"
+            
+            Timber.d("SFTP renaming: $oldPath → $newPath")
+            
+            // Check if target exists
+            try {
+                client.stat(newPath)
+                // If stat succeeds, file exists
+                return@withContext Result.failure(IOException("File '$newName' already exists"))
+            } catch (e: IOException) {
+                // File doesn't exist, proceed with rename
+            }
+            
+            client.rename(oldPath, newPath)
+            Timber.i("SFTP rename success: $newPath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP rename failed: $oldPath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP rename error: $oldPath")
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Disconnect from SFTP server and cleanup resources
      */
     suspend fun disconnect() = withContext(Dispatchers.IO) {

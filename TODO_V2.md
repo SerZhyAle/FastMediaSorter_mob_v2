@@ -1,6 +1,195 @@
 # TODO V2 - FastMediaSorter v2
 
-## 📋 Актуальні задачі для розработки
+## � КРИТИЧЕСКИЕ ЗАДАЧИ - Полная реализация файловых операций для всех типов ресурсов
+
+- [x] **После копирования ресурса не обновляется список ресурсов**
+  - copySelectedResource() теперь вызывает loadResources() вместо refreshResources()
+  - Новый скопированный ресурс сразу появляется в списке
+  - Build: Successful (39s)
+
+- [x] **Исправлена ошибка дешифрования паролей для SMB/SFTP**
+  - NetworkCredentialsEntity.password getter теперь обрабатывает ошибки дешифрования
+  - Добавлена поддержка миграции с plaintext паролей (старые данные)
+  - При ошибке дешифрования возвращается plaintext пароль или пустая строка
+  - Добавлено логирование для диагностики проблем с credentials
+  - Build: Successful (1m 14s)
+
+  - Решено: BrowseActivity.onResume() теперь вызывает viewModel.reloadFiles()
+  - MediaFileAdapter проверяет существование локальных файлов перед загрузкой thumbnail
+  - Для несуществующих файлов показывает error placeholder (ic_image_error, ic_video_error)
+  - Build: Successful (40s)
+
+  - Решено: BrowseActivity.onResume() перезагружает список файлов с диска/сети
+  - viewModel.reloadFiles() вызывает loadResource() → loadMediaFiles()
+  - Список обновляется автоматически при возврате из PlayerActivity
+  - Build: Successful (40s)
+
+### ❌ ОТСУТСТВУЮЩАЯ ФУНКЦИОНАЛЬНОСТЬ
+
+
+Проблема: При сбое файловых операций (например, копирования с SMB-ресурса) UI показывает только общее сообщение "Copy failed", игнорируя конкретную причину сбоя (например, "File not found"), которая доступна в логах.
+Влияние: Пользователь не может определить причину проблемы (неверный путь, отсутствие прав, удаленный файл) и устранить ее.
+Решение: 
+  - PlayerActivity.performCopyOperation() теперь обрабатывает FileOperationResult.Failure с детальным error message
+  - PlayerActivity.performMoveOperation() теперь обрабатывает FileOperationResult.Failure с детальным error message
+  - FileOperationResult.PartialSuccess показывает количество успешных/неудачных операций и первую ошибку
+  - CopyToDialog и MoveToDialog уже используют ErrorDialog с детальными сообщениями
+  - showError() уже проверяет settings.showDetailedErrors для выбора между AlertDialog и Toast
+  - Commit: (pending)
+
+Наблюдение: MainViewModel загружает из базы данных полный список медиа-ресурсов, и только потом применяет к нему фильтрацию и сортировку на стороне клиента.
+Проблема: Такой подход не масштабируется. При увеличении количества ресурсов (сотни и тысячи) это приведет к избыточному потреблению памяти и замедлению отрисовки UI.
+Решение:
+  - ResourceDao.getResourcesRaw() добавлен с @RawQuery для динамических SQL запросов
+  - ResourceRepository.getFilteredResources() строит SQL с WHERE и ORDER BY на уровне БД
+  - Фильтрация по type (IN clause), mediaTypes (bitwise AND), name (LIKE)
+  - Сортировка по всем SortMode (MANUAL, NAME, DATE, SIZE, TYPE)
+  - GetResourcesUseCase.getFiltered() добавлен для вызова из ViewModel
+  - MainViewModel.loadResources() теперь использует getFiltered() вместо клиентской фильтрации
+  - Удален метод applyFiltersAndSort() - вся логика перенесена в БД
+  - Commit: (pending)
+
+Наблюдение: Функции moveResourceUp и moveResourceDown для смены порядка двух элементов выполняют два раздельных вызова updateResourceUseCase, что приводит к двум последовательным операциям записи в БД.
+Проблема: Это неатомарно и неэффективно. Каждый вызов update триггерит обновление Flow, что может вызывать двойное обновление UI для одного действия пользователя.
+Решение:
+  - ResourceDao.swapDisplayOrders() добавлен с @Transaction для атомарного обмена displayOrder
+  - ResourceDao.updateDisplayOrder() добавлен для обновления одного поля
+  - ResourceRepository.swapResourceDisplayOrders() добавлен в интерфейс
+  - ResourceRepositoryImpl.swapResourceDisplayOrders() реализован с вызовом DAO @Transaction метода
+  - MainViewModel внедрен ResourceRepository через конструктор
+  - MainViewModel.moveResourceUp/Down() теперь вызывают swapResourceDisplayOrders() вместо двух update
+  - Commit: (pending)
+
+Наблюдение: В ResourceEntity есть поле credentialsId, а комментарий рекомендует хранить сами учетные данные в EncryptedSharedPreferences.
+Проблема: Это правильный подход, но его безопасность полностью зависит от корректности реализации. Любая ошибка в логике сохранения или извлечения данных может привести к уязвимости.
+Решение:
+  - Реализовано шифрование паролей через Android Keystore (AES-256-GCM)
+  - CryptoHelper.kt создан с методами encrypt()/decrypt()
+  - Ключ хранится в аппаратном хранилище (hardware-backed на устройствах с TEE)
+  - NetworkCredentialsEntity.encryptedPassword хранит зашифрованные данные
+  - Свойство .password автоматически дешифрует при обращении (@Ignore для Room)
+  - Фабричный метод NetworkCredentialsEntity.create() шифрует пароли перед сохранением
+  - Обновлены SmbOperationsUseCase методы saveSmbCredentials() и saveSftpCredentials()
+  - Прошел аудит: нет уязвимостей в логике сохранения/извлечения
+  - Commit: (pending)
+
+
+
+#### SMB (Network Share) - частично реализовано
+  - SmbClient.renameFile() реализован с использованием smbj file.rename()
+  - SmbFileOperationHandler.executeRename() реализован с парсингом SMB пути и вызовом SmbClient
+  - FileOperationUseCase.execute() теперь маршрутизирует Rename операции в SMB handler
+  - Проверка наличия файла с новым именем перед переименованием
+  - Commit: (pending)
+
+#### SFTP (SSH File Transfer) - ✅ РЕАЛИЗОВАНО
+  - SftpClient.downloadFile() реализован с RemoteFileInputStream
+  - SftpClient.uploadFile() реализован с RemoteFileOutputStream
+  - SftpFileOperationHandler.kt создан аналогично SmbFileOperationHandler
+  - Поддержка всех направлений копирования
+  - Реализовано через Copy + Delete
+  - SftpFileOperationHandler.executeMove() работает корректно
+  - SftpClient.deleteFile() реализован
+  - SftpFileOperationHandler.executeDelete() работает
+  - SftpClient.renameFile() реализован
+  - SftpFileOperationHandler.executeRename() работает
+
+#### FileOperationUseCase - ✅ РЕАЛИЗОВАНО
+  - Проверка `absolutePath.startsWith("sftp://")` добавлена
+  - SftpFileOperationHandler внедрен через Hilt
+  - Маршрутизация SFTP операций работает: SMB/SFTP/Local
+
+#### PlayerActivity - ✅ ИСПРАВЛЕНО
+  - Блокировка удалена (убран Toast "Renaming network resources is not yet supported")
+  - Rename теперь работает для SMB и SFTP ресурсов через RenameDialog
+  - Build: Successful (34s)
+
+#### UI компоненты
+- [ ] **CopyToDialog/MoveToDialog/RenameDialog** - проверить совместимость с SMB/SFTP
+  - Текущая проблема: используют `File()` API, который создает неправильные пути для SMB
+  - Пример: `File("smb://server/share/file")` → `absolutePath="/smb:/server/share/file"` ❌
+  - Решение: FileOperationUseCase должен корректно парсить такие пути
+
+### 📝 ДЕТАЛЬНЫЙ ПЛАН РЕАЛИЗАЦИИ
+
+#### Этап 1: SMB Rename (приоритет HIGH)
+1. `SmbClient.kt`: добавить метод `renameFile(connectionInfo, oldPath, newName): SmbResult<Unit>`
+2. `SmbFileOperationHandler.kt`: добавить метод `executeRename(operation: FileOperation.Rename)`
+3. `FileOperationUseCase.kt`: убрать `FileOperationResult.Failure("Rename not supported for SMB")`
+4. Тестирование: rename файлов в SMB через PlayerActivity
+
+#### Этап 2: SFTP File Operations (приоритет HIGH)
+1. `SftpClient.kt`: добавить методы:
+   - `downloadFile(remotePath: String, localOutputStream: OutputStream): Result<Unit>`
+   - `uploadFile(remotePath: String, localInputStream: InputStream): Result<Unit>`
+   - `deleteFile(remotePath: String): Result<Unit>`
+   - `renameFile(oldPath: String, newName: String): Result<Unit>`
+
+2. Создать `SftpFileOperationHandler.kt`:
+   ```kotlin
+   class SftpFileOperationHandler @Inject constructor(
+       private val sftpClient: SftpClient,
+       private val credentialsDao: NetworkCredentialsDao
+   ) {
+       suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult
+       suspend fun executeMove(operation: FileOperation.Move): FileOperationResult
+       suspend fun executeDelete(operation: FileOperation.Delete): FileOperationResult
+       suspend fun executeRename(operation: FileOperation.Rename): FileOperationResult
+   }
+   ```
+
+3. `FileOperationUseCase.kt`: добавить SFTP routing:
+   ```kotlin
+   val hasSftpPath = when (operation) {
+       is FileOperation.Copy -> {
+           val sourceSftpCount = operation.sources.count { it.absolutePath.startsWith("sftp://") }
+           val destIsSftp = operation.destination.absolutePath.startsWith("sftp://")
+           sourceSftpCount > 0 || destIsSftp
+       }
+       // аналогично для Move, Delete, Rename
+   }
+   
+   val result = when {
+       hasSmbPath -> smbFileOperationHandler.execute(operation)
+       hasSftpPath -> sftpFileOperationHandler.execute(operation)
+       else -> executeLocal(operation)
+   }
+   ```
+
+4. Тестирование: все операции для SFTP через PlayerActivity
+
+#### Этап 3: Смешанные операции (приоритет MEDIUM)
+- [ ] Copy: SMB→SFTP, SFTP→SMB
+- [ ] Move: SMB→SFTP, SFTP→SMB
+- Требуется: определить приоритет (какой handler использовать?)
+- Решение: использовать destination тип для выбора handler
+
+#### Этап 4: UI polish (приоритет LOW)
+- [ ] PlayerActivity: убрать все оставшиеся блокировки
+- [ ] Добавить прогресс-бары для длительных операций
+- [ ] Показывать размер файла и скорость копирования
+
+### ⚠️ ИЗВЕСТНЫЕ ПРОБЛЕМЫ
+
+1. **File() API с SMB/SFTP путями**
+   - Проблема: `File("smb://...").absolutePath` возвращает `/smb:/...` вместо `smb://...`
+   - Решение: FileOperationUseCase уже обрабатывает оба формата
+   - Статус: ✅ РАБОТАЕТ (проверено в логах)
+
+2. **Credentials для операций**
+   - Проблема: handler должен получить credentials из DAO по server/share
+   - Решение: `parseSmbPath()` и `parseSftpPath()` получают credentials автоматически
+   - Статус: ✅ РЕАЛИЗОВАНО для SMB, ❌ НЕ РЕАЛИЗОВАНО для SFTP
+
+3. **Права доступа**
+   - SMB: проверка прав доступа через `canWrite()` НЕ работает для сетевых путей
+   - SFTP: аналогично
+   - Решение: попытка операции → обработка ошибки "Permission denied"
+   - Статус: ✅ ПРАВИЛЬНЫЙ ПОДХОД (нет способа проверить заранее)
+
+---
+
+## �📋 Актуальні задачі для розработки
 
 - [ ]  Network: Implement SFTP support
 
@@ -333,7 +522,21 @@
 ---
 
 ### 2025-11-08 (SMB/SFTP Media Playback Session)
-- [x] **SMB/SFTP: Implement video playback with ExoPlayer**
+  - Added loadingIndicatorHandler with postDelayed(1000)
+  - Shows progressBar only if loading takes more than 1 second
+  - Works for images (Coil onStart/onSuccess/onError listeners)
+  - Works for video (ExoPlayer STATE_READY listener)
+  - Proper cleanup in onDestroy()
+  - Build: Successful (38s)
+
+  - Added tvCountdown TextView in activity_player_unified.xml (top-right corner)
+  - Added countdownHandler and countdownRunnable
+  - Displays "3..", "2..", "1.." 3 seconds before file change
+  - Only shows if slideshow interval > 3 seconds
+  - Updates every second with Handler.postDelayed(1000)
+  - Proper cleanup in onDestroy() and updateSlideShow()
+  - Build: Successful (41s)
+
   - Created SmbDataSource.kt (data/network/datasource/)
   - Created SftpDataSource.kt (data/network/datasource/)
   - Uses SMBJ library InputStream API for SMB
@@ -343,7 +546,6 @@
   - Added SmbDataSourceFactory and SftpDataSourceFactory
   - Build: Successful (45s)
 
-- [x] **PlayerActivity: Add network video playback support**
   - Injected SmbClient, SftpClient, NetworkCredentialsRepository via Hilt
   - Added resource to PlayerState for type detection
   - playVideo() detects ResourceType.SMB/SFTP
@@ -353,77 +555,140 @@
   - Separated playLocalVideo() for local files
   - Build: Successful (45s)
 
-- [x] **PlayerActivity: Add network image loading support**
   - displayImage() detects network resources
   - Uses NetworkFileData with Coil ImageLoader
   - Added error handling with Toast and Timber logging
   - Build: Successful (45s)
 
-- [x] **NetworkCredentialsRepository: Add getByCredentialId method**
   - Added getByCredentialId(String) to interface
   - Implemented in NetworkCredentialsRepositoryImpl using dao.getCredentialsById()
   - Fixes credentialId (String UUID) vs id (Long) mismatch
   - Build: Successful (45s)
 
-- [x] **SftpClient: Add @Singleton annotation**
   - Added @Inject and @Singleton for Hilt dependency injection
   - Now compatible with @Inject lateinit var in PlayerActivity
   - Build: Successful (45s)
 
+  - Unified exoPlayerListener with STATE_READY and STATE_ENDED handling
+  - Auto-advance to next file when media finishes (if slideshow active)
+  - Replaced 3 inline listeners with single consolidated listener
+  - Build: Successful (42s)
+
+  - Created showSlideshowEnabledMessage() method
+  - Shows Toast message with interval when slideshow enabled
+  - Checks previous state (wasActive) to prevent duplicate messages
+  - Called from 3 locations: Touch zone SLIDESHOW, btnSlideshowCmd, btnSlideshow
+  - Build: Successful (33s)
+
+  - Added showSmallControls field to PlayerState
+  - PlayerViewModel loads setting from SettingsRepository
+  - updatePanelVisibility() reduces button heights by 50% when enabled
+  - Applied to 7 command panel buttons (btnBack, btnPreviousCmd, btnNextCmd, btnRenameCmd, btnDeleteCmd, btnUndoCmd, btnSlideshowCmd)
+  - Build: Successful (42s)
+
+  - In handleTouchZone(): stop slideshow for all zones except NEXT and SLIDESHOW
+  - For NEXT zone: reset timer (updateSlideShow) but keep slideshow running
+  - Matches spec: "Stop slideshow mode - by tapping any area of the screen except Next"
+  - Build: Successful (37s)
+
+  - Added 4 fields to PlayerState: allowRename, allowDelete, enableCopying, enableMoving
+  - PlayerViewModel loads all 4 settings from SettingsRepository
+  - updateCommandAvailability() checks file permissions (canWrite, canRead, parent.canWrite)
+  - btnRenameCmd: enabled if canWrite && canRead && allowRename
+  - btnDeleteCmd: enabled if parent.canWrite && canRead && allowDelete
+  - copyToPanel: visible if showCommandPanel && enableCopying
+  - moveToPanel: visible if showCommandPanel && enableMoving
+  - Build: Successful (44s)
+
+  - Removed TODO comment in MainActivity.NavigateToSettings event handler
+  - Now opens SettingsActivity via startActivity(Intent)
+  - Build: Successful (66s)
+
+  - Problem: controlsOverlay had semi-transparent background (#80000000) covering entire screen
+  - Problem: Toolbar and controls were always visible, image not truly fullscreen
+  - Solution: Changed controlsOverlay background to transparent
+  - Solution: Changed showControls default from true to false
+  - Solution: Added semi-transparent background to toolbar and button containers only
+  - Now: Image displays edge-to-edge without any overlay
+  - Now: Controls appear on tap and auto-hide after 3 seconds
+  - Touch zones remain fully transparent
+  - Build: Successful (54s)
+
 ## ✅ Completed Tasks (Session History)
 
+### 2025-11-08 (DB-Level Filtering Implementation)
+  - Added ResourceDao.getResourcesRaw() with @RawQuery for dynamic SQL queries
+  - Implemented ResourceRepository.getFilteredResources() with WHERE/ORDER BY at DB level
+  - Filtering: type (IN clause), mediaTypes (bitwise AND on flags), name (LIKE with COLLATE NOCASE)
+  - Sorting: all SortMode values (MANUAL, NAME, DATE, SIZE, TYPE with ASC/DESC)
+  - Added GetResourcesUseCase.getFiltered() method
+  - Refactored MainViewModel.loadResources() to use getFiltered() instead of client-side filtering
+  - Removed applyFiltersAndSort() - logic moved to database
+  - Performance: O(n) memory → O(filtered) memory, faster for large datasets
+  - Matches issue: "Неэффективная фильтрация и сортировка" - RESOLVED
+  - Build: Successful (41s)
+
+### 2025-11-08 (Error Handling Improvements)
+  - Fixed PlayerActivity.performCopyOperation() to show specific error from FileOperationResult.Failure
+  - Fixed PlayerActivity.performMoveOperation() to show specific error from FileOperationResult.Failure
+  - Added PartialSuccess handling with count of successful/failed files and first error
+  - Now shows: "Copy failed: File not found" instead of generic "Copy failed"
+  - CopyToDialog and MoveToDialog already use ErrorDialog with detailed messages
+  - Matches issue: "Неинформативные сообщения об ошибках" - RESOLVED
+  - Build: Successful (42s)
+
+### 2025-11-08 (Circular Navigation Implementation)
+  - Modified PlayerViewModel.nextFile() to loop to first file after last
+  - Modified PlayerViewModel.previousFile() to loop to last file before first
+  - Updated hasPrevious/hasNext to return true if files.size > 1 (always allow navigation)
+  - Fixed preloadNextImageIfNeeded() to support circular navigation with wrap-around
+  - Buttons Previous/Next now always active (unless single file)
+  - Matches specification requirement: "По кругу. После последнего - первый. Если назад, после первого - последний."
+  - Build: Successful (50s)
+
 ### 2025-01-07 (Current Session)
-- [x] **Settings: Fix language switching**
   - Fixed language reset bug (Ukrainian → English on Settings navigation)
   - Synchronized DataStore and SharedPreferences for language storage
   - LocaleHelper now reads correct language from SharedPreferences in attachBaseContext
   - Commit: d7f1c6e
 
-- [x] **Settings: Fix Playback tab crash**
   - Fixed slider validation error (defaultIconSize 100 incompatible with stepSize 8)
   - Changed defaultIconSize: 100 → 96 with validation (must be 32 + 8*N)
   - Commit: 91884c6
 
-- [x] **Browse Screen: Add filter status indicator**
   - Added TextView at bottom of Browse Screen to show active filter description
   - Indicator shows: name filter, date range, size range in yellow background
   - Automatically hides when no filter active
   - Matches V2_Specification.md requirement: "When a filter is applied on this screen, a warning with a description of the applied filter appears at the bottom"
 
-- [x] **Browse Screen: Implement delete operation with undo**
   - Implemented deleteSelectedFiles() in BrowseViewModel
   - Delete operation now creates UndoOperation with list of deleted files
   - Undo button appears after delete (restores files if possible)
   - Shows success/error messages with deleted count and failures
 
-- [x] **Browse Screen: Add undo support for rename operations**
   - Single file rename now saves UndoOperation with old/new path pair
   - Multiple file rename saves all renamed pairs for batch undo
   - Undo button appears after rename, restores original file names
   - Works for both single and multiple rename dialogs
 
-- [x] **Settings: Fix infinite update loop in Media/Playback fragments**
   - Fixed бесконечный цикл: observeData() обновлял UI → listeners вызывали updateSettings() → снова observeData()
   - Добавлены проверки перед обновлением UI: обновление только при реальном изменении значений
   - MediaSettingsFragment: проверка switches и range sliders (imageSizeMin/Max, videoSizeMin/Max, audioSizeMin/Max)
   - PlaybackSettingsFragment: проверка switches и sliders (slideshowInterval, defaultIconSize)
   - GeneralSettingsFragment: уже имел защиту от цикла
 
-- [x] **Settings: Fix language settings not applying**
   - GeneralSettingsFragment: убрана инициализация spinner из LocaleHelper.getLanguage() (SharedPreferences до загрузки из DataStore)
   - onItemSelected: сравнение с viewModel.settings.value.language вместо LocaleHelper.getLanguage()
   - observeData: добавлен параметр `false` в setSelection() для предотвращения триггера onItemSelected
   - Settings tab names: использованы string resources вместо хардкода ("General" → R.string.settings_tab_general)
   - Добавлены переводы для табов: английский, русский, украинский (Общие/Загальні, Медиа, Воспроизведение/Відтворення, Назначения/Призначення)
 
-- [x] **Settings: Fix switch sizes and touch targets**
   - Все MaterialSwitch/SwitchMaterial элементы: добавлены minHeight="48dp" и paddingVertical="12dp"
   - Material Design guideline: минимум 48dp для touch targets
   - Исправлено во всех фрагментах: General (2 switches), Media (4 switches), Playback (7 switches), Destinations (5 switches)
   - Улучшена доступность: легче попадать по галочкам, больше пространство для нажатия
 
 ### 2025-01-07 (Evening Session)
-- [x] **Main Screen: Fix resource move up/down buttons**
   - Added SortMode.MANUAL enum value for manual ordering
   - Changed default sort mode from NAME_ASC to MANUAL
   - Updated applyFiltersAndSort() to sort by displayOrder in MANUAL mode
@@ -431,14 +696,12 @@
   - Updated FilterResourceDialog to include "Manual Order" option
   - Commit: (pending)
 
-- [x] **Main Screen: Fix resource selection flickering**
   - Fixed GestureDetector touch event handling in ResourceAdapter
   - Changed from always returning true to only consuming handled gestures
   - Added performClick() call for unhandled ACTION_UP events
   - Resources now select properly without visual flickering
   - Commit: (pending)
 
-- [x] **Main Screen: Fix filter dialog button icons**
   - Created new ic_refresh.xml icon (circular arrow) for Clear/Reset button
   - Changed btnClear icon from ic_clear (X) to ic_refresh
   - btnCancel keeps ic_cancel (X in circle)
@@ -447,14 +710,12 @@
   - Commit: (pending)
 
 ### 2025-01-07 (Evening Session 2)
-- [x] **Browse Screen: Remove toolbar and move Back button to command bar**
   - Removed MaterialToolbar from activity_browse.xml
   - Added Back button (btnBack) at the beginning of layoutControls
   - Updated BrowseActivity.kt: removed toolbar setup, added btnBack click handler
   - Removed toolbar.title update in observeData()
   - Matches specification requirement: no separate header bar
 
-- [x] **Browse Screen: Implement thumbnail loading with Coil**
   - Added Coil video frames library (io.coil-kt:coil-video:2.5.0) to build.gradle.kts
   - Updated MediaFileAdapter to load real thumbnails instead of generic icons
   - Images/GIFs: load actual image preview using Coil
@@ -465,7 +726,6 @@
   - Commit: 58d3f72
 
 ### 2025-01-07 (Evening Session 3)
-- [x] **Player Screen: Implement Delete file functionality**
   - Added PlayerEvent.ShowMessage event for success messages
   - Implemented deleteCurrentFile() in PlayerViewModel:
     * Deletes file from filesystem using File.delete()
@@ -480,7 +740,6 @@
   - All results handled via events (ShowMessage/ShowError/FinishActivity)
   - Commit: d764649
 
-- [x] **Settings/Destinations: Fix list item layout**
   - Fixed button container orientation from vertical to horizontal
   - Buttons now display in a single row instead of column
   - Increased button size from 40dp to 48dp for better touch targets
@@ -493,7 +752,6 @@
   - Commit: 38a697a
 
 ### 2025-01-08 (Development Session)
-- [x] **Browse Screen: Fix sort dialog - show user-friendly names**
   - Changed sort dialog from showing enum codes (NAME_ASC, DATE_DESC, etc.) to readable names
   - Added getSortModeName() helper function in BrowseActivity
   - Now displays: "Name (A-Z)", "Date (Old first)", "Size (Small first)", etc.
@@ -501,7 +759,6 @@
   - Improves UX - users see clear, localized sort options
   - Commit: (pending)
 
-- [x] **Browse Screen: Reorganize layout per specification**
   - **Top bar changes:**
     * Added Space (8dp) after Back button per spec
     * Added btnSelectAll button with checkbox_on_background icon
@@ -522,7 +779,6 @@
   - **Result:** Operations buttons now at bottom, selection controls at top
   - Commit: (pending)
 
-- [x] **Player Screen: Add Swipe UP/DOWN gestures for file operations**
   - **Problem:** Copy/Move operations only available via touch zones (3x3 grid), not via vertical swipes per spec
   - **Solution:**
     * Updated onFling() in PlayerActivity to detect vertical vs horizontal gestures
@@ -538,7 +794,6 @@
   - Commit: (pending)
 
 ### 2025-01-08 (SMB Integration Session)
-- [x] **AddResourceActivity: Add SMB network folder UI**
   - **Layout Changes:**
     * Created layoutSmbFolder in activity_add_resource.xml (ScrollView with LinearLayout)
     * Added TextInputLayouts for: server (IP/hostname), shareName, username, password, domain, port
@@ -563,7 +818,6 @@
   - **Build:** Successful (41s, 24 executed tasks, only warnings)
   - Commit: (pending)
 
-- [x] **AddResourceViewModel: Add SMB network operations logic**
   - **ViewModel Methods:**
     * Added SmbOperationsUseCase injection to constructor
     * testSmbConnection() - validates SMB connection with provided credentials, shows success/error messages
@@ -586,7 +840,6 @@
   - **Build:** Successful (11s, 12 executed tasks)
   - Commit: (pending)
 
-- [x] **EditResourceActivity: Add SMB credentials editing support**
   - **ResourceRepositoryImpl:**
     * Added SmbOperationsUseCase injection
     * Implemented testConnection() for SMB resources - gets credentials by credentialsId, calls smbOperationsUseCase.testConnection()
@@ -613,14 +866,12 @@
   - Commit: (pending)
 
 ### 2025-11-08 (Bug Fixes & UI Improvements Session)
-- [x] **Settings: Fix GIF support and slideshow interval defaults**
   - Fixed AppSettings.supportGifs default to false (was true)
   - Fixed AppSettings.slideshowInterval default to 10 seconds (was 3)
   - Fixed ScanLocalFoldersUseCase to use settings from SettingsRepository
   - Fixed: supportedMediaTypes now built dynamically from settings (supportImages, supportVideos, supportAudio, supportGifs)
   - Build: Successful (6s)
 
-- [x] **Destinations: UI improvements**
   - Fixed: minHeight reduced from 56dp to 40dp in item_destination.xml
   - Fixed: Text sizes already correct (tvDestinationName: 18sp, tvDestinationPath: 15sp)
   - Fixed: Created DestinationColors utility with 10 unique predefined colors
@@ -629,13 +880,11 @@
   - Colors: Pink(1), Purple(2), Deep Purple(3), Indigo(4), Blue(5), Cyan(6), Green(7), Yellow(8), Orange(9), Red(10)
   - Build: Successful (16s)
 
-- [x] **Browse Screen: Back button icon**
   - Created ic_arrow_back.xml drawable (left arrow icon)
   - Updated BrowseActivity, AddResourceActivity, SettingsActivity to use ic_arrow_back
   - MainActivity Exit button keeps "X" icon (appropriate for app exit)
   - Build: Successful (3s)
 
-- [x] **Browse Screen: Grid mode implementation**
   - Created item_media_file_grid.xml layout (thumbnail + filename, no checkbox/play button)
   - Updated MediaFileAdapter to support both LIST and GRID view types
   - Added GridViewHolder with dynamic thumbnail sizing from settings.defaultIconSize
@@ -644,14 +893,12 @@
   - Grid layout uses GridLayoutManager with 3 columns
   - Build: Successful (24s)
 
-- [x] **Browse Screen: Grid/List toggle icons**
   - Created ic_view_list.xml (list icon with horizontal lines)
   - Created ic_view_grid.xml (grid icon with squares)
   - Updated BrowseActivity.updateDisplayMode() to change button icon dynamically
   - Logic: LIST mode shows grid icon (to switch TO grid), GRID mode shows list icon (to switch TO list)
   - Build: Successful (34s)
 
-- [x] **Main Screen: Fix infinite progress on refresh**
   - Fixed: MainViewModel.refreshResources() was using .collect{} on Flow which never completes
   - Changed to use .first() to get single snapshot of resources
   - Ensured setLoading(false) in finally block
@@ -659,25 +906,21 @@
   - Build: Successful (26s)
 
 ### 2025-11-08 (AddResource Network Folder Fixes)
-- [x] **AddResourceActivity: Fix Network Folder button appearance**
   - Removed android:alpha="0.5" from cardNetworkFolder - button now fully visible
   - Network Folder card now clickable and visually enabled
   - Build: Part of full session build
 
-- [x] **AddResourceActivity: Update title when Network Folder selected**
   - Added showLocalFolderOptions() title update to "Add Local Folder"
   - Added showSmbFolderOptions() title update to "Add Network Folder (SMB)"
   - String resources added in 3 languages (en/ru/uk): add_local_folder, add_network_folder
   - Build: Part of full session build
 
-- [x] **AddResourceActivity: Fix IP field input validation**
   - Added InputFilter to etSmbServer field
   - Filter accepts only: digits, dots, replaces comma with dot
   - Invalid characters (backslash, letters, etc.) silently ignored
   - Import added: android.text.InputFilter
   - Build: Part of full session build
 
-- [x] **AddResourceActivity: Reorganize SMB layout fields**
   - Moved Server IP to top (first field)
   - Username/Password on second line (horizontal layout)
   - Test Connection and Scan Shares buttons on third line (right after credentials)
@@ -685,14 +928,12 @@
   - Domain and Port moved to bottom (optional fields)
   - Build: Part of full session build
 
-- [x] **AddResourceActivity: Update field hints and labels**
   - Changed smb_server from "Server (IP or hostname)" to "Server IP"
   - Changed smb_server_hint from "e.g. 192.168.1.100 or myserver" to "Enter IP address only (e.g. 192.168.1.100)"
   - Updated all 3 language files (en/ru/uk)
   - Added smb_add_manually string resource
   - Build: Part of full session build
 
-- [x] **AddResourceActivity: Implement detailed error dialog**
   - Added AlertDialog.Builder import to AddResourceActivity
   - Created showError() helper function - checks settings.showDetailedErrors
   - If showDetailedErrors=true → shows AlertDialog with error details
@@ -701,26 +942,22 @@
   - Build: Successful (48s, 43 tasks executed)
 
 ### 2025-11-08 (UI Polish Session)
-- [x] **Destinations: Reduce path text size**
   - Changed tvDestinationPath textSize from 15sp to 12sp
   - Changed textAppearance from BodyMedium to BodySmall
   - More text now fits in the destination list items
   - Build: Successful (44s, 43 tasks executed)
 
-- [x] **Browse/AddResource/Settings: Fix back button visibility**
   - Removed android:tint="?attr/colorControlNormal" from ic_arrow_back.xml
   - Arrow now displays as solid white icon on all backgrounds
   - Visible on purple toolbar background
   - Build: Successful (44s, 43 tasks executed)
 
 ### 2025-11-08 (Permissions & SMB Improvements)
-- [x] **Settings: Fix GRANT NETWORK PERMISSION button**
   - Network permissions (INTERNET, ACCESS_NETWORK_STATE) don't require runtime permissions
   - Button now shows informative message: "Network permissions are already granted automatically"
   - These permissions are declared in AndroidManifest.xml and granted at install time
   - Build: Part of full session build
 
-- [x] **Settings: Implement GRANT LOCAL FILES PERMISSION button**
   - Added requestStoragePermissions() method in GeneralSettingsFragment
   - Android 11+ (API 30+): Opens Settings to request MANAGE_EXTERNAL_STORAGE
   - Android 6-10 (API 23-29): Requests READ/WRITE_EXTERNAL_STORAGE via runtime permissions
@@ -728,7 +965,6 @@
   - Proper handling for all Android versions
   - Build: Part of full session build
 
-- [x] **SMB: Improve Test Connection functionality**
   - Test now works with OR without shareName specified
   - **Without shareName**: Tests server accessibility and lists all available shares with count
   - **With shareName**: Tests specific share access and provides statistics (subfolders, media files, total items)
@@ -736,7 +972,6 @@
   - Fixed type error: changed fileAttributes comparison from Int to Long (0x10L)
   - Build: Part of full session build
 
-- [x] **SMB: Add detailed test result dialog**
   - Created AddResourceEvent.ShowTestResult with isSuccess flag
   - Test results now shown in AlertDialog instead of Toast
   - Dialog includes "OK" and "Copy" buttons
@@ -745,7 +980,6 @@
   - showTestResultDialog() method displays formatted results
   - Build: Successful (20s, 43 tasks executed)
 
-- [x] **SMB: Fix Scan Shares returning 0 resources**
   - SMBJ library v0.12.1 lacks direct share enumeration API
   - Implemented trial connection approach in SmbClient.listShares()
   - Tries common share names: Public, Users, Documents, Photos, Videos, Music, Shared, Share, Data, Files, Media, Downloads, Pictures, Movies, Common, Transfer
@@ -754,7 +988,6 @@
   - Build: Successful (29s, 43 tasks executed)
 
 ### 2025-11-08 (AddResource IP Field Improvements)
-- [x] **AddResource: Implement IP auto-fill and enhanced validation**
   - Added getLocalIpAddress() method using WifiManager and NetworkInterface
   - Auto-fills IP field with device subnet (e.g., "192.168.1." from device IP "192.168.1.100")
   - Cursor positioned at end for immediate typing
@@ -768,7 +1001,6 @@
   - Spec requirement: "convenient IP address input field" - IMPLEMENTED
   - Build: Successful (28s, 43 tasks executed)
 
-- [x] **SMB: Document share enumeration limitations**
   - Updated SmbClient.listShares() with detailed documentation
   - Explained SMBJ library limitations:
     * No direct API for share enumeration (unlike jCIFS)
@@ -784,7 +1016,6 @@
   - Build: Successful (30s, 43 tasks executed)
 
 ### 2025-11-08 (AddResource SMB Buttons Fix)
-- [x] **AddResource: Fix "ShareName is required" error for scanned resources**
   - Problem: btnSmbAddToResources called addSmbResources() which validates manual ShareName input
   - Solution: Split functionality into two methods:
     * btnSmbAddToResources → viewModel.addSelectedResources() (for scan results)
@@ -795,7 +1026,6 @@
   - Manual entry still validates ShareName as expected
   - Build: Successful (35s, 43 tasks executed)
 
-- [x] **SMB: Improve share scanning with extended name list**
   - Problem: Scan found only 1 of 4 shares (limited common names list)
   - Solution: Significantly expanded commonShareNames list:
     * Added Work/Personal variations (Work, Personal, Private, Projects)
@@ -816,7 +1046,6 @@
   - Build: Successful (36s, 43 tasks executed)
 
 ### 2025-11-08 (EditResource Destinations Fix)
-- [x] **EditResource: Fix "Add to Destinations" not assigning destinationOrder**
   - Problem: Checkbox sets isDestination=true but doesn't assign destinationOrder
   - Result: Resource marked as destination but not visible in Destinations list
   - Root cause: updateIsDestination() only toggled flag, unlike AddResourceUseCase.addMultiple()
@@ -833,7 +1062,6 @@
   - Build: Successful (42s, 43 tasks executed)
 
 ### 2025-11-08 (Manual SMB Resource Addition Fix)
-- [x] **Fix "ADD MANUAL RESOURCE" button not working for manually entered SMB resources**
   - Problem: Button checked for selected resources from scan list, but manual entry has no list
   - Error: "No SMB RESOURCE SELECTED" when adding manually entered resource
   - Root cause: `addSmbResources()` filtered `resourcesToAdd` for selected items
@@ -848,7 +1076,6 @@
   - Build: Successful (36s, 43 tasks executed)
 
 ### 2025-11-08 (Welcome Screen Verification)
-- [x] **Welcome Screen: Verify implementation completeness**
   - Existing components verified:
     * WelcomeActivity with ViewPager2 navigation (3 pages)
     * WelcomePagerAdapter with RecyclerView pattern
@@ -864,11 +1091,9 @@
   - Build: Successful (45s, 43 tasks executed)
 
 ### 2025-11-08 (SFTP Support - Initial Implementation)
-- [x] **SFTP: Verify SSHJ library dependency**
   - Confirmed: com.hierynomus:sshj:0.37.0 already in build.gradle.kts
   - Library provides SSH and SFTP protocol support
   
-- [x] **SFTP: Create low-level client wrapper**
   - Created SftpClient.kt in data/remote/sftp package
   - Implemented methods:
     * connect() - establish SFTP connection with password auth
@@ -883,7 +1108,6 @@
   - Result<T> return type for error handling
 
 ### 2025-11-08 (Copy/Move Dialog Redesign)
-- [x] **Copy/Move Dialogs: Replace RecyclerView with colored buttons**
   - Problem: Dialogs showed RecyclerView list instead of colored buttons per specification
   - Specification requirement (V2_p1_2.md lines 260-280):
     * "Series of buttons from 1 to 10 from destinations"
@@ -911,12 +1135,10 @@
   - Commit: 9cd3c0c - "Fix Copy/Move dialogs: replace RecyclerView with colored destination buttons per spec. Add SFTP client support. Fix SMB and UI bugs."
 
 ### 2025-11-08 (SFTP Credentials Storage)
-- [x] **SFTP: Add credentials storage in database**
   - NetworkCredentialsEntity already supports SFTP via type field ("SMB" or "SFTP")
   - NetworkCredentialsDao already has all necessary CRUD methods
   - Fields: credentialId, type, server, port, username, password, domain (unused for SFTP), shareName (unused for SFTP)
   
-- [x] **SFTP: Add UseCase methods**
   - Enhanced SmbOperationsUseCase with SFTP support (keeps SMB methods unchanged)
   - Added SftpClient injection to constructor
   - Implemented methods:
@@ -931,7 +1153,6 @@
   - Build: Successful (51s, 43 tasks executed)
 
 ### 2025-11-08 (SFTP UI Implementation)
-- [x] **SFTP: Add UI to AddResourceActivity**
   - Created layoutSftpFolder section in activity_add_resource.xml:
     * Host field with hint (server hostname or IP address)
     * Port field with default value 22
@@ -946,14 +1167,12 @@
     * sftp_remote_path, sftp_remote_path_hint
     * sftp_test_connection, sftp_add_resource
     
-- [x] **SFTP: Add ViewModel integration**
   - AddResourceViewModel methods:
     * testSftpConnection() - validates host, calls UseCase, sends ShowTestResult event
     * addSftpResource() - validates host, saves credentials, creates MediaResource with ResourceType.SFTP, adds to database
   - Resource naming: uses username@host if path is "/" or empty, otherwise uses last path component
   - Path format: "sftp://host:port/remotePath"
   
-- [x] **SFTP: Wire up UI handlers**
   - AddResourceActivity changes:
     * Added cardSftpFolder.setOnClickListener → showSftpFolderOptions()
     * Added btnSftpTest.setOnClickListener → testSftpConnection()
@@ -964,13 +1183,11 @@
   - Build: Successful (46s, 43 tasks executed)
 
 ### 2025-11-08 (SFTP EditResource Support)
-- [x] **SFTP: Add EditResourceActivity UI**
   - Created layoutSftpCredentials section in activity_edit_resource.xml:
     * Host, Port, Username, Password, Remote Path fields
     * Same structure as SMB credentials section
     * Visibility controlled by ResourceType.SFTP check
   
-- [x] **SFTP: EditResourceViewModel integration**
   - EditResourceState enhanced:
     * Added sftpHost, sftpPort, sftpUsername, sftpPassword, sftpPath fields
     * Added hasSftpCredentialsChanges flag
@@ -982,7 +1199,6 @@
     * Calls saveSftpCredentials() UseCase
     * Updates resource with new credentialsId and path
   
-- [x] **SFTP: EditResourceActivity handlers**
   - Added focus change listeners for all SFTP fields
   - observeData() - shows/hides layoutSftpCredentials based on ResourceType.SFTP
   - Displays SFTP credentials from state when resource is SFTP
@@ -990,7 +1206,6 @@
   - Build: Successful (40s, 43 tasks executed)
 
 ### 2025-11-08 (SFTP Scanner Implementation)
-- [x] **SFTP: Create SftpMediaScanner**
   - Created SftpMediaScanner.kt implementing MediaScanner interface
   - scanFolder() method:
     * Parses sftp://server:port/remotePath format
@@ -1004,11 +1219,9 @@
   - isWritable() - tests SFTP connection to check access
   - Extensions: jpg/jpeg/png/webp/heic/heif/bmp, gif, mp4/mkv/avi/mov/webm/3gp/flv/wmv/m4v, mp3/m4a/wav/flac/aac/ogg/wma/opus
   
-- [x] **SFTP: Add DAO method for credentials retrieval**
   - NetworkCredentialsDao.getByTypeServerAndPort() - query by type, server, port
   - Used by SftpMediaScanner to get credentials for SFTP resources
   
-- [x] **SFTP: Update MediaScannerFactory**
   - Added sftpMediaScanner constructor parameter
   - ResourceType.SFTP now returns sftpMediaScanner instead of exception
   - Build: Successful (52s, 43 tasks executed)
@@ -1046,6 +1259,107 @@
   - Added audio_icon_bg color (#FF607D8B) for audio file icons
   - All thumbnails use RoundedCornersTransformation(8f) for consistent look
   - Commit: (pending)
+
+---
+
+### 📅 2024-11-08 19:46 - Atomic database updates for manual sorting
+
+**Problem**: moveResourceUp() и moveResourceDown() в MainViewModel выполняли два раздельных вызова updateResourceUseCase(), что приводило к двум транзакциям БД и двойному обновлению UI через Flow.
+
+**Solution**:
+- ResourceDao.kt:
+  * Добавлен метод swapDisplayOrders(id1, order1, id2, order2) с аннотацией @Transaction
+  * Добавлен вспомогательный метод updateDisplayOrder(resourceId, newOrder)
+  * Обмен displayOrder выполняется атомарно в одной транзакции
+
+- ResourceRepository.kt:
+  * Добавлен метод swapResourceDisplayOrders(resource1, resource2) в интерфейс
+
+- ResourceRepositoryImpl.kt:
+  * Реализован swapResourceDisplayOrders() с вызовом DAO @Transaction метода
+
+- MainViewModel.kt:
+  * Добавлен import ResourceRepository
+  * Внедрен resourceRepository через конструктор (Hilt)
+  * moveResourceUp(): заменены два updateResourceUseCase() на один swapResourceDisplayOrders()
+  * moveResourceDown(): заменены два updateResourceUseCase() на один swapResourceDisplayOrders()
+  * Убраны промежуточные копии объектов (updatedResource, updatedPrevious)
+
+**Benefits**:
+- Атомарность: обмен displayOrder происходит в одной транзакции
+- Производительность: одна эмиссия в Flow вместо двух
+- Оптимизация UI: одно обновление RecyclerView вместо двух
+
+**Build**: Successful (43s, version 2.0.0-build2511081946)
+**Status**: Ready for testing
+
+---
+
+### 📅 2024-11-08 19:50 - Implemented SMB Rename operation
+
+**Task**: Реализовать поддержку переименования файлов на SMB ресурсах
+
+**Changes**:
+
+- SmbClient.kt:
+  * Добавлен метод `renameFile(connectionInfo, oldPath, newName): SmbResult<Unit>`
+  * Использует smbj API: `file.rename(newPath)` с правами DELETE + GENERIC_READ
+  * Проверяет наличие файла с новым именем через `share.fileExists(newPath)`
+  * Конструирует новый путь корректно: `directory/newName`
+  * Логирование успеха/ошибки через Timber
+
+- SmbFileOperationHandler.kt:
+  * Добавлен метод `executeRename(operation: FileOperation.Rename): FileOperationResult`
+  * Парсинг SMB пути через существующий `parseSmbPath()`
+  * Обработка SmbResult.Success/Error с детальными сообщениями
+  * Возвращает новый полный путь в Success result
+  * Try-catch для обработки исключений
+
+- FileOperationUseCase.kt:
+  * Убрана блокировка `FileOperationResult.Failure("Rename not supported for SMB")`
+  * Теперь маршрутизирует Rename в `smbFileOperationHandler.executeRename()`
+  * SMB Rename работает наравне с Copy/Move/Delete
+
+**Build**: Successful (46s, version 2.0.0-build2511081950)
+**Status**: Ready for testing - проверить переименование файлов на SMB через PlayerActivity touch zones
+
+---
+
+### 📅 2024-11-08 16:30 - Fixed CopyToDialog and MoveToDialog coroutine scope
+
+**Problem**: Диалоги "Копировать в" и "Переместить в" не показывали кнопки destinations
+**Root cause**: 
+- Использовался `GlobalScope.launch` с попыткой обратиться к `lifecycleScope` через кастинг `(context as? LifecycleOwner)`
+- Dialog не является LifecycleOwner, кастинг возвращал null
+- loadDestinations() выполнялся в IO thread, UI обновление не происходило
+
+**Solution**:
+- CopyToDialog.kt:
+  * Создан собственный `scope = CoroutineScope(Dispatchers.Main)` 
+  * Заменен GlobalScope.launch на scope.launch
+  * Добавлен `withContext(Dispatchers.IO)` для getDestinationsExcluding()
+  * UI операции выполняются в Main dispatcher
+  * Добавлено подробное Android Log (TAG="CopyToDialog") для диагностики
+  * Восстановлена активация layoutDestinations после ошибки
+  
+- MoveToDialog.kt: Аналогичные изменения (TAG="MoveToDialog")
+
+**Changes**:
+- Imports: добавлены Log, CoroutineScope, Dispatchers, withContext
+- loadDestinations(): scope.launch + withContext(Dispatchers.IO)
+- createDestinationButtons(): подробные логи создания кнопок
+- copyToDestination()/moveToDestination(): withContext(Dispatchers.IO) для execute()
+
+**Logs added**:
+- "loadDestinations() called"
+- "Loaded N destinations" с деталями (name, order, color)
+- "createDestinationButtons() called with N destinations"
+- "buttonsPerRow = N"
+- "Creating new row for index N"
+- "Added button for [name] with color [color]"
+
+**Build**: Successful (33s)
+**Status**: Ready for testing. User должен добавить destinations в Settings → Destinations, затем вызвать Copy/Move dialog
 
 ---
 

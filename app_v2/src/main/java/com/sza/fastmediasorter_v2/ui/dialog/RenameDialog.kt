@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.DialogRenameBinding
@@ -16,6 +17,7 @@ import java.io.File
 
 class RenameDialog(
     context: Context,
+    private val lifecycleOwner: LifecycleOwner,
     private val files: List<File>,
     private val sourceFolderName: String,
     private val fileOperationUseCase: FileOperationUseCase,
@@ -88,7 +90,7 @@ class RenameDialog(
             return
         }
         
-        (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
+        lifecycleOwner.lifecycleScope.launch {
             try {
                 val operation = FileOperation.Rename(file, newName)
                 val result = fileOperationUseCase.execute(operation)

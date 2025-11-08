@@ -656,6 +656,53 @@ class SmbClient @Inject constructor() {
     }
 
     /**
+     * Rename file on SMB share
+     * @param connectionInfo SMB connection information
+     * @param oldPath Current path (relative to share)
+     * @param newName New filename (without path)
+     */
+    suspend fun renameFile(
+        connectionInfo: SmbConnectionInfo,
+        oldPath: String,
+        newName: String
+    ): SmbResult<Unit> {
+        return try {
+            withConnection(connectionInfo) { share ->
+                // Extract directory path and construct new full path
+                val directory = oldPath.substringBeforeLast('/', "")
+                val newPath = if (directory.isEmpty()) newName else "$directory/$newName"
+                
+                Timber.d("Renaming SMB file: $oldPath → $newPath")
+                
+                // Check if target exists
+                if (share.fileExists(newPath)) {
+                    return@withConnection SmbResult.Error("File with name '$newName' already exists")
+                }
+                
+                // Open source file for rename
+                val file = share.openFile(
+                    oldPath,
+                    EnumSet.of(AccessMask.DELETE, AccessMask.GENERIC_READ),
+                    null,
+                    SMB2ShareAccess.ALL,
+                    SMB2CreateDisposition.FILE_OPEN,
+                    null
+                )
+                
+                file.use {
+                    it.rename(newPath)
+                }
+                
+                Timber.i("Successfully renamed SMB file to: $newPath")
+                SmbResult.Success(Unit)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to rename file on SMB")
+            SmbResult.Error("Failed to rename file: ${e.message}", e)
+        }
+    }
+
+    /**
      * Create directory on SMB share
      */
     suspend fun createDirectory(

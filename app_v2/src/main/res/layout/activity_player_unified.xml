@@ -129,20 +129,20 @@
                 android:background="@android:color/transparent" />
         </LinearLayout>
 
-        <!-- Fullscreen controls overlay (visible only in fullscreen mode) -->
+        <!-- Fullscreen controls overlay (visible only in fullscreen mode when showControls=true) -->
         <LinearLayout
             android:id="@+id/controlsOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:background="#80000000"
+            android:background="@android:color/transparent"
             android:visibility="gone">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="@android:color/transparent"
+                android:background="#80000000"
                 app:navigationIcon="@drawable/ic_back"
                 app:titleTextColor="@android:color/white" />
 
@@ -156,6 +156,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:padding="16dp"
+                android:background="#80000000"
                 android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton
@@ -196,6 +197,7 @@
                 android:orientation="horizontal"
                 android:paddingHorizontal="16dp"
                 android:paddingBottom="16dp"
+                android:background="#80000000"
                 android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton
@@ -227,6 +229,23 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:visibility="gone" />
+
+        <!-- Countdown timer for slideshow (top-right corner) -->
+        <TextView
+            android:id="@+id/tvCountdown"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:textSize="32sp"
+            android:textColor="@android:color/white"
+            android:textStyle="bold"
+            android:shadowColor="#000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="4"
+            android:visibility="gone"
+            android:text="3.." />
     </FrameLayout>
 
     <!-- Copy to Panel (visible only in command panel mode) -->

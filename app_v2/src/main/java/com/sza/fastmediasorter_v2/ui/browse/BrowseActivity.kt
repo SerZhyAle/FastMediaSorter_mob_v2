@@ -716,6 +716,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         )
         dialog.show()
     }
+    
+    override fun onResume() {
+        super.onResume()
+        // Refresh file list when returning from PlayerActivity
+        // This ensures deleted/renamed files are properly reflected
+        Timber.d("BrowseActivity.onResume: Refreshing file list")
+        viewModel.reloadFiles()
+    }
 
     companion object {
         const val EXTRA_RESOURCE_ID = "resourceId"

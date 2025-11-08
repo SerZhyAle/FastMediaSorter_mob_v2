@@ -138,13 +138,13 @@ class SmbOperationsUseCase @Inject constructor(
     ): Result<String> = withContext(ioDispatcher) {
         try {
             val credentialId = UUID.randomUUID().toString()
-            val entity = NetworkCredentialsEntity(
+            val entity = NetworkCredentialsEntity.create(
                 credentialId = credentialId,
                 type = "SMB",
                 server = server,
                 port = port,
                 username = username,
-                password = password,
+                plaintextPassword = password,
                 domain = domain,
                 shareName = shareName
             )
@@ -278,13 +278,13 @@ class SmbOperationsUseCase @Inject constructor(
     ): Result<String> = withContext(ioDispatcher) {
         try {
             val credentialId = UUID.randomUUID().toString()
-            val entity = NetworkCredentialsEntity(
+            val entity = NetworkCredentialsEntity.create(
                 credentialId = credentialId,
                 type = "SFTP",
                 server = host,
                 port = port,
                 username = username,
-                password = password,
+                plaintextPassword = password,
                 domain = "", // Not used for SFTP
                 shareName = null // Not used for SFTP
             )

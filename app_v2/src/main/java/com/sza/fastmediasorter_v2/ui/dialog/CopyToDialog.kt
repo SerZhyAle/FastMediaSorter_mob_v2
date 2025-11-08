@@ -4,12 +4,14 @@ import android.app.Dialog
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.DialogCopyToBinding
@@ -20,7 +22,10 @@ import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class CopyToDialog(
@@ -33,6 +38,13 @@ class CopyToDialog(
     private val overwriteFiles: Boolean,
     private val onComplete: (UndoOperation?) -> Unit
 ) : Dialog(context) {
+    
+    private val scope = CoroutineScope(Dispatchers.Main)
+    private val mainHandler = Handler(Looper.getMainLooper())
+    
+    companion object {
+        private const val TAG = "CopyToDialog"
+    }
 
     private lateinit var binding: DialogCopyToBinding
 
@@ -58,27 +70,32 @@ class CopyToDialog(
     }
 
     private fun loadDestinations() {
-        kotlinx.coroutines.GlobalScope.launch {
+        Log.d(TAG, "loadDestinations() called")
+        scope.launch {
             try {
-                val destinations = getDestinationsUseCase.getDestinationsExcluding(currentResourceId)
+                val destinations = withContext(Dispatchers.IO) {
+                    getDestinationsUseCase.getDestinationsExcluding(currentResourceId)
+                }
                 
-                (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
-                    if (destinations.isEmpty()) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.no_destinations_available),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        dismiss()
-                    } else {
-                        createDestinationButtons(destinations)
-                    }
+                Log.d(TAG, "Loaded ${destinations.size} destinations")
+                destinations.forEach { dest ->
+                    Log.d(TAG, "Destination: ${dest.name}, order=${dest.destinationOrder}, color=${dest.destinationColor}")
+                }
+                
+                if (destinations.isEmpty()) {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.no_destinations_available),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    dismiss()
+                } else {
+                    createDestinationButtons(destinations)
                 }
             } catch (e: Exception) {
-                (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
-                    Toast.makeText(context, "Error loading destinations: ${e.message}", Toast.LENGTH_SHORT).show()
-                    dismiss()
-                }
+                Log.e(TAG, "Error loading destinations", e)
+                Toast.makeText(context, "Error loading destinations: ${e.message}", Toast.LENGTH_SHORT).show()
+                dismiss()
             }
         }
     }
@@ -88,6 +105,7 @@ class CopyToDialog(
      * Per spec: 1-5 buttons per row, arranged in rows
      */
     private fun createDestinationButtons(destinations: List<MediaResource>) {
+        Log.d(TAG, "createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
         
@@ -101,11 +119,14 @@ class CopyToDialog(
             else -> 5
         }
         
+        Log.d(TAG, "buttonsPerRow = $buttonsPerRow")
+        
         var currentRow: LinearLayout? = null
         
         destinations.forEachIndexed { index, destination ->
             // Create new row if needed
             if (index % buttonsPerRow == 0) {
+                Log.d(TAG, "Creating new row for index $index")
                 currentRow = LinearLayout(context).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(
@@ -139,15 +160,18 @@ class CopyToDialog(
                 }
             }
             
+            Log.d(TAG, "Added button for ${destination.name} with color ${destination.destinationColor}")
             currentRow?.addView(button)
         }
+        
+        Log.d(TAG, "Finished creating ${destinations.size} destination buttons")
     }
 
     private fun copyToDestination(destination: MediaResource) {
         binding.progressBar.visibility = View.VISIBLE
         binding.layoutDestinations.isEnabled = false
         
-        (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
+        scope.launch {
             try {
                 val destinationFolder = File(destination.path)
                 
@@ -157,7 +181,9 @@ class CopyToDialog(
                     overwrite = overwriteFiles
                 )
                 
-                val result = fileOperationUseCase.execute(operation)
+                val result = withContext(Dispatchers.IO) {
+                    fileOperationUseCase.execute(operation)
+                }
                 
                 when (result) {
                     is FileOperationResult.Success -> {
@@ -181,27 +207,52 @@ class CopyToDialog(
                         dismiss()
                     }
                     is FileOperationResult.PartialSuccess -> {
-                        val message = context.getString(
-                            R.string.copied_n_of_m_files,
-                            result.processedCount,
-                            result.processedCount + result.failedCount
+                        val message = buildString {
+                            append(context.getString(
+                                R.string.copied_n_of_m_files,
+                                result.processedCount,
+                                result.processedCount + result.failedCount
+                            ))
+                            append("\n\nErrors:\n")
+                            result.errors.take(5).forEach { error ->
+                                append("\n$error\n")
+                            }
+                            if (result.errors.size > 5) {
+                                append("\n... and ${result.errors.size - 5} more errors")
+                            }
+                        }
+                        
+                        com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                            context,
+                            "Partial Copy Success",
+                            message
                         )
-                        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+                        
                         onComplete(null) // Don't save partial operations for undo
                         dismiss()
                     }
                     is FileOperationResult.Failure -> {
-                        Toast.makeText(
+                        com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
                             context,
+                            "Copy Failed",
                             context.getString(R.string.copy_failed, result.error),
-                            Toast.LENGTH_LONG
-                        ).show()
+                            "Check logcat for detailed information (tag: FileOperation)"
+                        )
+                        
                         binding.progressBar.visibility = View.GONE
+                        binding.layoutDestinations.isEnabled = true
                     }
                 }
             } catch (e: Exception) {
-                Toast.makeText(context, "Copy error: ${e.message}", Toast.LENGTH_LONG).show()
+                com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                    context,
+                    "Copy Error",
+                    e.message ?: "Unknown error",
+                    e.stackTraceToString()
+                )
+                
                 binding.progressBar.visibility = View.GONE
+                binding.layoutDestinations.isEnabled = true
             }
         }
     }

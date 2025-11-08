@@ -43,10 +43,19 @@ class SmbDataSource(
             uri = dataSpec.uri
             val remotePath = uri?.path ?: throw IOException("Invalid URI path")
             
-            // Remove leading slash for SMB path
-            val smbPath = remotePath.removePrefix("/")
+            // Remove leading slash and share name for SMB path
+            // URI path format: /shareName/relativePath
+            // We need: relativePath (without share name)
+            val pathWithoutLeadingSlash = remotePath.removePrefix("/")
+            val sharePrefix = "${connectionInfo.shareName}/"
+            val smbPath = if (pathWithoutLeadingSlash.startsWith(sharePrefix)) {
+                pathWithoutLeadingSlash.substring(sharePrefix.length)
+            } else {
+                pathWithoutLeadingSlash
+            }
             
             Timber.d("SmbDataSource: Opening SMB file: $smbPath")
+            Timber.d("SmbDataSource: Details - originalPath=$remotePath, share=${connectionInfo.shareName}, extractedPath=$smbPath")
 
             // Establish connection
             val config = com.hierynomus.smbj.SmbConfig.builder()

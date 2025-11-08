@@ -23,131 +23,324 @@ class SmbFileOperationHandler @Inject constructor(
 ) {
 
     suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult = withContext(Dispatchers.IO) {
+        Timber.d("SMB executeCopy: Starting copy of ${operation.sources.size} files to ${operation.destination.absolutePath}")
+        
         val errors = mutableListOf<String>()
         val copiedPaths = mutableListOf<String>()
         var successCount = 0
 
-        operation.sources.forEach { source ->
+        operation.sources.forEachIndexed { index, source ->
+            Timber.d("SMB executeCopy: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
+            
             try {
                 val destPath = "${operation.destination.absolutePath}/${source.name}"
                 
                 // Determine if source or destination is SMB
                 val isSourceSmb = source.absolutePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
+                
+                Timber.d("SMB executeCopy: Source=${if (isSourceSmb) "SMB" else "Local"}, Dest=${if (isDestSmb) "SMB" else "Local"}")
 
+                val startTime = System.currentTimeMillis()
+                
                 when {
                     isSourceSmb && !isDestSmb -> {
+                        Timber.d("SMB executeCopy: SMB→Local - downloading ${source.name}")
                         // SMB to Local
                         downloadFromSmb(source.absolutePath, File(destPath))?.let {
+                            val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
+                            Timber.i("SMB executeCopy: SUCCESS - downloaded ${source.name} in ${duration}ms")
                         } ?: run {
-                            errors.add("Failed to download ${source.name} from SMB")
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: ${source.absolutePath}")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to download from SMB")
+                            }
+                            Timber.e("SMB executeCopy: $error")
+                            errors.add(error)
                         }
                     }
                     !isSourceSmb && isDestSmb -> {
+                        Timber.d("SMB executeCopy: Local→SMB - uploading ${source.name}")
                         // Local to SMB
                         uploadToSmb(source, destPath)?.let {
+                            val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
+                            Timber.i("SMB executeCopy: SUCCESS - uploaded ${source.name} in ${duration}ms")
                         } ?: run {
-                            errors.add("Failed to upload ${source.name} to SMB")
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: ${source.absolutePath}")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to upload to SMB")
+                            }
+                            Timber.e("SMB executeCopy: $error")
+                            errors.add(error)
                         }
                     }
                     isSourceSmb && isDestSmb -> {
+                        Timber.d("SMB executeCopy: SMB→SMB - copying ${source.name}")
                         // SMB to SMB
                         copySmbToSmb(source.absolutePath, destPath)?.let {
+                            val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
+                            Timber.i("SMB executeCopy: SUCCESS - copied ${source.name} between SMB shares in ${duration}ms")
                         } ?: run {
-                            errors.add("Failed to copy ${source.name} between SMB shares")
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: ${source.absolutePath}")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy between SMB shares")
+                            }
+                            Timber.e("SMB executeCopy: $error")
+                            errors.add(error)
                         }
                     }
                     else -> {
-                        errors.add("Invalid operation: both source and destination are local")
+                        val error = "Invalid operation: both source and destination are local"
+                        Timber.e("SMB executeCopy: $error")
+                        errors.add(error)
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to copy ${source.name}")
-                errors.add("Failed to copy ${source.name}: ${e.message}")
+                val error = buildString {
+                    append("${source.name}")
+                    append("\n  From: ${source.absolutePath}")
+                    append("\n  To: ${File(operation.destination, source.name).absolutePath}")
+                    append("\n  Error: ${e.javaClass.simpleName} - ${e.message}")
+                }
+                Timber.e(e, "SMB executeCopy: ERROR - $error")
+                errors.add(error)
             }
         }
 
-        return@withContext when {
-            successCount == operation.sources.size -> FileOperationResult.Success(successCount, operation, copiedPaths)
-            successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
-            else -> FileOperationResult.Failure("All copy operations failed")
+        val result = when {
+            successCount == operation.sources.size -> {
+                Timber.i("SMB executeCopy: All $successCount files copied successfully")
+                FileOperationResult.Success(successCount, operation, copiedPaths)
+            }
+            successCount > 0 -> {
+                Timber.w("SMB executeCopy: Partial success - $successCount/${operation.sources.size} files copied. Errors: $errors")
+                FileOperationResult.PartialSuccess(successCount, errors.size, errors)
+            }
+            else -> {
+                Timber.e("SMB executeCopy: All copy operations failed. Errors: $errors")
+                FileOperationResult.Failure("All copy operations failed: ${errors.firstOrNull() ?: "Unknown error"}")
+            }
         }
+        
+        return@withContext result
     }
 
     suspend fun executeMove(operation: FileOperation.Move): FileOperationResult = withContext(Dispatchers.IO) {
+        Timber.d("SMB executeMove: Starting move of ${operation.sources.size} files to ${operation.destination.absolutePath}")
+        
         val errors = mutableListOf<String>()
         val movedPaths = mutableListOf<String>()
         var successCount = 0
 
-        operation.sources.forEach { source ->
+        operation.sources.forEachIndexed { index, source ->
+            Timber.d("SMB executeMove: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
+            
             try {
                 val destPath = "${operation.destination.absolutePath}/${source.name}"
                 
                 val isSourceSmb = source.absolutePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
+                
+                Timber.d("SMB executeMove: Source=${if (isSourceSmb) "SMB" else "Local"}, Dest=${if (isDestSmb) "SMB" else "Local"}")
+
+                val startTime = System.currentTimeMillis()
 
                 when {
                     isSourceSmb && !isDestSmb -> {
+                        Timber.d("SMB executeMove: SMB→Local - download+delete ${source.name}")
                         // SMB to Local (download + delete)
                         if (downloadFromSmb(source.absolutePath, File(destPath)) != null) {
+                            val downloadDuration = System.currentTimeMillis() - startTime
+                            Timber.d("SMB executeMove: Downloaded in ${downloadDuration}ms, attempting delete from SMB")
+                            
                             if (deleteFromSmb(source.absolutePath)) {
+                                val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
+                                Timber.i("SMB executeMove: SUCCESS - moved ${source.name} in ${totalDuration}ms")
                             } else {
-                                errors.add("Downloaded ${source.name} but failed to delete from SMB")
+                                val error = buildString {
+                                    append("${source.name}")
+                                    append("\n  From: ${source.absolutePath}")
+                                    append("\n  To: $destPath")
+                                    append("\n  Error: Downloaded but failed to delete from SMB")
+                                }
+                                Timber.e("SMB executeMove: $error - deleting downloaded file")
+                                errors.add(error)
                                 // Delete downloaded file to avoid partial state
                                 File(destPath).delete()
                             }
                         } else {
-                            errors.add("Failed to download ${source.name} from SMB")
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: ${source.absolutePath}")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to download from SMB")
+                            }
+                            Timber.e("SMB executeMove: $error")
+                            errors.add(error)
                         }
                     }
                     !isSourceSmb && isDestSmb -> {
+                        Timber.d("SMB executeMove: Local→SMB - upload+delete ${source.name}")
                         // Local to SMB (upload + delete)
                         if (uploadToSmb(source, destPath) != null) {
+                            val uploadDuration = System.currentTimeMillis() - startTime
+                            Timber.d("SMB executeMove: Uploaded in ${uploadDuration}ms, attempting local delete")
+                            
                             if (source.delete()) {
+                                val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
+                                Timber.i("SMB executeMove: SUCCESS - moved ${source.name} in ${totalDuration}ms")
                             } else {
-                                errors.add("Uploaded ${source.name} but failed to delete local file")
+                                val error = buildString {
+                                    append("${source.name}")
+                                    append("\n  From: ${source.absolutePath}")
+                                    append("\n  To: $destPath")
+                                    append("\n  Error: Uploaded but failed to delete local file")
+                                }
+                                Timber.e("SMB executeMove: $error")
+                                errors.add(error)
                             }
                         } else {
-                            errors.add("Failed to upload ${source.name} to SMB")
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: ${source.absolutePath}")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to upload to SMB")
+                            }
+                            Timber.e("SMB executeMove: $error")
+                            errors.add(error)
                         }
                     }
                     isSourceSmb && isDestSmb -> {
+                        Timber.d("SMB executeMove: SMB→SMB - copy+delete ${source.name}")
                         // SMB to SMB (copy + delete)
                         if (copySmbToSmb(source.absolutePath, destPath) != null) {
+                            val copyDuration = System.currentTimeMillis() - startTime
+                            Timber.d("SMB executeMove: Copied in ${copyDuration}ms, attempting delete from source SMB")
+                            
                             if (deleteFromSmb(source.absolutePath)) {
+                                val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
+                                Timber.i("SMB executeMove: SUCCESS - moved ${source.name} in ${totalDuration}ms")
                             } else {
-                                errors.add("Copied ${source.name} but failed to delete from source SMB")
+                                val error = buildString {
+                                    append("${source.name}")
+                                    append("\n  From: ${source.absolutePath}")
+                                    append("\n  To: $destPath")
+                                    append("\n  Error: Copied but failed to delete from source SMB")
+                                }
+                                Timber.e("SMB executeMove: $error")
+                                errors.add(error)
                             }
                         } else {
-                            errors.add("Failed to move ${source.name} between SMB shares")
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: ${source.absolutePath}")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy between SMB shares")
+                            }
+                            Timber.e("SMB executeMove: $error")
+                            errors.add(error)
                         }
                     }
                     else -> {
-                        errors.add("Invalid operation: both source and destination are local")
+                        val error = "Invalid operation: both source and destination are local"
+                        Timber.e("SMB executeMove: $error")
+                        errors.add(error)
                     }
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to move ${source.name}")
-                errors.add("Failed to move ${source.name}: ${e.message}")
+                val error = buildString {
+                    append("${source.name}")
+                    append("\n  From: ${source.absolutePath}")
+                    append("\n  To: ${File(operation.destination, source.name).absolutePath}")
+                    append("\n  Error: ${e.javaClass.simpleName} - ${e.message}")
+                }
+                Timber.e(e, "SMB executeMove: ERROR - $error")
+                errors.add(error)
             }
         }
 
-        return@withContext when {
-            successCount == operation.sources.size -> FileOperationResult.Success(successCount, operation, movedPaths)
-            successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
-            else -> FileOperationResult.Failure("All move operations failed")
+        val result = when {
+            successCount == operation.sources.size -> {
+                Timber.i("SMB executeMove: All $successCount files moved successfully")
+                FileOperationResult.Success(successCount, operation, movedPaths)
+            }
+            successCount > 0 -> {
+                Timber.w("SMB executeMove: Partial success - $successCount/${operation.sources.size} files moved. Errors: $errors")
+                FileOperationResult.PartialSuccess(successCount, errors.size, errors)
+            }
+            else -> {
+                Timber.e("SMB executeMove: All move operations failed. Errors: $errors")
+                FileOperationResult.Failure("All move operations failed: ${errors.firstOrNull() ?: "Unknown error"}")
+            }
+        }
+        
+        return@withContext result
+    }
+
+    suspend fun executeRename(operation: FileOperation.Rename): FileOperationResult = withContext(Dispatchers.IO) {
+        Timber.d("SMB executeRename: Renaming ${operation.file.name} to ${operation.newName}")
+        
+        try {
+            val smbPath = operation.file.absolutePath
+            
+            if (!smbPath.startsWith("smb://")) {
+                Timber.e("SMB executeRename: File is not SMB path: $smbPath")
+                return@withContext FileOperationResult.Failure("Not an SMB file: $smbPath")
+            }
+            
+            val connectionInfo = parseSmbPath(smbPath)
+            if (connectionInfo == null) {
+                Timber.e("SMB executeRename: Failed to parse SMB path: $smbPath")
+                return@withContext FileOperationResult.Failure("Invalid SMB path: $smbPath")
+            }
+            
+            Timber.d("SMB executeRename: Parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}, remotePath=${connectionInfo.remotePath}")
+            
+            when (val result = smbClient.renameFile(connectionInfo.connectionInfo, connectionInfo.remotePath, operation.newName)) {
+                is SmbClient.SmbResult.Success -> {
+                    // Construct new path
+                    val directory = smbPath.substringBeforeLast('/')
+                    val newPath = "$directory/${operation.newName}"
+                    
+                    Timber.i("SMB executeRename: SUCCESS - renamed to $newPath")
+                    FileOperationResult.Success(1, operation, listOf(newPath))
+                }
+                is SmbClient.SmbResult.Error -> {
+                    val error = buildString {
+                        append("${operation.file.name}")
+                        append("\n  New name: ${operation.newName}")
+                        append("\n  Error: ${result.message}")
+                    }
+                    Timber.e("SMB executeRename: FAILED - $error")
+                    FileOperationResult.Failure(error)
+                }
+            }
+        } catch (e: Exception) {
+            val error = buildString {
+                append("${operation.file.name}")
+                append("\n  New name: ${operation.newName}")
+                append("\n  Error: ${e.javaClass.simpleName} - ${e.message}")
+            }
+            Timber.e(e, "SMB executeRename: EXCEPTION - $error")
+            FileOperationResult.Failure(error)
         }
     }
 
@@ -184,66 +377,135 @@ class SmbFileOperationHandler @Inject constructor(
     }
 
     private suspend fun downloadFromSmb(smbPath: String, localFile: File): File? {
-        val connectionInfo = parseSmbPath(smbPath) ?: return null
+        Timber.d("downloadFromSmb: $smbPath → ${localFile.absolutePath}")
+        
+        val connectionInfo = parseSmbPath(smbPath)
+        if (connectionInfo == null) {
+            Timber.e("downloadFromSmb: Failed to parse SMB path: $smbPath")
+            return null
+        }
+        
+        Timber.d("downloadFromSmb: Parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}, path=${connectionInfo.remotePath}")
+        
         val outputStream = ByteArrayOutputStream()
 
         return when (val result = smbClient.downloadFile(connectionInfo.connectionInfo, connectionInfo.remotePath, outputStream)) {
             is SmbClient.SmbResult.Success -> {
-                localFile.outputStream().use { it.write(outputStream.toByteArray()) }
-                localFile
+                try {
+                    val bytes = outputStream.toByteArray()
+                    Timber.d("downloadFromSmb: Downloaded ${bytes.size} bytes, writing to local file")
+                    localFile.outputStream().use { it.write(bytes) }
+                    Timber.i("downloadFromSmb: SUCCESS - ${bytes.size} bytes written to ${localFile.name}")
+                    localFile
+                } catch (e: Exception) {
+                    Timber.e(e, "downloadFromSmb: Failed to write local file")
+                    null
+                }
             }
             is SmbClient.SmbResult.Error -> {
-                Timber.e("Failed to download from SMB: ${result.message}")
+                Timber.e("downloadFromSmb: FAILED - ${result.message}")
                 null
             }
         }
     }
 
     private suspend fun uploadToSmb(localFile: File, smbPath: String): String? {
-        val connectionInfo = parseSmbPath(smbPath) ?: return null
+        Timber.d("uploadToSmb: ${localFile.absolutePath} → $smbPath")
+        
+        if (!localFile.exists()) {
+            Timber.e("uploadToSmb: Local file does not exist: ${localFile.absolutePath}")
+            return null
+        }
+        
+        Timber.d("uploadToSmb: Local file size=${localFile.length()} bytes")
+        
+        val connectionInfo = parseSmbPath(smbPath)
+        if (connectionInfo == null) {
+            Timber.e("uploadToSmb: Failed to parse SMB path: $smbPath")
+            return null
+        }
+        
+        Timber.d("uploadToSmb: Parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}, path=${connectionInfo.remotePath}")
+        
         val inputStream = localFile.inputStream()
 
         return when (val result = smbClient.uploadFile(connectionInfo.connectionInfo, connectionInfo.remotePath, inputStream)) {
-            is SmbClient.SmbResult.Success -> smbPath
+            is SmbClient.SmbResult.Success -> {
+                Timber.i("uploadToSmb: SUCCESS - uploaded ${localFile.name}")
+                smbPath
+            }
             is SmbClient.SmbResult.Error -> {
-                Timber.e("Failed to upload to SMB: ${result.message}")
+                Timber.e("uploadToSmb: FAILED - ${result.message}")
                 null
             }
         }
     }
 
     private suspend fun deleteFromSmb(smbPath: String): Boolean {
-        val connectionInfo = parseSmbPath(smbPath) ?: return false
+        Timber.d("deleteFromSmb: $smbPath")
+        
+        val connectionInfo = parseSmbPath(smbPath)
+        if (connectionInfo == null) {
+            Timber.e("deleteFromSmb: Failed to parse SMB path: $smbPath")
+            return false
+        }
+        
+        Timber.d("deleteFromSmb: Parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}, path=${connectionInfo.remotePath}")
 
         return when (val result = smbClient.deleteFile(connectionInfo.connectionInfo, connectionInfo.remotePath)) {
-            is SmbClient.SmbResult.Success -> true
+            is SmbClient.SmbResult.Success -> {
+                Timber.i("deleteFromSmb: SUCCESS")
+                true
+            }
             is SmbClient.SmbResult.Error -> {
-                Timber.e("Failed to delete from SMB: ${result.message}")
+                Timber.e("deleteFromSmb: FAILED - ${result.message}")
                 false
             }
         }
     }
 
     private suspend fun copySmbToSmb(sourcePath: String, destPath: String): String? {
+        Timber.d("copySmbToSmb: $sourcePath → $destPath")
+        
         // Download to memory then upload
-        val connectionInfo = parseSmbPath(sourcePath) ?: return null
+        val connectionInfo = parseSmbPath(sourcePath)
+        if (connectionInfo == null) {
+            Timber.e("copySmbToSmb: Failed to parse source SMB path: $sourcePath")
+            return null
+        }
+        
+        Timber.d("copySmbToSmb: Source parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}")
+        
         val buffer = ByteArrayOutputStream()
 
         when (val downloadResult = smbClient.downloadFile(connectionInfo.connectionInfo, connectionInfo.remotePath, buffer)) {
             is SmbClient.SmbResult.Success -> {
-                val destConnectionInfo = parseSmbPath(destPath) ?: return null
-                val inputStream = ByteArrayInputStream(buffer.toByteArray())
+                val bytes = buffer.toByteArray()
+                Timber.d("copySmbToSmb: Downloaded ${bytes.size} bytes from source")
+                
+                val destConnectionInfo = parseSmbPath(destPath)
+                if (destConnectionInfo == null) {
+                    Timber.e("copySmbToSmb: Failed to parse dest SMB path: $destPath")
+                    return null
+                }
+                
+                Timber.d("copySmbToSmb: Dest parsed - server=${destConnectionInfo.connectionInfo.server}, share=${destConnectionInfo.connectionInfo.shareName}")
+                
+                val inputStream = ByteArrayInputStream(bytes)
 
                 return when (val uploadResult = smbClient.uploadFile(destConnectionInfo.connectionInfo, destConnectionInfo.remotePath, inputStream)) {
-                    is SmbClient.SmbResult.Success -> destPath
+                    is SmbClient.SmbResult.Success -> {
+                        Timber.i("copySmbToSmb: SUCCESS - copied ${bytes.size} bytes between SMB shares")
+                        destPath
+                    }
                     is SmbClient.SmbResult.Error -> {
-                        Timber.e("Failed to upload in SMB-to-SMB copy: ${uploadResult.message}")
+                        Timber.e("copySmbToSmb: Upload FAILED - ${uploadResult.message}")
                         null
                     }
                 }
             }
             is SmbClient.SmbResult.Error -> {
-                Timber.e("Failed to download in SMB-to-SMB copy: ${downloadResult.message}")
+                Timber.e("copySmbToSmb: Download FAILED - ${downloadResult.message}")
                 return null
             }
         }

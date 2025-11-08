@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter_v2.domain.usecase
 
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
+import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
+import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
@@ -19,5 +21,23 @@ class GetResourcesUseCase @Inject constructor(
 
     suspend fun getById(id: Long): MediaResource? {
         return repository.getResourceById(id)
+    }
+    
+    /**
+     * Get resources with filtering and sorting applied at database level
+     * More efficient than client-side filtering for large datasets
+     */
+    suspend fun getFiltered(
+        filterByType: Set<ResourceType>? = null,
+        filterByMediaType: Set<MediaType>? = null,
+        filterByName: String? = null,
+        sortMode: SortMode = SortMode.MANUAL
+    ): List<MediaResource> {
+        return repository.getFilteredResources(
+            filterByType = filterByType,
+            filterByMediaType = filterByMediaType,
+            filterByName = filterByName,
+            sortMode = sortMode
+        )
     }
 }

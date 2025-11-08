@@ -32,14 +32,20 @@ class PlayerViewModel @Inject constructor(
         val currentIndex: Int = 0,
         val isSlideShowActive: Boolean = false,
         val slideShowInterval: Long = 3000,
-        val showControls: Boolean = true,
+        val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = false,
+        val showSmallControls: Boolean = false,
+        val allowRename: Boolean = true,
+        val allowDelete: Boolean = true,
+        val enableCopying: Boolean = true,
+        val enableMoving: Boolean = true,
         val resource: MediaResource? = null
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
-        val hasPrevious: Boolean get() = currentIndex > 0
-        val hasNext: Boolean get() = currentIndex < files.size - 1
+        // Circular navigation: always allow prev/next if files.size > 1
+        val hasPrevious: Boolean get() = files.size > 1
+        val hasNext: Boolean get() = files.size > 1
     }
 
     sealed class PlayerEvent {
@@ -67,7 +73,16 @@ class PlayerViewModel @Inject constructor(
             try {
                 val settings = settingsRepository.getSettings().first()
                 // If fullScreenMode is true, showCommandPanel should be false (and vice versa)
-                updateState { it.copy(showCommandPanel = !settings.fullScreenMode) }
+                updateState { 
+                    it.copy(
+                        showCommandPanel = !settings.fullScreenMode,
+                        showSmallControls = settings.showSmallControls,
+                        allowRename = settings.allowRename,
+                        allowDelete = settings.allowDelete,
+                        enableCopying = settings.enableCopying,
+                        enableMoving = settings.enableMoving
+                    )
+                }
             } catch (e: Exception) {
                 // Use default value (fullscreen mode)
             }
@@ -123,16 +138,26 @@ class PlayerViewModel @Inject constructor(
 
     fun nextFile() {
         val currentState = state.value
-        if (currentState.hasNext) {
-            updateState { it.copy(currentIndex = it.currentIndex + 1) }
+        if (currentState.files.isEmpty()) return
+        
+        val nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
+            0 // Loop to first file after last
+        } else {
+            currentState.currentIndex + 1
         }
+        updateState { it.copy(currentIndex = nextIndex) }
     }
 
     fun previousFile() {
         val currentState = state.value
-        if (currentState.hasPrevious) {
-            updateState { it.copy(currentIndex = it.currentIndex - 1) }
+        if (currentState.files.isEmpty()) return
+        
+        val prevIndex = if (currentState.currentIndex <= 0) {
+            currentState.files.size - 1 // Loop to last file before first
+        } else {
+            currentState.currentIndex - 1
         }
+        updateState { it.copy(currentIndex = prevIndex) }
     }
 
     fun toggleSlideShow() {
@@ -205,4 +230,6 @@ class PlayerViewModel @Inject constructor(
             false
         }
     }
+
+    suspend fun getSettings() = settingsRepository.getSettings().first()
 }
