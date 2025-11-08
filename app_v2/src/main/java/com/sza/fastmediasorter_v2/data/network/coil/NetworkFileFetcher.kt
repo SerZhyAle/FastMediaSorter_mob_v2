@@ -83,10 +83,18 @@ class NetworkFileFetcher(
         val credentials = credentialsRepository.getByTypeServerAndPort("SMB", server, port)
             ?: return null
 
+        // Extract share name and file path from pathParts
+        // pathParts format: "shareName/path/to/file"
+        val shareAndPath = pathParts.split("/", limit = 2)
+        val shareName = if (shareAndPath.isNotEmpty()) shareAndPath[0] else (credentials.shareName ?: "")
+        val remotePath = if (shareAndPath.size > 1) shareAndPath[1] else ""
+
+        if (shareName.isEmpty()) return null
+
         val connectionInfo = SmbClient.SmbConnectionInfo(
             server = server,
             port = port,
-            shareName = credentials.shareName ?: "",
+            shareName = shareName,
             username = credentials.username,
             password = credentials.password,
             domain = credentials.domain
@@ -94,7 +102,6 @@ class NetworkFileFetcher(
 
         // Read file with max 10MB for thumbnails
         val maxBytes = 10 * 1024 * 1024L // 10 MB
-        val remotePath = "/$pathParts"
 
         val result = smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
         return when (result) {
