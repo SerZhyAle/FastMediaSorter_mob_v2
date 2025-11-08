@@ -158,10 +158,13 @@ class MediaFileAdapter(
                             // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
                             Timber.d("Loading network image via NetworkFileData: ${file.path}")
                             load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
-                                crossfade(true)
+                                crossfade(false) // Disable crossfade for faster loading
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
                                 transformations(RoundedCornersTransformation(8f))
+                                // Set memory and disk cache policy
+                                memoryCacheKey(file.path)
+                                diskCacheKey(file.path)
                                 listener(
                                     onSuccess = { _, _ ->
                                         Timber.d("Successfully loaded network thumbnail: ${file.name}")
@@ -174,7 +177,7 @@ class MediaFileAdapter(
                         } else {
                             // Load image/GIF thumbnail using Coil for local files
                             load(File(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
                                 transformations(RoundedCornersTransformation(8f))
@@ -185,15 +188,17 @@ class MediaFileAdapter(
                         if (isNetworkPath) {
                             // Load network video frame using NetworkFileData
                             load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)
                                 transformations(RoundedCornersTransformation(8f))
+                                memoryCacheKey(file.path)
+                                diskCacheKey(file.path)
                             }
                         } else {
                             // Load video first frame using Coil with video frame decoder for local files
                             load(File(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)
                                 transformations(RoundedCornersTransformation(8f))
@@ -308,14 +313,16 @@ class MediaFileAdapter(
                         if (isNetworkPath) {
                             // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
                             load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
                                 transformations(RoundedCornersTransformation(8f))
+                                memoryCacheKey(file.path)
+                                diskCacheKey(file.path)
                             }
                         } else {
                             load(File(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
                                 transformations(RoundedCornersTransformation(8f))
@@ -326,14 +333,16 @@ class MediaFileAdapter(
                         if (isNetworkPath) {
                             // Load network video frame using NetworkFileData
                             load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)
                                 transformations(RoundedCornersTransformation(8f))
+                                memoryCacheKey(file.path)
+                                diskCacheKey(file.path)
                             }
                         } else {
                             load(File(file.path)) {
-                                crossfade(true)
+                                crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)
                                 transformations(RoundedCornersTransformation(8f))

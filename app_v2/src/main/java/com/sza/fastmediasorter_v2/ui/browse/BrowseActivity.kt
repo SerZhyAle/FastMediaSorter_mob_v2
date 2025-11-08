@@ -83,7 +83,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         )
 
-        binding.rvMediaFiles.adapter = mediaFileAdapter
+        binding.rvMediaFiles.apply {
+            adapter = mediaFileAdapter
+            // Increase view cache size for smoother scrolling
+            setItemViewCacheSize(20)
+            // Set drawing cache enabled for better scrolling performance
+            setHasFixedSize(true)
+        }
 
         binding.btnSort.setOnClickListener {
             showSortDialog()

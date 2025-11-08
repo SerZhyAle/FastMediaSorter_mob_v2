@@ -100,9 +100,10 @@ class NetworkFileFetcher(
             domain = credentials.domain
         )
 
-        // Read file with max 10MB for thumbnails
-        val maxBytes = 10 * 1024 * 1024L // 10 MB
-
+        // Read file with smaller buffer for faster thumbnail loading
+        // Full images load on demand, thumbnails need only first 2MB
+        val maxBytes = 2 * 1024 * 1024L // 2 MB for thumbnails
+        
         val result = smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
         return when (result) {
             is SmbClient.SmbResult.Success -> result.data
@@ -140,8 +141,8 @@ class NetworkFileFetcher(
             return null
         }
 
-        // Read file with max 10MB for thumbnails
-        val maxBytes = 10 * 1024 * 1024L // 10 MB
+        // Read file with smaller buffer for faster thumbnail loading
+        val maxBytes = 2 * 1024 * 1024L // 2 MB for thumbnails
         val result = sftpClient.readFileBytes(remotePath, maxBytes)
         
         return result.getOrNull()
