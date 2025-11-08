@@ -177,8 +177,18 @@ class EditResourceViewModel @Inject constructor(
                     return@launch
                 }
                 
-                // Find next available destination order
-                val nextOrder = (currentDestinations.maxOfOrNull { res -> res.destinationOrder ?: 0 } ?: 0) + 1
+                // Find next available destination order (0-9)
+                val usedOrders = currentDestinations.mapNotNull { it.destinationOrder }.toSet()
+                val nextOrder = (0 until 10).firstOrNull { it !in usedOrders } ?: -1
+                
+                if (nextOrder == -1) {
+                    sendEvent(EditResourceEvent.ShowError(
+                        "Cannot add to destinations: no available order slots. " +
+                        "Remove a destination first."
+                    ))
+                    return@launch
+                }
+                
                 val color = com.sza.fastmediasorter_v2.core.util.DestinationColors.getColorForDestination(nextOrder)
                 
                 val updated = current.copy(
