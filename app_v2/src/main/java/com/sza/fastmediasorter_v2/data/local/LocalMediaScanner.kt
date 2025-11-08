@@ -30,7 +30,8 @@ class LocalMediaScanner @Inject constructor(
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             val folder = File(path)
@@ -69,7 +70,8 @@ class LocalMediaScanner @Inject constructor(
     override suspend fun getFileCount(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
     ): Int = withContext(Dispatchers.IO) {
         try {
             val folder = File(path)
@@ -98,7 +100,7 @@ class LocalMediaScanner @Inject constructor(
         }
     }
 
-    override suspend fun isWritable(path: String): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
             val folder = File(path)
             folder.exists() && folder.canWrite()

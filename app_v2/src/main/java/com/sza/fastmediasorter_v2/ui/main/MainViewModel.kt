@@ -192,7 +192,10 @@ class MainViewModel @Inject constructor(
                 val copyName = generateCopyName(selected.name)
                 val copy = selected.copy(
                     id = 0, // New resource will get a new ID
-                    name = copyName
+                    name = copyName,
+                    isDestination = false, // Reset destination flag
+                    destinationOrder = null, // Reset destination order
+                    destinationColor = 0xFF4CAF50.toInt() // Reset to default green
                 )
                 
                 Timber.d("Copying resource: ${selected.name} -> $copyName")
@@ -236,7 +239,18 @@ class MainViewModel @Inject constructor(
         return "$originalName (copy $counter)"
     }
     
+    /**
+     * Refresh resources list from database (fast)
+     */
     fun refreshResources() {
+        Timber.d("Refreshing resources from database")
+        loadResources()
+    }
+    
+    /**
+     * Scan all resources and update file counts (slow)
+     */
+    fun scanAllResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             try {
@@ -262,7 +276,7 @@ class MainViewModel @Inject constructor(
                     }
                     
                     val isWritable = try {
-                        scanner.isWritable(resource.path)
+                        scanner.isWritable(resource.path, resource.credentialsId)
                     } catch (e: Exception) {
                         Timber.e(e, "Error checking write access for ${resource.name}")
                         resource.isWritable
@@ -277,9 +291,9 @@ class MainViewModel @Inject constructor(
                     }
                 }
                 
-                sendEvent(MainEvent.ShowMessage("Resources refreshed"))
+                sendEvent(MainEvent.ShowMessage("Resources scanned"))
             } catch (e: Exception) {
-                Timber.e(e, "Error refreshing resources")
+                Timber.e(e, "Error scanning resources")
                 handleError(e)
             } finally {
                 setLoading(false)

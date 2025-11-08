@@ -79,9 +79,14 @@ class NetworkFileFetcher(
             port = 445
         }
 
-        // Get credentials from database
-        val credentials = credentialsRepository.getByTypeServerAndPort("SMB", server, port)
-            ?: return null
+        // Get credentials from database - prefer credentialsId if provided
+        val credentials = if (data.credentialsId != null) {
+            credentialsRepository.getByCredentialId(data.credentialsId)
+        } else {
+            credentialsRepository.getByTypeServerAndPort("SMB", server, port)
+        }
+        
+        if (credentials == null) return null
 
         // Extract share name and file path from pathParts
         // pathParts format: "shareName/path/to/file"
@@ -131,9 +136,14 @@ class NetworkFileFetcher(
             port = 22
         }
 
-        // Get credentials from database
-        val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
-            ?: return null
+        // Get credentials from database - prefer credentialsId if provided
+        val credentials = if (data.credentialsId != null) {
+            credentialsRepository.getByCredentialId(data.credentialsId)
+        } else {
+            credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
+        }
+        
+        if (credentials == null) return null
 
         // Connect to SFTP
         sftpClient.connect(server, port, credentials.username, credentials.password)
@@ -171,5 +181,6 @@ class NetworkFileFetcher(
  * Data class для передачи network path в Fetcher.
  */
 data class NetworkFileData(
-    val path: String // smb:// or sftp:// URL
+    val path: String, // smb:// or sftp:// URL
+    val credentialsId: String? = null // Optional credentialsId to use specific credentials
 )

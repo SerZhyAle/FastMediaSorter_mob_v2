@@ -78,15 +78,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Start Player - double sized PLAY icon -->
+        <!-- Exit -->
         <ImageButton
-            android:id="@+id/btnStartPlayer"
-            android:layout_width="96dp"
+            android:id="@+id/btnExit"
+            android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/start_player"
-            android:src="@android:drawable/ic_media_play"
-            android:scaleType="fitCenter" />
+            android:contentDescription="@string/exit"
+            android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
         <!-- Add Resource -->
         <ImageButton
@@ -96,15 +95,6 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add"
             android:src="@android:drawable/ic_menu_add" />
-
-        <!-- Copy Resource -->
-        <ImageButton
-            android:id="@+id/btnCopyResource"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/copy_resource"
-            android:src="@android:drawable/ic_menu_set_as" />
 
         <!-- Small space -->
         <Space
@@ -143,14 +133,15 @@
             android:contentDescription="@string/settings"
             android:src="@android:drawable/ic_menu_preferences" />
 
-        <!-- Exit -->
+        <!-- Start Player - double sized PLAY icon -->
         <ImageButton
-            android:id="@+id/btnExit"
-            android:layout_width="48dp"
+            android:id="@+id/btnStartPlayer"
+            android:layout_width="96dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/exit"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:contentDescription="@string/start_player"
+            android:src="@android:drawable/ic_media_play"
+            android:scaleType="fitCenter" />
 
     </LinearLayout>
 

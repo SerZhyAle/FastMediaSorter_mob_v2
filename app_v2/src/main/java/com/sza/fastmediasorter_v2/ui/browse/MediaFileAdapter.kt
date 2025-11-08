@@ -39,6 +39,11 @@ class MediaFileAdapter(
 ) : ListAdapter<MediaFile, RecyclerView.ViewHolder>(MediaFileDiffCallback()) {
 
     private var selectedPaths = setOf<String>()
+    private var credentialsId: String? = null // Credentials ID for network files
+    
+    fun setCredentialsId(id: String?) {
+        credentialsId = id
+    }
     
     companion object {
         private const val VIEW_TYPE_LIST = 0
@@ -175,7 +180,7 @@ class MediaFileAdapter(
                         if (isNetworkPath) {
                             // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
                             Timber.d("Loading network image via NetworkFileData: ${file.path}")
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
                                 crossfade(false) // Disable crossfade for faster loading
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
@@ -205,7 +210,7 @@ class MediaFileAdapter(
                     MediaType.VIDEO -> {
                         if (isNetworkPath) {
                             // Load network video frame using NetworkFileData
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)
@@ -348,7 +353,7 @@ class MediaFileAdapter(
                     MediaType.IMAGE, MediaType.GIF -> {
                         if (isNetworkPath) {
                             // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
@@ -368,7 +373,7 @@ class MediaFileAdapter(
                     MediaType.VIDEO -> {
                         if (isNetworkPath) {
                             // Load network video frame using NetworkFileData
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)

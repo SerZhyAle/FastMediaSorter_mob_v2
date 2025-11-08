@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter_v2.ui.editresource
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -236,12 +239,26 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                             finish()
                         }
                         is EditResourceEvent.TestResult -> {
-                            val message = if (event.success) {
-                                getString(R.string.test_successful)
-                            } else {
-                                getString(R.string.test_failed, event.message)
+                            showTestResultDialog(event.message, event.success)
+                            
+                            // If test successful but credentials not saved, offer to save automatically
+                            if (event.success) {
+                                val state = viewModel.state.value
+                                if (state.hasSmbCredentialsChanges || state.hasSftpCredentialsChanges) {
+                                    androidx.appcompat.app.AlertDialog.Builder(this@EditResourceActivity)
+                                        .setTitle("Save Credentials?")
+                                        .setMessage(
+                                            "Connection test successful!\n\n" +
+                                            "Do you want to save these credentials now?\n\n" +
+                                            "⚠️ Without saving, the resource will use old credentials and may fail to open."
+                                        )
+                                        .setPositiveButton("Save Now") { _, _ ->
+                                            viewModel.saveChanges()
+                                        }
+                                        .setNegativeButton("Later", null)
+                                        .show()
+                                }
                             }
-                            Toast.makeText(this@EditResourceActivity, message, Toast.LENGTH_LONG).show()
                         }
                     }
                 }
@@ -285,5 +302,25 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         if (binding.cbSupportAudio.isChecked) types.add(MediaType.AUDIO)
         if (binding.cbSupportGif.isChecked) types.add(MediaType.GIF)
         viewModel.updateSupportedMediaTypes(types)
+    }
+    
+    private fun showTestResultDialog(message: String, isSuccess: Boolean) {
+        val title = if (isSuccess) "Connection Test - Success" else "Connection Test - Failed"
+        
+        android.app.AlertDialog.Builder(this)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .setNeutralButton("Copy") { _, _ ->
+                copyToClipboard(message)
+            }
+            .show()
+    }
+    
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Test Result", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 }

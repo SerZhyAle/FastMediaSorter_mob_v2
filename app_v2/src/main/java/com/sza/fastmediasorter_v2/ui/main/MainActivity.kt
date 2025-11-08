@@ -118,10 +118,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             viewModel.refreshResources()
         }
         
-        binding.btnCopyResource.setOnClickListener {
-            viewModel.copySelectedResource()
-        }
-        
         binding.btnExit.setOnClickListener {
             finish()
         }

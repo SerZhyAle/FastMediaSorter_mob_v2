@@ -147,6 +147,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
 
                     state.resource?.let { resource ->
+                        mediaFileAdapter.setCredentialsId(resource.credentialsId)
                         binding.tvResourceInfo.text = buildResourceInfo(state)
                     }
 
@@ -196,7 +197,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.events.collect { event ->
                     when (event) {
                         is BrowseEvent.ShowError -> {
-                            Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_LONG).show()
+                            showErrorDialog(event.message, event.details)
                         }
                         is BrowseEvent.ShowMessage -> {
                             Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_SHORT).show()
@@ -213,6 +214,40 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
             }
         }
+    }
+    
+    private fun showErrorDialog(message: String, details: String?) {
+        val dialogBuilder = androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Error")
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+        
+        // Add "Show Details" button if details are available
+        if (!details.isNullOrBlank()) {
+            dialogBuilder.setNeutralButton("Show Details") { _, _ ->
+                showErrorDetailsDialog(details)
+            }
+        }
+        
+        dialogBuilder.show()
+    }
+    
+    private fun showErrorDetailsDialog(details: String) {
+        androidx.appcompat.app.AlertDialog.Builder(this)
+            .setTitle("Error Details")
+            .setMessage(details)
+            .setPositiveButton("OK", null)
+            .setNeutralButton("Copy") { _, _ ->
+                copyToClipboard(details)
+            }
+            .show()
+    }
+    
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+        val clip = android.content.ClipData.newPlainText("Error Details", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 
     private fun buildResourceInfo(state: BrowseState): String {

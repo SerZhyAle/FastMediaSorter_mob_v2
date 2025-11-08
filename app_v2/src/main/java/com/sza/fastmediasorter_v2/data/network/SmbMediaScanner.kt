@@ -31,11 +31,12 @@ class SmbMediaScanner @Inject constructor(
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Parse path format: smb://server:port/share/path
-            val connectionInfo = parseSmbPath(path) ?: run {
+            val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
                 Timber.w("Invalid SMB path format: $path")
                 return@withContext emptyList()
             }
@@ -88,10 +89,11 @@ class SmbMediaScanner @Inject constructor(
         path: String,
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter? = null,
-        maxFiles: Int = 100
+        maxFiles: Int = 100,
+        credentialsId: String? = null
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
-            val connectionInfo = parseSmbPath(path) ?: run {
+            val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
                 Timber.w("Invalid SMB path format: $path")
                 return@withContext emptyList()
             }
@@ -137,10 +139,11 @@ class SmbMediaScanner @Inject constructor(
     override suspend fun getFileCount(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
     ): Int = withContext(Dispatchers.IO) {
         try {
-            val connectionInfo = parseSmbPath(path) ?: run {
+            val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
                 Timber.w("Invalid SMB path format for count: $path")
                 return@withContext 0
             }
@@ -169,9 +172,9 @@ class SmbMediaScanner @Inject constructor(
         }
     }
 
-    override suspend fun isWritable(path: String): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
-            val connectionInfo = parseSmbPath(path) ?: return@withContext false
+            val connectionInfo = parseSmbPath(path, credentialsId) ?: return@withContext false
 
             // Try to test connection to check if share is accessible
             when (val result = smbClient.testConnection(connectionInfo.connectionInfo)) {
@@ -190,7 +193,7 @@ class SmbMediaScanner @Inject constructor(
     /**
      * Parse SMB path format: smb://server:port/share/path
      */
-    private suspend fun parseSmbPath(path: String): SmbConnectionInfoWithPath? {
+    private suspend fun parseSmbPath(path: String, credentialsId: String?): SmbConnectionInfoWithPath? {
         return try {
             if (path.startsWith("smb://")) {
                 // Format: smb://server:port/share/path
@@ -214,8 +217,13 @@ class SmbMediaScanner @Inject constructor(
                 
                 if (server.isEmpty() || share.isEmpty()) return null
                 
-                // Try to get credentials from database
-                val credentials = credentialsDao.getByServerAndShare(server, share)
+                // Try to get credentials from database using credentialsId first
+                val credentials = if (credentialsId != null) {
+                    credentialsDao.getCredentialsById(credentialsId)
+                } else {
+                    // Fallback to old behavior for backward compatibility
+                    credentialsDao.getByServerAndShare(server, share)
+                }
                 
                 SmbConnectionInfoWithPath(
                     connectionInfo = SmbClient.SmbConnectionInfo(

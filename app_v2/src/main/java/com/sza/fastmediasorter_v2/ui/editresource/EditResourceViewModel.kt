@@ -50,6 +50,7 @@ class EditResourceViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val resourceRepository: ResourceRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
+    private val mediaScannerFactory: com.sza.fastmediasorter_v2.domain.usecase.MediaScannerFactory,
     savedStateHandle: SavedStateHandle,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<EditResourceState, EditResourceEvent>() {
@@ -154,6 +155,15 @@ class EditResourceViewModel @Inject constructor(
         
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             if (isDestination && current.destinationOrder == null) {
+                // Check if resource is writable before adding to destinations
+                if (!current.isWritable) {
+                    sendEvent(EditResourceEvent.ShowError(
+                        "Cannot set as destination: resource is not writable (read-only). " +
+                        "Only writable resources can be destinations."
+                    ))
+                    return@launch
+                }
+                
                 // Need to assign destinationOrder - check if destinations are full
                 val allResources = getResourcesUseCase().first()
                 val currentDestinations = allResources.filter { res -> res.isDestination }
@@ -300,7 +310,12 @@ class EditResourceViewModel @Inject constructor(
                     port = currentState.smbPort
                 ).onSuccess { newCredentialsId ->
                     Timber.d("Saved new SMB credentials: $newCredentialsId")
-                    updatedResource = current.copy(credentialsId = newCredentialsId)
+                    // Update resource path with new server and share
+                    val newPath = "smb://${currentState.smbServer}/${currentState.smbShareName}"
+                    updatedResource = current.copy(
+                        credentialsId = newCredentialsId,
+                        path = newPath
+                    )
                 }.onFailure { e ->
                     Timber.e(e, "Failed to save SMB credentials")
                     sendEvent(EditResourceEvent.ShowError("Failed to save SMB credentials: ${e.message}"))
@@ -339,6 +354,46 @@ class EditResourceViewModel @Inject constructor(
                 }
             }
             
+            // If resource is destination, verify it's still writable after credential changes
+            if (updatedResource.isDestination) {
+                val scanner = mediaScannerFactory.getScanner(updatedResource.type)
+                val isWritable = try {
+                    scanner.isWritable(updatedResource.path, updatedResource.credentialsId)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to check write permissions")
+                    false
+                }
+                
+                if (!isWritable) {
+                    // Resource is no longer writable - remove from destinations
+                    Timber.w("Resource ${updatedResource.name} is no longer writable, removing from destinations")
+                    updatedResource = updatedResource.copy(
+                        isWritable = false,
+                        isDestination = false,
+                        destinationOrder = null,
+                        destinationColor = 0
+                    )
+                    sendEvent(EditResourceEvent.ShowError(
+                        "Warning: Resource is not writable (read-only). " +
+                        "It has been removed from destinations. " +
+                        "Only writable resources can be destinations."
+                    ))
+                } else {
+                    // Update isWritable flag
+                    updatedResource = updatedResource.copy(isWritable = true)
+                }
+            } else {
+                // For non-destination resources, just update the isWritable flag
+                val scanner = mediaScannerFactory.getScanner(updatedResource.type)
+                val isWritable = try {
+                    scanner.isWritable(updatedResource.path, updatedResource.credentialsId)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to check write permissions")
+                    false
+                }
+                updatedResource = updatedResource.copy(isWritable = isWritable)
+            }
+            
             updateResourceUseCase(updatedResource).onSuccess {
                 Timber.d("Resource updated: ${updatedResource.name}")
                 sendEvent(EditResourceEvent.ResourceUpdated)
@@ -363,16 +418,65 @@ class EditResourceViewModel @Inject constructor(
 
     fun testConnection() {
         val current = state.value.currentResource ?: return
+        val currentState = state.value
         
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
-            resourceRepository.testConnection(current).onSuccess { message ->
-                Timber.d("Connection test successful: $message")
-                sendEvent(EditResourceEvent.TestResult(true, message))
-            }.onFailure { e ->
-                Timber.e(e, "Connection test failed")
-                sendEvent(EditResourceEvent.TestResult(false, e.message ?: "Unknown error"))
+            // For SMB resources with unsaved credential changes, test with state credentials
+            if (current.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB && currentState.hasSmbCredentialsChanges) {
+                if (currentState.smbServer.isBlank() || currentState.smbShareName.isBlank()) {
+                    sendEvent(EditResourceEvent.TestResult(false, "Server and Share Name are required"))
+                    setLoading(false)
+                    return@launch
+                }
+                
+                Timber.d("Testing SMB connection with unsaved credentials from state")
+                smbOperationsUseCase.testConnection(
+                    server = currentState.smbServer,
+                    shareName = currentState.smbShareName,
+                    username = currentState.smbUsername,
+                    password = currentState.smbPassword,
+                    domain = currentState.smbDomain,
+                    port = currentState.smbPort
+                ).onSuccess { message ->
+                    Timber.d("Connection test successful: $message")
+                    sendEvent(EditResourceEvent.TestResult(true, message))
+                }.onFailure { e ->
+                    Timber.e(e, "Connection test failed")
+                    sendEvent(EditResourceEvent.TestResult(false, e.message ?: "Unknown error"))
+                }
+            } else if (current.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP && currentState.hasSftpCredentialsChanges) {
+                // For SFTP resources with unsaved credential changes, test with state credentials
+                if (currentState.sftpHost.isBlank()) {
+                    sendEvent(EditResourceEvent.TestResult(false, "Host is required"))
+                    setLoading(false)
+                    return@launch
+                }
+                
+                Timber.d("Testing SFTP connection with unsaved credentials from state")
+                smbOperationsUseCase.testSftpConnection(
+                    host = currentState.sftpHost,
+                    port = currentState.sftpPort,
+                    username = currentState.sftpUsername,
+                    password = currentState.sftpPassword
+                ).onSuccess { message ->
+                    Timber.d("Connection test successful: $message")
+                    sendEvent(EditResourceEvent.TestResult(true, message))
+                }.onFailure { e ->
+                    Timber.e(e, "Connection test failed")
+                    sendEvent(EditResourceEvent.TestResult(false, e.message ?: "Unknown error"))
+                }
+            } else {
+                // Test with saved credentials from database
+                Timber.d("Testing connection with saved credentials from database")
+                resourceRepository.testConnection(current).onSuccess { message ->
+                    Timber.d("Connection test successful: $message")
+                    sendEvent(EditResourceEvent.TestResult(true, message))
+                }.onFailure { e ->
+                    Timber.e(e, "Connection test failed")
+                    sendEvent(EditResourceEvent.TestResult(false, e.message ?: "Unknown error"))
+                }
             }
             
             setLoading(false)

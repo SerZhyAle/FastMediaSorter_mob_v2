@@ -185,14 +185,14 @@ class AddResourceViewModel @Inject constructor(
                 
                 val scanner = mediaScannerFactory.getScanner(ResourceType.LOCAL)
                 val fileCount = try {
-                    scanner.getFileCount(path, supportedTypes)
+                    scanner.getFileCount(path, supportedTypes, credentialsId = null)
                 } catch (e: Exception) {
                     Timber.e(e, "Error counting files in $path")
                     0
                 }
                 
                 val isWritable = try {
-                    scanner.isWritable(path)
+                    scanner.isWritable(path, credentialsId = null)
                 } catch (e: Exception) {
                     Timber.e(e, "Error checking write access for $path")
                     false
@@ -390,8 +390,8 @@ class AddResourceViewModel @Inject constructor(
                                 val scanner = mediaScannerFactory.getScanner(resource.type)
                                 val supportedTypes = getSupportedMediaTypes()
                                 
-                                val fileCount = scanner.getFileCount(resource.path, supportedTypes)
-                                val isWritable = scanner.isWritable(resource.path)
+                                val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
+                                val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
                                 
                                 // Update resource with real values
                                 val updatedResource = resource.copy(
@@ -498,8 +498,8 @@ class AddResourceViewModel @Inject constructor(
                             val scanner = mediaScannerFactory.getScanner(resource.type)
                             val supportedTypes = getSupportedMediaTypes()
                             
-                            val fileCount = scanner.getFileCount(resource.path, supportedTypes)
-                            val isWritable = scanner.isWritable(resource.path)
+                            val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
+                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
                             
                             // Update resource with real values
                             val updatedResource = resource.copy(
@@ -625,8 +625,8 @@ class AddResourceViewModel @Inject constructor(
                             val scanner = mediaScannerFactory.getScanner(resource.type)
                             val supportedTypes = getSupportedMediaTypes()
                             
-                            val fileCount = scanner.getFileCount(resource.path, supportedTypes)
-                            val isWritable = scanner.isWritable(resource.path)
+                            val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
+                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
                             
                             // Update resource with real values
                             val updatedResource = resource.copy(

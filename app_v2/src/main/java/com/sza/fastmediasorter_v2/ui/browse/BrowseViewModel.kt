@@ -36,7 +36,7 @@ data class BrowseState(
 )
 
 sealed class BrowseEvent {
-    data class ShowError(val message: String) : BrowseEvent()
+    data class ShowError(val message: String, val details: String? = null, val exception: Throwable? = null) : BrowseEvent()
     data class ShowMessage(val message: String) : BrowseEvent()
     data class NavigateToPlayer(val filePath: String, val fileIndex: Int) : BrowseEvent()
 }
@@ -120,6 +120,60 @@ class BrowseViewModel @Inject constructor(
             )
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
+                    setLoading(false)
+                    
+                    // Build detailed error information
+                    val errorTitle = when {
+                        e.message?.contains("Authentication failed", ignoreCase = true) == true ||
+                        e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
+                            "Authentication Failed"
+                        }
+                        e.message?.contains("Connection error", ignoreCase = true) == true ||
+                        e.message?.contains("Network", ignoreCase = true) == true -> {
+                            "Network Connection Error"
+                        }
+                        e.message?.contains("Permission denied", ignoreCase = true) == true -> {
+                            "Permission Denied"
+                        }
+                        else -> {
+                            "Error Loading Files"
+                        }
+                    }
+                    
+                    val errorMessage = when {
+                        e.message?.contains("Authentication failed", ignoreCase = true) == true ||
+                        e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
+                            "Invalid username or password.\n\n" +
+                            "Please edit this resource and update credentials, then click 'Save'."
+                        }
+                        e.message?.contains("Connection error", ignoreCase = true) == true ||
+                        e.message?.contains("Network", ignoreCase = true) == true -> {
+                            "Cannot connect to server.\n\n" +
+                            "Check network connection and server availability."
+                        }
+                        e.message?.contains("Permission denied", ignoreCase = true) == true -> {
+                            "No access to this folder.\n\n" +
+                            "Check folder permissions or credentials."
+                        }
+                        else -> {
+                            "Failed to load media files.\n\n" +
+                            "See error details below."
+                        }
+                    }
+                    
+                    val errorDetails = buildString {
+                        append("Resource: ${resource.name}\n")
+                        append("Path: ${resource.path}\n")
+                        append("Type: ${resource.type}\n\n")
+                        append("Error: ${e.message ?: "Unknown error"}\n\n")
+                        append("Stack trace:\n${e.stackTraceToString()}")
+                    }
+                    
+                    sendEvent(BrowseEvent.ShowError(
+                        message = "$errorTitle\n\n$errorMessage",
+                        details = errorDetails,
+                        exception = e
+                    ))
                     handleError(e)
                 }
                 .collect { files ->
@@ -163,7 +217,28 @@ class BrowseViewModel @Inject constructor(
                 Timber.d("Background file count completed: $count files")
             } catch (e: Exception) {
                 Timber.e(e, "Error counting files in background")
-                // Don't show error to user, count is optional
+                
+                // Show error if it's authentication-related (critical)
+                if (e.message?.contains("Authentication failed", ignoreCase = true) == true ||
+                    e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true) {
+                    
+                    val errorDetails = buildString {
+                        append("Resource: ${resource.name}\n")
+                        append("Path: ${resource.path}\n")
+                        append("Type: ${resource.type}\n\n")
+                        append("Error: ${e.message ?: "Unknown error"}\n\n")
+                        append("Stack trace:\n${e.stackTraceToString()}")
+                    }
+                    
+                    sendEvent(BrowseEvent.ShowError(
+                        message = "Authentication Failed\n\n" +
+                                 "Cannot count files: Invalid credentials.\n\n" +
+                                 "Please edit this resource and update credentials.",
+                        details = errorDetails,
+                        exception = e
+                    ))
+                }
+                // Don't show error for other cases, count is optional
             }
         }
     }

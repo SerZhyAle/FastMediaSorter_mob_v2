@@ -31,11 +31,12 @@ class SftpMediaScanner @Inject constructor(
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Parse path format: sftp://server:port/remotePath
-            val connectionInfo = parseSftpPath(path) ?: run {
+            val connectionInfo = parseSftpPath(path, credentialsId) ?: run {
                 Timber.w("Invalid SFTP path format: $path")
                 return@withContext emptyList()
             }
@@ -87,10 +88,11 @@ class SftpMediaScanner @Inject constructor(
     override suspend fun getFileCount(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
     ): Int = withContext(Dispatchers.IO) {
         try {
-            val files = scanFolder(path, supportedTypes, sizeFilter)
+            val files = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
             files.size
         } catch (e: Exception) {
             Timber.e(e, "Error counting SFTP files in: $path")
@@ -98,9 +100,9 @@ class SftpMediaScanner @Inject constructor(
         }
     }
 
-    override suspend fun isWritable(path: String): Boolean = withContext(Dispatchers.IO) {
+    override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
-            val connectionInfo = parseSftpPath(path) ?: return@withContext false
+            val connectionInfo = parseSftpPath(path, credentialsId) ?: return@withContext false
 
             // Test connection
             val result = sftpClient.testConnection(
@@ -121,7 +123,7 @@ class SftpMediaScanner @Inject constructor(
      * Parse SFTP path format: sftp://server:port/remotePath
      * Retrieves credentials from database based on host
      */
-    private suspend fun parseSftpPath(path: String): SftpConnectionInfo? {
+    private suspend fun parseSftpPath(path: String, credentialsId: String?): SftpConnectionInfo? {
         return try {
             if (!path.startsWith("sftp://")) return null
 
@@ -141,8 +143,13 @@ class SftpMediaScanner @Inject constructor(
 
             if (host.isEmpty()) return null
 
-            // Get credentials from database by type, host, and port
-            val credentials = credentialsDao.getByTypeServerAndPort("SFTP", host, port)
+            // Try to get credentials from database using credentialsId first
+            val credentials = if (credentialsId != null) {
+                credentialsDao.getCredentialsById(credentialsId)
+            } else {
+                // Fallback to old behavior for backward compatibility
+                credentialsDao.getByTypeServerAndPort("SFTP", host, port)
+            }
 
             if (credentials == null) {
                 Timber.w("No SFTP credentials found for host: $host:$port")

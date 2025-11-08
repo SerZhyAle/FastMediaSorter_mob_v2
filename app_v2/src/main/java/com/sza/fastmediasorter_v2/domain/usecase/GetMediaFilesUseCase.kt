@@ -21,16 +21,18 @@ interface MediaScanner {
     suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter? = null
+        sizeFilter: SizeFilter? = null,
+        credentialsId: String? = null
     ): List<MediaFile>
     
     suspend fun getFileCount(
         path: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter? = null
+        sizeFilter: SizeFilter? = null,
+        credentialsId: String? = null
     ): Int
     
-    suspend fun isWritable(path: String): Boolean
+    suspend fun isWritable(path: String, credentialsId: String? = null): Boolean
 }
 
 class GetMediaFilesUseCase @Inject constructor(
@@ -51,14 +53,16 @@ class GetMediaFilesUseCase @Inject constructor(
                 path = resource.path,
                 supportedTypes = resource.supportedMediaTypes,
                 sizeFilter = sizeFilter,
-                maxFiles = maxFiles
+                maxFiles = maxFiles,
+                credentialsId = resource.credentialsId
             )
         } else {
             // Standard full scan for other types
             scanner.scanFolder(
                 path = resource.path,
                 supportedTypes = resource.supportedMediaTypes,
-                sizeFilter = sizeFilter
+                sizeFilter = sizeFilter,
+                credentialsId = resource.credentialsId
             )
         }
         

@@ -119,6 +119,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
             Timber.d("PlayerActivity.exoPlayerListener: onPlaybackStateChanged - state=$stateName")
             
+            // Check if activity is being destroyed to avoid accessing binding
+            if (isDestroyed || isFinishing) {
+                Timber.w("PlayerActivity.exoPlayerListener: Activity is being destroyed, ignoring state change")
+                return
+            }
+            
             when (playbackState) {
                 androidx.media3.common.Player.STATE_READY -> {
                     // Video is ready to play - cancel and hide loading indicator
@@ -145,6 +151,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             Timber.e("PlayerActivity.exoPlayerListener: onPlayerError - errorCode=${error.errorCode}, message=${error.message}")
             Timber.e("PlayerActivity.exoPlayerListener: Error cause: ${error.cause}")
             Timber.e("PlayerActivity.exoPlayerListener: Stack trace: ${error.stackTraceToString()}")
+            
+            // Check if activity is being destroyed to avoid accessing binding after onDestroy
+            if (isDestroyed || isFinishing) {
+                Timber.w("PlayerActivity.exoPlayerListener: Activity is being destroyed, ignoring error")
+                return
+            }
             
             // Cancel and hide loading indicator on error
             loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
@@ -702,7 +714,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             
             // Use NetworkFileData for Coil to load via NetworkFileFetcher
             // path is already in format: /shareName/path/to/file.jpg
-            val networkData = NetworkFileData(path = path)
+            val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId)
             
             val request = ImageRequest.Builder(this)
                 .data(networkData)
@@ -788,7 +800,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP) {
             Timber.d("PlayerActivity: Preloading next network image: ${nextFile.path}")
             
-            val networkData = NetworkFileData(path = nextFile.path)
+            val networkData = NetworkFileData(path = nextFile.path, credentialsId = resource.credentialsId)
             val preloadRequest = ImageRequest.Builder(this)
                 .data(networkData)
                 .listener(
@@ -1274,7 +1286,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun releasePlayer() {
-        exoPlayer?.release()
+        exoPlayer?.let { player ->
+            // Remove listener before releasing to avoid callbacks during/after release
+            player.removeListener(exoPlayerListener)
+            player.release()
+        }
         exoPlayer = null
     }
 

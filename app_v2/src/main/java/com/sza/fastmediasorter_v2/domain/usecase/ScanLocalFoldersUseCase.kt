@@ -54,7 +54,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
                     }
                     
                     val isWritable = try {
-                        mediaScanner.isWritable(folder.absolutePath)
+                        mediaScanner.isWritable(folder.absolutePath, credentialsId = null)
                     } catch (e: Exception) {
                         Timber.e(e, "Error checking write access for ${folder.absolutePath}")
                         false

@@ -10,10 +10,13 @@ import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -103,7 +106,10 @@ class SettingsViewModel @Inject constructor(
 
     suspend fun getWritableNonDestinationResources(): List<MediaResource> {
         return try {
-            val allResources = getResourcesUseCase().stateIn(viewModelScope).value
+            // Get fresh data from database, not from cached stateIn()
+            val allResources = withContext(Dispatchers.IO) {
+                getResourcesUseCase().first()
+            }
             allResources.filter { it.isWritable && !it.isDestination }
         } catch (e: Exception) {
             Timber.e(e, "Error getting writable resources")
@@ -114,6 +120,12 @@ class SettingsViewModel @Inject constructor(
     fun addDestination(resource: MediaResource) {
         viewModelScope.launch {
             try {
+                // Double-check resource is writable before adding to destinations
+                if (!resource.isWritable) {
+                    Timber.w("Cannot add non-writable resource as destination: ${resource.name}")
+                    return@launch
+                }
+                
                 val nextOrder = getDestinationsUseCase.getNextAvailableOrder()
                 if (nextOrder == -1) {
                     Timber.w("Cannot add destination: all 10 slots are full")

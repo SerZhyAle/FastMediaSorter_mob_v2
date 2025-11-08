@@ -36,25 +36,30 @@ data class NetworkCredentialsEntity(
     @get:Ignore
     val password: String
         get() = try {
+            // Try to decrypt assuming it's Base64-encoded
             val decrypted = CryptoHelper.decrypt(encryptedPassword)
             if (decrypted.isNullOrEmpty()) {
-                // Check if encryptedPassword is actually plaintext (for migration)
-                if (encryptedPassword.isNotEmpty() && !encryptedPassword.contains(Regex("[^A-Za-z0-9+/=]"))) {
-                    // Looks like Base64, but decryption failed - might be corrupted
-                    Timber.w("Password decryption failed for credentialId: $credentialId, returning empty")
+                // Decryption returned empty - check if stored value is also empty
+                Timber.w("Password decryption returned empty for credentialId: $credentialId, encryptedPassword='$encryptedPassword' (length=${encryptedPassword.length})")
+                // If encryptedPassword is empty, decryption is correct (empty password stored)
+                // If encryptedPassword is not empty, it's plaintext - use it
+                if (encryptedPassword.isEmpty()) {
+                    Timber.e("Empty password stored for user '$username' - SMB authentication will fail!")
                     ""
                 } else {
-                    // Assume it's plaintext (migration from old version)
-                    Timber.i("Using plaintext password for credentialId: $credentialId (migration)")
+                    Timber.i("Using plaintext password fallback")
                     encryptedPassword
                 }
             } else {
                 decrypted
             }
+        } catch (e: IllegalArgumentException) {
+            // Base64 decode error - password is plaintext (migration case)
+            Timber.i("Password is plaintext for credentialId: $credentialId (migration), password='$encryptedPassword' (length=${encryptedPassword.length})")
+            encryptedPassword
         } catch (e: Exception) {
-            Timber.e(e, "Failed to decrypt password for credentialId: $credentialId")
-            // Fallback: assume it's plaintext
-            Timber.i("Treating password as plaintext due to decryption error for credentialId: $credentialId")
+            // Other decryption errors - treat as plaintext fallback
+            Timber.e(e, "Decryption failed for credentialId: $credentialId, treating as plaintext")
             encryptedPassword
         }
     
