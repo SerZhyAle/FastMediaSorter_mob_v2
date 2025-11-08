@@ -390,6 +390,7 @@ class AddResourceViewModel @Inject constructor(
                     Timber.d("Added ${addResult.addedCount} SMB resources")
                     
                     // Scan each added resource to update fileCount and isWritable
+                    var unavailableCount = 0
                     viewModelScope.launch(ioDispatcher) {
                         resourcesWithCredentials.forEach { resource ->
                             try {
@@ -409,17 +410,32 @@ class AddResourceViewModel @Inject constructor(
                                 Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
                             } catch (e: Exception) {
                                 Timber.e(e, "Failed to scan resource ${resource.name}")
+                                unavailableCount++
                             }
                         }
-                    }
+                    }.join() // Wait for all scans to complete
                     
-                    if (addResult.destinationsFull) {
-                        sendEvent(AddResourceEvent.ShowMessage(
+                    val message = when {
+                        addResult.destinationsFull && unavailableCount > 0 -> {
+                            "Added ${addResult.addedCount} SMB resources. " +
+                            "Destinations are full (max 10). ${addResult.skippedDestinations} resources added without destination flag. " +
+                            "$unavailableCount resource(s) are currently unavailable."
+                        }
+                        addResult.destinationsFull -> {
                             "Added ${addResult.addedCount} SMB resources. " +
                             "Destinations are full (max 10). ${addResult.skippedDestinations} resources added without destination flag."
-                        ))
+                        }
+                        unavailableCount > 0 -> {
+                            "Added ${addResult.addedCount} SMB resources. " +
+                            "$unavailableCount resource(s) are currently unavailable."
+                        }
+                        else -> "Added ${addResult.addedCount} SMB resources"
+                    }
+                    
+                    if (unavailableCount > 0) {
+                        sendEvent(AddResourceEvent.ShowError(message))
                     } else {
-                        sendEvent(AddResourceEvent.ShowMessage("Added ${addResult.addedCount} SMB resources"))
+                        sendEvent(AddResourceEvent.ShowMessage(message))
                     }
                     
                     sendEvent(AddResourceEvent.ResourcesAdded)
@@ -499,6 +515,7 @@ class AddResourceViewModel @Inject constructor(
                     Timber.d("Added manually entered SMB resource")
                     
                     // Scan resource to update fileCount and isWritable
+                    var scanSuccessful = false
                     viewModelScope.launch(ioDispatcher) {
                         try {
                             val scanner = mediaScannerFactory.getScanner(resource.type)
@@ -515,12 +532,21 @@ class AddResourceViewModel @Inject constructor(
                             resourceRepository.updateResource(updatedResource)
                             
                             Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                            scanSuccessful = true
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to scan resource ${resource.name}")
+                            // Keep resource with fileCount=0, isWritable=false
                         }
-                    }
+                    }.join() // Wait for scan to complete
                     
-                    sendEvent(AddResourceEvent.ShowMessage("SMB resource added successfully"))
+                    if (scanSuccessful) {
+                        sendEvent(AddResourceEvent.ShowMessage("SMB resource added successfully"))
+                    } else {
+                        sendEvent(AddResourceEvent.ShowError(
+                            "SMB resource '$shareName' added but is currently unavailable. " +
+                            "Check that the share exists and is accessible from this device."
+                        ))
+                    }
                     sendEvent(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SMB resource")
@@ -626,6 +652,7 @@ class AddResourceViewModel @Inject constructor(
                     Timber.d("Added SFTP resource")
                     
                     // Scan resource to update fileCount and isWritable
+                    var scanSuccessful = false
                     viewModelScope.launch(ioDispatcher) {
                         try {
                             val scanner = mediaScannerFactory.getScanner(resource.type)
@@ -642,12 +669,20 @@ class AddResourceViewModel @Inject constructor(
                             resourceRepository.updateResource(updatedResource)
                             
                             Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                            scanSuccessful = true
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to scan resource ${resource.name}")
                         }
-                    }
+                    }.join() // Wait for scan to complete
                     
-                    sendEvent(AddResourceEvent.ShowMessage("SFTP resource added successfully"))
+                    if (scanSuccessful) {
+                        sendEvent(AddResourceEvent.ShowMessage("SFTP resource added successfully"))
+                    } else {
+                        sendEvent(AddResourceEvent.ShowError(
+                            "SFTP resource '$resourceName' added but is currently unavailable. " +
+                            "Check that the remote path exists and is accessible."
+                        ))
+                    }
                     sendEvent(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
                     Timber.e(e, "Failed to add SFTP resource")
