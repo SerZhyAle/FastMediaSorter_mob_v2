@@ -86,8 +86,29 @@ class SmbMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?
     ): Int = withContext(Dispatchers.IO) {
         try {
-            val files = scanFolder(path, supportedTypes, sizeFilter)
-            files.size
+            val connectionInfo = parseSmbPath(path) ?: run {
+                Timber.w("Invalid SMB path format for count: $path")
+                return@withContext 0
+            }
+
+            // Get all supported extensions
+            val extensions = buildExtensionsSet(supportedTypes)
+
+            // Use optimized count method (no SmbFileInfo objects created)
+            when (val result = smbClient.countMediaFiles(
+                connectionInfo = connectionInfo.connectionInfo,
+                remotePath = connectionInfo.remotePath,
+                extensions = extensions
+            )) {
+                is SmbClient.SmbResult.Success -> {
+                    // Note: sizeFilter is ignored for counting (would require fetching size for each file)
+                    result.data
+                }
+                is SmbClient.SmbResult.Error -> {
+                    Timber.e("Error counting SMB files: ${result.message}")
+                    0
+                }
+            }
         } catch (e: Exception) {
             Timber.e(e, "Error counting SMB files in: $path")
             0

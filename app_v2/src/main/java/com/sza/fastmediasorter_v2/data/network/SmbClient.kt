@@ -198,6 +198,26 @@ class SmbClient @Inject constructor() {
         }
     }
 
+    /**
+     * Count media files in SMB folder (recursive, optimized)
+     * Returns count without creating SmbFileInfo objects
+     */
+    suspend fun countMediaFiles(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String = "",
+        extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav")
+    ): SmbResult<Int> {
+        return try {
+            withConnection(connectionInfo) { share ->
+                val count = countDirectoryRecursive(share, remotePath, extensions)
+                SmbResult.Success(count)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to count SMB media files")
+            SmbResult.Error("Failed to count media files: ${e.message}", e)
+        }
+    }
+
     private fun scanDirectoryRecursive(
         share: DiskShare,
         path: String,
@@ -240,6 +260,43 @@ class SmbClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.w(e, "Failed to scan directory: $path")
         }
+    }
+
+    /**
+     * Count media files recursively (optimized, no object creation)
+     */
+    private fun countDirectoryRecursive(
+        share: DiskShare,
+        path: String,
+        extensions: Set<String>
+    ): Int {
+        var count = 0
+        try {
+            val dirPath = path.trim('/', '\\')
+            
+            for (fileInfo in share.list(dirPath)) {
+                if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
+                
+                val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
+                
+                if (isDirectory) {
+                    val fullPath = if (dirPath.isEmpty()) {
+                        fileInfo.fileName
+                    } else {
+                        "$dirPath/${fileInfo.fileName}"
+                    }
+                    count += countDirectoryRecursive(share, fullPath, extensions)
+                } else {
+                    val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
+                    if (extension in extensions) {
+                        count++
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to count in directory: $path")
+        }
+        return count
     }
 
     /**
