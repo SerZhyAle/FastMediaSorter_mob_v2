@@ -493,6 +493,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 .listener(
                     onSuccess = { _, _ ->
                         Timber.d("PlayerActivity: Network image loaded successfully")
+                        // Preload next image in background (if it's an image)
+                        preloadNextImageIfNeeded()
                     },
                     onError = { _, result ->
                         Timber.e(result.throwable, "PlayerActivity: Failed to load network image")
@@ -504,10 +506,70 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             imageLoader.enqueue(request)
         } else {
             // Local file - use standard File loading
-            binding.imageView.load(File(path))
+            binding.imageView.load(File(path)) {
+                listener(
+                    onSuccess = { _, _ ->
+                        // Preload next image for local files too
+                        preloadNextImageIfNeeded()
+                    }
+                )
+            }
         }
 
         updateSlideShow()
+    }
+
+    /**
+     * Preload next image in background for faster navigation
+     * Only preloads if next file is IMAGE or GIF
+     */
+    private fun preloadNextImageIfNeeded() {
+        val state = viewModel.state.value
+        if (!state.hasNext) return
+        
+        val nextIndex = state.currentIndex + 1
+        val nextFile = state.files.getOrNull(nextIndex) ?: return
+        
+        // Only preload images and GIFs
+        if (nextFile.type != MediaType.IMAGE && nextFile.type != MediaType.GIF) {
+            Timber.d("PlayerActivity: Next file is not an image, skipping preload")
+            return
+        }
+        
+        val resource = state.resource ?: return
+        
+        // Check if this is a network resource
+        if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP) {
+            Timber.d("PlayerActivity: Preloading next network image: ${nextFile.path}")
+            
+            val networkData = NetworkFileData(path = nextFile.path)
+            val preloadRequest = ImageRequest.Builder(this)
+                .data(networkData)
+                .listener(
+                    onSuccess = { _, _ ->
+                        Timber.d("PlayerActivity: Next image preloaded successfully")
+                    },
+                    onError = { _, result ->
+                        Timber.w(result.throwable, "PlayerActivity: Failed to preload next image")
+                    }
+                )
+                .build()
+            
+            imageLoader.enqueue(preloadRequest)
+        } else {
+            // Preload local file
+            Timber.d("PlayerActivity: Preloading next local image: ${nextFile.path}")
+            val preloadRequest = ImageRequest.Builder(this)
+                .data(File(nextFile.path))
+                .listener(
+                    onSuccess = { _, _ ->
+                        Timber.d("PlayerActivity: Next local image preloaded")
+                    }
+                )
+                .build()
+            
+            imageLoader.enqueue(preloadRequest)
+        }
     }
 
     private fun playVideo(path: String) {
