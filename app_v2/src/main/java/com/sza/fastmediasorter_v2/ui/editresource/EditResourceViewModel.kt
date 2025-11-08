@@ -198,6 +198,44 @@ class EditResourceViewModel @Inject constructor(
                 )
                 updateCurrentResource(updated)
                 Timber.d("Added to destinations with order $nextOrder")
+            } else if (isDestination && current.destinationOrder != null) {
+                // Already has destinationOrder - validate it's in valid range (0-9)
+                val currentOrder = current.destinationOrder
+                if (currentOrder !in 0..9) {
+                    // Invalid order - need to reassign
+                    Timber.w("Destination order $currentOrder is out of range 0-9, reassigning")
+                    
+                    val allResources = getResourcesUseCase().first()
+                    val usedOrders = allResources
+                        .filter { res -> res.isDestination && res.id != current.id }
+                        .mapNotNull { it.destinationOrder }
+                        .toSet()
+                    
+                    val nextOrder = (0 until 10).firstOrNull { it !in usedOrders } ?: -1
+                    
+                    if (nextOrder == -1) {
+                        sendEvent(EditResourceEvent.ShowError(
+                            "Cannot fix destination order: no available slots. Remove a destination first."
+                        ))
+                        return@launch
+                    }
+                    
+                    val color = com.sza.fastmediasorter_v2.core.util.DestinationColors.getColorForDestination(nextOrder)
+                    val updated = current.copy(
+                        isDestination = true,
+                        destinationOrder = nextOrder,
+                        destinationColor = color
+                    )
+                    updateCurrentResource(updated)
+                    Timber.d("Fixed destination order from $currentOrder to $nextOrder")
+                } else {
+                    // Valid order, just ensure flag is set
+                    if (!current.isDestination) {
+                        val updated = current.copy(isDestination = true)
+                        updateCurrentResource(updated)
+                        Timber.d("Re-enabled destination with existing order $currentOrder")
+                    }
+                }
             } else if (!isDestination) {
                 // Remove from destinations - clear order and color
                 val updated = current.copy(
@@ -207,10 +245,6 @@ class EditResourceViewModel @Inject constructor(
                 )
                 updateCurrentResource(updated)
                 Timber.d("Removed from destinations")
-            } else {
-                // Already has destinationOrder, just update flag
-                val updated = current.copy(isDestination = isDestination)
-                updateCurrentResource(updated)
             }
         }
     }

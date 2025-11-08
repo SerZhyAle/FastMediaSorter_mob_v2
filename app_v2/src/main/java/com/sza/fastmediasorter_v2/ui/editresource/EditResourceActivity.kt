@@ -182,8 +182,12 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         binding.cbSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
                         binding.cbSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
 
-                        // Is destination
+                        // Is destination - temporarily remove listener to avoid triggering on programmatic change
+                        binding.switchIsDestination.setOnCheckedChangeListener(null)
                         binding.switchIsDestination.isChecked = resource.isDestination
+                        binding.switchIsDestination.setOnCheckedChangeListener { _, isChecked ->
+                            viewModel.updateIsDestination(isChecked)
+                        }
                         
                         // Show/hide credentials sections based on resource type
                         binding.layoutSmbCredentials.isVisible = resource.type == ResourceType.SMB
