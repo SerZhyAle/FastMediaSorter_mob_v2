@@ -80,6 +80,60 @@ class SmbMediaScanner @Inject constructor(
         }
     }
 
+    /**
+     * Scan folder with limit (for lazy loading initial batch)
+     * Returns first maxFiles files quickly
+     */
+    suspend fun scanFolderChunked(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter? = null,
+        maxFiles: Int = 100
+    ): List<MediaFile> = withContext(Dispatchers.IO) {
+        try {
+            val connectionInfo = parseSmbPath(path) ?: run {
+                Timber.w("Invalid SMB path format: $path")
+                return@withContext emptyList()
+            }
+
+            val extensions = buildExtensionsSet(supportedTypes)
+
+            // Use chunked scan method
+            when (val result = smbClient.scanMediaFilesChunked(
+                connectionInfo = connectionInfo.connectionInfo,
+                remotePath = connectionInfo.remotePath,
+                extensions = extensions,
+                maxFiles = maxFiles
+            )) {
+                is SmbClient.SmbResult.Success -> {
+                    result.data.mapNotNull { fileInfo ->
+                        val mediaType = getMediaType(fileInfo.name)
+                        if (mediaType != null && supportedTypes.contains(mediaType)) {
+                            if (sizeFilter != null && !isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
+                                return@mapNotNull null
+                            }
+
+                            MediaFile(
+                                name = fileInfo.name,
+                                path = buildFullSmbPath(connectionInfo, fileInfo.path),
+                                size = fileInfo.size,
+                                createdDate = fileInfo.lastModified,
+                                type = mediaType
+                            )
+                        } else null
+                    }
+                }
+                is SmbClient.SmbResult.Error -> {
+                    Timber.e("Error scanning SMB folder (chunked): ${result.message}")
+                    emptyList()
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning SMB folder (chunked): $path")
+            emptyList()
+        }
+    }
+
     override suspend fun getFileCount(
         path: String,
         supportedTypes: Set<MediaType>,

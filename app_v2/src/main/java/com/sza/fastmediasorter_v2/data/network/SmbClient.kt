@@ -199,6 +199,29 @@ class SmbClient @Inject constructor() {
     }
 
     /**
+     * Scan SMB folder with limit (for lazy loading)
+     * Returns early after finding maxFiles files
+     */
+    suspend fun scanMediaFilesChunked(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String = "",
+        extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
+        maxFiles: Int = 100
+    ): SmbResult<List<SmbFileInfo>> {
+        return try {
+            val mediaFiles = mutableListOf<SmbFileInfo>()
+            
+            withConnection(connectionInfo) { share ->
+                scanDirectoryRecursiveWithLimit(share, remotePath, extensions, mediaFiles, maxFiles)
+                SmbResult.Success(mediaFiles)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to scan SMB media files (chunked)")
+            SmbResult.Error("Failed to scan media files: ${e.message}", e)
+        }
+    }
+
+    /**
      * Count media files in SMB folder (recursive, optimized)
      * Returns count without creating SmbFileInfo objects
      */
@@ -260,6 +283,60 @@ class SmbClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.w(e, "Failed to scan directory: $path")
         }
+    }
+
+    /**
+     * Scan directory recursively with file limit (for lazy loading)
+     * Returns early when maxFiles is reached
+     */
+    private fun scanDirectoryRecursiveWithLimit(
+        share: DiskShare,
+        path: String,
+        extensions: Set<String>,
+        results: MutableList<SmbFileInfo>,
+        maxFiles: Int
+    ): Boolean { // Returns true if limit reached
+        try {
+            if (results.size >= maxFiles) return true
+            
+            val dirPath = path.trim('/', '\\')
+            
+            for (fileInfo in share.list(dirPath)) {
+                if (results.size >= maxFiles) return true
+                if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
+                
+                val fullPath = if (dirPath.isEmpty()) {
+                    fileInfo.fileName
+                } else {
+                    "$dirPath/${fileInfo.fileName}"
+                }
+                
+                val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
+                
+                if (isDirectory) {
+                    // Recursively scan subdirectories
+                    val limitReached = scanDirectoryRecursiveWithLimit(share, fullPath, extensions, results, maxFiles)
+                    if (limitReached) return true
+                } else {
+                    // Check if file has media extension
+                    val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
+                    if (extension in extensions) {
+                        results.add(
+                            SmbFileInfo(
+                                name = fileInfo.fileName,
+                                path = fullPath,
+                                isDirectory = false,
+                                size = fileInfo.allocationSize,
+                                lastModified = fileInfo.lastWriteTime.toEpochMillis()
+                            )
+                        )
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "Failed to scan directory: $path")
+        }
+        return results.size >= maxFiles
     }
 
     /**

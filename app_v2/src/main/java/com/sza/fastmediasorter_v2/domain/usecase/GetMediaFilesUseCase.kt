@@ -39,14 +39,29 @@ class GetMediaFilesUseCase @Inject constructor(
     operator fun invoke(
         resource: MediaResource,
         sortMode: SortMode = SortMode.NAME_ASC,
-        sizeFilter: SizeFilter? = null
+        sizeFilter: SizeFilter? = null,
+        useChunkedLoading: Boolean = false,
+        maxFiles: Int = 100
     ): Flow<List<MediaFile>> = flow {
         val scanner = mediaScannerFactory.getScanner(resource.type)
-        val files = scanner.scanFolder(
-            path = resource.path,
-            supportedTypes = resource.supportedMediaTypes,
-            sizeFilter = sizeFilter
-        )
+        
+        val files = if (useChunkedLoading && scanner is com.sza.fastmediasorter_v2.data.network.SmbMediaScanner) {
+            // Use chunked loading for SMB to quickly show first files
+            scanner.scanFolderChunked(
+                path = resource.path,
+                supportedTypes = resource.supportedMediaTypes,
+                sizeFilter = sizeFilter,
+                maxFiles = maxFiles
+            )
+        } else {
+            // Standard full scan for other types
+            scanner.scanFolder(
+                path = resource.path,
+                supportedTypes = resource.supportedMediaTypes,
+                sizeFilter = sizeFilter
+            )
+        }
+        
         emit(sortFiles(files, sortMode))
     }
 

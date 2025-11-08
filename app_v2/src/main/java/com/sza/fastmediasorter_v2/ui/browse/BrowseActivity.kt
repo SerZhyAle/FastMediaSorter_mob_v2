@@ -222,7 +222,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         } else {
             " • ${state.selectedFiles.size} selected"
         }
-        return "${resource.name} • ${resource.path}$selected"
+        
+        // Add file count if available
+        val fileCount = when {
+            state.totalFileCount != null -> " (${state.totalFileCount} files)"
+            else -> " (counting...)"
+        }
+        
+        return "${resource.name}$fileCount • ${resource.path}$selected"
     }
 
     private fun buildFilterDescription(filter: FileFilter): String {

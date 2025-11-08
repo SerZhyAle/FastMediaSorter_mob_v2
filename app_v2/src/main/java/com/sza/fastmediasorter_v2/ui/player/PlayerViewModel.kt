@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
+import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
@@ -96,7 +97,14 @@ class PlayerViewModel @Inject constructor(
                     audioSizeMax = settings.audioSizeMax
                 )
 
-                val files = getMediaFilesUseCase(resource, sizeFilter = sizeFilter).first()
+                // For SMB resources: use chunked loading to show first files quickly
+                val files = getMediaFilesUseCase(
+                    resource = resource,
+                    sizeFilter = sizeFilter,
+                    useChunkedLoading = resource.type == ResourceType.SMB,
+                    maxFiles = 200 // Load first 200 files quickly for player
+                ).first()
+                
                 if (files.isEmpty()) {
                     sendEvent(PlayerEvent.ShowError("No media files found"))
                     sendEvent(PlayerEvent.FinishActivity)

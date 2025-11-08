@@ -13,6 +13,7 @@ import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -25,6 +26,7 @@ import javax.inject.Inject
 data class BrowseState(
     val resource: MediaResource? = null,
     val mediaFiles: List<MediaFile> = emptyList(),
+    val totalFileCount: Int? = null, // Total count (null if not yet calculated)
     val selectedFiles: Set<String> = emptySet(),
     val lastSelectedPath: String? = null,
     val sortMode: SortMode = SortMode.NAME_ASC,
@@ -43,6 +45,7 @@ sealed class BrowseEvent {
 class BrowseViewModel @Inject constructor(
     private val getResourcesUseCase: GetResourcesUseCase,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
+    private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
@@ -81,6 +84,9 @@ class BrowseViewModel @Inject constructor(
                 ) 
             }
             
+            // Start background file count (for header display)
+            startFileCountInBackground()
+            
             loadMediaFiles()
         }
     }
@@ -102,7 +108,16 @@ class BrowseViewModel @Inject constructor(
                 audioSizeMax = settings.audioSizeMax
             )
             
-            getMediaFilesUseCase(resource, state.value.sortMode, sizeFilter)
+            // Use chunked loading for SMB resources (show first 100 files quickly)
+            val useChunked = resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB
+            
+            getMediaFilesUseCase(
+                resource = resource,
+                sortMode = state.value.sortMode,
+                sizeFilter = sizeFilter,
+                useChunkedLoading = useChunked,
+                maxFiles = 100
+            )
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
                     handleError(e)
@@ -110,7 +125,46 @@ class BrowseViewModel @Inject constructor(
                 .collect { files ->
                     updateState { it.copy(mediaFiles = files) }
                     setLoading(false)
+                    
+                    if (useChunked && files.size >= 100) {
+                        Timber.d("Loaded first ${files.size} files via chunked loading")
+                    }
                 }
+        }
+    }
+
+    /**
+     * Start background file counting for large folders.
+     * Updates totalFileCount in state without blocking UI.
+     */
+    private fun startFileCountInBackground() {
+        val resource = state.value.resource ?: return
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            try {
+                val settings = settingsRepository.getSettings().first()
+                val sizeFilter = SizeFilter(
+                    imageSizeMin = settings.imageSizeMin,
+                    imageSizeMax = settings.imageSizeMax,
+                    videoSizeMin = settings.videoSizeMin,
+                    videoSizeMax = settings.videoSizeMax,
+                    audioSizeMin = settings.audioSizeMin,
+                    audioSizeMax = settings.audioSizeMax
+                )
+                
+                val scanner = mediaScannerFactory.getScanner(resource.type)
+                val count = scanner.getFileCount(
+                    path = resource.path,
+                    supportedTypes = resource.supportedMediaTypes,
+                    sizeFilter = sizeFilter
+                )
+                
+                updateState { it.copy(totalFileCount = count) }
+                Timber.d("Background file count completed: $count files")
+            } catch (e: Exception) {
+                Timber.e(e, "Error counting files in background")
+                // Don't show error to user, count is optional
+            }
         }
     }
 
