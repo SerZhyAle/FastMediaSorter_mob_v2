@@ -745,8 +745,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             
             imageLoader.enqueue(request)
         } else {
-            // Local file - use standard File loading
-            binding.imageView.load(File(path)) {
+            // Local file - support both file:// paths and content:// URIs
+            val data = if (path.startsWith("content://")) {
+                android.net.Uri.parse(path)
+            } else {
+                File(path)
+            }
+            binding.imageView.load(data) {
                 listener(
                     onStart = {
                         // Loading started - indicator will show after 1 second if still loading
@@ -1015,7 +1020,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         Timber.d("PlayerActivity.playLocalVideo: Setting media item and preparing")
         exoPlayer?.apply {
-            setMediaItem(MediaItem.fromUri(File(path).toURI().toString()))
+            // Support both file:// paths and content:// URIs
+            val uri = if (path.startsWith("content://")) {
+                path
+            } else {
+                File(path).toURI().toString()
+            }
+            setMediaItem(MediaItem.fromUri(uri))
             prepare()
             playWhenReady = !viewModel.state.value.isPaused
         }

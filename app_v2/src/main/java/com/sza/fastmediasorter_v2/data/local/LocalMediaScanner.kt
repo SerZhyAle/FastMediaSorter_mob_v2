@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter_v2.data.local
 
 import android.content.Context
+import android.net.Uri
 import android.webkit.MimeTypeMap
+import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
@@ -34,6 +36,12 @@ class LocalMediaScanner @Inject constructor(
         credentialsId: String?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
+            // Check if path is a content:// URI (SAF)
+            if (path.startsWith("content://")) {
+                return@withContext scanFolderSAF(path, supportedTypes, sizeFilter)
+            }
+            
+            // Legacy file:// path handling
             val folder = File(path)
             if (!folder.exists() || !folder.isDirectory) {
                 Timber.w("Folder does not exist or is not a directory: $path")
@@ -66,6 +74,52 @@ class LocalMediaScanner @Inject constructor(
             emptyList()
         }
     }
+    
+    private suspend fun scanFolderSAF(
+        uriString: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?
+    ): List<MediaFile> = withContext(Dispatchers.IO) {
+        try {
+            val uri = Uri.parse(uriString)
+            val folder = DocumentFile.fromTreeUri(context, uri)
+            
+            if (folder == null || !folder.exists() || !folder.isDirectory) {
+                Timber.w("Invalid SAF folder URI or folder doesn't exist: $uriString")
+                return@withContext emptyList()
+            }
+            
+            val files = folder.listFiles()
+            if (files.isEmpty()) {
+                return@withContext emptyList()
+            }
+            
+            files.mapNotNull { file ->
+                if (file.isFile) {
+                    val mimeType = file.type
+                    val mediaType = getMediaTypeFromMime(mimeType)
+                    if (mediaType != null && supportedTypes.contains(mediaType)) {
+                        val fileSize = file.length()
+                        // Apply size filter if provided
+                        if (sizeFilter != null && !isFileSizeInRange(fileSize, mediaType, sizeFilter)) {
+                            return@mapNotNull null
+                        }
+                        
+                        MediaFile(
+                            name = file.name ?: "unknown",
+                            path = file.uri.toString(),
+                            size = fileSize,
+                            createdDate = file.lastModified(),
+                            type = mediaType
+                        )
+                    } else null
+                } else null
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning SAF folder: $uriString")
+            emptyList()
+        }
+    }
 
     override suspend fun getFileCount(
         path: String,
@@ -74,6 +128,12 @@ class LocalMediaScanner @Inject constructor(
         credentialsId: String?
     ): Int = withContext(Dispatchers.IO) {
         try {
+            // Check if path is a content:// URI (SAF)
+            if (path.startsWith("content://")) {
+                return@withContext getFileCountSAF(path, supportedTypes, sizeFilter)
+            }
+            
+            // Legacy file:// path handling
             val folder = File(path)
             if (!folder.exists() || !folder.isDirectory) {
                 return@withContext 0
@@ -99,13 +159,75 @@ class LocalMediaScanner @Inject constructor(
             0
         }
     }
+    
+    private suspend fun getFileCountSAF(
+        uriString: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?
+    ): Int = withContext(Dispatchers.IO) {
+        try {
+            val uri = Uri.parse(uriString)
+            val folder = DocumentFile.fromTreeUri(context, uri)
+            
+            if (folder == null || !folder.exists() || !folder.isDirectory) {
+                return@withContext 0
+            }
+            
+            val files = folder.listFiles()
+            if (files.isEmpty()) {
+                return@withContext 0
+            }
+            
+            files.count { file ->
+                if (file.isFile) {
+                    val mimeType = file.type
+                    val mediaType = getMediaTypeFromMime(mimeType)
+                    if (mediaType != null && supportedTypes.contains(mediaType)) {
+                        // Apply size filter if provided
+                        if (sizeFilter != null) {
+                            isFileSizeInRange(file.length(), mediaType, sizeFilter)
+                        } else {
+                            true
+                        }
+                    } else false
+                } else false
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error counting files in SAF folder: $uriString")
+            0
+        }
+    }
 
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
+            // Check if path is a content:// URI (SAF)
+            if (path.startsWith("content://")) {
+                return@withContext isWritableSAF(path)
+            }
+            
+            // Legacy file:// path handling
             val folder = File(path)
             folder.exists() && folder.canWrite()
         } catch (e: Exception) {
             Timber.e(e, "Error checking write access for: $path")
+            false
+        }
+    }
+    
+    private suspend fun isWritableSAF(uriString: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val uri = Uri.parse(uriString)
+            val folder = DocumentFile.fromTreeUri(context, uri)
+            
+            if (folder == null || !folder.exists() || !folder.isDirectory) {
+                Timber.w("Invalid SAF folder URI or folder doesn't exist: $uriString")
+                return@withContext false
+            }
+            
+            // Check if folder is writable by checking canWrite permission
+            folder.canWrite()
+        } catch (e: Exception) {
+            Timber.e(e, "Error checking SAF write access for: $uriString")
             false
         }
     }
@@ -117,6 +239,17 @@ class LocalMediaScanner @Inject constructor(
             GIF_EXTENSIONS.contains(extension) -> MediaType.GIF
             VIDEO_EXTENSIONS.contains(extension) -> MediaType.VIDEO
             AUDIO_EXTENSIONS.contains(extension) -> MediaType.AUDIO
+            else -> null
+        }
+    }
+    
+    private fun getMediaTypeFromMime(mimeType: String?): MediaType? {
+        if (mimeType == null) return null
+        return when {
+            mimeType == "image/gif" -> MediaType.GIF
+            mimeType.startsWith("image/") -> MediaType.IMAGE
+            mimeType.startsWith("video/") -> MediaType.VIDEO
+            mimeType.startsWith("audio/") -> MediaType.AUDIO
             else -> null
         }
     }

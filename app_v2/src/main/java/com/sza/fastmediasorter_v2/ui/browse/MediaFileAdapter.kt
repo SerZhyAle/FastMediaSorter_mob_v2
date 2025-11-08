@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
@@ -155,8 +156,8 @@ class MediaFileAdapter(
                 // Check if this is a network path (SMB/SFTP)
                 val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
                 
-                // For local files, check if file exists
-                if (!isNetworkPath) {
+                // For local files, check if file exists (skip for content:// URIs)
+                if (!isNetworkPath && !file.path.startsWith("content://")) {
                     val localFile = File(file.path)
                     if (!localFile.exists()) {
                         Timber.w("File no longer exists: ${file.path}")
@@ -199,7 +200,13 @@ class MediaFileAdapter(
                             }
                         } else {
                             // Load image/GIF thumbnail using Coil for local files
-                            load(File(file.path)) {
+                            // Support both file:// paths and content:// URIs
+                            val data = if (file.path.startsWith("content://")) {
+                                Uri.parse(file.path)
+                            } else {
+                                File(file.path)
+                            }
+                            load(data) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
@@ -220,7 +227,13 @@ class MediaFileAdapter(
                             }
                         } else {
                             // Load video first frame using Coil with video frame decoder for local files
-                            load(File(file.path)) {
+                            // Support both file:// paths and content:// URIs
+                            val data = if (file.path.startsWith("content://")) {
+                                Uri.parse(file.path)
+                            } else {
+                                File(file.path)
+                            }
+                            load(data) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)
@@ -331,8 +344,8 @@ class MediaFileAdapter(
                 // Check if this is a network path (SMB/SFTP)
                 val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
                 
-                // For local files, check if file exists
-                if (!isNetworkPath) {
+                // For local files, check if file exists (skip for content:// URIs)
+                if (!isNetworkPath && !file.path.startsWith("content://")) {
                     val localFile = File(file.path)
                     if (!localFile.exists()) {
                         Timber.w("File no longer exists: ${file.path}")
@@ -362,7 +375,13 @@ class MediaFileAdapter(
                                 diskCacheKey(file.path)
                             }
                         } else {
-                            load(File(file.path)) {
+                            // Support both file:// paths and content:// URIs
+                            val data = if (file.path.startsWith("content://")) {
+                                Uri.parse(file.path)
+                            } else {
+                                File(file.path)
+                            }
+                            load(data) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_image_placeholder)
                                 error(R.drawable.ic_image_error)
@@ -382,7 +401,13 @@ class MediaFileAdapter(
                                 diskCacheKey(file.path)
                             }
                         } else {
-                            load(File(file.path)) {
+                            // Support both file:// paths and content:// URIs
+                            val data = if (file.path.startsWith("content://")) {
+                                Uri.parse(file.path)
+                            } else {
+                                File(file.path)
+                            }
+                            load(data) {
                                 crossfade(false)
                                 placeholder(R.drawable.ic_video_placeholder)
                                 error(R.drawable.ic_video_error)

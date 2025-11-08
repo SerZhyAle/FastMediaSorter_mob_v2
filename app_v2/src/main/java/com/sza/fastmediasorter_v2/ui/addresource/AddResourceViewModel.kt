@@ -178,7 +178,13 @@ class AddResourceViewModel @Inject constructor(
             setLoading(true)
             
             try {
-                val path = uri.path ?: ""
+                // For content:// URIs (SAF), use uri.toString() to preserve full URI
+                // For file:// URIs, use uri.path for backward compatibility
+                val path = if (uri.scheme == "content") {
+                    uri.toString()
+                } else {
+                    uri.path ?: ""
+                }
                 val name = uri.lastPathSegment ?: "Unknown"
                 
                 val supportedTypes = getSupportedMediaTypes()
