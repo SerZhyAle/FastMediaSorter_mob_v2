@@ -103,12 +103,40 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                 viewModel.updateSmbPort(port)
             }
         }
-
-        // Buttons
-        binding.btnBack.setOnClickListener {
-            finish()
+        
+        // SFTP credentials listeners
+        binding.etSftpHostEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSftpHost(binding.etSftpHostEdit.text.toString())
+            }
+        }
+        
+        binding.etSftpPortEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val port = binding.etSftpPortEdit.text.toString().toIntOrNull() ?: 22
+                viewModel.updateSftpPort(port)
+            }
+        }
+        
+        binding.etSftpUsernameEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSftpUsername(binding.etSftpUsernameEdit.text.toString())
+            }
+        }
+        
+        binding.etSftpPasswordEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSftpPassword(binding.etSftpPasswordEdit.text.toString())
+            }
+        }
+        
+        binding.etSftpPathEdit.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                viewModel.updateSftpPath(binding.etSftpPathEdit.text.toString())
+            }
         }
 
+        // Buttons
         binding.btnReset.setOnClickListener {
             viewModel.resetToOriginal()
         }
@@ -127,12 +155,20 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     state.currentResource?.let { resource ->
+                        // Update toolbar title with resource type
+                        val resourceTypeLabel = when (resource.type) {
+                            ResourceType.LOCAL -> getString(R.string.resource_type_local)
+                            ResourceType.SMB -> getString(R.string.resource_type_smb)
+                            ResourceType.SFTP -> getString(R.string.resource_type_sftp)
+                            ResourceType.CLOUD -> getString(R.string.resource_type_cloud)
+                        }
+                        binding.toolbar.title = getString(R.string.edit_resource_with_type, resourceTypeLabel)
+                        
                         // Update UI with resource data
                         binding.etResourceName.setText(resource.name)
                         binding.etResourcePath.setText(resource.path)
-                        binding.tvResourceType.text = resource.type.name
                         binding.tvCreatedDate.text = dateFormat.format(Date(resource.createdDate))
-                        binding.tvFileCount.text = getString(R.string.file_count) + ": ${resource.fileCount}"
+                        binding.tvFileCount.text = resource.fileCount.toString()
 
                         // Slideshow interval - convert to input field
                         updateSlideshowIntervalUI(resource.slideshowInterval)
@@ -146,8 +182,9 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         // Is destination
                         binding.switchIsDestination.isChecked = resource.isDestination
                         
-                        // Show/hide SMB credentials section
+                        // Show/hide credentials sections based on resource type
                         binding.layoutSmbCredentials.isVisible = resource.type == ResourceType.SMB
+                        binding.layoutSftpCredentials.isVisible = resource.type == ResourceType.SFTP
                     }
                     
                     // Update SMB credentials UI
@@ -159,10 +196,19 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         binding.etSmbDomainEdit.setText(state.smbDomain)
                         binding.etSmbPortEdit.setText(state.smbPort.toString())
                     }
+                    
+                    // Update SFTP credentials UI
+                    if (state.currentResource?.type == ResourceType.SFTP) {
+                        binding.etSftpHostEdit.setText(state.sftpHost)
+                        binding.etSftpPortEdit.setText(state.sftpPort.toString())
+                        binding.etSftpUsernameEdit.setText(state.sftpUsername)
+                        binding.etSftpPasswordEdit.setText(state.sftpPassword)
+                        binding.etSftpPathEdit.setText(state.sftpPath)
+                    }
 
                     // Enable/disable Save button based on hasChanges
-                    binding.btnSave.isEnabled = state.hasChanges || state.hasSmbCredentialsChanges
-                    binding.btnReset.isEnabled = state.hasChanges || state.hasSmbCredentialsChanges
+                    binding.btnSave.isEnabled = state.hasChanges || state.hasSmbCredentialsChanges || state.hasSftpCredentialsChanges
+                    binding.btnReset.isEnabled = state.hasChanges || state.hasSmbCredentialsChanges || state.hasSftpCredentialsChanges
                 }
             }
         }

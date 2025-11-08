@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
+import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
@@ -32,7 +33,8 @@ class PlayerViewModel @Inject constructor(
         val slideShowInterval: Long = 3000,
         val showControls: Boolean = true,
         val isPaused: Boolean = false,
-        val showCommandPanel: Boolean = false
+        val showCommandPanel: Boolean = false,
+        val resource: MediaResource? = null
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         val hasPrevious: Boolean get() = currentIndex > 0
@@ -100,7 +102,7 @@ class PlayerViewModel @Inject constructor(
                     sendEvent(PlayerEvent.FinishActivity)
                 } else {
                     val safeIndex = initialIndex.coerceIn(0, files.size - 1)
-                    updateState { it.copy(files = files, currentIndex = safeIndex) }
+                    updateState { it.copy(files = files, currentIndex = safeIndex, resource = resource) }
                 }
                 setLoading(false)
             } catch (e: Exception) {

@@ -1,7 +1,5 @@
 # TODO V2 - FastMediaSorter v2
 
-- [ ]  диалогии Копировать в.. и Переместить в.. из окна BrowseActivity не работают. Я не вижу там набора кнопок destinations, как описанов в спецификации
-
 ## 📋 Актуальні задачі для розработки
 
 - [ ]  Network: Implement SFTP support
@@ -333,6 +331,44 @@
   - Maintain compatibility with new Android versions
 
 ---
+
+### 2025-11-08 (SMB/SFTP Media Playback Session)
+- [x] **SMB/SFTP: Implement video playback with ExoPlayer**
+  - Created SmbDataSource.kt (data/network/datasource/)
+  - Created SftpDataSource.kt (data/network/datasource/)
+  - Uses SMBJ library InputStream API for SMB
+  - Uses SSHJ library RemoteFile API for SFTP
+  - Implements BaseDataSource with open(), read(), close() for streaming
+  - Supports seek() for video scrubbing
+  - Added SmbDataSourceFactory and SftpDataSourceFactory
+  - Build: Successful (45s)
+
+- [x] **PlayerActivity: Add network video playback support**
+  - Injected SmbClient, SftpClient, NetworkCredentialsRepository via Hilt
+  - Added resource to PlayerState for type detection
+  - playVideo() detects ResourceType.SMB/SFTP
+  - Retrieves credentials via getByCredentialId()
+  - Creates ExoPlayer with custom DataSourceFactory
+  - Constructs URIs: smb://server/share/path, sftp://server:port/path
+  - Separated playLocalVideo() for local files
+  - Build: Successful (45s)
+
+- [x] **PlayerActivity: Add network image loading support**
+  - displayImage() detects network resources
+  - Uses NetworkFileData with Coil ImageLoader
+  - Added error handling with Toast and Timber logging
+  - Build: Successful (45s)
+
+- [x] **NetworkCredentialsRepository: Add getByCredentialId method**
+  - Added getByCredentialId(String) to interface
+  - Implemented in NetworkCredentialsRepositoryImpl using dao.getCredentialsById()
+  - Fixes credentialId (String UUID) vs id (Long) mismatch
+  - Build: Successful (45s)
+
+- [x] **SftpClient: Add @Singleton annotation**
+  - Added @Inject and @Singleton for Hilt dependency injection
+  - Now compatible with @Inject lateinit var in PlayerActivity
+  - Build: Successful (45s)
 
 ## ✅ Completed Tasks (Session History)
 
@@ -846,7 +882,142 @@
   - Comprehensive logging via Timber
   - Result<T> return type for error handling
 
-- [ ] **SFTP: Add credentials storage (Next)**
+### 2025-11-08 (Copy/Move Dialog Redesign)
+- [x] **Copy/Move Dialogs: Replace RecyclerView with colored buttons**
+  - Problem: Dialogs showed RecyclerView list instead of colored buttons per specification
+  - Specification requirement (V2_p1_2.md lines 260-280):
+    * "Series of buttons from 1 to 10 from destinations"
+    * "Destination buttons in the order and with the color as specified"
+    * "Dynamically sized and occupy the available space"
+    * Copy dialog: green background, Move dialog: blue background
+  - Solution:
+    * dialog_copy_to.xml: Replaced RecyclerView with layoutDestinations (LinearLayout container)
+    * dialog_move_to.xml: Same changes as copy dialog
+    * CopyToDialog.kt: Implemented createDestinationButtons() method
+    * MoveToDialog.kt: Same implementation as CopyToDialog
+  - Button generation logic:
+    * 1 button: full width
+    * 2-5 buttons: 1/N width each in single row
+    * 6-8 buttons: 4 buttons per row
+    * 9-10 buttons: 5 buttons per row
+  - Button styling:
+    * backgroundColor from destination.destinationColor (10 unique colors)
+    * White text with shadow for contrast
+    * 48dp height for touch targets
+    * MaterialButton with rounded corners
+  - Removed all rvDestinations references and DestinationAdapter
+  - Fixed SftpClient.isConnected() check (removed non-existent isOpen property)
+  - Build: Successful (24s, 43 tasks executed)
+  - Commit: 9cd3c0c - "Fix Copy/Move dialogs: replace RecyclerView with colored destination buttons per spec. Add SFTP client support. Fix SMB and UI bugs."
+
+### 2025-11-08 (SFTP Credentials Storage)
+- [x] **SFTP: Add credentials storage in database**
+  - NetworkCredentialsEntity already supports SFTP via type field ("SMB" or "SFTP")
+  - NetworkCredentialsDao already has all necessary CRUD methods
+  - Fields: credentialId, type, server, port, username, password, domain (unused for SFTP), shareName (unused for SFTP)
+  
+- [x] **SFTP: Add UseCase methods**
+  - Enhanced SmbOperationsUseCase with SFTP support (keeps SMB methods unchanged)
+  - Added SftpClient injection to constructor
+  - Implemented methods:
+    * testSftpConnection(host, port, username, password) - test credentials
+    * saveSftpCredentials(host, port, username, password) - save to database, returns credentialId
+    * getSftpCredentials(credentialsId) - retrieve from database
+    * listSftpFiles(host, port, username, password, remotePath) - list files with direct credentials
+    * listSftpFilesWithCredentials(credentialsId, remotePath) - list files using saved credentials
+  - All methods return Result<T> for error handling
+  - Uses detectMediaType() to classify files (IMAGE, VIDEO, AUDIO, GIF)
+  - Added SftpClient provider to AppModule (Hilt)
+  - Build: Successful (51s, 43 tasks executed)
+
+### 2025-11-08 (SFTP UI Implementation)
+- [x] **SFTP: Add UI to AddResourceActivity**
+  - Created layoutSftpFolder section in activity_add_resource.xml:
+    * Host field with hint (server hostname or IP address)
+    * Port field with default value 22
+    * Username and Password fields (horizontal layout, password toggle)
+    * Remote Path field with default "/" and hint
+    * Test Connection button
+    * Add Resource button
+  - Activated cardSftpFolder (removed alpha="0.5")
+  - Added SFTP string resources in 3 languages (en/ru/uk):
+    * sftp_host, sftp_host_hint, sftp_port, sftp_port_hint
+    * sftp_username, sftp_password
+    * sftp_remote_path, sftp_remote_path_hint
+    * sftp_test_connection, sftp_add_resource
+    
+- [x] **SFTP: Add ViewModel integration**
+  - AddResourceViewModel methods:
+    * testSftpConnection() - validates host, calls UseCase, sends ShowTestResult event
+    * addSftpResource() - validates host, saves credentials, creates MediaResource with ResourceType.SFTP, adds to database
+  - Resource naming: uses username@host if path is "/" or empty, otherwise uses last path component
+  - Path format: "sftp://host:port/remotePath"
+  
+- [x] **SFTP: Wire up UI handlers**
+  - AddResourceActivity changes:
+    * Added cardSftpFolder.setOnClickListener → showSftpFolderOptions()
+    * Added btnSftpTest.setOnClickListener → testSftpConnection()
+    * Added btnSftpAddResource.setOnClickListener → addSftpResource()
+    * showSftpFolderOptions() - hides resource type selector, shows SFTP form
+    * testSftpConnection() - extracts form data, validates host, calls ViewModel
+    * addSftpResource() - extracts form data, validates host, calls ViewModel
+  - Build: Successful (46s, 43 tasks executed)
+
+### 2025-11-08 (SFTP EditResource Support)
+- [x] **SFTP: Add EditResourceActivity UI**
+  - Created layoutSftpCredentials section in activity_edit_resource.xml:
+    * Host, Port, Username, Password, Remote Path fields
+    * Same structure as SMB credentials section
+    * Visibility controlled by ResourceType.SFTP check
+  
+- [x] **SFTP: EditResourceViewModel integration**
+  - EditResourceState enhanced:
+    * Added sftpHost, sftpPort, sftpUsername, sftpPassword, sftpPath fields
+    * Added hasSftpCredentialsChanges flag
+  - loadResource() - loads SFTP credentials when resource type is SFTP
+  - loadSftpCredentials() - retrieves credentials from database via UseCase
+  - Update methods: updateSftpHost(), updateSftpPort(), updateSftpUsername(), updateSftpPassword(), updateSftpPath()
+  - saveChanges() - saves SFTP credentials when hasSftpCredentialsChanges=true:
+    * Validates host is not blank
+    * Calls saveSftpCredentials() UseCase
+    * Updates resource with new credentialsId and path
+  
+- [x] **SFTP: EditResourceActivity handlers**
+  - Added focus change listeners for all SFTP fields
+  - observeData() - shows/hides layoutSftpCredentials based on ResourceType.SFTP
+  - Displays SFTP credentials from state when resource is SFTP
+  - Save/Reset buttons enabled when hasChanges OR hasSftpCredentialsChanges OR hasSmbCredentialsChanges
+  - Build: Successful (40s, 43 tasks executed)
+
+### 2025-11-08 (SFTP Scanner Implementation)
+- [x] **SFTP: Create SftpMediaScanner**
+  - Created SftpMediaScanner.kt implementing MediaScanner interface
+  - scanFolder() method:
+    * Parses sftp://server:port/remotePath format
+    * Retrieves credentials from database by type/host/port
+    * Connects to SFTP server via SftpClient
+    * Lists files in remote path
+    * Filters by media type extensions (IMAGE/GIF/VIDEO/AUDIO)
+    * Returns List<MediaFile> with name, path, type
+    * Note: size=0, createdDate=0 (requires stat() implementation for real values)
+  - getFileCount() - returns count of media files
+  - isWritable() - tests SFTP connection to check access
+  - Extensions: jpg/jpeg/png/webp/heic/heif/bmp, gif, mp4/mkv/avi/mov/webm/3gp/flv/wmv/m4v, mp3/m4a/wav/flac/aac/ogg/wma/opus
+  
+- [x] **SFTP: Add DAO method for credentials retrieval**
+  - NetworkCredentialsDao.getByTypeServerAndPort() - query by type, server, port
+  - Used by SftpMediaScanner to get credentials for SFTP resources
+  
+- [x] **SFTP: Update MediaScannerFactory**
+  - Added sftpMediaScanner constructor parameter
+  - ResourceType.SFTP now returns sftpMediaScanner instead of exception
+  - Build: Successful (52s, 43 tasks executed)
+
+- [ ] **SFTP: Enhance SftpClient with stat() method (Optional improvement)**
+  - Add getFileAttributes() to retrieve size, modification date
+  - Update SftpMediaScanner to use real file attributes
+
+- [ ] **SFTP: Test on device**
   - Create SftpCredentials entity in database
   - Add DAO methods for CRUD operations
   - Store: host, port, username, password (encrypted)

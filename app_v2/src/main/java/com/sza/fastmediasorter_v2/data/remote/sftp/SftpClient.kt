@@ -7,12 +7,15 @@ import net.schmizz.sshj.sftp.SFTPClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import timber.log.Timber
 import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Low-level SFTP client wrapper using SSHJ library
  * Handles SFTP connection, authentication and file operations
  */
-class SftpClient {
+@Singleton
+class SftpClient @Inject constructor() {
 
     private var sshClient: SSHClient? = null
     private var sftpClient: SFTPClient? = null
@@ -119,6 +122,42 @@ class SftpClient {
             Result.failure(e)
         } catch (e: Exception) {
             Timber.e(e, "SFTP test connection error: $host:$port")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Read file bytes from SFTP server (useful for thumbnails and image loading)
+     * @param remotePath Full path to remote file
+     * @param maxBytes Maximum bytes to read (default: read entire file)
+     * @return Result with ByteArray or exception on failure
+     */
+    suspend fun readFileBytes(
+        remotePath: String,
+        maxBytes: Long = Long.MAX_VALUE
+    ): Result<ByteArray> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            val remoteFile = client.open(remotePath)
+            remoteFile.use { file ->
+                file.RemoteFileInputStream().use { inputStream ->
+                    val bytes = if (maxBytes < Long.MAX_VALUE) {
+                        inputStream.readNBytes(maxBytes.toInt())
+                    } else {
+                        inputStream.readBytes()
+                    }
+                    Timber.d("SFTP read ${bytes.size} bytes from $remotePath")
+                    Result.success(bytes)
+                }
+            }
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP read file bytes failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP read file bytes error: $remotePath")
             Result.failure(e)
         }
     }

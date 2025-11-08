@@ -4,9 +4,11 @@ import android.net.Uri
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
+import com.sza.fastmediasorter_v2.core.util.DestinationColors
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
+import com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScannerFactory
@@ -39,6 +41,7 @@ class AddResourceViewModel @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val settingsRepository: SettingsRepository,
+    private val resourceRepository: com.sza.fastmediasorter_v2.domain.repository.ResourceRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<AddResourceState, AddResourceEvent>() {
 
@@ -380,6 +383,30 @@ class AddResourceViewModel @Inject constructor(
                 addResourceUseCase.addMultiple(resourcesWithCredentials).onSuccess { addResult ->
                     Timber.d("Added ${addResult.addedCount} SMB resources")
                     
+                    // Scan each added resource to update fileCount and isWritable
+                    viewModelScope.launch(ioDispatcher) {
+                        resourcesWithCredentials.forEach { resource ->
+                            try {
+                                val scanner = mediaScannerFactory.getScanner(resource.type)
+                                val supportedTypes = getSupportedMediaTypes()
+                                
+                                val fileCount = scanner.getFileCount(resource.path, supportedTypes)
+                                val isWritable = scanner.isWritable(resource.path)
+                                
+                                // Update resource with real values
+                                val updatedResource = resource.copy(
+                                    fileCount = fileCount,
+                                    isWritable = isWritable
+                                )
+                                resourceRepository.updateResource(updatedResource)
+                                
+                                Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                            } catch (e: Exception) {
+                                Timber.e(e, "Failed to scan resource ${resource.name}")
+                            }
+                        }
+                    }
+                    
                     if (addResult.destinationsFull) {
                         sendEvent(AddResourceEvent.ShowMessage(
                             "Added ${addResult.addedCount} SMB resources. " +
@@ -412,7 +439,8 @@ class AddResourceViewModel @Inject constructor(
         username: String,
         password: String,
         domain: String,
-        port: Int
+        port: Int,
+        addToDestinations: Boolean = false
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -428,6 +456,25 @@ class AddResourceViewModel @Inject constructor(
             ).onSuccess { credentialsId ->
                 Timber.d("Saved SMB credentials with ID: $credentialsId")
                 
+                // Determine destination settings if needed
+                val (isDestination, destinationOrder, destinationColor) = if (addToDestinations) {
+                    val allResources = resourceRepository.getAllResources().first()
+                    val destinations = allResources.filter { it.isDestination }
+                    
+                    if (destinations.size >= 10) {
+                        sendEvent(AddResourceEvent.ShowError("Maximum 10 destinations allowed"))
+                        setLoading(false)
+                        return@launch
+                    }
+                    
+                    val maxOrder = destinations.mapNotNull { it.destinationOrder }.maxOrNull() ?: 0
+                    val nextOrder = maxOrder + 1
+                    val color = DestinationColors.getColorForDestination(nextOrder)
+                    Triple(true, nextOrder, color)
+                } else {
+                    Triple(false, 0, 0)
+                }
+                
                 // Create resource
                 val path = "smb://$server/$shareName"
                 val resource = MediaResource(
@@ -435,13 +482,38 @@ class AddResourceViewModel @Inject constructor(
                     name = shareName,
                     path = path,
                     type = ResourceType.SMB,
-                    isDestination = false,
+                    isDestination = isDestination,
+                    destinationOrder = destinationOrder,
+                    destinationColor = destinationColor,
                     credentialsId = credentialsId
                 )
                 
                 // Add resource to database
                 addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
                     Timber.d("Added manually entered SMB resource")
+                    
+                    // Scan resource to update fileCount and isWritable
+                    viewModelScope.launch(ioDispatcher) {
+                        try {
+                            val scanner = mediaScannerFactory.getScanner(resource.type)
+                            val supportedTypes = getSupportedMediaTypes()
+                            
+                            val fileCount = scanner.getFileCount(resource.path, supportedTypes)
+                            val isWritable = scanner.isWritable(resource.path)
+                            
+                            // Update resource with real values
+                            val updatedResource = resource.copy(
+                                fileCount = fileCount,
+                                isWritable = isWritable
+                            )
+                            resourceRepository.updateResource(updatedResource)
+                            
+                            Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to scan resource ${resource.name}")
+                        }
+                    }
+                    
                     sendEvent(AddResourceEvent.ShowMessage("SMB resource added successfully"))
                     sendEvent(AddResourceEvent.ResourcesAdded)
                 }.onFailure { e ->
@@ -461,4 +533,126 @@ class AddResourceViewModel @Inject constructor(
      * Get current app settings (for showing detailed errors)
      */
     suspend fun getSettings() = settingsRepository.getSettings().first()
+    
+    // ========== SFTP Operations ==========
+    
+    /**
+     * Test SFTP connection
+     */
+    fun testSftpConnection(
+        host: String,
+        port: Int,
+        username: String,
+        password: String
+    ) {
+        if (host.isBlank()) {
+            sendEvent(AddResourceEvent.ShowError("Host is required"))
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            smbOperationsUseCase.testSftpConnection(
+                host = host,
+                port = port,
+                username = username,
+                password = password
+            ).onSuccess { message ->
+                Timber.d("SFTP test connection successful")
+                sendEvent(AddResourceEvent.ShowTestResult(message, isSuccess = true))
+            }.onFailure { e ->
+                Timber.e(e, "SFTP test connection failed")
+                val errorMessage = "Connection failed: ${e.message}"
+                sendEvent(AddResourceEvent.ShowTestResult(errorMessage, isSuccess = false))
+            }
+            
+            setLoading(false)
+        }
+    }
+    
+    /**
+     * Add SFTP resource
+     */
+    fun addSftpResource(
+        host: String,
+        port: Int,
+        username: String,
+        password: String,
+        remotePath: String
+    ) {
+        if (host.isBlank()) {
+            sendEvent(AddResourceEvent.ShowError("Host is required"))
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            // Save credentials first
+            smbOperationsUseCase.saveSftpCredentials(
+                host = host,
+                port = port,
+                username = username,
+                password = password
+            ).onSuccess { credentialsId ->
+                Timber.d("Saved SFTP credentials with ID: $credentialsId")
+                
+                // Create resource
+                val path = "sftp://$host:$port$remotePath"
+                val resourceName = if (remotePath == "/" || remotePath.isBlank()) {
+                    "$username@$host"
+                } else {
+                    remotePath.substringAfterLast('/')
+                }
+                
+                val resource = MediaResource(
+                    id = 0, // Ensure autoincrement
+                    name = resourceName,
+                    path = path,
+                    type = ResourceType.SFTP,
+                    isDestination = false,
+                    credentialsId = credentialsId
+                )
+                
+                // Add resource to database
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
+                    Timber.d("Added SFTP resource")
+                    
+                    // Scan resource to update fileCount and isWritable
+                    viewModelScope.launch(ioDispatcher) {
+                        try {
+                            val scanner = mediaScannerFactory.getScanner(resource.type)
+                            val supportedTypes = getSupportedMediaTypes()
+                            
+                            val fileCount = scanner.getFileCount(resource.path, supportedTypes)
+                            val isWritable = scanner.isWritable(resource.path)
+                            
+                            // Update resource with real values
+                            val updatedResource = resource.copy(
+                                fileCount = fileCount,
+                                isWritable = isWritable
+                            )
+                            resourceRepository.updateResource(updatedResource)
+                            
+                            Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to scan resource ${resource.name}")
+                        }
+                    }
+                    
+                    sendEvent(AddResourceEvent.ShowMessage("SFTP resource added successfully"))
+                    sendEvent(AddResourceEvent.ResourcesAdded)
+                }.onFailure { e ->
+                    Timber.e(e, "Failed to add SFTP resource")
+                    sendEvent(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                }
+            }.onFailure { e ->
+                Timber.e(e, "Failed to save SFTP credentials")
+                sendEvent(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+            }
+            
+            setLoading(false)
+        }
+    }
 }

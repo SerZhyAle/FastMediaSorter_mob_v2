@@ -83,6 +83,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.cardNetworkFolder.setOnClickListener {
             showSmbFolderOptions()
         }
+        
+        binding.cardSftpFolder.setOnClickListener {
+            showSftpFolderOptions()
+        }
 
         binding.btnScan.setOnClickListener {
             viewModel.scanLocalFolders()
@@ -113,6 +117,15 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.btnSmbAddManually.setOnClickListener {
             // Add manually entered SMB resource
             addSmbResourceManually()
+        }
+        
+        // SFTP buttons
+        binding.btnSftpTest.setOnClickListener {
+            testSftpConnection()
+        }
+        
+        binding.btnSftpAddResource.setOnClickListener {
+            addSftpResource()
         }
     }
 
@@ -225,6 +238,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.layoutResourceTypes.isVisible = false
         binding.tvTitle.text = getString(com.sza.fastmediasorter_v2.R.string.add_network_folder)
         binding.layoutSmbFolder.isVisible = true
+        binding.layoutSftpFolder.isVisible = false
+    }
+    
+    private fun showSftpFolderOptions() {
+        binding.layoutResourceTypes.isVisible = false
+        binding.tvTitle.text = "Add SFTP Resource"
+        binding.layoutSmbFolder.isVisible = false
+        binding.layoutSftpFolder.isVisible = true
     }
 
     private fun testSmbConnection() {
@@ -273,6 +294,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val domain = binding.etSmbDomain.text.toString().trim()
         val portStr = binding.etSmbPort.text.toString().trim()
         val port = portStr.toIntOrNull() ?: 445
+        val addToDestinations = binding.cbSmbAddToDestinations.isChecked
 
         if (server.isEmpty()) {
             Toast.makeText(this, "Server address is required", Toast.LENGTH_SHORT).show()
@@ -284,7 +306,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             return
         }
 
-        viewModel.addSmbResourceManually(server, shareName, username, password, domain, port)
+        viewModel.addSmbResourceManually(server, shareName, username, password, domain, port, addToDestinations)
     }
 
     /**
@@ -394,5 +416,37 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
         return null
     }
+    
+    // ========== SFTP Methods ==========
+    
+    private fun testSftpConnection() {
+        val host = binding.etSftpHost.text.toString().trim()
+        val portStr = binding.etSftpPort.text.toString().trim()
+        val port = portStr.toIntOrNull() ?: 22
+        val username = binding.etSftpUsername.text.toString().trim()
+        val password = binding.etSftpPassword.text.toString().trim()
+        
+        if (host.isEmpty()) {
+            Toast.makeText(this, "Host is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        viewModel.testSftpConnection(host, port, username, password)
+    }
+    
+    private fun addSftpResource() {
+        val host = binding.etSftpHost.text.toString().trim()
+        val portStr = binding.etSftpPort.text.toString().trim()
+        val port = portStr.toIntOrNull() ?: 22
+        val username = binding.etSftpUsername.text.toString().trim()
+        val password = binding.etSftpPassword.text.toString().trim()
+        val remotePath = binding.etSftpPath.text.toString().trim().ifEmpty { "/" }
+        
+        if (host.isEmpty()) {
+            Toast.makeText(this, "Host is required", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        viewModel.addSftpResource(host, port, username, password, remotePath)
+    }
 }
-

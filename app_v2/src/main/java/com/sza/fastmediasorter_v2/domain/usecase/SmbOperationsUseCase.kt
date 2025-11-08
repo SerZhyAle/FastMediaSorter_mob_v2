@@ -4,6 +4,7 @@ import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter_v2.data.network.SmbClient
+import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
@@ -14,10 +15,11 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * Use case for SMB/CIFS network operations
+ * Use case for SMB/CIFS and SFTP network operations
  */
 class SmbOperationsUseCase @Inject constructor(
     private val smbClient: SmbClient,
+    private val sftpClient: SftpClient,
     private val credentialsDao: NetworkCredentialsDao,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
@@ -238,6 +240,150 @@ class SmbOperationsUseCase @Inject constructor(
             "mp4", "mov", "avi", "mkv", "wmv", "flv", "webm" -> MediaType.VIDEO
             "mp3", "wav", "aac", "flac", "ogg", "m4a" -> MediaType.AUDIO
             else -> MediaType.IMAGE // Default
+        }
+    }
+    
+    // ========== SFTP Operations ==========
+    
+    /**
+     * Test SFTP connection with given credentials
+     */
+    suspend fun testSftpConnection(
+        host: String,
+        port: Int = 22,
+        username: String,
+        password: String
+    ): Result<String> = withContext(ioDispatcher) {
+        try {
+            val result = sftpClient.testConnection(host, port, username, password)
+            if (result.isSuccess) {
+                Result.success("SFTP connection successful to $host:$port")
+            } else {
+                Result.failure(result.exceptionOrNull() ?: Exception("SFTP connection failed"))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP test connection failed")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Save SFTP credentials to database
+     */
+    suspend fun saveSftpCredentials(
+        host: String,
+        port: Int = 22,
+        username: String,
+        password: String
+    ): Result<String> = withContext(ioDispatcher) {
+        try {
+            val credentialId = UUID.randomUUID().toString()
+            val entity = NetworkCredentialsEntity(
+                credentialId = credentialId,
+                type = "SFTP",
+                server = host,
+                port = port,
+                username = username,
+                password = password,
+                domain = "", // Not used for SFTP
+                shareName = null // Not used for SFTP
+            )
+            
+            credentialsDao.insert(entity)
+            Result.success(credentialId)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save SFTP credentials")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Get SFTP credentials by credential ID
+     */
+    suspend fun getSftpCredentials(credentialsId: String): Result<NetworkCredentialsEntity> =
+        withContext(ioDispatcher) {
+            try {
+                val credentials = credentialsDao.getCredentialsById(credentialsId)
+                    ?: return@withContext Result.failure(Exception("Credentials not found"))
+                
+                if (credentials.type != "SFTP") {
+                    return@withContext Result.failure(Exception("Invalid credentials type: expected SFTP"))
+                }
+                
+                Result.success(credentials)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to get SFTP credentials")
+                Result.failure(e)
+            }
+        }
+    
+    /**
+     * List files in SFTP directory
+     */
+    suspend fun listSftpFiles(
+        host: String,
+        port: Int = 22,
+        username: String,
+        password: String,
+        remotePath: String = "/"
+    ): Result<List<MediaFile>> = withContext(ioDispatcher) {
+        try {
+            val connectResult = sftpClient.connect(host, port, username, password)
+            if (connectResult.isFailure) {
+                return@withContext Result.failure(connectResult.exceptionOrNull() ?: Exception("Connection failed"))
+            }
+            
+            val listResult = sftpClient.listFiles(remotePath)
+            sftpClient.disconnect()
+            
+            if (listResult.isFailure) {
+                return@withContext Result.failure(listResult.exceptionOrNull() ?: Exception("List files failed"))
+            }
+            
+            val filePaths = listResult.getOrNull() ?: emptyList()
+            val mediaFiles = filePaths.map { filePath ->
+                val fileName = filePath.substringAfterLast('/')
+                MediaFile(
+                    name = fileName,
+                    path = filePath,
+                    type = detectMediaType(fileName),
+                    size = 0L, // Size not available without additional stat() call
+                    createdDate = System.currentTimeMillis() // Date not available without additional stat() call
+                )
+            }
+            
+            Result.success(mediaFiles)
+        } catch (e: Exception) {
+            sftpClient.disconnect()
+            Timber.e(e, "Failed to list SFTP files")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * List files in SFTP directory using saved credentials
+     */
+    suspend fun listSftpFilesWithCredentials(
+        credentialsId: String,
+        remotePath: String = "/"
+    ): Result<List<MediaFile>> = withContext(ioDispatcher) {
+        try {
+            val credentialsResult = getSftpCredentials(credentialsId)
+            if (credentialsResult.isFailure) {
+                return@withContext Result.failure(credentialsResult.exceptionOrNull()!!)
+            }
+            
+            val credentials = credentialsResult.getOrNull()!!
+            listSftpFiles(
+                host = credentials.server,
+                port = credentials.port,
+                username = credentials.username,
+                password = credentials.password,
+                remotePath = remotePath
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to list SFTP files with credentials")
+            Result.failure(e)
         }
     }
 }

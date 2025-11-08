@@ -134,6 +134,11 @@
     
     <!-- Edit Resource -->
     <string name="edit_resource">Редагування ресурсу</string>
+    <string name="edit_resource_with_type">Редагування ресурсу (%1$s)</string>
+    <string name="resource_type_local">Локальний</string>
+    <string name="resource_type_smb">SMB</string>
+    <string name="resource_type_sftp">SFTP</string>
+    <string name="resource_type_cloud">Хмара</string>
     <string name="resource_name">Назва ресурсу</string>
     <string name="resource_path">Шлях ресурсу</string>
     <string name="resource_type">Тип ресурсу</string>
@@ -143,8 +148,9 @@
     <string name="images">Зображення</string>
     <string name="video">Відео</string>
     <string name="audio">Аудіо</string>
-    <string name="gif_animations">GIF анімації</string>
-    <string name="use_as_destination">Використовувати як отримувача</string>
+    <string name="gif_animations">GIF-анімації</string>
+    <string name="use_as_destination">Використовувати як призначення</string>
+    <string name="add_to_destinations">Додати до призначень</string>
     <string name="back">Назад</string>
     <string name="test">Тест</string>
     <string name="reset">Скинути</string>
@@ -222,4 +228,16 @@
     <string name="smb_test_connection">Перевірити з\'єднання</string>
     <string name="smb_scan_shares">Сканувати ресурси</string>
     <string name="smb_credentials">Облікові дані SMB</string>
+    
+    <!-- SFTP -->
+    <string name="sftp_host">Хост</string>
+    <string name="sftp_host_hint">Ім\'я сервера або IP-адреса</string>
+    <string name="sftp_port">Порт</string>
+    <string name="sftp_port_hint">За замовчуванням: 22</string>
+    <string name="sftp_username">Ім\'я користувача</string>
+    <string name="sftp_password">Пароль</string>
+    <string name="sftp_remote_path">Віддалений шлях</string>
+    <string name="sftp_remote_path_hint">наприклад /home/user/media або /</string>
+    <string name="sftp_test_connection">Перевірити з\'єднання</string>
+    <string name="sftp_add_resource">Додати ресурс</string>
 </resources>

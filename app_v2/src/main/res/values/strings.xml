@@ -134,6 +134,11 @@
     
     <!-- Edit Resource -->
     <string name="edit_resource">Edit Resource</string>
+    <string name="edit_resource_with_type">Edit Resource (%1$s)</string>
+    <string name="resource_type_local">Local</string>
+    <string name="resource_type_smb">SMB</string>
+    <string name="resource_type_sftp">SFTP</string>
+    <string name="resource_type_cloud">Cloud</string>
     <string name="resource_name">Resource Name</string>
     <string name="resource_path">Resource Path</string>
     <string name="resource_type">Resource Type</string>
@@ -145,6 +150,7 @@
     <string name="audio">Audio</string>
     <string name="gif_animations">GIF Animations</string>
     <string name="use_as_destination">Use as Destination</string>
+    <string name="add_to_destinations">Add to Destinations</string>
     <string name="back">Back</string>
     <string name="test">Test</string>
     <string name="reset">Reset</string>
@@ -230,6 +236,18 @@
     <string name="smb_test_connection">Test Connection</string>
     <string name="smb_scan_shares">Scan Shares</string>
     <string name="smb_credentials">SMB Network Credentials</string>
+    
+    <!-- SFTP -->
+    <string name="sftp_host">Host</string>
+    <string name="sftp_host_hint">Server hostname or IP address</string>
+    <string name="sftp_port">Port</string>
+    <string name="sftp_port_hint">Default: 22</string>
+    <string name="sftp_username">Username</string>
+    <string name="sftp_password">Password</string>
+    <string name="sftp_remote_path">Remote Path</string>
+    <string name="sftp_remote_path_hint">e.g. /home/user/media or /</string>
+    <string name="sftp_test_connection">Test Connection</string>
+    <string name="sftp_add_resource">Add Resource</string>
     
 </resources>
 

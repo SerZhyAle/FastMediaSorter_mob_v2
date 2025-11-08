@@ -43,6 +43,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
     }
+    
+    override fun onResume() {
+        super.onResume()
+        // Refresh resources list when returning from EditResourceActivity
+        viewModel.refreshResources()
+    }
 
     override fun setupViews() {
         resourceAdapter = ResourceAdapter(

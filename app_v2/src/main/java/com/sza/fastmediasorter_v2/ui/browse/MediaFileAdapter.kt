@@ -19,6 +19,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.transform.RoundedCornersTransformation
 import com.sza.fastmediasorter_v2.R
+import timber.log.Timber
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileGridBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
@@ -146,23 +147,57 @@ class MediaFileAdapter(
         
         private fun loadThumbnail(file: MediaFile) {
             binding.ivThumbnail.apply {
+                // Check if this is a network path (SMB/SFTP)
+                val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
+                
+                Timber.d("Loading thumbnail for: ${file.name}, isNetwork: $isNetworkPath, type: ${file.type}")
+                
                 when (file.type) {
                     MediaType.IMAGE, MediaType.GIF -> {
-                        // Load image/GIF thumbnail using Coil
-                        load(File(file.path)) {
-                            crossfade(true)
-                            placeholder(R.drawable.ic_image_placeholder)
-                            error(R.drawable.ic_image_error)
-                            transformations(RoundedCornersTransformation(8f))
+                        if (isNetworkPath) {
+                            // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
+                            Timber.d("Loading network image via NetworkFileData: ${file.path}")
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_image_placeholder)
+                                error(R.drawable.ic_image_error)
+                                transformations(RoundedCornersTransformation(8f))
+                                listener(
+                                    onSuccess = { _, _ ->
+                                        Timber.d("Successfully loaded network thumbnail: ${file.name}")
+                                    },
+                                    onError = { _, result ->
+                                        Timber.e(result.throwable, "Failed to load network thumbnail: ${file.name}")
+                                    }
+                                )
+                            }
+                        } else {
+                            // Load image/GIF thumbnail using Coil for local files
+                            load(File(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_image_placeholder)
+                                error(R.drawable.ic_image_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
                         }
                     }
                     MediaType.VIDEO -> {
-                        // Load video first frame using Coil with video frame decoder
-                        load(File(file.path)) {
-                            crossfade(true)
-                            placeholder(R.drawable.ic_video_placeholder)
-                            error(R.drawable.ic_video_error)
-                            transformations(RoundedCornersTransformation(8f))
+                        if (isNetworkPath) {
+                            // Load network video frame using NetworkFileData
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_video_placeholder)
+                                error(R.drawable.ic_video_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
+                        } else {
+                            // Load video first frame using Coil with video frame decoder for local files
+                            load(File(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_video_placeholder)
+                                error(R.drawable.ic_video_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
                         }
                     }
                     MediaType.AUDIO -> {
@@ -265,21 +300,44 @@ class MediaFileAdapter(
         
         private fun loadThumbnail(file: MediaFile) {
             binding.ivThumbnail.apply {
+                // Check if this is a network path (SMB/SFTP)
+                val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
+                
                 when (file.type) {
                     MediaType.IMAGE, MediaType.GIF -> {
-                        load(File(file.path)) {
-                            crossfade(true)
-                            placeholder(R.drawable.ic_image_placeholder)
-                            error(R.drawable.ic_image_error)
-                            transformations(RoundedCornersTransformation(8f))
+                        if (isNetworkPath) {
+                            // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_image_placeholder)
+                                error(R.drawable.ic_image_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
+                        } else {
+                            load(File(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_image_placeholder)
+                                error(R.drawable.ic_image_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
                         }
                     }
                     MediaType.VIDEO -> {
-                        load(File(file.path)) {
-                            crossfade(true)
-                            placeholder(R.drawable.ic_video_placeholder)
-                            error(R.drawable.ic_video_error)
-                            transformations(RoundedCornersTransformation(8f))
+                        if (isNetworkPath) {
+                            // Load network video frame using NetworkFileData
+                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_video_placeholder)
+                                error(R.drawable.ic_video_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
+                        } else {
+                            load(File(file.path)) {
+                                crossfade(true)
+                                placeholder(R.drawable.ic_video_placeholder)
+                                error(R.drawable.ic_video_error)
+                                transformations(RoundedCornersTransformation(8f))
+                            }
                         }
                     }
                     MediaType.AUDIO -> {

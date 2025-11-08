@@ -27,7 +27,14 @@ data class EditResourceState(
     val smbPassword: String = "",
     val smbDomain: String = "",
     val smbPort: Int = 445,
-    val hasSmbCredentialsChanges: Boolean = false
+    val hasSmbCredentialsChanges: Boolean = false,
+    // SFTP credentials
+    val sftpHost: String = "",
+    val sftpPort: Int = 22,
+    val sftpUsername: String = "",
+    val sftpPassword: String = "",
+    val sftpPath: String = "/",
+    val hasSftpCredentialsChanges: Boolean = false
 )
 
 sealed class EditResourceEvent {
@@ -80,6 +87,11 @@ class EditResourceViewModel @Inject constructor(
                 loadSmbCredentials(resource.credentialsId!!)
             }
             
+            // Load SFTP credentials if resource is SFTP type
+            if (resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP && resource.credentialsId != null) {
+                loadSftpCredentials(resource.credentialsId!!)
+            }
+            
             setLoading(false)
         }
     }
@@ -99,6 +111,23 @@ class EditResourceViewModel @Inject constructor(
             }
         }.onFailure { e ->
             Timber.e(e, "Failed to load SMB credentials")
+        }
+    }
+    
+    private suspend fun loadSftpCredentials(credentialsId: String) {
+        smbOperationsUseCase.getSftpCredentials(credentialsId).onSuccess { credentials ->
+            Timber.d("Loaded SFTP credentials for resource")
+            updateState { state ->
+                state.copy(
+                    sftpHost = credentials.server,
+                    sftpPort = credentials.port,
+                    sftpUsername = credentials.username,
+                    sftpPassword = credentials.password,
+                    sftpPath = "/" // Default, actual path stored in resource.path
+                )
+            }
+        }.onFailure { e ->
+            Timber.e(e, "Failed to load SFTP credentials")
         }
     }
 
@@ -190,6 +219,27 @@ class EditResourceViewModel @Inject constructor(
     fun updateSmbPort(port: Int) {
         updateState { it.copy(smbPort = port, hasSmbCredentialsChanges = true) }
     }
+    
+    // SFTP credential update methods
+    fun updateSftpHost(host: String) {
+        updateState { it.copy(sftpHost = host, hasSftpCredentialsChanges = true) }
+    }
+    
+    fun updateSftpPort(port: Int) {
+        updateState { it.copy(sftpPort = port, hasSftpCredentialsChanges = true) }
+    }
+    
+    fun updateSftpUsername(username: String) {
+        updateState { it.copy(sftpUsername = username, hasSftpCredentialsChanges = true) }
+    }
+    
+    fun updateSftpPassword(password: String) {
+        updateState { it.copy(sftpPassword = password, hasSftpCredentialsChanges = true) }
+    }
+    
+    fun updateSftpPath(path: String) {
+        updateState { it.copy(sftpPath = path, hasSftpCredentialsChanges = true) }
+    }
 
     private fun updateCurrentResource(updated: MediaResource) {
         val original = state.value.originalResource ?: return
@@ -259,6 +309,36 @@ class EditResourceViewModel @Inject constructor(
                 }
             }
             
+            // Save SFTP credentials if changed and resource is SFTP
+            if (current.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP && currentState.hasSftpCredentialsChanges) {
+                if (currentState.sftpHost.isBlank()) {
+                    sendEvent(EditResourceEvent.ShowError("Host is required for SFTP resources"))
+                    setLoading(false)
+                    return@launch
+                }
+                
+                // Save new SFTP credentials
+                smbOperationsUseCase.saveSftpCredentials(
+                    host = currentState.sftpHost,
+                    port = currentState.sftpPort,
+                    username = currentState.sftpUsername,
+                    password = currentState.sftpPassword
+                ).onSuccess { newCredentialsId ->
+                    Timber.d("Saved new SFTP credentials: $newCredentialsId")
+                    // Update resource path with new remote path
+                    val newPath = "sftp://${currentState.sftpHost}:${currentState.sftpPort}${currentState.sftpPath}"
+                    updatedResource = current.copy(
+                        credentialsId = newCredentialsId,
+                        path = newPath
+                    )
+                }.onFailure { e ->
+                    Timber.e(e, "Failed to save SFTP credentials")
+                    sendEvent(EditResourceEvent.ShowError("Failed to save SFTP credentials: ${e.message}"))
+                    setLoading(false)
+                    return@launch
+                }
+            }
+            
             updateResourceUseCase(updatedResource).onSuccess {
                 Timber.d("Resource updated: ${updatedResource.name}")
                 sendEvent(EditResourceEvent.ResourceUpdated)
@@ -268,7 +348,8 @@ class EditResourceViewModel @Inject constructor(
                     it.copy(
                         originalResource = updatedResource,
                         hasChanges = false,
-                        hasSmbCredentialsChanges = false
+                        hasSmbCredentialsChanges = false,
+                        hasSftpCredentialsChanges = false
                     ) 
                 }
             }.onFailure { e ->

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter_v2.ui.player
 import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,18 +18,30 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import coil.imageLoader
 import coil.load
+import coil.request.ImageRequest
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
+import com.sza.fastmediasorter_v2.data.network.SmbClient
+import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData
+import com.sza.fastmediasorter_v2.data.network.datasource.SmbDataSourceFactory
+import com.sza.fastmediasorter_v2.data.network.datasource.SftpDataSourceFactory
 import com.sza.fastmediasorter_v2.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.model.ResourceType
+import com.sza.fastmediasorter_v2.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.RenameDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.io.File
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
@@ -43,6 +56,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private lateinit var gestureDetector: GestureDetector
     private val touchZoneDetector = TouchZoneDetector()
     private var useTouchZones = true // Use touch zones for images, gestures for video
+
+    // Injected dependencies for network playback
+    @Inject
+    lateinit var smbClient: SmbClient
+    
+    @Inject
+    lateinit var sftpClient: SftpClient
+    
+    @Inject
+    lateinit var credentialsRepository: NetworkCredentialsRepository
 
     private val slideShowRunnable = object : Runnable {
         override fun run() {
@@ -451,7 +474,38 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.playerView.isVisible = false
         binding.imageView.isVisible = true
 
-        binding.imageView.load(File(path))
+        val currentFile = viewModel.state.value.currentFile
+        val resource = viewModel.state.value.resource
+        
+        // Check if this is a network resource
+        if (currentFile != null && resource != null && 
+            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP)) {
+            
+            Timber.d("PlayerActivity: Loading network image: $path from ${resource.type}")
+            
+            // Use NetworkFileData for Coil to load via NetworkFileFetcher
+            // path is already in format: /shareName/path/to/file.jpg
+            val networkData = NetworkFileData(path = path)
+            
+            val request = ImageRequest.Builder(this)
+                .data(networkData)
+                .target(binding.imageView)
+                .listener(
+                    onSuccess = { _, _ ->
+                        Timber.d("PlayerActivity: Network image loaded successfully")
+                    },
+                    onError = { _, result ->
+                        Timber.e(result.throwable, "PlayerActivity: Failed to load network image")
+                        Toast.makeText(this, "Failed to load image: ${result.throwable.message}", Toast.LENGTH_SHORT).show()
+                    }
+                )
+                .build()
+            
+            imageLoader.enqueue(request)
+        } else {
+            // Local file - use standard File loading
+            binding.imageView.load(File(path))
+        }
 
         updateSlideShow()
     }
@@ -460,6 +514,112 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.imageView.isVisible = false
         binding.playerView.isVisible = true
 
+        val currentFile = viewModel.state.value.currentFile
+        val resource = viewModel.state.value.resource
+        
+        // Check if this is a network resource
+        if (currentFile != null && resource != null &&
+            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP)) {
+            
+            Timber.d("PlayerActivity: Loading network video: $path from ${resource.type}")
+            
+            lifecycleScope.launch {
+                try {
+                    val credentialsId = resource.credentialsId
+                    if (credentialsId == null) {
+                        Toast.makeText(this@PlayerActivity, "No credentials found for resource", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    
+                    // Get credentials from database
+                    val credentials = credentialsRepository.getByCredentialId(credentialsId)
+                    if (credentials == null) {
+                        Toast.makeText(this@PlayerActivity, "Credentials not found", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    
+                    // Release old player
+                    releasePlayer()
+                    
+                    when (resource.type) {
+                        ResourceType.SMB -> {
+                            // Create SMB connection info
+                            val connectionInfo = SmbClient.SmbConnectionInfo(
+                                server = credentials.server,
+                                shareName = credentials.shareName ?: "",
+                                username = credentials.username,
+                                password = credentials.password,
+                                domain = credentials.domain,
+                                port = credentials.port
+                            )
+                            
+                            // Create ExoPlayer with SmbDataSourceFactory
+                            val dataSourceFactory = SmbDataSourceFactory(smbClient, connectionInfo)
+                            exoPlayer = ExoPlayer.Builder(this@PlayerActivity)
+                                .setMediaSourceFactory(
+                                    DefaultMediaSourceFactory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
+                                )
+                                .build()
+                            
+                            binding.playerView.player = exoPlayer
+                            
+                            // Construct SMB URI
+                            val smbUri = Uri.parse("smb://${credentials.server}/${credentials.shareName}$path")
+                            val mediaItem = MediaItem.fromUri(smbUri)
+                            exoPlayer?.setMediaItem(mediaItem)
+                            exoPlayer?.prepare()
+                            exoPlayer?.playWhenReady = !viewModel.state.value.isPaused
+                            
+                            Timber.d("PlayerActivity: SMB video prepared: $smbUri")
+                        }
+                        
+                        ResourceType.SFTP -> {
+                            // Create ExoPlayer with SftpDataSourceFactory
+                            val dataSourceFactory = SftpDataSourceFactory(
+                                sftpClient,
+                                credentials.server,
+                                credentials.port,
+                                credentials.username,
+                                credentials.password
+                            )
+                            
+                            exoPlayer = ExoPlayer.Builder(this@PlayerActivity)
+                                .setMediaSourceFactory(
+                                    DefaultMediaSourceFactory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
+                                )
+                                .build()
+                            
+                            binding.playerView.player = exoPlayer
+                            
+                            // Construct SFTP URI
+                            val sftpUri = Uri.parse("sftp://${credentials.server}:${credentials.port}$path")
+                            val mediaItem = MediaItem.fromUri(sftpUri)
+                            exoPlayer?.setMediaItem(mediaItem)
+                            exoPlayer?.prepare()
+                            exoPlayer?.playWhenReady = !viewModel.state.value.isPaused
+                            
+                            Timber.d("PlayerActivity: SFTP video prepared: $sftpUri")
+                        }
+                        
+                        else -> {
+                            // Shouldn't happen but fallback to local
+                            playLocalVideo(path)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "PlayerActivity: Failed to play network video")
+                    Toast.makeText(this@PlayerActivity, "Failed to play video: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        } else {
+            // Local file
+            playLocalVideo(path)
+        }
+
+        slideShowHandler.removeCallbacks(slideShowRunnable)
+    }
+    
+    private fun playLocalVideo(path: String) {
         if (exoPlayer == null) {
             exoPlayer = ExoPlayer.Builder(this).build().also {
                 binding.playerView.player = it
@@ -471,8 +631,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             prepare()
             playWhenReady = !viewModel.state.value.isPaused
         }
-
-        slideShowHandler.removeCallbacks(slideShowRunnable)
     }
 
     private fun updateSlideShow() {

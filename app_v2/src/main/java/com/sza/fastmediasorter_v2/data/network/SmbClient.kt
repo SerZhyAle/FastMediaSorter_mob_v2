@@ -321,8 +321,14 @@ class SmbClient @Inject constructor() {
                     "IT", "Finance", "HR", "Sales",
                     // Media server names
                     "Plex", "Media", "Library", "Content",
-                    // Admin shares (usually hidden, but try)
-                    "C$", "D$", "E$", "ADMIN$", "IPC$"
+                    // Additional common patterns
+                    "Temp", "Temporary", "Exchange", "FTP",
+                    "Upload", "Inbox", "Outbox", "Downloads",
+                    // User-specific patterns
+                    "Docs", "MyDocuments", "MyFiles", "MyData",
+                    // Try lowercase variations
+                    "shared", "public", "users", "documents",
+                    "photos", "videos", "music", "data"
                 )
                 
                 Timber.d("Scanning for shares using trial connection method (${commonShareNames.size} attempts)...")
@@ -330,9 +336,21 @@ class SmbClient @Inject constructor() {
                 for (shareName in commonShareNames) {
                     try {
                         val share = session.connectShare(shareName)
-                        // If connection successful, share exists and is accessible
-                        shares.add(shareName)
-                        Timber.d("Found accessible share: $shareName")
+                        
+                        // Filter out administrative shares
+                        val isAdminShare = shareName.endsWith("$") || 
+                                         shareName.equals("IPC$", ignoreCase = true) ||
+                                         shareName.equals("ADMIN$", ignoreCase = true) ||
+                                         shareName.matches(Regex("[A-Za-z]\\$")) // Drive shares like C$, D$
+                        
+                        if (!isAdminShare) {
+                            // Only add non-administrative shares
+                            shares.add(shareName)
+                            Timber.d("Found accessible share: $shareName")
+                        } else {
+                            Timber.d("Skipping administrative share: $shareName")
+                        }
+                        
                         share.close()
                     } catch (e: Exception) {
                         // Share doesn't exist, not accessible, or hidden - skip silently
@@ -414,6 +432,42 @@ class SmbClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.e(e, "Failed to download file from SMB")
             SmbResult.Error("Failed to download file: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Read file bytes from SMB (useful for thumbnails and image loading)
+     */
+    suspend fun readFileBytes(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String,
+        maxBytes: Long = Long.MAX_VALUE
+    ): SmbResult<ByteArray> {
+        return try {
+            withConnection(connectionInfo) { share ->
+                val file = share.openFile(
+                    remotePath,
+                    EnumSet.of(AccessMask.GENERIC_READ),
+                    null,
+                    SMB2ShareAccess.ALL,
+                    SMB2CreateDisposition.FILE_OPEN,
+                    null
+                )
+                
+                file.use { smbFile ->
+                    smbFile.inputStream.use { input ->
+                        val bytes = if (maxBytes < Long.MAX_VALUE) {
+                            input.readNBytes(maxBytes.toInt())
+                        } else {
+                            input.readBytes()
+                        }
+                        SmbResult.Success(bytes)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to read file bytes from SMB")
+            SmbResult.Error("Failed to read file: ${e.message}", e)
         }
     }
 
