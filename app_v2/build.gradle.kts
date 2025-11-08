@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11090036
-        versionName = "2.0.0-build2511090036"
+        versionCode = 11090057
+        versionName = "2.0.0-build2511090057"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

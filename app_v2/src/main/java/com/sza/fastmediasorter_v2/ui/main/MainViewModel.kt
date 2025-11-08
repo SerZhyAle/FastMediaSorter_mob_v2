@@ -85,9 +85,14 @@ class MainViewModel @Inject constructor(
     }
 
     fun startPlayer() {
-        val resourceId = state.value.selectedResource?.id
-        if (resourceId != null && resourceId != 0L) {
-            sendEvent(MainEvent.NavigateToBrowse(resourceId))
+        val resource = state.value.selectedResource
+        if (resource != null && resource.id != 0L) {
+            // Check if resource is available (has files and is writable)
+            if (resource.fileCount == 0 && !resource.isWritable) {
+                sendEvent(MainEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+            } else {
+                sendEvent(MainEvent.NavigateToBrowse(resource.id))
+            }
         }
     }
 

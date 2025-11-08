@@ -101,6 +101,14 @@ class PlayerViewModel @Inject constructor(
                     return@launch
                 }
 
+                // Check if resource is available
+                if (resource.fileCount == 0 && !resource.isWritable) {
+                    sendEvent(PlayerEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+                    sendEvent(PlayerEvent.FinishActivity)
+                    setLoading(false)
+                    return@launch
+                }
+
                 // Get current settings for size filters
                 val settings = settingsRepository.getSettings().first()
                 val sizeFilter = SizeFilter(

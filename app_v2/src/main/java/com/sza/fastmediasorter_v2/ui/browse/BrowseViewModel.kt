@@ -76,6 +76,13 @@ class BrowseViewModel @Inject constructor(
                 return@launch
             }
             
+            // Check if resource is available
+            if (resource.fileCount == 0 && !resource.isWritable) {
+                sendEvent(BrowseEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+                setLoading(false)
+                return@launch
+            }
+            
             updateState { 
                 it.copy(
                     resource = resource,
