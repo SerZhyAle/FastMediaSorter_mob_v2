@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11090057
-        versionName = "2.0.0-build2511090057"
+        versionCode = 11090150
+        versionName = "2.0.0-build2511090150"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -136,6 +136,7 @@ dependencies {
     // Image Loading
     implementation("io.coil-kt:coil:2.5.0")
     implementation("io.coil-kt:coil-video:2.5.0")
+    implementation("io.coil-kt:coil-gif:2.5.0")
     
     // Network - SMB
     implementation("com.hierynomus:smbj:0.12.1")

@@ -601,12 +601,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             val isVideo = file.type == MediaType.VIDEO || file.type == MediaType.AUDIO
             Timber.d("PlayerActivity.updateUI: isVideo=$isVideo, file.type=${file.type}")
             
-            when (file.type) {
-                MediaType.IMAGE, MediaType.GIF -> {
-                    Timber.d("PlayerActivity.updateUI: Calling displayImage()")
+            // Check if file is actually a GIF by extension (in case type is wrong in DB)
+            val isGif = file.name.lowercase().endsWith(".gif")
+            
+            when {
+                isGif || file.type == MediaType.IMAGE || file.type == MediaType.GIF -> {
+                    Timber.d("PlayerActivity.updateUI: Calling displayImage() for ${if (isGif) "GIF" else "IMAGE"}")
                     displayImage(file.path)
                 }
-                MediaType.VIDEO, MediaType.AUDIO -> {
+                file.type == MediaType.VIDEO || file.type == MediaType.AUDIO -> {
                     Timber.d("PlayerActivity.updateUI: Calling playVideo()")
                     playVideo(file.path)
                 }
@@ -837,6 +840,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun playVideo(path: String) {
         Timber.d("PlayerActivity.playVideo: START - path=$path")
+        
+        // Double-check: never try to play GIF files with ExoPlayer
+        if (path.lowercase().endsWith(".gif")) {
+            Timber.w("PlayerActivity.playVideo: Detected GIF file, redirecting to displayImage()")
+            displayImage(path)
+            return
+        }
+        
         binding.imageView.isVisible = false
         binding.playerView.isVisible = true
 

@@ -2,6 +2,8 @@ package com.sza.fastmediasorter_v2.di
 
 import android.content.Context
 import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import coil.decode.VideoFrameDecoder
 import coil.util.DebugLogger
 import com.sza.fastmediasorter_v2.data.network.SmbClient
@@ -36,6 +38,14 @@ object CoilModule {
         
         return ImageLoader.Builder(context)
             .components {
+                // Add GIF decoder for animated GIFs
+                // Use ImageDecoderDecoder on Android 9+ (API 28+), fallback to GifDecoder
+                if (android.os.Build.VERSION.SDK_INT >= 28) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
+                
                 // Add video frame decoder for local video thumbnails
                 add(VideoFrameDecoder.Factory())
                 
