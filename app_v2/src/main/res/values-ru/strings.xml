@@ -243,4 +243,12 @@
     
     <!-- Touch Zones -->
     <string name="touch_zone_queue">Очередь</string>
+    <string name="touch_zone_back">НАЗАД</string>
+    <string name="touch_zone_copy">КОПИЯ</string>
+    <string name="touch_zone_rename">ПЕРЕИМ.</string>
+    <string name="touch_zone_previous">ПРЕД.</string>
+    <string name="touch_zone_move">ПЕРЕМЕСТ.</string>
+    <string name="touch_zone_next">СЛЕД.</string>
+    <string name="touch_zone_command_panel">ПАНЕЛЬ\nКОМАНД</string>
+    <string name="touch_zone_delete">УДАЛИТЬ</string>
 </resources>

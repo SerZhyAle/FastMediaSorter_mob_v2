@@ -334,14 +334,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         Timber.d("PlayerActivity.handleTouchZone: x=$x, y=$y, screenSize=${screenWidth}x${screenHeight}, fileType=${currentFile?.type}")
         
         // For video/audio, limit touch zones to upper portion to leave space for ExoPlayer controls
-        // Audio: 50% (upper half), Video: 75% (upper three quarters)
+        // Audio: 66% (upper two thirds), Video: 75% (upper three quarters)
         val effectiveHeight = when (currentFile?.type) {
-            MediaType.AUDIO -> (screenHeight * 0.5f).toInt() // Upper 50% for audio
+            MediaType.AUDIO -> (screenHeight * 0.66f).toInt() // Upper 66% (2/3) for audio
             MediaType.VIDEO -> (screenHeight * 0.75f).toInt() // Upper 75% for video
             else -> screenHeight
         }
         
-        Timber.d("PlayerActivity.handleTouchZone: effectiveHeight=$effectiveHeight (50% for audio, 75% for video)")
+        Timber.d("PlayerActivity.handleTouchZone: effectiveHeight=$effectiveHeight (66% for audio, 75% for video)")
         
         // If touch is below effective height, ignore
         if (y > effectiveHeight) {
@@ -1191,17 +1191,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         binding.audioTouchZonesOverlay.isVisible = shouldShow
         
-        // Adjust overlay height to cover only upper 50% for audio
+        // Adjust overlay height to cover only upper 66% (2/3) for audio
         if (shouldShow) {
             binding.audioTouchZonesOverlay.post {
                 val screenHeight = binding.root.height
-                val effectiveHeight = (screenHeight * 0.5f).toInt()
+                val effectiveHeight = (screenHeight * 0.66f).toInt()
                 
                 val params = binding.audioTouchZonesOverlay.layoutParams
                 params.height = effectiveHeight
                 binding.audioTouchZonesOverlay.layoutParams = params
                 
-                Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay shown - height=$effectiveHeight (50% of $screenHeight)")
+                Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay shown - height=$effectiveHeight (66% of $screenHeight)")
             }
         } else {
             Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")

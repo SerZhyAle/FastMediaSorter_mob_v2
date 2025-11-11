@@ -251,6 +251,14 @@
     
     <!-- Touch Zones -->
     <string name="touch_zone_queue">Queue</string>
+    <string name="touch_zone_back">BACK</string>
+    <string name="touch_zone_copy">COPY</string>
+    <string name="touch_zone_rename">RENAME</string>
+    <string name="touch_zone_previous">PREVIOUS</string>
+    <string name="touch_zone_move">MOVE</string>
+    <string name="touch_zone_next">NEXT</string>
+    <string name="touch_zone_command_panel">COMMAND\nPANEL</string>
+    <string name="touch_zone_delete">DELETE</string>
     
 </resources>
 

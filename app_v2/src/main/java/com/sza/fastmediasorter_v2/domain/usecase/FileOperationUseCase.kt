@@ -45,7 +45,9 @@ class FileOperationUseCase @Inject constructor(
             // Helper to check if path is network resource (use path instead of absolutePath to avoid /prefix)
             fun File.isNetworkPath(protocol: String): Boolean {
                 val pathStr = this.path
-                return pathStr.startsWith("$protocol://") || pathStr.startsWith("/$protocol://") || pathStr.startsWith("/$protocol:/")
+                val result = pathStr.startsWith("$protocol://") || pathStr.startsWith("/$protocol://") || pathStr.startsWith("/$protocol:/")
+                Timber.d("FileOperation.isNetworkPath: path='$pathStr', protocol='$protocol', result=$result")
+                return result
             }
             
             // Check if operation involves SMB or SFTP paths
