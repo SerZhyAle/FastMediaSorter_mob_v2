@@ -197,7 +197,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.events.collect { event ->
                     when (event) {
                         is BrowseEvent.ShowError -> {
-                            showErrorDialog(event.message, event.details)
+                            showError(event.message, event.details)
                         }
                         is BrowseEvent.ShowMessage -> {
                             Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_SHORT).show()
@@ -216,6 +216,30 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
     
+    /**
+     * Show error message respecting showDetailedErrors setting
+     * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
+     * If showDetailedErrors=false: shows Toast (short notification)
+     */
+    private fun showError(message: String, details: String?) {
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            if (settings.showDetailedErrors) {
+                // Use ErrorDialog with full details
+                com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                    context = this@BrowseActivity,
+                    title = getString(R.string.error),
+                    message = message,
+                    details = details
+                )
+            } else {
+                // Simple toast for users who don't want details
+                Toast.makeText(this@BrowseActivity, message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    @Deprecated("Use showError() instead - respects showDetailedErrors setting")
     private fun showErrorDialog(message: String, details: String?) {
         val dialogBuilder = androidx.appcompat.app.AlertDialog.Builder(this)
             .setTitle("Error")

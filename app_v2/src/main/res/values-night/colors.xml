@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme colors - optimized for OLED displays -->
+    
+    <!-- Primary colors - Lighter blue for dark theme -->
+    <color name="blue_500">#FF64B5F6</color> <!-- Material Blue 300 - lighter for dark -->
+    <color name="blue_700">#FF42A5F5</color> <!-- Material Blue 400 -->
+    <color name="blue_200">#FF90CAF9</color> <!-- Material Blue 200 -->
+    
+    <!-- Accent colors -->
+    <color name="teal_200">#FF80CBC4</color> <!-- Lighter teal for dark -->
+    <color name="teal_700">#FF4DB6AC</color>
+    
+    <!-- Basic colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- App specific colors for dark theme -->
+    <color name="ic_launcher_background">#FF1E1E1E</color>
+    <color name="delete_button">#FFEF5350</color> <!-- Lighter red for dark -->
+    <color name="item_selected">#FF1565C0</color> <!-- Darker blue for selection -->
+    <color name="item_normal">#FF121212</color> <!-- Dark background -->
+    <color name="audio_icon_bg">#FF78909C</color> <!-- Lighter gray for dark -->
+</resources>

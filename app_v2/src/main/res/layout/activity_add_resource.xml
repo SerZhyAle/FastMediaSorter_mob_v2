@@ -280,7 +280,8 @@
                     android:id="@+id/etSmbServer"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text"
+                    android:inputType="textNoSuggestions"
+                    android:digits="0123456789.,abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_"
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>

@@ -78,7 +78,10 @@ class BrowseViewModel @Inject constructor(
             
             // Check if resource is available
             if (resource.fileCount == 0 && !resource.isWritable) {
-                sendEvent(BrowseEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+                sendEvent(BrowseEvent.ShowError(
+                    message = "Resource '${resource.name}' is unavailable. Check network connection or resource settings.",
+                    details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"
+                ))
                 setLoading(false)
                 return@launch
             }
@@ -501,7 +504,11 @@ class BrowseViewModel @Inject constructor(
             getMediaFilesUseCase(resource, state.value.sortMode, sizeFilter)
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
-                    sendEvent(BrowseEvent.ShowError("Failed to load media files: ${e.message}"))
+                    sendEvent(BrowseEvent.ShowError(
+                        message = "Failed to load media files: ${e.message ?: "Unknown error"}",
+                        details = e.stackTraceToString(),
+                        exception = e
+                    ))
                 }
                 .collect { files ->
                     var filteredFiles = files

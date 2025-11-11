@@ -32,6 +32,7 @@ class PlayerViewModel @Inject constructor(
         val currentIndex: Int = 0,
         val isSlideShowActive: Boolean = false,
         val slideShowInterval: Long = 3000,
+        val playToEndInSlideshow: Boolean = false,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = false,
@@ -80,7 +81,10 @@ class PlayerViewModel @Inject constructor(
                         allowRename = settings.allowRename,
                         allowDelete = settings.allowDelete,
                         enableCopying = settings.enableCopying,
-                        enableMoving = settings.enableMoving
+                        enableMoving = settings.enableMoving,
+                        // Set slideshow interval from global settings (will be overridden by resource-specific if available)
+                        slideShowInterval = settings.slideshowInterval * 1000L,
+                        playToEndInSlideshow = settings.playToEndInSlideshow
                     )
                 }
             } catch (e: Exception) {
@@ -133,7 +137,20 @@ class PlayerViewModel @Inject constructor(
                     sendEvent(PlayerEvent.FinishActivity)
                 } else {
                     val safeIndex = initialIndex.coerceIn(0, files.size - 1)
-                    updateState { it.copy(files = files, currentIndex = safeIndex, resource = resource) }
+                    // Use resource-specific slideshow interval if available (non-default), otherwise keep global settings
+                    val intervalToUse = if (resource.slideshowInterval != 10) {
+                        resource.slideshowInterval * 1000L
+                    } else {
+                        state.value.slideShowInterval // Keep global settings value
+                    }
+                    updateState { 
+                        it.copy(
+                            files = files, 
+                            currentIndex = safeIndex, 
+                            resource = resource,
+                            slideShowInterval = intervalToUse
+                        ) 
+                    }
                 }
                 setLoading(false)
             } catch (e: Exception) {

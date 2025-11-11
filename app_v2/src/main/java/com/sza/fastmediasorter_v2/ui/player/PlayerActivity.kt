@@ -73,8 +73,20 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private val slideShowRunnable = object : Runnable {
         override fun run() {
             if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
-                viewModel.nextFile()
-                slideShowHandler.postDelayed(this, viewModel.state.value.slideShowInterval)
+                val currentFile = viewModel.state.value.currentFile
+                val isMediaPlaying = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+                
+                // If playToEndInSlideshow is enabled and media is playing, don't auto-advance
+                // (will be handled by exoPlayerListener.STATE_ENDED)
+                if (viewModel.state.value.playToEndInSlideshow && isMediaPlaying) {
+                    Timber.d("PlayerActivity.slideShowRunnable: Skipping auto-advance - waiting for media to end")
+                    // Schedule next check in case something goes wrong
+                    slideShowHandler.postDelayed(this, viewModel.state.value.slideShowInterval)
+                } else {
+                    // For images or when playToEnd is disabled - normal auto-advance
+                    viewModel.nextFile()
+                    slideShowHandler.postDelayed(this, viewModel.state.value.slideShowInterval)
+                }
             }
         }
     }
@@ -136,9 +148,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     Timber.d("PlayerActivity.exoPlayerListener: Playback ENDED")
                     // Video/audio finished playing
                     if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
-                        // Auto-advance to next file in slideshow mode
+                        // Auto-advance to next file in slideshow mode (respects playToEndInSlideshow setting)
                         Timber.d("PlayerActivity.exoPlayerListener: Slideshow active - advancing to next file")
                         viewModel.nextFile()
+                        // Restart slideshow timer for the next file
+                        updateSlideShow()
                     }
                 }
                 androidx.media3.common.Player.STATE_BUFFERING -> {
@@ -598,11 +612,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             binding.btnPreviousCmd.isEnabled = state.hasPrevious
             binding.btnNextCmd.isEnabled = state.hasNext
 
-            val isVideo = file.type == MediaType.VIDEO || file.type == MediaType.AUDIO
-            Timber.d("PlayerActivity.updateUI: isVideo=$isVideo, file.type=${file.type}")
-            
             // Check if file is actually a GIF by extension (in case type is wrong in DB)
             val isGif = file.name.lowercase().endsWith(".gif")
+            
+            Timber.d("PlayerActivity.updateUI: file.type=${file.type}, isGif=$isGif, fileName=${file.name}")
             
             when {
                 isGif || file.type == MediaType.IMAGE || file.type == MediaType.GIF -> {
@@ -615,7 +628,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
             }
             
-            // Adjust touch zones for video
+            // Adjust touch zones (not for images/GIFs)
+            val isVideo = !isGif && (file.type == MediaType.VIDEO || file.type == MediaType.AUDIO)
             adjustTouchZonesForVideo(isVideo)
         }
 
@@ -1049,17 +1063,28 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         countdownHandler.removeCallbacks(countdownRunnable)
         binding.tvCountdown.isVisible = false
         
-        if (viewModel.state.value.isSlideShowActive &&
-            viewModel.state.value.currentFile?.type == MediaType.IMAGE &&
-            !viewModel.state.value.isPaused
-        ) {
-            val interval = viewModel.state.value.slideShowInterval
-            slideShowHandler.postDelayed(slideShowRunnable, interval)
+        if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
+            val currentFile = viewModel.state.value.currentFile
+            val isMedia = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+            val isImage = currentFile?.type == MediaType.IMAGE
             
-            // Start countdown 3 seconds before file change
-            if (interval > 3000) {
-                countdownSeconds = 3
-                countdownHandler.postDelayed(countdownRunnable, interval - 3000)
+            // Start slideshow timer only if:
+            // - It's an image OR
+            // - It's media but playToEnd is disabled
+            val shouldStartTimer = isImage || (isMedia && !viewModel.state.value.playToEndInSlideshow)
+            
+            if (shouldStartTimer) {
+                val interval = viewModel.state.value.slideShowInterval
+                slideShowHandler.postDelayed(slideShowRunnable, interval)
+                
+                // Start countdown 3 seconds before file change
+                if (interval > 3000) {
+                    countdownSeconds = 3
+                    countdownHandler.postDelayed(countdownRunnable, interval - 3000)
+                }
+                Timber.d("PlayerActivity.updateSlideShow: Timer started - interval=$interval ms, playToEnd=${viewModel.state.value.playToEndInSlideshow}")
+            } else {
+                Timber.d("PlayerActivity.updateSlideShow: Timer NOT started - waiting for media to end (playToEnd=true)")
             }
         }
     }

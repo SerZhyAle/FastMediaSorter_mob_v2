@@ -249,7 +249,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     private fun testSmbConnection() {
-        val server = binding.etSmbServer.text.toString().trim()
+        val server = binding.etSmbServer.text.toString().trim().replace(',', '.')
         val shareName = binding.etSmbShareName.text.toString().trim()
         val username = binding.etSmbUsername.text.toString().trim()
         val password = binding.etSmbPassword.text.toString().trim()
@@ -268,7 +268,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     private fun scanSmbShares() {
-        val server = binding.etSmbServer.text.toString().trim()
+        val server = binding.etSmbServer.text.toString().trim().replace(',', '.')
         val username = binding.etSmbUsername.text.toString().trim()
         val password = binding.etSmbPassword.text.toString().trim()
         val domain = binding.etSmbDomain.text.toString().trim()
@@ -287,7 +287,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * Add manually entered SMB resource (when user types share name directly)
      */
     private fun addSmbResourceManually() {
-        val server = binding.etSmbServer.text.toString().trim()
+        val server = binding.etSmbServer.text.toString().trim().replace(',', '.')
         val shareName = binding.etSmbShareName.text.toString().trim()
         val username = binding.etSmbUsername.text.toString().trim()
         val password = binding.etSmbPassword.text.toString().trim()
@@ -324,32 +324,20 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.etSmbServer.setSelection(subnet.length)
         }
 
-        // IP address input filter: digits, dots, comma→dot, validate octets
-        val ipFilter = InputFilter { source, start, end, dest, dstart, dend ->
-            val beforeText = dest.toString()
-            
+        // Relaxed input filter: allow digits, dots, comma→dot, letters, dash, underscore
+        // This allows IP addresses and hostnames
+        val serverFilter = InputFilter { source, start, end, _, _, _ ->
             val filtered = StringBuilder()
-            var dotCount = beforeText.count { it == '.' }
             
             for (i in start until end) {
                 val c = source[i]
                 when {
-                    c.isDigit() -> {
-                        // Check if adding this digit would create 4-digit number
-                        val currentOctet = getCurrentOctet(beforeText, dstart) + filtered.toString() + c
-                        if (currentOctet.length <= 3) {
-                            val octetValue = currentOctet.toIntOrNull()
-                            if (octetValue != null && octetValue <= 255) {
-                                filtered.append(c)
-                            }
-                        }
+                    c.isDigit() || c.isLetter() || c == '.' || c == '-' || c == '_' -> {
+                        filtered.append(c)
                     }
-                    c == '.' || c == ',' -> {
-                        // Block 4th dot
-                        if (dotCount < 3) {
-                            filtered.append('.')
-                            dotCount++
-                        }
+                    c == ',' -> {
+                        // Replace comma with dot
+                        filtered.append('.')
                     }
                     // Skip all other characters
                 }
@@ -362,20 +350,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             }
         }
         
-        binding.etSmbServer.filters = arrayOf(ipFilter)
-    }
-
-    /**
-     * Get current octet being edited in IP address
-     */
-    private fun getCurrentOctet(text: String, position: Int): String {
-        val beforeCursor = text.substring(0, position)
-        val lastDotIndex = beforeCursor.lastIndexOf('.')
-        return if (lastDotIndex >= 0) {
-            beforeCursor.substring(lastDotIndex + 1)
-        } else {
-            beforeCursor
-        }
+        binding.etSmbServer.filters = arrayOf(serverFilter)
     }
 
     /**

@@ -89,6 +89,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
         val folders = mutableListOf<File>()
         
         if (Environment.getExternalStorageState() == Environment.MEDIA_MOUNTED) {
+            // Add standard folders
             folders.addAll(
                 listOf(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
@@ -98,8 +99,124 @@ class ScanLocalFoldersUseCase @Inject constructor(
                     File(Environment.getExternalStorageDirectory(), "Camera")
                 )
             )
+            
+            // Recursively scan external storage for folders with media files
+            // This will find Telegram, WhatsApp, and other app folders
+            val externalStorage = Environment.getExternalStorageDirectory()
+            Timber.d("Scanning external storage: ${externalStorage.absolutePath}")
+            folders.addAll(scanForMediaFolders(externalStorage, maxDepth = 3))
+            
+            // Specifically scan Android/Media folder for app media (WhatsApp, Telegram, etc.)
+            val androidMediaFolder = File(externalStorage, "Android/Media")
+            if (androidMediaFolder.exists() && androidMediaFolder.canRead()) {
+                Timber.d("Scanning Android/Media folder: ${androidMediaFolder.absolutePath}")
+                folders.addAll(scanAndroidMediaFolder(androidMediaFolder))
+            }
         }
         
-        return folders
+        return folders.distinct()
+    }
+    
+    /**
+     * Scan Android/Media folder for app-specific media folders
+     * Example: Android/Media/com.WhatsApp/WhatsApp/Media/WhatsApp Images
+     */
+    private fun scanAndroidMediaFolder(androidMediaDir: File): List<File> {
+        val mediaFolders = mutableListOf<File>()
+        
+        try {
+            val appPackages = androidMediaDir.listFiles() ?: return emptyList()
+            
+            for (appPackage in appPackages) {
+                if (!appPackage.isDirectory || !appPackage.canRead()) continue
+                
+                // Recursively scan app package folder with deeper depth (up to 5 levels)
+                // to find folders like com.WhatsApp/WhatsApp/Media/WhatsApp Images
+                mediaFolders.addAll(scanForMediaFolders(appPackage, maxDepth = 5))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning Android/Media folder")
+        }
+        
+        return mediaFolders
+    }
+    
+    /**
+     * Recursively scan directory for folders containing media files
+     * @param directory Directory to scan
+     * @param maxDepth Maximum recursion depth (to avoid deep scanning)
+     * @param currentDepth Current recursion depth
+     * @return List of folders containing media files
+     */
+    private fun scanForMediaFolders(
+        directory: File,
+        maxDepth: Int,
+        currentDepth: Int = 0
+    ): List<File> {
+        if (currentDepth >= maxDepth) return emptyList()
+        
+        val mediaFolders = mutableListOf<File>()
+        
+        try {
+            val children = directory.listFiles() ?: return emptyList()
+            
+            for (child in children) {
+                // Skip hidden folders and system folders
+                if (child.name.startsWith(".") || 
+                    child.name == "Android" ||
+                    !child.isDirectory ||
+                    !child.canRead()) {
+                    continue
+                }
+                
+                // Check if this folder has media files
+                val hasMediaFiles = hasMediaFilesInFolder(child)
+                if (hasMediaFiles) {
+                    mediaFolders.add(child)
+                    Timber.d("Found media folder: ${child.absolutePath}")
+                }
+                
+                // Recursively scan subdirectories
+                if (currentDepth < maxDepth - 1) {
+                    mediaFolders.addAll(scanForMediaFolders(child, maxDepth, currentDepth + 1))
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning directory: ${directory.absolutePath}")
+        }
+        
+        return mediaFolders
+    }
+    
+    /**
+     * Check if folder contains media files (images, videos, audio, GIF)
+     * Quick check - only looks at first level files
+     */
+    private fun hasMediaFilesInFolder(folder: File): Boolean {
+        try {
+            val files = folder.listFiles() ?: return false
+            
+            // Check first 50 files for performance
+            return files.take(50).any { file ->
+                if (file.isFile) {
+                    val extension = file.extension.lowercase()
+                    extension in IMAGE_EXTENSIONS ||
+                    extension in VIDEO_EXTENSIONS ||
+                    extension in AUDIO_EXTENSIONS ||
+                    extension in GIF_EXTENSIONS
+                } else {
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    
+    companion object {
+        private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "bmp")
+        private val VIDEO_EXTENSIONS = setOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "m4v", "3gp")
+        private val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "wav", "flac", "ogg", "aac", "wma")
+        private val GIF_EXTENSIONS = setOf("gif")
     }
 }

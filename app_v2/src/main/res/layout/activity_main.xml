@@ -87,6 +87,11 @@
             android:contentDescription="@string/exit"
             android:src="@android:drawable/ic_menu_close_clear_cancel" />
 
+        <!-- Larger space between Exit and Add Resource -->
+        <Space
+            android:layout_width="24dp"
+            android:layout_height="1dp" />
+
         <!-- Add Resource -->
         <ImageButton
             android:id="@+id/btnAddResource"
