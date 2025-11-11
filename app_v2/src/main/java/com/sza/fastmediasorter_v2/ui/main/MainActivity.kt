@@ -11,6 +11,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityMainBinding
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter_v2.ui.browse.BrowseActivity
 import com.sza.fastmediasorter_v2.ui.editresource.EditResourceActivity
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter_v2.ui.settings.SettingsActivity
 import com.sza.fastmediasorter_v2.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter_v2.ui.welcome.WelcomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -28,6 +30,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private val viewModel: MainViewModel by viewModels()
     private val welcomeViewModel: WelcomeViewModel by viewModels()
     private lateinit var resourceAdapter: ResourceAdapter
+    
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -53,15 +58,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun setupViews() {
         resourceAdapter = ResourceAdapter(
             onItemClick = { resource ->
-                viewModel.selectResource(resource)
-            },
-            onItemDoubleClick = { resource ->
+                // Simple click = select and open Browse
                 viewModel.selectResource(resource)
                 viewModel.startPlayer()
             },
             onItemLongClick = { resource ->
-                viewModel.selectResource(resource)
-                viewModel.startPlayer()
+                // Long click = open Edit
+                val intent = Intent(this, EditResourceActivity::class.java).apply {
+                    putExtra("resourceId", resource.id)
+                }
+                startActivity(intent)
             },
             onEditClick = { resource ->
                 val intent = Intent(this, EditResourceActivity::class.java).apply {
@@ -163,13 +169,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.events.collect { event ->
                     when (event) {
                         is MainEvent.ShowError -> {
-                            Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_LONG).show()
+                            showError(event.message, event.details)
                         }
                         is MainEvent.ShowMessage -> {
                             Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_SHORT).show()
                         }
                         is MainEvent.NavigateToBrowse -> {
-                            startActivity(BrowseActivity.createIntent(this@MainActivity, event.resourceId))
+                            startActivity(BrowseActivity.createIntent(
+                                this@MainActivity, 
+                                event.resourceId, 
+                                event.skipAvailabilityCheck
+                            ))
                         }
                         is MainEvent.NavigateToEditResource -> {
                             val intent = Intent(this@MainActivity, EditResourceActivity::class.java).apply {
@@ -213,6 +223,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             binding.tvFilterWarning.isVisible = true
         } else {
             binding.tvFilterWarning.isVisible = false
+        }
+    }
+    
+    /**
+     * Show error message respecting showDetailedErrors setting
+     * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
+     * If showDetailedErrors=false: shows Toast (short notification)
+     */
+    private fun showError(message: String, details: String?) {
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message, details=$details")
+            if (settings.showDetailedErrors) {
+                // Use ErrorDialog with full details
+                com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                    context = this@MainActivity,
+                    title = getString(com.sza.fastmediasorter_v2.R.string.error),
+                    message = message,
+                    details = details
+                )
+            } else {
+                // Simple toast for users who don't want details
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            }
         }
     }
     

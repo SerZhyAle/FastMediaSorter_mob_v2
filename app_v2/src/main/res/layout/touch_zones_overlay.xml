@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Touch zones overlay for audio playback in fullscreen mode -->
+<!-- Will be programmatically sized to cover only upper 50% of screen for audio -->
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/audioTouchZonesOverlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnCount="3"
+    android:rowCount="3"
+    android:visibility="gone">
+
+    <!-- Row 0: BACK, COPY, RENAME -->
+    <TextView
+        android:id="@+id/zoneBack"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="0"
+        android:layout_column="0"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="BACK"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF" />
+
+    <TextView
+        android:id="@+id/zoneCopy"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="0"
+        android:layout_column="1"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="COPY"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp" />
+
+    <TextView
+        android:id="@+id/zoneRename"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="0"
+        android:layout_column="2"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="RENAME"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF" />
+
+    <!-- Row 1: PREVIOUS, COMMAND_PANEL, NEXT -->
+    <TextView
+        android:id="@+id/zonePrevious"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="1"
+        android:layout_column="0"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="PREVIOUS"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="1dp" />
+
+    <TextView
+        android:id="@+id/zoneCommandPanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="1"
+        android:layout_column="1"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="COMMAND\nPANEL"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="1dp" />
+
+    <TextView
+        android:id="@+id/zoneNext"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="1"
+        android:layout_column="2"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="NEXT"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="1dp" />
+
+    <!-- Row 2: MOVE, DELETE, SLIDESHOW -->
+    <TextView
+        android:id="@+id/zoneMove"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="2"
+        android:layout_column="0"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="MOVE"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF" />
+
+    <TextView
+        android:id="@+id/zoneDelete"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="2"
+        android:layout_column="1"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="DELETE"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF"
+        android:layout_marginStart="1dp"
+        android:layout_marginEnd="1dp" />
+
+    <TextView
+        android:id="@+id/zoneSlideshow"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_row="2"
+        android:layout_column="2"
+        android:layout_rowWeight="1"
+        android:layout_columnWeight="1"
+        android:gravity="center"
+        android:text="SLIDESHOW"
+        android:textColor="#80FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:background="#20FFFFFF" />
+</GridLayout>

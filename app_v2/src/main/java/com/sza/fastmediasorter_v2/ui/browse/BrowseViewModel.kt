@@ -54,6 +54,8 @@ class BrowseViewModel @Inject constructor(
     private val resourceId: Long = savedStateHandle.get<Long>("resourceId") 
         ?: savedStateHandle.get<String>("resourceId")?.toLongOrNull() 
         ?: 0L
+    
+    private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
 
     override fun getInitialState() = BrowseState()
 
@@ -76,8 +78,8 @@ class BrowseViewModel @Inject constructor(
                 return@launch
             }
             
-            // Check if resource is available
-            if (resource.fileCount == 0 && !resource.isWritable) {
+            // Check if resource is available (skip if already validated in MainActivity)
+            if (!skipAvailabilityCheck && resource.fileCount == 0 && !resource.isWritable) {
                 sendEvent(BrowseEvent.ShowError(
                     message = "Resource '${resource.name}' is unavailable. Check network connection or resource settings.",
                     details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"

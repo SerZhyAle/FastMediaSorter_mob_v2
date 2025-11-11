@@ -13,6 +13,7 @@
         app:title="Settings"
         app:titleTextColor="?attr/colorOnPrimary"
         app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="?attr/colorOnPrimary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.tabs.TabLayout

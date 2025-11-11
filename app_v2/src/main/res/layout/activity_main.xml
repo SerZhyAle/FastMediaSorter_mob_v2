@@ -85,7 +85,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/exit"
-            android:src="@android:drawable/ic_menu_close_clear_cancel" />
+            android:src="@android:drawable/ic_menu_close_clear_cancel"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Larger space between Exit and Add Resource -->
         <Space
@@ -99,7 +100,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/add"
-            android:src="@android:drawable/ic_menu_add" />
+            android:src="@android:drawable/ic_menu_add"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Small space -->
         <Space
@@ -113,7 +115,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/filter"
-            android:src="@android:drawable/ic_menu_search" />
+            android:src="@android:drawable/ic_menu_search"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Refresh -->
         <ImageButton
@@ -122,7 +125,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/refresh"
-            android:src="@android:drawable/ic_popup_sync" />
+            android:src="@android:drawable/ic_popup_sync"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Small space -->
         <Space
@@ -136,7 +140,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/settings"
-            android:src="@android:drawable/ic_menu_preferences" />
+            android:src="@android:drawable/ic_menu_preferences"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Start Player - double sized PLAY icon -->
         <ImageButton
@@ -146,6 +151,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/start_player"
             android:src="@android:drawable/ic_media_play"
+            android:tint="?attr/colorControlNormal"
             android:scaleType="fitCenter" />
 
     </LinearLayout>

@@ -23,7 +23,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
-            android:src="@drawable/ic_arrow_back" />
+            android:src="@drawable/ic_arrow_back"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Small space after Back -->
         <Space
@@ -37,7 +38,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/sort"
-            android:src="@android:drawable/ic_menu_sort_by_size" />
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Filter -->
         <ImageButton
@@ -46,7 +48,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/filter"
-            android:src="@android:drawable/ic_menu_search" />
+            android:src="@android:drawable/ic_menu_search"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Grid/List toggle -->
         <ImageButton
@@ -55,7 +58,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/toggle_view"
-            android:src="@android:drawable/ic_menu_view" />
+            android:src="@android:drawable/ic_menu_view"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Small space -->
         <Space
@@ -69,7 +73,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/select_all"
-            android:src="@android:drawable/checkbox_on_background" />
+            android:src="@android:drawable/checkbox_on_background"
+            android:tint="?attr/colorControlNormal" />
 
         <!-- Deselect All -->
         <ImageButton
@@ -78,7 +83,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/deselect_all"
-            android:src="@android:drawable/checkbox_off_background" />
+            android:src="@android:drawable/checkbox_off_background"
+            android:tint="?attr/colorControlNormal" />
 
     </LinearLayout>
 
@@ -128,6 +134,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/copy"
             android:src="@android:drawable/ic_menu_save"
+            android:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Move -->
@@ -138,6 +145,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/move"
             android:src="@android:drawable/ic_menu_revert"
+            android:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Rename -->
@@ -148,6 +156,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/rename"
             android:src="@android:drawable/ic_menu_edit"
+            android:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Delete -->
@@ -158,6 +167,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete"
             android:src="@android:drawable/ic_menu_delete"
+            android:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Undo -->
@@ -168,6 +178,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/undo"
             android:src="@android:drawable/ic_menu_revert"
+            android:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Small space -->
@@ -183,7 +194,8 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/play"
-            android:src="@android:drawable/ic_media_play" />
+            android:src="@android:drawable/ic_media_play"
+            android:tint="?attr/colorControlNormal" />
 
     </LinearLayout>
 
@@ -191,10 +203,10 @@
         android:id="@+id/tvFilterWarning"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#FFF9C4"
+        android:background="@color/filter_warning_bg"
         android:padding="8dp"
         android:textSize="12sp"
-        android:textColor="#000000"
+        android:textColor="@color/filter_warning_text"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"

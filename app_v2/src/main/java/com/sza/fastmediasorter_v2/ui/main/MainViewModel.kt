@@ -33,9 +33,9 @@ data class MainState(
 )
 
 sealed class MainEvent {
-    data class ShowError(val message: String) : MainEvent()
+    data class ShowError(val message: String, val details: String? = null) : MainEvent()
     data class ShowMessage(val message: String) : MainEvent()
-    data class NavigateToBrowse(val resourceId: Long) : MainEvent()
+    data class NavigateToBrowse(val resourceId: Long, val skipAvailabilityCheck: Boolean = false) : MainEvent()
     data class NavigateToEditResource(val resourceId: Long) : MainEvent()
     object NavigateToAddResource : MainEvent()
     object NavigateToSettings : MainEvent()
@@ -87,11 +87,40 @@ class MainViewModel @Inject constructor(
     fun startPlayer() {
         val resource = state.value.selectedResource
         if (resource != null && resource.id != 0L) {
-            // Check if resource is available (has files and is writable)
-            if (resource.fileCount == 0 && !resource.isWritable) {
-                sendEvent(MainEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+            // For network resources with no files, test actual connection before blocking
+            if ((resource.fileCount == 0 && !resource.isWritable) && 
+                (resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB || 
+                 resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP)) {
+                // Test actual connection to network resource
+                viewModelScope.launch(ioDispatcher) {
+                    try {
+                        val testResult = resourceRepository.testConnection(resource)
+                        testResult.fold(
+                            onSuccess = { message ->
+                                // Connection is OK - let user browse (even if empty)
+                                Timber.d("Connection test OK: $message - opening Browse")
+                                sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
+                            },
+                            onFailure = { error ->
+                                // Real connection error - show details
+                                Timber.e(error, "Connection test failed for ${resource.name}")
+                                sendEvent(MainEvent.ShowError(
+                                    message = "Failed to connect to '${resource.name}'",
+                                    details = "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nConnection error:\n${error.message ?: "Unknown error"}\n\nStack trace:\n${error.stackTraceToString()}"
+                                ))
+                            }
+                        )
+                    } catch (e: Exception) {
+                        Timber.e(e, "Exception testing connection for ${resource.name}")
+                        sendEvent(MainEvent.ShowError(
+                            message = "Failed to check resource '${resource.name}'",
+                            details = "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nException:\n${e.message ?: "Unknown error"}\n\nStack trace:\n${e.stackTraceToString()}"
+                        ))
+                    }
+                }
             } else {
-                sendEvent(MainEvent.NavigateToBrowse(resource.id))
+                // Local resource or already validated - open directly
+                sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = false))
             }
         }
     }

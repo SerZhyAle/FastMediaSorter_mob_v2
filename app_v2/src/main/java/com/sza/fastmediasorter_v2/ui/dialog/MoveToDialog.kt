@@ -102,19 +102,20 @@ class MoveToDialog(
 
     /**
      * Create colored destination buttons dynamically based on count
-     * Per spec: 1-5 buttons per row, arranged in rows
+     * Per spec: 1-2 buttons take full width, 3+ arranged in rows
      */
     private fun createDestinationButtons(destinations: List<MediaResource>) {
         Log.d(TAG, "createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
         
+        // For 1-2 destinations: full width buttons (each button takes full row)
+        // For 3+ destinations: multiple buttons per row
         val buttonsPerRow = when {
-            destinations.size == 1 -> 1
-            destinations.size == 2 -> 2
+            destinations.size <= 2 -> 1  // Full width for 1-2 buttons
             destinations.size == 3 -> 3
-            destinations.size == 4 -> 4
-            destinations.size <= 5 -> 5
+            destinations.size == 4 -> 2  // 2x2 grid
+            destinations.size <= 6 -> 3  // 3 per row
             destinations.size <= 8 -> 4
             else -> 5
         }
@@ -133,26 +134,30 @@ class MoveToDialog(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
                     ).apply {
-                        if (index > 0) topMargin = 8
+                        if (index > 0) topMargin = 12
                     }
                     gravity = Gravity.CENTER
                 }
                 container.addView(currentRow)
             }
             
-            // Create button
+            // Create button with better styling
             val button = MaterialButton(context).apply {
                 text = destination.name
                 setBackgroundColor(destination.destinationColor)
                 setTextColor(Color.WHITE)
-                textSize = 14f
+                textSize = 16f
+                minHeight = resources.getDimensionPixelSize(android.R.dimen.app_icon_size) // ~48dp
+                setPadding(16, 16, 16, 16)
                 
                 layoutParams = LinearLayout.LayoutParams(
                     0,
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     1f
                 ).apply {
-                    if (index % buttonsPerRow > 0) leftMargin = 8
+                    if (index % buttonsPerRow > 0) leftMargin = 12
+                    topMargin = 4
+                    bottomMargin = 4
                 }
                 
                 setOnClickListener {

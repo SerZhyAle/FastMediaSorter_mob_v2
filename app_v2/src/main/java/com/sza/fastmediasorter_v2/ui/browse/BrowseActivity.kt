@@ -204,10 +204,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         }
                         is BrowseEvent.NavigateToPlayer -> {
                             val resourceId = viewModel.state.value.resource?.id ?: 0L
+                            // Pass skipAvailabilityCheck to prevent redundant checks
+                            val skipCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
                             startActivity(PlayerActivity.createIntent(
                                 this@BrowseActivity,
                                 resourceId,
-                                event.fileIndex
+                                event.fileIndex,
+                                skipCheck
                             ))
                         }
                     }
@@ -224,6 +227,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private fun showError(message: String, details: String?) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
+            Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message, details=$details")
             if (settings.showDetailedErrors) {
                 // Use ErrorDialog with full details
                 com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
@@ -703,7 +707,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         if (startIndex >= 0) {
             val resourceId = state.resource?.id ?: 0L
-            val intent = PlayerActivity.createIntent(this, resourceId, startIndex).apply {
+            // Pass skipAvailabilityCheck to prevent redundant checks
+            val skipCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
+            val intent = PlayerActivity.createIntent(this, resourceId, startIndex, skipCheck).apply {
                 putExtra("slideshow_mode", true)
             }
             startActivity(intent)
@@ -725,7 +731,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             return
         }
         
-        val selectedFiles = selectedPaths.map { File(it) }
+        // For network paths (SMB/SFTP), create File with URI-compatible scheme
+        val selectedFiles = selectedPaths.map { path ->
+            if (path.startsWith("smb://") || path.startsWith("sftp://")) {
+                object : File(path) {
+                    override fun getAbsolutePath(): String = path
+                    override fun getPath(): String = path
+                }
+            } else {
+                File(path)
+            }
+        }
         
         val dialog = CopyToDialog(
             context = this,
@@ -757,7 +773,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             return
         }
         
-        val selectedFiles = selectedPaths.map { File(it) }
+        // For network paths (SMB/SFTP), create File with URI-compatible scheme
+        val selectedFiles = selectedPaths.map { path ->
+            if (path.startsWith("smb://") || path.startsWith("sftp://")) {
+                object : File(path) {
+                    override fun getAbsolutePath(): String = path
+                    override fun getPath(): String = path
+                }
+            } else {
+                File(path)
+            }
+        }
         
         val dialog = MoveToDialog(
             context = this,
@@ -786,10 +812,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     companion object {
         const val EXTRA_RESOURCE_ID = "resourceId"
+        const val EXTRA_SKIP_AVAILABILITY_CHECK = "skipAvailabilityCheck"
 
-        fun createIntent(context: Context, resourceId: Long): Intent {
+        fun createIntent(context: Context, resourceId: Long, skipAvailabilityCheck: Boolean = false): Intent {
             return Intent(context, BrowseActivity::class.java).apply {
                 putExtra(EXTRA_RESOURCE_ID, resourceId)
+                putExtra(EXTRA_SKIP_AVAILABILITY_CHECK, skipAvailabilityCheck)
             }
         }
     }

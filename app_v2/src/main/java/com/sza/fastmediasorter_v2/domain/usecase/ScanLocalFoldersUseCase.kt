@@ -215,7 +215,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
     
     companion object {
         private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "bmp")
-        private val VIDEO_EXTENSIONS = setOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "m4v", "3gp")
+        private val VIDEO_EXTENSIONS = setOf("mp4", "mkv", "mov", "wmv", "flv", "webm", "m4v", "3gp")
         private val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "wav", "flac", "ogg", "aac", "wma")
         private val GIF_EXTENSIONS = setOf("gif")
     }

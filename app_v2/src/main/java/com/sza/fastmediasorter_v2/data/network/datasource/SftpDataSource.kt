@@ -108,19 +108,28 @@ class SftpDataSource(
 
             val bytesRead = inputStream?.read(buffer, offset, bytesToRead) ?: C.RESULT_END_OF_INPUT
 
-            if (bytesRead > 0) {
-                totalBytesRead += bytesRead
-                if (totalBytesRead <= 10000 || totalBytesRead % 100000 == 0L) {
-                    Timber.d(
-                        "SftpDataSource: READ - requested=$bytesToRead actual=$bytesRead total=$totalBytesRead remaining=$bytesRemaining file=${uri?.lastPathSegment}"
-                    )
-                }
-
-                if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
-                    bytesRemaining -= bytesRead.toLong()
-                }
-                bytesTransferred(bytesRead)
+            if (bytesRead < 0) {
+                // End of stream reached
+                return C.RESULT_END_OF_INPUT
             }
+
+            if (bytesRead == 0) {
+                // No data available but not end of stream yet
+                return 0
+            }
+
+            // bytesRead > 0: successful read
+            totalBytesRead += bytesRead
+            if (totalBytesRead <= 10000 || (totalBytesRead / 100000) > ((totalBytesRead - bytesRead) / 100000)) {
+                Timber.d(
+                    "SftpDataSource: READ - requested=$bytesToRead actual=$bytesRead total=$totalBytesRead remaining=$bytesRemaining file=${uri?.lastPathSegment}"
+                )
+            }
+
+            if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
+                bytesRemaining -= bytesRead.toLong()
+            }
+            bytesTransferred(bytesRead)
 
             return bytesRead
         } catch (e: Exception) {

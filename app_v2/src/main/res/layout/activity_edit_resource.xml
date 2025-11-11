@@ -20,6 +20,7 @@
             app:title="@string/edit_resource"
             app:titleTextColor="?attr/colorOnPrimary"
             app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="?attr/colorOnPrimary"
             app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Buttons at the top (after toolbar) -->

@@ -42,27 +42,33 @@ class FileOperationUseCase @Inject constructor(
         Timber.d("FileOperation: Starting operation: ${operation.javaClass.simpleName}")
         
         try {
+            // Helper to check if path is network resource (use path instead of absolutePath to avoid /prefix)
+            fun File.isNetworkPath(protocol: String): Boolean {
+                val pathStr = this.path
+                return pathStr.startsWith("$protocol://") || pathStr.startsWith("/$protocol:/")
+            }
+            
             // Check if operation involves SMB or SFTP paths
             val hasSmbPath = when (operation) {
                 is FileOperation.Copy -> {
-                    val sourceSmbCount = operation.sources.count { it.absolutePath.startsWith("smb://") }
-                    val destIsSmb = operation.destination.absolutePath.startsWith("smb://")
+                    val sourceSmbCount = operation.sources.count { it.isNetworkPath("smb") }
+                    val destIsSmb = operation.destination.isNetworkPath("smb")
                     Timber.d("FileOperation.Copy: sources=$sourceSmbCount/${operation.sources.size} SMB, dest=${if (destIsSmb) "SMB" else "Local"}")
                     sourceSmbCount > 0 || destIsSmb
                 }
                 is FileOperation.Move -> {
-                    val sourceSmbCount = operation.sources.count { it.absolutePath.startsWith("smb://") }
-                    val destIsSmb = operation.destination.absolutePath.startsWith("smb://")
+                    val sourceSmbCount = operation.sources.count { it.isNetworkPath("smb") }
+                    val destIsSmb = operation.destination.isNetworkPath("smb")
                     Timber.d("FileOperation.Move: sources=$sourceSmbCount/${operation.sources.size} SMB, dest=${if (destIsSmb) "SMB" else "Local"}")
                     sourceSmbCount > 0 || destIsSmb
                 }
                 is FileOperation.Delete -> {
-                    val smbCount = operation.files.count { it.absolutePath.startsWith("smb://") }
+                    val smbCount = operation.files.count { it.isNetworkPath("smb") }
                     Timber.d("FileOperation.Delete: $smbCount/${operation.files.size} SMB files")
                     smbCount > 0
                 }
                 is FileOperation.Rename -> {
-                    val isSmb = operation.file.absolutePath.startsWith("smb://")
+                    val isSmb = operation.file.isNetworkPath("smb")
                     Timber.d("FileOperation.Rename: file=${if (isSmb) "SMB" else "Local"}")
                     isSmb
                 }
@@ -70,24 +76,24 @@ class FileOperationUseCase @Inject constructor(
 
             val hasSftpPath = when (operation) {
                 is FileOperation.Copy -> {
-                    val sourceSftpCount = operation.sources.count { it.absolutePath.startsWith("sftp://") }
-                    val destIsSftp = operation.destination.absolutePath.startsWith("sftp://")
+                    val sourceSftpCount = operation.sources.count { it.isNetworkPath("sftp") }
+                    val destIsSftp = operation.destination.isNetworkPath("sftp")
                     Timber.d("FileOperation.Copy: sources=$sourceSftpCount/${operation.sources.size} SFTP, dest=${if (destIsSftp) "SFTP" else "Local"}")
                     sourceSftpCount > 0 || destIsSftp
                 }
                 is FileOperation.Move -> {
-                    val sourceSftpCount = operation.sources.count { it.absolutePath.startsWith("sftp://") }
-                    val destIsSftp = operation.destination.absolutePath.startsWith("sftp://")
+                    val sourceSftpCount = operation.sources.count { it.isNetworkPath("sftp") }
+                    val destIsSftp = operation.destination.isNetworkPath("sftp")
                     Timber.d("FileOperation.Move: sources=$sourceSftpCount/${operation.sources.size} SFTP, dest=${if (destIsSftp) "SFTP" else "Local"}")
                     sourceSftpCount > 0 || destIsSftp
                 }
                 is FileOperation.Delete -> {
-                    val sftpCount = operation.files.count { it.absolutePath.startsWith("sftp://") }
+                    val sftpCount = operation.files.count { it.isNetworkPath("sftp") }
                     Timber.d("FileOperation.Delete: $sftpCount/${operation.files.size} SFTP files")
                     sftpCount > 0
                 }
                 is FileOperation.Rename -> {
-                    val isSftp = operation.file.absolutePath.startsWith("sftp://")
+                    val isSftp = operation.file.isNetworkPath("sftp")
                     Timber.d("FileOperation.Rename: file=${if (isSftp) "SFTP" else "Local"}")
                     isSftp
                 }

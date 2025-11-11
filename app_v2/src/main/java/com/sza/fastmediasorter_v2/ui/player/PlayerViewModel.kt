@@ -63,6 +63,7 @@ class PlayerViewModel @Inject constructor(
         ?: savedStateHandle.get<String>("resourceId")?.toLongOrNull() ?: 0L
     private val initialIndex = savedStateHandle.get<Int>("initialIndex")
         ?: savedStateHandle.get<String>("initialIndex")?.toIntOrNull() ?: 0
+    private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
 
     init {
         loadMediaFiles()
@@ -105,8 +106,8 @@ class PlayerViewModel @Inject constructor(
                     return@launch
                 }
 
-                // Check if resource is available
-                if (resource.fileCount == 0 && !resource.isWritable) {
+                // Check if resource is available (skip if already validated)
+                if (!skipAvailabilityCheck && resource.fileCount == 0 && !resource.isWritable) {
                     sendEvent(PlayerEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
                     sendEvent(PlayerEvent.FinishActivity)
                     setLoading(false)

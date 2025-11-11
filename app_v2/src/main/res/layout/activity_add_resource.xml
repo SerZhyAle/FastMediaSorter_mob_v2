@@ -15,6 +15,7 @@
         app:title="Add Resource"
         app:titleTextColor="?attr/colorOnPrimary"
         app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="?attr/colorOnPrimary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView

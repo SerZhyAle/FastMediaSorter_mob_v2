@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11110319
-        versionName = "2.0.0-build2511110319"
+        versionCode = 11111821
+        versionName = "2.0.0-build2511111821"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -74,6 +74,19 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+    }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/NOTICE.txt"
+            // Исключаем дубликаты нативных библиотек BouncyCastle
+            pickFirsts += "**/*.so"
+        }
     }
 
     lint {
@@ -140,6 +153,10 @@ dependencies {
     
     // Network - SMB
     implementation("com.hierynomus:smbj:0.12.1")
+    
+    // BouncyCastle для SMBJ (явная зависимость для решения проблемы с libpenguin.so)
+    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
     
     // Network - SFTP
     implementation("com.hierynomus:sshj:0.37.0")

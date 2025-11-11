@@ -30,6 +30,7 @@ import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData
 import com.sza.fastmediasorter_v2.data.network.datasource.SmbDataSourceFactory
 import com.sza.fastmediasorter_v2.data.network.datasource.SftpDataSourceFactory
 import com.sza.fastmediasorter_v2.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.repository.NetworkCredentialsRepository
@@ -37,8 +38,10 @@ import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.RenameDialog
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -143,6 +146,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     Timber.i("PlayerActivity.exoPlayerListener: Video READY - hiding loading indicator")
                     loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
                     binding.progressBar.isVisible = false
+                    
+                    // Update audio info with format details if this is an audio file
+                    if (viewModel.state.value.currentFile?.type == MediaType.AUDIO) {
+                        updateAudioFormatInfo()
+                    }
                 }
                 androidx.media3.common.Player.STATE_ENDED -> {
                     Timber.d("PlayerActivity.exoPlayerListener: Playback ENDED")
@@ -190,6 +198,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         setupControls()
         setupCommandPanelControls()
         setupTouchZones()
+        
+        // Setup audio info overlay toggle (tap to hide)
+        binding.audioInfoOverlay.setOnClickListener {
+            binding.audioInfoOverlay.isVisible = false
+        }
     }
 
     override fun observeData() {
@@ -320,18 +333,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         Timber.d("PlayerActivity.handleTouchZone: x=$x, y=$y, screenSize=${screenWidth}x${screenHeight}, fileType=${currentFile?.type}")
         
-        // For video, limit touch zones to upper 75% to leave space for ExoPlayer controls
-        val effectiveHeight = if (currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO) {
-            (screenHeight * 0.75f).toInt()
-        } else {
-            screenHeight
+        // For video/audio, limit touch zones to upper portion to leave space for ExoPlayer controls
+        // Audio: 50% (upper half), Video: 75% (upper three quarters)
+        val effectiveHeight = when (currentFile?.type) {
+            MediaType.AUDIO -> (screenHeight * 0.5f).toInt() // Upper 50% for audio
+            MediaType.VIDEO -> (screenHeight * 0.75f).toInt() // Upper 75% for video
+            else -> screenHeight
         }
         
-        Timber.d("PlayerActivity.handleTouchZone: effectiveHeight=$effectiveHeight (75% for video)")
+        Timber.d("PlayerActivity.handleTouchZone: effectiveHeight=$effectiveHeight (50% for audio, 75% for video)")
         
-        // If touch is below effective height (in bottom 25% for video), ignore
+        // If touch is below effective height, ignore
         if (y > effectiveHeight) {
-            Timber.d("PlayerActivity.handleTouchZone: Touch in bottom 25% - ignored")
+            Timber.d("PlayerActivity.handleTouchZone: Touch in lower area - ignored")
             return
         }
         
@@ -397,7 +411,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resourceId = intent.getLongExtra("resourceId", -1)
         
-        val sourceFile = File(currentFile.path)
+        // For network paths (SMB/SFTP), create File with URI-compatible scheme
+        val sourceFile = if (currentFile.path.startsWith("smb://") || currentFile.path.startsWith("sftp://")) {
+            // Use custom File with network path that preserves the scheme
+            object : File(currentFile.path) {
+                override fun getAbsolutePath(): String = currentFile.path
+                override fun getPath(): String = currentFile.path
+            }
+        } else {
+            File(currentFile.path)
+        }
+        
         Timber.d("PlayerActivity.showCopyDialog: currentFile.path=${currentFile.path}")
         Timber.d("PlayerActivity.showCopyDialog: sourceFile.path=${sourceFile.path}")
         Timber.d("PlayerActivity.showCopyDialog: sourceFile.absolutePath=${sourceFile.absolutePath}")
@@ -421,9 +445,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resourceId = intent.getLongExtra("resourceId", -1)
         
+        // For network paths (SMB/SFTP), create File with URI-compatible scheme
+        val sourceFile = if (currentFile.path.startsWith("smb://") || currentFile.path.startsWith("sftp://")) {
+            object : File(currentFile.path) {
+                override fun getAbsolutePath(): String = currentFile.path
+                override fun getPath(): String = currentFile.path
+            }
+        } else {
+            File(currentFile.path)
+        }
+        
         MoveToDialog(
             context = this,
-            sourceFiles = listOf(File(currentFile.path)),
+            sourceFiles = listOf(sourceFile),
             sourceFolderName = "Current folder", // TODO: Get actual resource name
             currentResourceId = resourceId,
             fileOperationUseCase = viewModel.fileOperationUseCase,
@@ -643,6 +677,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.controlsOverlay.isVisible = !state.showCommandPanel && state.showControls
         updatePlayPauseButton()
         updateSlideShowButton()
+        
+        // Update audio touch zones overlay visibility
+        updateAudioTouchZonesVisibility()
     }
 
     /**
@@ -686,6 +723,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             binding.moveToPanel.isVisible = false
             // controlsOverlay visibility is controlled in updateUI based on showControls
         }
+        
+        // Update audio touch zones overlay whenever panel visibility changes
+        updateAudioTouchZonesVisibility()
     }
 
     /**
@@ -716,6 +756,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         releasePlayer()
         binding.playerView.isVisible = false
         binding.imageView.isVisible = true
+        
+        // Hide touch zones overlay for images
+        binding.audioTouchZonesOverlay.isVisible = false
+        
+        // Hide audio info overlay for images
+        binding.audioInfoOverlay.isVisible = false
 
         // Schedule loading indicator to show after 1 second
         loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
@@ -865,11 +911,35 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.imageView.isVisible = false
         binding.playerView.isVisible = true
 
-        // Schedule loading indicator to show after 1 second
-        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
-
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
+        
+        // Configure PlayerView based on media type
+        val isAudioFile = currentFile?.type == MediaType.AUDIO
+        if (isAudioFile) {
+            // For audio: always show controls, never hide
+            binding.playerView.controllerShowTimeoutMs = 0 // 0 means never hide
+            Timber.d("PlayerActivity.playVideo: Audio file detected - controls will always be visible")
+            
+            // Show touch zones overlay for audio in fullscreen mode
+            updateAudioTouchZonesVisibility()
+            
+            // Show audio file info
+            showAudioFileInfo(currentFile)
+        } else {
+            // For video: auto-hide controls after 3 seconds
+            binding.playerView.controllerShowTimeoutMs = 3000
+            Timber.d("PlayerActivity.playVideo: Video file detected - controls will auto-hide after 3s")
+            
+            // Hide touch zones overlay for video
+            binding.audioTouchZonesOverlay.isVisible = false
+            
+            // Hide audio info overlay for video
+            binding.audioInfoOverlay.isVisible = false
+        }
+
+        // Schedule loading indicator to show after 1 second
+        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
         
         Timber.d("PlayerActivity.playVideo: currentFile=$currentFile, resource=${resource?.name} (${resource?.type})")
         
@@ -1105,6 +1175,39 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
+    /**
+     * Update audio touch zones overlay visibility based on:
+     * - Current file is audio
+     * - Fullscreen mode (not showing command panel or controls overlay)
+     * - Touch zones are enabled
+     */
+    private fun updateAudioTouchZonesVisibility() {
+        val state = viewModel.state.value
+        val currentFile = state.currentFile
+        val isAudioFile = currentFile?.type == MediaType.AUDIO
+        val isInFullscreenMode = !state.showCommandPanel && !state.showControls
+        
+        val shouldShow = isAudioFile && isInFullscreenMode && useTouchZones
+        
+        binding.audioTouchZonesOverlay.isVisible = shouldShow
+        
+        // Adjust overlay height to cover only upper 50% for audio
+        if (shouldShow) {
+            binding.audioTouchZonesOverlay.post {
+                val screenHeight = binding.root.height
+                val effectiveHeight = (screenHeight * 0.5f).toInt()
+                
+                val params = binding.audioTouchZonesOverlay.layoutParams
+                params.height = effectiveHeight
+                binding.audioTouchZonesOverlay.layoutParams = params
+                
+                Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay shown - height=$effectiveHeight (50% of $screenHeight)")
+            }
+        } else {
+            Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
+        }
+    }
+
     private fun deleteCurrentFile() {
         val currentFile = viewModel.state.value.currentFile
         if (currentFile == null) {
@@ -1145,9 +1248,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * If showDetailedErrors=false: shows Toast (short notification)
      */
     private fun showError(message: String, throwable: Throwable? = null) {
+        // Check if activity is finishing to prevent WindowLeaked exception
+        if (isFinishing || isDestroyed) {
+            Timber.w("showError: Activity is finishing/destroyed, skipping error dialog")
+            return
+        }
+        
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
             if (settings.showDetailedErrors) {
+                // Double-check before showing dialog
+                if (isFinishing || isDestroyed) {
+                    Timber.w("showError: Activity finished during settings load, skipping dialog")
+                    return@launch
+                }
+                
                 if (throwable != null) {
                     // Use ErrorDialog with full stack trace
                     com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
@@ -1332,6 +1447,114 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
+    private fun showAudioFileInfo(file: MediaFile?) {
+        if (file == null) return
+        
+        binding.audioInfoOverlay.isVisible = true
+        
+        // Display file name
+        binding.audioFileName.text = file.name
+        
+        // Get file info asynchronously (size, duration, format)
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                // Get file size only for local files
+                val fileSize = if (!file.path.startsWith("smb://") && !file.path.startsWith("sftp://")) {
+                    try {
+                        File(file.path).length()
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to get local file size")
+                        -1L
+                    }
+                } else {
+                    // For network files, size will be shown as N/A
+                    -1L
+                }
+                
+                val fileSizeStr = if (fileSize > 0) {
+                    when {
+                        fileSize >= 1024 * 1024 -> "%.1f MB".format(fileSize / (1024.0 * 1024.0))
+                        fileSize >= 1024 -> "%.1f KB".format(fileSize / 1024.0)
+                        else -> "$fileSize bytes"
+                    }
+                } else "N/A"
+                
+                withContext(Dispatchers.Main) {
+                    binding.audioFileInfo.text = buildString {
+                        append("Size: $fileSizeStr")
+                        file.duration?.let { if (it > 0) append("\nDuration: ${formatDuration(it)}") }
+                        append("\nLoading format info...")
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to get audio file info")
+                withContext(Dispatchers.Main) {
+                    binding.audioFileInfo.text = "File information unavailable"
+                }
+            }
+        }
+    }
+    
+    private fun formatDuration(millis: Long?): String {
+        if (millis == null || millis <= 0) return "N/A"
+        val seconds = millis / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        return if (hours > 0) {
+            "%d:%02d:%02d".format(hours, minutes % 60, seconds % 60)
+        } else {
+            "%d:%02d".format(minutes, seconds % 60)
+        }
+    }
+    
+    private fun updateAudioFormatInfo() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        val formatInfo = exoPlayer?.currentTracks?.groups?.firstOrNull { group ->
+            group.type == androidx.media3.common.C.TRACK_TYPE_AUDIO
+        }?.let { audioGroup ->
+            val format = audioGroup.getTrackFormat(0)
+            buildString {
+                format.sampleMimeType?.let { 
+                    append(it.substringAfter("audio/").uppercase())
+                }
+                format.sampleRate?.let { 
+                    if (isNotEmpty()) append(" • ")
+                    append("${it / 1000} kHz")
+                }
+                format.channelCount?.let {
+                    if (isNotEmpty()) append(" • ")
+                    append(when (it) {
+                        1 -> "Mono"
+                        2 -> "Stereo"
+                        else -> "$it channels"
+                    })
+                }
+                format.bitrate?.let {
+                    if (it > 0) {
+                        if (isNotEmpty()) append(" • ")
+                        append("${it / 1000} kbps")
+                    }
+                }
+            }
+        }
+        
+        if (!formatInfo.isNullOrEmpty()) {
+            // Update only the format line, preserve size and duration
+            val currentText = binding.audioFileInfo.text.toString()
+            val lines = currentText.split("\n").toMutableList()
+            
+            // Replace or add format info line
+            if (lines.size >= 3) {
+                lines[2] = formatInfo
+            } else {
+                lines.add(formatInfo)
+            }
+            
+            binding.audioFileInfo.text = lines.joinToString("\n")
+        }
+    }
+
     private fun releasePlayer() {
         exoPlayer?.let { player ->
             // Remove listener before releasing to avoid callbacks during/after release
@@ -1357,10 +1580,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     companion object {
-        fun createIntent(context: Context, resourceId: Long, initialIndex: Int = 0): Intent {
+        fun createIntent(context: Context, resourceId: Long, initialIndex: Int = 0, skipAvailabilityCheck: Boolean = false): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra("resourceId", resourceId)
                 putExtra("initialIndex", initialIndex)
+                putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
             }
         }
     }

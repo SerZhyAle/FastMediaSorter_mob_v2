@@ -21,4 +21,6 @@
     <color name="item_selected">#FF1565C0</color> <!-- Darker blue for selection -->
     <color name="item_normal">#FF121212</color> <!-- Dark background -->
     <color name="audio_icon_bg">#FF78909C</color> <!-- Lighter gray for dark -->
+    <color name="filter_warning_bg">#FF6D4C00</color> <!-- Dark orange/brown for warnings -->
+    <color name="filter_warning_text">#FFFFD54F</color> <!-- Light yellow text for contrast -->
 </resources>

@@ -16,6 +16,12 @@
 -keep class com.hierynomus.** { *; }
 -dontwarn com.hierynomus.**
 
+# BouncyCastle (требуется для SMBJ)
+-keep class org.bouncycastle.** { *; }
+-dontwarn org.bouncycastle.**
+-keepattributes Signature
+-keepattributes InnerClasses
+
 # SSHJ
 -keep class net.schmizz.** { *; }
 -dontwarn net.schmizz.**

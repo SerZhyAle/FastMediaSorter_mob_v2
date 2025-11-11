@@ -119,4 +119,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:visibility="gone" />
+
+    <include
+        layout="@layout/touch_zones_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </FrameLayout>

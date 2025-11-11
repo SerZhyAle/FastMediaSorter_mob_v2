@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter_v2.ui.main
 
-import android.view.GestureDetector
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -13,7 +11,6 @@ import com.sza.fastmediasorter_v2.domain.model.MediaType
 
 class ResourceAdapter(
     private val onItemClick: (MediaResource) -> Unit,
-    private val onItemDoubleClick: (MediaResource) -> Unit,
     private val onItemLongClick: (MediaResource) -> Unit,
     private val onEditClick: (MediaResource) -> Unit,
     private val onCopyFromClick: (MediaResource) -> Unit,
@@ -77,29 +74,14 @@ class ResourceAdapter(
                 
                 root.isSelected = resource.id == selectedId
                 
-                val gestureDetector = GestureDetector(root.context, object : GestureDetector.SimpleOnGestureListener() {
-                    override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                        onItemClick(resource)
-                        return true
-                    }
-                    
-                    override fun onDoubleTap(e: MotionEvent): Boolean {
-                        onItemDoubleClick(resource)
-                        return true
-                    }
-                    
-                    override fun onLongPress(e: MotionEvent) {
-                        onItemLongClick(resource)
-                    }
-                })
+                // Simple click and long click - no gesture detection needed
+                root.setOnClickListener {
+                    onItemClick(resource)
+                }
                 
-                root.setOnTouchListener { v, event ->
-                    val result = gestureDetector.onTouchEvent(event)
-                    // Don't consume all events - let the view handle selection state changes
-                    if (!result && event.action == MotionEvent.ACTION_UP) {
-                        v.performClick()
-                    }
-                    result
+                root.setOnLongClickListener {
+                    onItemLongClick(resource)
+                    true
                 }
                 
                 btnEdit.setOnClickListener {
