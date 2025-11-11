@@ -240,4 +240,7 @@
     <string name="sftp_remote_path_hint">например /home/user/media или /</string>
     <string name="sftp_test_connection">Проверить соединение</string>
     <string name="sftp_add_resource">Добавить ресурс</string>
+    
+    <!-- Touch Zones -->
+    <string name="touch_zone_queue">Очередь</string>
 </resources>

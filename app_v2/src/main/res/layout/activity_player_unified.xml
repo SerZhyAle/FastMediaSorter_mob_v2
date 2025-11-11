@@ -433,7 +433,7 @@
                 android:layout_rowWeight="1"
                 android:layout_columnWeight="1"
                 android:gravity="center"
-                android:text="Очередь"
+                android:text="@string/touch_zone_queue"
                 android:textColor="#80FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"

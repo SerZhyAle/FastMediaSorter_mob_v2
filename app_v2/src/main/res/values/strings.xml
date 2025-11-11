@@ -249,6 +249,9 @@
     <string name="sftp_test_connection">Test Connection</string>
     <string name="sftp_add_resource">Add Resource</string>
     
+    <!-- Touch Zones -->
+    <string name="touch_zone_queue">Queue</string>
+    
 </resources>
 
 
