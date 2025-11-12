@@ -2,11 +2,14 @@ package com.sza.fastmediasorter_v2.data.remote.sftp
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import net.schmizz.sshj.DefaultConfig
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.sftp.SFTPClient
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import timber.log.Timber
 import java.io.IOException
+import java.security.Security
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,6 +19,14 @@ import javax.inject.Singleton
  */
 @Singleton
 class SftpClient @Inject constructor() {
+
+    init {
+        // Ensure BouncyCastle provider is registered
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
+            Security.addProvider(BouncyCastleProvider())
+            Timber.d("Registered BouncyCastle security provider")
+        }
+    }
 
     private var sshClient: SSHClient? = null
     private var sftpClient: SFTPClient? = null
@@ -37,7 +48,20 @@ class SftpClient @Inject constructor() {
         try {
             disconnect() // Ensure clean state
             
-            val client = SSHClient()
+            // Create custom config without Curve25519 to avoid X25519 requirement
+            val config = object : DefaultConfig() {
+                override fun initKeyExchangeFactories() {
+                    super.initKeyExchangeFactories()
+                    // Filter out Curve25519 algorithms
+                    setKeyExchangeFactories(
+                        keyExchangeFactories.filter { factory ->
+                            !factory.name.contains("curve25519", ignoreCase = true)
+                        }
+                    )
+                }
+            }
+            
+            val client = SSHClient(config)
             client.addHostKeyVerifier(PromiscuousVerifier()) // Accept all host keys (security risk in production)
             
             // Set connection and socket timeout to 4 seconds (default is much longer)

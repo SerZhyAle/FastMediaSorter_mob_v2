@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11120417
-        versionName = "2.0.0-build2511120417"
+        versionCode = 11120446
+        versionName = "2.0.0-build2511120446"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -84,6 +84,7 @@ android {
             excludes += "/META-INF/LICENSE.txt"
             excludes += "/META-INF/NOTICE"
             excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/versions/9/OSGI-INF/MANIFEST.MF"
             // Исключаем дубликаты нативных библиотек BouncyCastle
             pickFirsts += "**/*.so"
         }
@@ -155,8 +156,8 @@ dependencies {
     implementation("com.hierynomus:smbj:0.12.1")
     
     // BouncyCastle для SMBJ (явная зависимость для решения проблемы с libpenguin.so)
-    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
-    implementation("org.bouncycastle:bcpkix-jdk18on:1.77")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
+    implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
     
     // Network - SFTP
     implementation("com.hierynomus:sshj:0.37.0")

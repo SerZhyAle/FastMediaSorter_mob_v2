@@ -87,7 +87,7 @@ class FtpClient @Inject constructor() {
     /**
      * List files and directories in remote path
      * @param remotePath Remote directory path (default "/")
-     * @return Result with list of file paths or exception on failure
+     * @return Result with list of file names (not full paths) or exception on failure
      */
     suspend fun listFiles(remotePath: String = "/"): Result<List<String>> = withContext(Dispatchers.IO) {
         try {
@@ -100,13 +100,9 @@ class FtpClient @Inject constructor() {
                 if (ftpFile.name == "." || ftpFile.name == "..") {
                     null
                 } else {
-                    // Build full path
-                    val normalizedPath = remotePath.trimEnd('/')
-                    if (normalizedPath.isEmpty()) {
-                        "/${ftpFile.name}"
-                    } else {
-                        "$normalizedPath/${ftpFile.name}"
-                    }
+                    // Return only file name, not full path
+                    // The scanner will build full path with host/port
+                    ftpFile.name
                 }
             }
             

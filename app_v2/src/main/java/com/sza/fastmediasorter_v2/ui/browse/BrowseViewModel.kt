@@ -84,7 +84,15 @@ class BrowseViewModel @Inject constructor(
             }
             
             // Check if resource is available (skip if already validated in MainActivity)
-            if (!skipAvailabilityCheck && resource.fileCount == 0 && !resource.isWritable) {
+            // For network resources (SFTP/FTP/SMB), skip this check and try to load files directly
+            // because fileCount might be 0 if initial scan failed, but connection might work
+            val isNetworkResource = resource.type in setOf(
+                com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB,
+                com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP,
+                com.sza.fastmediasorter_v2.domain.model.ResourceType.FTP
+            )
+            
+            if (!skipAvailabilityCheck && !isNetworkResource && resource.fileCount == 0 && !resource.isWritable) {
                 sendEvent(BrowseEvent.ShowError(
                     message = "Resource '${resource.name}' is unavailable. Check network connection or resource settings.",
                     details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"

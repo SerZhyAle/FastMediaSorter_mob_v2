@@ -722,29 +722,49 @@ class AddResourceViewModel @Inject constructor(
                 
                 // Add resource to database
                 addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
-                    Timber.d("Added $protocolName resource")
+                    Timber.d("Added $protocolName resource to DB")
+                    
+                    // Get the inserted resource from DB to get real ID
+                    val allResources = resourceRepository.getAllResources().first()
+                    Timber.d("Total resources in DB: ${allResources.size}")
+                    
+                    val insertedResource = allResources.find { it.path == resource.path && it.type == resource.type }
+                    
+                    if (insertedResource == null) {
+                        Timber.e("Failed to find inserted resource. Looking for path=${resource.path}, type=${resource.type}")
+                        Timber.e("Available resources: ${allResources.map { "id=${it.id}, path=${it.path}, type=${it.type}" }}")
+                        sendEvent(AddResourceEvent.ShowError("Resource was added but could not be retrieved"))
+                        setLoading(false)
+                        return@launch
+                    }
+                    
+                    Timber.d("Found inserted resource: id=${insertedResource.id}, credentialsId=${insertedResource.credentialsId}")
                     
                     // Scan resource to update fileCount and isWritable
                     var scanSuccessful = false
                     viewModelScope.launch(ioDispatcher) {
                         try {
-                            val scanner = mediaScannerFactory.getScanner(resource.type)
+                            val scanner = mediaScannerFactory.getScanner(insertedResource.type)
                             val supportedTypes = getSupportedMediaTypes()
                             
-                            val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
-                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            Timber.d("Starting scan: path=${insertedResource.path}, credentialsId=${insertedResource.credentialsId}, supportedTypes=$supportedTypes")
+                            
+                            val fileCount = scanner.getFileCount(insertedResource.path, supportedTypes, credentialsId = insertedResource.credentialsId)
+                            val isWritable = scanner.isWritable(insertedResource.path, credentialsId = insertedResource.credentialsId)
+                            
+                            Timber.d("Scan completed: fileCount=$fileCount, isWritable=$isWritable")
                             
                             // Update resource with real values
-                            val updatedResource = resource.copy(
+                            val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable
                             )
                             resourceRepository.updateResource(updatedResource)
                             
-                            Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                            Timber.d("Updated resource in DB: ${insertedResource.name}")
                             scanSuccessful = true
                         } catch (e: Exception) {
-                            Timber.e(e, "Failed to scan resource ${resource.name}")
+                            Timber.e(e, "Failed to scan resource ${insertedResource.name}")
                         }
                     }.join() // Wait for scan to complete
                     

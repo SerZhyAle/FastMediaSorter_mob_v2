@@ -138,6 +138,8 @@ class MainViewModel @Inject constructor(
                 if (state.value.selectedResource?.id == resource.id) {
                     updateState { it.copy(selectedResource = null) }
                 }
+                // Reload resources list to update UI
+                loadResources()
             }.onFailure { e ->
                 Timber.e(e, "Error deleting resource")
                 handleError(e)

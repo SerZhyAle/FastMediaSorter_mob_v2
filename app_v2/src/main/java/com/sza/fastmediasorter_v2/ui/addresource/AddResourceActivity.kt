@@ -90,16 +90,17 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         // SFTP/FTP protocol RadioGroup
         binding.rgProtocol.setOnCheckedChangeListener { _, checkedId ->
+            val currentPort = binding.etSftpPort.text.toString()
             when (checkedId) {
                 binding.rbSftp.id -> {
-                    // Set port to 22 if empty
-                    if (binding.etSftpPort.text.isNullOrBlank()) {
+                    // Set port to 22 if empty or if it's FTP port (21)
+                    if (currentPort.isBlank() || currentPort == "21") {
                         binding.etSftpPort.setText("22")
                     }
                 }
                 binding.rbFtp.id -> {
-                    // Set port to 21 if empty
-                    if (binding.etSftpPort.text.isNullOrBlank()) {
+                    // Set port to 21 if empty or if it's SFTP port (22)
+                    if (currentPort.isBlank() || currentPort == "22") {
                         binding.etSftpPort.setText("21")
                     }
                 }

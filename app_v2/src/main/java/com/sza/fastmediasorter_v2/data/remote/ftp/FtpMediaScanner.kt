@@ -35,11 +35,15 @@ class FtpMediaScanner @Inject constructor(
         credentialsId: String?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
+            Timber.d("FTP scanFolder: path=$path, credentialsId=$credentialsId")
+            
             // Parse path format: ftp://server:port/remotePath
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
                 Timber.w("Invalid FTP path format: $path")
                 return@withContext emptyList()
             }
+
+            Timber.d("FTP connection info: host=${connectionInfo.host}, port=${connectionInfo.port}, user=${connectionInfo.username}, remotePath=${connectionInfo.remotePath}")
 
             // Connect and list files
             val connectResult = ftpClient.connect(
@@ -92,7 +96,9 @@ class FtpMediaScanner @Inject constructor(
         credentialsId: String?
     ): Int = withContext(Dispatchers.IO) {
         try {
+            Timber.d("FTP getFileCount: path=$path, credentialsId=$credentialsId")
             val files = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
+            Timber.d("FTP getFileCount result: ${files.size} files")
             files.size
         } catch (e: Exception) {
             Timber.e(e, "Error counting FTP files in: $path")
@@ -102,8 +108,10 @@ class FtpMediaScanner @Inject constructor(
 
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
+            Timber.d("FTP isWritable: path=$path, credentialsId=$credentialsId")
+            
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
-                Timber.w("Invalid FTP path format: $path")
+                Timber.w("Invalid FTP path format for isWritable: $path")
                 return@withContext false
             }
 
@@ -122,6 +130,7 @@ class FtpMediaScanner @Inject constructor(
             // For FTP we can't easily check permissions without attempting write
             // Assume writable if connection succeeds
             ftpClient.disconnect()
+            Timber.d("FTP isWritable result: true")
             true
         } catch (e: Exception) {
             Timber.e(e, "Error checking FTP writable: $path")
@@ -130,13 +139,20 @@ class FtpMediaScanner @Inject constructor(
     }
 
     private suspend fun parseFtpPath(path: String, credentialsId: String?): ConnectionInfo? {
+        Timber.d("Parsing FTP path: $path, credentialsId=$credentialsId")
+        
         // Format: ftp://host:port/remotePath
         val regex = """ftp://([^:]+):(\d+)(.*)""".toRegex()
-        val match = regex.find(path) ?: return null
+        val match = regex.find(path) ?: run {
+            Timber.w("Path does not match FTP regex")
+            return null
+        }
 
         val host = match.groupValues[1]
         val port = match.groupValues[2].toIntOrNull() ?: 21
         val remotePath = match.groupValues[3].ifEmpty { "/" }
+        
+        Timber.d("Parsed FTP URL: host=$host, port=$port, remotePath=$remotePath")
 
         // Get credentials from database
         if (credentialsId == null) {
@@ -149,6 +165,8 @@ class FtpMediaScanner @Inject constructor(
             Timber.w("Credentials not found for ID: $credentialsId")
             return null
         }
+        
+        Timber.d("Found credentials: type=${credentials.type}, username=${credentials.username}")
 
         return ConnectionInfo(
             host = host,

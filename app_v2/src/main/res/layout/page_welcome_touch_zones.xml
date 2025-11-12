@@ -112,27 +112,30 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
+        android:text="@string/welcome_title_2"
         android:textColor="?attr/colorOnPrimary"
         android:textSize="20sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tvDescription"
-        tools:text="Touch Zones" />
+        app:layout_constraintTop_toBottomOf="@id/tvLegend"
+        app:layout_constraintBottom_toTopOf="@id/tvDescription" />
 
     <TextView
         android:id="@+id/tvDescription"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp"
         android:gravity="center"
+        android:text="@string/welcome_description_2"
         android:textColor="?attr/colorOnPrimary"
         android:textSize="16sp"
         android:lineSpacingMultiplier="1.3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        tools:text="Navigate and manage media with 9 touch zones" />
+        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
