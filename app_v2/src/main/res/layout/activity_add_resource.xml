@@ -165,14 +165,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/sftp_folder"
+                    android:text="@string/sftp_ftp_folder"
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/sftp_folder_description"
+                    android:text="@string/sftp_ftp_folder_description"
                     android:textSize="14sp"
                     android:textColor="?android:textColorSecondary" />
 
@@ -509,6 +509,39 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Protocol Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/protocol_selection"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="8dp" />
+
+            <RadioGroup
+                android:id="@+id/rgProtocol"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbSftp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/protocol_sftp"
+                    android:checked="true" />
+
+                <com.google.android.material.radiobutton.MaterialRadioButton
+                    android:id="@+id/rbFtp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/protocol_ftp" />
+
+            </RadioGroup>
+
             <!-- Host -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSftpHost"
@@ -534,7 +567,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="@string/sftp_port"
-                app:helperText="@string/sftp_port_hint"
+                app:helperText="@string/sftp_ftp_port_hint"
                 app:helperTextEnabled="true"
                 android:layout_marginBottom="8dp">
 
@@ -543,7 +576,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:text="22"
+                    android:text=""
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>

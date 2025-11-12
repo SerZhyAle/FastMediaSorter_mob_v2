@@ -73,7 +73,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/select_all"
-            android:src="@android:drawable/checkbox_on_background"
+            android:src="@drawable/ic_select_all"
             android:tint="?attr/colorControlNormal" />
 
         <!-- Deselect All -->
@@ -83,7 +83,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/deselect_all"
-            android:src="@android:drawable/checkbox_off_background"
+            android:src="@drawable/ic_deselect_all"
             android:tint="?attr/colorControlNormal" />
 
     </LinearLayout>

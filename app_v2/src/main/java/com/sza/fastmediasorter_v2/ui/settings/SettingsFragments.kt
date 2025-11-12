@@ -406,6 +406,7 @@ class PlaybackSettingsFragment : Fragment() {
             SortMode.SIZE_DESC -> "Size (Large first)"
             SortMode.TYPE_ASC -> "Type (A-Z)"
             SortMode.TYPE_DESC -> "Type (Z-A)"
+            SortMode.RANDOM -> "Random"
         }
     }
 }

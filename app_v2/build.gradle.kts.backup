@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11120417
-        versionName = "2.0.0-build2511120417"
+        versionCode = 11111921
+        versionName = "2.0.0-build2511111921"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -160,9 +160,6 @@ dependencies {
     
     // Network - SFTP
     implementation("com.hierynomus:sshj:0.37.0")
-    
-    // Network - FTP
-    implementation("commons-net:commons-net:3.10.0")
     
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")

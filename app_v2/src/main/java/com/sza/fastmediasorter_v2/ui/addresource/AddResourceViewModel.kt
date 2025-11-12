@@ -569,7 +569,65 @@ class AddResourceViewModel @Inject constructor(
     // ========== SFTP Operations ==========
     
     /**
-     * Test SFTP connection
+     * Test SFTP or FTP connection
+     */
+    fun testSftpFtpConnection(
+        protocolType: ResourceType, // SFTP or FTP
+        host: String,
+        port: Int,
+        username: String,
+        password: String
+    ) {
+        if (host.isBlank()) {
+            sendEvent(AddResourceEvent.ShowError("Host is required"))
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            when (protocolType) {
+                ResourceType.SFTP -> {
+                    smbOperationsUseCase.testSftpConnection(
+                        host = host,
+                        port = port,
+                        username = username,
+                        password = password
+                    ).onSuccess { message ->
+                        Timber.d("SFTP test connection successful")
+                        sendEvent(AddResourceEvent.ShowTestResult(message, isSuccess = true))
+                    }.onFailure { e ->
+                        Timber.e(e, "SFTP test connection failed")
+                        val errorMessage = "Connection failed: ${e.message}"
+                        sendEvent(AddResourceEvent.ShowTestResult(errorMessage, isSuccess = false))
+                    }
+                }
+                ResourceType.FTP -> {
+                    smbOperationsUseCase.testFtpConnection(
+                        host = host,
+                        port = port,
+                        username = username,
+                        password = password
+                    ).onSuccess { message ->
+                        Timber.d("FTP test connection successful")
+                        sendEvent(AddResourceEvent.ShowTestResult(message, isSuccess = true))
+                    }.onFailure { e ->
+                        Timber.e(e, "FTP test connection failed")
+                        val errorMessage = "Connection failed: ${e.message}"
+                        sendEvent(AddResourceEvent.ShowTestResult(errorMessage, isSuccess = false))
+                    }
+                }
+                else -> {
+                    sendEvent(AddResourceEvent.ShowError("Invalid protocol type"))
+                }
+            }
+            
+            setLoading(false)
+        }
+    }
+    
+    /**
+     * Test SFTP connection (legacy method - kept for compatibility)
      */
     fun testSftpConnection(
         host: String,
@@ -604,7 +662,116 @@ class AddResourceViewModel @Inject constructor(
     }
     
     /**
-     * Add SFTP resource
+     * Add SFTP or FTP resource
+     */
+    fun addSftpFtpResource(
+        protocolType: ResourceType, // SFTP or FTP
+        host: String,
+        port: Int,
+        username: String,
+        password: String,
+        remotePath: String
+    ) {
+        if (host.isBlank()) {
+            sendEvent(AddResourceEvent.ShowError("Host is required"))
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            val protocolName = if (protocolType == ResourceType.SFTP) "SFTP" else "FTP"
+            val protocolLower = protocolName.lowercase()
+            
+            // Save credentials first
+            val credentialsResult = when (protocolType) {
+                ResourceType.SFTP -> smbOperationsUseCase.saveSftpCredentials(
+                    host = host,
+                    port = port,
+                    username = username,
+                    password = password
+                )
+                ResourceType.FTP -> smbOperationsUseCase.saveFtpCredentials(
+                    host = host,
+                    port = port,
+                    username = username,
+                    password = password
+                )
+                else -> Result.failure(Exception("Invalid protocol type"))
+            }
+            
+            credentialsResult.onSuccess { credentialsId ->
+                Timber.d("Saved $protocolName credentials with ID: $credentialsId")
+                
+                // Create resource
+                val path = "$protocolLower://$host:$port$remotePath"
+                val resourceName = if (remotePath == "/" || remotePath.isBlank()) {
+                    "$username@$host"
+                } else {
+                    remotePath.substringAfterLast('/')
+                }
+                
+                val resource = MediaResource(
+                    id = 0, // Ensure autoincrement
+                    name = resourceName,
+                    path = path,
+                    type = protocolType,
+                    isDestination = false,
+                    credentialsId = credentialsId
+                )
+                
+                // Add resource to database
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
+                    Timber.d("Added $protocolName resource")
+                    
+                    // Scan resource to update fileCount and isWritable
+                    var scanSuccessful = false
+                    viewModelScope.launch(ioDispatcher) {
+                        try {
+                            val scanner = mediaScannerFactory.getScanner(resource.type)
+                            val supportedTypes = getSupportedMediaTypes()
+                            
+                            val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
+                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            
+                            // Update resource with real values
+                            val updatedResource = resource.copy(
+                                fileCount = fileCount,
+                                isWritable = isWritable
+                            )
+                            resourceRepository.updateResource(updatedResource)
+                            
+                            Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                            scanSuccessful = true
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to scan resource ${resource.name}")
+                        }
+                    }.join() // Wait for scan to complete
+                    
+                    if (scanSuccessful) {
+                        sendEvent(AddResourceEvent.ShowMessage("$protocolName resource added successfully"))
+                    } else {
+                        sendEvent(AddResourceEvent.ShowError(
+                            "$protocolName resource '$resourceName' added but is currently unavailable. " +
+                            "Check that the remote path exists and is accessible."
+                        ))
+                    }
+                    sendEvent(AddResourceEvent.ResourcesAdded)
+                }.onFailure { e ->
+                    Timber.e(e, "Failed to add $protocolName resource")
+                    sendEvent(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                }
+            }.onFailure { e ->
+                Timber.e(e, "Failed to save $protocolName credentials")
+                sendEvent(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+            }
+            
+            setLoading(false)
+        }
+    }
+    
+    /**
+     * Add SFTP resource (legacy method - kept for compatibility)
      */
     fun addSftpResource(
         host: String,

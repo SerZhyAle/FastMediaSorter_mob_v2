@@ -2,6 +2,7 @@ package com.sza.fastmediasorter_v2.domain.usecase
 
 import com.sza.fastmediasorter_v2.data.local.LocalMediaScanner
 import com.sza.fastmediasorter_v2.data.network.SmbMediaScanner
+import com.sza.fastmediasorter_v2.data.remote.ftp.FtpMediaScanner
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpMediaScanner
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import javax.inject.Inject
@@ -15,7 +16,8 @@ import javax.inject.Singleton
 class MediaScannerFactory @Inject constructor(
     private val localMediaScanner: LocalMediaScanner,
     private val smbMediaScanner: SmbMediaScanner,
-    private val sftpMediaScanner: SftpMediaScanner
+    private val sftpMediaScanner: SftpMediaScanner,
+    private val ftpMediaScanner: FtpMediaScanner
 ) {
     /**
      * Get scanner for specific resource type
@@ -25,6 +27,7 @@ class MediaScannerFactory @Inject constructor(
             ResourceType.LOCAL -> localMediaScanner
             ResourceType.SMB -> smbMediaScanner
             ResourceType.SFTP -> sftpMediaScanner
+            ResourceType.FTP -> ftpMediaScanner
             ResourceType.CLOUD -> throw UnsupportedOperationException("CLOUD not yet implemented")
         }
     }

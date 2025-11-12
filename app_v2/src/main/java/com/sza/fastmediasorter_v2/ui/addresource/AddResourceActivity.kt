@@ -87,6 +87,24 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.cardSftpFolder.setOnClickListener {
             showSftpFolderOptions()
         }
+        
+        // SFTP/FTP protocol RadioGroup
+        binding.rgProtocol.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                binding.rbSftp.id -> {
+                    // Set port to 22 if empty
+                    if (binding.etSftpPort.text.isNullOrBlank()) {
+                        binding.etSftpPort.setText("22")
+                    }
+                }
+                binding.rbFtp.id -> {
+                    // Set port to 21 if empty
+                    if (binding.etSftpPort.text.isNullOrBlank()) {
+                        binding.etSftpPort.setText("21")
+                    }
+                }
+            }
+        }
 
         binding.btnScan.setOnClickListener {
             viewModel.scanLocalFolders()
@@ -243,9 +261,17 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     
     private fun showSftpFolderOptions() {
         binding.layoutResourceTypes.isVisible = false
-        binding.tvTitle.text = "Add SFTP Resource"
+        binding.tvTitle.text = "Add SFTP/FTP Resource"
         binding.layoutSmbFolder.isVisible = false
         binding.layoutSftpFolder.isVisible = true
+        
+        // Set default port to 22 (SFTP) when opening this section
+        if (binding.etSftpPort.text.isNullOrBlank()) {
+            binding.etSftpPort.setText("22")
+        }
+        
+        // Select SFTP by default
+        binding.rbSftp.isChecked = true
     }
 
     private fun testSmbConnection() {
@@ -392,12 +418,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         return null
     }
     
-    // ========== SFTP Methods ==========
+    // ========== SFTP/FTP Methods ==========
+    
+    private fun getSelectedProtocol(): com.sza.fastmediasorter_v2.domain.model.ResourceType {
+        return when (binding.rgProtocol.checkedRadioButtonId) {
+            binding.rbSftp.id -> com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP
+            binding.rbFtp.id -> com.sza.fastmediasorter_v2.domain.model.ResourceType.FTP
+            else -> com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP // Default to SFTP
+        }
+    }
     
     private fun testSftpConnection() {
+        val protocolType = getSelectedProtocol()
         val host = binding.etSftpHost.text.toString().trim()
         val portStr = binding.etSftpPort.text.toString().trim()
-        val port = portStr.toIntOrNull() ?: 22
+        val defaultPort = if (protocolType == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP) 22 else 21
+        val port = portStr.toIntOrNull() ?: defaultPort
         val username = binding.etSftpUsername.text.toString().trim()
         val password = binding.etSftpPassword.text.toString().trim()
         
@@ -406,13 +442,15 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             return
         }
         
-        viewModel.testSftpConnection(host, port, username, password)
+        viewModel.testSftpFtpConnection(protocolType, host, port, username, password)
     }
     
     private fun addSftpResource() {
+        val protocolType = getSelectedProtocol()
         val host = binding.etSftpHost.text.toString().trim()
         val portStr = binding.etSftpPort.text.toString().trim()
-        val port = portStr.toIntOrNull() ?: 22
+        val defaultPort = if (protocolType == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP) 22 else 21
+        val port = portStr.toIntOrNull() ?: defaultPort
         val username = binding.etSftpUsername.text.toString().trim()
         val password = binding.etSftpPassword.text.toString().trim()
         val remotePath = binding.etSftpPath.text.toString().trim().ifEmpty { "/" }
@@ -422,6 +460,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             return
         }
         
-        viewModel.addSftpResource(host, port, username, password, remotePath)
+        viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath)
     }
 }

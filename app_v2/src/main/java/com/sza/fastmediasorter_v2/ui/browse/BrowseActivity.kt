@@ -143,7 +143,21 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    mediaFileAdapter.submitList(state.mediaFiles)
+                    val previousListSize = mediaFileAdapter.itemCount
+                    mediaFileAdapter.submitList(state.mediaFiles) {
+                        // Scroll to last viewed file after list is submitted
+                        if (previousListSize == 0 && state.mediaFiles.isNotEmpty()) {
+                            state.resource?.lastViewedFile?.let { lastViewedPath ->
+                                val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
+                                if (position >= 0) {
+                                    binding.rvMediaFiles.post {
+                                        binding.rvMediaFiles.scrollToPosition(position)
+                                        Timber.d("Scrolled to last viewed file at position $position")
+                                    }
+                                }
+                            }
+                        }
+                    }
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
 
                     state.resource?.let { resource ->
@@ -343,7 +357,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             // Update layout manager
             binding.rvMediaFiles.layoutManager = when (mode) {
                 DisplayMode.LIST -> LinearLayoutManager(this@BrowseActivity)
-                DisplayMode.GRID -> GridLayoutManager(this@BrowseActivity, 3)
+                DisplayMode.GRID -> {
+                    // Calculate span count dynamically based on screen width and icon size
+                    val displayMetrics = resources.displayMetrics
+                    val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+                    val iconSizeDp = iconSize.toFloat()
+                    val cardPaddingDp = 8f // 4dp padding on each side (from card layout)
+                    val itemWidthDp = iconSizeDp + cardPaddingDp
+                    val spanCount = (screenWidthDp / itemWidthDp).toInt().coerceAtLeast(2)
+                    
+                    Timber.d("Grid calculation: screenWidth=${screenWidthDp}dp, iconSize=${iconSizeDp}dp, spanCount=$spanCount")
+                    GridLayoutManager(this@BrowseActivity, spanCount)
+                }
             }
         }
     }
@@ -471,6 +496,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             SortMode.SIZE_DESC -> "Size (Large first)"
             SortMode.TYPE_ASC -> "Type (A-Z)"
             SortMode.TYPE_DESC -> "Type (Z-A)"
+            SortMode.RANDOM -> "Random"
         }
     }
 

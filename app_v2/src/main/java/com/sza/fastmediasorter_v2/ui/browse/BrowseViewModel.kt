@@ -11,10 +11,13 @@ import com.sza.fastmediasorter_v2.domain.model.UndoOperation
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
+import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
+import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
+import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.catch
@@ -47,6 +50,8 @@ class BrowseViewModel @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
+    private val updateResourceUseCase: UpdateResourceUseCase,
+    private val fileOperationUseCase: FileOperationUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -261,12 +266,22 @@ class BrowseViewModel @Inject constructor(
     }
 
     fun toggleDisplayMode() {
+        val resource = state.value.resource ?: return
+        
         val newMode = if (state.value.displayMode == DisplayMode.LIST) {
             DisplayMode.GRID
         } else {
             DisplayMode.LIST
         }
+        
+        // Update state immediately for UI responsiveness
         updateState { it.copy(displayMode = newMode) }
+        
+        // Save to database
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            updateResourceUseCase(resource.copy(displayMode = newMode))
+            Timber.d("Saved displayMode=$newMode for resource: ${resource.name}")
+        }
     }
 
     fun selectFile(filePath: String) {
@@ -334,7 +349,15 @@ class BrowseViewModel @Inject constructor(
     }
 
     fun openFile(file: MediaFile) {
+        val resource = state.value.resource ?: return
         val index = state.value.mediaFiles.indexOf(file)
+        
+        // Save last viewed file to resource
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            updateResourceUseCase(resource.copy(lastViewedFile = file.path))
+            Timber.d("Saved lastViewedFile=${file.name} for resource: ${resource.name}")
+        }
+        
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))
     }
 
@@ -351,23 +374,68 @@ class BrowseViewModel @Inject constructor(
             val deletedFiles = mutableListOf<String>()
             val failedFiles = mutableListOf<String>()
             
+            // Separate local and network files
+            val localFiles = mutableListOf<java.io.File>()
+            val networkFiles = mutableListOf<java.io.File>()
+            
             selectedPaths.forEach { path ->
                 val file = java.io.File(path)
+                if (path.startsWith("smb://") || path.startsWith("sftp://")) {
+                    // Network file - wrap in File object with original path
+                    networkFiles.add(object : java.io.File(path) {
+                        override fun getAbsolutePath(): String = path
+                        override fun getPath(): String = path
+                    })
+                } else {
+                    // Local file
+                    localFiles.add(file)
+                }
+            }
+            
+            // Delete local files using java.io.File
+            localFiles.forEach { file ->
                 if (file.exists()) {
                     try {
                         if (file.delete()) {
-                            deletedFiles.add(path)
-                            Timber.d("Deleted file: $path")
+                            deletedFiles.add(file.absolutePath)
+                            Timber.d("Deleted local file: ${file.absolutePath}")
                         } else {
                             failedFiles.add(file.name)
-                            Timber.w("Failed to delete file: $path")
+                            Timber.w("Failed to delete local file: ${file.absolutePath}")
                         }
                     } catch (e: Exception) {
                         failedFiles.add(file.name)
-                        Timber.e(e, "Error deleting file: $path")
+                        Timber.e(e, "Error deleting local file: ${file.absolutePath}")
                     }
                 } else {
-                    Timber.w("File not found: $path")
+                    failedFiles.add(file.name)
+                    Timber.w("Local file not found: ${file.absolutePath}")
+                }
+            }
+            
+            // Delete network files using FileOperationUseCase
+            if (networkFiles.isNotEmpty()) {
+                Timber.d("Deleting ${networkFiles.size} network files via FileOperationUseCase")
+                
+                val deleteOperation = FileOperation.Delete(
+                    files = networkFiles
+                )
+                
+                when (val result = fileOperationUseCase.execute(deleteOperation)) {
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Success -> {
+                        deletedFiles.addAll(networkFiles.map { it.path })
+                        Timber.i("Successfully deleted ${networkFiles.size} network files")
+                    }
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.PartialSuccess -> {
+                        // Some files deleted, some failed
+                        deletedFiles.addAll(networkFiles.take(result.processedCount).map { it.path })
+                        failedFiles.addAll(networkFiles.drop(result.processedCount).map { it.name })
+                        Timber.w("Partially deleted network files: ${result.processedCount}/${networkFiles.size}, errors: ${result.errors}")
+                    }
+                    is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Failure -> {
+                        failedFiles.addAll(networkFiles.map { it.name })
+                        Timber.e("Failed to delete network files: ${result.error}")
+                    }
                 }
             }
             

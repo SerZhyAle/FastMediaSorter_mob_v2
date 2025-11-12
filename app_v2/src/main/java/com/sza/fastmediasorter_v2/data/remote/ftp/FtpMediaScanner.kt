@@ -1,0 +1,186 @@
+package com.sza.fastmediasorter_v2.data.remote.ftp
+
+import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
+import com.sza.fastmediasorter_v2.domain.model.MediaFile
+import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
+import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * MediaScanner implementation for FTP network resources.
+ * Scans remote FTP servers for media files using FtpClient.
+ */
+@Singleton
+class FtpMediaScanner @Inject constructor(
+    private val ftpClient: FtpClient,
+    private val credentialsDao: NetworkCredentialsDao
+) : MediaScanner {
+
+    companion object {
+        private val IMAGE_EXTENSIONS = setOf("jpg", "jpeg", "png", "webp", "heic", "heif", "bmp")
+        private val GIF_EXTENSIONS = setOf("gif")
+        private val VIDEO_EXTENSIONS = setOf("mp4", "mkv", "mov", "webm", "3gp", "flv", "wmv", "m4v")
+        private val AUDIO_EXTENSIONS = setOf("mp3", "m4a", "wav", "flac", "aac", "ogg", "wma", "opus")
+    }
+
+    override suspend fun scanFolder(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
+    ): List<MediaFile> = withContext(Dispatchers.IO) {
+        try {
+            // Parse path format: ftp://server:port/remotePath
+            val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
+                Timber.w("Invalid FTP path format: $path")
+                return@withContext emptyList()
+            }
+
+            // Connect and list files
+            val connectResult = ftpClient.connect(
+                host = connectionInfo.host,
+                port = connectionInfo.port,
+                username = connectionInfo.username,
+                password = connectionInfo.password
+            )
+
+            if (connectResult.isFailure) {
+                Timber.e("Failed to connect to FTP: ${connectResult.exceptionOrNull()?.message}")
+                return@withContext emptyList()
+            }
+
+            // List files in remote path
+            val filesResult = ftpClient.listFiles(connectionInfo.remotePath)
+            ftpClient.disconnect()
+
+            if (filesResult.isFailure) {
+                Timber.e("Failed to list FTP files: ${filesResult.exceptionOrNull()?.message}")
+                return@withContext emptyList()
+            }
+
+            // Filter and convert to MediaFile
+            filesResult.getOrNull()?.mapNotNull { fileName ->
+                val mediaType = getMediaType(fileName)
+                if (mediaType != null && supportedTypes.contains(mediaType)) {
+                    // For now, we don't have size/date info from listFiles()
+                    // This would require stat() for each file, which is expensive
+                    // Apply size filter only if we have size info
+                    MediaFile(
+                        name = fileName,
+                        path = buildFullFtpPath(connectionInfo, fileName),
+                        size = 0L, // TODO: implement FTPFile attributes to get real size
+                        createdDate = 0L, // TODO: implement FTPFile attributes to get real date
+                        type = mediaType
+                    )
+                } else null
+            } ?: emptyList()
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning FTP folder: $path")
+            emptyList()
+        }
+    }
+
+    override suspend fun getFileCount(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        credentialsId: String?
+    ): Int = withContext(Dispatchers.IO) {
+        try {
+            val files = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
+            files.size
+        } catch (e: Exception) {
+            Timber.e(e, "Error counting FTP files in: $path")
+            0
+        }
+    }
+
+    override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
+                Timber.w("Invalid FTP path format: $path")
+                return@withContext false
+            }
+
+            val connectResult = ftpClient.connect(
+                host = connectionInfo.host,
+                port = connectionInfo.port,
+                username = connectionInfo.username,
+                password = connectionInfo.password
+            )
+
+            if (connectResult.isFailure) {
+                Timber.e("Failed to connect to FTP for writable check")
+                return@withContext false
+            }
+
+            // For FTP we can't easily check permissions without attempting write
+            // Assume writable if connection succeeds
+            ftpClient.disconnect()
+            true
+        } catch (e: Exception) {
+            Timber.e(e, "Error checking FTP writable: $path")
+            false
+        }
+    }
+
+    private suspend fun parseFtpPath(path: String, credentialsId: String?): ConnectionInfo? {
+        // Format: ftp://host:port/remotePath
+        val regex = """ftp://([^:]+):(\d+)(.*)""".toRegex()
+        val match = regex.find(path) ?: return null
+
+        val host = match.groupValues[1]
+        val port = match.groupValues[2].toIntOrNull() ?: 21
+        val remotePath = match.groupValues[3].ifEmpty { "/" }
+
+        // Get credentials from database
+        if (credentialsId == null) {
+            Timber.w("No credentials ID provided for FTP connection")
+            return null
+        }
+
+        val credentials = credentialsDao.getCredentialsById(credentialsId)
+        if (credentials == null) {
+            Timber.w("Credentials not found for ID: $credentialsId")
+            return null
+        }
+
+        return ConnectionInfo(
+            host = host,
+            port = port,
+            username = credentials.username,
+            password = credentials.password,
+            remotePath = remotePath
+        )
+    }
+
+    private fun buildFullFtpPath(connectionInfo: ConnectionInfo, fileName: String): String {
+        val cleanRemotePath = connectionInfo.remotePath.trimEnd('/')
+        val cleanFileName = fileName.trimStart('/')
+        return "ftp://${connectionInfo.host}:${connectionInfo.port}$cleanRemotePath/$cleanFileName"
+    }
+
+    private fun getMediaType(fileName: String): MediaType? {
+        val extension = fileName.substringAfterLast('.', "").lowercase()
+        return when {
+            extension in IMAGE_EXTENSIONS -> MediaType.IMAGE
+            extension in GIF_EXTENSIONS -> MediaType.GIF
+            extension in VIDEO_EXTENSIONS -> MediaType.VIDEO
+            extension in AUDIO_EXTENSIONS -> MediaType.AUDIO
+            else -> null
+        }
+    }
+
+    private data class ConnectionInfo(
+        val host: String,
+        val port: Int,
+        val username: String,
+        val password: String,
+        val remotePath: String
+    )
+}

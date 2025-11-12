@@ -103,9 +103,10 @@
             android:id="@+id/audioInfoOverlay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_gravity="bottom"
             android:orientation="vertical"
             android:padding="24dp"
+            android:layout_marginBottom="80dp"
             android:background="#CC000000"
             android:visibility="gone">
 

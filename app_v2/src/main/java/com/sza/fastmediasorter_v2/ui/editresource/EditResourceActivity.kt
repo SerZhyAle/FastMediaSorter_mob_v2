@@ -163,6 +163,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                             ResourceType.LOCAL -> getString(R.string.resource_type_local)
                             ResourceType.SMB -> getString(R.string.resource_type_smb)
                             ResourceType.SFTP -> getString(R.string.resource_type_sftp)
+                            ResourceType.FTP -> getString(R.string.resource_type_ftp)
                             ResourceType.CLOUD -> getString(R.string.resource_type_cloud)
                         }
                         binding.toolbar.title = getString(R.string.edit_resource_with_type, resourceTypeLabel)

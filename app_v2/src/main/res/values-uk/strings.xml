@@ -122,6 +122,7 @@
     <string name="grid_mode">Режим сітки</string>
     <string name="full_screen_mode">Повноекранний режим</string>
     <string name="show_detailed_errors">Показувати детальні помилки</string>
+    <string name="touch_zones_scheme">Схема сенсорних зон (Зображення/Відео)</string>
     <string name="default_icon_size">Розмір іконок за замовчуванням (пікселі)</string>
     <string name="enable_copying">Дозволити копіювання</string>
     <string name="go_to_next_after_copy">Переходити до наступного після копіювання</string>
@@ -138,6 +139,7 @@
     <string name="resource_type_local">Локальний</string>
     <string name="resource_type_smb">SMB</string>
     <string name="resource_type_sftp">SFTP</string>
+    <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">Хмара</string>
     <string name="resource_name">Назва ресурсу</string>
     <string name="resource_path">Шлях ресурсу</string>
@@ -171,10 +173,12 @@
     <string name="finish">Готово</string>
     <string name="welcome_title_1">Ласкаво просимо до FastMediaSorter!</string>
     <string name="welcome_description_1">FastMediaSorter - потужний інструмент для організації медіафайлів.\n\n• Перегляд фото, відео, GIF та аудіо\n• Сортування та фільтрація за ім\'ям, датою або розміром\n• Копіювання та переміщення жестами\n• Підтримка локальних папок, мережевих ресурсів (SMB) та SFTP\n• До 10 швидких папок призначення\n• Режим слайд-шоу\n\nПочнемо з короткого огляду!</string>
-    <string name="welcome_title_2">Керування жестами</string>
-    <string name="welcome_description_2">Керуйте переглядом медіа інтуїтивними жестами:\n\nНАВІГАЦІЯ:\n• Натискання ЛІВОРУЧ на екрані - попередній файл\n• Натискання ПРАВОРУЧ на екрані - наступний файл\n• Свайп ВЛІВО/ВПРАВО - швидка навігація\n\nОПЕРАЦІЇ З ФАЙЛАМИ:\n• Свайп ВГОРУ - копіювати до призначення\n• Свайп ВНИЗ - перемістити до призначення\n• Довге натискання - меню опцій файлу\n\nВІДТВОРЕННЯ:\n• Натискання по ЦЕНТРУ - пауза/відтворення\n• Подвійне натискання - повноекранний режим</string>
-    <string name="welcome_title_3">Ресурси та призначення</string>
-    <string name="welcome_description_3">Ефективно організуйте робочий процес:\n\nРЕСУРСИ (вихідні папки):\n• Додавайте локальні папки (Камера, Завантаження тощо)\n• Підключайтеся до мережевих ресурсів через SMB/CIFS\n• Доступ до SFTP серверів\n• Для кожного ресурсу показується кількість та типи файлів\n\nПРИЗНАЧЕННЯ (швидке копіювання/переміщення):\n• Налаштуйте до 10 папок призначення\n• Призначте колір кожній папці\n• Швидкий доступ через жести або кнопки\n• Підтримка локальних та мережевих розташувань\n\nВсе можна налаштувати в Налаштуваннях пізніше!</string>
+    <string name="welcome_title_2">Сенсорні зони (Зображення/Відео)</string>
+    <string name="welcome_description_2">Навігація та керування через 9 сенсорних зон (сітка 3x3):\n\nВЕРХНІЙ РЯД:\n• НАЗАД - вихід з програвача\n• КОПІЯ - копіювати файл у призначення\n• ПЕРЕІМ. - перейменувати файл\n\nСЕРЕДНІЙ РЯД:\n• ПОПЕРЕДНІЙ - попередній файл\n• ПЕРЕМІСТИТИ - перемістити файл\n• НАСТУПНИЙ - наступний файл\n\nНИЖНІЙ РЯД (75% екрану):\n• КОМАНДНА ПАНЕЛЬ - швидкі дії\n• ВИДАЛИТИ - видалити файл\n• СЛАЙДШОУ - режим автоперегляду\n\nПримітка: Нижні 25% для керування відео.</string>
+    <string name="welcome_title_3">Керування жестами</string>
+    <string name="welcome_description_3">Керуйте переглядом медіа інтуїтивними жестами:\n\nНАВІГАЦІЯ:\n• Натискання ЗЛІВА на екрані - попередній файл\n• Натискання СПРАВА на екрані - наступний файл\n• Свайп ВЛІВО/ВПРАВО - швидка навігація\n\nОПЕРАЦІЇ З ФАЙЛАМИ:\n• Свайп ВГОРУ - копіювати у призначення\n• Свайп ВНИЗ - перемістити у призначення\n• Довге натискання - меню опцій файлу\n\nВІДТВОРЕННЯ:\n• Натискання по ЦЕНТРУ - пауза/відтворення\n• Подвійне натискання - повноекранний режим</string>
+    <string name="welcome_title_4">Ресурси та призначення</string>
+    <string name="welcome_description_4">Ефективно організуйте робочий процес:\n\nРЕСУРСИ (вихідні папки):\n• Додавайте локальні папки (Камера, Завантаження тощо)\n• Підключайтеся до мережевих ресурсів через SMB/CIFS\n• Доступ до SFTP серверів\n• Для кожного ресурсу показується кількість та типи файлів\n\nПРИЗНАЧЕННЯ (швидке копіювання/переміщення):\n• Налаштуйте до 10 папок призначення\n• Призначте колір кожній папці\n• Швидкий доступ через жести або кнопки\n• Підтримка локальних та мережевих розташувань\n\nУсе можна налаштувати в Налаштуваннях пізніше!</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ до сховища</string>
@@ -210,8 +214,8 @@
     <string name="network_folder_description">Додати SMB мережеві ресурси</string>
     <string name="cloud_folder">Хмарна тека</string>
     <string name="cloud_folder_description">Додати Google Drive, Dropbox, OneDrive</string>
-    <string name="sftp_folder">SFTP</string>
-    <string name="sftp_folder_description">Додати віддалені теки SFTP</string>
+    <string name="sftp_ftp_folder">SFTP / FTP</string>
+    <string name="sftp_ftp_folder_description">Додати віддалені теки SFTP або FTP</string>
     
     <!-- SMB Network -->
     <string name="smb_server">IP сервера</string>
@@ -229,11 +233,14 @@
     <string name="smb_scan_shares">Сканувати ресурси</string>
     <string name="smb_credentials">Облікові дані SMB</string>
     
-    <!-- SFTP -->
+    <!-- SFTP / FTP -->
+    <string name="protocol_selection">Вибір протоколу:</string>
+    <string name="protocol_sftp">SFTP (порт 22)</string>
+    <string name="protocol_ftp">FTP (порт 21)</string>
     <string name="sftp_host">Хост</string>
     <string name="sftp_host_hint">Ім\'я сервера або IP-адреса</string>
     <string name="sftp_port">Порт</string>
-    <string name="sftp_port_hint">За замовчуванням: 22</string>
+    <string name="sftp_ftp_port_hint">SFTP: 22, FTP: 21</string>
     <string name="sftp_username">Ім\'я користувача</string>
     <string name="sftp_password">Пароль</string>
     <string name="sftp_remote_path">Віддалений шлях</string>
@@ -251,4 +258,18 @@
     <string name="touch_zone_next">НАСТ.</string>
     <string name="touch_zone_command_panel">ПАНЕЛЬ\nКОМАНД</string>
     <string name="touch_zone_delete">ВИДАЛИТИ</string>
+    <string name="touch_zone_slideshow">СЛАЙДШОУ</string>
+    
+    <!-- Touch Zones Legend -->
+    <string name="touch_zones_legend_title">Легенда тач-зон:</string>
+    <string name="touch_zone_1_back">1. НАЗАД - Повернутися до списку файлів</string>
+    <string name="touch_zone_2_copy">2. КОПІЮВАТИ - Копіювати файл у призначення</string>
+    <string name="touch_zone_3_rename">3. ПЕРЕЙМЕНУВАТИ - Перейменувати поточний файл</string>
+    <string name="touch_zone_4_previous">4. ПОПЕРЕДНІЙ - Перейти до попереднього файлу</string>
+    <string name="touch_zone_5_move">5. ПЕРЕМІСТИТИ - Перемістити файл у призначення</string>
+    <string name="touch_zone_6_next">6. НАСТУПНИЙ - Перейти до наступного файлу</string>
+    <string name="touch_zone_7_command">7. ПАНЕЛЬ КОМАНД - Відкрити меню команд</string>
+    <string name="touch_zone_8_delete">8. ВИДАЛИТИ - Видалити поточний файл</string>
+    <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустити/зупинити слайдшоу</string>
+    
 </resources>

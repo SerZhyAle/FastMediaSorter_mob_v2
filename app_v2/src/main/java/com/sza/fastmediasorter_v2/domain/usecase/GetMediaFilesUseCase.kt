@@ -80,6 +80,7 @@ class GetMediaFilesUseCase @Inject constructor(
             SortMode.SIZE_DESC -> files.sortedByDescending { it.size }
             SortMode.TYPE_ASC -> files.sortedBy { it.type.ordinal }
             SortMode.TYPE_DESC -> files.sortedByDescending { it.type.ordinal }
+            SortMode.RANDOM -> files.shuffled() // Random order for slideshows
         }
     }
 }

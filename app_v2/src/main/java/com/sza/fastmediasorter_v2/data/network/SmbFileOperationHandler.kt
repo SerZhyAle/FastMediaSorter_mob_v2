@@ -23,7 +23,10 @@ class SmbFileOperationHandler @Inject constructor(
 ) {
 
     suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult = withContext(Dispatchers.IO) {
-        Timber.d("SMB executeCopy: Starting copy of ${operation.sources.size} files to ${operation.destination.absolutePath}")
+        // Use path instead of absolutePath to preserve SMB URL format
+        // Normalize SMB path: ensure smb:/ becomes smb://
+        val destinationPath = normalizeSmbPath(operation.destination.path)
+        Timber.d("SMB executeCopy: Starting copy of ${operation.sources.size} files to $destinationPath")
         
         val errors = mutableListOf<String>()
         val copiedPaths = mutableListOf<String>()
@@ -33,13 +36,16 @@ class SmbFileOperationHandler @Inject constructor(
             Timber.d("SMB executeCopy: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
             
             try {
-                val destPath = "${operation.destination.absolutePath}/${source.name}"
+                // Use source.path to preserve SMB URL format and normalize it
+                val sourcePath = normalizeSmbPath(source.path)
+                val destPath = "$destinationPath/${source.name}"
                 
                 // Determine if source or destination is SMB
-                val isSourceSmb = source.absolutePath.startsWith("smb://")
+                val isSourceSmb = sourcePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
                 
                 Timber.d("SMB executeCopy: Source=${if (isSourceSmb) "SMB" else "Local"}, Dest=${if (isDestSmb) "SMB" else "Local"}")
+                Timber.d("SMB executeCopy: sourcePath='$sourcePath', destPath='$destPath'")
 
                 val startTime = System.currentTimeMillis()
                 
@@ -47,7 +53,7 @@ class SmbFileOperationHandler @Inject constructor(
                     isSourceSmb && !isDestSmb -> {
                         Timber.d("SMB executeCopy: SMB→Local - downloading ${source.name}")
                         // SMB to Local
-                        downloadFromSmb(source.absolutePath, File(destPath))?.let {
+                        downloadFromSmb(sourcePath, File(destPath))?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -55,7 +61,7 @@ class SmbFileOperationHandler @Inject constructor(
                         } ?: run {
                             val error = buildString {
                                 append("${source.name}")
-                                append("\n  From: ${source.absolutePath}")
+                                append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to download from SMB")
                             }
@@ -74,7 +80,7 @@ class SmbFileOperationHandler @Inject constructor(
                         } ?: run {
                             val error = buildString {
                                 append("${source.name}")
-                                append("\n  From: ${source.absolutePath}")
+                                append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to upload to SMB")
                             }
@@ -85,7 +91,7 @@ class SmbFileOperationHandler @Inject constructor(
                     isSourceSmb && isDestSmb -> {
                         Timber.d("SMB executeCopy: SMB→SMB - copying ${source.name}")
                         // SMB to SMB
-                        copySmbToSmb(source.absolutePath, destPath)?.let {
+                        copySmbToSmb(sourcePath, destPath)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -93,7 +99,7 @@ class SmbFileOperationHandler @Inject constructor(
                         } ?: run {
                             val error = buildString {
                                 append("${source.name}")
-                                append("\n  From: ${source.absolutePath}")
+                                append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to copy between SMB shares")
                             }
@@ -110,8 +116,8 @@ class SmbFileOperationHandler @Inject constructor(
             } catch (e: Exception) {
                 val error = buildString {
                     append("${source.name}")
-                    append("\n  From: ${source.absolutePath}")
-                    append("\n  To: ${File(operation.destination, source.name).absolutePath}")
+                    append("\n  From: ${source.path}")
+                    append("\n  To: $destinationPath/${source.name}")
                     append("\n  Error: ${e.javaClass.simpleName} - ${e.message}")
                 }
                 Timber.e(e, "SMB executeCopy: ERROR - $error")
@@ -138,7 +144,10 @@ class SmbFileOperationHandler @Inject constructor(
     }
 
     suspend fun executeMove(operation: FileOperation.Move): FileOperationResult = withContext(Dispatchers.IO) {
-        Timber.d("SMB executeMove: Starting move of ${operation.sources.size} files to ${operation.destination.absolutePath}")
+        // Use path instead of absolutePath to preserve SMB URL format
+        // Normalize SMB path: ensure smb:/ becomes smb://
+        val destinationPath = normalizeSmbPath(operation.destination.path)
+        Timber.d("SMB executeMove: Starting move of ${operation.sources.size} files to $destinationPath")
         
         val errors = mutableListOf<String>()
         val movedPaths = mutableListOf<String>()
@@ -148,12 +157,15 @@ class SmbFileOperationHandler @Inject constructor(
             Timber.d("SMB executeMove: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
             
             try {
-                val destPath = "${operation.destination.absolutePath}/${source.name}"
+                // Use source.path to preserve SMB URL format and normalize it
+                val sourcePath = normalizeSmbPath(source.path)
+                val destPath = "$destinationPath/${source.name}"
                 
-                val isSourceSmb = source.absolutePath.startsWith("smb://")
+                val isSourceSmb = sourcePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
                 
                 Timber.d("SMB executeMove: Source=${if (isSourceSmb) "SMB" else "Local"}, Dest=${if (isDestSmb) "SMB" else "Local"}")
+                Timber.d("SMB executeMove: sourcePath='$sourcePath', destPath='$destPath'")
 
                 val startTime = System.currentTimeMillis()
 
@@ -161,11 +173,11 @@ class SmbFileOperationHandler @Inject constructor(
                     isSourceSmb && !isDestSmb -> {
                         Timber.d("SMB executeMove: SMB→Local - download+delete ${source.name}")
                         // SMB to Local (download + delete)
-                        if (downloadFromSmb(source.absolutePath, File(destPath)) != null) {
+                        if (downloadFromSmb(sourcePath, File(destPath)) != null) {
                             val downloadDuration = System.currentTimeMillis() - startTime
                             Timber.d("SMB executeMove: Downloaded in ${downloadDuration}ms, attempting delete from SMB")
                             
-                            if (deleteFromSmb(source.absolutePath)) {
+                            if (deleteFromSmb(sourcePath)) {
                                 val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
@@ -173,7 +185,7 @@ class SmbFileOperationHandler @Inject constructor(
                             } else {
                                 val error = buildString {
                                     append("${source.name}")
-                                    append("\n  From: ${source.absolutePath}")
+                                    append("\n  From: $sourcePath")
                                     append("\n  To: $destPath")
                                     append("\n  Error: Downloaded but failed to delete from SMB")
                                 }
@@ -185,7 +197,7 @@ class SmbFileOperationHandler @Inject constructor(
                         } else {
                             val error = buildString {
                                 append("${source.name}")
-                                append("\n  From: ${source.absolutePath}")
+                                append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to download from SMB")
                             }
@@ -208,7 +220,7 @@ class SmbFileOperationHandler @Inject constructor(
                             } else {
                                 val error = buildString {
                                     append("${source.name}")
-                                    append("\n  From: ${source.absolutePath}")
+                                    append("\n  From: $sourcePath")
                                     append("\n  To: $destPath")
                                     append("\n  Error: Uploaded but failed to delete local file")
                                 }
@@ -218,7 +230,7 @@ class SmbFileOperationHandler @Inject constructor(
                         } else {
                             val error = buildString {
                                 append("${source.name}")
-                                append("\n  From: ${source.absolutePath}")
+                                append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to upload to SMB")
                             }
@@ -229,11 +241,11 @@ class SmbFileOperationHandler @Inject constructor(
                     isSourceSmb && isDestSmb -> {
                         Timber.d("SMB executeMove: SMB→SMB - copy+delete ${source.name}")
                         // SMB to SMB (copy + delete)
-                        if (copySmbToSmb(source.absolutePath, destPath) != null) {
+                        if (copySmbToSmb(sourcePath, destPath) != null) {
                             val copyDuration = System.currentTimeMillis() - startTime
                             Timber.d("SMB executeMove: Copied in ${copyDuration}ms, attempting delete from source SMB")
                             
-                            if (deleteFromSmb(source.absolutePath)) {
+                            if (deleteFromSmb(sourcePath)) {
                                 val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
@@ -241,7 +253,7 @@ class SmbFileOperationHandler @Inject constructor(
                             } else {
                                 val error = buildString {
                                     append("${source.name}")
-                                    append("\n  From: ${source.absolutePath}")
+                                    append("\n  From: $sourcePath")
                                     append("\n  To: $destPath")
                                     append("\n  Error: Copied but failed to delete from source SMB")
                                 }
@@ -251,7 +263,7 @@ class SmbFileOperationHandler @Inject constructor(
                         } else {
                             val error = buildString {
                                 append("${source.name}")
-                                append("\n  From: ${source.absolutePath}")
+                                append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to copy between SMB shares")
                             }
@@ -268,8 +280,8 @@ class SmbFileOperationHandler @Inject constructor(
             } catch (e: Exception) {
                 val error = buildString {
                     append("${source.name}")
-                    append("\n  From: ${source.absolutePath}")
-                    append("\n  To: ${File(operation.destination, source.name).absolutePath}")
+                    append("\n  From: ${source.path}")
+                    append("\n  To: $destinationPath/${source.name}")
                     append("\n  Error: ${e.javaClass.simpleName} - ${e.message}")
                 }
                 Timber.e(e, "SMB executeMove: ERROR - $error")
@@ -299,7 +311,8 @@ class SmbFileOperationHandler @Inject constructor(
         Timber.d("SMB executeRename: Renaming ${operation.file.name} to ${operation.newName}")
         
         try {
-            val smbPath = operation.file.absolutePath
+            // Use path instead of absolutePath to preserve SMB URL format and normalize it
+            val smbPath = normalizeSmbPath(operation.file.path)
             
             if (!smbPath.startsWith("smb://")) {
                 Timber.e("SMB executeRename: File is not SMB path: $smbPath")
@@ -351,11 +364,13 @@ class SmbFileOperationHandler @Inject constructor(
 
         operation.files.forEach { file ->
             try {
-                val isSmb = file.absolutePath.startsWith("smb://")
+                // Use path instead of absolutePath to preserve SMB URL format and normalize it
+                val filePath = normalizeSmbPath(file.path)
+                val isSmb = filePath.startsWith("smb://")
 
                 if (isSmb) {
-                    if (deleteFromSmb(file.absolutePath)) {
-                        deletedPaths.add(file.absolutePath)
+                    if (deleteFromSmb(filePath)) {
+                        deletedPaths.add(filePath)
                         successCount++
                     } else {
                         errors.add("Failed to delete ${file.name} from SMB")
@@ -558,4 +573,21 @@ class SmbFileOperationHandler @Inject constructor(
         val connectionInfo: SmbClient.SmbConnectionInfo,
         val remotePath: String
     )
+
+    /**
+     * Normalize SMB path to ensure proper format with double slashes.
+     * Converts "smb:/server/share" to "smb://server/share"
+     * Also handles "sftp:/" -> "sftp://"
+     */
+    private fun normalizeSmbPath(path: String): String {
+        return when {
+            path.startsWith("smb:/") && !path.startsWith("smb://") -> {
+                path.replaceFirst("smb:/", "smb://")
+            }
+            path.startsWith("sftp:/") && !path.startsWith("sftp://") -> {
+                path.replaceFirst("sftp:/", "sftp://")
+            }
+            else -> path
+        }
+    }
 }

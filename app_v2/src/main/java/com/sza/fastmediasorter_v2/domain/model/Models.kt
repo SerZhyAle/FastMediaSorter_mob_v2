@@ -7,6 +7,7 @@ enum class ResourceType {
     LOCAL,
     SMB,
     SFTP,
+    FTP,
     CLOUD
 }
 
@@ -32,7 +33,8 @@ enum class SortMode {
     SIZE_ASC,
     SIZE_DESC,
     TYPE_ASC,
-    TYPE_DESC
+    TYPE_DESC,
+    RANDOM       // Random order (useful for slideshows)
 }
 
 /**

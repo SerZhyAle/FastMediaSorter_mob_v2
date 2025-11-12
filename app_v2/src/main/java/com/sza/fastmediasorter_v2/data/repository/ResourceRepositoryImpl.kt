@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter_v2.data.repository
 
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.data.local.db.ResourceDao
 import com.sza.fastmediasorter_v2.data.local.db.ResourceEntity
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
@@ -18,6 +19,7 @@ import javax.inject.Singleton
 @Singleton
 class ResourceRepositoryImpl @Inject constructor(
     private val resourceDao: ResourceDao,
+    private val credentialsDao: NetworkCredentialsDao,
     private val smbOperationsUseCase: SmbOperationsUseCase
 ) : ResourceRepository {
     
@@ -103,6 +105,7 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.SIZE_DESC -> "ORDER BY fileCount DESC"
             SortMode.TYPE_ASC -> "ORDER BY type ASC"
             SortMode.TYPE_DESC -> "ORDER BY type DESC"
+            SortMode.RANDOM -> "ORDER BY RANDOM()" // SQL random ordering
         }
         
         // Build full query
@@ -146,7 +149,13 @@ class ResourceRepositoryImpl @Inject constructor(
             ResourceType.SMB -> {
                 testSmbConnection(resource)
             }
-            ResourceType.CLOUD, ResourceType.SFTP -> {
+            ResourceType.SFTP -> {
+                testSftpConnection(resource)
+            }
+            ResourceType.FTP -> {
+                testFtpConnection(resource)
+            }
+            ResourceType.CLOUD -> {
                 // Not yet implemented
                 Result.success("Connection test not yet implemented for ${resource.type}")
             }
@@ -178,6 +187,79 @@ class ResourceRepositoryImpl @Inject constructor(
             password = connectionInfo.password,
             domain = connectionInfo.domain,
             port = connectionInfo.port
+        )
+    }
+    
+    private suspend fun testSftpConnection(resource: MediaResource): Result<String> {
+        val credentialsId = resource.credentialsId
+        if (credentialsId == null) {
+            Timber.w("SFTP resource has no credentials ID")
+            return Result.failure(Exception("No credentials configured for this SFTP resource"))
+        }
+        
+        // Get SFTP connection info from credentials
+        val credentialsEntity = credentialsDao.getCredentialsById(credentialsId)
+        if (credentialsEntity == null) {
+            Timber.w("SFTP credentials not found: $credentialsId")
+            return Result.failure(Exception("Credentials not found"))
+        }
+        
+        // Parse SFTP path to get host and port
+        val path = resource.path
+        val sftpRegex = """sftp://([^:]+):(\d+)""".toRegex()
+        val matchResult = sftpRegex.find(path)
+        
+        if (matchResult == null) {
+            Timber.w("Invalid SFTP path format: $path")
+            return Result.failure(Exception("Invalid SFTP path format"))
+        }
+        
+        val host = matchResult.groupValues[1]
+        val port = matchResult.groupValues[2].toIntOrNull() ?: 22
+        
+        // Test SFTP connection
+        return smbOperationsUseCase.testSftpConnection(
+            host = host,
+            port = port,
+            username = credentialsEntity.username,
+            password = credentialsEntity.password
+        )
+    }
+    
+    private suspend fun testFtpConnection(resource: MediaResource): Result<String> {
+        val credentialsId = resource.credentialsId
+        if (credentialsId == null) {
+            Timber.w("FTP resource has no credentials ID")
+            return Result.failure(Exception("No credentials configured for this FTP resource"))
+        }
+        
+        // Get credentials from database
+        val credentialsEntity = credentialsDao.getCredentialsById(credentialsId)
+        
+        if (credentialsEntity == null) {
+            Timber.w("FTP credentials not found for ID: $credentialsId")
+            return Result.failure(Exception("FTP credentials not found"))
+        }
+        
+        // Parse FTP path to get host and port
+        val path = resource.path
+        val ftpRegex = """ftp://([^:]+):(\d+)""".toRegex()
+        val matchResult = ftpRegex.find(path)
+        
+        if (matchResult == null) {
+            Timber.w("Invalid FTP path format: $path")
+            return Result.failure(Exception("Invalid FTP path format"))
+        }
+        
+        val host = matchResult.groupValues[1]
+        val port = matchResult.groupValues[2].toIntOrNull() ?: 21
+        
+        // Test FTP connection
+        return smbOperationsUseCase.testFtpConnection(
+            host = host,
+            port = port,
+            username = credentialsEntity.username,
+            password = credentialsEntity.password
         )
     }
     

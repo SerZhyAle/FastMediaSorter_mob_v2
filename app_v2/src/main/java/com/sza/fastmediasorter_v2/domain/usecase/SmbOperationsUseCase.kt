@@ -4,6 +4,7 @@ import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter_v2.data.network.SmbClient
+import com.sza.fastmediasorter_v2.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
@@ -15,11 +16,12 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * Use case for SMB/CIFS and SFTP network operations
+ * Use case for SMB/CIFS, SFTP and FTP network operations
  */
 class SmbOperationsUseCase @Inject constructor(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
+    private val ftpClient: FtpClient,
     private val credentialsDao: NetworkCredentialsDao,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
@@ -293,6 +295,58 @@ class SmbOperationsUseCase @Inject constructor(
             Result.success(credentialId)
         } catch (e: Exception) {
             Timber.e(e, "Failed to save SFTP credentials")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Test FTP connection with given credentials
+     */
+    suspend fun testFtpConnection(
+        host: String,
+        port: Int = 21,
+        username: String,
+        password: String
+    ): Result<String> = withContext(ioDispatcher) {
+        try {
+            val result = ftpClient.testConnection(host, port, username, password)
+            if (result.isSuccess) {
+                Result.success("FTP connection successful to $host:$port (passive mode)")
+            } else {
+                Result.failure(result.exceptionOrNull() ?: Exception("FTP connection failed"))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "FTP test connection failed")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Save FTP credentials to database
+     */
+    suspend fun saveFtpCredentials(
+        host: String,
+        port: Int = 21,
+        username: String,
+        password: String
+    ): Result<String> = withContext(ioDispatcher) {
+        try {
+            val credentialId = UUID.randomUUID().toString()
+            val entity = NetworkCredentialsEntity.create(
+                credentialId = credentialId,
+                type = "FTP",
+                server = host,
+                port = port,
+                username = username,
+                plaintextPassword = password,
+                domain = "", // Not used for FTP
+                shareName = null // Not used for FTP
+            )
+            
+            credentialsDao.insert(entity)
+            Result.success(credentialId)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save FTP credentials")
             Result.failure(e)
         }
     }

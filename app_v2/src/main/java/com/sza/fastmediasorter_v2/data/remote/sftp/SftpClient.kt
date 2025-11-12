@@ -39,6 +39,11 @@ class SftpClient @Inject constructor() {
             
             val client = SSHClient()
             client.addHostKeyVerifier(PromiscuousVerifier()) // Accept all host keys (security risk in production)
+            
+            // Set connection and socket timeout to 4 seconds (default is much longer)
+            client.connectTimeout = 4000 // 4 seconds
+            client.timeout = 4000 // 4 seconds for socket operations
+            
             client.connect(host, port)
             client.authPassword(username, password)
             
@@ -106,6 +111,11 @@ class SftpClient @Inject constructor() {
         try {
             val testClient = SSHClient()
             testClient.addHostKeyVerifier(PromiscuousVerifier())
+            
+            // Set connection and socket timeout to 10 seconds
+            testClient.connectTimeout = 10000 // 10 seconds
+            testClient.timeout = 10000 // 10 seconds for socket operations
+            
             testClient.connect(host, port)
             testClient.authPassword(username, password)
             

@@ -297,7 +297,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="@string/sftp_port"
-                    app:helperText="@string/sftp_port_hint"
+                    app:helperText="@string/sftp_ftp_port_hint"
                     app:helperTextEnabled="true"
                     app:boxBackgroundMode="outline">
 

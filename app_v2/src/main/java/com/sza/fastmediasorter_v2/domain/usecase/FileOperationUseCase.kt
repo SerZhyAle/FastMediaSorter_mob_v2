@@ -45,7 +45,10 @@ class FileOperationUseCase @Inject constructor(
             // Helper to check if path is network resource (use path instead of absolutePath to avoid /prefix)
             fun File.isNetworkPath(protocol: String): Boolean {
                 val pathStr = this.path
-                val result = pathStr.startsWith("$protocol://") || pathStr.startsWith("/$protocol://") || pathStr.startsWith("/$protocol:/")
+                val result = pathStr.startsWith("$protocol://") || 
+                             pathStr.startsWith("/$protocol://") || 
+                             pathStr.startsWith("/$protocol:/") ||
+                             pathStr.startsWith("$protocol:/")  // Single colon case
                 Timber.d("FileOperation.isNetworkPath: path='$pathStr', protocol='$protocol', result=$result")
                 return result
             }

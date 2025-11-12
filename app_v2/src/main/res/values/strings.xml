@@ -122,6 +122,7 @@
     <string name="grid_mode">Grid mode</string>
     <string name="full_screen_mode">Full screen mode</string>
     <string name="show_detailed_errors">Show detailed errors</string>
+    <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video)</string>
     <string name="default_icon_size">Default icon size (pixels)</string>
     <string name="enable_copying">Allow copying</string>
     <string name="go_to_next_after_copy">Go to next file after copying</string>
@@ -138,6 +139,7 @@
     <string name="resource_type_local">Local</string>
     <string name="resource_type_smb">SMB</string>
     <string name="resource_type_sftp">SFTP</string>
+    <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">Cloud</string>
     <string name="resource_name">Resource Name</string>
     <string name="resource_path">Resource Path</string>
@@ -177,10 +179,12 @@
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
     <string name="welcome_description_1">FastMediaSorter is a powerful tool for organizing your media files.\n\n• Browse photos, videos, GIFs, and audio files\n• Sort and filter by name, date, or size\n• Copy or move files with simple gestures\n• Support for local folders, network shares (SMB), and SFTP\n• Set up to 10 quick destination folders\n• Slideshow mode for media playback\n\nLet\'s get started with a quick tour!</string>
-    <string name="welcome_title_2">Gesture Controls</string>
-    <string name="welcome_description_2">Control media playback with intuitive touch gestures:\n\nNAVIGATION:\n• Tap LEFT side of screen - previous file\n• Tap RIGHT side of screen - next file\n• Swipe LEFT/RIGHT - quick navigation\n\nFILE OPERATIONS:\n• Swipe UP - copy to destination\n• Swipe DOWN - move to destination\n• Long press - show file options menu\n\nPLAYBACK:\n• Tap CENTER - pause/play (for video/audio)\n• Double tap - toggle fullscreen mode</string>
-    <string name="welcome_title_3">Resources and Destinations</string>
-    <string name="welcome_description_3">Organize your media workflow efficiently:\n\nRESOURCES (Source Folders):\n• Add local device folders (Camera, Downloads, etc.)\n• Connect to network shares via SMB/CIFS\n• Access SFTP servers\n• Each resource shows media file count and types\n\nDESTINATIONS (Quick Copy/Move):\n• Configure up to 10 destination folders\n• Assign colors to each destination\n• Quick access via gestures or buttons\n• Support both local and network locations\n\nYou can configure everything in Settings later!</string>
+    <string name="welcome_title_2">Touch Zones (Images/Video)</string>
+    <string name="welcome_description_2">Navigate and manage media with 9 touch zones (3x3 grid):\n\nTOP ROW:\n• BACK - exit player\n• COPY - copy file to destination\n• RENAME - rename current file\n\nMIDDLE ROW:\n• PREVIOUS - previous file\n• MOVE - move file to destination\n• NEXT - next file\n\nBOTTOM ROW (75% of screen):\n• COMMAND PANEL - show quick actions\n• DELETE - remove file\n• SLIDESHOW - toggle auto-play mode\n\nNote: Bottom 25% is reserved for video controls.</string>
+    <string name="welcome_title_3">Gesture Controls</string>
+    <string name="welcome_description_3">Control media playback with intuitive touch gestures:\n\nNAVIGATION:\n• Tap LEFT side of screen - previous file\n• Tap RIGHT side of screen - next file\n• Swipe LEFT/RIGHT - quick navigation\n\nFILE OPERATIONS:\n• Swipe UP - copy to destination\n• Swipe DOWN - move to destination\n• Long press - show file options menu\n\nPLAYBACK:\n• Tap CENTER - pause/play (for video/audio)\n• Double tap - toggle fullscreen mode</string>
+    <string name="welcome_title_4">Resources and Destinations</string>
+    <string name="welcome_description_4">Organize your media workflow efficiently:\n\nRESOURCES (Source Folders):\n• Add local device folders (Camera, Downloads, etc.)\n• Connect to network shares via SMB/CIFS\n• Access SFTP servers\n• Each resource shows media file count and types\n\nDESTINATIONS (Quick Copy/Move):\n• Configure up to 10 destination folders\n• Assign colors to each destination\n• Quick access via gestures or buttons\n• Support both local and network locations\n\nYou can configure everything in Settings later!</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Storage Access</string>
@@ -217,8 +221,8 @@
     <string name="network_folder_description">Add SMB network shares</string>
     <string name="cloud_folder">Cloud Folder</string>
     <string name="cloud_folder_description">Add Google Drive, Dropbox, OneDrive</string>
-    <string name="sftp_folder">SFTP</string>
-    <string name="sftp_folder_description">Add SFTP remote folders</string>
+    <string name="sftp_ftp_folder">SFTP / FTP</string>
+    <string name="sftp_ftp_folder_description">Add SFTP or FTP remote folders</string>
     
     <!-- SMB Network -->
     <string name="smb_server">Server IP</string>
@@ -237,11 +241,14 @@
     <string name="smb_scan_shares">Scan Shares</string>
     <string name="smb_credentials">SMB Network Credentials</string>
     
-    <!-- SFTP -->
+    <!-- SFTP / FTP -->
+    <string name="protocol_selection">Select Protocol:</string>
+    <string name="protocol_sftp">SFTP (port 22)</string>
+    <string name="protocol_ftp">FTP (port 21)</string>
     <string name="sftp_host">Host</string>
     <string name="sftp_host_hint">Server hostname or IP address</string>
     <string name="sftp_port">Port</string>
-    <string name="sftp_port_hint">Default: 22</string>
+    <string name="sftp_ftp_port_hint">SFTP: 22, FTP: 21</string>
     <string name="sftp_username">Username</string>
     <string name="sftp_password">Password</string>
     <string name="sftp_remote_path">Remote Path</string>
@@ -259,6 +266,19 @@
     <string name="touch_zone_next">NEXT</string>
     <string name="touch_zone_command_panel">COMMAND\nPANEL</string>
     <string name="touch_zone_delete">DELETE</string>
+    <string name="touch_zone_slideshow">SLIDESHOW</string>
+    
+    <!-- Touch Zones Legend -->
+    <string name="touch_zones_legend_title">Touch Zones Legend:</string>
+    <string name="touch_zone_1_back">1. BACK - Return to file list</string>
+    <string name="touch_zone_2_copy">2. COPY - Copy file to destination</string>
+    <string name="touch_zone_3_rename">3. RENAME - Rename current file</string>
+    <string name="touch_zone_4_previous">4. PREVIOUS - Go to previous file</string>
+    <string name="touch_zone_5_move">5. MOVE - Move file to destination</string>
+    <string name="touch_zone_6_next">6. NEXT - Go to next file</string>
+    <string name="touch_zone_7_command">7. COMMAND PANEL - Open command menu</string>
+    <string name="touch_zone_8_delete">8. DELETE - Delete current file</string>
+    <string name="touch_zone_9_slideshow">9. SLIDESHOW - Start/stop slideshow</string>
     
 </resources>
 

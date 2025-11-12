@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="640dp"
+    android:viewportWidth="360"
+    android:viewportHeight="640">
+    
+    <!-- Background -->
+    <path android:fillColor="#1A1A1A"
+        android:pathData="M0,0 L360,0 L360,640 L0,640 Z"/>
+    
+    <!-- Sample Video/Image area (75% height = 480px out of 640px) -->
+    <path android:fillColor="#2A2A2A"
+        android:pathData="M10,10 L350,10 Q355,10 355,15 L355,465 Q355,470 350,470 L10,470 Q5,470 5,465 L5,15 Q5,10 10,10 Z"/>
+    
+    <!-- Touch zone grid (75% of screen height = 480px) -->
+    
+    <!-- Row 1: TOP (0-160px) -->
+    
+    <!-- ZONE 1: BACK (top-left) -->
+    <path android:fillColor="#FF6B6B" android:fillAlpha="0.6"
+        android:pathData="M5,5 L123,5 L123,165 L5,165 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,5 L123,5 L123,165 L5,165 Z"
+        android:strokeColor="#CC0000" android:strokeWidth="2"/>
+    <!-- Zone 1 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 62,50 Q 58,50 58,54 L 58,110 Q 58,114 62,114 L 66,114 Q 70,114 70,110 L 70,54 Q 70,50 66,50 Z"/>
+    <path android:fillColor="#CC0000"
+        android:pathData="M 64,56 L 64,108"/>
+    
+    <!-- ZONE 2: COPY (top-center) -->
+    <path android:fillColor="#4ECDC4" android:fillAlpha="0.6"
+        android:pathData="M127,5 L237,5 L237,165 L127,165 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M127,5 L237,5 L237,165 L127,165 Z"
+        android:strokeColor="#00A896" android:strokeWidth="2"/>
+    <!-- Zone 2 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 177,50 Q 173,50 173,54 L 173,60 Q 173,64 177,64 L 187,64 Q 191,64 191,68 L 191,74 Q 191,78 187,78 L 177,78 Q 173,78 173,82 L 173,108 Q 173,114 179,114 L 191,114 Q 191,108 191,108 L 179,108 L 179,84 L 187,84 Q 197,84 197,74 L 197,68 Q 197,58 187,58 L 179,58 L 179,56 L 191,56 Q 191,50 191,50 Z"/>
+    
+    <!-- ZONE 3: RENAME (top-right) -->
+    <path android:fillColor="#FFD93D" android:fillAlpha="0.6"
+        android:pathData="M241,5 L355,5 L355,165 L241,165 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M241,5 L355,5 L355,165 L241,165 Z"
+        android:strokeColor="#F6C90E" android:strokeWidth="2"/>
+    <!-- Zone 3 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 293,50 Q 289,50 289,54 L 289,60 Q 289,64 293,64 L 303,64 Q 307,64 307,68 L 307,74 Q 307,78 303,78 L 293,78 Q 289,78 289,82 L 289,88 Q 289,92 293,92 L 303,92 Q 307,92 307,96 L 307,104 Q 307,108 303,108 L 293,108 Q 289,108 289,112 L 295,112 L 303,112 Q 313,112 313,102 L 313,96 Q 313,88 307,86 Q 313,84 313,76 L 313,68 Q 313,58 303,58 L 295,58 L 289,58 Z"/>
+    
+    <!-- Row 2: MIDDLE (160-320px) -->
+    
+    <!-- ZONE 4: PREVIOUS (middle-left) -->
+    <path android:fillColor="#95E1D3" android:fillAlpha="0.6"
+        android:pathData="M5,169 L123,169 L123,325 L5,325 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,169 L123,169 L123,325 L5,325 Z"
+        android:strokeColor="#00A896" android:strokeWidth="2"/>
+    <!-- Zone 4 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 56,215 L 56,221 L 70,221 L 70,215 L 70,269 L 76,269 L 76,209 L 64,209 L 56,215 Z
+                         M 56,221 L 56,269 L 64,269 L 64,227 L 56,227 Z"/>
+    
+    <!-- ZONE 5: MOVE (middle-center) -->
+    <path android:fillColor="#A8E6CF" android:fillAlpha="0.6"
+        android:pathData="M127,169 L237,169 L237,325 L127,325 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M127,169 L237,169 L237,325 L127,325 Z"
+        android:strokeColor="#56C596" android:strokeWidth="2"/>
+    <!-- Zone 5 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 177,209 Q 173,209 173,213 L 173,219 Q 173,223 177,223 L 187,223 Q 191,223 191,227 L 191,233 Q 191,237 187,237 L 177,237 Q 173,237 173,241 L 173,247 Q 173,251 177,251 L 187,251 Q 191,251 191,255 L 191,263 Q 191,267 187,267 L 177,267 Q 173,267 173,271 L 179,271 L 187,271 Q 197,271 197,261 L 197,255 Q 197,247 191,245 Q 197,243 197,235 L 197,227 Q 197,217 187,217 L 179,217 L 173,217 Z"/>
+    
+    <!-- ZONE 6: NEXT (middle-right) -->
+    <path android:fillColor="#95E1D3" android:fillAlpha="0.6"
+        android:pathData="M241,169 L355,169 L355,325 L241,325 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M241,169 L355,169 L355,325 L241,325 Z"
+        android:strokeColor="#00A896" android:strokeWidth="2"/>
+    <!-- Zone 6 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 293,209 Q 289,209 289,213 L 289,219 Q 289,223 293,223 L 303,223 Q 307,223 307,227 L 307,263 Q 307,267 303,267 L 293,267 Q 289,267 289,271 L 295,271 L 303,271 Q 313,271 313,261 L 313,227 Q 313,217 303,217 L 295,217 L 289,217 Z"/>
+    
+    <!-- Row 3: BOTTOM (320-480px) -->
+    
+    <!-- ZONE 7: COMMAND PANEL (bottom-left) -->
+    <path android:fillColor="#C7A3FF" android:fillAlpha="0.6"
+        android:pathData="M5,329 L123,329 L123,475 L5,475 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,329 L123,329 L123,475 L5,475 Z"
+        android:strokeColor="#9B6FFF" android:strokeWidth="2"/>
+    <!-- Zone 7 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 58,375 L 58,381 L 70,381 L 64,381 L 64,423 L 70,423 L 70,375 Z"/>
+    
+    <!-- ZONE 8: DELETE (bottom-center) -->
+    <path android:fillColor="#FF8B94" android:fillAlpha="0.6"
+        android:pathData="M127,329 L237,329 L237,475 L127,475 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M127,329 L237,329 L237,475 L127,475 Z"
+        android:strokeColor="#FF5A66" android:strokeWidth="2"/>
+    <!-- Zone 8 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 177,369 Q 173,369 173,373 L 173,379 Q 173,383 177,383 L 187,383 Q 191,383 191,387 L 191,393 Q 191,397 187,397 L 177,397 Q 173,397 173,401 L 173,407 Q 173,411 177,411 L 187,411 Q 191,411 191,415 L 191,423 Q 191,427 187,427 L 177,427 Q 173,427 173,423 L 173,417 Q 173,413 177,413 L 187,413 Q 185,413 185,411 L 185,405 Q 185,403 187,403 L 177,403 Q 179,403 179,401 L 179,393 Q 179,391 177,391 L 187,391 Q 197,391 197,381 L 197,373 Q 197,369 193,369 L 177,369 Z"/>
+    
+    <!-- ZONE 9: SLIDESHOW (bottom-right) -->
+    <path android:fillColor="#FFA07A" android:fillAlpha="0.6"
+        android:pathData="M241,329 L355,329 L355,475 L241,475 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M241,329 L355,329 L355,475 L241,475 Z"
+        android:strokeColor="#FF7F50" android:strokeWidth="2"/>
+    <!-- Zone 9 Number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 293,369 Q 289,369 289,373 L 289,379 Q 289,383 293,383 L 303,383 Q 307,383 307,387 L 307,393 Q 307,397 303,397 L 293,397 Q 289,397 289,401 L 289,407 Q 289,411 293,411 L 303,411 Q 307,411 307,415 L 307,423 Q 307,427 303,427 L 293,427 Q 289,427 289,423 L 295,423 L 303,423 Q 301,423 301,415 L 301,411 Q 301,407 293,407 Q 295,407 295,401 L 295,393 Q 295,387 303,387 L 303,383 Q 295,383 295,379 L 295,373 Q 295,369 303,369 L 313,377 L 313,423 L 319,423 L 319,369 Z"/>
+    
+    <!-- Bottom area (below 75%) - ExoPlayer controls zone -->
+    <path android:fillColor="#404040" android:fillAlpha="0.8"
+        android:pathData="M5,480 L355,480 L355,635 L5,635 Z"/>
+    
+    <!-- Label for bottom area -->
+    <path android:fillColor="#00000000"
+        android:pathData="M5,480 L355,480 L355,635 L5,635 Z"
+        android:strokeColor="#666666" android:strokeWidth="2" android:strokeLineCap="square"/>
+    
+    <!-- Outer border -->
+    <path android:fillColor="#00000000"
+        android:pathData="M0,0 L360,0 L360,640 L0,640 Z"
+        android:strokeColor="#FFFFFF" android:strokeWidth="3"/>
+    
+</vector>

@@ -47,12 +47,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             WelcomePage(
                 iconRes = R.mipmap.ic_launcher,
                 titleRes = R.string.welcome_title_2,
-                descriptionRes = R.string.welcome_description_2
+                descriptionRes = R.string.welcome_description_2,
+                showTouchZonesScheme = true
             ),
             WelcomePage(
                 iconRes = R.mipmap.ic_launcher,
                 titleRes = R.string.welcome_title_3,
                 descriptionRes = R.string.welcome_description_3
+            ),
+            WelcomePage(
+                iconRes = R.mipmap.ic_launcher,
+                titleRes = R.string.welcome_title_4,
+                descriptionRes = R.string.welcome_description_4
             )
         )
 
