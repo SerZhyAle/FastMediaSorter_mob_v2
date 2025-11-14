@@ -238,6 +238,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         is BrowseEvent.ShowMessage -> {
                             Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_SHORT).show()
                         }
+                        is BrowseEvent.ShowUndoToast -> {
+                            // Show toast with undo action hint
+                            val message = "Files ${event.operationType}. Tap UNDO to revert."
+                            Toast.makeText(this@BrowseActivity, message, Toast.LENGTH_LONG).show()
+                        }
                         is BrowseEvent.NavigateToPlayer -> {
                             val resourceId = viewModel.state.value.resource?.id ?: 0L
                             // Pass skipAvailabilityCheck to prevent redundant checks
@@ -856,6 +861,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // This ensures deleted/renamed files are properly reflected
         Timber.d("BrowseActivity.onResume: Refreshing file list")
         viewModel.reloadFiles()
+        
+        // Clear expired undo operations (older than 5 minutes)
+        viewModel.clearExpiredUndoOperation()
     }
 
     companion object {

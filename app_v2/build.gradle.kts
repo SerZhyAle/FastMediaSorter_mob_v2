@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11140313
-        versionName = "2.0.0-build2511140313"
+        versionCode = 11141808
+        versionName = "2.0.0-build2511141808"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -123,6 +123,13 @@ dependencies {
     // Hilt
     implementation("com.google.dagger:hilt-android:2.50")
     kapt("com.google.dagger:hilt-android-compiler:2.50")
+    
+    // WorkManager
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    
+    // Hilt WorkManager integration
+    implementation("androidx.hilt:hilt-work:1.1.0")
+    kapt("androidx.hilt:hilt-compiler:1.1.0")
     
     // Room
     implementation("androidx.room:room-runtime:2.6.1")

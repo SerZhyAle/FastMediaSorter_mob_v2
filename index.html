@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison of Media Managers for Android</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #1a1a1a;
+            border-bottom: 2px solid #eaeaea;
+            padding-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .feature-name {
+            font-weight: 500;
+            min-width: 180px;
+        }
+        .analysis-section {
+            margin-bottom: 30px;
+        }
+        .analysis-section h3 {
+            color: #0056b3;
+        }
+        .pros, .cons {
+            padding-left: 20px;
+        }
+        .pros li { color: #28a745; }
+        .cons li { color: #dc3545; }
+        .highlight {
+            background-color: #e7f3ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Comparative Analysis of Android Media Management Apps</h1>
+
+        <h2>Feature Table</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Feature</th>
+                    <th>FastMediaSorter v2 (Planned)</th>
+                    <th>Google Photos</th>
+                    <th>Simple Gallery Pro</th>
+                    <th>Aves Gallery</th>
+                    <th>F-Stop Gallery</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="feature-name">Core Principle</td>
+                    <td class="highlight">Fast manual sorting (copy/move) to destination folders</td>
+                    <td>Automatic organization and cloud synchronization</td>
+                    <td>Lightweight offline gallery with a focus on privacy</td>
+                    <td>Aggregator for large and diverse collections</td>
+                    <td>Organization via metadata (tags, ratings)</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Media Sources</td>
+                    <td class="highlight">Local, SMB, SFTP, Google Drive, OneDrive, Dropbox</td>
+                    <td>Local, Google Cloud</td>
+                    <td>Local</td>
+                    <td>Local, SMB, Google Drive, Dropbox, OneDrive, etc.</td>
+                    <td>Local, SMB (via plugin)</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Backup</td>
+                    <td>Copy/move to SMB, SFTP, Cloud</td>
+                    <td class="highlight">Automatic to Google Cloud</td>
+                    <td>No (manual copy only)</td>
+                    <td>No (manual copy only)</td>
+                    <td>No (manual copy only)</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Organization</td>
+                    <td>Moving between folders</td>
+                    <td class="highlight">Albums, smart albums (by faces, places)</td>
+                    <td>Folders, basic albums</td>
+                    <td>Albums, tags, filters</td>
+                    <td class="highlight">Folders, albums, smart albums, tags, ratings</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Metadata Editing</td>
+                    <td>No</td>
+                    <td>Limited (date, location)</td>
+                    <td>Yes (EXIF)</td>
+                    <td>Yes (EXIF, XMP)</td>
+                    <td class="highlight">Yes (EXIF, XMP), with writing to file</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Privacy</td>
+                    <td class="highlight">Full offline control, works with local network</td>
+                    <td>Low (data on Google servers)</td>
+                    <td class="highlight">Very high (offline, open source)</td>
+                    <td>High (offline, open source)</td>
+                    <td>High (offline)</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Interface</td>
+                    <td>Optimized for fast sorting (gestures, zones)</td>
+                    <td>Minimalist, automated</td>
+                    <td>Simple and customizable</td>
+                    <td>Functional, for power-users</td>
+                    <td>Functional, with a focus on tags</td>
+                </tr>
+                <tr>
+                    <td class="feature-name">Cost</td>
+                    <td>To be determined</td>
+                    <td>Free (with storage limitations)</td>
+                    <td>Paid (one-time)</td>
+                    <td>Free</td>
+                    <td>Free (Pro version is paid)</td>
+                </tr>
+                 <tr>
+                    <td class="feature-name">Source Code</td>
+                    <td>Closed</td>
+                    <td>Closed</td>
+                    <td class="highlight">Open</td>
+                    <td class="highlight">Open</td>
+                    <td>Closed</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Analysis of Advantages and Disadvantages</h2>
+
+        <div class="analysis-section">
+            <h3>FastMediaSorter v2</h3>
+            <ul class="pros">
+                <li><strong>Advantages:</strong></li>
+                <li>Unique workflow optimized for ultra-fast manual sorting of files into predefined folders (destinations).</li>
+                <li>Single interface for local, network (SMB, SFTP), and cloud sources, which is a rare combination.</li>
+                <li>Full control over files, independent of external services.</li>
+                <li>Thought-out UI for one-touch operations (touch zones).</li>
+            </ul>
+            <ul class="cons">
+                <li><strong>Disadvantages:</strong></li>
+                <li>Lack of "smart" features: no automatic classification by faces, objects, or places.</li>
+                <li>Organization is based solely on folder structure, without support for tags or ratings.</li>
+                <li>It is a niche tool, not a universal gallery for viewing.</li>
+            </ul>
+        </div>
+
+        <div class="analysis-section">
+            <h3>Google Photos</h3>
+            <ul class="pros">
+                <li><strong>Advantages:</strong></li>
+                <li>Best-in-class automatic organization and search (searching for "dog on the beach" works).</li>
+                <li>Seamless cloud synchronization and backup between devices.</li>
+                <li>Simple and clear interface for non-technical users.</li>
+            </ul>
+            <ul class="cons">
+                <li><strong>Disadvantages:</strong></li>
+                <li>Privacy: all data is analyzed by Google.</li>
+                <li>Strong dependence on the cloud and internet. Limited offline functionality.</li>
+                <li>Little control over manual organization and folder structure.</li>
+                <li>Photo compression in the free version.</li>
+            </ul>
+        </div>
+
+        <div class="analysis-section">
+            <h3>Simple Gallery Pro</h3>
+            <ul class="pros">
+                <li><strong>Advantages:</strong></li>
+                <li>Maximum privacy: completely offline, open source, no ads or trackers.</li>
+                <li>High performance and extensive interface customization options.</li>
+                <li>Supports basic file operations, a recycle bin, and hiding folders.</li>
+            </ul>
+            <ul class="cons">
+                <li><strong>Disadvantages:</strong></li>
+                <li>No network or cloud features.</li>
+                <li>Lacks any intelligent sorting or search functions.</li>
+                <li>Functionality is limited to basic viewing and management needs.</li>
+            </ul>
+        </div>
+
+        <div class="analysis-section">
+            <h3>Aves Gallery</h3>
+            <ul class="pros">
+                <li><strong>Advantages:</strong></li>
+                <li>Open source and focus on privacy.</li>
+                <li>Excellent at handling very large and "messy" media collections from various sources.</li>
+                <li>Wide format support, including specific ones (panoramas, videos with multiple audio tracks).</li>
+                <li>Powerful filtering and tagging system.</li>
+            </ul>
+            <ul class="cons">
+                <li><strong>Disadvantages:</strong></li>
+                <li>The interface might seem complex for a regular user.</li>
+                <li>Less attention to aesthetics compared to commercial counterparts.</li>
+            </ul>
+        </div>
+
+        <div class="analysis-section">
+            <h3>F-Stop Gallery</h3>
+            <ul class="pros">
+                <li><strong>Advantages:</strong></li>
+                <li>Professional approach to organization through metadata (tags, ratings), which are written directly into the files (XMP standard).</li>
+                <li>"Smart albums" that automatically update based on set rules (e.g., "all 5-star photos taken with a Sony camera").</li>
+                <li>High performance when working with large local collections.</li>
+            </ul>
+            <ul class="cons">
+                <li><strong>Disadvantages:</strong></li>
+                <li>Key features (metadata writing, network plugins) are only available in the paid Pro version.</li>
+                <li>Higher learning curve compared to simple galleries.</li>
+                <li>Closed source code.</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

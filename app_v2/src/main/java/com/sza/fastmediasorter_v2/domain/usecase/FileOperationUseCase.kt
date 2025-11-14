@@ -3,6 +3,8 @@ package com.sza.fastmediasorter_v2.domain.usecase
 import com.sza.fastmediasorter_v2.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter_v2.data.network.SftpFileOperationHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -14,7 +16,7 @@ sealed class FileOperation {
     data class Copy(val sources: List<File>, val destination: File, val overwrite: Boolean) : FileOperation()
     data class Move(val sources: List<File>, val destination: File, val overwrite: Boolean) : FileOperation()
     data class Rename(val file: File, val newName: String) : FileOperation()
-    data class Delete(val files: List<File>) : FileOperation()
+    data class Delete(val files: List<File>, val softDelete: Boolean = true) : FileOperation() // softDelete: move to trash instead of permanent delete
 }
 
 sealed class FileOperationResult {
@@ -59,6 +61,7 @@ class FileOperationUseCase @Inject constructor(
     /**
      * Execute file operation with progress updates emitted via Flow
      * Use this method when you need to show progress UI during long operations
+     * Supports cancellation via coroutine job cancellation
      */
     fun executeWithProgress(operation: FileOperation): Flow<FileOperationProgress> = flow {
         Timber.d("FileOperation.executeWithProgress: Starting ${operation.javaClass.simpleName}")
@@ -72,9 +75,14 @@ class FileOperationUseCase @Inject constructor(
         
         emit(FileOperationProgress.Starting(operation, totalFiles))
         
-        // For now, use existing execute() and emit completion
-        // TODO: Add granular progress tracking inside handlers
+        // Check for cancellation before executing
+        currentCoroutineContext().ensureActive()
+        
+        // Execute operation
         val result = execute(operation)
+        
+        // Check for cancellation before emitting result
+        currentCoroutineContext().ensureActive()
         
         emit(FileOperationProgress.Completed(result))
     }
@@ -421,7 +429,18 @@ class FileOperationUseCase @Inject constructor(
     private fun executeDelete(operation: FileOperation.Delete): FileOperationResult {
         val errors = mutableListOf<String>()
         val deletedPaths = mutableListOf<String>()
+        val trashedPaths = mutableListOf<String>() // For undo: original paths of trashed files
         var successCount = 0
+        
+        // For soft delete, create trash folder in first file's parent directory
+        val trashDir = if (operation.softDelete && operation.files.isNotEmpty()) {
+            val firstFileParent = operation.files.first().parentFile
+            File(firstFileParent, ".trash_${System.currentTimeMillis()}").apply {
+                if (!exists()) {
+                    mkdirs()
+                }
+            }
+        } else null
         
         operation.files.forEach { file ->
             try {
@@ -431,11 +450,27 @@ class FileOperationUseCase @Inject constructor(
                 }
                 
                 val filePath = file.absolutePath
-                if (file.delete()) {
-                    deletedPaths.add(filePath)
-                    successCount++
+                
+                if (operation.softDelete && trashDir != null) {
+                    // Soft delete: move to trash folder
+                    val trashFile = File(trashDir, file.name)
+                    if (file.renameTo(trashFile)) {
+                        trashedPaths.add(filePath) // Store original path for undo
+                        deletedPaths.add(trashFile.absolutePath) // Store trash path for cleanup
+                        successCount++
+                        Timber.d("Soft delete: moved ${file.name} to trash")
+                    } else {
+                        errors.add("Failed to move to trash: ${file.name}")
+                    }
                 } else {
-                    errors.add("Failed to delete: ${file.name}")
+                    // Hard delete: permanent deletion
+                    if (file.delete()) {
+                        deletedPaths.add(filePath)
+                        successCount++
+                        Timber.d("Hard delete: permanently deleted ${file.name}")
+                    } else {
+                        errors.add("Failed to delete: ${file.name}")
+                    }
                 }
                 
             } catch (e: Exception) {
@@ -443,8 +478,15 @@ class FileOperationUseCase @Inject constructor(
             }
         }
         
+        // Return trash directory path in copiedFilePaths for undo restoration
+        val resultPaths = if (operation.softDelete && trashDir != null) {
+            listOf(trashDir.absolutePath) + trashedPaths
+        } else {
+            deletedPaths
+        }
+        
         return when {
-            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
+            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, resultPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All delete operations failed")
         }

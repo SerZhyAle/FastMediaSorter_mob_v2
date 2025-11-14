@@ -98,6 +98,14 @@ class SftpMediaScanner @Inject constructor(
                         }
                     }
                     
+                    // TODO: Extract EXIF from SFTP files (requires downloading file header)
+                    // For now, EXIF extraction is skipped for network files to avoid slow scanning
+                    // EXIF can be extracted on-demand during image viewing
+                    
+                    // TODO: Extract video metadata from SFTP files (requires downloading file or partial read)
+                    // For now, video metadata extraction is skipped for network files to avoid slow scanning
+                    // Video metadata can be extracted on-demand during video viewing
+                    
                     MediaFile(
                         name = fileName,
                         path = fullPath,

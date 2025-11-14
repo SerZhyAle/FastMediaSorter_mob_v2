@@ -15,10 +15,12 @@ import java.text.DecimalFormat
 /**
  * Progress dialog for file operations (copy, move, delete)
  * Shows current file being processed, progress percentage, and transfer speed
+ * Supports cancellation via callback
  */
 class FileOperationProgressDialog(
     context: Context,
-    private val operationType: String // "Copying", "Moving", "Deleting"
+    private val operationType: String, // "Copying", "Moving", "Deleting"
+    private val onCancel: (() -> Unit)? = null // Callback when user clicks cancel
 ) : Dialog(context) {
 
     private lateinit var tvTitle: TextView
@@ -26,6 +28,7 @@ class FileOperationProgressDialog(
     private lateinit var tvProgress: TextView
     private lateinit var tvSpeed: TextView
     private lateinit var progressBar: ProgressBar
+    private lateinit var btnCancel: android.widget.Button
     
     private val sizeFormatter = DecimalFormat("#,##0.##")
 
@@ -43,8 +46,15 @@ class FileOperationProgressDialog(
         tvProgress = view.findViewById(R.id.tvProgressText)
         tvSpeed = view.findViewById(R.id.tvSpeed)
         progressBar = view.findViewById(R.id.progressBar)
+        btnCancel = view.findViewById(R.id.btnCancel)
         
         tvTitle.text = "$operationType files..."
+        
+        // Setup cancel button
+        btnCancel.setOnClickListener {
+            onCancel?.invoke()
+            dismiss()
+        }
         
         setContentView(view)
         setCancelable(false)
@@ -95,8 +105,12 @@ class FileOperationProgressDialog(
     }
 
     companion object {
-        fun show(context: Context, operationType: String): FileOperationProgressDialog {
-            return FileOperationProgressDialog(context, operationType).apply {
+        fun show(
+            context: Context,
+            operationType: String,
+            onCancel: (() -> Unit)? = null
+        ): FileOperationProgressDialog {
+            return FileOperationProgressDialog(context, operationType, onCancel).apply {
                 show()
             }
         }

@@ -95,7 +95,17 @@ data class MediaFile(
     val createdDate: Long,
     val duration: Long? = null,
     val width: Int? = null,
-    val height: Int? = null
+    val height: Int? = null,
+    // EXIF metadata fields (for IMAGE type)
+    val exifOrientation: Int? = null, // ExifInterface.TAG_ORIENTATION value (1-8)
+    val exifDateTime: Long? = null, // Photo capture timestamp from EXIF (milliseconds)
+    val exifLatitude: Double? = null, // GPS latitude from EXIF
+    val exifLongitude: Double? = null, // GPS longitude from EXIF
+    // Video metadata fields (for VIDEO type)
+    val videoCodec: String? = null, // Video codec name (e.g., "avc1", "vp9", "hevc")
+    val videoBitrate: Int? = null, // Video bitrate in bits per second
+    val videoFrameRate: Float? = null, // Video frame rate (fps)
+    val videoRotation: Int? = null // Video rotation angle (0, 90, 180, 270 degrees)
 )
 
 /**

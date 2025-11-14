@@ -23,7 +23,10 @@ data class AppSettings(
     val enableVideos: Boolean = true,
     val enableAudio: Boolean = true,
     val enableGifs: Boolean = true,
-    val language: String = "system" // en, ru, uk, system
+    val language: String = "system", // en, ru, uk, system
+    val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones overlay on first PlayerActivity launch
+    val copyPanelCollapsed: Boolean = false, // Remember collapsed state for Copy to panel
+    val movePanelCollapsed: Boolean = false  // Remember collapsed state for Move to panel
 )
 
 @Singleton
@@ -44,6 +47,9 @@ class SettingsManager @Inject constructor(
         private val ENABLE_AUDIO = booleanPreferencesKey("enable_audio")
         private val ENABLE_GIFS = booleanPreferencesKey("enable_gifs")
         private val LANGUAGE = stringPreferencesKey("language")
+        private val SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
+        private val COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
+        private val MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
     }
     
     val settings: Flow<AppSettings> = context.dataStore.data.map { preferences ->
@@ -59,7 +65,10 @@ class SettingsManager @Inject constructor(
             enableVideos = preferences[ENABLE_VIDEOS] ?: true,
             enableAudio = preferences[ENABLE_AUDIO] ?: true,
             enableGifs = preferences[ENABLE_GIFS] ?: true,
-            language = preferences[LANGUAGE] ?: "system"
+            language = preferences[LANGUAGE] ?: "system",
+            showPlayerHintOnFirstRun = preferences[SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
+            copyPanelCollapsed = preferences[COPY_PANEL_COLLAPSED] ?: false,
+            movePanelCollapsed = preferences[MOVE_PANEL_COLLAPSED] ?: false
         )
     }
     
@@ -132,6 +141,24 @@ class SettingsManager @Inject constructor(
     suspend fun setLanguage(value: String) {
         context.dataStore.edit { preferences ->
             preferences[LANGUAGE] = value
+        }
+    }
+    
+    suspend fun setShowPlayerHintOnFirstRun(value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[SHOW_PLAYER_HINT_ON_FIRST_RUN] = value
+        }
+    }
+    
+    suspend fun setCopyPanelCollapsed(value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[COPY_PANEL_COLLAPSED] = value
+        }
+    }
+    
+    suspend fun setMovePanelCollapsed(value: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[MOVE_PANEL_COLLAPSED] = value
         }
     }
 }

@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
+import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
+import com.sza.fastmediasorter_v2.domain.model.UndoOperation
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetDestinationsUseCase
@@ -41,7 +43,9 @@ class PlayerViewModel @Inject constructor(
         val allowDelete: Boolean = true,
         val enableCopying: Boolean = true,
         val enableMoving: Boolean = true,
-        val resource: MediaResource? = null
+        val resource: MediaResource? = null,
+        val lastOperation: UndoOperation? = null,
+        val undoOperationTimestamp: Long? = null
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         // Circular navigation: always allow prev/next if files.size > 1
@@ -68,6 +72,14 @@ class PlayerViewModel @Inject constructor(
     init {
         loadMediaFiles()
         loadSettings()
+    }
+    
+    /**
+     * Reload media files list.
+     * Call when returning from background to reflect external changes.
+     */
+    fun reloadFiles() {
+        loadMediaFiles()
     }
 
     private fun loadSettings() {
@@ -224,7 +236,28 @@ class PlayerViewModel @Inject constructor(
         }
         
         return try {
-            if (file.delete()) {
+            // Create .trash folder for soft-delete (undo support)
+            val parentDir = file.parentFile
+            val trashDir = java.io.File(parentDir, ".trash_${System.currentTimeMillis()}")
+            
+            if (!trashDir.exists() && !trashDir.mkdirs()) {
+                sendEvent(PlayerEvent.ShowError("Failed to create trash folder"))
+                return false
+            }
+            
+            // Move file to trash folder
+            val trashedFile = java.io.File(trashDir, file.name)
+            if (file.renameTo(trashedFile)) {
+                // Save undo operation
+                val undoOp = UndoOperation(
+                    type = com.sza.fastmediasorter_v2.domain.model.FileOperationType.DELETE,
+                    sourceFiles = listOf(currentFile.path), // Original path
+                    destinationFolder = null,
+                    copiedFiles = listOf(trashDir.absolutePath, currentFile.path), // trash dir + original path
+                    oldNames = null
+                )
+                saveUndoOperation(undoOp)
+                
                 // Remove deleted file from the list
                 val updatedFiles = state.value.files.toMutableList()
                 val deletedIndex = state.value.currentIndex
@@ -232,7 +265,7 @@ class PlayerViewModel @Inject constructor(
                 
                 if (updatedFiles.isEmpty()) {
                     // No files left, close activity
-                    sendEvent(PlayerEvent.ShowMessage("File deleted. No more files to display."))
+                    sendEvent(PlayerEvent.ShowMessage("File deleted. Tap UNDO to restore."))
                     sendEvent(PlayerEvent.FinishActivity)
                     null
                 } else {
@@ -244,10 +277,12 @@ class PlayerViewModel @Inject constructor(
                     }
                     
                     updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
-                    sendEvent(PlayerEvent.ShowMessage("File deleted successfully"))
+                    sendEvent(PlayerEvent.ShowMessage("File deleted. Tap UNDO to restore."))
                     true
                 }
             } else {
+                // Clean up empty trash folder
+                trashDir.delete()
                 sendEvent(PlayerEvent.ShowError("Failed to delete file"))
                 false
             }
@@ -256,6 +291,138 @@ class PlayerViewModel @Inject constructor(
             false
         }
     }
+    
+    /**
+     * Save undo operation with timestamp
+     */
+    fun saveUndoOperation(operation: UndoOperation) {
+        updateState { 
+            it.copy(
+                lastOperation = operation,
+                undoOperationTimestamp = System.currentTimeMillis()
+            ) 
+        }
+        timber.log.Timber.d("Saved undo operation: ${operation.type}, file: ${operation.sourceFiles.firstOrNull()}")
+    }
+    
+    /**
+     * Undo last delete operation
+     */
+    fun undoLastOperation() {
+        val operation = state.value.lastOperation
+        if (operation == null) {
+            sendEvent(PlayerEvent.ShowMessage("No operation to undo"))
+            return
+        }
+        
+        if (operation.type != com.sza.fastmediasorter_v2.domain.model.FileOperationType.DELETE) {
+            sendEvent(PlayerEvent.ShowMessage("Can only undo delete operations"))
+            return
+        }
+        
+        try {
+            // Restore file from trash folder
+            operation.copiedFiles?.let { paths ->
+                if (paths.size >= 2) {
+                    val trashDirPath = paths[0]
+                    val originalPath = paths[1]
+                    
+                    val trashDir = java.io.File(trashDirPath)
+                    val originalFile = java.io.File(originalPath)
+                    
+                    if (trashDir.exists() && trashDir.isDirectory) {
+                        // Find trashed file by name
+                        val trashedFile = java.io.File(trashDir, originalFile.name)
+                        
+                        if (trashedFile.exists() && trashedFile.renameTo(originalFile)) {
+                            // Remove trash directory if empty
+                            if (trashDir.listFiles()?.isEmpty() == true) {
+                                trashDir.delete()
+                            }
+                            
+                            // Clear undo operation
+                            updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
+                            
+                            sendEvent(PlayerEvent.ShowMessage("File restored successfully"))
+                            
+                            // Reload files to include restored file
+                            reloadFiles()
+                        } else {
+                            sendEvent(PlayerEvent.ShowError("Failed to restore file"))
+                        }
+                    } else {
+                        sendEvent(PlayerEvent.ShowError("Trash folder not found"))
+                    }
+                } else {
+                    sendEvent(PlayerEvent.ShowError("Invalid undo operation data"))
+                }
+            } ?: sendEvent(PlayerEvent.ShowError("No files to restore"))
+            
+        } catch (e: Exception) {
+            timber.log.Timber.e(e, "Undo operation failed")
+            sendEvent(PlayerEvent.ShowError("Undo failed: ${e.message}"))
+        }
+    }
+    
+    /**
+     * Clear expired undo operation (5 minutes)
+     */
+    fun clearExpiredUndoOperation() {
+        val currentState = state.value
+        val timestamp = currentState.undoOperationTimestamp
+        
+        if (timestamp != null && currentState.lastOperation != null) {
+            val elapsed = System.currentTimeMillis() - timestamp
+            val expiryTime = 5 * 60 * 1000L // 5 minutes
+            
+            if (elapsed > expiryTime) {
+                updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
+                timber.log.Timber.d("Expired undo operation cleared")
+            }
+        }
+    }
 
     suspend fun getSettings() = settingsRepository.getSettings().first()
+    
+    /**
+     * Get adjacent files for preloading (previous + next).
+     * Only returns IMAGE and GIF files for preloading.
+     * Supports circular navigation.
+     * 
+     * @return List of MediaFile to preload (previous, next)
+     */
+    fun getAdjacentFiles(): List<MediaFile> {
+        val currentState = state.value
+        if (currentState.files.size <= 1) return emptyList()
+        
+        val result = mutableListOf<MediaFile>()
+        
+        // Calculate previous index with circular wrap
+        val prevIndex = if (currentState.currentIndex <= 0) {
+            currentState.files.size - 1 // Loop to last
+        } else {
+            currentState.currentIndex - 1
+        }
+        val prevFile = currentState.files.getOrNull(prevIndex)
+        
+        // Calculate next index with circular wrap
+        val nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
+            0 // Loop to first
+        } else {
+            currentState.currentIndex + 1
+        }
+        val nextFile = currentState.files.getOrNull(nextIndex)
+        
+        // Add previous file if it's an image or GIF
+        if (prevFile != null && (prevFile.type == MediaType.IMAGE || prevFile.type == MediaType.GIF)) {
+            result.add(prevFile)
+        }
+        
+        // Add next file if it's an image or GIF
+        if (nextFile != null && (nextFile.type == MediaType.IMAGE || nextFile.type == MediaType.GIF)) {
+            result.add(nextFile)
+        }
+        
+        return result
+    }
 }

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter_v2.ui.main
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -215,6 +216,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         }
                         MainEvent.NavigateToSettings -> {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                        }
+                        is MainEvent.ScanProgress -> {
+                            binding.scanProgressLayout.visibility = View.VISIBLE
+                            binding.tvScanDetail.text = "${event.scannedCount} files scanned"
+                            event.currentFile?.let { fileName ->
+                                binding.tvScanProgress.text = "Scanning: $fileName"
+                            }
+                        }
+                        MainEvent.ScanComplete -> {
+                            binding.scanProgressLayout.visibility = View.GONE
                         }
                     }
                 }

@@ -39,6 +39,8 @@ sealed class MainEvent {
     data class NavigateToEditResource(val resourceId: Long) : MainEvent()
     object NavigateToAddResource : MainEvent()
     object NavigateToSettings : MainEvent()
+    data class ScanProgress(val scannedCount: Int, val currentFile: String?) : MainEvent()
+    object ScanComplete : MainEvent()
 }
 
 @HiltViewModel
@@ -285,6 +287,7 @@ class MainViewModel @Inject constructor(
     
     /**
      * Scan all resources and update file counts (slow)
+     * Shows progress for SMB resources with 100+ files
      */
     fun scanAllResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -304,8 +307,34 @@ class MainViewModel @Inject constructor(
                 val resources = getResourcesUseCase().first()
                 resources.forEach { resource ->
                     val scanner = mediaScannerFactory.getScanner(resource.type)
+                    
+                    // Create progress callback for SMB resources
+                    val progressCallback = if (resource.type == ResourceType.SMB) {
+                        object : com.sza.fastmediasorter_v2.domain.usecase.ScanProgressCallback {
+                            override suspend fun onProgress(scannedCount: Int, currentFile: String?) {
+                                sendEvent(MainEvent.ScanProgress(scannedCount, currentFile))
+                            }
+                            
+                            override suspend fun onComplete(totalFiles: Int, durationMs: Long) {
+                                Timber.d("SMB scan completed: $totalFiles files in ${durationMs}ms")
+                                sendEvent(MainEvent.ScanComplete)
+                            }
+                        }
+                    } else null
+                    
                     val fileCount = try {
-                        scanner.getFileCount(resource.path, resource.supportedMediaTypes, sizeFilter)
+                        // Use scanner with progress for SMB
+                        if (scanner is com.sza.fastmediasorter_v2.data.network.SmbMediaScanner && progressCallback != null) {
+                            scanner.scanFolderWithProgress(
+                                resource.path,
+                                resource.supportedMediaTypes,
+                                sizeFilter,
+                                resource.credentialsId,
+                                progressCallback
+                            ).size
+                        } else {
+                            scanner.getFileCount(resource.path, resource.supportedMediaTypes, sizeFilter, resource.credentialsId)
+                        }
                     } catch (e: Exception) {
                         Timber.e(e, "Error counting files for ${resource.name}")
                         resource.fileCount

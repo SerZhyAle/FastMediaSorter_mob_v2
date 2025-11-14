@@ -24,6 +24,7 @@ import coil.load
 import coil.request.ImageRequest
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
+import com.sza.fastmediasorter_v2.data.local.preferences.SettingsManager
 import com.sza.fastmediasorter_v2.data.network.SmbClient
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData
@@ -72,6 +73,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     @Inject
     lateinit var credentialsRepository: NetworkCredentialsRepository
+    
+    @Inject
+    lateinit var settingsManager: SettingsManager
+    
+    @Inject
+    lateinit var rotateImageUseCase: com.sza.fastmediasorter_v2.domain.usecase.RotateImageUseCase
+    
+    @Inject
+    lateinit var flipImageUseCase: com.sza.fastmediasorter_v2.domain.usecase.FlipImageUseCase
 
     private val slideShowRunnable = object : Runnable {
         override fun run() {
@@ -527,6 +537,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             scheduleHideControls()
         }
 
+        binding.btnInfoCmd.setOnClickListener {
+            showFileInfo()
+            scheduleHideControls()
+        }
+
         binding.btnDelete.setOnClickListener {
             deleteCurrentFile()
             scheduleHideControls()
@@ -553,6 +568,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.btnDeleteCmd.setOnClickListener {
             deleteCurrentFile()
         }
+        
+        binding.btnEditCmd.setOnClickListener {
+            showImageEditDialog()
+        }
+        
+        binding.btnUndoCmd.setOnClickListener {
+            viewModel.undoLastOperation()
+        }
 
         binding.btnSlideshowCmd.setOnClickListener {
             val wasActive = viewModel.state.value.isSlideShowActive
@@ -566,6 +589,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             updateSlideShowButton()
             updateSlideShow()
         }
+        
+        // Setup collapsible Copy to panel
+        binding.copyToPanelHeader.setOnClickListener {
+            toggleCopyPanel()
+        }
+        
+        // Setup collapsible Move to panel
+        binding.moveToPanelHeader.setOnClickListener {
+            toggleMovePanel()
+        }
     }
 
     private fun setupTouchZones() {
@@ -575,6 +608,47 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         binding.touchZoneNext.setOnClickListener {
             viewModel.nextFile()
+        }
+        
+        // Show first-run hint overlay if enabled in settings
+        lifecycleScope.launch {
+            val shouldShowHint = settingsManager.settings.first().showPlayerHintOnFirstRun
+            if (shouldShowHint) {
+                showFirstRunHintOverlay()
+            }
+        }
+    }
+    
+    /**
+     * Show first-run hint overlay with touch zones guide
+     * Dismisses on tap or after 5 seconds timeout
+     */
+    private fun showFirstRunHintOverlay() {
+        // Make overlay visible with semi-transparent background
+        binding.audioTouchZonesOverlay.isVisible = true
+        binding.audioTouchZonesOverlay.alpha = 0.9f
+        
+        // Dismiss on any tap
+        binding.audioTouchZonesOverlay.setOnClickListener {
+            dismissFirstRunHintOverlay()
+        }
+        
+        // Auto-dismiss after 5 seconds
+        Handler(Looper.getMainLooper()).postDelayed({
+            dismissFirstRunHintOverlay()
+        }, 5000)
+    }
+    
+    /**
+     * Dismiss first-run hint overlay and save flag to prevent showing again
+     */
+    private fun dismissFirstRunHintOverlay() {
+        binding.audioTouchZonesOverlay.isVisible = false
+        binding.audioTouchZonesOverlay.setOnClickListener(null)
+        
+        // Save flag to DataStore
+        lifecycleScope.launch {
+            settingsManager.setShowPlayerHintOnFirstRun(false)
         }
     }
     
@@ -695,6 +769,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             
             // Populate destination buttons
             populateDestinationButtons()
+            
+            // Restore collapsed state from settings
+            lifecycleScope.launch {
+                val settings = settingsManager.settings.first()
+                updateCopyPanelVisibility(settings.copyPanelCollapsed)
+                updateMovePanelVisibility(settings.movePanelCollapsed)
+            }
 
             // Apply small controls setting if enabled
             val state = viewModel.state.value
@@ -727,6 +808,54 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Update audio touch zones overlay whenever panel visibility changes
         updateAudioTouchZonesVisibility()
     }
+    
+    /**
+     * Toggle Copy to panel collapsed/expanded state
+     */
+    private fun toggleCopyPanel() {
+        lifecycleScope.launch {
+            val currentSettings = settingsManager.settings.first()
+            val newCollapsedState = !currentSettings.copyPanelCollapsed
+            
+            // Save new state
+            settingsManager.setCopyPanelCollapsed(newCollapsedState)
+            
+            // Update UI
+            updateCopyPanelVisibility(newCollapsedState)
+        }
+    }
+    
+    /**
+     * Toggle Move to panel collapsed/expanded state
+     */
+    private fun toggleMovePanel() {
+        lifecycleScope.launch {
+            val currentSettings = settingsManager.settings.first()
+            val newCollapsedState = !currentSettings.movePanelCollapsed
+            
+            // Save new state
+            settingsManager.setMovePanelCollapsed(newCollapsedState)
+            
+            // Update UI
+            updateMovePanelVisibility(newCollapsedState)
+        }
+    }
+    
+    /**
+     * Update Copy to panel buttons visibility and indicator
+     */
+    private fun updateCopyPanelVisibility(collapsed: Boolean) {
+        binding.copyToButtonsGrid.isVisible = !collapsed
+        binding.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
+    }
+    
+    /**
+     * Update Move to panel buttons visibility and indicator
+     */
+    private fun updateMovePanelVisibility(collapsed: Boolean) {
+        binding.moveToButtonsGrid.isVisible = !collapsed
+        binding.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
+    }
 
     /**
      * Update command availability based on settings and file permissions
@@ -746,6 +875,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val parentDir = file.parentFile
         val canDeleteFile = parentDir?.canWrite() == true && canRead
         binding.btnDeleteCmd.isEnabled = canDeleteFile && state.allowDelete
+        
+        // Edit: visible only for images with write permission
+        binding.btnEditCmd.isVisible = state.showCommandPanel && 
+                                        currentFile.type == MediaType.IMAGE && 
+                                        canWrite && 
+                                        canRead
+        
+        // Undo: visible only when there is a pending undo operation
+        binding.btnUndoCmd.isVisible = state.showCommandPanel && state.lastOperation != null
         
         // Copy/Move panels visibility based on settings
         binding.copyToPanel.isVisible = state.showCommandPanel && state.enableCopying
@@ -840,61 +978,50 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     /**
-     * Preload next image in background for faster navigation
-     * Only preloads if next file is IMAGE or GIF
-     * Supports circular navigation
+     * Preload adjacent images (previous + next) in background for faster navigation.
+     * Only preloads IMAGE and GIF files.
+     * Supports circular navigation.
      */
     private fun preloadNextImageIfNeeded() {
-        val state = viewModel.state.value
-        if (state.files.size <= 1) return // Nothing to preload
+        val adjacentFiles = viewModel.getAdjacentFiles()
+        if (adjacentFiles.isEmpty()) return
         
-        // Calculate next index with circular wrap
-        val nextIndex = if (state.currentIndex >= state.files.size - 1) {
-            0 // Loop to first
-        } else {
-            state.currentIndex + 1
-        }
-        val nextFile = state.files.getOrNull(nextIndex) ?: return
+        val resource = viewModel.state.value.resource ?: return
         
-        // Only preload images and GIFs
-        if (nextFile.type != MediaType.IMAGE && nextFile.type != MediaType.GIF) {
-            Timber.d("PlayerActivity: Next file is not an image, skipping preload")
-            return
-        }
-        
-        val resource = state.resource ?: return
-        
-        // Check if this is a network resource
-        if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP) {
-            Timber.d("PlayerActivity: Preloading next network image: ${nextFile.path}")
-            
-            val networkData = NetworkFileData(path = nextFile.path, credentialsId = resource.credentialsId)
-            val preloadRequest = ImageRequest.Builder(this)
-                .data(networkData)
-                .listener(
-                    onSuccess = { _, _ ->
-                        Timber.d("PlayerActivity: Next image preloaded successfully")
-                    },
-                    onError = { _, result ->
-                        Timber.w(result.throwable, "PlayerActivity: Failed to preload next image")
-                    }
-                )
-                .build()
-            
-            imageLoader.enqueue(preloadRequest)
-        } else {
-            // Preload local file
-            Timber.d("PlayerActivity: Preloading next local image: ${nextFile.path}")
-            val preloadRequest = ImageRequest.Builder(this)
-                .data(File(nextFile.path))
-                .listener(
-                    onSuccess = { _, _ ->
-                        Timber.d("PlayerActivity: Next local image preloaded")
-                    }
-                )
-                .build()
-            
-            imageLoader.enqueue(preloadRequest)
+        // Preload each adjacent file
+        adjacentFiles.forEach { file ->
+            // Check if this is a network resource
+            if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP) {
+                Timber.d("PlayerActivity: Preloading network image: ${file.path}")
+                
+                val networkData = NetworkFileData(path = file.path, credentialsId = resource.credentialsId)
+                val preloadRequest = ImageRequest.Builder(this)
+                    .data(networkData)
+                    .listener(
+                        onSuccess = { _, _ ->
+                            Timber.d("PlayerActivity: Image preloaded successfully: ${file.name}")
+                        },
+                        onError = { _, result ->
+                            Timber.w(result.throwable, "PlayerActivity: Failed to preload image: ${file.name}")
+                        }
+                    )
+                    .build()
+                
+                imageLoader.enqueue(preloadRequest)
+            } else {
+                // Preload local file
+                Timber.d("PlayerActivity: Preloading local image: ${file.path}")
+                val preloadRequest = ImageRequest.Builder(this)
+                    .data(File(file.path))
+                    .listener(
+                        onSuccess = { _, _ ->
+                            Timber.d("PlayerActivity: Local image preloaded: ${file.name}")
+                        }
+                    )
+                    .build()
+                
+                imageLoader.enqueue(preloadRequest)
+            }
         }
     }
 
@@ -1206,6 +1333,44 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         } else {
             Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
         }
+    }
+
+    private fun showFileInfo() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, "No file information available", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Show file information dialog
+        val dialog = com.sza.fastmediasorter_v2.ui.dialog.FileInfoDialog(this, currentFile)
+        dialog.show()
+    }
+    
+    private fun showImageEditDialog() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, "No file to edit", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        if (currentFile.type != MediaType.IMAGE) {
+            Toast.makeText(this, "Edit is only available for images", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Show image edit dialog
+        val dialog = com.sza.fastmediasorter_v2.ui.dialog.ImageEditDialog(
+            context = this,
+            imagePath = currentFile.path,
+            rotateImageUseCase = rotateImageUseCase,
+            flipImageUseCase = flipImageUseCase,
+            onEditComplete = {
+                // TODO: Reload current file after edit is implemented
+                Toast.makeText(this, "Image edit completed", Toast.LENGTH_SHORT).show()
+            }
+        )
+        dialog.show()
     }
 
     private fun deleteCurrentFile() {
@@ -1568,6 +1733,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         super.onPause()
         exoPlayer?.pause()
         viewModel.togglePause()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Reload files when returning from background
+        // This ensures deleted/renamed files from external apps are reflected
+        Timber.d("PlayerActivity.onResume: Reloading files")
+        viewModel.reloadFiles()
+        
+        // Clear expired undo operations (5 minutes timeout)
+        viewModel.clearExpiredUndoOperation()
     }
 
     override fun onDestroy() {

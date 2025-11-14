@@ -59,6 +59,23 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete" />
+        
+        <ImageButton
+            android:id="@+id/btnInfoCmd"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/file_information"
+            android:src="@android:drawable/ic_menu_info_details" />
+        
+        <ImageButton
+            android:id="@+id/btnEditCmd"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Edit image"
+            android:src="@android:drawable/ic_menu_edit"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/btnUndoCmd"
@@ -452,13 +469,33 @@
         android:padding="4dp"
         android:visibility="gone">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/copyToPanelHeader"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Copy to..."
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:paddingBottom="2dp" />
+            android:orientation="horizontal"
+            android:paddingBottom="2dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/copyToPanelIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▼"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:paddingEnd="4dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Copy to..."
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <GridLayout
             android:id="@+id/copyToButtonsGrid"
@@ -480,13 +517,33 @@
         android:padding="4dp"
         android:visibility="gone">
 
-        <TextView
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/moveToPanelHeader"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Move to..."
-            android:textColor="@android:color/white"
-            android:textSize="12sp"
-            android:paddingBottom="2dp" />
+            android:orientation="horizontal"
+            android:paddingBottom="2dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/moveToPanelIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▼"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                android:paddingEnd="4dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Move to..."
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+        </LinearLayout>
 
         <GridLayout
             android:id="@+id/moveToButtonsGrid"

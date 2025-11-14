@@ -42,5 +42,9 @@ data class AppSettings(
     val overwriteOnCopy: Boolean = false,
     val enableMoving: Boolean = true,
     val overwriteOnMove: Boolean = false,
-    val enableUndo: Boolean = true
+    val enableUndo: Boolean = true,
+    
+    // Player UI settings
+    val copyPanelCollapsed: Boolean = false,
+    val movePanelCollapsed: Boolean = false
 )

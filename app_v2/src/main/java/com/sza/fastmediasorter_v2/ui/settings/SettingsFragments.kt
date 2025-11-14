@@ -15,7 +15,9 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import kotlin.math.roundToInt
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter_v2.R
@@ -587,14 +589,7 @@ class DestinationsSettingsFragment : Fragment() {
         private val onMoveDown: (Int) -> Unit,
         private val onDelete: (Int) -> Unit,
         private val onColorClick: (MediaResource) -> Unit
-    ) : RecyclerView.Adapter<DestinationsAdapter.ViewHolder>() {
-        
-        private var destinations: List<MediaResource> = emptyList()
-        
-        fun submitList(list: List<MediaResource>) {
-            destinations = list
-            notifyDataSetChanged()
-        }
+    ) : ListAdapter<MediaResource, DestinationsAdapter.ViewHolder>(DestinationDiffCallback) {
         
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
             val binding = ItemDestinationBinding.inflate(
@@ -604,10 +599,8 @@ class DestinationsSettingsFragment : Fragment() {
         }
         
         override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(destinations[position], position)
+            holder.bind(getItem(position), position)
         }
-        
-        override fun getItemCount() = destinations.size
         
         inner class ViewHolder(private val binding: ItemDestinationBinding) : 
             RecyclerView.ViewHolder(binding.root) {
@@ -635,6 +628,16 @@ class DestinationsSettingsFragment : Fragment() {
                 // Delete button
                 binding.btnDelete.setOnClickListener { onDelete(position) }
             }
+        }
+    }
+    
+    private object DestinationDiffCallback : DiffUtil.ItemCallback<MediaResource>() {
+        override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
+            return oldItem == newItem
         }
     }
 }

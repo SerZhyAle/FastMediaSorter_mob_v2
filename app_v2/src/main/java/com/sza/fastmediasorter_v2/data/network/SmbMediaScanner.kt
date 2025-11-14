@@ -3,6 +3,7 @@ package com.sza.fastmediasorter_v2.data.network
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.usecase.ExtractExifMetadataUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import kotlinx.coroutines.Dispatchers
@@ -18,7 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class SmbMediaScanner @Inject constructor(
     private val smbClient: SmbClient,
-    private val credentialsDao: NetworkCredentialsDao
+    private val credentialsDao: NetworkCredentialsDao,
+    private val exifExtractor: ExtractExifMetadataUseCase
 ) : MediaScanner {
 
     companion object {
@@ -34,6 +36,19 @@ class SmbMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         credentialsId: String?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
+        scanFolderWithProgress(path, supportedTypes, sizeFilter, credentialsId, null)
+    }
+    
+    /**
+     * Scan folder with progress callback support
+     */
+    suspend fun scanFolderWithProgress(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        credentialsId: String?,
+        progressCallback: com.sza.fastmediasorter_v2.domain.usecase.ScanProgressCallback?
+    ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Parse path format: smb://server:port/share/path
             val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
@@ -44,11 +59,12 @@ class SmbMediaScanner @Inject constructor(
             // Get all supported extensions
             val extensions = buildExtensionsSet(supportedTypes)
 
-            // Scan SMB folder
+            // Scan SMB folder with progress callback
             when (val result = smbClient.scanMediaFiles(
                 connectionInfo = connectionInfo.connectionInfo,
                 remotePath = connectionInfo.remotePath,
-                extensions = extensions
+                extensions = extensions,
+                progressCallback = progressCallback
             )) {
                 is SmbClient.SmbResult.Success -> {
                     // Convert SmbFileInfo to MediaFile
@@ -60,6 +76,14 @@ class SmbMediaScanner @Inject constructor(
                                 return@mapNotNull null
                             }
 
+                            // TODO: Extract EXIF from SMB files (requires downloading file header)
+                            // For now, EXIF extraction is skipped for network files to avoid slow scanning
+                            // EXIF can be extracted on-demand during image viewing
+                            
+                            // TODO: Extract video metadata from SMB files (requires downloading file or partial read)
+                            // For now, video metadata extraction is skipped for network files to avoid slow scanning
+                            // Video metadata can be extracted on-demand during video viewing
+                            
                             MediaFile(
                                 name = fileInfo.name,
                                 path = buildFullSmbPath(connectionInfo, fileInfo.path),

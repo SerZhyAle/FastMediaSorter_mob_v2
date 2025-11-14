@@ -35,12 +35,14 @@ data class BrowseState(
     val sortMode: SortMode = SortMode.NAME_ASC,
     val displayMode: DisplayMode = DisplayMode.LIST,
     val filter: FileFilter? = null,
-    val lastOperation: UndoOperation? = null
+    val lastOperation: UndoOperation? = null,
+    val undoOperationTimestamp: Long? = null // Timestamp when undo operation was saved (for expiry check)
 )
 
 sealed class BrowseEvent {
     data class ShowError(val message: String, val details: String? = null, val exception: Throwable? = null) : BrowseEvent()
     data class ShowMessage(val message: String) : BrowseEvent()
+    data class ShowUndoToast(val operationType: String) : BrowseEvent()
     data class NavigateToPlayer(val filePath: String, val fileIndex: Int) : BrowseEvent()
 }
 
@@ -476,8 +478,22 @@ class BrowseViewModel @Inject constructor(
     }
     
     fun saveUndoOperation(operation: UndoOperation) {
-        updateState { it.copy(lastOperation = operation) }
+        updateState { 
+            it.copy(
+                lastOperation = operation,
+                undoOperationTimestamp = System.currentTimeMillis()
+            ) 
+        }
         Timber.d("Saved undo operation: ${operation.type}, ${operation.sourceFiles.size} files")
+        
+        // Show toast notification with undo hint
+        val operationType = when (operation.type) {
+            com.sza.fastmediasorter_v2.domain.model.FileOperationType.COPY -> "copied"
+            com.sza.fastmediasorter_v2.domain.model.FileOperationType.MOVE -> "moved"
+            com.sza.fastmediasorter_v2.domain.model.FileOperationType.DELETE -> "deleted"
+            com.sza.fastmediasorter_v2.domain.model.FileOperationType.RENAME -> "renamed"
+        }
+        sendEvent(BrowseEvent.ShowUndoToast(operationType))
     }
     
     fun undoLastOperation() {
@@ -534,13 +550,46 @@ class BrowseViewModel @Inject constructor(
                     }
                     
                     com.sza.fastmediasorter_v2.domain.model.FileOperationType.DELETE -> {
-                        // Restore deleted files (if they were only marked for deletion)
-                        sendEvent(BrowseEvent.ShowMessage("Undo: delete operation cancelled"))
+                        // Restore files from trash folder
+                        operation.copiedFiles?.let { paths ->
+                            if (paths.isNotEmpty()) {
+                                val trashDirPath = paths[0] // First element is trash directory
+                                val trashDir = java.io.File(trashDirPath)
+                                
+                                if (trashDir.exists() && trashDir.isDirectory) {
+                                    var restoredCount = 0
+                                    val originalPaths = paths.drop(1) // Rest are original file paths
+                                    
+                                    trashDir.listFiles()?.forEach { trashedFile ->
+                                        // Find corresponding original path by filename
+                                        val originalPath = originalPaths.find { it.endsWith(trashedFile.name) }
+                                        if (originalPath != null) {
+                                            val originalFile = java.io.File(originalPath)
+                                            if (trashedFile.renameTo(originalFile)) {
+                                                restoredCount++
+                                                Timber.d("Undo delete: restored ${trashedFile.name}")
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Remove trash directory if empty
+                                    if (trashDir.listFiles()?.isEmpty() == true) {
+                                        trashDir.delete()
+                                    }
+                                    
+                                    sendEvent(BrowseEvent.ShowMessage("Undo: restored $restoredCount file(s)"))
+                                } else {
+                                    sendEvent(BrowseEvent.ShowMessage("Undo: trash folder not found"))
+                                }
+                            } else {
+                                sendEvent(BrowseEvent.ShowMessage("Undo: no files to restore"))
+                            }
+                        } ?: sendEvent(BrowseEvent.ShowMessage("Undo: delete operation cannot be undone"))
                     }
                 }
                 
                 // Clear undo operation after execution
-                updateState { it.copy(lastOperation = null) }
+                updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
                 
                 // Reload files to reflect changes
                 loadResource()
@@ -550,6 +599,25 @@ class BrowseViewModel @Inject constructor(
                 sendEvent(BrowseEvent.ShowError("Undo failed: ${e.message}"))
             } finally {
                 setLoading(false)
+            }
+        }
+    }
+    
+    /**
+     * Clear undo operation if it has expired (older than 5 minutes).
+     * Call this when activity resumes or when checking before showing undo button.
+     */
+    fun clearExpiredUndoOperation() {
+        val currentState = state.value
+        val timestamp = currentState.undoOperationTimestamp
+        
+        if (timestamp != null && currentState.lastOperation != null) {
+            val elapsedMillis = System.currentTimeMillis() - timestamp
+            val expiryMillis = 5 * 60 * 1000L // 5 minutes
+            
+            if (elapsedMillis > expiryMillis) {
+                updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
+                Timber.d("Cleared expired undo operation (age: ${elapsedMillis / 1000}s)")
             }
         }
     }

@@ -49,13 +49,17 @@ class MediaFileAdapter(
     companion object {
         private const val VIEW_TYPE_LIST = 0
         private const val VIEW_TYPE_GRID = 1
+        private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
     }
     
     fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
         if (isGridMode != enabled || thumbnailSize != iconSize) {
             isGridMode = enabled
             thumbnailSize = iconSize
-            notifyDataSetChanged()
+            // Instead of notifyDataSetChanged(), trigger rebind with payload
+            // This forces RecyclerView to call onCreateViewHolder for each item
+            // but preserves scroll position and animations
+            notifyItemRangeChanged(0, itemCount, PAYLOAD_VIEW_MODE_CHANGE)
         }
     }
 

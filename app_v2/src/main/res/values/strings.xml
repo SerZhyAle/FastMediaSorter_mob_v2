@@ -280,6 +280,26 @@
     <string name="touch_zone_8_delete">8. DELETE - Delete current file</string>
     <string name="touch_zone_9_slideshow">9. SLIDESHOW - Start/stop slideshow</string>
     
+    <!-- File Information Dialog -->
+    <string name="file_information">File Information</string>
+    <string name="file_info_section">File Information</string>
+    <string name="exif_info_section">EXIF Metadata</string>
+    <string name="video_info_section">Video Metadata</string>
+    <string name="file_name_label">Name: %1$s</string>
+    <string name="file_size_label">Size: %1$s</string>
+    <string name="file_date_label">Date: %1$s</string>
+    <string name="file_type_label">Type: %1$s</string>
+    <string name="file_path_label">Path: %1$s</string>
+    <string name="exif_datetime_label">Taken: %1$s</string>
+    <string name="exif_orientation_label">Orientation: %1$s</string>
+    <string name="exif_gps_label">GPS: %1$s</string>
+    <string name="video_duration_label">Duration: %1$s</string>
+    <string name="video_resolution_label">Resolution: %1$dx%2$d</string>
+    <string name="video_codec_label">Codec: %1$s</string>
+    <string name="video_bitrate_label">Bitrate: %1$s</string>
+    <string name="video_framerate_label">Frame Rate: %1$.2f fps</string>
+    <string name="video_rotation_label">Rotation: %1$d°</string>
+    
 </resources>
 
 

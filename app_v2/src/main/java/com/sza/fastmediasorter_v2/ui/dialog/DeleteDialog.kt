@@ -10,7 +10,9 @@ import com.sza.fastmediasorter_v2.databinding.DialogDeleteBinding
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 
 class DeleteDialog(
@@ -55,40 +57,69 @@ class DeleteDialog(
     }
 
     private fun deleteFiles() {
+        // Create cancellable job for delete operation
         (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
             try {
                 val operation = FileOperation.Delete(files)
-                val result = fileOperationUseCase.execute(operation)
                 
-                when (result) {
-                    is FileOperationResult.Success -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.deleted_n_files, result.processedCount),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        onComplete()
-                        dismiss()
+                // Show FileOperationProgressDialog with cancel support
+                val progressDialog = FileOperationProgressDialog.show(
+                    context,
+                    "Deleting",
+                    onCancel = { 
+                        cancel() // Cancel this coroutine job
                     }
-                    is FileOperationResult.PartialSuccess -> {
-                        Toast.makeText(
-                            context,
-                            "Deleted ${result.processedCount} of ${result.processedCount + result.failedCount} files",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        onComplete()
-                        dismiss()
-                    }
-                    is FileOperationResult.Failure -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.delete_failed, result.error),
-                            Toast.LENGTH_LONG
-                        ).show()
+                )
+                
+                // Use executeWithProgress to get progress updates
+                withContext(Dispatchers.IO) {
+                    fileOperationUseCase.executeWithProgress(operation).collect { progress ->
+                        // Update progress dialog on main thread
+                        withContext(Dispatchers.Main) {
+                            progressDialog.updateProgress(progress)
+                            
+                            // Handle completion
+                            if (progress is com.sza.fastmediasorter_v2.domain.usecase.FileOperationProgress.Completed) {
+                                handleDeleteResult(progress.result)
+                            }
+                        }
                     }
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                // Operation cancelled by user
+                Toast.makeText(context, "Delete operation cancelled", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {
                 Toast.makeText(context, "Delete error: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    private fun handleDeleteResult(result: FileOperationResult) {
+        when (result) {
+            is FileOperationResult.Success -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.deleted_n_files, result.processedCount),
+                    Toast.LENGTH_SHORT
+                ).show()
+                onComplete()
+                dismiss()
+            }
+            is FileOperationResult.PartialSuccess -> {
+                Toast.makeText(
+                    context,
+                    "Deleted ${result.processedCount} of ${result.processedCount + result.failedCount} files",
+                    Toast.LENGTH_LONG
+                ).show()
+                onComplete()
+                dismiss()
+            }
+            is FileOperationResult.Failure -> {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.delete_failed, result.error),
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
     }

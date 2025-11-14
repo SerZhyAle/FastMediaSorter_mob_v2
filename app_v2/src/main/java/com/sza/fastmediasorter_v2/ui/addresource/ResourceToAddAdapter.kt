@@ -20,8 +20,15 @@ class ResourceToAddAdapter(
     private var selectedPaths: Set<String> = emptySet()
 
     fun setSelectedPaths(paths: Set<String>) {
+        val oldSelected = selectedPaths
         selectedPaths = paths
-        notifyDataSetChanged()
+        
+        // Only notify changed items
+        currentList.forEachIndexed { index, resource ->
+            if (resource.path in oldSelected || resource.path in paths) {
+                notifyItemChanged(index)
+            }
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {

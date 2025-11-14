@@ -179,18 +179,26 @@ class SmbClient @Inject constructor() {
 
     /**
      * Scan SMB folder for media files (recursive)
+     * @param progressCallback Optional callback for progress updates (called every 10 files)
      */
     suspend fun scanMediaFiles(
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
-        extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav")
+        extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
+        progressCallback: com.sza.fastmediasorter_v2.domain.usecase.ScanProgressCallback? = null
     ): SmbResult<List<SmbFileInfo>> {
         return try {
+            val startTime = System.currentTimeMillis()
             val mediaFiles = mutableListOf<SmbFileInfo>()
             
             withConnection(connectionInfo) { share ->
-                scanDirectoryRecursive(share, remotePath, extensions, mediaFiles)
+                scanDirectoryRecursive(share, remotePath, extensions, mediaFiles, progressCallback)
                 SmbResult.Success(mediaFiles)
+            }.also {
+                if (it is SmbResult.Success) {
+                    val durationMs = System.currentTimeMillis() - startTime
+                    progressCallback?.onComplete(it.data.size, durationMs)
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Failed to scan SMB media files")
@@ -241,11 +249,12 @@ class SmbClient @Inject constructor() {
         }
     }
 
-    private fun scanDirectoryRecursive(
+    private suspend fun scanDirectoryRecursive(
         share: DiskShare,
         path: String,
         extensions: Set<String>,
-        results: MutableList<SmbFileInfo>
+        results: MutableList<SmbFileInfo>,
+        progressCallback: com.sza.fastmediasorter_v2.domain.usecase.ScanProgressCallback? = null
     ) {
         try {
             val dirPath = path.trim('/', '\\')
@@ -263,7 +272,7 @@ class SmbClient @Inject constructor() {
                 
                 if (isDirectory) {
                     // Recursively scan subdirectories
-                    scanDirectoryRecursive(share, fullPath, extensions, results)
+                    scanDirectoryRecursive(share, fullPath, extensions, results, progressCallback)
                 } else {
                     // Check if file has media extension
                     val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
@@ -277,6 +286,11 @@ class SmbClient @Inject constructor() {
                                 lastModified = fileInfo.lastWriteTime.toEpochMillis()
                             )
                         )
+                        
+                        // Report progress every 10 files
+                        if (results.size % 10 == 0) {
+                            progressCallback?.onProgress(results.size, fileInfo.fileName)
+                        }
                     }
                 }
             }

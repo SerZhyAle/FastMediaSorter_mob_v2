@@ -1,149 +1,76 @@
 # FastMediaSorter v2 🚀
 
-Android application for quickly sorting media files (images, videos, audio) from local folders, network shares (SMB/SFTP), and cloud storage.
+## О проекте
 
-## 📋 About the Project
+FastMediaSorter v2 — это мощное Android-приложение для быстрой и удобной сортировки медиафайлов (изображений, видео, GIF, аудио). Оно спроектировано как единый центр для управления файлами из различных источников: локальные папки устройства, сетевые диски (SMB, SFTP) и облачные хранилища.
 
-FastMediaSorter v2 is a complete rewrite of the original application using modern Android technologies and architectural patterns.
+Ключевая идея v2 — объединить просмотр, воспроизведение и организацию файлов в одном интуитивно понятном интерфейсе, устраняя недостатки и ограничения предыдущей версии.
 
-### Key Features
+## Ключевые возможности
 
-- ✅ **Clean Architecture** with separation into Domain, Data, and Presentation layers
-- ✅ **Modern Stack**: Kotlin, Hilt, Room, Coroutines, Flow
-- ✅ **Java 21** (LTS) - the latest version of the Java runtime
-- ✅ **Material Design 2** for a user-friendly UI/UX
-- ✅ **ExoPlayer** for media playback
-- ✅ **Dark Theme Support**
-- ✅ **Multilingual** (English, Russian, Ukrainian)
+*   🗂️ **Единый интерфейс:** Просмотр и управление файлами из всех источников в одном окне.
+*   ⚡ **Быстрая сортировка:** Копируйте или перемещайте файлы в заранее настроенные папки-получатели одним нажатием.
+*   🖥️ **Поддержка сети и облака:** Работайте с файлами на ваших сетевых дисках (SMB), SFTP-серверах и в облачных хранилищах (Google Drive, Dropbox и др.).
+*   🖼️ **Гибкий просмотр:** Отображение файлов в виде настраиваемой сетки или детального списка.
+*   ▶️ **Встроенный плеер:** Воспроизведение видео и аудио, просмотр изображений и GIF без выхода из приложения. Поддерживает слайд-шоу.
+*   🔍 **Сортировка и фильтрация:** Упорядочивайте файлы по имени, дате, размеру и длительности. Применяйте фильтры для быстрого поиска.
+*   ↩️ **Отмена операций:** Возможность отменить последнее действие (копирование, перемещение, удаление).
+*   🎨 **Современный интерфейс:** Поддержка светлой и темной тем, интуитивно понятное управление.
 
-## 🏗️ Architecture
+## Инструкция по сборке
 
-```
-app_v2/
-├── core/          # Base components (DI, UI base classes)
-├── data/          # Data sources (DB, network, local storage)
-├── domain/        # Business logic (models, use cases, repositories)
-└── ui/            # Presentation layer (Activities, ViewModels, adapters)
-```
+### Требования
+*   Android Studio Hedgehog (2023.1.1) или новее
+*   JDK 17+
+*   Android SDK 34
+*   Минимальная версия Android: 9.0 (API 28)
 
-### Technology Stack
+### Сборка
+1.  Клонируйте репозиторий:
+    ```bash
+    git clone https://github.com/yourusername/FastMediaSorter_mob_v2.git
+    cd FastMediaSorter_mob_v2
+    ```
+2.  Откройте проект в Android Studio.
+3.  Дождитесь окончания синхронизации Gradle.
+4.  Запустите приложение на эмуляторе или физическом устройстве.
 
-- **Language**: Kotlin 1.9.22
-- **Runtime**: Java 21 (LTS)
-- **Build System**: Gradle 8.2.1
-- **DI**: Hilt 2.50
-- **Database**: Room 2.6.1
-- **Async**: Kotlin Coroutines 1.7.3
-- **Navigation**: AndroidX Navigation 2.7.6
-- **Media**: ExoPlayer (Media3) 1.2.1
-- **Image Loading**: Coil 2.5.0
-- **Network**: SMBJ 0.12.1, SSHJ 0.37.0
-- **Logging**: Timber 5.0.1
+## Краткое руководство по использованию
 
-## 🚀 Quick Start
+1.  **Добавление папки (ресурса):**
+    *   На главном экране нажмите кнопку с иконкой "Плюс" (+), чтобы добавить новый ресурс.
+    *   Выберите тип ресурса (например, "Локальная папка").
+    *   Используйте сканирование или добавьте папку вручную. После добавления она появится в списке на главном экране.
 
-### Requirements
+2.  **Просмотр файлов:**
+    *   Дважды коснитесь (или сделайте долгое нажатие) на добавленный ресурс в списке.
+    *   Откроется экран просмотра (`Browse Screen`), где вы увидите все медиафайлы из этой папки в виде списка или сетки.
+    *   Используйте кнопки на верхней панели для сортировки, фильтрации или переключения вида.
 
-- Android Studio Hedgehog (2023.1.1) or newer
-- JDK 21
-- Android SDK 34
-- Minimum Android version: 9.0 (API 28)
+3.  **Воспроизведение и сортировка:**
+    *   Нажмите на любой файл, чтобы открыть его в полноэкранном плеере (`Player Screen`).
+    *   Используйте свайпы влево/вправо или сенсорные зоны для навигации между файлами.
+    *   Для выполнения операций (копирование, перемещение) используйте соответствующие сенсорные зоны или кнопки на панели управления.
 
-### Installation
+4.  **Настройка папок-получателей (Destinations):**
+    *   В настройках, на вкладке "Destinations", вы можете указать до 10 папок, которые будут использоваться для быстрой сортировки.
+    *   После этого на экране плеера появятся кнопки для быстрого копирования или перемещения файлов в эти папки.
 
-1. Clone the repository:
-```bash
-git clone https://github.com/yourusername/FastMediaSorter_mob_v2.git
-cd FastMediaSorter_mob_v2
-```
+## Технологический стек
 
-2. Open the project in Android Studio
+-   **Язык**: Kotlin
+-   **Архитектура**: Clean Architecture, MVVM
+-   **UI**: Android View System (XML), Material Design
+-   **Асинхронность**: Kotlin Coroutines & Flow
+-   **DI**: Hilt
+-   **База данных**: Room
+-   **Навигация**: AndroidX Navigation Component
+-   **Медиа**: ExoPlayer (Media3)
+-   **Сеть**: SMBJ (для SMB), SSHJ (для SFTP)
 
-3. Sync Gradle:
-```bash
-./gradlew build
-```
+## Статус проекта
 
-4. Run the application on an emulator or device
-
-## 📱 Core Features
-
-### Implemented ✅
-
-- **Resource Management**: add, edit, delete resource folders
-- **Media Browsing**: list/grid view of files with previews
-- **Playback**: built-in player for images, videos, audio
-- **Sorting**: by name, date, size, type
-- **File Operations**: copy, move, rename, delete
-- **Destinations**: up to 10 destination folders for quick sorting
-- **Slideshow**: automatic media playback
-- **Write Permission Indicator**: visual display for read-only folders
-
-### In Development 🔨
-
-- Multi-selection of files by range (long press)
-- Filtering resources on the main screen
-- Updating (rescan) resources
-- Touch zones in Player Screen (9-zone scheme)
-- Command Panel mode in Player
-- Application settings
-- Network resources (SMB, SFTP)
-- Cloud storage (Google Drive, Dropbox)
-
-### Planned 📋
-
-- Testing (Unit, UI, Integration)
-- Performance optimization
-- Accessibility features
-- CI/CD pipeline
-- Publication to Google Play
-
-## 📚 Documentation
-
-- [V2 Specification](V2_Specification.md) - full v2 specification
-- [Architecture Overview](V2_architecture_overview.md) - architecture overview
-- [TODO](TODO_V2.md) - task list and progress
-- [Changelog](CHANGELOG_SESSION.md) - change history
-
-## 🔄 Migration from v1
-
-The V1 application is located in the `V1/` folder and serves as a reference for functionality. Key differences in v2:
-
-| Aspect       | V1           | V2                                |
-|--------------|--------------|-----------------------------------|
-| Architecture | Monolithic   | Clean Architecture                |
-| DI           | Manual       | Hilt                              |
-| Database     | Room (basic) | Room + Coroutines                 |
-| Navigation   | Fragments    | Activities + Navigation Component |
-| Java Version | 17           | 21 (LTS)                          |
-| Build System | Gradle 7.x   | Gradle 8.2                        |
-
-## 🤝 Contributing
-
-The project is under active development. Contributions are welcome:
-
-- 🐛 Bug reports
-- 💡 Suggestions for improvement
-- 📝 Documentation improvements
-- ✨ Pull requests with new functionality
-
-## 📄 License
-
-This project is developed for personal use and learning.
-
-## 👤 Author
-
-**Serhii Zhyhunenko**
-- Email: serzhyale@gmail.com
-- GitHub: [@serzhyale](https://github.com/serzhyale)
-
-## 📊 Project Status
-
-**Milestone 2 (base functionality):** ✅ Completed
-**Specification improvements:** 🔄 In progress (6/19 tasks)
-**Additional features:** 📋 Planned (50+ tasks)
+Проект находится в активной разработке. Основная функциональность для работы с локальными файлами реализована. Ведется работа над интеграцией сетевых протоколов и расширением пользовательских настроек.
 
 ---
-
-**Last updated:** 06.11.2025
-**Version:** 2.0.0-alpha1
+*Этот файл был сгенерирован на основе проектной документации.*

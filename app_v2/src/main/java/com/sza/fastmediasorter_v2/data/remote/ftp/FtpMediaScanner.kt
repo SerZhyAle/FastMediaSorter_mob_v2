@@ -74,6 +74,10 @@ class FtpMediaScanner @Inject constructor(
                     // For now, we don't have size/date info from listFiles()
                     // This would require stat() for each file, which is expensive
                     // Apply size filter only if we have size info
+                    // TODO: Extract EXIF from FTP files (requires downloading file header)
+                    // For now, EXIF extraction is skipped for network files to avoid slow scanning
+                    // TODO: Extract video metadata from FTP files (requires downloading file or partial read)
+                    // For now, video metadata extraction is skipped for network files to avoid slow scanning
                     MediaFile(
                         name = fileName,
                         path = buildFullFtpPath(connectionInfo, fileName),
