@@ -27,6 +27,12 @@ class FileInfoDialog(
         binding = DialogFileInfoBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Set dialog width to 90% of screen width for better readability
+        window?.setLayout(
+            (context.resources.displayMetrics.widthPixels * 0.9).toInt(),
+            android.view.WindowManager.LayoutParams.WRAP_CONTENT
+        )
+
         setupDialog()
         displayFileInfo()
     }

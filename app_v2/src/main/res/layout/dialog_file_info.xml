@@ -4,22 +4,23 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="24dp"
+    android:minWidth="320dp">
 
     <TextView
         android:id="@+id/tvDialogTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/file_information"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
         android:textAlignment="center"
-        android:paddingBottom="16dp" />
+        android:paddingBottom="20dp" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:maxHeight="400dp"
+        android:maxHeight="500dp"
         android:scrollbars="vertical">
 
         <LinearLayout
@@ -33,44 +34,50 @@
                 android:layout_height="wrap_content"
                 android:text="@string/file_info_section"
                 android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                android:textSize="18sp"
                 android:paddingTop="8dp"
-                android:paddingBottom="8dp" />
+                android:paddingBottom="12dp" />
 
             <TextView
                 android:id="@+id/tvFileName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:paddingBottom="4dp" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="8dp" />
 
             <TextView
                 android:id="@+id/tvFileSize"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:paddingBottom="4dp" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="8dp" />
 
             <TextView
                 android:id="@+id/tvFileDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:paddingBottom="4dp" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="8dp" />
 
             <TextView
                 android:id="@+id/tvFileType"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                android:paddingBottom="4dp" />
+                android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="8dp" />
 
             <TextView
                 android:id="@+id/tvFilePath"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
                 android:textIsSelectable="true"
-                android:paddingBottom="4dp" />
+                android:lineSpacingMultiplier="1.2"
+                android:paddingBottom="8dp" />
 
             <!-- Image EXIF Section -->
             <LinearLayout
@@ -85,29 +92,33 @@
                     android:layout_height="wrap_content"
                     android:text="@string/exif_info_section"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textSize="18sp"
                     android:paddingTop="16dp"
-                    android:paddingBottom="8dp" />
+                    android:paddingBottom="12dp" />
 
                 <TextView
                     android:id="@+id/tvExifDateTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvExifOrientation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvExifGPS"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
             </LinearLayout>
 
             <!-- Video Metadata Section -->
@@ -123,50 +134,57 @@
                     android:layout_height="wrap_content"
                     android:text="@string/video_info_section"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textSize="18sp"
                     android:paddingTop="16dp"
-                    android:paddingBottom="8dp" />
+                    android:paddingBottom="12dp" />
 
                 <TextView
                     android:id="@+id/tvVideoDuration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvVideoResolution"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvVideoCodec"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvVideoBitrate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvVideoFrameRate"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
 
                 <TextView
                     android:id="@+id/tvVideoRotation"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:paddingBottom="4dp" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="8dp" />
             </LinearLayout>
 
         </LinearLayout>
@@ -177,7 +195,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
+        android:minWidth="120dp"
         android:text="@android:string/ok"
         style="@style/Widget.Material3.Button" />
 
