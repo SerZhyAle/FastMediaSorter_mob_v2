@@ -10,40 +10,26 @@
         android:id="@+id/ivTouchZonesScheme"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
         android:contentDescription="@string/welcome_title_2"
         android:scaleType="fitCenter"
         android:src="@drawable/touch_zones_numbered"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tvLegendTitle"
+        app:layout_constraintBottom_toTopOf="@id/tvLegend"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintHeight_percent="0.45" />
-
-    <TextView
-        android:id="@+id/tvLegendTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/touch_zones_legend_title"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="14sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="4dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tvLegend" />
+        app:layout_constraintHeight_percent="0.35" />
 
     <ScrollView
         android:id="@+id/tvLegend"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        app:layout_constraintTop_toBottomOf="@id/tvLegendTitle"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintTop_toBottomOf="@id/ivTouchZonesScheme"
         app:layout_constraintBottom_toTopOf="@id/tvTitle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintHeight_default="wrap">
+        app:layout_constraintStart_toStartOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -55,55 +41,64 @@
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_1_back"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_2_copy"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_3_rename"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_4_previous"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_5_move"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_6_next"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_7_command"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_8_delete"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/touch_zone_9_slideshow"
                 android:textColor="?attr/colorOnPrimary"
-                android:textSize="11sp"/>
+                android:textSize="12sp"
+                android:paddingBottom="2dp"/>
         </LinearLayout>
     </ScrollView>
 

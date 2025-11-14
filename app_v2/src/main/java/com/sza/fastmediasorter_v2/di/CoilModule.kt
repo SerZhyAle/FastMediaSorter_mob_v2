@@ -8,6 +8,7 @@ import coil.decode.VideoFrameDecoder
 import coil.util.DebugLogger
 import com.sza.fastmediasorter_v2.data.network.SmbClient
 import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileFetcher
+import com.sza.fastmediasorter_v2.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.domain.repository.NetworkCredentialsRepository
 import dagger.Module
@@ -28,6 +29,7 @@ object CoilModule {
         @ApplicationContext context: Context,
         smbClient: SmbClient,
         sftpClient: SftpClient,
+        ftpClient: FtpClient,
         credentialsRepository: NetworkCredentialsRepository
     ): ImageLoader {
         // Configure dispatcher for parallel network requests
@@ -49,8 +51,8 @@ object CoilModule {
                 // Add video frame decoder for local video thumbnails
                 add(VideoFrameDecoder.Factory())
                 
-                // Add network file fetcher for SMB/SFTP thumbnails
-                add(NetworkFileFetcher.Factory(smbClient, sftpClient, credentialsRepository))
+                // Add network file fetcher for SMB/SFTP/FTP thumbnails
+                add(NetworkFileFetcher.Factory(smbClient, sftpClient, ftpClient, credentialsRepository))
             }
             .crossfade(true)
             .diskCachePolicy(coil.request.CachePolicy.ENABLED) // Enable disk cache

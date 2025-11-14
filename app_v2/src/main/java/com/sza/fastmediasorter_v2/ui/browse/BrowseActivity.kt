@@ -137,6 +137,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.openFile(firstFile)
             }
         }
+        
+        binding.btnRetry.setOnClickListener {
+            viewModel.clearError()
+            viewModel.reloadFiles()
+        }
     }
 
     override fun observeData() {
@@ -202,6 +207,23 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.loading.collect { isLoading ->
                     binding.progressBar.isVisible = isLoading
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.error.collect { errorMessage ->
+                    // Show error state if error occurred and no files loaded
+                    val hasError = errorMessage != null
+                    val isEmpty = mediaFileAdapter.itemCount == 0
+                    
+                    binding.errorStateView.isVisible = hasError && isEmpty
+                    binding.tvEmpty.isVisible = !hasError && isEmpty
+                    
+                    if (hasError && isEmpty) {
+                        binding.tvErrorMessage.text = errorMessage
+                    }
                 }
             }
         }

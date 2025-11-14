@@ -41,6 +41,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Log app version
+        try {
+            val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+            val versionCode = packageManager.getPackageInfo(packageName, 0).longVersionCode
+            Timber.d("App version: $versionName (code: $versionCode)")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get app version")
+        }
+        
         // Check if this is first launch
         if (!welcomeViewModel.isWelcomeCompleted()) {
             startActivity(Intent(this, WelcomeActivity::class.java))
@@ -131,6 +140,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         binding.emptyStateView.setOnClickListener {
             viewModel.addResource()
         }
+        
+        binding.btnRetry.setOnClickListener {
+            viewModel.clearError()
+            viewModel.refreshResources()
+        }
     }
 
     override fun observeData() {
@@ -142,15 +156,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     
                     binding.btnStartPlayer.isEnabled = state.selectedResource != null
                     
-                    // Show/hide empty state
-                    if (state.resources.isEmpty()) {
-                        binding.emptyStateView.isVisible = true
-                        binding.rvResources.isVisible = false
-                    } else {
-                        binding.emptyStateView.isVisible = false
-                        binding.rvResources.isVisible = true
-                    }
-                    
                     updateFilterWarning(state)
                 }
             }
@@ -160,6 +165,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.loading.collect { isLoading ->
                     binding.progressBar.isVisible = isLoading
+                }
+            }
+        }
+        
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.error.collect { errorMessage ->
+                    // Show error state if error occurred and no resources loaded
+                    val hasError = errorMessage != null
+                    val isEmpty = resourceAdapter.itemCount == 0
+                    
+                    binding.errorStateView.isVisible = hasError && isEmpty
+                    binding.emptyStateView.isVisible = !hasError && isEmpty
+                    binding.rvResources.isVisible = !isEmpty
+                    
+                    if (hasError && isEmpty) {
+                        binding.tvErrorMessage.text = errorMessage
+                    }
                 }
             }
         }

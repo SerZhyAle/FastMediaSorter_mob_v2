@@ -2,336 +2,397 @@
 
 ## 🎯 Current Development Tasks
 
-- [x] На схеме тач-зон, расположенной в настройках и welcome - screen нужно разместить номера областей 1-9 и ниже описать легенду описание для каждой от 1 до 9. (Создан touch_zones_numbered.xml с номерами 1-9 в кружках, добавлена легенда на всех языках, обновлены layouts)
+### 🔧 High Priority
 
-- [x] нужно, чтобы программа запоминала текущий вид ддля каждой папки (ресурса) - список или сетка. Сейчас все время программа возвращается к списку. Настройка программы сетка/лист нужна только для первого открытия ресурса. Как только пользователь применил к ресурсу "сетка" - это нужно запомнить и возвращаться к сетке, пока пользователь не выберет "список".
+- [ ] **Media processing optimization audit**
+  - ✅ VERIFIED: Coil library used for image loading (v2.5.0 with video/GIF support)
+  - ✅ VERIFIED: All file operations use IO dispatcher (viewModelScope.launch(ioDispatcher))
+  - ✅ VERIFIED: Memory/disk cache enabled in CoilModule (memoryCachePolicy, diskCachePolicy)
+  - ✅ VERIFIED: Custom NetworkFileFetcher for SMB/SFTP/FTP with 2MB buffer limit for thumbnails
+  - ✅ VERIFIED: Async loading in all adapters (MediaFileAdapter, player activities)
+  - ⚠️ TODO: Add bitmap downsampling configuration in CoilModule for large images
+  - ⚠️ TODO: Implement EXIF metadata extraction (orientation, date, location) asynchronously
+  - ⚠️ TODO: Add video metadata extraction (duration, resolution, codec) in background
+  - ⚠️ TODO: Configure Coil memory cache size based on device capabilities
+  - ⚠️ TODO: Add preloading strategy for next/previous images in PlayerActivity
 
-- [x] В режиме "сетка" я сейчас вижу только 3 колонки медиафайлов. Но я могу запустить на устройстве с большим экраном и мне нужно чтобы число генерировалось в зависимости и от размера иконки и от размера экрана.
+- [ ] **State management and data consistency audit**
+  - ✅ VERIFIED: MVVM architecture with StateFlow (BrowseViewModel, PlayerViewModel, MainViewModel)
+  - ✅ VERIFIED: Reactive UI updates via repeatOnLifecycle(State.STARTED) + collect
+  - ✅ VERIFIED: File existence check in MediaFileAdapter (localFile.exists()) before loading
+  - ✅ VERIFIED: Delete operations update state immediately (remove from list, adjust index)
+  - ✅ VERIFIED: Undo system for Copy/Move/Delete operations (UndoOperation in BrowseViewModel)
+  - ✅ VERIFIED: Error placeholders shown for missing files (ic_image_error, ic_video_error)
+  - ⚠️ PARTIALLY: File system watcher missing (no ContentObserver/FileObserver for external changes)
+  - ⚠️ TODO: Add FileObserver to detect external file deletions/moves
+  - ⚠️ TODO: Add automatic list refresh when returning from background (onResume)
+  - ⚠️ TODO: Handle MediaStore changes with ContentObserver for local files
+  - ⚠️ TODO: Add file integrity validation before file operations
+  - ⚠️ TODO: Implement optimistic UI updates with rollback on operation failure
+  - ⚠️ TODO: Add background sync to verify network file existence
+  - ⚠️ TODO: Handle stale thumbnails when file content changes
 
-- [x] Мне хотелось бы чтобы программа сохраняла так же файл который был крайним в списке/таблице для ресурса при его browse. Чтобы при следующем запуске для этого ресурса программа начинала показывать с того файла, на котором закончили в прошлый раз.
+- [ ] **Interactivity and feedback audit: Progress indicators & Undo functionality**
+  
+  **Progress indicators for long operations:**
+  - ✅ VERIFIED: FileOperationProgressDialog exists and ready (dialog_file_operation_progress.xml)
+  - ✅ VERIFIED: FileOperationUseCase.executeWithProgress() returns Flow<FileOperationProgress>
+  - ✅ VERIFIED: Progress states: Starting (indeterminate) → Processing (file count) → Completed
+  - ✅ VERIFIED: Shows current file name, progress counter (N/M), transfer speed (B/s, KB/s, MB/s)
+  - ✅ VERIFIED: Dialog non-cancelable during operation (setCancelable(false))
+  - ✅ VERIFIED: PlayerActivity shows loading indicator after 1 second (showLoadingIndicatorRunnable)
+  - ✅ VERIFIED: Simple ProgressBar in CopyToDialog/MoveToDialog (visibility toggle)
+  - ⚠️ MISSING: FileOperationProgressDialog NOT INTEGRATED with Copy/Move/Delete dialogs!
+  - ⚠️ MISSING: No ScanProgressCallback in SmbMediaScanner (V1 has it, V2 doesn't)
+  - ⚠️ MISSING: No progress for MainViewModel.scanAllResources() (large folder scan)
+  - ⚠️ MISSING: No cancellation button in FileOperationProgressDialog
+  - ⚠️ MISSING: Byte-level progress (bytesTransferred/totalBytes) not tracked in handlers
+  - ⚠️ TODO: Integrate FileOperationProgressDialog in CopyToDialog.copyToDestination()
+  - ⚠️ TODO: Integrate FileOperationProgressDialog in MoveToDialog.moveToDestination()
+  - ⚠️ TODO: Integrate FileOperationProgressDialog in DeleteDialog.deleteFiles()
+  - ⚠️ TODO: Add cancellation support with Job tracking in FileOperationUseCase
+  - ⚠️ TODO: Add byte-level progress in SmbFileOperationHandler.copyFile()
+  - ⚠️ TODO: Add ScanProgressCallback to SmbMediaScanner.scanFolder() like V1
+  - ⚠️ TODO: Show progress dialog in MainActivity.scanAllResources() for >100 resources
+  
+  **Undo functionality (rollback last operation):**
+  - ✅ VERIFIED: Full Undo system implemented (UndoOperation data class)
+  - ✅ VERIFIED: BrowseViewModel.saveUndoOperation() stores last operation
+  - ✅ VERIFIED: BrowseViewModel.undoLastOperation() reverses Copy/Move/Rename/Delete
+  - ✅ VERIFIED: Undo button in BrowseActivity (btnUndo, visibility based on lastOperation)
+  - ✅ VERIFIED: CopyToDialog creates UndoOperation with copiedFiles paths
+  - ✅ VERIFIED: MoveToDialog creates UndoOperation with source/dest paths
+  - ✅ VERIFIED: Rename creates UndoOperation with oldNames pairs (oldPath, newPath)
+  - ✅ VERIFIED: Delete creates UndoOperation (but actual undo logic unclear)
+  - ✅ VERIFIED: Settings toggle: AppSettings.enableUndo (default true)
+  - ✅ VERIFIED: Undo logic:
+    * COPY → delete copied files from destination
+    * MOVE → move files back to source (renameTo)
+    * RENAME → rename back to old name
+    * DELETE → restore deleted files (message only, no implementation)
+  - ⚠️ PARTIALLY: Delete undo doesn't restore files (only shows message)
+  - ⚠️ PARTIALLY: No undo button in PlayerActivity (only BrowseActivity)
+  - ⚠️ TODO: Implement DELETE undo with deferred deletion (trash/temp folder pattern)
+  - ⚠️ TODO: Add undo button in PlayerActivity for single-file operations
+  - ⚠️ TODO: Clear undo operation on next operation (copy → undo → copy should clear first undo)
+  - ⚠️ TODO: Add undo operation expiry (clear after 5 minutes or app background)
+  - ⚠️ TODO: Add "Undo" toast notification after successful operation
+  - ⚠️ TODO: Test undo for network files (SMB/SFTP operations)
+  
+  **Critical issues:**
+  1. **BLOCKER**: FileOperationProgressDialog exists but NOT USED anywhere! (Ready infrastructure not integrated)
+  2. **BLOCKER**: Delete undo doesn't work (only shows message, doesn't restore files)
+  3. **HIGH**: No progress for SMB scanning (V1 has ScanProgressCallback, V2 doesn't)
+  4. **HIGH**: No cancellation support for long operations (100+ files stuck without cancel)
+  5. **MEDIUM**: No byte-level progress (users can't see transfer speed for large files)
+  6. **MEDIUM**: No undo in PlayerActivity (only batch operations in BrowseActivity have undo)
 
-- [x] Убедись, что есть режим сортировки "случайный" , который в том числе может использоваться при слайд-шоу.
-
-- [x] Удаление файла на SMB не работает. Пишет "файл не найден"
-
-- [x] Убрать заставку при запуске. как у версии 1 - сразу программа (убрана иконка splash screen, оставлен Welcome только при первом запуске)
-
-- [x] Во время сканирования локальных папок версия 1 находит различные папки с медиафайлами ( например телеграмм, вотсап и другие), где есть медиафайлы. В версии 2 при сканировании вижу только типовые локальные папки . И то не все. Нужно улучшить сканирование по всем папкам. Если оно долго - показать прогрессбар.
-
-- [x] на основном экране сделать небольшой пробел междц кнопками "назад, выход" и "добавить ресурс"
-
-- [x] не уджается ввести IP.. куда то сбивается текст после первой цифры. Давай ослабим программные проверки при вводи IP.. там могут быть цифры, точки и воспринимать запятую как точку.
-
-- [x] Фиолетовые кнопки неудобно. Нужно более контрастные цвета на элементах: пример форма отбора/фильтра "сброс/отмена". Нужно везде просмотреть на предмет неконтрастных цветов. 
-
-- [x] Если медиафайлов в папке ресурсе нет, не нужно открывать ее в режиме просмотра и показывать об  этом сообщение (уже исправлено ранее)
-
-- [x] Проверить слайдшоу. Мне кажется срабатывает не по заданному счетчику. Интервал счетчика задан для ресурса , а если нет - из настроек программы. Проверить, что при проигрывании видео и аудио во время слайшоу - настройка "проигрывать до конца" работает правильно.. слайд неперелистывается, пока видео или аудио не закончилось.
-
-- [x] При загрузке я все еще вижу ярлык программы на весь экран - нам не нужно это (добавлены атрибуты для отключения splash screen в Android 12+)
-
-- [x] При сканировании локальных папок нужно также заглядывать в папки Android-Media. В чстности должно найти Android-Media-com.WhatsApp-WhatsApp-Media-WhatsApp Images и другие (добавлено сканирование Android/Media с глубиной 5 уровней)
-
-- [x] В окне Add Resourse DMB в полях светлосерый цвет. На белом фоне плохо видно (решено через поддержку темной темы)
-
-- [x] Нужно, чтобы программа брала тему устройства - темную или светлую . И все-все элементы интерфейса дожны быть соответственнотемные и светлые, контрастно (создан values-night/themes.xml с темным фоном, исправлены жёстко заданные цвета в layouts)
-
-- [x] Когда на основном экране большой список ресурсов и его нужно скроллить, я нажимаю пальцем, чтобы протянуть список вверх - и он меняется, но так же срабатывает и "к просмотру", открывается элемент списка, который был под пальцем (добавлена проверка onScroll в GestureDetector, клики игнорируются при скролле)
-
-### 🚨 Critical Bugs
-
-
-- [x] **Password migration: plaintext → encrypted (PARTIALLY)**
-  - ✅ Fixed fallback logic: now catches `IllegalArgumentException` (bad base-64)
-  - ✅ Plaintext passwords are used as is (backward compatibility)
-  - ⚠️ TODO: Create a Room migration to re-encrypt existing plaintext passwords
-  - ⚠️ TODO: Add a check when saving a resource (if plaintext → re-encrypt)
-
-- [ ] **SMB Authentication failed after password migration (SHOULD WORK)**
-  - Problem: `STATUS_OTHER (0xc0000234): Authentication failed for 'sza'`
-  - Cause fixed: empty passwords replaced with plaintext fallback
-  - Required: test SMB connection after the fix
-
-- [x] **Resource Path is updated when editing an SMB/SFTP resource**
-  - ✅ SMB: path is rebuilt as `smb://newServer/newShare` when server/share changes
-  - ✅ SFTP: path is rebuilt as `sftp://newHost:port/newPath` when host/port/path changes
-  - Fixed in `EditResourceViewModel.saveChanges()`
-
-### 🔧 Improvements and Refinements
-
-- [x] **SFTP: Connection timeout reduction**
-  - ✅ Set connectTimeout and timeout to 10 seconds in SftpClient.connect()
-  - ✅ Set connectTimeout and timeout to 10 seconds in SftpClient.testConnection()
-  - Fixed: Connection timeout error (ETIMEDOUT) now occurs faster (10s instead of 60s+)
-
-- [x] **SFTP: Connection test implementation**
-  - ✅ Discovered existing testSftpConnection() in SmbOperationsUseCase
-  - ✅ Added timeout configuration to SftpClient.testConnection()
-  - ✅ AddResourceViewModel and EditResourceViewModel use smbOperationsUseCase.testSftpConnection()
-  - ✅ Fixed ResourceRepositoryImpl.testConnection() to call testSftpConnection() for SFTP resources
-
-- [ ] **SFTP: Add getting file size and date**
-  - SftpClient.getFileAttributes() to get stat() data
-  - Update SftpMediaScanner to use real size/createdDate values
-  - Currently: size=0, createdDate=0 (placeholder values)
-
-- [ ] **Mixed operations SMB↔SFTP**
-  - Copy: SMB→SFTP, SFTP→SMB, SFTP→Local, Local→SFTP
-  - Move: same combinations
-  - FileOperationUseCase: determine priority (destination type)
-
-- [ ] **Progress bars for long operations**
-  - Copy/Move: show file size and speed
-  - Use WorkManager for background tasks
-  - Notifications for completed operations
-
----
-
-## 🌐 Network and Cloud Functions
-
-- [ ] **Cloud: Google Drive API Integration**
-  - Google Sign-In and Drive API
-  - Folder browsing and file operations
-  - OAuth2 flow and token storage
-  - Adapt copy/move for cloud files
-
-- [ ] **Cloud: Dropbox API Integration**
-  - Dropbox SDK
-  - Authentication and file access
-  - Folder sync and operations
-  - Compatibility with existing file operations
-
-- [ ] **Network: Background synchronization**
-  - WorkManager for periodic synchronization
-  - Check for new/deleted files in network/cloud resources
-  - Update fileCount and thumbnail cache
-  - Synchronization status indicator
-
-- [ ] **Network: Offline mode**
-  - Cache thumbnails and metadata locally
-  - Show cached data when there is no network
-  - Offline status indication in the UI
-  - Operation queue for subsequent synchronization
-
----
-
-## 🎨 UI/UX Improvements
-
-- [ ] **UI: Dark/Light theme**
-  - Material Design 3 theming
-  - System theme detection
-  - Theme switcher in Settings
-  - Test all screens in both themes
+- [ ] **UI: Accessibility improvements**
+  - Add content descriptions for all images/icons
+  - Test with TalkBack screen reader
+  - Verify minimum touch target size (48dp) for all buttons
+  - Test high contrast mode compatibility
+  - Add accessibility labels for all interactive elements
 
 - [ ] **UI: Animations and transitions**
-  - Screen transitions (slide, fade)
-  - List animations (add, remove, reorder)
-  - Button ripple effects
-  - Progress indicators
+  - Add screen transitions (slide, fade animations)
+  - Implement list animations (add, remove, reorder items)
+  - Add button ripple effects where missing
+  - Improve progress indicators animations
 
-- [ ] **UI: Empty states**
-  - Empty resource list: "No resources added yet" + Add button
-  - Empty file list: "No media files found in this folder"
-  - Empty search: "No files match your criteria"
-  - Network error: "Connection failed" + Retry button
+- [ ] **Performance: Memory optimization**
+  - Profile with Android Profiler
+  - Fix memory leaks using LeakCanary
+  - Optimize bitmap loading (add downsampling for thumbnails)
+  - Implement pagination for large file lists (1000+ files)
 
-- [ ] **UI: Accessibility**
-  - Content descriptions for all images/icons
-  - TalkBack screen reader support
-  - Minimum touch target size (48dp) - check all buttons
-  - High contrast mode support
+### 🐛 Bug Fixes
 
----
+- [ ] **SMB Authentication test after password migration**
+  - Test SMB connection with migrated passwords
+  - Verify plaintext fallback works correctly
+  - Document password encryption migration process
 
-## 🧪 Testing
+### 🌐 Network Features
 
-- [ ] **Testing: Unit tests**
-  - All UseCase classes with JUnit
-  - ViewModels with kotlinx-coroutines-test
-  - Repository with mock dependencies
-  - Goal: >80% code coverage for the domain layer
+- [ ] **Cloud: Google Drive API Integration**
+  - Implement Google Sign-In and Drive API
+  - Add folder browsing and file operations
+  - Handle OAuth2 flow and token storage
+  - Adapt copy/move operations for cloud files
 
-- [ ] **Testing: Instrumented tests**
-  - Database operations with Room testing library
-  - UI flows with Espresso
-  - Navigation between screens
+- [ ] **Cloud: Dropbox API Integration**
+  - Integrate Dropbox SDK
+  - Implement authentication and file access
+  - Add folder sync and operations
+  - Ensure compatibility with existing file operations
+
+- [ ] **Background synchronization**
+  - Use WorkManager for periodic sync
+  - Check for new/deleted files in network/cloud resources
+  - Update fileCount and thumbnail cache
+  - Add synchronization status indicator in UI
+
+- [ ] **Offline mode**
+  - Cache thumbnails and metadata locally
+  - Show cached data when network unavailable
+  - Add offline status indication in UI
+  - Implement operation queue for later sync
+
+### 🧪 Testing
+
+- [ ] **Unit tests**
+  - Write tests for all UseCase classes with JUnit
+  - Test ViewModels with kotlinx-coroutines-test
+  - Mock Repository dependencies
+  - Goal: >80% code coverage for domain layer
+
+- [ ] **Instrumented tests**
+  - Test database operations with Room testing library
+  - UI flow tests with Espresso
+  - Navigation between screens testing
   - File operations with temporary test folders
 
-- [ ] **Testing: Manual testing**
-  - Android versions (8.0 - 14.0)
-  - Different screen sizes (phone, tablet)
-  - Different file types and sizes
-  - Connection scenarios (slow network, no internet)
+- [ ] **Manual testing checklist**
+  - Test on Android versions 8.0 - 14.0
+  - Test on different screen sizes (phone, tablet)
+  - Test different file types and sizes
+  - Test connection scenarios (slow network, no internet, connection drops)
 
-- [ ] **Testing: Security audit**
+- [ ] **Security audit**
   - Check for hardcoded credentials
   - Validate input sanitization
   - Test file path traversal prevention
-  - Check permission usage
+  - Review permission usage
 
----
+### ⚡ Performance Optimization
 
-## 🐛 Optimization
+- [ ] **Performance audit: FastMediaSorter FAST promise verification**
+  
+  **File operations and scanning:**
+  - ✅ VERIFIED: LocalMediaScanner uses MediaStore API (efficient for local files)
+  - ✅ VERIFIED: SmbMediaScanner.scanFolderChunked() - lazy loading first 100 files (maxFiles parameter)
+  - ✅ VERIFIED: useChunkedLoading flag in BrowseViewModel/PlayerViewModel for SMB resources
+  - ✅ VERIFIED: File operations on IO dispatcher (viewModelScope.launch(ioDispatcher))
+  - ✅ VERIFIED: Structured concurrency with proper error handling (exceptionHandler)
+  - ⚠️ PARTIALLY: No progress callback for SMB scanning (unlike V1's ScanProgressCallback)
+  - ⚠️ TODO: Add ScanProgressCallback to SmbMediaScanner for long operations (>2 seconds)
+  - ⚠️ TODO: Implement batch processing with UI updates for large folders (1000+ files)
+  - ⚠️ TODO: Add cancellation support for long-running scans (Job cancellation)
+  
+  **RecyclerView optimization:**
+  - ✅ VERIFIED: MediaFileAdapter extends ListAdapter with DiffUtil.ItemCallback
+  - ✅ VERIFIED: DiffUtil compares by path (areItemsTheSame) and full equality (areContentsTheSame)
+  - ✅ VERIFIED: submitList() used everywhere (MainActivity, BrowseActivity) - async diff
+  - ⚠️ FOUND: MediaFileAdapter.setGridMode() uses notifyDataSetChanged() - inefficient!
+  - ⚠️ FOUND: DestinationsAdapter.submitList() uses notifyDataSetChanged() - no DiffUtil!
+  - ⚠️ FOUND: ResourceToAddAdapter uses notifyDataSetChanged() - should use ListAdapter
+  - ⚠️ TODO: Replace notifyDataSetChanged() with targeted notifyItemRangeChanged()
+  - ⚠️ TODO: Refactor DestinationsAdapter to use ListAdapter<MediaResource, VH>(DiffCallback)
+  - ⚠️ TODO: Refactor ResourceToAddAdapter to use ListAdapter pattern
+  - ⚠️ TODO: Add RecyclerView.RecycledViewPool for multiple lists with same ViewHolder type
+  - ⚠️ TODO: Set recyclerView.setItemViewCacheSize() for frequent scrolling
+  
+  **Layout and rendering:**
+  - ✅ VERIFIED: ConstraintLayout used in most layouts (flat hierarchy)
+  - ✅ VERIFIED: ViewBinding prevents findViewById() overhead
+  - ✅ VERIFIED: Coil handles image loading/decoding on background threads
+  - ⚠️ TODO: Run Layout Inspector to check overdraw (should be <2x on most screens)
+  - ⚠️ TODO: Profile with GPU Rendering Profiler (target <16ms per frame for 60fps)
+  - ⚠️ TODO: Check for expensive onBind operations in adapters (should be <1ms)
+  
+  **Pagination and large datasets:**
+  - ✅ VERIFIED: MediaFilesPagingSource skeleton exists (commented: "implement chunked loading later")
+  - ⚠️ MISSING: No actual pagination implementation for 1000+ files
+  - ⚠️ TODO: Implement Paging3 library with PagingDataAdapter
+  - ⚠️ TODO: Load files in pages (50-100 items) for large folders
+  - ⚠️ TODO: Add "Loading more..." indicator at list end
+  - ⚠️ TODO: Preload next page when scrolling near bottom
+  
+  **Preloading and caching:**
+  - ✅ VERIFIED: Coil memory/disk cache enabled
+  - ⚠️ PARTIALLY: No explicit preloading in PlayerActivity (V1 has preloadNextImage())
+  - ⚠️ TODO: Implement PlayerViewModel.preloadAdjacentFiles() - load next/prev thumbnails
+  - ⚠️ TODO: Use Coil's ImageRequest.Builder().memoryCacheKey() for predictable caching
+  - ⚠️ TODO: Increase memory cache size for devices with >4GB RAM
+  
+  **Critical issues for "FAST" promise:**
+  1. **BLOCKER**: notifyDataSetChanged() kills performance on grid mode switch (100+ items = freeze)
+  2. **BLOCKER**: No pagination for 1000+ files (single query loads all = OOM risk)
+  3. **HIGH**: No progress indication for slow SMB scans (>2 seconds feels frozen)
+  4. **HIGH**: No preloading in player (each swipe = network request = delay)
+  5. **MEDIUM**: Missing RecycledViewPool optimization (memory inefficiency)
 
-- [ ] **Performance: Memory management**
-  - Profiling with Android Profiler
-  - Fix memory leaks (LeakCanary)
-  - Optimize bitmap loading (downsampling)
-  - Pagination for large file lists
+- [ ] **Database optimization**
+  - Profile database queries
+  - Add indexes for frequent queries
+  - Optimize Room DAO methods
+  - Consider pagination for large datasets
 
-- [ ] **Performance: Performance**
-  - Profile CPU and frame drops
-  - Optimize database queries (add indexes)
-  - Background threads for heavy operations
-  - Reduce overdraw in layouts
-
-- [ ] **Performance: Battery**
-  - Reduce background work
+- [ ] **Battery optimization**
+  - Reduce background work frequency
   - Efficient use of JobScheduler/WorkManager
   - Pause synchronization on low battery
-  - Release resources in the background
+  - Release resources properly when backgrounded
 
-- [ ] **Bug fix: Edge cases**
-  - Empty folders, folders with many files (1000+)
-  - Very long file names
-  - Special characters in names
-  - Corrupted media files
+- [ ] **Edge cases handling**
+  - Empty folders handling
+  - Folders with 1000+ files
+  - Very long file names (>255 chars)
+  - Special characters in file names
+  - Corrupted or unsupported media files
 
 ---
 
 ## 📦 Release Preparation
 
-### Build & Configuration
+### Build Configuration
 
 - [ ] **ProGuard/R8 configuration**
-  - ProGuard rules for release build
-  - Test obfuscated APK
-  - Keep classes for reflection
-  - Check functionality after ProGuard
+  - Configure ProGuard rules for release build
+  - Test obfuscated APK thoroughly
+  - Keep classes used via reflection
+  - Verify all functionality after ProGuard
 
 - [ ] **APK signing**
-  - Create a release keystore (if it doesn't exist)
-  - Securely store the keystore (not in git)
+  - Verify release keystore exists and is secure
   - Configure signing in build.gradle.kts
-  - Test installation of the signed APK
+  - Test installation of signed APK
+  - Store keystore securely (not in repository)
 
 - [ ] **APK size optimization**
-  - Resource shrinking
-  - Code shrinking (R8)
-  - Vector drawables instead of PNG
+  - Enable resource shrinking
+  - Enable code shrinking (R8)
+  - Use vector drawables instead of PNG where possible
   - Remove unused resources and dependencies
-  - Consider App Bundle (.aab)
+  - Consider Android App Bundle (.aab)
 
-- [ ] **Versioning**
+- [ ] **Version management**
   - Update versionCode in build.gradle.kts
-  - Update versionName (e.g., 2.0.0)
+  - Update versionName (2.0.0)
   - Follow semantic versioning (MAJOR.MINOR.PATCH)
+  - Tag release in Git
 
-- [ ] **Update dependencies**
-  - Update libraries to the latest stable versions
-  - Test after each update
+- [ ] **Dependencies update**
+  - Update all libraries to latest stable versions
+  - Test after each major update
   - Check for deprecated APIs
-  - Fix breaking changes
+  - Fix any breaking changes
 
 ### Documentation
 
-- [ ] **Update README**
+- [ ] **README updates**
   - Update README.md with v2 features
-  - Update README.ru.md and README.ua.md
-  - Add screenshots of the new UI
-  - Update build instructions
+  - Update Russian (README.ru.md) and Ukrainian (README.ua.md) versions
+  - Add new UI screenshots
+  - Update build and installation instructions
 
-- [ ] **Update CHANGELOG**
-  - Document all changes
+- [ ] **CHANGELOG**
+  - Document all changes since v1
   - Group by: Added, Changed, Fixed, Removed
   - Specify version and release date
-  - Mention breaking changes
+  - Highlight breaking changes
 
-- [ ] **Create user documentation**
-  - User guide (how to use the application)
-  - Documentation of all functions and gestures
-  - FAQ section
-  - Troubleshooting guide
+- [ ] **User documentation**
+  - Create comprehensive user guide
+  - Document all features and gestures
+  - Create FAQ section
+  - Write troubleshooting guide
 
 ---
 
 ## 🚀 Google Play Store
 
-### Material Preparation
+### Store Materials
 
 - [ ] **Store listing**
   - App title (max 30 characters)
   - Short description (max 80 characters)
   - Full description (max 4000 characters)
-  - Translation into Russian and Ukrainian
+  - Translations: English, Russian, Ukrainian
 
 - [ ] **Screenshots**
-  - 4-8 screenshots per screen (phone and tablet)
-  - Key features (Main, Browse, Player)
-  - Device frames and annotations
-  - Localized screenshots (en, ru, uk)
+  - Capture 4-8 screenshots per device type (phone, tablet)
+  - Show key features: Main screen, Browse, Player
+  - Add device frames and annotations
+  - Create localized versions (en, ru, uk)
 
 - [ ] **Feature graphic**
-  - 1024x500px design
-  - App branding and key visual
-  - Google Play design guidelines
-  - Localized versions
+  - Design 1024x500px feature graphic
+  - Include app branding and key visual
+  - Follow Google Play design guidelines
+  - Create localized versions if needed
 
 - [ ] **App icon**
-  - Adaptive icon (foreground + background)
+  - Verify adaptive icon (foreground + background)
   - Test on different launchers
-  - Google Play guidelines
-  - All sizes (mipmap-*)
+  - Ensure compliance with Google Play guidelines
+  - Verify all mipmap sizes generated
 
 - [ ] **Privacy Policy**
-  - Update with v2 data usage
-  - Mention permissions and their purposes
-  - Contact information
-  - Host online (GitHub Pages)
+  - Update policy for v2 data usage
+  - Document all permissions and their purposes
+  - Include contact information
+  - Host online (e.g., GitHub Pages)
 
 - [ ] **Content rating**
-  - IARC questionnaire in Play Console
-  - Age rating (e.g., Everyone)
+  - Complete IARC questionnaire in Play Console
+  - Verify age rating (likely Everyone)
+  - Review content descriptors
 
 ### Release Process
 
-- [ ] **Internal testing**
-  - Upload APK/AAB to Play Console (Internal Testing)
-  - Test installation and updates
-  - Check all functions in the production build
-  - ProGuard mapping file uploaded
+- [ ] **Internal testing track**
+  - Upload APK/AAB to Play Console Internal Testing
+  - Test installation and update flow
+  - Verify all functionality in production build
+  - Upload ProGuard mapping file
 
-- [ ] **Closed beta**
+- [ ] **Closed beta testing**
   - Promote to Closed Testing track
-  - Add beta testers
-  - Monitor crash reports
-  - Collect feedback and fix issues
+  - Add beta testers (5-20 users)
+  - Monitor crash reports and ANRs
+  - Collect and address feedback
 
 - [ ] **Production release**
   - Promote to Production track
-  - Rollout percentage (start with 10-20%)
+  - Start with staged rollout (10-20%)
   - Monitor crash-free rate and ANR rate
   - Gradually increase to 100%
 
 - [ ] **Post-release monitoring**
-  - Play Console metrics (installs, crashes, ratings)
-  - Respond to user reviews
-  - Firebase Analytics events
-  - Firebase Crashlytics reports
+  - Monitor Play Console metrics (installs, crashes, ratings)
+  - Respond to user reviews promptly
+  - Track Firebase Analytics events
+  - Monitor Firebase Crashlytics reports
 
 ---
 
 ## 📊 Project Status
 
-
-**In progress:**
-- 🔄 SFTP file attributes (size, date)
-- 🔄 Mixed operations SMB↔SFTP
-- 🔄 On-device testing
+**Completed (Latest Build: 2.0.0-build2511140258):**
+- ✅ FTP connection stability fixes
+- ✅ SFTP file attributes (size, date)
+- ✅ Mixed operations SMB↔SFTP
+- ✅ Progress bars infrastructure
+- ✅ Empty states with network error handling
+- ✅ Touch zones numbered diagram with legend
+- ✅ Display mode (list/grid) saved per resource
+- ✅ Dynamic grid columns based on screen size
+- ✅ Last viewed file position saved per resource
+- ✅ Random sort mode for slideshow
+- ✅ SMB delete operation fixed
+- ✅ Splash screen removed (Welcome only on first launch)
+- ✅ Enhanced local folder scanning (including Android/Media)
+- ✅ IP address input validation improved
+- ✅ Dark/Light theme support with system detection
+- ✅ Scroll gesture detection in resource list
 
 **Next priorities:**
-1. Complete SFTP improvements
-2. Manual on-device testing
-3. Performance optimization
-4. Prepare materials for Google Play
-5. Beta testing
+1. Integrate progress dialogs with file operations
+2. Accessibility improvements (content descriptions, TalkBack)
+3. UI animations and transitions
+4. Performance optimization (memory, database)
+5. Unit and instrumented testing
+6. Google Play Store preparation
+

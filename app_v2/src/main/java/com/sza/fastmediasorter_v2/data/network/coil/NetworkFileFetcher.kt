@@ -8,6 +8,7 @@ import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.request.Options
 import com.sza.fastmediasorter_v2.data.network.SmbClient
+import com.sza.fastmediasorter_v2.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +18,8 @@ import okio.BufferedSource
 import timber.log.Timber
 
 /**
- * Custom Coil Fetcher for loading images from network paths (SMB/SFTP).
- * Использует readFileBytes() из SmbClient/SftpClient для получения ByteArray,
+ * Custom Coil Fetcher for loading images from network paths (SMB/SFTP/FTP).
+ * Использует readFileBytes() из SmbClient/SftpClient/FtpClient для получения ByteArray,
  * который Coil может кэшировать на диске и в памяти.
  */
 class NetworkFileFetcher(
@@ -26,6 +27,7 @@ class NetworkFileFetcher(
     private val options: Options,
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
+    private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository
 ) : Fetcher {
 
@@ -34,6 +36,7 @@ class NetworkFileFetcher(
             val bytes = when {
                 data.path.startsWith("smb://") -> fetchFromSmb()
                 data.path.startsWith("sftp://") -> fetchFromSftp()
+                data.path.startsWith("ftp://") -> fetchFromFtp()
                 else -> throw IllegalArgumentException("Unsupported network protocol: ${data.path}")
             }
 
@@ -158,12 +161,66 @@ class NetworkFileFetcher(
         return result.getOrNull()
     }
 
+    private suspend fun fetchFromFtp(): ByteArray? {
+        // Parse ftp://server:port/path
+        val uri = data.path.removePrefix("ftp://")
+        val parts = uri.split("/", limit = 2)
+        if (parts.isEmpty()) return null
+
+        val serverPort = parts[0]
+        val remotePath = if (parts.size > 1) "/${parts[1]}" else "/"
+
+        val server: String
+        val port: Int
+        if (serverPort.contains(":")) {
+            val sp = serverPort.split(":")
+            server = sp[0]
+            port = sp[1].toIntOrNull() ?: 21
+        } else {
+            server = serverPort
+            port = 21
+        }
+
+        // Get credentials from database - prefer credentialsId if provided
+        val credentials = if (data.credentialsId != null) {
+            credentialsRepository.getByCredentialId(data.credentialsId)
+        } else {
+            credentialsRepository.getByTypeServerAndPort("FTP", server, port)
+        }
+        
+        if (credentials == null) {
+            Timber.e("fetchFromFtp: No credentials found for FTP $server:$port")
+            return null
+        }
+
+        Timber.d("fetchFromFtp: Downloading $remotePath from $server:$port")
+        
+        // Connect and download file to ByteArrayOutputStream
+        val result = ftpClient.connect(server, port, credentials.username, credentials.password)
+        if (result.isFailure) {
+            Timber.e("fetchFromFtp: Connection failed")
+            return null
+        }
+        
+        val outputStream = java.io.ByteArrayOutputStream()
+        val downloadResult = ftpClient.downloadFile(remotePath, outputStream)
+        
+        ftpClient.disconnect()
+        
+        return if (downloadResult.isSuccess) {
+            outputStream.toByteArray()
+        } else {
+            null
+        }
+    }
+
     /**
      * Factory для создания NetworkFileFetcher.
      */
     class Factory(
         private val smbClient: SmbClient,
         private val sftpClient: SftpClient,
+        private val ftpClient: FtpClient,
         private val credentialsRepository: NetworkCredentialsRepository
     ) : Fetcher.Factory<NetworkFileData> {
 
@@ -172,7 +229,7 @@ class NetworkFileFetcher(
             options: Options,
             imageLoader: ImageLoader
         ): Fetcher {
-            return NetworkFileFetcher(data, options, smbClient, sftpClient, credentialsRepository)
+            return NetworkFileFetcher(data, options, smbClient, sftpClient, ftpClient, credentialsRepository)
         }
     }
 }

@@ -3,6 +3,8 @@ package com.sza.fastmediasorter_v2.domain.usecase
 import com.sza.fastmediasorter_v2.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter_v2.data.network.SftpFileOperationHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -25,6 +27,22 @@ sealed class FileOperationResult {
     data class Failure(val error: String) : FileOperationResult()
 }
 
+/**
+ * Progress updates for file operations
+ */
+sealed class FileOperationProgress {
+    data class Starting(val operation: FileOperation, val totalFiles: Int) : FileOperationProgress()
+    data class Processing(
+        val currentFile: String,
+        val currentIndex: Int,
+        val totalFiles: Int,
+        val bytesTransferred: Long = 0L,
+        val totalBytes: Long = 0L,
+        val speedBytesPerSecond: Long = 0L
+    ) : FileOperationProgress()
+    data class Completed(val result: FileOperationResult) : FileOperationProgress()
+}
+
 data class OperationHistory(
     val operation: FileOperation,
     val result: FileOperationResult,
@@ -37,6 +55,29 @@ class FileOperationUseCase @Inject constructor(
 ) {
     
     private var lastOperation: OperationHistory? = null
+    
+    /**
+     * Execute file operation with progress updates emitted via Flow
+     * Use this method when you need to show progress UI during long operations
+     */
+    fun executeWithProgress(operation: FileOperation): Flow<FileOperationProgress> = flow {
+        Timber.d("FileOperation.executeWithProgress: Starting ${operation.javaClass.simpleName}")
+        
+        val totalFiles = when (operation) {
+            is FileOperation.Copy -> operation.sources.size
+            is FileOperation.Move -> operation.sources.size
+            is FileOperation.Delete -> operation.files.size
+            is FileOperation.Rename -> 1
+        }
+        
+        emit(FileOperationProgress.Starting(operation, totalFiles))
+        
+        // For now, use existing execute() and emit completion
+        // TODO: Add granular progress tracking inside handlers
+        val result = execute(operation)
+        
+        emit(FileOperationProgress.Completed(result))
+    }
     
     suspend fun execute(operation: FileOperation): FileOperationResult = withContext(Dispatchers.IO) {
         Timber.d("FileOperation: Starting operation: ${operation.javaClass.simpleName}")
@@ -105,6 +146,32 @@ class FileOperationUseCase @Inject constructor(
             }
 
             val result = when {
+                hasSmbPath && hasSftpPath -> {
+                    // Mixed operation SMB↔SFTP: use destination protocol as priority
+                    val useSmb = when (operation) {
+                        is FileOperation.Copy -> operation.destination.isNetworkPath("smb")
+                        is FileOperation.Move -> operation.destination.isNetworkPath("smb")
+                        else -> hasSmbPath // For Delete/Rename, use first detected protocol
+                    }
+                    
+                    if (useSmb) {
+                        Timber.d("FileOperation: Mixed SMB↔SFTP - using SMB handler (dest=SMB)")
+                        when (operation) {
+                            is FileOperation.Copy -> smbFileOperationHandler.executeCopy(operation)
+                            is FileOperation.Move -> smbFileOperationHandler.executeMove(operation)
+                            is FileOperation.Delete -> smbFileOperationHandler.executeDelete(operation)
+                            is FileOperation.Rename -> smbFileOperationHandler.executeRename(operation)
+                        }
+                    } else {
+                        Timber.d("FileOperation: Mixed SMB↔SFTP - using SFTP handler (dest=SFTP)")
+                        when (operation) {
+                            is FileOperation.Copy -> sftpFileOperationHandler.executeCopy(operation)
+                            is FileOperation.Move -> sftpFileOperationHandler.executeMove(operation)
+                            is FileOperation.Delete -> sftpFileOperationHandler.executeDelete(operation)
+                            is FileOperation.Rename -> sftpFileOperationHandler.executeRename(operation)
+                        }
+                    }
+                }
                 hasSmbPath -> {
                     Timber.d("FileOperation: Using SMB handler")
                     // Use SMB handler for operations involving SMB paths

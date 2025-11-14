@@ -56,30 +56,64 @@ class SftpMediaScanner @Inject constructor(
 
             // List files in remote path
             val filesResult = sftpClient.listFiles(connectionInfo.remotePath)
-            sftpClient.disconnect()
-
+            
             if (filesResult.isFailure) {
+                sftpClient.disconnect()
                 Timber.e("Failed to list SFTP files: ${filesResult.exceptionOrNull()?.message}")
                 return@withContext emptyList()
             }
 
             // Filter and convert to MediaFile
-            filesResult.getOrNull()?.mapNotNull { fileName ->
+            val mediaFiles = filesResult.getOrNull()?.mapNotNull { fileName ->
                 val mediaType = getMediaType(fileName)
                 if (mediaType != null && supportedTypes.contains(mediaType)) {
-                    // For now, we don't have size/date info from listFiles()
-                    // This would require stat() for each file, which is expensive
-                    // Apply size filter only if we have size info
+                    // Get file attributes via stat()
+                    val fullPath = buildFullSftpPath(connectionInfo, fileName)
+                    val remotePath = "${connectionInfo.remotePath.removeSuffix("/")}/$fileName"
+                    
+                    val attrsResult = sftpClient.getFileAttributes(remotePath)
+                    
+                    if (attrsResult.isFailure) {
+                        Timber.w("Failed to get attributes for $fileName, skipping")
+                        return@mapNotNull null
+                    }
+                    
+                    val attrs = attrsResult.getOrNull()!!
+                    
+                    // Skip directories
+                    if (attrs.isDirectory) {
+                        return@mapNotNull null
+                    }
+                    
+                    // Apply size filter if provided
+                    if (sizeFilter != null) {
+                        val passesFilter = when (mediaType) {
+                            MediaType.IMAGE -> attrs.size >= sizeFilter.imageSizeMin && attrs.size <= sizeFilter.imageSizeMax
+                            MediaType.VIDEO -> attrs.size >= sizeFilter.videoSizeMin && attrs.size <= sizeFilter.videoSizeMax
+                            MediaType.AUDIO -> attrs.size >= sizeFilter.audioSizeMin && attrs.size <= sizeFilter.audioSizeMax
+                            MediaType.GIF -> attrs.size >= sizeFilter.imageSizeMin && attrs.size <= sizeFilter.imageSizeMax
+                        }
+                        if (!passesFilter) {
+                            return@mapNotNull null
+                        }
+                    }
+                    
                     MediaFile(
                         name = fileName,
-                        path = buildFullSftpPath(connectionInfo, fileName),
-                        size = 0L, // TODO: implement stat() to get real size
-                        createdDate = 0L, // TODO: implement stat() to get real date
+                        path = fullPath,
+                        size = attrs.size,
+                        createdDate = attrs.modifiedDate, // Use mtime as creation date
                         type = mediaType
                     )
                 } else null
             } ?: emptyList()
+            
+            // Disconnect after processing all files
+            sftpClient.disconnect()
+            
+            mediaFiles
         } catch (e: Exception) {
+            sftpClient.disconnect()
             Timber.e(e, "Error scanning SFTP folder: $path")
             emptyList()
         }

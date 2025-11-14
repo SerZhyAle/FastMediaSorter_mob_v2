@@ -106,6 +106,10 @@ class FtpClient @Inject constructor() {
                 }
             }
             
+            // Complete pending command to flush control channel
+            // Without this, BufferedReader becomes null on next listFiles() call
+            client.completePendingCommand()
+            
             Timber.d("FTP listed ${files.size} files in $remotePath")
             Result.success(files)
         } catch (e: IOException) {

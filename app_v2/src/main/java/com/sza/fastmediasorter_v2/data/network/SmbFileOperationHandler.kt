@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter_v2.data.network
 
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
+import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class SmbFileOperationHandler @Inject constructor(
     private val smbClient: SmbClient,
+    private val sftpClient: SftpClient,
     private val credentialsDao: NetworkCredentialsDao
 ) {
 
@@ -40,17 +42,19 @@ class SmbFileOperationHandler @Inject constructor(
                 val sourcePath = normalizeSmbPath(source.path)
                 val destPath = "$destinationPath/${source.name}"
                 
-                // Determine if source or destination is SMB
+                // Determine if source or destination is SMB/SFTP
                 val isSourceSmb = sourcePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
+                val isSourceSftp = sourcePath.startsWith("sftp://")
+                val isDestSftp = destPath.startsWith("sftp://")
                 
-                Timber.d("SMB executeCopy: Source=${if (isSourceSmb) "SMB" else "Local"}, Dest=${if (isDestSmb) "SMB" else "Local"}")
+                Timber.d("SMB executeCopy: Source=${if (isSourceSmb) "SMB" else if (isSourceSftp) "SFTP" else "Local"}, Dest=${if (isDestSmb) "SMB" else if (isDestSftp) "SFTP" else "Local"}")
                 Timber.d("SMB executeCopy: sourcePath='$sourcePath', destPath='$destPath'")
 
                 val startTime = System.currentTimeMillis()
                 
                 when {
-                    isSourceSmb && !isDestSmb -> {
+                    isSourceSmb && !isDestSmb && !isDestSftp -> {
                         Timber.d("SMB executeCopy: SMB→Local - downloading ${source.name}")
                         // SMB to Local
                         downloadFromSmb(sourcePath, File(destPath))?.let {
@@ -69,7 +73,7 @@ class SmbFileOperationHandler @Inject constructor(
                             errors.add(error)
                         }
                     }
-                    !isSourceSmb && isDestSmb -> {
+                    !isSourceSmb && !isSourceSftp && isDestSmb -> {
                         Timber.d("SMB executeCopy: Local→SMB - uploading ${source.name}")
                         // Local to SMB
                         uploadToSmb(source, destPath)?.let {
@@ -83,6 +87,25 @@ class SmbFileOperationHandler @Inject constructor(
                                 append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to upload to SMB")
+                            }
+                            Timber.e("SMB executeCopy: $error")
+                            errors.add(error)
+                        }
+                    }
+                    isSourceSftp && isDestSmb -> {
+                        Timber.d("SMB executeCopy: SFTP→SMB - copying ${source.name} via buffer")
+                        // SFTP to SMB: download to buffer → upload to SMB
+                        copySftpToSmb(sourcePath, destPath)?.let {
+                            val duration = System.currentTimeMillis() - startTime
+                            copiedPaths.add(destPath)
+                            successCount++
+                            Timber.i("SMB executeCopy: SUCCESS - copied ${source.name} from SFTP to SMB in ${duration}ms")
+                        } ?: run {
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: $sourcePath")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy from SFTP to SMB")
                             }
                             Timber.e("SMB executeCopy: $error")
                             errors.add(error)
@@ -566,6 +589,92 @@ class SmbFileOperationHandler @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error parsing SMB path: $path")
             null
+        }
+    }
+
+    /**
+     * Copy file from SFTP to SMB via in-memory buffer
+     * @param sftpPath Source SFTP path (sftp://host:port/path/file)
+     * @param smbPath Destination SMB path (smb://server/share/path/file)
+     * @return SMB path on success, null on failure
+     */
+    private suspend fun copySftpToSmb(sftpPath: String, smbPath: String): String? {
+        Timber.d("copySftpToSmb: $sftpPath → $smbPath")
+        
+        try {
+            // Parse SFTP path: sftp://host:port/remotePath
+            if (!sftpPath.startsWith("sftp://")) {
+                Timber.e("copySftpToSmb: Invalid SFTP path format: $sftpPath")
+                return null
+            }
+            
+            val sftpParts = sftpPath.removePrefix("sftp://").split("/", limit = 2)
+            if (sftpParts.isEmpty()) {
+                Timber.e("copySftpToSmb: Failed to parse SFTP host from path")
+                return null
+            }
+            
+            val hostPort = sftpParts[0].split(":", limit = 2)
+            val host = hostPort[0]
+            val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 22 else 22
+            val remotePath = if (sftpParts.size > 1) "/" + sftpParts[1] else "/"
+            
+            Timber.d("copySftpToSmb: SFTP parsed - host=$host, port=$port, path=$remotePath")
+            
+            // Get SFTP credentials
+            val sftpCredentials = credentialsDao.getByTypeServerAndPort("SFTP", host, port)
+            if (sftpCredentials == null) {
+                Timber.e("copySftpToSmb: No SFTP credentials found for $host:$port")
+                return null
+            }
+            
+            // Connect to SFTP and download to buffer
+            val connectResult = sftpClient.connect(host, port, sftpCredentials.username, sftpCredentials.password)
+            if (connectResult.isFailure) {
+                Timber.e("copySftpToSmb: SFTP connection failed: ${connectResult.exceptionOrNull()?.message}")
+                return null
+            }
+            
+            Timber.d("copySftpToSmb: Downloading from SFTP...")
+            val downloadResult = sftpClient.readFileBytes(remotePath)
+            sftpClient.disconnect()
+            
+            if (downloadResult.isFailure) {
+                Timber.e("copySftpToSmb: SFTP download failed: ${downloadResult.exceptionOrNull()?.message}")
+                return null
+            }
+            
+            val fileBytes = downloadResult.getOrNull()
+            if (fileBytes == null || fileBytes.isEmpty()) {
+                Timber.e("copySftpToSmb: Downloaded file is empty")
+                return null
+            }
+            
+            Timber.d("copySftpToSmb: Downloaded ${fileBytes.size} bytes from SFTP, uploading to SMB...")
+            
+            // Upload to SMB
+            val smbConnectionInfo = parseSmbPath(smbPath)
+            if (smbConnectionInfo == null) {
+                Timber.e("copySftpToSmb: Failed to parse SMB path: $smbPath")
+                return null
+            }
+            
+            val inputStream = ByteArrayInputStream(fileBytes)
+            val uploadResult = smbClient.uploadFile(smbConnectionInfo.connectionInfo, smbConnectionInfo.remotePath, inputStream)
+            
+            return when (uploadResult) {
+                is SmbClient.SmbResult.Success -> {
+                    Timber.i("copySftpToSmb: SUCCESS - ${fileBytes.size} bytes copied from SFTP to SMB")
+                    smbPath
+                }
+                is SmbClient.SmbResult.Error -> {
+                    Timber.e("copySftpToSmb: SMB upload failed: ${uploadResult.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "copySftpToSmb: Exception during copy")
+            return null
         }
     }
 

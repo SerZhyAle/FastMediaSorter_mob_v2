@@ -180,7 +180,16 @@ class FtpMediaScanner @Inject constructor(
     private fun buildFullFtpPath(connectionInfo: ConnectionInfo, fileName: String): String {
         val cleanRemotePath = connectionInfo.remotePath.trimEnd('/')
         val cleanFileName = fileName.trimStart('/')
-        return "ftp://${connectionInfo.host}:${connectionInfo.port}$cleanRemotePath/$cleanFileName"
+        
+        // If remotePath is empty (was "/"), don't add extra slash
+        val fullPath = if (cleanRemotePath.isEmpty()) {
+            "ftp://${connectionInfo.host}:${connectionInfo.port}/$cleanFileName"
+        } else {
+            "ftp://${connectionInfo.host}:${connectionInfo.port}$cleanRemotePath/$cleanFileName"
+        }
+        
+        Timber.d("buildFullFtpPath: remotePath='${connectionInfo.remotePath}', fileName='$fileName' -> '$fullPath'")
+        return fullPath
     }
 
     private fun getMediaType(fileName: String): MediaType? {

@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11120446
-        versionName = "2.0.0-build2511120446"
+        versionCode = 11140313
+        versionName = "2.0.0-build2511140313"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -158,6 +158,9 @@ dependencies {
     // BouncyCastle для SMBJ (явная зависимость для решения проблемы с libpenguin.so)
     implementation("org.bouncycastle:bcprov-jdk18on:1.78.1")
     implementation("org.bouncycastle:bcpkix-jdk18on:1.78.1")
+    
+    // EdDSA для SSHJ (alternative to Curve25519)
+    implementation("net.i2p.crypto:eddsa:0.3.0")
     
     // Network - SFTP
     implementation("com.hierynomus:sshj:0.37.0")

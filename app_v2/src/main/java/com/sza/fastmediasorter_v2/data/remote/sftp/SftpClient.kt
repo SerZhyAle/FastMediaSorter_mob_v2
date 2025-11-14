@@ -14,6 +14,16 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * Data class for file attributes retrieved via SFTP stat()
+ */
+data class SftpFileAttributes(
+    val size: Long,
+    val modifiedDate: Long, // Unix timestamp in milliseconds
+    val accessDate: Long,   // Unix timestamp in milliseconds
+    val isDirectory: Boolean
+)
+
+/**
  * Low-level SFTP client wrapper using SSHJ library
  * Handles SFTP connection, authentication and file operations
  */
@@ -48,19 +58,10 @@ class SftpClient @Inject constructor() {
         try {
             disconnect() // Ensure clean state
             
-            // Create custom config without Curve25519 to avoid X25519 requirement
-            val config = object : DefaultConfig() {
-                override fun initKeyExchangeFactories() {
-                    super.initKeyExchangeFactories()
-                    // Filter out Curve25519 algorithms
-                    setKeyExchangeFactories(
-                        keyExchangeFactories.filter { factory ->
-                            !factory.name.contains("curve25519", ignoreCase = true)
-                        }
-                    )
-                }
-            }
+            // Use default config - Curve25519 will fail but fallback to other algorithms
+            val config = DefaultConfig()
             
+            Timber.d("SFTP creating SSHClient with default config")
             val client = SSHClient(config)
             client.addHostKeyVerifier(PromiscuousVerifier()) // Accept all host keys (security risk in production)
             
@@ -68,7 +69,18 @@ class SftpClient @Inject constructor() {
             client.connectTimeout = 4000 // 4 seconds
             client.timeout = 4000 // 4 seconds for socket operations
             
-            client.connect(host, port)
+            Timber.d("SFTP connecting to $host:$port...")
+            
+            // Try connection - if Curve25519 fails, SSHJ will automatically try other algorithms
+            try {
+                client.connect(host, port)
+            } catch (e: Exception) {
+                // If connection fails with X25519 error, server may be forcing Curve25519
+                // Unfortunately we can't disable it without modifying SSHJ library
+                Timber.e(e, "SFTP first connection attempt failed, may need X25519 support")
+                throw e
+            }
+            
             client.authPassword(username, password)
             
             sshClient = client
@@ -332,6 +344,36 @@ class SftpClient @Inject constructor() {
             Result.failure(e)
         } catch (e: Exception) {
             Timber.e(e, "SFTP rename error: $oldPath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Get file attributes (size, dates) via SFTP stat()
+     * @param remotePath Full path to remote file
+     * @return Result with SftpFileAttributes or exception on failure
+     */
+    suspend fun getFileAttributes(remotePath: String): Result<SftpFileAttributes> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            val attrs = client.stat(remotePath)
+            
+            val attributes = SftpFileAttributes(
+                size = attrs.size,
+                modifiedDate = attrs.mtime * 1000L, // Convert Unix seconds to milliseconds
+                accessDate = attrs.atime * 1000L,   // Convert Unix seconds to milliseconds
+                isDirectory = attrs.type == net.schmizz.sshj.sftp.FileMode.Type.DIRECTORY
+            )
+            
+            Result.success(attributes)
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP get file attributes failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP get file attributes error: $remotePath")
             Result.failure(e)
         }
     }
