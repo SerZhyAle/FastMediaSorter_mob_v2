@@ -8,6 +8,7 @@ import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.usecase.ExtractExifMetadataUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.ExtractVideoMetadataUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -107,6 +108,182 @@ class LocalMediaScanner @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error scanning folder: $path")
             emptyList()
+        }
+    }
+    
+    override suspend fun scanFolderPaged(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int,
+        credentialsId: String?
+    ): MediaFilePage = withContext(Dispatchers.IO) {
+        try {
+            // Check if path is a content:// URI (SAF)
+            if (path.startsWith("content://")) {
+                return@withContext scanFolderPagedSAF(path, supportedTypes, sizeFilter, offset, limit)
+            }
+            
+            // Legacy file:// path handling
+            val folder = File(path)
+            if (!folder.exists() || !folder.isDirectory) {
+                Timber.w("Folder does not exist or is not a directory: $path")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            val files = folder.listFiles() ?: return@withContext MediaFilePage(emptyList(), false)
+            
+            // Filter and map all matching files first
+            val allMediaFiles = files.mapNotNull { file ->
+                if (file.isFile) {
+                    val mediaType = getMediaType(file)
+                    if (mediaType != null && supportedTypes.contains(mediaType)) {
+                        // Apply size filter if provided
+                        if (sizeFilter != null && !isFileSizeInRange(file.length(), mediaType, sizeFilter)) {
+                            return@mapNotNull null
+                        }
+                        
+                        // Extract EXIF metadata for IMAGE type files
+                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
+                            try {
+                                exifExtractor.extractFromFile(file.absolutePath)
+                            } catch (e: Exception) {
+                                Timber.w(e, "Failed to extract EXIF for: ${file.name}")
+                                null
+                            }
+                        } else null
+                        
+                        // Extract video metadata for VIDEO type files
+                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
+                            try {
+                                videoExtractor.extractFromFile(file.absolutePath)
+                            } catch (e: Exception) {
+                                Timber.w(e, "Failed to extract video metadata for: ${file.name}")
+                                null
+                            }
+                        } else null
+                        
+                        MediaFile(
+                            name = file.name,
+                            path = file.absolutePath,
+                            size = file.length(),
+                            createdDate = file.lastModified(),
+                            type = mediaType,
+                            duration = videoMetadata?.duration,
+                            width = videoMetadata?.width,
+                            height = videoMetadata?.height,
+                            exifOrientation = exifMetadata?.orientation,
+                            exifDateTime = exifMetadata?.dateTime,
+                            exifLatitude = exifMetadata?.latitude,
+                            exifLongitude = exifMetadata?.longitude,
+                            videoCodec = videoMetadata?.codec,
+                            videoBitrate = videoMetadata?.bitrate,
+                            videoFrameRate = videoMetadata?.frameRate,
+                            videoRotation = videoMetadata?.rotation
+                        )
+                    } else null
+                } else null
+            }
+            
+            // Apply offset and limit
+            val pageFiles = allMediaFiles.drop(offset).take(limit)
+            val hasMore = offset + limit < allMediaFiles.size
+            
+            Timber.d("LocalMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
+            MediaFilePage(pageFiles, hasMore)
+            
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning folder (paged): $path")
+            MediaFilePage(emptyList(), false)
+        }
+    }
+    
+    private suspend fun scanFolderPagedSAF(
+        uriString: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int
+    ): MediaFilePage = withContext(Dispatchers.IO) {
+        try {
+            val uri = Uri.parse(uriString)
+            val folder = DocumentFile.fromTreeUri(context, uri)
+            
+            if (folder == null || !folder.exists() || !folder.isDirectory) {
+                Timber.w("Invalid SAF folder URI or folder doesn't exist: $uriString")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+            
+            val files = folder.listFiles()
+            if (files.isEmpty()) {
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+            
+            // Filter and map all matching files first
+            val allMediaFiles = files.mapNotNull { file ->
+                if (file.isFile) {
+                    val mimeType = file.type
+                    val mediaType = getMediaTypeFromMime(mimeType)
+                    if (mediaType != null && supportedTypes.contains(mediaType)) {
+                        val fileSize = file.length()
+                        // Apply size filter if provided
+                        if (sizeFilter != null && !isFileSizeInRange(fileSize, mediaType, sizeFilter)) {
+                            return@mapNotNull null
+                        }
+                        
+                        // Extract EXIF metadata for IMAGE type files
+                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
+                            try {
+                                exifExtractor.extractFromUri(file.uri)
+                            } catch (e: Exception) {
+                                Timber.w(e, "Failed to extract EXIF for SAF file: ${file.name}")
+                                null
+                            }
+                        } else null
+                        
+                        // Extract video metadata for VIDEO type files
+                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
+                            try {
+                                videoExtractor.extractFromUri(file.uri)
+                            } catch (e: Exception) {
+                                Timber.w(e, "Failed to extract video metadata for SAF file: ${file.name}")
+                                null
+                            }
+                        } else null
+                        
+                        MediaFile(
+                            name = file.name ?: "unknown",
+                            path = file.uri.toString(),
+                            size = fileSize,
+                            createdDate = file.lastModified(),
+                            type = mediaType,
+                            duration = videoMetadata?.duration,
+                            width = videoMetadata?.width,
+                            height = videoMetadata?.height,
+                            exifOrientation = exifMetadata?.orientation,
+                            exifDateTime = exifMetadata?.dateTime,
+                            exifLatitude = exifMetadata?.latitude,
+                            exifLongitude = exifMetadata?.longitude,
+                            videoCodec = videoMetadata?.codec,
+                            videoBitrate = videoMetadata?.bitrate,
+                            videoFrameRate = videoMetadata?.frameRate,
+                            videoRotation = videoMetadata?.rotation
+                        )
+                    } else null
+                } else null
+            }
+            
+            // Apply offset and limit
+            val pageFiles = allMediaFiles.drop(offset).take(limit)
+            val hasMore = offset + limit < allMediaFiles.size
+            
+            Timber.d("LocalMediaScanner SAF paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
+            MediaFilePage(pageFiles, hasMore)
+            
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning SAF folder (paged): $uriString")
+            MediaFilePage(emptyList(), false)
         }
     }
     

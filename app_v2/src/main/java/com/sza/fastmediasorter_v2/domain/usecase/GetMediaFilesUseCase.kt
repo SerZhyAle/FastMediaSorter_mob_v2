@@ -17,6 +17,11 @@ data class SizeFilter(
     val audioSizeMax: Long
 )
 
+data class MediaFilePage(
+    val files: List<MediaFile>,
+    val hasMore: Boolean
+)
+
 interface MediaScanner {
     suspend fun scanFolder(
         path: String,
@@ -24,6 +29,21 @@ interface MediaScanner {
         sizeFilter: SizeFilter? = null,
         credentialsId: String? = null
     ): List<MediaFile>
+    
+    /**
+     * Scan folder with pagination support.
+     * @param offset Starting position (0-based)
+     * @param limit Maximum number of files to return
+     * @return MediaFilePage with files and hasMore flag
+     */
+    suspend fun scanFolderPaged(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter? = null,
+        offset: Int,
+        limit: Int,
+        credentialsId: String? = null
+    ): MediaFilePage
     
     suspend fun getFileCount(
         path: String,

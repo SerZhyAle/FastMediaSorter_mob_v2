@@ -3,6 +3,7 @@ package com.sza.fastmediasorter_v2.data.remote.ftp
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import kotlinx.coroutines.Dispatchers
@@ -90,6 +91,30 @@ class FtpMediaScanner @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error scanning FTP folder: $path")
             emptyList()
+        }
+    }
+
+    override suspend fun scanFolderPaged(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int,
+        credentialsId: String?
+    ): MediaFilePage = withContext(Dispatchers.IO) {
+        try {
+            // For simplicity, reuse scanFolder and apply offset/limit
+            // TODO: optimize FTP client to support native pagination
+            val allFiles = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
+            
+            val pageFiles = allFiles.drop(offset).take(limit)
+            val hasMore = offset + limit < allFiles.size
+            
+            Timber.d("FtpMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
+            MediaFilePage(pageFiles, hasMore)
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning FTP folder (paged): $path")
+            MediaFilePage(emptyList(), false)
         }
     }
 

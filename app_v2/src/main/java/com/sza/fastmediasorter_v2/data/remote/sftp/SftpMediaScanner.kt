@@ -3,6 +3,7 @@ package com.sza.fastmediasorter_v2.data.remote.sftp
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import kotlinx.coroutines.Dispatchers
@@ -124,6 +125,105 @@ class SftpMediaScanner @Inject constructor(
             sftpClient.disconnect()
             Timber.e(e, "Error scanning SFTP folder: $path")
             emptyList()
+        }
+    }
+
+    override suspend fun scanFolderPaged(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int,
+        credentialsId: String?
+    ): MediaFilePage = withContext(Dispatchers.IO) {
+        try {
+            // Parse path format: sftp://server:port/remotePath
+            val connectionInfo = parseSftpPath(path, credentialsId) ?: run {
+                Timber.w("Invalid SFTP path format: $path")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            // Connect and list files
+            val connectResult = sftpClient.connect(
+                host = connectionInfo.host,
+                port = connectionInfo.port,
+                username = connectionInfo.username,
+                password = connectionInfo.password
+            )
+
+            if (connectResult.isFailure) {
+                Timber.e("Failed to connect to SFTP: ${connectResult.exceptionOrNull()?.message}")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            // List files in remote path
+            val filesResult = sftpClient.listFiles(connectionInfo.remotePath)
+            
+            if (filesResult.isFailure) {
+                sftpClient.disconnect()
+                Timber.e("Failed to list SFTP files: ${filesResult.exceptionOrNull()?.message}")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            // Filter and convert to MediaFile (all files first)
+            val allMediaFiles = filesResult.getOrNull()?.mapNotNull { fileName ->
+                val mediaType = getMediaType(fileName)
+                if (mediaType != null && supportedTypes.contains(mediaType)) {
+                    // Get file attributes via stat()
+                    val fullPath = buildFullSftpPath(connectionInfo, fileName)
+                    val remotePath = "${connectionInfo.remotePath.removeSuffix("/")}/$fileName"
+                    
+                    val attrsResult = sftpClient.getFileAttributes(remotePath)
+                    
+                    if (attrsResult.isFailure) {
+                        Timber.w("Failed to get attributes for $fileName, skipping")
+                        return@mapNotNull null
+                    }
+                    
+                    val attrs = attrsResult.getOrNull()!!
+                    
+                    // Skip directories
+                    if (attrs.isDirectory) {
+                        return@mapNotNull null
+                    }
+                    
+                    // Apply size filter if provided
+                    if (sizeFilter != null) {
+                        val passesFilter = when (mediaType) {
+                            MediaType.IMAGE -> attrs.size >= sizeFilter.imageSizeMin && attrs.size <= sizeFilter.imageSizeMax
+                            MediaType.VIDEO -> attrs.size >= sizeFilter.videoSizeMin && attrs.size <= sizeFilter.videoSizeMax
+                            MediaType.AUDIO -> attrs.size >= sizeFilter.audioSizeMin && attrs.size <= sizeFilter.audioSizeMax
+                            MediaType.GIF -> attrs.size >= sizeFilter.imageSizeMin && attrs.size <= sizeFilter.imageSizeMax
+                        }
+                        if (!passesFilter) {
+                            return@mapNotNull null
+                        }
+                    }
+                    
+                    MediaFile(
+                        name = fileName,
+                        path = fullPath,
+                        size = attrs.size,
+                        createdDate = attrs.modifiedDate,
+                        type = mediaType
+                    )
+                } else null
+            } ?: emptyList()
+            
+            // Disconnect after processing all files
+            sftpClient.disconnect()
+            
+            // Apply offset and limit
+            val pageFiles = allMediaFiles.drop(offset).take(limit)
+            val hasMore = offset + limit < allMediaFiles.size
+            
+            Timber.d("SftpMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
+            MediaFilePage(pageFiles, hasMore)
+            
+        } catch (e: Exception) {
+            sftpClient.disconnect()
+            Timber.e(e, "Error scanning SFTP folder (paged): $path")
+            MediaFilePage(emptyList(), false)
         }
     }
 

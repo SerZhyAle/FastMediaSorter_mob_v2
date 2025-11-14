@@ -4,6 +4,7 @@ import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.usecase.ExtractExifMetadataUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import kotlinx.coroutines.Dispatchers
@@ -157,6 +158,65 @@ class SmbMediaScanner @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SMB folder (chunked): $path")
             emptyList()
+        }
+    }
+
+    override suspend fun scanFolderPaged(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        offset: Int,
+        limit: Int,
+        credentialsId: String?
+    ): MediaFilePage = withContext(Dispatchers.IO) {
+        try {
+            val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
+                Timber.w("Invalid SMB path format: $path")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            val extensions = buildExtensionsSet(supportedTypes)
+
+            // First scan all files (TODO: optimize SMB client to support offset/limit natively)
+            when (val result = smbClient.scanMediaFiles(
+                connectionInfo = connectionInfo.connectionInfo,
+                remotePath = connectionInfo.remotePath,
+                extensions = extensions
+            )) {
+                is SmbClient.SmbResult.Success -> {
+                    // Convert all files to MediaFile list
+                    val allMediaFiles = result.data.mapNotNull { fileInfo ->
+                        val mediaType = getMediaType(fileInfo.name)
+                        if (mediaType != null && supportedTypes.contains(mediaType)) {
+                            if (sizeFilter != null && !isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
+                                return@mapNotNull null
+                            }
+
+                            MediaFile(
+                                name = fileInfo.name,
+                                path = buildFullSmbPath(connectionInfo, fileInfo.path),
+                                size = fileInfo.size,
+                                createdDate = fileInfo.lastModified,
+                                type = mediaType
+                            )
+                        } else null
+                    }
+                    
+                    // Apply offset and limit
+                    val pageFiles = allMediaFiles.drop(offset).take(limit)
+                    val hasMore = offset + limit < allMediaFiles.size
+                    
+                    Timber.d("SmbMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
+                    MediaFilePage(pageFiles, hasMore)
+                }
+                is SmbClient.SmbResult.Error -> {
+                    Timber.e("Error scanning SMB folder (paged): ${result.message}")
+                    MediaFilePage(emptyList(), false)
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning SMB folder (paged): $path")
+            MediaFilePage(emptyList(), false)
         }
     }
 
