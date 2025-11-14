@@ -2,6 +2,8 @@ package com.sza.fastmediasorter_v2
 
 import android.app.Application
 import android.content.Context
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import com.sza.fastmediasorter_v2.core.util.LocaleHelper
@@ -11,13 +13,16 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltAndroidApp
-class FastMediaSorterApp : Application(), ImageLoaderFactory {
+class FastMediaSorterApp : Application(), ImageLoaderFactory, Configuration.Provider {
 
     @Inject
     lateinit var imageLoader: ImageLoader
     
     @Inject
     lateinit var workManagerScheduler: WorkManagerScheduler
+    
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
 
     override fun onCreate() {
         super.onCreate()
@@ -49,6 +54,11 @@ class FastMediaSorterApp : Application(), ImageLoaderFactory {
     override fun newImageLoader(): ImageLoader {
         return imageLoader
     }
+    
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 
     override fun attachBaseContext(base: Context) {
         super.attachBaseContext(LocaleHelper.applyLocale(base))
