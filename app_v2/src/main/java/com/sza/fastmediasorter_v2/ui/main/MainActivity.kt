@@ -157,6 +157,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     
                     binding.btnStartPlayer.isEnabled = state.selectedResource != null
                     
+                    // Use state.resources.size instead of adapter.itemCount 
+                    // because submitList() updates itemCount asynchronously
+                    val isEmpty = state.resources.isEmpty()
+                    
+                    // Update visibility based on state
+                    val hasError = viewModel.error.value != null
+                    binding.errorStateView.isVisible = hasError && isEmpty
+                    binding.emptyStateView.isVisible = !hasError && isEmpty
+                    binding.rvResources.isVisible = !isEmpty
+                    
                     updateFilterWarning(state)
                 }
             }
@@ -175,7 +185,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.error.collect { errorMessage ->
                     // Show error state if error occurred and no resources loaded
                     val hasError = errorMessage != null
-                    val isEmpty = resourceAdapter.itemCount == 0
+                    val isEmpty = viewModel.state.value.resources.isEmpty()
                     
                     binding.errorStateView.isVisible = hasError && isEmpty
                     binding.emptyStateView.isVisible = !hasError && isEmpty

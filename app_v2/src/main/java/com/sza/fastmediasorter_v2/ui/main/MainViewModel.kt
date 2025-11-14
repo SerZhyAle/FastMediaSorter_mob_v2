@@ -58,7 +58,6 @@ class MainViewModel @Inject constructor(
     override fun getInitialState() = MainState()
 
     init {
-        loadResources()
         observeResourcesFromDatabase()
     }
 
@@ -70,7 +69,6 @@ class MainViewModel @Inject constructor(
                     handleError(e)
                 }
                 .collect { allResources ->
-                    Timber.d("Resources updated from database: ${allResources.size} resources")
                     // Apply current filters and sorting
                     val filteredResources = applyFiltersAndSorting(allResources)
                     updateState { it.copy(resources = filteredResources) }
