@@ -132,6 +132,8 @@
     <string name="destinations_list">Destinations (0-9)</string>
     <string name="destinations_description">Up to 10 destination resources. Each has a color and number (0-9).</string>
     <string name="add_destination">Add Destination</string>
+    <string name="add_resources_first_message">Add the resources first at the main screen, before mark any as destination.</string>
+    <string name="register_as_destination">Register as destination</string>
     
     <!-- Edit Resource -->
     <string name="edit_resource">Edit Resource</string>
@@ -179,10 +181,10 @@
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
     <string name="welcome_description_1">FastMediaSorter is a powerful tool for organizing your media files.\n\n• Browse photos, videos, GIFs, and audio files\n• Sort and filter by name, date, or size\n• Copy or move files with simple gestures\n• Support for local folders, network shares (SMB), and SFTP\n• Set up to 10 quick destination folders\n• Slideshow mode for media playback\n\nLet\'s get started with a quick tour!</string>
-    <string name="welcome_title_2">Touch Zones (Images/Video)</string>
-    <string name="welcome_description_2" formatted="false">Navigate and manage media with 9 touch zones (3x3 grid):\n\nTOP ROW:\n• BACK - exit player\n• COPY - copy file to destination\n• RENAME - rename current file\n\nMIDDLE ROW:\n• PREVIOUS - previous file\n• MOVE - move file to destination\n• NEXT - next file\n\nBOTTOM ROW (75% of screen):\n• COMMAND PANEL - show quick actions\n• DELETE - remove file\n• SLIDESHOW - toggle auto-play mode\n\nNote: Bottom 25% is reserved for video controls.</string>
-    <string name="welcome_title_3">Gesture Controls</string>
-    <string name="welcome_description_3">Control media playback with intuitive touch gestures:\n\nNAVIGATION:\n• Tap LEFT side of screen - previous file\n• Tap RIGHT side of screen - next file\n• Swipe LEFT/RIGHT - quick navigation\n\nFILE OPERATIONS:\n• Swipe UP - copy to destination\n• Swipe DOWN - move to destination\n• Long press - show file options menu\n\nPLAYBACK:\n• Tap CENTER - pause/play (for video/audio)\n• Double tap - toggle fullscreen mode</string>
+    <string name="welcome_title_2">Resource Types</string>
+    <string name="welcome_description_2">FastMediaSorter supports multiple resource types for flexible media management:\n\n📱 LOCAL RESOURCES:\n• Device internal storage\n• SD cards and external storage\n• Camera and Downloads folders\n\n🌐 NETWORK RESOURCES:\n• SMB/CIFS network shares (Windows/NAS)\n• SFTP servers (SSH file transfer)\n• WebDAV protocol support\n\n☁️ CLOUD STORAGE (Coming soon):\n• Google Drive\n• OneDrive\n• Dropbox\n\nYou can add and manage resources in Settings!</string>
+    <string name="welcome_title_3">Touch Zones (Images/Video)</string>
+    <string name="welcome_description_3" formatted="false">Navigate and manage media with 9 touch zones (3x3 grid):\n\nTOP ROW:\n• BACK - exit player\n• COPY - copy file to destination\n• RENAME - rename current file\n\nMIDDLE ROW:\n• PREVIOUS - previous file\n• MOVE - move file to destination\n• NEXT - next file\n\nBOTTOM ROW (75% of screen):\n• COMMAND PANEL - show quick actions\n• DELETE - remove file\n• SLIDESHOW - toggle auto-play mode\n\nNote: Bottom 25% is reserved for video controls.</string>
     <string name="welcome_title_4">Resources and Destinations</string>
     <string name="welcome_description_4">Organize your media workflow efficiently:\n\nRESOURCES (Source Folders):\n• Add local device folders (Camera, Downloads, etc.)\n• Connect to network shares via SMB/CIFS\n• Access SFTP servers\n• Each resource shows media file count and types\n\nDESTINATIONS (Quick Copy/Move):\n• Configure up to 10 destination folders\n• Assign colors to each destination\n• Quick access via gestures or buttons\n• Support both local and network locations\n\nYou can configure everything in Settings later!</string>
     
@@ -270,6 +272,7 @@
     
     <!-- Touch Zones Legend -->
     <string name="touch_zones_legend_title">Touch Zones Legend:</string>
+    <string name="touch_zone_0_legend">0. Legend:</string>
     <string name="touch_zone_1_back">1. BACK - Return to file list</string>
     <string name="touch_zone_2_copy">2. COPY - Copy file to destination</string>
     <string name="touch_zone_3_rename">3. RENAME - Rename current file</string>

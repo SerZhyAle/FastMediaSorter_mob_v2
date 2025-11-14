@@ -2,6 +2,7 @@ package com.sza.fastmediasorter_v2.data.network
 
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter_v2.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +25,10 @@ class SmbFileOperationHandler @Inject constructor(
     private val credentialsDao: NetworkCredentialsDao
 ) {
 
-    suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult = withContext(Dispatchers.IO) {
+    suspend fun executeCopy(
+        operation: FileOperation.Copy,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult = withContext(Dispatchers.IO) {
         // Use path instead of absolutePath to preserve SMB URL format
         // Normalize SMB path: ensure smb:/ becomes smb://
         val destinationPath = normalizeSmbPath(operation.destination.path)
@@ -57,7 +61,7 @@ class SmbFileOperationHandler @Inject constructor(
                     isSourceSmb && !isDestSmb && !isDestSftp -> {
                         Timber.d("SMB executeCopy: SMB→Local - downloading ${source.name}")
                         // SMB to Local
-                        downloadFromSmb(sourcePath, File(destPath))?.let {
+                        downloadFromSmb(sourcePath, File(destPath), progressCallback)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -76,7 +80,7 @@ class SmbFileOperationHandler @Inject constructor(
                     !isSourceSmb && !isSourceSftp && isDestSmb -> {
                         Timber.d("SMB executeCopy: Local→SMB - uploading ${source.name}")
                         // Local to SMB
-                        uploadToSmb(source, destPath)?.let {
+                        uploadToSmb(source, destPath, progressCallback)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -166,7 +170,10 @@ class SmbFileOperationHandler @Inject constructor(
         return@withContext result
     }
 
-    suspend fun executeMove(operation: FileOperation.Move): FileOperationResult = withContext(Dispatchers.IO) {
+    suspend fun executeMove(
+        operation: FileOperation.Move,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult = withContext(Dispatchers.IO) {
         // Use path instead of absolutePath to preserve SMB URL format
         // Normalize SMB path: ensure smb:/ becomes smb://
         val destinationPath = normalizeSmbPath(operation.destination.path)
@@ -196,7 +203,7 @@ class SmbFileOperationHandler @Inject constructor(
                     isSourceSmb && !isDestSmb -> {
                         Timber.d("SMB executeMove: SMB→Local - download+delete ${source.name}")
                         // SMB to Local (download + delete)
-                        if (downloadFromSmb(sourcePath, File(destPath)) != null) {
+                        if (downloadFromSmb(sourcePath, File(destPath), progressCallback) != null) {
                             val downloadDuration = System.currentTimeMillis() - startTime
                             Timber.d("SMB executeMove: Downloaded in ${downloadDuration}ms, attempting delete from SMB")
                             
@@ -231,7 +238,7 @@ class SmbFileOperationHandler @Inject constructor(
                     !isSourceSmb && isDestSmb -> {
                         Timber.d("SMB executeMove: Local→SMB - upload+delete ${source.name}")
                         // Local to SMB (upload + delete)
-                        if (uploadToSmb(source, destPath) != null) {
+                        if (uploadToSmb(source, destPath, progressCallback) != null) {
                             val uploadDuration = System.currentTimeMillis() - startTime
                             Timber.d("SMB executeMove: Uploaded in ${uploadDuration}ms, attempting local delete")
                             
@@ -414,7 +421,11 @@ class SmbFileOperationHandler @Inject constructor(
         }
     }
 
-    private suspend fun downloadFromSmb(smbPath: String, localFile: File): File? {
+    private suspend fun downloadFromSmb(
+        smbPath: String,
+        localFile: File,
+        progressCallback: ByteProgressCallback? = null
+    ): File? {
         Timber.d("downloadFromSmb: $smbPath → ${localFile.absolutePath}")
         
         val connectionInfo = parseSmbPath(smbPath)
@@ -425,9 +436,17 @@ class SmbFileOperationHandler @Inject constructor(
         
         Timber.d("downloadFromSmb: Parsed - server=${connectionInfo.connectionInfo.server}, share=${connectionInfo.connectionInfo.shareName}, path=${connectionInfo.remotePath}")
         
+        // File size is unknown for SMB downloads, pass 0L
+        // Progress will still work, just without percentage
         val outputStream = ByteArrayOutputStream()
 
-        return when (val result = smbClient.downloadFile(connectionInfo.connectionInfo, connectionInfo.remotePath, outputStream)) {
+        return when (val result = smbClient.downloadFile(
+            connectionInfo.connectionInfo,
+            connectionInfo.remotePath,
+            outputStream,
+            fileSize = 0L,
+            progressCallback = progressCallback
+        )) {
             is SmbClient.SmbResult.Success -> {
                 try {
                     val bytes = outputStream.toByteArray()
@@ -447,7 +466,11 @@ class SmbFileOperationHandler @Inject constructor(
         }
     }
 
-    private suspend fun uploadToSmb(localFile: File, smbPath: String): String? {
+    private suspend fun uploadToSmb(
+        localFile: File,
+        smbPath: String,
+        progressCallback: ByteProgressCallback? = null
+    ): String? {
         Timber.d("uploadToSmb: ${localFile.absolutePath} → $smbPath")
         
         if (!localFile.exists()) {
@@ -455,7 +478,8 @@ class SmbFileOperationHandler @Inject constructor(
             return null
         }
         
-        Timber.d("uploadToSmb: Local file size=${localFile.length()} bytes")
+        val fileSize = localFile.length()
+        Timber.d("uploadToSmb: Local file size=$fileSize bytes")
         
         val connectionInfo = parseSmbPath(smbPath)
         if (connectionInfo == null) {
@@ -467,7 +491,13 @@ class SmbFileOperationHandler @Inject constructor(
         
         val inputStream = localFile.inputStream()
 
-        return when (val result = smbClient.uploadFile(connectionInfo.connectionInfo, connectionInfo.remotePath, inputStream)) {
+        return when (val result = smbClient.uploadFile(
+            connectionInfo.connectionInfo,
+            connectionInfo.remotePath,
+            inputStream,
+            fileSize,
+            progressCallback
+        )) {
             is SmbClient.SmbResult.Success -> {
                 Timber.i("uploadToSmb: SUCCESS - uploaded ${localFile.name}")
                 smbPath

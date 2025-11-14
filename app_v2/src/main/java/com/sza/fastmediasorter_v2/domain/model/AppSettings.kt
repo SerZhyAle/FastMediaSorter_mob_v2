@@ -16,13 +16,13 @@ data class AppSettings(
     val supportImages: Boolean = true,
     val imageSizeMin: Long = 1024L, // 1KB
     val imageSizeMax: Long = 10485760L, // 10MB
-    val supportGifs: Boolean = false,
+    val supportGifs: Boolean = true,
     val supportVideos: Boolean = true,
     val videoSizeMin: Long = 102400L, // 100KB
-    val videoSizeMax: Long = 1073741824L, // 1GB
+    val videoSizeMax: Long = 107374182400L, // 100GB (1024MB * 100)
     val supportAudio: Boolean = true,
     val audioSizeMin: Long = 10240L, // 10KB
-    val audioSizeMax: Long = 104857600L, // 100MB
+    val audioSizeMax: Long = 1048576000L, // 1000MB (100MB * 10)
     
     // Playback and Sorting settings
     val defaultSortMode: SortMode = SortMode.NAME_ASC,

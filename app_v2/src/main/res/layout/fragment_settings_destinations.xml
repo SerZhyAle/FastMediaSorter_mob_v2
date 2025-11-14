@@ -91,7 +91,21 @@
             android:paddingHorizontal="24dp"
             android:paddingVertical="12dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"/>
+
+        <!-- Message when no resources available -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvNoResourcesMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_resources_first_message"
+            android:textSize="14sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:padding="16dp"
+            android:gravity="center"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone"/>
 
         <!-- Destinations List -->
         <androidx.recyclerview.widget.RecyclerView

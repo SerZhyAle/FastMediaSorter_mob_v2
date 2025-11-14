@@ -543,6 +543,11 @@ class DestinationsSettingsFragment : Fragment() {
                         adapter.submitList(destinations)
                     }
                 }
+                
+                // Check if resources are available for adding destinations
+                launch {
+                    updateAddDestinationVisibility()
+                }
             }
         }
     }
@@ -553,6 +558,14 @@ class DestinationsSettingsFragment : Fragment() {
     
     private fun updateMoveOptionsVisibility(enabled: Boolean) {
         binding.layoutMoveOptions.isVisible = enabled
+    }
+    
+    private suspend fun updateAddDestinationVisibility() {
+        val availableResources = viewModel.getWritableNonDestinationResources()
+        val hasResources = availableResources.isNotEmpty()
+        
+        binding.btnAddDestination.isVisible = hasResources
+        binding.tvNoResourcesMessage.isVisible = !hasResources
     }
     
     private fun moveDestination(position: Int, direction: Int) {

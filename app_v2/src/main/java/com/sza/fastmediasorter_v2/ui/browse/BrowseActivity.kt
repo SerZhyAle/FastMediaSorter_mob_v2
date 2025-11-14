@@ -22,7 +22,9 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
+import com.sza.fastmediasorter_v2.data.observer.MediaStoreObserver
 import com.sza.fastmediasorter_v2.databinding.ActivityBrowseBinding
+import com.sza.fastmediasorter_v2.databinding.DialogCopyToBinding
 import com.sza.fastmediasorter_v2.databinding.DialogFilterBinding
 import com.sza.fastmediasorter_v2.databinding.DialogRenameMultipleBinding
 import com.sza.fastmediasorter_v2.databinding.DialogRenameSingleBinding
@@ -48,6 +50,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private val viewModel: BrowseViewModel by viewModels()
     private lateinit var mediaFileAdapter: MediaFileAdapter
+    private var mediaStoreObserver: MediaStoreObserver? = null
     
     @Inject
     lateinit var fileOperationUseCase: FileOperationUseCase
@@ -864,6 +867,43 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         // Clear expired undo operations (older than 5 minutes)
         viewModel.clearExpiredUndoOperation()
+        
+        // Start MediaStore observer for local resources
+        startMediaStoreObserver()
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        // Stop MediaStore observer to avoid unnecessary updates
+        stopMediaStoreObserver()
+    }
+    
+    private fun startMediaStoreObserver() {
+        // Check if resource is local
+        val resource = viewModel.state.value.resource
+        if (resource?.type != com.sza.fastmediasorter_v2.domain.model.ResourceType.LOCAL) {
+            return
+        }
+        
+        try {
+            mediaStoreObserver = MediaStoreObserver(
+                context = this,
+                onMediaStoreChanged = {
+                    Timber.d("MediaStore changed, reloading files")
+                    viewModel.reloadFiles()
+                }
+            )
+            mediaStoreObserver?.startWatching()
+            Timber.d("Started MediaStore observer")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to start MediaStore observer")
+        }
+    }
+    
+    private fun stopMediaStoreObserver() {
+        mediaStoreObserver?.stopWatching()
+        mediaStoreObserver = null
+        Timber.d("Stopped MediaStore observer")
     }
 
     companion object {

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter_v2.data.network
 
 import com.sza.fastmediasorter_v2.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter_v2.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +36,10 @@ class SftpFileOperationHandler @Inject constructor(
         val remotePath: String
     )
 
-    suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult = withContext(Dispatchers.IO) {
+    suspend fun executeCopy(
+        operation: FileOperation.Copy,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult = withContext(Dispatchers.IO) {
         Timber.d("SFTP executeCopy: Starting copy of ${operation.sources.size} files to ${operation.destination.absolutePath}")
         
         val errors = mutableListOf<String>()
@@ -60,7 +64,7 @@ class SftpFileOperationHandler @Inject constructor(
                 when {
                     isSourceSftp && !isDestSftp && !isDestSmb -> {
                         Timber.d("SFTP executeCopy: SFTP→Local - downloading ${source.name}")
-                        downloadFromSftp(source.absolutePath, File(destPath))?.let {
+                        downloadFromSftp(source.absolutePath, File(destPath), progressCallback)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -78,7 +82,7 @@ class SftpFileOperationHandler @Inject constructor(
                     }
                     !isSourceSftp && !isSourceSmb && isDestSftp -> {
                         Timber.d("SFTP executeCopy: Local→SFTP - uploading ${source.name}")
-                        uploadToSftp(source, destPath)?.let {
+                        uploadToSftp(source, destPath, progressCallback)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -166,7 +170,10 @@ class SftpFileOperationHandler @Inject constructor(
         return@withContext result
     }
 
-    suspend fun executeMove(operation: FileOperation.Move): FileOperationResult = withContext(Dispatchers.IO) {
+    suspend fun executeMove(
+        operation: FileOperation.Move,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult = withContext(Dispatchers.IO) {
         Timber.d("SFTP executeMove: Starting move of ${operation.sources.size} files to ${operation.destination.absolutePath}")
         
         val errors = mutableListOf<String>()
@@ -190,7 +197,7 @@ class SftpFileOperationHandler @Inject constructor(
                     isSourceSftp && !isDestSftp -> {
                         Timber.d("SFTP executeMove: SFTP→Local - download+delete ${source.name}")
                         // SFTP to Local (download + delete)
-                        val localFile = downloadFromSftp(source.absolutePath, File(destPath))
+                        val localFile = downloadFromSftp(source.absolutePath, File(destPath), progressCallback)
                         if (localFile != null) {
                             val downloadDuration = System.currentTimeMillis() - startTime
                             Timber.d("SFTP executeMove: Downloaded in ${downloadDuration}ms, attempting delete from source SFTP")
@@ -226,7 +233,7 @@ class SftpFileOperationHandler @Inject constructor(
                     !isSourceSftp && isDestSftp -> {
                         Timber.d("SFTP executeMove: Local→SFTP - upload+delete ${source.name}")
                         // Local to SFTP (upload + delete)
-                        if (uploadToSftp(source, destPath) != null) {
+                        if (uploadToSftp(source, destPath, progressCallback) != null) {
                             val uploadDuration = System.currentTimeMillis() - startTime
                             Timber.d("SFTP executeMove: Uploaded in ${uploadDuration}ms, attempting delete from local")
                             
@@ -415,7 +422,11 @@ class SftpFileOperationHandler @Inject constructor(
         }
     }
 
-    private suspend fun downloadFromSftp(sftpPath: String, localFile: File): File? {
+    private suspend fun downloadFromSftp(
+        sftpPath: String, 
+        localFile: File,
+        progressCallback: ByteProgressCallback? = null
+    ): File? {
         Timber.d("downloadFromSftp: $sftpPath → ${localFile.absolutePath}")
         
         val connectionInfo = parseSftpPath(sftpPath)
@@ -433,7 +444,8 @@ class SftpFileOperationHandler @Inject constructor(
         }
         
         val outputStream = ByteArrayOutputStream()
-        val downloadResult = sftpClient.downloadFile(connectionInfo.remotePath, outputStream)
+        val fileSize = 0L // SFTP doesn't easily provide file size before download, pass 0L for now
+        val downloadResult = sftpClient.downloadFile(connectionInfo.remotePath, outputStream, fileSize, progressCallback)
         sftpClient.disconnect()
         
         return when {
@@ -456,7 +468,11 @@ class SftpFileOperationHandler @Inject constructor(
         }
     }
 
-    private suspend fun uploadToSftp(localFile: File, sftpPath: String): String? {
+    private suspend fun uploadToSftp(
+        localFile: File, 
+        sftpPath: String,
+        progressCallback: ByteProgressCallback? = null
+    ): String? {
         Timber.d("uploadToSftp: ${localFile.absolutePath} → $sftpPath")
         
         if (!localFile.exists()) {
@@ -464,7 +480,8 @@ class SftpFileOperationHandler @Inject constructor(
             return null
         }
         
-        Timber.d("uploadToSftp: Local file size=${localFile.length()} bytes")
+        val fileSize = localFile.length()
+        Timber.d("uploadToSftp: Local file size=$fileSize bytes")
         
         val connectionInfo = parseSftpPath(sftpPath)
         if (connectionInfo == null) {
@@ -481,7 +498,7 @@ class SftpFileOperationHandler @Inject constructor(
         }
         
         val inputStream = localFile.inputStream()
-        val uploadResult = sftpClient.uploadFile(connectionInfo.remotePath, inputStream)
+        val uploadResult = sftpClient.uploadFile(connectionInfo.remotePath, inputStream, fileSize, progressCallback)
         sftpClient.disconnect()
 
         return when {

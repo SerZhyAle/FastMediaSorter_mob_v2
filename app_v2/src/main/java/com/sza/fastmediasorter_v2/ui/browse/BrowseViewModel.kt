@@ -13,6 +13,7 @@ import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperation
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter_v2.data.observer.MediaFileObserver
 import com.sza.fastmediasorter_v2.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScannerFactory
@@ -63,11 +64,18 @@ class BrowseViewModel @Inject constructor(
         ?: 0L
     
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
+    
+    private var fileObserver: MediaFileObserver? = null
 
     override fun getInitialState() = BrowseState()
 
     init {
         loadResource()
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        stopFileObserver()
     }
 
     fun reloadFiles() {
@@ -210,6 +218,9 @@ class BrowseViewModel @Inject constructor(
                     if (useChunked && files.size >= 100) {
                         Timber.d("Loaded first ${files.size} files via chunked loading")
                     }
+                    
+                    // Start FileObserver for local resources
+                    startFileObserver()
                 }
         }
     }
@@ -689,5 +700,64 @@ class BrowseViewModel @Inject constructor(
                     setLoading(false)
                 }
         }
+    }
+    
+    /**
+     * Start FileObserver for local resources to detect external file changes
+     */
+    private fun startFileObserver() {
+        val resource = state.value.resource ?: return
+        
+        // Only observe local folders
+        if (resource.type != com.sza.fastmediasorter_v2.domain.model.ResourceType.LOCAL) {
+            return
+        }
+        
+        // Stop previous observer if exists
+        stopFileObserver()
+        
+        try {
+            fileObserver = MediaFileObserver(
+                path = resource.path,
+                listener = object : MediaFileObserver.FileChangeListener {
+                    override fun onFileDeleted(fileName: String) {
+                        Timber.i("External file deleted: $fileName")
+                        // Reload files to reflect deletion
+                        reloadFiles()
+                    }
+
+                    override fun onFileCreated(fileName: String) {
+                        Timber.i("External file created: $fileName")
+                        // Reload files to reflect new file
+                        reloadFiles()
+                    }
+
+                    override fun onFileMoved(fromName: String?, toName: String?) {
+                        Timber.i("External file moved: from=$fromName, to=$toName")
+                        // Reload files to reflect move
+                        reloadFiles()
+                    }
+
+                    override fun onFileModified(fileName: String) {
+                        Timber.d("External file modified: $fileName")
+                        // Optionally reload to update file metadata
+                        // For now, skip reload for modifications to avoid too many refreshes
+                    }
+                }
+            )
+            fileObserver?.startWatching()
+            Timber.d("Started FileObserver for: ${resource.path}")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to start FileObserver for: ${resource.path}")
+        }
+    }
+    
+    /**
+     * Stop FileObserver
+     */
+    private fun stopFileObserver() {
+        fileObserver?.stopWatching()
+        fileObserver = null
+        Timber.d("Stopped FileObserver")
     }
 }

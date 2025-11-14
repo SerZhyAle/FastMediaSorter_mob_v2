@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter_v2.data.remote.sftp
 
+import com.sza.fastmediasorter_v2.core.util.InputStreamExt.copyToWithProgress
+import com.sza.fastmediasorter_v2.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import net.schmizz.sshj.DefaultConfig
@@ -212,23 +214,31 @@ class SftpClient @Inject constructor() {
      * Download file from SFTP server to OutputStream
      * @param remotePath Full path to remote file
      * @param outputStream OutputStream to write downloaded data
+     * @param fileSize Size of the file to download (for progress tracking), 0 if unknown
+     * @param progressCallback Optional callback for tracking download progress
      * @return Result with Unit on success or exception on failure
      */
     suspend fun downloadFile(
         remotePath: String,
-        outputStream: java.io.OutputStream
+        outputStream: java.io.OutputStream,
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val client = sftpClient ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("SFTP downloading: $remotePath")
+            Timber.d("SFTP downloading: $remotePath (size=$fileSize bytes)")
             
             val remoteFile = client.open(remotePath)
             remoteFile.use { file ->
                 file.RemoteFileInputStream().use { inputStream ->
-                    inputStream.copyTo(outputStream)
+                    if (progressCallback != null && fileSize > 0L) {
+                        inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
+                    } else {
+                        inputStream.copyTo(outputStream)
+                    }
                 }
             }
             
@@ -247,18 +257,22 @@ class SftpClient @Inject constructor() {
      * Upload file to SFTP server from InputStream
      * @param remotePath Full path where file should be uploaded
      * @param inputStream InputStream to read data from
+     * @param fileSize Size of the file to upload (for progress tracking), 0 if unknown
+     * @param progressCallback Optional callback for tracking upload progress
      * @return Result with Unit on success or exception on failure
      */
     suspend fun uploadFile(
         remotePath: String,
-        inputStream: java.io.InputStream
+        inputStream: java.io.InputStream,
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val client = sftpClient ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("SFTP uploading: $remotePath")
+            Timber.d("SFTP uploading: $remotePath (size=$fileSize bytes)")
             
             val remoteFile = client.open(remotePath, 
                 java.util.EnumSet.of(
@@ -270,7 +284,11 @@ class SftpClient @Inject constructor() {
             
             remoteFile.use { file ->
                 file.RemoteFileOutputStream().use { outputStream ->
-                    inputStream.copyTo(outputStream)
+                    if (progressCallback != null && fileSize > 0L) {
+                        inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
+                    } else {
+                        inputStream.copyTo(outputStream)
+                    }
                 }
             }
             

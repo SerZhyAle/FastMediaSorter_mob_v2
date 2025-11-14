@@ -10,6 +10,8 @@ import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
+import com.sza.fastmediasorter_v2.core.util.InputStreamExt.copyToWithProgress
+import com.sza.fastmediasorter_v2.domain.usecase.ByteProgressCallback
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
@@ -557,7 +559,9 @@ class SmbClient @Inject constructor() {
     suspend fun downloadFile(
         connectionInfo: SmbConnectionInfo,
         remotePath: String,
-        localOutputStream: OutputStream
+        localOutputStream: OutputStream,
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): SmbResult<Unit> {
         return try {
             withConnection(connectionInfo) { share ->
@@ -572,7 +576,15 @@ class SmbClient @Inject constructor() {
                 
                 file.use { smbFile ->
                     smbFile.inputStream.use { input ->
-                        input.copyTo(localOutputStream)
+                        if (progressCallback != null) {
+                            input.copyToWithProgress(
+                                output = localOutputStream,
+                                totalBytes = fileSize,
+                                progressCallback = progressCallback
+                            )
+                        } else {
+                            input.copyTo(localOutputStream)
+                        }
                     }
                 }
                 SmbResult.Success(Unit)
@@ -625,7 +637,9 @@ class SmbClient @Inject constructor() {
     suspend fun uploadFile(
         connectionInfo: SmbConnectionInfo,
         remotePath: String,
-        localInputStream: InputStream
+        localInputStream: InputStream,
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): SmbResult<Unit> {
         return try {
             withConnection(connectionInfo) { share ->
@@ -640,7 +654,15 @@ class SmbClient @Inject constructor() {
                 
                 file.use { smbFile ->
                     smbFile.outputStream.use { output ->
-                        localInputStream.copyTo(output)
+                        if (progressCallback != null) {
+                            localInputStream.copyToWithProgress(
+                                output = output,
+                                totalBytes = fileSize,
+                                progressCallback = progressCallback
+                            )
+                        } else {
+                            localInputStream.copyTo(output)
+                        }
                     }
                 }
                 SmbResult.Success(Unit)

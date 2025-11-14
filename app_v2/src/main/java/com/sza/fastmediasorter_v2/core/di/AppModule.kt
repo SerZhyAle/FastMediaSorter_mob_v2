@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter_v2.data.local.LocalMediaScanner
+import com.sza.fastmediasorter_v2.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter_v2.domain.usecase.MediaScanner
 import dagger.Binds
@@ -65,6 +66,12 @@ object AppModule {
     @Singleton
     fun provideSftpClient(): SftpClient {
         return SftpClient()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideFtpClient(): FtpClient {
+        return FtpClient()
     }
 }
 

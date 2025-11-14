@@ -23,7 +23,9 @@
         android:background="?attr/colorPrimary"
         app:tabTextColor="?attr/colorOnPrimary"
         app:tabSelectedTextColor="?attr/colorOnPrimary"
-        app:tabIndicatorColor="?attr/colorSecondary"
+        app:tabIndicatorColor="@color/white"
+        app:tabIndicatorHeight="4dp"
+        app:tabIndicatorFullWidth="false"
         app:layout_constraintTop_toBottomOf="@id/toolbar">
 
         <com.google.android.material.tabs.TabItem

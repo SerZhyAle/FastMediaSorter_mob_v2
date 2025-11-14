@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter_v2.data.remote.ftp
 
+import com.sza.fastmediasorter_v2.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.apache.commons.net.ftp.FTP
@@ -225,18 +226,22 @@ class FtpClient @Inject constructor() {
      * Download file from FTP server to OutputStream
      * @param remotePath Full path to remote file
      * @param outputStream OutputStream to write downloaded data
+     * @param fileSize Size of the file to download (for progress tracking), 0 if unknown
+     * @param progressCallback Optional callback for tracking download progress
      * @return Result with Unit on success or exception on failure
      */
     suspend fun downloadFile(
         remotePath: String,
-        outputStream: OutputStream
+        outputStream: OutputStream,
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val client = ftpClient ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("FTP downloading: $remotePath")
+            Timber.d("FTP downloading: $remotePath (size=$fileSize bytes)")
             
             val success = client.retrieveFile(remotePath, outputStream)
             if (!success) {
@@ -260,18 +265,22 @@ class FtpClient @Inject constructor() {
      * Upload file to FTP server from InputStream
      * @param remotePath Full path where file should be uploaded
      * @param inputStream InputStream to read data from
+     * @param fileSize Size of the file to upload (for progress tracking), 0 if unknown
+     * @param progressCallback Optional callback for tracking upload progress
      * @return Result with Unit on success or exception on failure
      */
     suspend fun uploadFile(
         remotePath: String,
-        inputStream: InputStream
+        inputStream: InputStream,
+        fileSize: Long = 0L,
+        progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val client = ftpClient ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("FTP uploading: $remotePath")
+            Timber.d("FTP uploading: $remotePath (size=$fileSize bytes)")
             
             val success = client.storeFile(remotePath, inputStream)
             if (!success) {
