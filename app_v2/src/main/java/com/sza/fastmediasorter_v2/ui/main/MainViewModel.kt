@@ -59,6 +59,58 @@ class MainViewModel @Inject constructor(
 
     init {
         loadResources()
+        observeResourcesFromDatabase()
+    }
+
+    private fun observeResourcesFromDatabase() {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            getResourcesUseCase()
+                .catch { e ->
+                    Timber.e(e, "Error observing resources from database")
+                    handleError(e)
+                }
+                .collect { allResources ->
+                    Timber.d("Resources updated from database: ${allResources.size} resources")
+                    // Apply current filters and sorting
+                    val filteredResources = applyFiltersAndSorting(allResources)
+                    updateState { it.copy(resources = filteredResources) }
+                }
+        }
+    }
+
+    private fun applyFiltersAndSorting(resources: List<MediaResource>): List<MediaResource> {
+        var filtered = resources
+        
+        // Apply type filter
+        state.value.filterByType?.let { types ->
+            filtered = filtered.filter { types.contains(it.type) }
+        }
+        
+        // Apply media type filter
+        state.value.filterByMediaType?.let { mediaTypes ->
+            filtered = filtered.filter { resource ->
+                resource.supportedMediaTypes.any { mediaTypes.contains(it) }
+            }
+        }
+        
+        // Apply name filter
+        state.value.filterByName?.let { nameFilter ->
+            if (nameFilter.isNotBlank()) {
+                filtered = filtered.filter { it.name.contains(nameFilter, ignoreCase = true) }
+            }
+        }
+        
+        // Apply sorting
+        filtered = when (state.value.sortMode) {
+            SortMode.MANUAL -> filtered.sortedBy { it.displayOrder }
+            SortMode.NAME_ASC -> filtered.sortedBy { it.name.lowercase() }
+            SortMode.NAME_DESC -> filtered.sortedByDescending { it.name.lowercase() }
+            SortMode.DATE_ASC -> filtered.sortedBy { it.createdDate }
+            SortMode.DATE_DESC -> filtered.sortedByDescending { it.createdDate }
+            else -> filtered.sortedBy { it.displayOrder }
+        }
+        
+        return filtered
     }
 
     private fun loadResources() {
