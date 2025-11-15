@@ -390,7 +390,37 @@ class SmbFileOperationHandler @Inject constructor(
     suspend fun executeDelete(operation: FileOperation.Delete): FileOperationResult = withContext(Dispatchers.IO) {
         val errors = mutableListOf<String>()
         val deletedPaths = mutableListOf<String>()
+        val trashedPaths = mutableListOf<String>() // For undo: original paths of trashed files
         var successCount = 0
+        
+        // For soft delete, create .trash folder on first file's parent directory (on remote server)
+        var trashDirPath: String? = null
+        if (operation.softDelete && operation.files.isNotEmpty()) {
+            val firstFilePath = normalizeSmbPath(operation.files.first().path)
+            if (firstFilePath.startsWith("smb://")) {
+                // Extract parent directory from SMB path
+                val parentDir = firstFilePath.substringBeforeLast('/')
+                trashDirPath = "$parentDir/.trash_${System.currentTimeMillis()}"
+                
+                // Create trash directory on remote SMB server
+                val connectionInfo = parseSmbPath(trashDirPath)
+                if (connectionInfo != null) {
+                    val remotePath = connectionInfo.remotePath
+                    when (val result = smbClient.createDirectory(connectionInfo.connectionInfo, remotePath)) {
+                        is SmbClient.SmbResult.Success -> {
+                            Timber.d("SMB executeDelete: Created trash folder: $trashDirPath")
+                        }
+                        is SmbClient.SmbResult.Error -> {
+                            Timber.e("SMB executeDelete: Failed to create trash folder: ${result.message}")
+                            trashDirPath = null // Fallback to hard delete
+                        }
+                    }
+                } else {
+                    Timber.e("SMB executeDelete: Failed to parse trash path: $trashDirPath")
+                    trashDirPath = null
+                }
+            }
+        }
 
         operation.files.forEach { file ->
             try {
@@ -399,11 +429,47 @@ class SmbFileOperationHandler @Inject constructor(
                 val isSmb = filePath.startsWith("smb://")
 
                 if (isSmb) {
-                    if (deleteFromSmb(filePath)) {
-                        deletedPaths.add(filePath)
-                        successCount++
+                    if (operation.softDelete && trashDirPath != null) {
+                        // Soft delete: move to trash folder using rename
+                        val fileName = filePath.substringAfterLast('/')
+                        val trashFilePath = "$trashDirPath/$fileName"
+                        
+                        val connectionInfo = parseSmbPath(filePath)
+                        if (connectionInfo != null) {
+                            val remotePath = connectionInfo.remotePath
+                            val trashRemotePath = parseSmbPath(trashFilePath)?.remotePath
+                            
+                            if (trashRemotePath != null) {
+                                when (val result = smbClient.renameFile(
+                                    connectionInfo.connectionInfo, 
+                                    remotePath, 
+                                    trashRemotePath
+                                )) {
+                                    is SmbClient.SmbResult.Success -> {
+                                        trashedPaths.add(filePath) // Store original path for undo
+                                        deletedPaths.add(trashFilePath) // Store trash path
+                                        successCount++
+                                        Timber.d("SMB soft delete: moved ${file.name} to trash")
+                                    }
+                                    is SmbClient.SmbResult.Error -> {
+                                        errors.add("Failed to move ${file.name} to trash: ${result.message}")
+                                    }
+                                }
+                            } else {
+                                errors.add("Failed to parse trash path for ${file.name}")
+                            }
+                        } else {
+                            errors.add("Failed to parse SMB path for ${file.name}")
+                        }
                     } else {
-                        errors.add("Failed to delete ${file.name} from SMB")
+                        // Hard delete: permanent deletion
+                        if (deleteFromSmb(filePath)) {
+                            deletedPaths.add(filePath)
+                            successCount++
+                            Timber.d("SMB hard delete: permanently deleted ${file.name}")
+                        } else {
+                            errors.add("Failed to delete ${file.name} from SMB")
+                        }
                     }
                 } else {
                     errors.add("Invalid operation: file is local")
@@ -413,9 +479,16 @@ class SmbFileOperationHandler @Inject constructor(
                 errors.add("Delete error for ${file.name}: ${e.message}")
             }
         }
+        
+        // Return trash directory path in result for undo restoration
+        val resultPaths = if (operation.softDelete && trashDirPath != null) {
+            listOf(trashDirPath) + trashedPaths
+        } else {
+            deletedPaths
+        }
 
         return@withContext when {
-            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
+            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, resultPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All delete operations failed")
         }

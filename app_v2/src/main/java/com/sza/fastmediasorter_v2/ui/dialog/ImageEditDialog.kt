@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import com.sza.fastmediasorter_v2.databinding.DialogImageEditBinding
 import com.sza.fastmediasorter_v2.domain.usecase.FlipImageUseCase
+import com.sza.fastmediasorter_v2.domain.usecase.NetworkImageEditUseCase
 import com.sza.fastmediasorter_v2.domain.usecase.RotateImageUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -15,12 +16,14 @@ import timber.log.Timber
 
 /**
  * Dialog for image editing operations: rotation and flipping
+ * Supports both local and network (SMB/SFTP/FTP) files
  */
 class ImageEditDialog(
     context: Context,
     private val imagePath: String,
     private val rotateImageUseCase: RotateImageUseCase,
     private val flipImageUseCase: FlipImageUseCase,
+    private val networkImageEditUseCase: NetworkImageEditUseCase,
     private val onEditComplete: () -> Unit
 ) : Dialog(context) {
 
@@ -68,7 +71,18 @@ class ImageEditDialog(
         setButtonsEnabled(false)
         
         GlobalScope.launch {
-            val result = rotateImageUseCase.execute(imagePath, angle)
+            // Check if it's a network file
+            val isNetworkFile = imagePath.startsWith("smb://") || 
+                               imagePath.startsWith("sftp://") || 
+                               imagePath.startsWith("ftp://")
+            
+            val result = if (isNetworkFile) {
+                Timber.d("Rotating network image: $imagePath")
+                networkImageEditUseCase.rotateImage(imagePath, angle)
+            } else {
+                Timber.d("Rotating local image: $imagePath")
+                rotateImageUseCase.execute(imagePath, angle)
+            }
             
             launch(Dispatchers.Main) {
                 hideProgress()
@@ -95,7 +109,18 @@ class ImageEditDialog(
         setButtonsEnabled(false)
         
         GlobalScope.launch {
-            val result = flipImageUseCase.execute(imagePath, direction)
+            // Check if it's a network file
+            val isNetworkFile = imagePath.startsWith("smb://") || 
+                               imagePath.startsWith("sftp://") || 
+                               imagePath.startsWith("ftp://")
+            
+            val result = if (isNetworkFile) {
+                Timber.d("Flipping network image: $imagePath")
+                networkImageEditUseCase.flipImage(imagePath, direction)
+            } else {
+                Timber.d("Flipping local image: $imagePath")
+                flipImageUseCase.execute(imagePath, direction)
+            }
             
             launch(Dispatchers.Main) {
                 hideProgress()

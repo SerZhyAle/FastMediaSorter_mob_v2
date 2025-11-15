@@ -82,6 +82,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     @Inject
     lateinit var flipImageUseCase: com.sza.fastmediasorter_v2.domain.usecase.FlipImageUseCase
+    
+    @Inject
+    lateinit var networkImageEditUseCase: com.sza.fastmediasorter_v2.domain.usecase.NetworkImageEditUseCase
 
     private val slideShowRunnable = object : Runnable {
         override fun run() {
@@ -920,6 +923,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             val request = ImageRequest.Builder(this)
                 .data(networkData)
                 .target(binding.imageView)
+                .memoryCacheKey(path) // Use path as consistent cache key
+                .diskCacheKey(path)
                 .listener(
                     onStart = {
                         // Loading started - indicator will show after 1 second if still loading
@@ -997,6 +1002,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 val networkData = NetworkFileData(path = file.path, credentialsId = resource.credentialsId)
                 val preloadRequest = ImageRequest.Builder(this)
                     .data(networkData)
+                    .memoryCacheKey(file.path) // Use path as consistent cache key
+                    .diskCacheKey(file.path)
                     .listener(
                         onSuccess = { _, _ ->
                             Timber.d("PlayerActivity: Image preloaded successfully: ${file.name}")
@@ -1013,6 +1020,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 Timber.d("PlayerActivity: Preloading local image: ${file.path}")
                 val preloadRequest = ImageRequest.Builder(this)
                     .data(File(file.path))
+                    .memoryCacheKey(file.path) // Consistent cache key for local files
                     .listener(
                         onSuccess = { _, _ ->
                             Timber.d("PlayerActivity: Local image preloaded: ${file.name}")
@@ -1365,6 +1373,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             imagePath = currentFile.path,
             rotateImageUseCase = rotateImageUseCase,
             flipImageUseCase = flipImageUseCase,
+            networkImageEditUseCase = networkImageEditUseCase,
             onEditComplete = {
                 // TODO: Reload current file after edit is implemented
                 Toast.makeText(this, "Image edit completed", Toast.LENGTH_SHORT).show()

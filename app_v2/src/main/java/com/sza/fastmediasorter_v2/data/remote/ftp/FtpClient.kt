@@ -366,6 +366,36 @@ class FtpClient @Inject constructor() {
             Result.failure(e)
         }
     }
+    
+    /**
+     * Create directory on FTP server
+     * @param remotePath Full path to directory to create
+     * @return Result with Unit or exception on failure
+     */
+    suspend fun createDirectory(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = ftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            Timber.d("FTP creating directory: $remotePath")
+            val success = client.makeDirectory(remotePath)
+            if (!success) {
+                return@withContext Result.failure(
+                    IOException("FTP create directory failed: ${client.replyString}")
+                )
+            }
+            
+            Timber.i("FTP directory created: $remotePath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "FTP create directory failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "FTP create directory error: $remotePath")
+            Result.failure(e)
+        }
+    }
 
     /**
      * Disconnect from FTP server and cleanup resources

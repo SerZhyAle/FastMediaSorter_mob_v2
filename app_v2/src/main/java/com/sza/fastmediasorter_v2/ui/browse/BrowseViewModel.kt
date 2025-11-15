@@ -2,8 +2,13 @@ package com.sza.fastmediasorter_v2.ui.browse
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
+import com.sza.fastmediasorter_v2.data.paging.MediaFilesPagingSource
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
 import com.sza.fastmediasorter_v2.domain.model.FileFilter
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
@@ -21,6 +26,7 @@ import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -30,6 +36,7 @@ import javax.inject.Inject
 data class BrowseState(
     val resource: MediaResource? = null,
     val mediaFiles: List<MediaFile> = emptyList(),
+    val usePagination: Boolean = false, // True if file count >= PAGINATION_THRESHOLD
     val totalFileCount: Int? = null, // Total count (null if not yet calculated)
     val selectedFiles: Set<String> = emptySet(),
     val lastSelectedPath: String? = null,
@@ -59,6 +66,11 @@ class BrowseViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
 
+    companion object {
+        private const val PAGINATION_THRESHOLD = 1000 // Use pagination for folders with 1000+ files
+        private const val PAGE_SIZE = 50 // Load 50 files per page
+    }
+
     private val resourceId: Long = savedStateHandle.get<Long>("resourceId") 
         ?: savedStateHandle.get<String>("resourceId")?.toLongOrNull() 
         ?: 0L
@@ -66,8 +78,14 @@ class BrowseViewModel @Inject constructor(
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
     
     private var fileObserver: MediaFileObserver? = null
+    
+    // PagingData flow for large datasets (used when usePagination = true)
+    private var _pagingDataFlow: Flow<PagingData<MediaFile>>? = null
+    val pagingDataFlow: Flow<PagingData<MediaFile>>?
+        get() = _pagingDataFlow
 
     override fun getInitialState() = BrowseState()
+
 
     init {
         loadResource()
@@ -143,6 +161,37 @@ class BrowseViewModel @Inject constructor(
                 audioSizeMax = settings.audioSizeMax
             )
             
+            try {
+                // First, get file count to decide if we need pagination
+                val scanner = mediaScannerFactory.getScanner(resource.type)
+                val fileCount = scanner.getFileCount(
+                    path = resource.path,
+                    supportedTypes = resource.supportedMediaTypes,
+                    sizeFilter = sizeFilter,
+                    credentialsId = resource.credentialsId
+                )
+                
+                Timber.d("File count for ${resource.name}: $fileCount")
+                updateState { it.copy(totalFileCount = fileCount) }
+                
+                // Decide loading strategy based on file count
+                if (fileCount >= PAGINATION_THRESHOLD) {
+                    Timber.i("Using pagination for large folder ($fileCount files)")
+                    loadMediaFilesWithPagination(resource, sizeFilter)
+                } else {
+                    Timber.d("Using standard loading for small folder ($fileCount files)")
+                    loadMediaFilesStandard(resource, sizeFilter)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error determining file count")
+                // Fallback to standard loading if count fails
+                loadMediaFilesStandard(resource, sizeFilter)
+            }
+        }
+    }
+    
+    private fun loadMediaFilesStandard(resource: MediaResource, sizeFilter: SizeFilter) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
             // Use chunked loading for SMB resources (show first 100 files quickly)
             val useChunked = resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB
             
@@ -156,63 +205,10 @@ class BrowseViewModel @Inject constructor(
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
                     setLoading(false)
-                    
-                    // Build detailed error information
-                    val errorTitle = when {
-                        e.message?.contains("Authentication failed", ignoreCase = true) == true ||
-                        e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
-                            "Authentication Failed"
-                        }
-                        e.message?.contains("Connection error", ignoreCase = true) == true ||
-                        e.message?.contains("Network", ignoreCase = true) == true -> {
-                            "Network Connection Error"
-                        }
-                        e.message?.contains("Permission denied", ignoreCase = true) == true -> {
-                            "Permission Denied"
-                        }
-                        else -> {
-                            "Error Loading Files"
-                        }
-                    }
-                    
-                    val errorMessage = when {
-                        e.message?.contains("Authentication failed", ignoreCase = true) == true ||
-                        e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
-                            "Invalid username or password.\n\n" +
-                            "Please edit this resource and update credentials, then click 'Save'."
-                        }
-                        e.message?.contains("Connection error", ignoreCase = true) == true ||
-                        e.message?.contains("Network", ignoreCase = true) == true -> {
-                            "Cannot connect to server.\n\n" +
-                            "Check network connection and server availability."
-                        }
-                        e.message?.contains("Permission denied", ignoreCase = true) == true -> {
-                            "No access to this folder.\n\n" +
-                            "Check folder permissions or credentials."
-                        }
-                        else -> {
-                            "Failed to load media files.\n\n" +
-                            "See error details below."
-                        }
-                    }
-                    
-                    val errorDetails = buildString {
-                        append("Resource: ${resource.name}\n")
-                        append("Path: ${resource.path}\n")
-                        append("Type: ${resource.type}\n\n")
-                        append("Error: ${e.message ?: "Unknown error"}\n\n")
-                        append("Stack trace:\n${e.stackTraceToString()}")
-                    }
-                    
-                    sendEvent(BrowseEvent.ShowError(
-                        message = "$errorTitle\n\n$errorMessage",
-                        details = errorDetails,
-                        exception = e
-                    ))
-                    handleError(e)
+                    handleLoadingError(resource, e)
                 }
                 .collect { files ->
-                    updateState { it.copy(mediaFiles = files) }
+                    updateState { it.copy(mediaFiles = files, usePagination = false) }
                     setLoading(false)
                     
                     if (useChunked && files.size >= 100) {
@@ -223,6 +219,93 @@ class BrowseViewModel @Inject constructor(
                     startFileObserver()
                 }
         }
+    }
+    
+    private fun loadMediaFilesWithPagination(resource: MediaResource, sizeFilter: SizeFilter) {
+        try {
+            // Create Pager with MediaFilesPagingSource
+            _pagingDataFlow = Pager(
+                config = PagingConfig(
+                    pageSize = PAGE_SIZE,
+                    prefetchDistance = 15,
+                    enablePlaceholders = false,
+                    initialLoadSize = PAGE_SIZE * 2 // Load 2 pages initially
+                ),
+                pagingSourceFactory = {
+                    MediaFilesPagingSource(
+                        resource = resource,
+                        sortMode = state.value.sortMode,
+                        sizeFilter = sizeFilter,
+                        mediaScannerFactory = mediaScannerFactory
+                    )
+                }
+            ).flow.cachedIn(viewModelScope)
+            
+            updateState { it.copy(usePagination = true, mediaFiles = emptyList()) }
+            setLoading(false)
+            
+            Timber.d("Pagination enabled for ${resource.name}")
+        } catch (e: Exception) {
+            Timber.e(e, "Error setting up pagination")
+            handleLoadingError(resource, e)
+            setLoading(false)
+        }
+    }
+    
+    private fun handleLoadingError(resource: MediaResource, e: Throwable) {
+        // Build detailed error information
+        val errorTitle = when {
+            e.message?.contains("Authentication failed", ignoreCase = true) == true ||
+            e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
+                "Authentication Failed"
+            }
+            e.message?.contains("Connection error", ignoreCase = true) == true ||
+            e.message?.contains("Network", ignoreCase = true) == true -> {
+                "Network Connection Error"
+            }
+            e.message?.contains("Permission denied", ignoreCase = true) == true -> {
+                "Permission Denied"
+            }
+            else -> {
+                "Error Loading Files"
+            }
+        }
+        
+        val errorMessage = when {
+            e.message?.contains("Authentication failed", ignoreCase = true) == true ||
+            e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
+                "Invalid username or password.\n\n" +
+                "Please edit this resource and update credentials, then click 'Save'."
+            }
+            e.message?.contains("Connection error", ignoreCase = true) == true ||
+            e.message?.contains("Network", ignoreCase = true) == true -> {
+                "Cannot connect to server.\n\n" +
+                "Check network connection and server availability."
+            }
+            e.message?.contains("Permission denied", ignoreCase = true) == true -> {
+                "No access to this folder.\n\n" +
+                "Check folder permissions or credentials."
+            }
+            else -> {
+                "Failed to load media files.\n\n" +
+                "See error details below."
+            }
+        }
+        
+        val errorDetails = buildString {
+            append("Resource: ${resource.name}\n")
+            append("Path: ${resource.path}\n")
+            append("Type: ${resource.type}\n\n")
+            append("Error: ${e.message ?: "Unknown error"}\n\n")
+            append("Stack trace:\n${e.stackTraceToString()}")
+        }
+        
+        sendEvent(BrowseEvent.ShowError(
+            message = "$errorTitle\n\n$errorMessage",
+            details = errorDetails,
+            exception = e
+        ))
+        handleError(e)
     }
 
     /**

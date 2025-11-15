@@ -392,18 +392,104 @@ class SftpFileOperationHandler @Inject constructor(
     suspend fun executeDelete(operation: FileOperation.Delete): FileOperationResult = withContext(Dispatchers.IO) {
         val errors = mutableListOf<String>()
         val deletedPaths = mutableListOf<String>()
+        val trashedPaths = mutableListOf<String>() // For undo: original paths of trashed files
         var successCount = 0
+        
+        // For soft delete, create .trash folder on first file's parent directory (on remote server)
+        var trashDirPath: String? = null
+        var sftpConnectionInfo: SftpConnectionInfoWithPath? = null
+        
+        if (operation.softDelete && operation.files.isNotEmpty()) {
+            val firstFilePath = operation.files.first().absolutePath
+            if (firstFilePath.startsWith("sftp://")) {
+                // Extract parent directory from SFTP path
+                val parentDir = firstFilePath.substringBeforeLast('/')
+                trashDirPath = "$parentDir/.trash_${System.currentTimeMillis()}"
+                
+                // Parse connection info and create trash directory on remote SFTP server
+                sftpConnectionInfo = parseSftpPath(trashDirPath)
+                if (sftpConnectionInfo != null) {
+                    val connectResult = sftpClient.connect(
+                        sftpConnectionInfo.host,
+                        sftpConnectionInfo.port,
+                        sftpConnectionInfo.username,
+                        sftpConnectionInfo.password
+                    )
+                    
+                    if (connectResult.isSuccess) {
+                        val createResult = sftpClient.createDirectory(sftpConnectionInfo.remotePath)
+                        if (createResult.isSuccess) {
+                            Timber.d("SFTP executeDelete: Created trash folder: $trashDirPath")
+                        } else {
+                            Timber.e("SFTP executeDelete: Failed to create trash folder: ${createResult.exceptionOrNull()?.message}")
+                            trashDirPath = null
+                            sftpClient.disconnect()
+                        }
+                    } else {
+                        Timber.e("SFTP executeDelete: Failed to connect for trash folder creation: ${connectResult.exceptionOrNull()?.message}")
+                        trashDirPath = null
+                    }
+                } else {
+                    Timber.e("SFTP executeDelete: Failed to parse trash path: $trashDirPath")
+                    trashDirPath = null
+                }
+            }
+        }
 
         operation.files.forEach { file ->
             try {
                 val isSftp = file.absolutePath.startsWith("sftp://")
 
                 if (isSftp) {
-                    if (deleteFromSftp(file.absolutePath)) {
-                        deletedPaths.add(file.absolutePath)
-                        successCount++
+                    if (operation.softDelete && trashDirPath != null && sftpConnectionInfo != null) {
+                        // Soft delete: move to trash folder using rename
+                        val fileName = file.absolutePath.substringAfterLast('/')
+                        val trashFilePath = "$trashDirPath/$fileName"
+                        
+                        val fileConnectionInfo = parseSftpPath(file.absolutePath)
+                        if (fileConnectionInfo != null) {
+                            // Ensure connection for file operation
+                            val ensureConnectResult = sftpClient.connect(
+                                fileConnectionInfo.host,
+                                fileConnectionInfo.port,
+                                fileConnectionInfo.username,
+                                fileConnectionInfo.password
+                            )
+                            
+                            if (ensureConnectResult.isSuccess) {
+                                val trashRemotePath = parseSftpPath(trashFilePath)?.remotePath
+                                if (trashRemotePath != null) {
+                                    val renameResult = sftpClient.renameFile(
+                                        fileConnectionInfo.remotePath,
+                                        trashRemotePath
+                                    )
+                                    
+                                    if (renameResult.isSuccess) {
+                                        trashedPaths.add(file.absolutePath) // Store original path for undo
+                                        deletedPaths.add(trashFilePath) // Store trash path
+                                        successCount++
+                                        Timber.d("SFTP soft delete: moved ${file.name} to trash")
+                                    } else {
+                                        errors.add("${file.name}: Failed to move to trash - ${renameResult.exceptionOrNull()?.message}")
+                                    }
+                                } else {
+                                    errors.add("${file.name}: Failed to parse trash path")
+                                }
+                            } else {
+                                errors.add("${file.name}: Connection failed - ${ensureConnectResult.exceptionOrNull()?.message}")
+                            }
+                        } else {
+                            errors.add("${file.name}: Failed to parse SFTP path")
+                        }
                     } else {
-                        errors.add("${file.name}: Failed to delete from SFTP")
+                        // Hard delete: permanent deletion
+                        if (deleteFromSftp(file.absolutePath)) {
+                            deletedPaths.add(file.absolutePath)
+                            successCount++
+                            Timber.d("SFTP hard delete: permanently deleted ${file.name}")
+                        } else {
+                            errors.add("${file.name}: Failed to delete from SFTP")
+                        }
                     }
                 } else {
                     errors.add("${file.name}: Not an SFTP file")
@@ -414,9 +500,21 @@ class SftpFileOperationHandler @Inject constructor(
                 errors.add(error)
             }
         }
+        
+        // Disconnect SFTP after operations
+        if (sftpConnectionInfo != null) {
+            sftpClient.disconnect()
+        }
+        
+        // Return trash directory path in result for undo restoration
+        val resultPaths = if (operation.softDelete && trashDirPath != null) {
+            listOf(trashDirPath) + trashedPaths
+        } else {
+            deletedPaths
+        }
 
         return@withContext when {
-            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
+            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, resultPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All delete operations failed")
         }

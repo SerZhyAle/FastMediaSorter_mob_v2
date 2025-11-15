@@ -358,15 +358,16 @@ class MainViewModel @Inject constructor(
                 resources.forEach { resource ->
                     val scanner = mediaScannerFactory.getScanner(resource.type)
                     
-                    // Create progress callback for SMB resources
-                    val progressCallback = if (resource.type == ResourceType.SMB) {
+                    // Create progress callback for SMB and LOCAL resources with >100 files
+                    val progressCallback = if (resource.type == ResourceType.SMB || 
+                                            (resource.type == ResourceType.LOCAL && resource.fileCount > 100)) {
                         object : com.sza.fastmediasorter_v2.domain.usecase.ScanProgressCallback {
                             override suspend fun onProgress(scannedCount: Int, currentFile: String?) {
                                 sendEvent(MainEvent.ScanProgress(scannedCount, currentFile))
                             }
                             
                             override suspend fun onComplete(totalFiles: Int, durationMs: Long) {
-                                Timber.d("SMB scan completed: $totalFiles files in ${durationMs}ms")
+                                Timber.d("${resource.type} scan completed: $totalFiles files in ${durationMs}ms")
                                 sendEvent(MainEvent.ScanComplete)
                             }
                         }
@@ -375,6 +376,15 @@ class MainViewModel @Inject constructor(
                     val fileCount = try {
                         // Use scanner with progress for SMB
                         if (scanner is com.sza.fastmediasorter_v2.data.network.SmbMediaScanner && progressCallback != null) {
+                            scanner.scanFolderWithProgress(
+                                resource.path,
+                                resource.supportedMediaTypes,
+                                sizeFilter,
+                                resource.credentialsId,
+                                progressCallback
+                            ).size
+                        } else if (scanner is com.sza.fastmediasorter_v2.data.local.LocalMediaScanner && progressCallback != null) {
+                            // Use scanner with progress for LOCAL resources with >100 files
                             scanner.scanFolderWithProgress(
                                 resource.path,
                                 resource.supportedMediaTypes,

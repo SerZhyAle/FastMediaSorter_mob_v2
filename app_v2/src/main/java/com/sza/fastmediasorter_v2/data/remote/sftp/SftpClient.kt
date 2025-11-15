@@ -395,6 +395,30 @@ class SftpClient @Inject constructor() {
             Result.failure(e)
         }
     }
+    
+    /**
+     * Create directory on SFTP server
+     * @param remotePath Full path to directory to create
+     * @return Result with Unit or exception on failure
+     */
+    suspend fun createDirectory(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = sftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            Timber.d("SFTP creating directory: $remotePath")
+            client.mkdir(remotePath)
+            Timber.i("SFTP directory created: $remotePath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "SFTP create directory failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP create directory error: $remotePath")
+            Result.failure(e)
+        }
+    }
 
     /**
      * Disconnect from SFTP server and cleanup resources

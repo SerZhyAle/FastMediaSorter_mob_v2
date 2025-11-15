@@ -371,18 +371,104 @@ class FtpFileOperationHandler @Inject constructor(
     suspend fun executeDelete(operation: FileOperation.Delete): FileOperationResult = withContext(Dispatchers.IO) {
         val errors = mutableListOf<String>()
         val deletedPaths = mutableListOf<String>()
+        val trashedPaths = mutableListOf<String>() // For undo: original paths of trashed files
         var successCount = 0
+        
+        // For soft delete, create .trash folder on first file's parent directory (on remote server)
+        var trashDirPath: String? = null
+        var ftpConnectionInfo: FtpConnectionInfoWithPath? = null
+        
+        if (operation.softDelete && operation.files.isNotEmpty()) {
+            val firstFilePath = operation.files.first().absolutePath
+            if (firstFilePath.startsWith("ftp://")) {
+                // Extract parent directory from FTP path
+                val parentDir = firstFilePath.substringBeforeLast('/')
+                trashDirPath = "$parentDir/.trash_${System.currentTimeMillis()}"
+                
+                // Parse connection info and create trash directory on remote FTP server
+                ftpConnectionInfo = parseFtpPath(trashDirPath)
+                if (ftpConnectionInfo != null) {
+                    val connectResult = ftpClient.connect(
+                        ftpConnectionInfo.host,
+                        ftpConnectionInfo.port,
+                        ftpConnectionInfo.username,
+                        ftpConnectionInfo.password
+                    )
+                    
+                    if (connectResult.isSuccess) {
+                        val createResult = ftpClient.createDirectory(ftpConnectionInfo.remotePath)
+                        if (createResult.isSuccess) {
+                            Timber.d("FTP executeDelete: Created trash folder: $trashDirPath")
+                        } else {
+                            Timber.e("FTP executeDelete: Failed to create trash folder: ${createResult.exceptionOrNull()?.message}")
+                            trashDirPath = null
+                            ftpClient.disconnect()
+                        }
+                    } else {
+                        Timber.e("FTP executeDelete: Failed to connect for trash folder creation: ${connectResult.exceptionOrNull()?.message}")
+                        trashDirPath = null
+                    }
+                } else {
+                    Timber.e("FTP executeDelete: Failed to parse trash path: $trashDirPath")
+                    trashDirPath = null
+                }
+            }
+        }
 
         operation.files.forEach { file ->
             try {
                 val isFtp = file.absolutePath.startsWith("ftp://")
 
                 if (isFtp) {
-                    if (deleteFromFtp(file.absolutePath)) {
-                        deletedPaths.add(file.absolutePath)
-                        successCount++
+                    if (operation.softDelete && trashDirPath != null && ftpConnectionInfo != null) {
+                        // Soft delete: move to trash folder using rename
+                        val fileName = file.absolutePath.substringAfterLast('/')
+                        val trashFilePath = "$trashDirPath/$fileName"
+                        
+                        val fileConnectionInfo = parseFtpPath(file.absolutePath)
+                        if (fileConnectionInfo != null) {
+                            // Ensure connection for file operation
+                            val ensureConnectResult = ftpClient.connect(
+                                fileConnectionInfo.host,
+                                fileConnectionInfo.port,
+                                fileConnectionInfo.username,
+                                fileConnectionInfo.password
+                            )
+                            
+                            if (ensureConnectResult.isSuccess) {
+                                val trashRemotePath = parseFtpPath(trashFilePath)?.remotePath
+                                if (trashRemotePath != null) {
+                                    val renameResult = ftpClient.renameFile(
+                                        fileConnectionInfo.remotePath,
+                                        trashRemotePath
+                                    )
+                                    
+                                    if (renameResult.isSuccess) {
+                                        trashedPaths.add(file.absolutePath) // Store original path for undo
+                                        deletedPaths.add(trashFilePath) // Store trash path
+                                        successCount++
+                                        Timber.d("FTP soft delete: moved ${file.name} to trash")
+                                    } else {
+                                        errors.add("${file.name}: Failed to move to trash - ${renameResult.exceptionOrNull()?.message}")
+                                    }
+                                } else {
+                                    errors.add("${file.name}: Failed to parse trash path")
+                                }
+                            } else {
+                                errors.add("${file.name}: Connection failed - ${ensureConnectResult.exceptionOrNull()?.message}")
+                            }
+                        } else {
+                            errors.add("${file.name}: Failed to parse FTP path")
+                        }
                     } else {
-                        errors.add("${file.name}: Failed to delete from FTP")
+                        // Hard delete: permanent deletion
+                        if (deleteFromFtp(file.absolutePath)) {
+                            deletedPaths.add(file.absolutePath)
+                            successCount++
+                            Timber.d("FTP hard delete: permanently deleted ${file.name}")
+                        } else {
+                            errors.add("${file.name}: Failed to delete from FTP")
+                        }
                     }
                 } else {
                     errors.add("${file.name}: Not an FTP file")
@@ -393,9 +479,21 @@ class FtpFileOperationHandler @Inject constructor(
                 errors.add(error)
             }
         }
+        
+        // Disconnect FTP after operations
+        if (ftpConnectionInfo != null) {
+            ftpClient.disconnect()
+        }
+        
+        // Return trash directory path in result for undo restoration
+        val resultPaths = if (operation.softDelete && trashDirPath != null) {
+            listOf(trashDirPath) + trashedPaths
+        } else {
+            deletedPaths
+        }
 
         return@withContext when {
-            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
+            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, resultPaths)
             successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
             else -> FileOperationResult.Failure("All delete operations failed")
         }

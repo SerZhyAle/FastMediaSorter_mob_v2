@@ -50,6 +50,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private val viewModel: BrowseViewModel by viewModels()
     private lateinit var mediaFileAdapter: MediaFileAdapter
+    private lateinit var pagingMediaFileAdapter: PagingMediaFileAdapter
+    private var usePagination = false
     private var mediaStoreObserver: MediaStoreObserver? = null
     
     @Inject
@@ -70,6 +72,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             finish()
         }
 
+        // Setup standard adapter (for small lists)
         mediaFileAdapter = MediaFileAdapter(
             onFileClick = { file ->
                 viewModel.openFile(file)
@@ -85,9 +88,29 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.openFile(file)
             }
         )
+        
+        // Setup paging adapter (for large lists 1000+)
+        pagingMediaFileAdapter = PagingMediaFileAdapter(
+            onFileClick = { file ->
+                viewModel.openFile(file)
+            },
+            onFileLongClick = { file ->
+                viewModel.selectFileRange(file.path)
+            },
+            onSelectionChanged = { file, _ ->
+                viewModel.selectFile(file.path)
+            },
+            onPlayClick = { file ->
+                viewModel.openFile(file)
+            }
+        )
+        
+        // Add footer adapter for "Loading more..." indicator
+        val loadStateAdapter = PagingLoadStateAdapter { pagingMediaFileAdapter.retry() }
+        val adapterWithFooter = pagingMediaFileAdapter.withLoadStateFooter(loadStateAdapter)
 
         binding.rvMediaFiles.apply {
-            adapter = mediaFileAdapter
+            adapter = adapterWithFooter // Use adapter with footer for pagination support
             // Increase view cache size for smoother scrolling
             setItemViewCacheSize(20)
             // Set drawing cache enabled for better scrolling performance
@@ -151,25 +174,43 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    val previousListSize = mediaFileAdapter.itemCount
-                    mediaFileAdapter.submitList(state.mediaFiles) {
-                        // Scroll to last viewed file after list is submitted
-                        if (previousListSize == 0 && state.mediaFiles.isNotEmpty()) {
-                            state.resource?.lastViewedFile?.let { lastViewedPath ->
-                                val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
-                                if (position >= 0) {
-                                    binding.rvMediaFiles.post {
-                                        binding.rvMediaFiles.scrollToPosition(position)
-                                        Timber.d("Scrolled to last viewed file at position $position")
+                    // Switch between pagination and standard mode
+                    if (state.usePagination != usePagination) {
+                        usePagination = state.usePagination
+                        switchAdapter(usePagination)
+                    }
+                    
+                    // Handle pagination mode vs standard mode
+                    if (!state.usePagination) {
+                        // Standard mode - submit full list to MediaFileAdapter
+                        val previousListSize = mediaFileAdapter.itemCount
+                        mediaFileAdapter.submitList(state.mediaFiles) {
+                            // Scroll to last viewed file after list is submitted
+                            if (previousListSize == 0 && state.mediaFiles.isNotEmpty()) {
+                                state.resource?.lastViewedFile?.let { lastViewedPath ->
+                                    val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
+                                    if (position >= 0) {
+                                        binding.rvMediaFiles.post {
+                                            binding.rvMediaFiles.scrollToPosition(position)
+                                            Timber.d("Scrolled to last viewed file at position $position")
+                                        }
                                     }
                                 }
                             }
                         }
+                        mediaFileAdapter.setSelectedPaths(state.selectedFiles)
+                        state.resource?.let { resource ->
+                            mediaFileAdapter.setCredentialsId(resource.credentialsId)
+                        }
+                    } else {
+                        // Pagination mode - flow is handled separately below
+                        pagingMediaFileAdapter.setSelectedPaths(state.selectedFiles)
+                        state.resource?.let { resource ->
+                            pagingMediaFileAdapter.setCredentialsId(resource.credentialsId)
+                        }
                     }
-                    mediaFileAdapter.setSelectedPaths(state.selectedFiles)
 
                     state.resource?.let { resource ->
-                        mediaFileAdapter.setCredentialsId(resource.credentialsId)
                         binding.tvResourceInfo.text = buildResourceInfo(state)
                     }
 
@@ -182,7 +223,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     }
 
                     // Show empty state with context-appropriate message
-                    val isEmpty = state.mediaFiles.isEmpty() && !viewModel.loading.value
+                    val currentAdapter = if (usePagination) pagingMediaFileAdapter else mediaFileAdapter
+                    val isEmpty = currentAdapter.itemCount == 0 && !viewModel.loading.value
                     binding.tvEmpty.isVisible = isEmpty
                     if (isEmpty) {
                         binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
@@ -202,6 +244,51 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnUndo.isVisible = state.lastOperation != null
 
                     updateDisplayMode(state.displayMode)
+                }
+            }
+        }
+        
+        // Subscribe to pagingDataFlow for large datasets
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.pagingDataFlow?.collect { pagingData ->
+                    Timber.d("Submitting pagingData to adapter")
+                    pagingMediaFileAdapter.submitData(pagingData)
+                }
+            }
+        }
+        
+        // Handle paging adapter LoadState
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                pagingMediaFileAdapter.loadStateFlow.collect { loadStates ->
+                    // Show loading indicator during initial load or refresh
+                    val isLoading = loadStates.refresh is androidx.paging.LoadState.Loading
+                    binding.progressBar.isVisible = isLoading
+                    
+                    // Show error state if initial load failed
+                    val isError = loadStates.refresh is androidx.paging.LoadState.Error
+                    if (isError) {
+                        val error = (loadStates.refresh as androidx.paging.LoadState.Error).error
+                        Timber.e(error, "Paging load error")
+                        showError("Failed to load files", error.message)
+                    }
+                    
+                    // Log append state for debugging
+                    when (loadStates.append) {
+                        is androidx.paging.LoadState.Loading -> {
+                            Timber.d("Loading more files...")
+                        }
+                        is androidx.paging.LoadState.Error -> {
+                            val error = (loadStates.append as androidx.paging.LoadState.Error).error
+                            Timber.e(error, "Error loading more files")
+                        }
+                        is androidx.paging.LoadState.NotLoading -> {
+                            if (loadStates.append.endOfPaginationReached) {
+                                Timber.d("Reached end of pagination")
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -371,10 +458,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             val iconSize = settings.defaultIconSize
             
             // Update adapter mode
-            mediaFileAdapter.setGridMode(
-                enabled = mode == DisplayMode.GRID,
-                iconSize = iconSize
-            )
+            if (usePagination) {
+                pagingMediaFileAdapter.setGridMode(
+                    enabled = mode == DisplayMode.GRID,
+                    iconSize = iconSize
+                )
+            } else {
+                mediaFileAdapter.setGridMode(
+                    enabled = mode == DisplayMode.GRID,
+                    iconSize = iconSize
+                )
+            }
             
             // Update toggle button icon
             binding.btnToggleView.setImageResource(
@@ -400,6 +494,22 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     GridLayoutManager(this@BrowseActivity, spanCount)
                 }
             }
+        }
+    }
+    
+    /**
+     * Switch between standard MediaFileAdapter and PagingMediaFileAdapter
+     */
+    private fun switchAdapter(usePagination: Boolean) {
+        Timber.d("Switching to ${if (usePagination) "pagination" else "standard"} adapter")
+        
+        if (usePagination) {
+            // Use adapter with footer for pagination
+            val loadStateAdapter = PagingLoadStateAdapter { pagingMediaFileAdapter.retry() }
+            binding.rvMediaFiles.adapter = pagingMediaFileAdapter.withLoadStateFooter(loadStateAdapter)
+        } else {
+            // Use standard adapter
+            binding.rvMediaFiles.adapter = mediaFileAdapter
         }
     }
 

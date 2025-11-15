@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityMainBinding
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
+import com.sza.fastmediasorter_v2.domain.usecase.ScheduleNetworkSyncUseCase
 import com.sza.fastmediasorter_v2.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter_v2.ui.browse.BrowseActivity
 import com.sza.fastmediasorter_v2.ui.editresource.EditResourceActivity
@@ -34,6 +35,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
+    
+    @Inject
+    lateinit var scheduleNetworkSyncUseCase: ScheduleNetworkSyncUseCase
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -57,6 +61,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             finish()
             return
         }
+        
+        // Schedule background network file sync (every 4 hours)
+        scheduleNetworkSyncUseCase(intervalHours = 4, requiresNetwork = true)
     }
     
     override fun onResume() {
