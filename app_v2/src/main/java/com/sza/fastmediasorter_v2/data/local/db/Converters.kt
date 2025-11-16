@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter_v2.data.local.db
 
 import androidx.room.TypeConverter
+import com.sza.fastmediasorter_v2.data.cloud.CloudProvider
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.model.SortMode
@@ -24,4 +25,10 @@ class Converters {
     
     @TypeConverter
     fun toDisplayMode(value: String): DisplayMode = DisplayMode.valueOf(value)
+    
+    @TypeConverter
+    fun fromCloudProvider(value: CloudProvider?): String? = value?.name
+    
+    @TypeConverter
+    fun toCloudProvider(value: String?): CloudProvider? = value?.let { CloudProvider.valueOf(it) }
 }

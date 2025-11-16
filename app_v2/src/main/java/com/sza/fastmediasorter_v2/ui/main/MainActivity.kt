@@ -13,7 +13,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityMainBinding
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
-import com.sza.fastmediasorter_v2.domain.usecase.ScheduleNetworkSyncUseCase
 import com.sza.fastmediasorter_v2.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter_v2.ui.browse.BrowseActivity
 import com.sza.fastmediasorter_v2.ui.editresource.EditResourceActivity
@@ -35,9 +34,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
-    
-    @Inject
-    lateinit var scheduleNetworkSyncUseCase: ScheduleNetworkSyncUseCase
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -46,31 +42,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Log app version
-        try {
-            val versionName = packageManager.getPackageInfo(packageName, 0).versionName
-            val versionCode = packageManager.getPackageInfo(packageName, 0).longVersionCode
-            Timber.d("App version: $versionName (code: $versionCode)")
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to get app version")
-        }
-        
-        // Check if this is first launch
+        // Check if this is first launch (fast check)
         if (!welcomeViewModel.isWelcomeCompleted()) {
             startActivity(Intent(this, WelcomeActivity::class.java))
             finish()
             return
         }
         
-        // Schedule background network file sync (every 4 hours)
-        scheduleNetworkSyncUseCase(intervalHours = 4, requiresNetwork = true)
+        // UI setup and resource loading deferred to setupViews() via BaseActivity.onCreate()
     }
     
     override fun onResume() {
         super.onResume()
-        // Refresh resources list when returning from EditResourceActivity
-        viewModel.refreshResources()
+        // Only refresh when returning from another activity (not on first launch)
+        if (isReturningFromAnotherActivity) {
+            viewModel.refreshResources()
+        }
     }
+    
+    override fun onPause() {
+        super.onPause()
+        isReturningFromAnotherActivity = true
+    }
+    
+    private var isReturningFromAnotherActivity = false
 
     override fun setupViews() {
         resourceAdapter = ResourceAdapter(
@@ -138,7 +133,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         
         binding.btnRefresh.setOnClickListener {
-            viewModel.refreshResources()
+            viewModel.scanAllResources()
         }
         
         binding.btnExit.setOnClickListener {
@@ -151,7 +146,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         
         binding.btnRetry.setOnClickListener {
             viewModel.clearError()
-            viewModel.refreshResources()
+            viewModel.scanAllResources()
+        }
+        
+        // Load resources after UI is ready (deferred from onCreate via BaseActivity)
+        viewModel.refreshResources()
+        
+        // Log app version (non-critical)
+        try {
+            val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+            val versionCode = packageManager.getPackageInfo(packageName, 0).longVersionCode
+            Timber.d("App version: $versionName (code: $versionCode)")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get app version")
         }
     }
 

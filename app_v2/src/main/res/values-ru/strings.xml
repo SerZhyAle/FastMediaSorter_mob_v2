@@ -275,4 +275,33 @@
     <string name="touch_zone_8_delete">8. УДАЛИТЬ - Удалить текущий файл</string>
     <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустить/остановить слайдшоу</string>
     
+    <!-- Accessibility labels -->
+    <string name="loading_indicator">Загрузка</string>
+    <string name="scan_progress_indicator">Сканирование файлов</string>
+    <string name="operation_progress_indicator">Выполнение операции</string>
+    
+    <!-- Cloud Storage -->
+    <string name="cloud_storage">Облачное хранилище</string>
+    <string name="cloud_storage_description">Добавить папки из Google Drive, OneDrive, Dropbox</string>
+    <string name="select_cloud_provider">Выберите облачный сервис</string>
+    <string name="google_drive">Google Диск</string>
+    <string name="onedrive">OneDrive</string>
+    <string name="dropbox">Dropbox</string>
+    <string name="not_connected">Не подключено</string>
+    <string name="connected_as">Подключено как %1$s</string>
+    <string name="coming_soon">Скоро будет</string>
+    <string name="cloud_storage_info">Нажмите на сервис для входа и выбора папок</string>
+    <string name="google_drive_sign_in">Войти через Google</string>
+    <string name="google_drive_signed_in">Вход выполнен: %1$s</string>
+    <string name="google_drive_sign_out">Выйти</string>
+    <string name="google_drive_select_folder">Выбрать папку</string>
+    <string name="google_drive_authentication_failed">Ошибка входа в Google Диск</string>
+    <string name="google_drive_connection_test_success">Успешно подключено!</string>
+    <string name="google_drive_connection_test_failed">Ошибка подключения: %1$s</string>
+    <string name="no_folders_found">Папки не найдены</string>
+    <string name="add_folder">Добавить папку</string>
+    <string name="selected_folder">Выбрано: %1$s</string>
+    <string name="folder_icon">Значок папки</string>
+    <string name="loading">Загрузка…</string>
+    
 </resources>

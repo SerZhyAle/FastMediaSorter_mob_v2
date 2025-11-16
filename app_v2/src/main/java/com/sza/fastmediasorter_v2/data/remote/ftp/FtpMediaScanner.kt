@@ -9,6 +9,7 @@ import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,8 +65,9 @@ class FtpMediaScanner @Inject constructor(
             ftpClient.disconnect()
 
             if (filesResult.isFailure) {
-                Timber.e("Failed to list FTP files: ${filesResult.exceptionOrNull()?.message}")
-                return@withContext emptyList()
+                val exception = filesResult.exceptionOrNull() ?: IOException("Unknown FTP error")
+                Timber.e("Failed to list FTP files: ${exception.message}")
+                throw IOException("FTP connection error: ${exception.message}", exception)
             }
 
             // Filter and convert to MediaFile

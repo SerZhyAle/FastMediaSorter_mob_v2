@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11150053
-        versionName = "2.0.0-build2511150053"
+        versionCode = 11161959
+        versionName = "2.0.0-build2511161959"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -174,6 +174,13 @@ dependencies {
     
     // Network - FTP
     implementation("commons-net:commons-net:3.10.0")
+    
+    // Cloud Storage - Google Drive
+    implementation("com.google.android.gms:play-services-auth:21.0.0")
+    implementation("com.google.api-client:google-api-client-android:2.2.0")
+    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
+    implementation("com.google.http-client:google-http-client-gson:1.43.3")
+    implementation("com.google.http-client:google-http-client-android:1.43.3")
     
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")

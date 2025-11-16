@@ -26,5 +26,6 @@
     <color name="audio_icon_bg">#FF607D8B</color>
     <color name="filter_warning_bg">#FFFFF9C4</color> <!-- Light yellow for warnings -->
     <color name="filter_warning_text">#FF000000</color> <!-- Black text for contrast -->
+    <color name="folder_item_stroke">#00000000</color> <!-- Transparent by default -->
 </resources>
 

@@ -139,41 +139,67 @@ class MainViewModel @Inject constructor(
     fun startPlayer() {
         val resource = state.value.selectedResource
         if (resource != null && resource.id != 0L) {
-            // For network resources with no files, test actual connection before blocking
-            if ((resource.fileCount == 0 && !resource.isWritable) && 
-                (resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB || 
-                 resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP)) {
-                // Test actual connection to network resource
-                viewModelScope.launch(ioDispatcher) {
-                    try {
-                        val testResult = resourceRepository.testConnection(resource)
-                        testResult.fold(
-                            onSuccess = { message ->
-                                // Connection is OK - let user browse (even if empty)
-                                Timber.d("Connection test OK: $message - opening Browse")
-                                sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
-                            },
-                            onFailure = { error ->
-                                // Real connection error - show details
-                                Timber.e(error, "Connection test failed for ${resource.name}")
-                                sendEvent(MainEvent.ShowError(
-                                    message = "Failed to connect to '${resource.name}'",
-                                    details = "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nConnection error:\n${error.message ?: "Unknown error"}\n\nStack trace:\n${error.stackTraceToString()}"
-                                ))
-                            }
-                        )
-                    } catch (e: Exception) {
-                        Timber.e(e, "Exception testing connection for ${resource.name}")
+            viewModelScope.launch(ioDispatcher) {
+                validateAndOpenResource(resource)
+            }
+        }
+    }
+    
+    private suspend fun validateAndOpenResource(resource: MediaResource) {
+        val settings = settingsRepository.getSettings().first()
+        val showDetails = settings.showDetailedErrors
+        
+        // For local resources, check file count
+        if (resource.type == ResourceType.LOCAL && resource.fileCount == 0) {
+            sendEvent(MainEvent.ShowError(
+                message = "No files found in '${resource.name}'",
+                details = if (showDetails) {
+                    "Resource: ${resource.name}\nType: ${resource.type}\nPath: ${resource.path}\n\nFile count: 0\n\nPlease check if the folder still exists and contains media files."
+                } else null
+            ))
+            return
+        }
+        
+        // For network resources (SMB, SFTP, FTP, CLOUD), test connection
+        val isNetworkResource = resource.type in setOf(
+            ResourceType.SMB,
+            ResourceType.SFTP,
+            ResourceType.FTP,
+            ResourceType.CLOUD
+        )
+        
+        if (isNetworkResource) {
+            // Test connection before opening
+            try {
+                val testResult = resourceRepository.testConnection(resource)
+                testResult.fold(
+                    onSuccess = { message ->
+                        Timber.d("Connection test OK: $message - opening Browse")
+                        // Connection OK - open resource (even if empty for network)
+                        sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
+                    },
+                    onFailure = { error ->
+                        Timber.e(error, "Connection test failed for ${resource.name}")
                         sendEvent(MainEvent.ShowError(
-                            message = "Failed to check resource '${resource.name}'",
-                            details = "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nException:\n${e.message ?: "Unknown error"}\n\nStack trace:\n${e.stackTraceToString()}"
+                            message = "Failed to connect to '${resource.name}'",
+                            details = if (showDetails) {
+                                "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nConnection error:\n${error.message ?: "Unknown error"}\n\nStack trace:\n${error.stackTraceToString()}"
+                            } else null
                         ))
                     }
-                }
-            } else {
-                // Local resource or already validated - open directly
-                sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = false))
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Exception testing connection for ${resource.name}")
+                sendEvent(MainEvent.ShowError(
+                    message = "Failed to check resource '${resource.name}'",
+                    details = if (showDetails) {
+                        "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nException:\n${e.message ?: "Unknown error"}\n\nStack trace:\n${e.stackTraceToString()}"
+                    } else null
+                ))
             }
+        } else {
+            // Local resource with files - open directly
+            sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = false))
         }
     }
 
@@ -338,6 +364,7 @@ class MainViewModel @Inject constructor(
     /**
      * Scan all resources and update file counts (slow)
      * Shows progress for SMB resources with 100+ files
+     * Also tests network resource availability
      */
     fun scanAllResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -355,7 +382,37 @@ class MainViewModel @Inject constructor(
                 )
                 
                 val resources = getResourcesUseCase().first()
+                var unavailableCount = 0
+                
                 resources.forEach { resource ->
+                    // For network resources, test connection first
+                    val isNetworkResource = resource.type in setOf(
+                        ResourceType.SMB,
+                        ResourceType.SFTP,
+                        ResourceType.FTP,
+                        ResourceType.CLOUD
+                    )
+                    
+                    if (isNetworkResource) {
+                        try {
+                            val testResult = resourceRepository.testConnection(resource)
+                            testResult.fold(
+                                onSuccess = {
+                                    Timber.d("Resource available: ${resource.name}")
+                                },
+                                onFailure = { error ->
+                                    Timber.w("Resource unavailable: ${resource.name} - ${error.message}")
+                                    unavailableCount++
+                                    return@forEach // Skip scanning this resource
+                                }
+                            )
+                        } catch (e: Exception) {
+                            Timber.w(e, "Resource check failed: ${resource.name}")
+                            unavailableCount++
+                            return@forEach // Skip scanning this resource
+                        }
+                    }
+                    
                     val scanner = mediaScannerFactory.getScanner(resource.type)
                     
                     // Create progress callback for SMB and LOCAL resources with >100 files
@@ -416,7 +473,12 @@ class MainViewModel @Inject constructor(
                     }
                 }
                 
-                sendEvent(MainEvent.ShowMessage("Resources scanned"))
+                val message = when {
+                    unavailableCount == 0 -> "Resources scanned successfully"
+                    unavailableCount == resources.size -> "All resources unavailable"
+                    else -> "Resources scanned ($unavailableCount unavailable)"
+                }
+                sendEvent(MainEvent.ShowMessage(message))
             } catch (e: Exception) {
                 Timber.e(e, "Error scanning resources")
                 handleError(e)

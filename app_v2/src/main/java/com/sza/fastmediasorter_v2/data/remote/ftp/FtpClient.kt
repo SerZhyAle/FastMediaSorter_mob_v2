@@ -11,6 +11,8 @@ import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
+import java.net.SocketTimeoutException
+import java.time.Duration
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -42,10 +44,11 @@ class FtpClient @Inject constructor() {
             
             val client = FTPClient()
             
-            // Set connection and socket timeout to 4 seconds
-            client.connectTimeout = 4000
-            client.defaultTimeout = 4000
-            client.setDataTimeout(4000)
+            // Set connection and socket timeout to 15 seconds for unreliable networks
+            client.connectTimeout = 15000
+            client.defaultTimeout = 15000
+            client.setDataTimeout(15000)
+            client.controlKeepAliveTimeout = Duration.ofSeconds(10).seconds
             
             client.connect(host, port)
             
@@ -96,20 +99,39 @@ class FtpClient @Inject constructor() {
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            val files = client.listFiles(remotePath).mapNotNull { ftpFile ->
-                // Skip . and .. entries
-                if (ftpFile.name == "." || ftpFile.name == "..") {
-                    null
-                } else {
-                    // Return only file name, not full path
-                    // The scanner will build full path with host/port
-                    ftpFile.name
+            // Try passive mode first, fallback to active mode on timeout
+            val files = try {
+                Timber.d("FTP listing files in passive mode: $remotePath")
+                val ftpFiles = client.listFiles(remotePath)
+                
+                // Filter out . and .. entries
+                ftpFiles.mapNotNull { ftpFile ->
+                    if (ftpFile.name == "." || ftpFile.name == "..") null else ftpFile.name
+                }
+            } catch (e: SocketTimeoutException) {
+                Timber.w(e, "FTP passive mode timeout, switching to active mode")
+                
+                // Switch to active mode and retry
+                client.enterLocalActiveMode()
+                Timber.d("FTP retrying listFiles in active mode: $remotePath")
+                
+                val ftpFiles = try {
+                    client.listFiles(remotePath)
+                } finally {
+                    // Switch back to passive for future operations
+                    try { 
+                        client.enterLocalPassiveMode() 
+                        Timber.d("FTP switched back to passive mode")
+                    } catch (ignored: Exception) {
+                        Timber.w(ignored, "Failed to switch back to passive mode")
+                    }
+                }
+                
+                // Filter out . and .. entries
+                ftpFiles.mapNotNull { ftpFile ->
+                    if (ftpFile.name == "." || ftpFile.name == "..") null else ftpFile.name
                 }
             }
-            
-            // Complete pending command to flush control channel
-            // Without this, BufferedReader becomes null on next listFiles() call
-            client.completePendingCommand()
             
             Timber.d("FTP listed ${files.size} files in $remotePath")
             Result.success(files)
@@ -139,10 +161,11 @@ class FtpClient @Inject constructor() {
         try {
             val testClient = FTPClient()
             
-            // Set connection and socket timeout to 10 seconds
-            testClient.connectTimeout = 10000
-            testClient.defaultTimeout = 10000
-            testClient.setDataTimeout(10000)
+            // Set connection and socket timeout to 15 seconds for unreliable networks
+            testClient.connectTimeout = 15000
+            testClient.defaultTimeout = 15000
+            testClient.setDataTimeout(15000)
+            testClient.controlKeepAliveTimeout = Duration.ofSeconds(10).seconds
             
             testClient.connect(host, port)
             

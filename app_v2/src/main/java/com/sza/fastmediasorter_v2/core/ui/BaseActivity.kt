@@ -39,8 +39,11 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // Apply keep screen awake if needed (will be controlled by settings)
         applyKeepScreenAwake()
         
-        setupViews()
-        observeData()
+        // Defer heavy initialization to allow first frame to render quickly
+        binding.root.post {
+            setupViews()
+            observeData()
+        }
     }
 
     override fun onDestroy() {

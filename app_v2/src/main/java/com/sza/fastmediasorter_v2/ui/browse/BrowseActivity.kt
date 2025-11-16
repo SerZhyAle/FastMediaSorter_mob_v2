@@ -31,6 +31,7 @@ import com.sza.fastmediasorter_v2.databinding.DialogRenameSingleBinding
 import com.sza.fastmediasorter_v2.databinding.ItemRenameFileBinding
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
 import com.sza.fastmediasorter_v2.domain.model.FileFilter
+import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.SortMode
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.domain.usecase.FileOperationUseCase
@@ -53,6 +54,20 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private lateinit var pagingMediaFileAdapter: PagingMediaFileAdapter
     private var usePagination = false
     private var mediaStoreObserver: MediaStoreObserver? = null
+    
+    // Flag to prevent duplicate file loading on first onResume after onCreate
+    private var isFirstResume = true
+    
+    // Cache current display mode to avoid redundant updateDisplayMode() calls
+    private var currentDisplayMode: DisplayMode? = null
+    
+    // Shared RecycledViewPool for optimizing ViewHolder reuse
+    private val sharedViewPool = RecyclerView.RecycledViewPool().apply {
+        // Set max recycled views for each view type
+        // ViewType 0 = List item, ViewType 1 = Grid item
+        setMaxRecycledViews(0, 30) // List view holders
+        setMaxRecycledViews(1, 40) // Grid view holders (more needed for grid)
+    }
     
     @Inject
     lateinit var fileOperationUseCase: FileOperationUseCase
@@ -110,11 +125,24 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         val adapterWithFooter = pagingMediaFileAdapter.withLoadStateFooter(loadStateAdapter)
 
         binding.rvMediaFiles.apply {
-            adapter = adapterWithFooter // Use adapter with footer for pagination support
-            // Increase view cache size for smoother scrolling
-            setItemViewCacheSize(20)
-            // Set drawing cache enabled for better scrolling performance
+            // Set initial adapter based on usePagination flag
+            adapter = if (usePagination) adapterWithFooter else mediaFileAdapter
+            
+            // Calculate optimal cache size based on screen size
+            val displayMetrics = resources.displayMetrics
+            val screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
+            // For list view: ~80dp per item, for grid: ~150dp per item
+            // Cache 1.5 screens worth of items for smooth scrolling
+            val optimalCacheSize = ((screenHeightDp / 80) * 1.5).toInt().coerceIn(10, 30)
+            setItemViewCacheSize(optimalCacheSize)
+            
+            // Use shared RecycledViewPool for efficient ViewHolder reuse
+            setRecycledViewPool(sharedViewPool)
+            
+            // Set fixed size for better performance (item size doesn't change)
             setHasFixedSize(true)
+            
+            Timber.d("RecyclerView optimizations: cacheSize=$optimalCacheSize, screenHeightDp=$screenHeightDp")
         }
 
         binding.btnSort.setOnClickListener {
@@ -173,7 +201,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun observeData() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
+                // Track previous list to avoid redundant submitList() calls
+                var previousMediaFiles: List<MediaFile>? = null
+                
                 viewModel.state.collect { state ->
+                    Timber.d("State collected: usePagination=${state.usePagination}, mediaFiles.size=${state.mediaFiles.size}, resource=${state.resource?.name}")
+                    
                     // Switch between pagination and standard mode
                     if (state.usePagination != usePagination) {
                         usePagination = state.usePagination
@@ -182,9 +215,31 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     // Handle pagination mode vs standard mode
                     if (!state.usePagination) {
-                        // Standard mode - submit full list to MediaFileAdapter
-                        val previousListSize = mediaFileAdapter.itemCount
-                        mediaFileAdapter.submitList(state.mediaFiles) {
+                        // Only submit list if it actually changed (by reference)
+                        if (state.mediaFiles !== previousMediaFiles) {
+                            previousMediaFiles = state.mediaFiles
+                            
+                            // Standard mode - submit full list to MediaFileAdapter
+                            val previousListSize = mediaFileAdapter.itemCount
+                            
+                            Timber.d("Submitting ${state.mediaFiles.size} files to adapter (previous size: $previousListSize)")
+                            
+                            mediaFileAdapter.submitList(state.mediaFiles) {
+                            Timber.d("Adapter list submitted successfully, current itemCount=${mediaFileAdapter.itemCount}")
+                            
+                            // Update empty state AFTER adapter updates itemCount
+                            val isEmpty = mediaFileAdapter.itemCount == 0 && !viewModel.loading.value
+                            Timber.d("Empty state check: itemCount=${mediaFileAdapter.itemCount}, isLoading=${viewModel.loading.value}, isEmpty=$isEmpty")
+                            binding.tvEmpty.isVisible = isEmpty
+                            if (isEmpty) {
+                                binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
+                                    getString(R.string.no_files_match_criteria)
+                                } else {
+                                    getString(R.string.no_media_files_found)
+                                }
+                            }
+                            Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}, tvEmpty.isVisible=${binding.tvEmpty.isVisible}")
+                            
                             // Scroll to last viewed file after list is submitted
                             if (previousListSize == 0 && state.mediaFiles.isNotEmpty()) {
                                 state.resource?.lastViewedFile?.let { lastViewedPath ->
@@ -197,6 +252,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                     }
                                 }
                             }
+                        }
                         }
                         mediaFileAdapter.setSelectedPaths(state.selectedFiles)
                         state.resource?.let { resource ->
@@ -222,18 +278,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         binding.tvFilterWarning.isVisible = false
                     }
 
-                    // Show empty state with context-appropriate message
-                    val currentAdapter = if (usePagination) pagingMediaFileAdapter else mediaFileAdapter
-                    val isEmpty = currentAdapter.itemCount == 0 && !viewModel.loading.value
-                    binding.tvEmpty.isVisible = isEmpty
-                    if (isEmpty) {
-                        binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
-                            getString(R.string.no_files_match_criteria)
-                        } else {
-                            getString(R.string.no_media_files_found)
-                        }
-                    }
-
                     val hasSelection = state.selectedFiles.isNotEmpty()
                     val isWritable = state.resource?.isWritable ?: false
                     
@@ -243,7 +287,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnDelete.isVisible = hasSelection && isWritable
                     binding.btnUndo.isVisible = state.lastOperation != null
 
-                    updateDisplayMode(state.displayMode)
+                    // Only update display mode if it actually changed
+                    if (state.displayMode != currentDisplayMode) {
+                        currentDisplayMode = state.displayMode
+                        updateDisplayMode(state.displayMode)
+                    }
                 }
             }
         }
@@ -251,9 +299,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Subscribe to pagingDataFlow for large datasets
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.pagingDataFlow?.collect { pagingData ->
-                    Timber.d("Submitting pagingData to adapter")
-                    pagingMediaFileAdapter.submitData(pagingData)
+                viewModel.pagingDataFlow.collect { flow ->
+                    flow?.collect { pagingData ->
+                        Timber.d("Submitting pagingData to adapter")
+                        pagingMediaFileAdapter.submitData(pagingData)
+                    }
                 }
             }
         }
@@ -271,7 +321,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     if (isError) {
                         val error = (loadStates.refresh as androidx.paging.LoadState.Error).error
                         Timber.e(error, "Paging load error")
-                        showError("Failed to load files", error.message)
+                        showError("Failed to load files", error.stackTraceToString(), error)
                     }
                     
                     // Log append state for debugging
@@ -323,7 +373,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.events.collect { event ->
                     when (event) {
                         is BrowseEvent.ShowError -> {
-                            showError(event.message, event.details)
+                            showError(event.message, event.details, event.exception)
                         }
                         is BrowseEvent.ShowMessage -> {
                             Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_SHORT).show()
@@ -355,18 +405,36 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
      * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
      * If showDetailedErrors=false: shows Toast (short notification)
      */
-    private fun showError(message: String, details: String?) {
+    private fun showError(message: String, details: String?, exception: Throwable? = null) {
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
-            Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message, details=$details")
+            Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message, hasDetails=${details != null}, hasException=${exception != null}")
+            
             if (settings.showDetailedErrors) {
                 // Use ErrorDialog with full details
-                com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
-                    context = this@BrowseActivity,
-                    title = getString(R.string.error),
-                    message = message,
-                    details = details
-                )
+                if (exception != null) {
+                    // Show exception with stack trace
+                    com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                        context = this@BrowseActivity,
+                        title = getString(R.string.error),
+                        throwable = exception
+                    )
+                } else if (details != null) {
+                    // Show message with details
+                    com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                        context = this@BrowseActivity,
+                        title = getString(R.string.error),
+                        message = message,
+                        details = details
+                    )
+                } else {
+                    // Show only message
+                    com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                        context = this@BrowseActivity,
+                        title = getString(R.string.error),
+                        message = message
+                    )
+                }
             } else {
                 // Simple toast for users who don't want details
                 Toast.makeText(this@BrowseActivity, message, Toast.LENGTH_LONG).show()
@@ -452,49 +520,53 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         return "⚠ Filter active: " + parts.joinToString(", ")
     }
 
-    private fun updateDisplayMode(mode: DisplayMode) {
-        lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
-            val iconSize = settings.defaultIconSize
-            
-            // Update adapter mode
-            if (usePagination) {
-                pagingMediaFileAdapter.setGridMode(
-                    enabled = mode == DisplayMode.GRID,
-                    iconSize = iconSize
-                )
-            } else {
-                mediaFileAdapter.setGridMode(
-                    enabled = mode == DisplayMode.GRID,
-                    iconSize = iconSize
-                )
-            }
-            
-            // Update toggle button icon
-            binding.btnToggleView.setImageResource(
-                when (mode) {
-                    DisplayMode.LIST -> R.drawable.ic_view_grid // Show grid icon when in list mode
-                    DisplayMode.GRID -> R.drawable.ic_view_list // Show list icon when in grid mode
-                }
+    private suspend fun updateDisplayMode(mode: DisplayMode) {
+        Timber.d("updateDisplayMode: mode=$mode, usePagination=$usePagination")
+        
+        val settings = settingsRepository.getSettings().first()
+        val iconSize = settings.defaultIconSize
+        
+        // Update adapter mode
+        if (usePagination) {
+            pagingMediaFileAdapter.setGridMode(
+                enabled = mode == DisplayMode.GRID,
+                iconSize = iconSize
             )
-            
-            // Update layout manager
-            binding.rvMediaFiles.layoutManager = when (mode) {
-                DisplayMode.LIST -> LinearLayoutManager(this@BrowseActivity)
-                DisplayMode.GRID -> {
-                    // Calculate span count dynamically based on screen width and icon size
-                    val displayMetrics = resources.displayMetrics
-                    val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
-                    val iconSizeDp = iconSize.toFloat()
-                    val cardPaddingDp = 8f // 4dp padding on each side (from card layout)
-                    val itemWidthDp = iconSizeDp + cardPaddingDp
-                    val spanCount = (screenWidthDp / itemWidthDp).toInt().coerceAtLeast(2)
-                    
-                    Timber.d("Grid calculation: screenWidth=${screenWidthDp}dp, iconSize=${iconSizeDp}dp, spanCount=$spanCount")
-                    GridLayoutManager(this@BrowseActivity, spanCount)
-                }
+            Timber.d("updateDisplayMode: Updated pagingAdapter gridMode=${mode == DisplayMode.GRID}")
+        } else {
+            mediaFileAdapter.setGridMode(
+                enabled = mode == DisplayMode.GRID,
+                iconSize = iconSize
+            )
+            Timber.d("updateDisplayMode: Updated mediaFileAdapter gridMode=${mode == DisplayMode.GRID}")
+        }
+        
+        // Update toggle button icon
+        binding.btnToggleView.setImageResource(
+            when (mode) {
+                DisplayMode.LIST -> R.drawable.ic_view_grid // Show grid icon when in list mode
+                DisplayMode.GRID -> R.drawable.ic_view_list // Show list icon when in grid mode
+            }
+        )
+        
+        // Update layout manager
+        val newLayoutManager = when (mode) {
+            DisplayMode.LIST -> LinearLayoutManager(this@BrowseActivity)
+            DisplayMode.GRID -> {
+                // Calculate span count dynamically based on screen width and icon size
+                val displayMetrics = resources.displayMetrics
+                val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
+                val iconSizeDp = iconSize.toFloat()
+                val cardPaddingDp = 8f // 4dp padding on each side (from card layout)
+                val itemWidthDp = iconSizeDp + cardPaddingDp
+                val spanCount = (screenWidthDp / itemWidthDp).toInt().coerceAtLeast(2)
+                
+                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, iconSize=${iconSizeDp}dp, spanCount=$spanCount")
+                GridLayoutManager(this@BrowseActivity, spanCount)
             }
         }
+        binding.rvMediaFiles.layoutManager = newLayoutManager
+        Timber.d("updateDisplayMode: Layout manager updated to ${newLayoutManager::class.simpleName}")
     }
     
     /**
@@ -618,8 +690,31 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         AlertDialog.Builder(this)
             .setTitle("Sort by")
             .setSingleChoiceItems(items, currentIndex) { dialog, which ->
-                viewModel.setSortMode(sortModes[which])
-                dialog.dismiss()
+                val selectedMode = sortModes[which]
+                
+                // Warn if selecting non-NAME sorting for large folders (1000+ files)
+                val fileCount = viewModel.state.value.totalFileCount ?: 0
+                val isLargeFolder = fileCount >= 1000
+                val isNonNameSort = selectedMode !in setOf(SortMode.NAME_ASC, SortMode.NAME_DESC)
+                
+                if (isLargeFolder && isNonNameSort) {
+                    dialog.dismiss()
+                    showLargeFolderSortWarning(selectedMode, fileCount)
+                } else {
+                    viewModel.setSortMode(selectedMode)
+                    dialog.dismiss()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun showLargeFolderSortWarning(sortMode: SortMode, fileCount: Int) {
+        AlertDialog.Builder(this)
+            .setTitle("Performance Warning")
+            .setMessage("This folder contains $fileCount files. Sorting by ${getSortModeName(sortMode)} requires loading all files at once, which may take a long time (30+ seconds).\n\nFor better performance, use Name sorting (instant pagination).\n\nContinue anyway?")
+            .setPositiveButton("Continue") { _, _ ->
+                viewModel.setSortMode(sortMode)
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -970,10 +1065,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     override fun onResume() {
         super.onResume()
-        // Refresh file list when returning from PlayerActivity
-        // This ensures deleted/renamed files are properly reflected
-        Timber.d("BrowseActivity.onResume: Refreshing file list")
-        viewModel.reloadFiles()
+        
+        // Skip reload on first onResume - files already loaded in ViewModel.init{}
+        if (isFirstResume) {
+            isFirstResume = false
+            Timber.d("BrowseActivity.onResume: First resume, skipping reload (already loaded in init)")
+        } else {
+            // Refresh file list when returning from PlayerActivity
+            // This ensures deleted/renamed files are properly reflected
+            Timber.d("BrowseActivity.onResume: Refreshing file list")
+            viewModel.reloadFiles()
+        }
         
         // Clear expired undo operations (older than 5 minutes)
         viewModel.clearExpiredUndoOperation()

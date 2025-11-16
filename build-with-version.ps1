@@ -9,7 +9,7 @@ $ErrorActionPreference = "Stop"
 $now = Get-Date
 $versionCodeFull = $now.ToString("yyMMddHHmm")  # Full format for display
 $versionCodeInt = [int]$now.ToString("MMddHHmm")  # Short format for versionCode (fits in Int)
-$versionName = "2.0.0-build$versionCodeFull"
+$versionName = "2.0.$versionCodeFull"
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "Building with version:" -ForegroundColor Cyan

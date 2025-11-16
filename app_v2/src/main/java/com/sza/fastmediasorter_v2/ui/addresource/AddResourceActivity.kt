@@ -4,29 +4,43 @@ import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.net.wifi.WifiManager
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.common.api.ApiException
+import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
+import com.sza.fastmediasorter_v2.data.cloud.GoogleDriveClient
 import com.sza.fastmediasorter_v2.databinding.ActivityAddResourceBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.NetworkInterface
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val viewModel: AddResourceViewModel by viewModels()
+    
+    @Inject
+    lateinit var googleDriveClient: GoogleDriveClient
+    
     private lateinit var resourceToAddAdapter: ResourceToAddAdapter
     private lateinit var smbResourceToAddAdapter: ResourceToAddAdapter
+    
+    private var googleDriveAccount: GoogleSignInAccount? = null
 
     private val folderPickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocumentTree()
@@ -35,6 +49,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             Timber.d("Selected folder: $uri")
             viewModel.addManualFolder(uri)
         }
+    }
+    
+    private val googleSignInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        handleGoogleSignInResult(result.data)
     }
 
     override fun getViewBinding(): ActivityAddResourceBinding {
@@ -86,6 +106,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         binding.cardSftpFolder.setOnClickListener {
             showSftpFolderOptions()
+        }
+        
+        binding.cardCloudStorage.setOnClickListener {
+            showCloudStorageOptions()
+        }
+        
+        binding.cardGoogleDrive.setOnClickListener {
+            authenticateGoogleDrive()
         }
         
         // SFTP/FTP protocol RadioGroup
@@ -265,6 +293,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         binding.tvTitle.text = "Add SFTP/FTP Resource"
         binding.layoutSmbFolder.isVisible = false
         binding.layoutSftpFolder.isVisible = true
+        binding.layoutCloudStorage.isVisible = false
         
         // Set default port to 22 (SFTP) when opening this section
         if (binding.etSftpPort.text.isNullOrBlank()) {
@@ -273,6 +302,108 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         // Select SFTP by default
         binding.rbSftp.isChecked = true
+    }
+    
+    private fun showCloudStorageOptions() {
+        binding.layoutResourceTypes.isVisible = false
+        binding.tvTitle.text = getString(R.string.cloud_storage)
+        binding.layoutSmbFolder.isVisible = false
+        binding.layoutSftpFolder.isVisible = false
+        binding.layoutCloudStorage.isVisible = true
+        
+        updateCloudStorageStatus()
+    }
+    
+    private fun updateCloudStorageStatus() {
+        googleDriveAccount = GoogleSignIn.getLastSignedInAccount(this)
+        
+        if (googleDriveAccount != null) {
+            binding.tvGoogleDriveStatus.text = getString(R.string.connected_as, googleDriveAccount?.email ?: "")
+            binding.tvGoogleDriveStatus.isVisible = true
+        } else {
+            binding.tvGoogleDriveStatus.text = getString(R.string.not_connected)
+            binding.tvGoogleDriveStatus.isVisible = true
+        }
+    }
+    
+    private fun authenticateGoogleDrive() {
+        val account = GoogleSignIn.getLastSignedInAccount(this)
+        
+        if (account != null) {
+            showGoogleDriveSignedInOptions(account)
+        } else {
+            launchGoogleSignIn()
+        }
+    }
+    
+    private fun launchGoogleSignIn() {
+        lifecycleScope.launch {
+            try {
+                val signInIntent = googleDriveClient.getSignInIntent()
+                googleSignInLauncher.launch(signInIntent)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to launch Google Sign-In")
+                Toast.makeText(
+                    this@AddResourceActivity,
+                    getString(R.string.google_drive_authentication_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    
+    private fun handleGoogleSignInResult(data: Intent?) {
+        try {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(data)
+            val account = task.getResult(ApiException::class.java)
+            
+            googleDriveAccount = account
+            updateCloudStorageStatus()
+            
+            Toast.makeText(
+                this,
+                getString(R.string.google_drive_signed_in, account.email ?: ""),
+                Toast.LENGTH_SHORT
+            ).show()
+            
+            // Navigate to folder selection
+            navigateToGoogleDriveFolderPicker()
+            
+        } catch (e: ApiException) {
+            Timber.e(e, "Google Sign-In failed: ${e.statusCode}")
+            Toast.makeText(
+                this,
+                getString(R.string.google_drive_authentication_failed),
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+    }
+    
+    private fun navigateToGoogleDriveFolderPicker() {
+        val intent = Intent(this, com.sza.fastmediasorter_v2.ui.cloudfolders.GoogleDriveFolderPickerActivity::class.java)
+        startActivity(intent)
+    }
+    
+    private fun showGoogleDriveSignedInOptions(account: GoogleSignInAccount) {
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.google_drive))
+            .setMessage(getString(R.string.connected_as, account.email ?: ""))
+            .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
+                navigateToGoogleDriveFolderPicker()
+            }
+            .setNegativeButton(R.string.google_drive_sign_out) { _, _ ->
+                signOutGoogleDrive()
+            }
+            .setNeutralButton(android.R.string.cancel, null)
+            .show()
+    }
+    
+    private fun signOutGoogleDrive() {
+        GoogleSignIn.getClient(this, googleDriveClient.getSignInOptions()).signOut().addOnCompleteListener {
+            googleDriveAccount = null
+            updateCloudStorageStatus()
+            Toast.makeText(this, "Signed out from Google Drive", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun testSmbConnection() {

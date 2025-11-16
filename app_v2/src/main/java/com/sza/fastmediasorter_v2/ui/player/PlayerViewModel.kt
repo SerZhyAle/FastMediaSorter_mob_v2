@@ -137,11 +137,17 @@ class PlayerViewModel @Inject constructor(
                     audioSizeMax = settings.audioSizeMax
                 )
 
-                // For SMB resources: use chunked loading to show first files quickly
+                // Use chunked loading for network resources with many files (>= 200)
+                // For small folders, full scan is faster (avoids recursive traversal overhead)
+                val isNetworkResource = resource.type == ResourceType.SMB || 
+                                       resource.type == ResourceType.SFTP || 
+                                       resource.type == ResourceType.FTP
+                val useChunked = isNetworkResource && resource.fileCount >= 200
+                
                 val files = getMediaFilesUseCase(
                     resource = resource,
                     sizeFilter = sizeFilter,
-                    useChunkedLoading = resource.type == ResourceType.SMB,
+                    useChunkedLoading = useChunked,
                     maxFiles = 200 // Load first 200 files quickly for player
                 ).first()
                 
@@ -418,8 +424,10 @@ class PlayerViewModel @Inject constructor(
             result.add(prevFile)
         }
         
-        // Add next file if it's an image or GIF
-        if (nextFile != null && (nextFile.type == MediaType.IMAGE || nextFile.type == MediaType.GIF)) {
+        // Add next file if it's an image or GIF AND it's different from previous (avoid duplicates in 2-file case)
+        if (nextFile != null && 
+            nextFile != prevFile &&
+            (nextFile.type == MediaType.IMAGE || nextFile.type == MediaType.GIF)) {
             result.add(nextFile)
         }
         

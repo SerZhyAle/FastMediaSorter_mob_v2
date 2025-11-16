@@ -10,6 +10,9 @@ import com.sza.fastmediasorter_v2.core.di.IoDispatcher
 import com.sza.fastmediasorter_v2.core.ui.BaseViewModel
 import com.sza.fastmediasorter_v2.data.paging.MediaFilesPagingSource
 import com.sza.fastmediasorter_v2.domain.model.DisplayMode
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import com.sza.fastmediasorter_v2.domain.model.FileFilter
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.UndoOperation
@@ -26,6 +29,7 @@ import com.sza.fastmediasorter_v2.domain.usecase.SizeFilter
 import com.sza.fastmediasorter_v2.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -79,10 +83,12 @@ class BrowseViewModel @Inject constructor(
     
     private var fileObserver: MediaFileObserver? = null
     
+    // Job for current file loading operation (to cancel on reload)
+    private var loadFilesJob: Job? = null
+    
     // PagingData flow for large datasets (used when usePagination = true)
-    private var _pagingDataFlow: Flow<PagingData<MediaFile>>? = null
-    val pagingDataFlow: Flow<PagingData<MediaFile>>?
-        get() = _pagingDataFlow
+    private val _pagingDataFlow = MutableStateFlow<Flow<PagingData<MediaFile>>?>(null)
+    val pagingDataFlow: StateFlow<Flow<PagingData<MediaFile>>?> = _pagingDataFlow.asStateFlow()
 
     override fun getInitialState() = BrowseState()
 
@@ -137,6 +143,8 @@ class BrowseViewModel @Inject constructor(
                 ) 
             }
             
+            Timber.d("loadResource: Resource loaded - name=${resource.name}, displayMode=${resource.displayMode}, sortMode=${resource.sortMode}")
+            
             // Start background file count (for header display)
             startFileCountInBackground()
             
@@ -147,7 +155,15 @@ class BrowseViewModel @Inject constructor(
     private fun loadMediaFiles() {
         val resource = state.value.resource ?: return
         
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+        // Skip if already loading
+        if (loadFilesJob?.isActive == true) {
+            Timber.d("loadMediaFiles: Already loading, skipping")
+            return
+        }
+        
+        Timber.d("loadMediaFiles: Starting new load")
+        
+        loadFilesJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
             // Get current settings for size filters
@@ -174,12 +190,21 @@ class BrowseViewModel @Inject constructor(
                 Timber.d("File count for ${resource.name}: $fileCount")
                 updateState { it.copy(totalFileCount = fileCount) }
                 
-                // Decide loading strategy based on file count
-                if (fileCount >= PAGINATION_THRESHOLD) {
-                    Timber.i("Using pagination for large folder ($fileCount files)")
+                // Decide loading strategy based on file count AND sort mode
+                // Pagination only works correctly with NAME sorting (files returned in sorted order)
+                // For DATE/SIZE/TYPE sorting, we need all files to determine global order
+                val canUsePagination = fileCount >= PAGINATION_THRESHOLD && 
+                    (state.value.sortMode == SortMode.NAME_ASC || state.value.sortMode == SortMode.NAME_DESC)
+                
+                if (canUsePagination) {
+                    Timber.i("Using pagination for large folder ($fileCount files, sort=${state.value.sortMode})")
                     loadMediaFilesWithPagination(resource, sizeFilter)
                 } else {
-                    Timber.d("Using standard loading for small folder ($fileCount files)")
+                    if (fileCount >= PAGINATION_THRESHOLD && state.value.sortMode !in setOf(SortMode.NAME_ASC, SortMode.NAME_DESC)) {
+                        Timber.w("Large folder ($fileCount files) with sort mode ${state.value.sortMode} - pagination disabled, using full scan (may be slow)")
+                    } else {
+                        Timber.d("Using standard loading for folder ($fileCount files, sort=${state.value.sortMode})")
+                    }
                     loadMediaFilesStandard(resource, sizeFilter)
                 }
             } catch (e: Exception) {
@@ -192,8 +217,17 @@ class BrowseViewModel @Inject constructor(
     
     private fun loadMediaFilesStandard(resource: MediaResource, sizeFilter: SizeFilter) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            // Use chunked loading for SMB resources (show first 100 files quickly)
-            val useChunked = resource.type == com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB
+            // Use chunked loading for network resources ONLY if file count suggests large folder
+            // For small folders (<200 files), full scan is faster than chunked with limit
+            val isNetworkResource = resource.type in setOf(
+                com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB,
+                com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP,
+                com.sza.fastmediasorter_v2.domain.model.ResourceType.FTP
+            )
+            val fileCount = state.value.totalFileCount ?: 0
+            val useChunked = isNetworkResource && fileCount >= 200
+            
+            Timber.d("Starting loadMediaFilesStandard: resource=${resource.name}, useChunked=$useChunked (fileCount=$fileCount)")
             
             getMediaFilesUseCase(
                 resource = resource,
@@ -208,6 +242,7 @@ class BrowseViewModel @Inject constructor(
                     handleLoadingError(resource, e)
                 }
                 .collect { files ->
+                    Timber.d("Collected ${files.size} files from flow")
                     updateState { it.copy(mediaFiles = files, usePagination = false) }
                     setLoading(false)
                     
@@ -224,7 +259,7 @@ class BrowseViewModel @Inject constructor(
     private fun loadMediaFilesWithPagination(resource: MediaResource, sizeFilter: SizeFilter) {
         try {
             // Create Pager with MediaFilesPagingSource
-            _pagingDataFlow = Pager(
+            val newFlow = Pager(
                 config = PagingConfig(
                     pageSize = PAGE_SIZE,
                     prefetchDistance = 15,
@@ -241,6 +276,7 @@ class BrowseViewModel @Inject constructor(
                 }
             ).flow.cachedIn(viewModelScope)
             
+            _pagingDataFlow.value = newFlow
             updateState { it.copy(usePagination = true, mediaFiles = emptyList()) }
             setLoading(false)
             
@@ -275,20 +311,45 @@ class BrowseViewModel @Inject constructor(
             e.message?.contains("Authentication failed", ignoreCase = true) == true ||
             e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true -> {
                 "Invalid username or password.\n\n" +
-                "Please edit this resource and update credentials, then click 'Save'."
+                "Recommendations:\n" +
+                "• Edit this resource and update credentials\n" +
+                "• Verify username and password are correct\n" +
+                "• Check if account is locked or expired"
             }
             e.message?.contains("Connection error", ignoreCase = true) == true ||
             e.message?.contains("Network", ignoreCase = true) == true -> {
                 "Cannot connect to server.\n\n" +
-                "Check network connection and server availability."
+                "Recommendations:\n" +
+                "• Check your network connection\n" +
+                "• Verify server address and port\n" +
+                "• Check if server is online and accessible\n" +
+                "• Try pinging the server from another device"
+            }
+            e.message?.contains("timed out", ignoreCase = true) == true ||
+            e.message?.contains("SocketTimeoutException", ignoreCase = true) == true -> {
+                "Connection timeout.\n\n" +
+                "Possible causes:\n" +
+                "• Server is slow or overloaded\n" +
+                "• Network latency is too high\n" +
+                "• Firewall blocking data connection (FTP passive mode)\n" +
+                "• NAT/Router issues with FTP passive mode\n\n" +
+                "Recommendations:\n" +
+                "• Check server status and load\n" +
+                "• Test connection from computer/laptop\n" +
+                "• Configure firewall to allow FTP passive mode\n" +
+                "• Check router port forwarding settings\n" +
+                "• Contact server administrator if problem persists"
             }
             e.message?.contains("Permission denied", ignoreCase = true) == true -> {
                 "No access to this folder.\n\n" +
-                "Check folder permissions or credentials."
+                "Recommendations:\n" +
+                "• Check folder permissions on server\n" +
+                "• Verify your account has read access\n" +
+                "• Try accessing from root directory first"
             }
             else -> {
                 "Failed to load media files.\n\n" +
-                "See error details below."
+                "See error details below for more information."
             }
         }
         
@@ -690,7 +751,11 @@ class BrowseViewModel @Inject constructor(
                 
             } catch (e: Exception) {
                 Timber.e(e, "Undo operation failed")
-                sendEvent(BrowseEvent.ShowError("Undo failed: ${e.message}"))
+                sendEvent(BrowseEvent.ShowError(
+                    message = "Undo failed: ${e.message}",
+                    details = e.stackTraceToString(),
+                    exception = e
+                ))
             } finally {
                 setLoading(false)
             }

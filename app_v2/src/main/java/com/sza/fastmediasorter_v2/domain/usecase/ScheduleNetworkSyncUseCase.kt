@@ -23,9 +23,14 @@ class ScheduleNetworkSyncUseCase @Inject constructor(
      * Schedule periodic network file sync
      * @param intervalHours Sync interval in hours (default 4 hours)
      * @param requiresNetwork Whether to require network connectivity (default true)
+     * @param initialDelayMinutes Initial delay before first sync (default 5 minutes)
      */
-    operator fun invoke(intervalHours: Long = 4, requiresNetwork: Boolean = true) {
-        Timber.d("ScheduleNetworkSyncUseCase: Scheduling sync with interval=$intervalHours hours, requiresNetwork=$requiresNetwork")
+    operator fun invoke(
+        intervalHours: Long = 4, 
+        requiresNetwork: Boolean = true,
+        initialDelayMinutes: Long = 5
+    ) {
+        Timber.d("ScheduleNetworkSyncUseCase: Scheduling sync with interval=$intervalHours hours, requiresNetwork=$requiresNetwork, initialDelay=${initialDelayMinutes}min")
         
         val constraints = Constraints.Builder()
             .setRequiredNetworkType(if (requiresNetwork) NetworkType.CONNECTED else NetworkType.NOT_REQUIRED)
@@ -36,6 +41,7 @@ class ScheduleNetworkSyncUseCase @Inject constructor(
             intervalHours, TimeUnit.HOURS
         )
             .setConstraints(constraints)
+            .setInitialDelay(initialDelayMinutes, TimeUnit.MINUTES) // Delay first sync
             .addTag(NetworkFilesSyncWorker.WORK_NAME)
             .build()
         
@@ -46,7 +52,7 @@ class ScheduleNetworkSyncUseCase @Inject constructor(
             syncRequest
         )
         
-        Timber.i("ScheduleNetworkSyncUseCase: Network sync scheduled successfully")
+        Timber.i("ScheduleNetworkSyncUseCase: Network sync scheduled successfully with ${initialDelayMinutes}min initial delay")
     }
     
     /**

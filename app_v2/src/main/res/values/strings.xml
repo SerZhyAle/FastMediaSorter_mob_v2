@@ -303,6 +303,35 @@
     <string name="video_framerate_label">Frame Rate: %1$.2f fps</string>
     <string name="video_rotation_label">Rotation: %1$d°</string>
     
+    <!-- Accessibility labels -->
+    <string name="loading_indicator">Loading</string>
+    <string name="scan_progress_indicator">Scanning files</string>
+    <string name="operation_progress_indicator">Operation in progress</string>
+    
+    <!-- Cloud Storage -->
+    <string name="cloud_storage">Cloud Storage</string>
+    <string name="cloud_storage_description">Add folders from Google Drive, OneDrive, Dropbox</string>
+    <string name="select_cloud_provider">Select Cloud Provider</string>
+    <string name="google_drive">Google Drive</string>
+    <string name="onedrive">OneDrive</string>
+    <string name="dropbox">Dropbox</string>
+    <string name="not_connected">Not connected</string>
+    <string name="connected_as">Connected as %1$s</string>
+    <string name="coming_soon">Coming soon</string>
+    <string name="cloud_storage_info">Tap on a provider to authenticate and select folders</string>
+    <string name="google_drive_sign_in">Sign in with Google</string>
+    <string name="google_drive_signed_in">Signed in: %1$s</string>
+    <string name="google_drive_sign_out">Sign out</string>
+    <string name="google_drive_select_folder">Select Folder</string>
+    <string name="google_drive_authentication_failed">Google Drive authentication failed</string>
+    <string name="google_drive_connection_test_success">Connected successfully!</string>
+    <string name="google_drive_connection_test_failed">Connection failed: %1$s</string>
+    <string name="no_folders_found">No folders found</string>
+    <string name="add_folder">Add Folder</string>
+    <string name="selected_folder">Selected: %1$s</string>
+    <string name="folder_icon">Folder icon</string>
+    <string name="loading">Loading…</string>
+    
 </resources>
 
 

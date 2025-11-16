@@ -14,7 +14,10 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import coil.load
+import coil.memory.MemoryCache
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
@@ -155,13 +158,16 @@ class MediaFileAdapter(
             }
         }
         
+        @OptIn(ExperimentalCoilApi::class)
         private fun loadThumbnail(file: MediaFile) {
             binding.ivThumbnail.apply {
-                // Check if this is a network path (SMB/SFTP)
-                val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
+                // Check if this is a cloud path (cloud://)
+                val isCloudPath = file.path.startsWith("cloud://")
+                // Check if this is a network path (SMB/SFTP/FTP)
+                val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
                 
                 // For local files, check if file exists (skip for content:// URIs)
-                if (!isNetworkPath && !file.path.startsWith("content://")) {
+                if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
                     val localFile = File(file.path)
                     if (!localFile.exists()) {
                         Timber.w("File no longer exists: ${file.path}")
@@ -176,77 +182,139 @@ class MediaFileAdapter(
                         }
                         return
                     }
+                    
+                    // Check if file has been modified since last scan (stale thumbnail)
+                    val currentModified = localFile.lastModified()
+                    if (currentModified != file.createdDate) {
+                        Timber.d("File modified since last scan: ${file.name} (${file.createdDate} -> $currentModified)")
+                        // Invalidate Coil cache for this file
+                        context.imageLoader.diskCache?.remove(file.path)
+                        context.imageLoader.memoryCache?.remove(MemoryCache.Key(file.path))
+                    }
                 }
                 
-                Timber.d("Loading thumbnail for: ${file.name}, isNetwork: $isNetworkPath, type: ${file.type}")
+                Timber.d("Loading thumbnail for: ${file.name}, isCloud: $isCloudPath, isNetwork: $isNetworkPath, type: ${file.type}")
                 
                 when (file.type) {
                     MediaType.IMAGE, MediaType.GIF -> {
-                        if (isNetworkPath) {
-                            // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
-                            Timber.d("Loading network image via NetworkFileData: ${file.path}")
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                crossfade(false) // Disable crossfade for faster loading
-                                placeholder(R.drawable.ic_image_placeholder)
-                                error(R.drawable.ic_image_error)
-                                transformations(RoundedCornersTransformation(8f))
-                                // Set memory and disk cache policy
-                                memoryCacheKey(file.path)
-                                diskCacheKey(file.path)
-                                listener(
-                                    onSuccess = { _, _ ->
-                                        Timber.d("Successfully loaded network thumbnail: ${file.name}")
-                                    },
-                                    onError = { _, result ->
-                                        Timber.e(result.throwable, "Failed to load network thumbnail: ${file.name}")
+                        when {
+                            isCloudPath -> {
+                                // Load cloud thumbnail using thumbnailUrl if available
+                                if (!file.thumbnailUrl.isNullOrEmpty()) {
+                                    Timber.d("Loading cloud thumbnail from URL: ${file.thumbnailUrl}")
+                                    load(file.thumbnailUrl) {
+                                        size(512) // Fixed size for consistent caching across List/Grid modes
+                                        crossfade(false)
+                                        placeholder(R.drawable.ic_image_placeholder)
+                                        error(R.drawable.ic_image_error)
+                                        transformations(RoundedCornersTransformation(8f))
+                                        memoryCacheKey(file.path)
+                                        diskCacheKey(file.path)
+                                        listener(
+                                            onSuccess = { _, _ ->
+                                                Timber.d("Successfully loaded cloud thumbnail: ${file.name}")
+                                            },
+                                            onError = { _, result ->
+                                                Timber.e(result.throwable, "Failed to load cloud thumbnail: ${file.name}")
+                                            }
+                                        )
                                     }
-                                )
+                                } else {
+                                    // Fallback: show placeholder for cloud files without thumbnailUrl
+                                    Timber.w("No thumbnailUrl for cloud file: ${file.name}")
+                                    setImageResource(R.drawable.ic_image_placeholder)
+                                }
                             }
-                        } else {
-                            // Load image/GIF thumbnail using Coil for local files
-                            // Support both file:// paths and content:// URIs
-                            val data = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else {
-                                File(file.path)
+                            isNetworkPath -> {
+                                // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
+                                Timber.d("Loading network image via NetworkFileData: ${file.path}")
+                                load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false) // Disable crossfade for faster loading
+                                    placeholder(R.drawable.ic_image_placeholder)
+                                    error(R.drawable.ic_image_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                    // Set memory and disk cache policy
+                                    memoryCacheKey(file.path)
+                                    diskCacheKey(file.path)
+                                    listener(
+                                        onSuccess = { _, _ ->
+                                            Timber.d("Successfully loaded network thumbnail: ${file.name}")
+                                        },
+                                        onError = { _, result ->
+                                            Timber.e(result.throwable, "Failed to load network thumbnail: ${file.name}")
+                                        }
+                                    )
+                                }
                             }
-                            load(data) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_image_placeholder)
-                                error(R.drawable.ic_image_error)
-                                transformations(RoundedCornersTransformation(8f))
+                            else -> {
+                                // Load image/GIF thumbnail using Coil for local files
+                                // Support both file:// paths and content:// URIs
+                                val data = if (file.path.startsWith("content://")) {
+                                    Uri.parse(file.path)
+                                } else {
+                                    File(file.path)
+                                }
+                                load(data) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_image_placeholder)
+                                    error(R.drawable.ic_image_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                }
                             }
                         }
                     }
                     MediaType.VIDEO -> {
-                        if (isNetworkPath) {
-                            // Load network video frame using NetworkFileData
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_video_placeholder)
-                                error(R.drawable.ic_video_error)
-                                transformations(RoundedCornersTransformation(8f))
-                                memoryCacheKey(file.path)
-                                diskCacheKey(file.path)
+                        when {
+                            isCloudPath -> {
+                                // Load cloud video thumbnail using thumbnailUrl if available
+                                if (!file.thumbnailUrl.isNullOrEmpty()) {
+                                    Timber.d("Loading cloud video thumbnail from URL: ${file.thumbnailUrl}")
+                                    load(file.thumbnailUrl) {
+                                        crossfade(false)
+                                        placeholder(R.drawable.ic_video_placeholder)
+                                        error(R.drawable.ic_video_error)
+                                        transformations(RoundedCornersTransformation(8f))
+                                        memoryCacheKey(file.path)
+                                        diskCacheKey(file.path)
+                                    }
+                                } else {
+                                    // Fallback: show placeholder
+                                    Timber.w("No thumbnailUrl for cloud video: ${file.name}")
+                                    setImageResource(R.drawable.ic_video_placeholder)
+                                }
                             }
-                        } else {
-                            // Load video first frame using Coil with video frame decoder for local files
-                            // Support both file:// paths and content:// URIs
-                            val data = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else {
-                                File(file.path)
+                            isNetworkPath -> {
+                                // Load network video frame using NetworkFileData
+                                load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_video_placeholder)
+                                    error(R.drawable.ic_video_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                    memoryCacheKey(file.path)
+                                    diskCacheKey(file.path)
+                                }
                             }
-                            load(data) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_video_placeholder)
-                                error(R.drawable.ic_video_error)
-                                transformations(RoundedCornersTransformation(8f))
+                            else -> {
+                                // Load video first frame using Coil with video frame decoder for local files
+                                // Support both file:// paths and content:// URIs
+                                val data = if (file.path.startsWith("content://")) {
+                                    Uri.parse(file.path)
+                                } else {
+                                    File(file.path)
+                                }
+                                load(data) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_video_placeholder)
+                                    error(R.drawable.ic_video_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                }
                             }
                         }
                     }
                     MediaType.AUDIO -> {
-                        // For audio files, create a bitmap with file extension
                         val extension = file.name.substringAfterLast('.', "").uppercase()
                         val bitmap = createExtensionBitmap(extension)
                         setImageBitmap(bitmap)
@@ -343,13 +411,16 @@ class MediaFileAdapter(
             }
         }
         
+        @OptIn(ExperimentalCoilApi::class)
         private fun loadThumbnail(file: MediaFile) {
             binding.ivThumbnail.apply {
-                // Check if this is a network path (SMB/SFTP)
-                val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://")
+                // Check if this is a cloud path (cloud://)
+                val isCloudPath = file.path.startsWith("cloud://")
+                // Check if this is a network path (SMB/SFTP/FTP)
+                val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
                 
                 // For local files, check if file exists (skip for content:// URIs)
-                if (!isNetworkPath && !file.path.startsWith("content://")) {
+                if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
                     val localFile = File(file.path)
                     if (!localFile.exists()) {
                         Timber.w("File no longer exists: ${file.path}")
@@ -364,58 +435,111 @@ class MediaFileAdapter(
                         }
                         return
                     }
+                    
+                    // Check if file has been modified since last scan (stale thumbnail)
+                    val currentModified = localFile.lastModified()
+                    if (currentModified != file.createdDate) {
+                        Timber.d("File modified since last scan: ${file.name} (${file.createdDate} -> $currentModified)")
+                        // Invalidate Coil cache for this file
+                        context.imageLoader.diskCache?.remove(file.path)
+                        context.imageLoader.memoryCache?.remove(MemoryCache.Key(file.path))
+                    }
                 }
                 
                 when (file.type) {
                     MediaType.IMAGE, MediaType.GIF -> {
-                        if (isNetworkPath) {
-                            // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_image_placeholder)
-                                error(R.drawable.ic_image_error)
-                                transformations(RoundedCornersTransformation(8f))
-                                memoryCacheKey(file.path)
-                                diskCacheKey(file.path)
+                        when {
+                            isCloudPath -> {
+                                // Load cloud thumbnail using thumbnailUrl if available
+                                if (!file.thumbnailUrl.isNullOrEmpty()) {
+                                    load(file.thumbnailUrl) {
+                                        size(512) // Fixed size for consistent caching across List/Grid modes
+                                        crossfade(false)
+                                        placeholder(R.drawable.ic_image_placeholder)
+                                        error(R.drawable.ic_image_error)
+                                        transformations(RoundedCornersTransformation(8f))
+                                        memoryCacheKey(file.path)
+                                        diskCacheKey(file.path)
+                                    }
+                                } else {
+                                    // Fallback: show placeholder
+                                    setImageResource(R.drawable.ic_image_placeholder)
+                                }
                             }
-                        } else {
-                            // Support both file:// paths and content:// URIs
-                            val data = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else {
-                                File(file.path)
+                            isNetworkPath -> {
+                                // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
+                                load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_image_placeholder)
+                                    error(R.drawable.ic_image_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                    memoryCacheKey(file.path)
+                                    diskCacheKey(file.path)
+                                }
                             }
-                            load(data) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_image_placeholder)
-                                error(R.drawable.ic_image_error)
-                                transformations(RoundedCornersTransformation(8f))
+                            else -> {
+                                // Support both file:// paths and content:// URIs
+                                val data = if (file.path.startsWith("content://")) {
+                                    Uri.parse(file.path)
+                                } else {
+                                    File(file.path)
+                                }
+                                load(data) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_image_placeholder)
+                                    error(R.drawable.ic_image_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                }
                             }
                         }
                     }
                     MediaType.VIDEO -> {
-                        if (isNetworkPath) {
-                            // Load network video frame using NetworkFileData
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_video_placeholder)
-                                error(R.drawable.ic_video_error)
-                                transformations(RoundedCornersTransformation(8f))
-                                memoryCacheKey(file.path)
-                                diskCacheKey(file.path)
+                        when {
+                            isCloudPath -> {
+                                // Load cloud video thumbnail using thumbnailUrl if available
+                                if (!file.thumbnailUrl.isNullOrEmpty()) {
+                                    load(file.thumbnailUrl) {
+                                        size(512) // Fixed size for consistent caching across List/Grid modes
+                                        crossfade(false)
+                                        placeholder(R.drawable.ic_video_placeholder)
+                                        error(R.drawable.ic_video_error)
+                                        transformations(RoundedCornersTransformation(8f))
+                                        memoryCacheKey(file.path)
+                                        diskCacheKey(file.path)
+                                    }
+                                } else {
+                                    // Fallback: show placeholder
+                                    setImageResource(R.drawable.ic_video_placeholder)
+                                }
                             }
-                        } else {
-                            // Support both file:// paths and content:// URIs
-                            val data = if (file.path.startsWith("content://")) {
-                                Uri.parse(file.path)
-                            } else {
-                                File(file.path)
+                            isNetworkPath -> {
+                                // Load network video frame using NetworkFileData
+                                load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_video_placeholder)
+                                    error(R.drawable.ic_video_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                    memoryCacheKey(file.path)
+                                    diskCacheKey(file.path)
+                                }
                             }
-                            load(data) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_video_placeholder)
-                                error(R.drawable.ic_video_error)
-                                transformations(RoundedCornersTransformation(8f))
+                            else -> {
+                                // Support both file:// paths and content:// URIs
+                                val data = if (file.path.startsWith("content://")) {
+                                    Uri.parse(file.path)
+                                } else {
+                                    File(file.path)
+                                }
+                                load(data) {
+                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_video_placeholder)
+                                    error(R.drawable.ic_video_error)
+                                    transformations(RoundedCornersTransformation(8f))
+                                }
                             }
                         }
                     }

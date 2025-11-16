@@ -279,6 +279,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:contentDescription="@string/loading_indicator"
             android:visibility="gone" />
 
         <!-- Countdown timer for slideshow (top-right corner) -->

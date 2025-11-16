@@ -94,6 +94,12 @@
             android:configChanges="orientation|screenSize|keyboardHidden"
             android:theme="@style/Theme.FastMediaSorter.NoActionBar" />
 
+        <activity
+            android:name=".ui.cloudfolders.GoogleDriveFolderPickerActivity"
+            android:exported="false"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
     </application>
 
 </manifest>

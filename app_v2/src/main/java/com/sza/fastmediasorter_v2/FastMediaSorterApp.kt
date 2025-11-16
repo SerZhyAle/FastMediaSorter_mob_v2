@@ -9,6 +9,10 @@ import coil.ImageLoaderFactory
 import com.sza.fastmediasorter_v2.core.util.LocaleHelper
 import com.sza.fastmediasorter_v2.worker.WorkManagerScheduler
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -23,14 +27,37 @@ class FastMediaSorterApp : Application(), ImageLoaderFactory, Configuration.Prov
     
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+    
+    // Application-scoped coroutine for background initialization
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     override fun onCreate() {
         super.onCreate()
         
-        // Apply saved locale
+        // Apply saved locale (fast)
         LocaleHelper.applyLocale(this)
         
-        // Initialize Timber logging
+        // Initialize Timber logging - deferred to avoid blocking onCreate
+        initializeLogging()
+        
+        Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
+        
+        // Defer WorkManager scheduling to background thread to avoid blocking main thread
+        applicationScope.launch {
+            try {
+                workManagerScheduler.scheduleTrashCleanup()
+                Timber.d("Background initialization: WorkManager scheduled")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to schedule WorkManager in background")
+            }
+        }
+    }
+    
+    /**
+     * Initialize Timber logging.
+     * Moved to separate method to make it easier to profile/optimize.
+     */
+    private fun initializeLogging() {
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
         } else {
@@ -44,11 +71,6 @@ class FastMediaSorterApp : Application(), ImageLoaderFactory, Configuration.Prov
                 }
             })
         }
-        
-        Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
-        
-        // Schedule periodic trash cleanup worker
-        workManagerScheduler.scheduleTrashCleanup()
     }
 
     override fun newImageLoader(): ImageLoader {

@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ResourceEntity::class,
         NetworkCredentialsEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -42,6 +42,14 @@ abstract class AppDatabase : RoomDatabase() {
                         createdDate INTEGER NOT NULL
                     )
                 """.trimIndent())
+            }
+        }
+        
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add cloud provider fields for CLOUD type resources
+                database.execSQL("ALTER TABLE resources ADD COLUMN cloudProvider TEXT DEFAULT NULL")
+                database.execSQL("ALTER TABLE resources ADD COLUMN cloudFolderId TEXT DEFAULT NULL")
             }
         }
     }

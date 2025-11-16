@@ -69,6 +69,8 @@ data class MediaResource(
     val path: String,
     val type: ResourceType,
     val credentialsId: String? = null,
+    val cloudProvider: com.sza.fastmediasorter_v2.data.cloud.CloudProvider? = null,
+    val cloudFolderId: String? = null,
     val supportedMediaTypes: Set<MediaType> = setOf(MediaType.IMAGE, MediaType.VIDEO),
     val sortMode: SortMode = SortMode.NAME_ASC,
     val displayMode: DisplayMode = DisplayMode.LIST,
@@ -105,7 +107,10 @@ data class MediaFile(
     val videoCodec: String? = null, // Video codec name (e.g., "avc1", "vp9", "hevc")
     val videoBitrate: Int? = null, // Video bitrate in bits per second
     val videoFrameRate: Float? = null, // Video frame rate (fps)
-    val videoRotation: Int? = null // Video rotation angle (0, 90, 180, 270 degrees)
+    val videoRotation: Int? = null, // Video rotation angle (0, 90, 180, 270 degrees)
+    // Cloud storage fields (for CLOUD resources)
+    val thumbnailUrl: String? = null, // Cloud thumbnail URL
+    val webViewUrl: String? = null // Cloud web view URL
 )
 
 /**

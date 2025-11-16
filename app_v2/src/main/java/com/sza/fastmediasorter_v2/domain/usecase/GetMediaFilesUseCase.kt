@@ -65,9 +65,14 @@ class GetMediaFilesUseCase @Inject constructor(
         useChunkedLoading: Boolean = false,
         maxFiles: Int = 100
     ): Flow<List<MediaFile>> = flow {
+        timber.log.Timber.d("GetMediaFilesUseCase: Starting scan for ${resource.name}, useChunked=$useChunkedLoading")
+        
         val scanner = mediaScannerFactory.getScanner(resource.type)
         
+        timber.log.Timber.d("GetMediaFilesUseCase: Got scanner type=${scanner.javaClass.simpleName}")
+        
         val files = if (useChunkedLoading && scanner is com.sza.fastmediasorter_v2.data.network.SmbMediaScanner) {
+            timber.log.Timber.d("GetMediaFilesUseCase: Using chunked loading, maxFiles=$maxFiles")
             // Use chunked loading for SMB to quickly show first files
             scanner.scanFolderChunked(
                 path = resource.path,
@@ -77,6 +82,7 @@ class GetMediaFilesUseCase @Inject constructor(
                 credentialsId = resource.credentialsId
             )
         } else {
+            timber.log.Timber.d("GetMediaFilesUseCase: Using standard loading")
             // Standard full scan for other types
             scanner.scanFolder(
                 path = resource.path,
@@ -86,7 +92,11 @@ class GetMediaFilesUseCase @Inject constructor(
             )
         }
         
+        timber.log.Timber.d("GetMediaFilesUseCase: Scanned ${files.size} files, sorting by $sortMode")
+        
         emit(sortFiles(files, sortMode))
+        
+        timber.log.Timber.d("GetMediaFilesUseCase: Emitted sorted files")
     }
 
     private fun sortFiles(files: List<MediaFile>, mode: SortMode): List<MediaFile> {

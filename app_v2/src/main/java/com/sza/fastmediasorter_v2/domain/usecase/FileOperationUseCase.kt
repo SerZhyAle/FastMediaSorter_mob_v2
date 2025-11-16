@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter_v2.domain.usecase
 
+import com.sza.fastmediasorter_v2.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter_v2.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter_v2.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter_v2.data.network.FtpFileOperationHandler
@@ -55,7 +56,8 @@ data class OperationHistory(
 class FileOperationUseCase @Inject constructor(
     private val smbFileOperationHandler: SmbFileOperationHandler,
     private val sftpFileOperationHandler: SftpFileOperationHandler,
-    private val ftpFileOperationHandler: FtpFileOperationHandler
+    private val ftpFileOperationHandler: FtpFileOperationHandler,
+    private val cloudFileOperationHandler: CloudFileOperationHandler
 ) {
     
     private var lastOperation: OperationHistory? = null
@@ -221,7 +223,42 @@ class FileOperationUseCase @Inject constructor(
                 }
             }
 
+            val hasCloudPath = when (operation) {
+                is FileOperation.Copy -> {
+                    val sourceCloudCount = operation.sources.count { it.isNetworkPath("cloud") }
+                    val destIsCloud = operation.destination.isNetworkPath("cloud")
+                    Timber.d("FileOperation.Copy: sources=$sourceCloudCount/${operation.sources.size} Cloud, dest=${if (destIsCloud) "Cloud" else "Local"}")
+                    sourceCloudCount > 0 || destIsCloud
+                }
+                is FileOperation.Move -> {
+                    val sourceCloudCount = operation.sources.count { it.isNetworkPath("cloud") }
+                    val destIsCloud = operation.destination.isNetworkPath("cloud")
+                    Timber.d("FileOperation.Move: sources=$sourceCloudCount/${operation.sources.size} Cloud, dest=${if (destIsCloud) "Cloud" else "Local"}")
+                    sourceCloudCount > 0 || destIsCloud
+                }
+                is FileOperation.Delete -> {
+                    val cloudCount = operation.files.count { it.isNetworkPath("cloud") }
+                    Timber.d("FileOperation.Delete: $cloudCount/${operation.files.size} Cloud files")
+                    cloudCount > 0
+                }
+                is FileOperation.Rename -> {
+                    val isCloud = operation.file.isNetworkPath("cloud")
+                    Timber.d("FileOperation.Rename: file=${if (isCloud) "Cloud" else "Local"}")
+                    isCloud
+                }
+            }
+
             val result = when {
+                hasCloudPath -> {
+                    Timber.d("FileOperation: Using Cloud handler")
+                    // Use Cloud handler for operations involving cloud paths
+                    when (operation) {
+                        is FileOperation.Copy -> cloudFileOperationHandler.executeCopy(operation, progressCallback)
+                        is FileOperation.Move -> cloudFileOperationHandler.executeMove(operation, progressCallback)
+                        is FileOperation.Delete -> cloudFileOperationHandler.executeDelete(operation)
+                        is FileOperation.Rename -> cloudFileOperationHandler.executeRename(operation)
+                    }
+                }
                 hasSmbPath && hasSftpPath -> {
                     // Mixed operation SMB↔SFTP: use destination protocol as priority
                     val useSmb = when (operation) {

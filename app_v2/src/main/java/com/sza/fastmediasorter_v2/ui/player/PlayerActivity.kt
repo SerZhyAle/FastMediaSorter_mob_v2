@@ -63,6 +63,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private val touchZoneDetector = TouchZoneDetector()
     private var useTouchZones = true // Use touch zones for images, gestures for video
     private var countdownSeconds = 3 // Current countdown value
+    private var isFirstResume = true // Track first onResume to avoid duplicate load
 
     // Injected dependencies for network playback
     @Inject
@@ -716,6 +717,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun updateUI(state: PlayerViewModel.PlayerState) {
         Timber.d("PlayerActivity.updateUI: START - currentFile=${state.currentFile?.name}, type=${state.currentFile?.type}")
+        
+        // Skip UI updates until files are loaded (avoids 3 redundant calls with null data)
+        if (state.files.isEmpty()) {
+            Timber.d("PlayerActivity.updateUI: Files not loaded yet, skipping UI update")
+            return
+        }
+        
         state.currentFile?.let { file ->
             binding.toolbar.title = "${state.currentIndex + 1}/${state.files.size} - ${file.name}"
             binding.btnPrevious.isEnabled = state.hasPrevious
@@ -737,6 +745,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     Timber.d("PlayerActivity.updateUI: Calling playVideo()")
                     playVideo(file.path)
                 }
+                else -> {
+                    // Unknown type or null - try to determine by extension
+                    val ext = file.name.lowercase().substringAfterLast('.', "")
+                    val imageExts = listOf("jpg", "jpeg", "png", "gif", "webp", "bmp", "heif", "heic")
+                    if (ext in imageExts) {
+                        Timber.w("PlayerActivity.updateUI: Unknown type ${file.type}, but extension suggests image - using displayImage()")
+                        displayImage(file.path)
+                    } else {
+                        Timber.w("PlayerActivity.updateUI: Unknown type ${file.type} for ${file.name} - attempting playVideo()")
+                        playVideo(file.path)
+                    }
+                }
             }
             
             // Adjust touch zones (not for images/GIFs)
@@ -755,8 +775,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         updatePlayPauseButton()
         updateSlideShowButton()
         
-        // Update audio touch zones overlay visibility
-        updateAudioTouchZonesVisibility()
+        // Note: updateAudioTouchZonesVisibility() is called inside updatePanelVisibility() to avoid duplicate calls
     }
 
     /**
@@ -1036,9 +1055,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private fun playVideo(path: String) {
         Timber.d("PlayerActivity.playVideo: START - path=$path")
         
-        // Double-check: never try to play GIF files with ExoPlayer
-        if (path.lowercase().endsWith(".gif")) {
-            Timber.w("PlayerActivity.playVideo: Detected GIF file, redirecting to displayImage()")
+        // Double-check: never try to play image files with ExoPlayer
+        val lowerPath = path.lowercase()
+        val imageExtensions = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".heif", ".heic")
+        if (imageExtensions.any { lowerPath.endsWith(it) }) {
+            Timber.w("PlayerActivity.playVideo: Detected image file (${lowerPath.substringAfterLast('.')}), redirecting to displayImage()")
             displayImage(path)
             return
         }
@@ -1746,10 +1767,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     override fun onResume() {
         super.onResume()
-        // Reload files when returning from background
-        // This ensures deleted/renamed files from external apps are reflected
-        Timber.d("PlayerActivity.onResume: Reloading files")
-        viewModel.reloadFiles()
+        
+        if (isFirstResume) {
+            Timber.d("PlayerActivity.onResume: First resume, skipping reload (files already loaded in ViewModel.init{})")
+            isFirstResume = false
+        } else {
+            // Reload files when returning from background
+            // This ensures deleted/renamed files from external apps are reflected
+            Timber.d("PlayerActivity.onResume: Reloading files")
+            viewModel.reloadFiles()
+        }
         
         // Clear expired undo operations (5 minutes timeout)
         viewModel.clearExpiredUndoOperation()

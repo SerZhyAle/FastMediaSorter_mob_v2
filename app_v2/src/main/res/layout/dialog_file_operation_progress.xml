@@ -29,6 +29,7 @@
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:contentDescription="@string/operation_progress_indicator"
         android:indeterminate="false"
         android:max="100"
         android:progress="0"

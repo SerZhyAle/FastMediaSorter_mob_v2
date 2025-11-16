@@ -118,12 +118,18 @@ class SmbMediaScanner @Inject constructor(
         credentialsId: String? = null
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
+            Timber.d("scanFolderChunked: START - path=$path, maxFiles=$maxFiles, credentialsId=$credentialsId")
+            
             val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
                 Timber.w("Invalid SMB path format: $path")
                 return@withContext emptyList()
             }
 
+            Timber.d("scanFolderChunked: Parsed path - share=${connectionInfo.connectionInfo.shareName}, remotePath=${connectionInfo.remotePath}")
+
             val extensions = buildExtensionsSet(supportedTypes)
+            
+            Timber.d("scanFolderChunked: Extensions=$extensions")
 
             // Use chunked scan method
             when (val result = smbClient.scanMediaFilesChunked(
@@ -133,7 +139,9 @@ class SmbMediaScanner @Inject constructor(
                 maxFiles = maxFiles
             )) {
                 is SmbClient.SmbResult.Success -> {
-                    result.data.mapNotNull { fileInfo ->
+                    Timber.d("scanFolderChunked: Got ${result.data.size} files from smbClient")
+                    
+                    val mediaFiles = result.data.mapNotNull { fileInfo ->
                         val mediaType = getMediaType(fileInfo.name)
                         if (mediaType != null && supportedTypes.contains(mediaType)) {
                             if (sizeFilter != null && !isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
@@ -149,6 +157,9 @@ class SmbMediaScanner @Inject constructor(
                             )
                         } else null
                     }
+                    
+                    Timber.d("scanFolderChunked: Returning ${mediaFiles.size} MediaFile objects")
+                    mediaFiles
                 }
                 is SmbClient.SmbResult.Error -> {
                     Timber.e("Error scanning SMB folder (chunked): ${result.message}")
@@ -177,15 +188,17 @@ class SmbMediaScanner @Inject constructor(
 
             val extensions = buildExtensionsSet(supportedTypes)
 
-            // First scan all files (TODO: optimize SMB client to support offset/limit natively)
-            when (val result = smbClient.scanMediaFiles(
+            // Use optimized paged scan with native offset/limit support
+            when (val result = smbClient.scanMediaFilesPaged(
                 connectionInfo = connectionInfo.connectionInfo,
                 remotePath = connectionInfo.remotePath,
-                extensions = extensions
+                extensions = extensions,
+                offset = offset,
+                limit = limit
             )) {
                 is SmbClient.SmbResult.Success -> {
-                    // Convert all files to MediaFile list
-                    val allMediaFiles = result.data.mapNotNull { fileInfo ->
+                    // Convert to MediaFile list with optional size filtering
+                    val mediaFiles = result.data.mapNotNull { fileInfo ->
                         val mediaType = getMediaType(fileInfo.name)
                         if (mediaType != null && supportedTypes.contains(mediaType)) {
                             if (sizeFilter != null && !isFileSizeInRange(fileInfo.size, mediaType, sizeFilter)) {
@@ -202,12 +215,11 @@ class SmbMediaScanner @Inject constructor(
                         } else null
                     }
                     
-                    // Apply offset and limit
-                    val pageFiles = allMediaFiles.drop(offset).take(limit)
-                    val hasMore = offset + limit < allMediaFiles.size
+                    // If we got fewer files than requested, no more pages
+                    val hasMore = mediaFiles.size >= limit
                     
-                    Timber.d("SmbMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
-                    MediaFilePage(pageFiles, hasMore)
+                    Timber.d("SmbMediaScanner paged: offset=$offset, limit=$limit, returned=${mediaFiles.size}, hasMore=$hasMore")
+                    MediaFilePage(mediaFiles, hasMore)
                 }
                 is SmbClient.SmbResult.Error -> {
                     Timber.e("Error scanning SMB folder (paged): ${result.message}")
@@ -258,11 +270,11 @@ class SmbMediaScanner @Inject constructor(
 
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
         try {
-            val connectionInfo = parseSmbPath(path, credentialsId) ?: return@withContext false
+            val pathInfo = parseSmbPath(path, credentialsId) ?: return@withContext false
 
-            // Try to test connection to check if share is accessible
-            when (val result = smbClient.testConnection(connectionInfo.connectionInfo)) {
-                is SmbClient.SmbResult.Success -> true
+            // Test actual write permission by creating a test file
+            when (val result = smbClient.checkWritePermission(pathInfo.connectionInfo, pathInfo.remotePath)) {
+                is SmbClient.SmbResult.Success -> result.data
                 is SmbClient.SmbResult.Error -> {
                     Timber.w("SMB path not writable: ${result.message}")
                     false

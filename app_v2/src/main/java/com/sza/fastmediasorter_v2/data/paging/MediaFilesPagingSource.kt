@@ -44,13 +44,25 @@ class MediaFilesPagingSource(
                 credentialsId = resource.credentialsId
             )
             
-            // Apply sorting to page
-            val sortedFiles = sortFiles(result.files, sortMode)
+            // IMPORTANT: Do NOT sort pages here for NAME_ASC mode
+            // scanFolderPaged() already returns files in sorted order (by name, case-insensitive)
+            // Sorting individual pages would break global sort order
+            // For other sort modes (DATE, SIZE), full scan is needed anyway
+            val files = when (sortMode) {
+                SortMode.NAME_ASC -> result.files // Already sorted by scanner
+                SortMode.NAME_DESC -> result.files.reversed() // Reverse already sorted list
+                else -> {
+                    // For DATE/SIZE/TYPE sorting, we need all files - pagination breaks these modes
+                    // This is a known limitation: pagination only works correctly with NAME sorting
+                    Timber.w("Pagination with sort mode $sortMode may produce incorrect order. Use NAME_ASC for best results.")
+                    sortFiles(result.files, sortMode)
+                }
+            }
             
-            Timber.d("Loaded page $page with ${sortedFiles.size} files, hasMore=${result.hasMore}")
+            Timber.d("Loaded page $page: offset=$offset, returned=${files.size}, hasMore=${result.hasMore}")
             
             LoadResult.Page(
-                data = sortedFiles,
+                data = files,
                 prevKey = if (page == 0) null else page - 1,
                 nextKey = if (result.hasMore) page + 1 else null
             )

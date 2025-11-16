@@ -119,8 +119,9 @@
 
         <ImageButton
             android:id="@+id/btnMoveUp"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:padding="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Move Up"
             android:src="@android:drawable/arrow_up_float"
@@ -129,8 +130,9 @@
 
         <ImageButton
             android:id="@+id/btnMoveDown"
-            android:layout_width="18dp"
-            android:layout_height="18dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:padding="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Move Down"
             android:src="@android:drawable/arrow_down_float"
