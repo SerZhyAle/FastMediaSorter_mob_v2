@@ -51,6 +51,16 @@
             android:src="@android:drawable/ic_menu_search"
             android:tint="?attr/colorControlNormal" />
 
+        <!-- Refresh -->
+        <ImageButton
+            android:id="@+id/btnRefresh"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/refresh"
+            android:src="@android:drawable/ic_popup_sync"
+            android:tint="?attr/colorControlNormal" />
+
         <!-- Grid/List toggle -->
         <ImageButton
             android:id="@+id/btnToggleView"

@@ -4,8 +4,10 @@ import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.SortMode
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 
 data class SizeFilter(
@@ -97,7 +99,7 @@ class GetMediaFilesUseCase @Inject constructor(
         emit(sortFiles(files, sortMode))
         
         timber.log.Timber.d("GetMediaFilesUseCase: Emitted sorted files")
-    }
+    }.flowOn(Dispatchers.IO) // Execute scanning and sorting on IO thread
 
     private fun sortFiles(files: List<MediaFile>, mode: SortMode): List<MediaFile> {
         return when (mode) {

@@ -34,6 +34,7 @@ data class MainState(
 
 sealed class MainEvent {
     data class ShowError(val message: String, val details: String? = null) : MainEvent()
+    data class ShowInfo(val message: String, val details: String? = null) : MainEvent()
     data class ShowMessage(val message: String) : MainEvent()
     data class NavigateToBrowse(val resourceId: Long, val skipAvailabilityCheck: Boolean = false) : MainEvent()
     data class NavigateToEditResource(val resourceId: Long) : MainEvent()
@@ -151,7 +152,7 @@ class MainViewModel @Inject constructor(
         
         // For local resources, check file count
         if (resource.type == ResourceType.LOCAL && resource.fileCount == 0) {
-            sendEvent(MainEvent.ShowError(
+            sendEvent(MainEvent.ShowInfo(
                 message = "No files found in '${resource.name}'",
                 details = if (showDetails) {
                     "Resource: ${resource.name}\nType: ${resource.type}\nPath: ${resource.path}\n\nFile count: 0\n\nPlease check if the folder still exists and contains media files."
@@ -362,121 +363,64 @@ class MainViewModel @Inject constructor(
     }
     
     /**
-     * Scan all resources and update file counts (slow)
-     * Shows progress for SMB resources with 100+ files
-     * Also tests network resource availability
+     * Quick check all resources: test availability and check write access.
+     * Does NOT count files - only checks connectivity and permissions for UI status indicators.
+     * File count is updated only when opening resource in BrowseActivity.
      */
     fun scanAllResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             try {
-                // Get current settings for size filters
-                val settings = settingsRepository.getSettings().first()
-                val sizeFilter = SizeFilter(
-                    imageSizeMin = settings.imageSizeMin,
-                    imageSizeMax = settings.imageSizeMax,
-                    videoSizeMin = settings.videoSizeMin,
-                    videoSizeMax = settings.videoSizeMax,
-                    audioSizeMin = settings.audioSizeMin,
-                    audioSizeMax = settings.audioSizeMax
-                )
-                
                 val resources = getResourcesUseCase().first()
                 var unavailableCount = 0
+                var writableCount = 0
+                var readOnlyCount = 0
                 
                 resources.forEach { resource ->
-                    // For network resources, test connection first
-                    val isNetworkResource = resource.type in setOf(
-                        ResourceType.SMB,
-                        ResourceType.SFTP,
-                        ResourceType.FTP,
-                        ResourceType.CLOUD
-                    )
-                    
-                    if (isNetworkResource) {
-                        try {
-                            val testResult = resourceRepository.testConnection(resource)
-                            testResult.fold(
-                                onSuccess = {
-                                    Timber.d("Resource available: ${resource.name}")
-                                },
-                                onFailure = { error ->
-                                    Timber.w("Resource unavailable: ${resource.name} - ${error.message}")
-                                    unavailableCount++
-                                    return@forEach // Skip scanning this resource
+                    try {
+                        // Test connection/availability
+                        val testResult = resourceRepository.testConnection(resource)
+                        
+                        testResult.fold(
+                            onSuccess = {
+                                Timber.d("Resource available: ${resource.name}")
+                                
+                                val scanner = mediaScannerFactory.getScanner(resource.type)
+                                
+                                // Check write permission (fast)
+                                val isWritable = try {
+                                    scanner.isWritable(resource.path, resource.credentialsId)
+                                } catch (e: Exception) {
+                                    Timber.e(e, "Error checking write access for ${resource.name}")
+                                    resource.isWritable
                                 }
-                            )
-                        } catch (e: Exception) {
-                            Timber.w(e, "Resource check failed: ${resource.name}")
-                            unavailableCount++
-                            return@forEach // Skip scanning this resource
-                        }
-                    }
-                    
-                    val scanner = mediaScannerFactory.getScanner(resource.type)
-                    
-                    // Create progress callback for SMB and LOCAL resources with >100 files
-                    val progressCallback = if (resource.type == ResourceType.SMB || 
-                                            (resource.type == ResourceType.LOCAL && resource.fileCount > 100)) {
-                        object : com.sza.fastmediasorter_v2.domain.usecase.ScanProgressCallback {
-                            override suspend fun onProgress(scannedCount: Int, currentFile: String?) {
-                                sendEvent(MainEvent.ScanProgress(scannedCount, currentFile))
+                                
+                                if (isWritable) writableCount++ else readOnlyCount++
+                                
+                                // Update resource only if write permission changed
+                                if (isWritable != resource.isWritable) {
+                                    val updatedResource = resource.copy(isWritable = isWritable)
+                                    updateResourceUseCase(updatedResource)
+                                }
+                            },
+                            onFailure = { error ->
+                                Timber.w("Resource unavailable: ${resource.name} - ${error.message}")
+                                unavailableCount++
                             }
-                            
-                            override suspend fun onComplete(totalFiles: Int, durationMs: Long) {
-                                Timber.d("${resource.type} scan completed: $totalFiles files in ${durationMs}ms")
-                                sendEvent(MainEvent.ScanComplete)
-                            }
-                        }
-                    } else null
-                    
-                    val fileCount = try {
-                        // Use scanner with progress for SMB
-                        if (scanner is com.sza.fastmediasorter_v2.data.network.SmbMediaScanner && progressCallback != null) {
-                            scanner.scanFolderWithProgress(
-                                resource.path,
-                                resource.supportedMediaTypes,
-                                sizeFilter,
-                                resource.credentialsId,
-                                progressCallback
-                            ).size
-                        } else if (scanner is com.sza.fastmediasorter_v2.data.local.LocalMediaScanner && progressCallback != null) {
-                            // Use scanner with progress for LOCAL resources with >100 files
-                            scanner.scanFolderWithProgress(
-                                resource.path,
-                                resource.supportedMediaTypes,
-                                sizeFilter,
-                                resource.credentialsId,
-                                progressCallback
-                            ).size
-                        } else {
-                            scanner.getFileCount(resource.path, resource.supportedMediaTypes, sizeFilter, resource.credentialsId)
-                        }
-                    } catch (e: Exception) {
-                        Timber.e(e, "Error counting files for ${resource.name}")
-                        resource.fileCount
-                    }
-                    
-                    val isWritable = try {
-                        scanner.isWritable(resource.path, resource.credentialsId)
-                    } catch (e: Exception) {
-                        Timber.e(e, "Error checking write access for ${resource.name}")
-                        resource.isWritable
-                    }
-                    
-                    if (fileCount != resource.fileCount || isWritable != resource.isWritable) {
-                        val updatedResource = resource.copy(
-                            fileCount = fileCount,
-                            isWritable = isWritable
                         )
-                        updateResourceUseCase(updatedResource)
+                    } catch (e: Exception) {
+                        Timber.w(e, "Resource check failed: ${resource.name}")
+                        unavailableCount++
                     }
                 }
                 
+                val totalResources = resources.size
+                val availableCount = totalResources - unavailableCount
+                
                 val message = when {
-                    unavailableCount == 0 -> "Resources scanned successfully"
-                    unavailableCount == resources.size -> "All resources unavailable"
-                    else -> "Resources scanned ($unavailableCount unavailable)"
+                    unavailableCount == 0 -> "All resources available: $writableCount writable, $readOnlyCount read-only"
+                    unavailableCount == totalResources -> "All resources unavailable"
+                    else -> "Resources checked: $availableCount available ($unavailableCount unavailable)"
                 }
                 sendEvent(MainEvent.ShowMessage(message))
             } catch (e: Exception) {

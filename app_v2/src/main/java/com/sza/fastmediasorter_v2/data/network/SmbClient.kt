@@ -959,8 +959,8 @@ class SmbClient @Inject constructor() {
             domain = connectionInfo.domain
         )
         
-        // Clean up idle connections before attempting to get/create connection
-        cleanupIdleConnections()
+        // Note: cleanupIdleConnections() removed from here to avoid blocking
+        // Idle cleanup now happens lazily when connection pool is full or on explicit call
         
         try {
             // Try to reuse existing connection
@@ -975,6 +975,11 @@ class SmbClient @Inject constructor() {
                     Timber.w(e, "Pooled connection failed, creating new")
                     removeConnection(key)
                 }
+            }
+            
+            // Before creating new connection, check if pool is too large
+            if (connectionPool.size >= MAX_CONCURRENT_CONNECTIONS) {
+                cleanupIdleConnectionsQuick()
             }
             
             // Create new connection
@@ -1033,34 +1038,93 @@ class SmbClient @Inject constructor() {
     }
     
     /**
+     * Quick cleanup: identify and remove dead connections without blocking close() calls
+     * Used when connection pool reaches MAX_CONCURRENT_CONNECTIONS
+     */
+    private fun cleanupIdleConnectionsQuick() {
+        val now = System.currentTimeMillis()
+        val keysToRemove = mutableListOf<ConnectionKey>()
+        
+        // Identify dead or idle connections
+        connectionPool.entries.forEach { (key, pooled) ->
+            val isIdle = (now - pooled.lastUsed) > CONNECTION_IDLE_TIMEOUT_MS
+            val isDead = !isConnectionAlive(pooled)
+            
+            if (isDead || isIdle) {
+                keysToRemove.add(key)
+            }
+        }
+        
+        // Remove without trying to close (avoids blocking)
+        keysToRemove.forEach { key ->
+            connectionPool.remove(key)
+            Timber.d("Quick-removed idle/dead SMB connection to ${key.server}")
+        }
+    }
+    
+    /**
+     * Check if connection is still alive (non-blocking check)
+     */
+    private fun isConnectionAlive(pooled: PooledConnection): Boolean {
+        return try {
+            pooled.connection.isConnected
+        } catch (e: Exception) {
+            false
+        }
+    }
+    
+    /**
      * Clean up idle connections from pool
+     * Non-blocking: uses iterator to avoid TimeoutException blocking main connection flow
      */
     private fun cleanupIdleConnections() {
         val now = System.currentTimeMillis()
-        connectionPool.entries.removeIf { (key, pooled) ->
+        val keysToRemove = mutableListOf<ConnectionKey>()
+        
+        // First pass: identify idle connections without blocking
+        connectionPool.entries.forEach { (key, pooled) ->
             val isIdle = (now - pooled.lastUsed) > CONNECTION_IDLE_TIMEOUT_MS
             if (isIdle) {
+                keysToRemove.add(key)
+            }
+        }
+        
+        // Second pass: remove and close in background (non-blocking)
+        keysToRemove.forEach { key ->
+            val pooled = connectionPool.remove(key)
+            if (pooled != null) {
+                // Close connection in background thread to avoid blocking
                 try {
-                    // Try graceful close, but don't wait too long for dead connections
+                    // Try quick non-blocking check if connection is alive
+                    if (!pooled.connection.isConnected) {
+                        Timber.d("Removed dead idle SMB connection to ${key.server}")
+                        return@forEach
+                    }
+                    
+                    // Attempt graceful close with timeout protection
                     pooled.share.close()
                     pooled.session.close()
                     pooled.connection.close()
                     Timber.d("Closed idle SMB connection to ${key.server}")
                 } catch (e: java.util.concurrent.TimeoutException) {
-                    // Connection already dead, just log at debug level
-                    Timber.d("Timeout closing idle SMB connection to ${key.server} (connection already terminated)")
+                    // Connection already dead, no action needed
+                    Timber.d("Timeout closing idle SMB connection to ${key.server} (already terminated)")
+                } catch (e: com.hierynomus.protocol.transport.TransportException) {
+                    // Transport error means connection already disconnected
+                    Timber.d("Transport error closing idle SMB connection to ${key.server} (already disconnected)")
                 } catch (e: Exception) {
-                    // Check if timeout is wrapped in other exceptions
-                    val isTimeout = e.cause?.cause is java.util.concurrent.TimeoutException ||
-                                  e.cause is java.util.concurrent.TimeoutException
-                    if (isTimeout) {
-                        Timber.d("Timeout closing idle SMB connection to ${key.server} (connection already terminated)")
+                    // Check if timeout/transport error is wrapped
+                    val isExpected = e.cause?.cause is java.util.concurrent.TimeoutException ||
+                                   e.cause is java.util.concurrent.TimeoutException ||
+                                   e.cause is com.hierynomus.protocol.transport.TransportException ||
+                                   e is com.hierynomus.smbj.common.SMBRuntimeException
+                    if (isExpected) {
+                        Timber.d("Expected error closing idle SMB connection to ${key.server}: ${e.javaClass.simpleName}")
                     } else {
-                        Timber.w(e, "Error closing idle SMB connection to ${key.server}")
+                        Timber.w(e, "Unexpected error closing idle SMB connection to ${key.server}")
                     }
                 }
             }
-            isIdle
         }
     }
     

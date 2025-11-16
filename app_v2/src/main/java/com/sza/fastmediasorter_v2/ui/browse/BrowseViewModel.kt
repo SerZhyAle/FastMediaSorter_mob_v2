@@ -86,6 +86,14 @@ class BrowseViewModel @Inject constructor(
     // Job for current file loading operation (to cancel on reload)
     private var loadFilesJob: Job? = null
     
+    // Track last emitted list to avoid redundant UI updates (survives Activity recreation)
+    var lastEmittedMediaFiles: List<MediaFile>? = null
+        private set
+    
+    fun markListAsSubmitted(list: List<MediaFile>) {
+        lastEmittedMediaFiles = list
+    }
+    
     // PagingData flow for large datasets (used when usePagination = true)
     private val _pagingDataFlow = MutableStateFlow<Flow<PagingData<MediaFile>>?>(null)
     val pagingDataFlow: StateFlow<Flow<PagingData<MediaFile>>?> = _pagingDataFlow.asStateFlow()
@@ -515,12 +523,19 @@ class BrowseViewModel @Inject constructor(
 
     fun openFile(file: MediaFile) {
         val resource = state.value.resource ?: return
-        val index = state.value.mediaFiles.indexOf(file)
+        // Find index by path (not object reference) to handle adapter copies
+        val index = state.value.mediaFiles.indexOfFirst { it.path == file.path }
+        
+        if (index == -1) {
+            Timber.e("openFile: File not found in mediaFiles list: ${file.path}")
+            sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", null))
+            return
+        }
         
         // Save last viewed file to resource
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             updateResourceUseCase(resource.copy(lastViewedFile = file.path))
-            Timber.d("Saved lastViewedFile=${file.name} for resource: ${resource.name}")
+            Timber.d("Saved lastViewedFile=${file.name} for resource: ${resource.name}, index=$index")
         }
         
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))

@@ -22,13 +22,16 @@ class WorkManagerScheduler @Inject constructor(
     /**
      * Schedule periodic trash cleanup worker
      * Runs every 15 minutes to clean up trash folders older than 5 minutes
+     * First run delayed by 1 minute to avoid blocking app startup
      */
     fun scheduleTrashCleanup() {
         try {
             val workRequest = PeriodicWorkRequestBuilder<TrashCleanupWorker>(
                 repeatInterval = 15,
                 repeatIntervalTimeUnit = TimeUnit.MINUTES
-            ).build()
+            )
+                .setInitialDelay(1, TimeUnit.MINUTES) // Delay first run to reduce startup load
+                .build()
             
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 TrashCleanupWorker.WORK_NAME,
@@ -36,7 +39,7 @@ class WorkManagerScheduler @Inject constructor(
                 workRequest
             )
             
-            Timber.i("WorkManagerScheduler: Scheduled periodic trash cleanup (every 15 minutes)")
+            Timber.i("WorkManagerScheduler: Scheduled periodic trash cleanup (every 15 minutes, first run in 1 minute)")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: Failed to schedule trash cleanup")
         }

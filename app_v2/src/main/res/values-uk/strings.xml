@@ -94,6 +94,8 @@
     <string name="support_images">Підтримка зображень</string>
     <string name="support_images_description">Підтримка статичних зображень</string>
     <string name="supported_image_formats">Підтримуються: JPG, PNG, BMP, WEBP</string>
+    <string name="load_full_size_images">Завантажувати зображення повністю</string>
+    <string name="load_full_size_images_hint">Дозволяє наближати, але використовує більше даних і пам\'яті. За замовчуванням вимк. (завантажується 1920px).</string>
     <string name="image_size_limit">Обмеження розміру зображень</string>
     <string name="image_size_range">1 КБ - 10 МБ</string>
     <string name="support_gif">Підтримка GIF</string>
@@ -205,6 +207,7 @@
     
     <!-- Error Dialog -->
     <string name="error">Помилка</string>
+    <string name="information">Інформація</string>
     <string name="close">Закрити</string>
     <string name="copy_to_clipboard">Копіювати в буфер</string>
     <string name="copied_to_clipboard">Скопійовано в буфер обміну</string>

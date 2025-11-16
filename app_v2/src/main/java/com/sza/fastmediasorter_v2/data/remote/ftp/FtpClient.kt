@@ -422,12 +422,28 @@ class FtpClient @Inject constructor() {
 
     /**
      * Disconnect from FTP server and cleanup resources
+     * Uses short timeout for logout to avoid SocketTimeoutException delays
      */
     suspend fun disconnect() = withContext(Dispatchers.IO) {
         try {
             ftpClient?.let { client ->
                 if (client.isConnected) {
-                    client.logout()
+                    // Set short timeout for logout - don't wait for server response
+                    val originalTimeout = client.soTimeout
+                    try {
+                        client.soTimeout = 1000 // 1 second instead of default 30
+                        client.logout()
+                    } catch (e: java.net.SocketTimeoutException) {
+                        // Ignore logout timeout - server will close connection anyway
+                        Timber.d("FTP logout timeout (ignored)")
+                    } catch (e: Exception) {
+                        // Other logout errors also non-critical
+                        Timber.d(e, "FTP logout error (ignored)")
+                    } finally {
+                        // Restore original timeout before disconnect
+                        client.soTimeout = originalTimeout
+                    }
+                    // Always close socket regardless of logout success
                     client.disconnect()
                 }
             }

@@ -68,6 +68,12 @@ class MediaSettingsFragment : Fragment() {
             updateImageSizeVisibility(isChecked, current.supportGifs)
         }
         
+        // Load full size images
+        binding.switchLoadFullSizeImages.setOnCheckedChangeListener { _, isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(loadFullSizeImages = isChecked))
+        }
+        
         // Image size text fields (in KB)
         binding.etImageSizeMin.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -172,6 +178,9 @@ class MediaSettingsFragment : Fragment() {
                     // Update switches (only if changed)
                     if (binding.switchSupportImages.isChecked != settings.supportImages) {
                         binding.switchSupportImages.isChecked = settings.supportImages
+                    }
+                    if (binding.switchLoadFullSizeImages.isChecked != settings.loadFullSizeImages) {
+                        binding.switchLoadFullSizeImages.isChecked = settings.loadFullSizeImages
                     }
                     if (binding.switchSupportGifs.isChecked != settings.supportGifs) {
                         binding.switchSupportGifs.isChecked = settings.supportGifs

@@ -109,8 +109,8 @@ class NetworkFileFetcher(
         )
 
         // Read file with smaller buffer for faster thumbnail loading
-        // Full images load on demand, thumbnails need only first 2MB
-        val maxBytes = 2 * 1024 * 1024L // 2 MB for thumbnails
+        // Thumbnails only need first 512KB (enough for compressed JPEG data at 256px)
+        val maxBytes = 512 * 1024L // 512 KB for thumbnails
         
         val result = smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
         return when (result) {

@@ -33,6 +33,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SUPPORT_IMAGES = booleanPreferencesKey("support_images")
         private val KEY_IMAGE_SIZE_MIN = longPreferencesKey("image_size_min")
         private val KEY_IMAGE_SIZE_MAX = longPreferencesKey("image_size_max")
+        private val KEY_LOAD_FULL_SIZE_IMAGES = booleanPreferencesKey("load_full_size_images")
         private val KEY_SUPPORT_GIFS = booleanPreferencesKey("support_gifs")
         private val KEY_SUPPORT_VIDEOS = booleanPreferencesKey("support_videos")
         private val KEY_VIDEO_SIZE_MIN = longPreferencesKey("video_size_min")
@@ -94,6 +95,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     supportImages = preferences[KEY_SUPPORT_IMAGES] ?: true,
                     imageSizeMin = preferences[KEY_IMAGE_SIZE_MIN] ?: 1024L,
                     imageSizeMax = preferences[KEY_IMAGE_SIZE_MAX] ?: 10485760L,
+                    loadFullSizeImages = preferences[KEY_LOAD_FULL_SIZE_IMAGES] ?: false,
                     supportGifs = preferences[KEY_SUPPORT_GIFS] ?: false,
                     supportVideos = preferences[KEY_SUPPORT_VIDEOS] ?: true,
                     videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: 102400L,
@@ -148,6 +150,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SUPPORT_IMAGES] = settings.supportImages
             preferences[KEY_IMAGE_SIZE_MIN] = settings.imageSizeMin
             preferences[KEY_IMAGE_SIZE_MAX] = settings.imageSizeMax
+            preferences[KEY_LOAD_FULL_SIZE_IMAGES] = settings.loadFullSizeImages
             preferences[KEY_SUPPORT_GIFS] = settings.supportGifs
             preferences[KEY_SUPPORT_VIDEOS] = settings.supportVideos
             preferences[KEY_VIDEO_SIZE_MIN] = settings.videoSizeMin

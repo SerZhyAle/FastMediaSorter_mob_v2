@@ -22,19 +22,22 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import coil.imageLoader
 import coil.load
 import coil.request.ImageRequest
+import coil.size.Size
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
-import com.sza.fastmediasorter_v2.data.local.preferences.SettingsManager
 import com.sza.fastmediasorter_v2.data.network.SmbClient
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter_v2.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData
 import com.sza.fastmediasorter_v2.data.network.datasource.SmbDataSourceFactory
 import com.sza.fastmediasorter_v2.data.network.datasource.SftpDataSourceFactory
+import com.sza.fastmediasorter_v2.data.network.datasource.FtpDataSourceFactory
 import com.sza.fastmediasorter_v2.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import com.sza.fastmediasorter_v2.domain.model.ResourceType
 import com.sza.fastmediasorter_v2.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
 import com.sza.fastmediasorter_v2.ui.dialog.CopyToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.RenameDialog
@@ -73,10 +76,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     lateinit var sftpClient: SftpClient
     
     @Inject
+    lateinit var ftpClient: FtpClient
+    
+    @Inject
     lateinit var credentialsRepository: NetworkCredentialsRepository
     
     @Inject
-    lateinit var settingsManager: SettingsManager
+    lateinit var settingsRepository: SettingsRepository
     
     @Inject
     lateinit var rotateImageUseCase: com.sza.fastmediasorter_v2.domain.usecase.RotateImageUseCase
@@ -614,13 +620,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             viewModel.nextFile()
         }
         
-        // Show first-run hint overlay if enabled in settings
-        lifecycleScope.launch {
-            val shouldShowHint = settingsManager.settings.first().showPlayerHintOnFirstRun
-            if (shouldShowHint) {
-                showFirstRunHintOverlay()
-            }
-        }
+        // First-run hint overlay removed (migrated to new settings system)
     }
     
     /**
@@ -644,16 +644,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     /**
-     * Dismiss first-run hint overlay and save flag to prevent showing again
+     * Dismiss first-run hint overlay (deprecated)
      */
     private fun dismissFirstRunHintOverlay() {
         binding.audioTouchZonesOverlay.isVisible = false
         binding.audioTouchZonesOverlay.setOnClickListener(null)
-        
-        // Save flag to DataStore
-        lifecycleScope.launch {
-            settingsManager.setShowPlayerHintOnFirstRun(false)
-        }
     }
     
     /**
@@ -794,7 +789,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             
             // Restore collapsed state from settings
             lifecycleScope.launch {
-                val settings = settingsManager.settings.first()
+                val settings = settingsRepository.getSettings().first()
                 updateCopyPanelVisibility(settings.copyPanelCollapsed)
                 updateMovePanelVisibility(settings.movePanelCollapsed)
             }
@@ -836,11 +831,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun toggleCopyPanel() {
         lifecycleScope.launch {
-            val currentSettings = settingsManager.settings.first()
+            val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.copyPanelCollapsed
             
             // Save new state
-            settingsManager.setCopyPanelCollapsed(newCollapsedState)
+            settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
             
             // Update UI
             updateCopyPanelVisibility(newCollapsedState)
@@ -852,11 +847,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun toggleMovePanel() {
         lifecycleScope.launch {
-            val currentSettings = settingsManager.settings.first()
+            val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.movePanelCollapsed
             
             // Save new state
-            settingsManager.setMovePanelCollapsed(newCollapsedState)
+            settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
             
             // Update UI
             updateMovePanelVisibility(newCollapsedState)
@@ -931,7 +926,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Check if this is a network resource
         if (currentFile != null && resource != null && 
-            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP)) {
+            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP)) {
             
             Timber.d("PlayerActivity: Loading network image: $path from ${resource.type}")
             
@@ -939,36 +934,49 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             // path is already in format: /shareName/path/to/file.jpg
             val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId)
             
-            val request = ImageRequest.Builder(this)
-                .data(networkData)
-                .target(binding.imageView)
-                .memoryCacheKey(path) // Use path as consistent cache key
-                .diskCacheKey(path)
-                .listener(
-                    onStart = {
-                        // Loading started - indicator will show after 1 second if still loading
-                    },
-                    onSuccess = { _, _ ->
-                        // Cancel and hide loading indicator
-                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                        binding.progressBar.isVisible = false
-                        
-                        Timber.d("PlayerActivity: Network image loaded successfully")
-                        // Preload next image in background (if it's an image)
-                        preloadNextImageIfNeeded()
-                    },
-                    onError = { _, result ->
-                        // Cancel and hide loading indicator
-                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                        binding.progressBar.isVisible = false
-                        
-                        Timber.e(result.throwable, "PlayerActivity: Failed to load network image")
-                        showError("Failed to load image: ${result.throwable.message}", result.throwable)
-                    }
-                )
-                .build()
+            // Get image size setting (full resolution or limited to 1920px)
+            lifecycleScope.launch {
+                val settings = settingsRepository.getSettings().first()
+                val imageSize = if (settings.loadFullSizeImages) {
+                    // Load full resolution for zoom support
+                    Size.ORIGINAL
+                } else {
+                    // Load 1920px for faster loading
+                    Size(1920, 1920)
+                }
             
-            imageLoader.enqueue(request)
+                val request = ImageRequest.Builder(this@PlayerActivity)
+                    .data(networkData)
+                    .size(imageSize)
+                    .target(binding.imageView)
+                    .memoryCacheKey(path) // Use path as consistent cache key
+                    .diskCacheKey(path)
+                    .listener(
+                        onStart = {
+                            // Loading started - indicator will show after 1 second if still loading
+                        },
+                        onSuccess = { _, _ ->
+                            // Cancel and hide loading indicator
+                            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                            binding.progressBar.isVisible = false
+                            
+                            Timber.d("PlayerActivity: Network image loaded successfully")
+                            // Preload next image in background (if it's an image)
+                            preloadNextImageIfNeeded()
+                        },
+                        onError = { _, result ->
+                            // Cancel and hide loading indicator
+                            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                            binding.progressBar.isVisible = false
+                            
+                            Timber.e(result.throwable, "PlayerActivity: Failed to load network image")
+                            showError("Failed to load image: ${result.throwable.message}", result.throwable)
+                        }
+                    )
+                    .build()
+                
+                imageLoader.enqueue(request)
+            }
         } else {
             // Local file - support both file:// paths and content:// URIs
             val data = if (path.startsWith("content://")) {
@@ -1015,25 +1023,35 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Preload each adjacent file
         adjacentFiles.forEach { file ->
             // Check if this is a network resource
-            if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP) {
+            if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP) {
                 Timber.d("PlayerActivity: Preloading network image: ${file.path}")
                 
-                val networkData = NetworkFileData(path = file.path, credentialsId = resource.credentialsId)
-                val preloadRequest = ImageRequest.Builder(this)
-                    .data(networkData)
-                    .memoryCacheKey(file.path) // Use path as consistent cache key
-                    .diskCacheKey(file.path)
-                    .listener(
-                        onSuccess = { _, _ ->
-                            Timber.d("PlayerActivity: Image preloaded successfully: ${file.name}")
-                        },
-                        onError = { _, result ->
-                            Timber.w(result.throwable, "PlayerActivity: Failed to preload image: ${file.name}")
-                        }
-                    )
-                    .build()
+                lifecycleScope.launch {
+                    val settings = settingsRepository.getSettings().first()
+                    val imageSize = if (settings.loadFullSizeImages) {
+                        Size.ORIGINAL
+                    } else {
+                        Size(1920, 1920)
+                    }
                 
-                imageLoader.enqueue(preloadRequest)
+                    val networkData = NetworkFileData(path = file.path, credentialsId = resource.credentialsId)
+                    val preloadRequest = ImageRequest.Builder(this@PlayerActivity)
+                        .data(networkData)
+                        .size(imageSize) // Use setting-based size
+                        .memoryCacheKey(file.path) // Use path as consistent cache key
+                        .diskCacheKey(file.path)
+                        .listener(
+                            onSuccess = { _, _ ->
+                                Timber.d("PlayerActivity: Image preloaded successfully: ${file.name}")
+                            },
+                            onError = { _, result ->
+                                Timber.w(result.throwable, "PlayerActivity: Failed to preload image: ${file.name}")
+                            }
+                        )
+                        .build()
+                    
+                    imageLoader.enqueue(preloadRequest)
+                }
             } else {
                 // Preload local file
                 Timber.d("PlayerActivity: Preloading local image: ${file.path}")
@@ -1230,6 +1248,40 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             exoPlayer?.playWhenReady = !viewModel.state.value.isPaused
                             
                             Timber.d("PlayerActivity: SFTP video prepared: $sftpUri")
+                        }
+                        
+                        ResourceType.FTP -> {
+                            Timber.d("PlayerActivity.playVideo: Initializing FTP playback")
+                            // Create ExoPlayer with FtpDataSourceFactory
+                            val dataSourceFactory = FtpDataSourceFactory(
+                                ftpClient,
+                                credentials.server,
+                                credentials.port,
+                                credentials.username,
+                                credentials.password
+                            )
+                            
+                            exoPlayer = ExoPlayer.Builder(this@PlayerActivity)
+                                .setMediaSourceFactory(
+                                    DefaultMediaSourceFactory(dataSourceFactory as androidx.media3.datasource.DataSource.Factory)
+                                )
+                                .build()
+                            
+                            // Add listener for playback events (ready, ended)
+                            exoPlayer?.addListener(exoPlayerListener)
+                            
+                            binding.playerView.player = exoPlayer
+                            
+                            // Construct FTP URI - path already contains full URI
+                            val ftpUri = Uri.parse(path)
+                            Timber.d("PlayerActivity.playVideo: FTP URI: $ftpUri")
+                            
+                            val mediaItem = MediaItem.fromUri(ftpUri)
+                            exoPlayer?.setMediaItem(mediaItem)
+                            exoPlayer?.prepare()
+                            exoPlayer?.playWhenReady = !viewModel.state.value.isPaused
+                            
+                            Timber.i("PlayerActivity.playVideo: FTP video setup COMPLETE - URI=$ftpUri, playWhenReady=${!viewModel.state.value.isPaused}")
                         }
                         
                         else -> {

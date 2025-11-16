@@ -142,6 +142,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             // Set fixed size for better performance (item size doesn't change)
             setHasFixedSize(true)
             
+            // Enable aggressive prefetching for faster thumbnail loading
+            // Prefetch 2 screens ahead for smooth scrolling and parallel thumbnail downloads
+            layoutManager?.isItemPrefetchEnabled = true
+            (layoutManager as? LinearLayoutManager)?.initialPrefetchItemCount = 8
+            (layoutManager as? GridLayoutManager)?.initialPrefetchItemCount = 12
+            
             Timber.d("RecyclerView optimizations: cacheSize=$optimalCacheSize, screenHeightDp=$screenHeightDp")
         }
 
@@ -151,6 +157,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
         binding.btnFilter.setOnClickListener {
             showFilterDialog()
+        }
+
+        binding.btnRefresh.setOnClickListener {
+            Timber.d("Manual refresh requested")
+            viewModel.reloadFiles()
         }
 
         binding.btnToggleView.setOnClickListener {
@@ -201,9 +212,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun observeData() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Track previous list to avoid redundant submitList() calls
-                var previousMediaFiles: List<MediaFile>? = null
-                
                 viewModel.state.collect { state ->
                     Timber.d("State collected: usePagination=${state.usePagination}, mediaFiles.size=${state.mediaFiles.size}, resource=${state.resource?.name}")
                     
@@ -215,9 +223,46 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     // Handle pagination mode vs standard mode
                     if (!state.usePagination) {
-                        // Only submit list if it actually changed (by reference)
-                        if (state.mediaFiles !== previousMediaFiles) {
-                            previousMediaFiles = state.mediaFiles
+                        // Only submit list if content actually changed
+                        // Compare with last emitted list from ViewModel (survives Activity recreation)
+                        val previousMediaFiles = viewModel.lastEmittedMediaFiles
+                        val previousSize = previousMediaFiles?.size ?: -1
+                        
+                        val shouldSubmit = if (previousMediaFiles == null) {
+                            // First load - always submit
+                            Timber.d("shouldSubmit=true: First load (previousMediaFiles=null)")
+                            true
+                        } else if (state.mediaFiles === previousMediaFiles) {
+                            // Exact same object reference - skip
+                            Timber.d("shouldSubmit=false: Same reference (===)")
+                            false
+                        } else if (state.mediaFiles.size != previousSize) {
+                            // Size changed - definitely submit
+                            Timber.d("shouldSubmit=true: Size changed (${state.mediaFiles.size} != $previousSize)")
+                            true
+                        } else {
+                            // Same size, different reference - check if content actually changed
+                            // Compare first and last items' paths as quick heuristic
+                            val prevList = previousMediaFiles // Capture for null-safety
+                            val contentChanged = if (state.mediaFiles.isEmpty()) {
+                                Timber.d("List is empty, contentChanged=false")
+                                false
+                            } else {
+                                val firstPathCurrent = state.mediaFiles.first().path
+                                val firstPathPrev = prevList?.firstOrNull()?.path
+                                val lastPathCurrent = state.mediaFiles.last().path
+                                val lastPathPrev = prevList?.lastOrNull()?.path
+                                val firstDiff = firstPathCurrent != firstPathPrev
+                                val lastDiff = lastPathCurrent != lastPathPrev
+                                Timber.d("Content check: first=$firstPathCurrent vs $firstPathPrev (diff=$firstDiff), last=$lastPathCurrent vs $lastPathPrev (diff=$lastDiff)")
+                                firstDiff || lastDiff
+                            }
+                            Timber.d("shouldSubmit=contentChanged=$contentChanged (size=${state.mediaFiles.size}, prevSize=$previousSize)")
+                            contentChanged
+                        }
+                        
+                        if (shouldSubmit) {
+                            viewModel.markListAsSubmitted(state.mediaFiles)
                             
                             // Standard mode - submit full list to MediaFileAdapter
                             val previousListSize = mediaFileAdapter.itemCount
@@ -228,15 +273,27 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             Timber.d("Adapter list submitted successfully, current itemCount=${mediaFileAdapter.itemCount}")
                             
                             // Update empty state AFTER adapter updates itemCount
-                            val isEmpty = mediaFileAdapter.itemCount == 0 && !viewModel.loading.value
-                            Timber.d("Empty state check: itemCount=${mediaFileAdapter.itemCount}, isLoading=${viewModel.loading.value}, isEmpty=$isEmpty")
-                            binding.tvEmpty.isVisible = isEmpty
-                            if (isEmpty) {
+                            val isLoading = viewModel.loading.value
+                            val itemCount = mediaFileAdapter.itemCount
+                            
+                            if (isLoading && itemCount == 0) {
+                                // Loading in progress - show "Loading..." message
+                                binding.tvEmpty.isVisible = true
+                                binding.tvEmpty.text = getString(R.string.loading)
+                                Timber.d("Empty state: showing loading message (isLoading=true, itemCount=0)")
+                            } else if (!isLoading && itemCount == 0) {
+                                // Loading complete, no files - show "No files found"
+                                binding.tvEmpty.isVisible = true
                                 binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
                                     getString(R.string.no_files_match_criteria)
                                 } else {
                                     getString(R.string.no_media_files_found)
                                 }
+                                Timber.d("Empty state: no files found (isLoading=false, itemCount=0)")
+                            } else {
+                                // Files loaded - hide empty state
+                                binding.tvEmpty.isVisible = false
+                                Timber.d("Empty state: hidden (itemCount=$itemCount)")
                             }
                             Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}, tvEmpty.isVisible=${binding.tvEmpty.isVisible}")
                             
@@ -253,6 +310,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 }
                             }
                         }
+                        } else {
+                            Timber.d("Skipping submitList: list unchanged (size=${state.mediaFiles.size}, sameRef=${state.mediaFiles === previousMediaFiles})")
                         }
                         mediaFileAdapter.setSelectedPaths(state.selectedFiles)
                         state.resource?.let { resource ->
@@ -1071,10 +1130,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             isFirstResume = false
             Timber.d("BrowseActivity.onResume: First resume, skipping reload (already loaded in init)")
         } else {
-            // Refresh file list when returning from PlayerActivity
-            // This ensures deleted/renamed files are properly reflected
-            Timber.d("BrowseActivity.onResume: Refreshing file list")
-            viewModel.reloadFiles()
+            // Don't automatically reload - user can use Refresh button if needed
+            // FileObserver will catch file system changes automatically
+            Timber.d("BrowseActivity.onResume: Returned from PlayerActivity, FileObserver will handle changes")
         }
         
         // Clear expired undo operations (older than 5 minutes)

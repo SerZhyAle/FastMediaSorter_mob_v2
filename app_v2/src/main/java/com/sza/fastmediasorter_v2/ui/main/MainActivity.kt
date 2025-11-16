@@ -219,6 +219,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         is MainEvent.ShowError -> {
                             showError(event.message, event.details)
                         }
+                        is MainEvent.ShowInfo -> {
+                            showInfo(event.message, event.details)
+                        }
                         is MainEvent.ShowMessage -> {
                             Toast.makeText(this@MainActivity, event.message, Toast.LENGTH_SHORT).show()
                         }
@@ -304,6 +307,30 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } else {
                 // Simple toast for users who don't want details
                 Toast.makeText(this@MainActivity, message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /**
+     * Show informational message (not an error, just info about empty folders, etc.)
+     * If showDetailedErrors=true: shows ErrorDialog with "Information" title
+     * If showDetailedErrors=false: shows Toast
+     */
+    private fun showInfo(message: String, details: String?) {
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            Timber.d("showInfo: showDetailedErrors=${settings.showDetailedErrors}, message=$message, details=$details")
+            if (settings.showDetailedErrors) {
+                // Use ErrorDialog but with Information title
+                com.sza.fastmediasorter_v2.ui.dialog.ErrorDialog.show(
+                    context = this@MainActivity,
+                    title = getString(com.sza.fastmediasorter_v2.R.string.information),
+                    message = message,
+                    details = details
+                )
+            } else {
+                // Simple toast for users who don't want details
+                Toast.makeText(this@MainActivity, message, Toast.LENGTH_SHORT).show()
             }
         }
     }

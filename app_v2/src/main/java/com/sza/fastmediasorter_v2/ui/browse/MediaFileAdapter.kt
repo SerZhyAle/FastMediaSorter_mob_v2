@@ -229,8 +229,9 @@ class MediaFileAdapter(
                                 // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
                                 Timber.d("Loading network image via NetworkFileData: ${file.path}")
                                 load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                    size(512) // Fixed size for consistent caching across List/Grid modes
+                                    size(thumbnailSize) // Use configured thumbnail size from settings
                                     crossfade(false) // Disable crossfade for faster loading
+                                    allowHardware(true) // GPU-accelerated decoding
                                     placeholder(R.drawable.ic_image_placeholder)
                                     error(R.drawable.ic_image_error)
                                     transformations(RoundedCornersTransformation(8f))
@@ -288,7 +289,9 @@ class MediaFileAdapter(
                             isNetworkPath -> {
                                 // Load network video frame using NetworkFileData
                                 load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                    size(thumbnailSize) // Use configured thumbnail size from settings
                                     crossfade(false)
+                                    allowHardware(true) // GPU-accelerated decoding
                                     placeholder(R.drawable.ic_video_placeholder)
                                     error(R.drawable.ic_video_error)
                                     transformations(RoundedCornersTransformation(8f))

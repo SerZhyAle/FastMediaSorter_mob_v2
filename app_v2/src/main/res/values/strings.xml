@@ -94,6 +94,8 @@
     <string name="support_images">Support Images</string>
     <string name="support_images_description">Support static images</string>
     <string name="supported_image_formats">Supported: JPG, PNG, BMP, WEBP</string>
+    <string name="load_full_size_images">Load images at full resolution</string>
+    <string name="load_full_size_images_hint">Enables zoom but uses more data and memory. Off by default (loads 1920px resolution).</string>
     <string name="image_size_limit">Image size limit</string>
     <string name="image_size_range">1 KB - 10 MB</string>
     <string name="support_gif">Support GIF</string>
@@ -170,6 +172,7 @@
     
     <!-- Error Dialog -->
     <string name="error">Error</string>
+    <string name="information">Information</string>
     <string name="close">Close</string>
     <string name="copy_to_clipboard">Copy to Clipboard</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
