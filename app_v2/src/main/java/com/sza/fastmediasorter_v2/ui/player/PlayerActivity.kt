@@ -1119,7 +1119,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Check if this is a network resource
         if (currentFile != null && resource != null &&
-            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP)) {
+            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP)) {
             
             Timber.d("PlayerActivity.playVideo: Network resource detected - type=${resource.type}, credentialsId=${resource.credentialsId}")
             

@@ -1,11 +1,17 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511162232  
-**Version**: 2.0.0-build2511162232
+**Latest Build**: 2.0.2511162234  
+**Version**: 2.0.0-build2511162234
 
 ---
 
 ## 🛠️ Recent Fixes
+
+### Build 2.0.2511162234 ✅
+- ✅ **FIXED: FTP video playback error** - Added FTP to network resource check in `playVideo()`
+- Root cause: Condition checked only SMB/SFTP, FTP fell through to local file playback
+- Solution: Added `ResourceType.FTP` to network resource condition (line 1121)
+- Result: FTP videos now use FtpDataSource streaming (already implemented in build 2511162212)
 
 ### Build 2.0.2511162232 ✅
 - ✅ **FIXED: FTP thumbnails not loading** - Added active mode fallback for `downloadFile()` on passive timeout
