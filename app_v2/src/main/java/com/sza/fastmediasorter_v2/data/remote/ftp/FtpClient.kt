@@ -266,7 +266,29 @@ class FtpClient @Inject constructor() {
             
             Timber.d("FTP downloading: $remotePath (size=$fileSize bytes)")
             
-            val success = client.retrieveFile(remotePath, outputStream)
+            // Try passive mode first, fallback to active mode on timeout
+            val success = try {
+                client.retrieveFile(remotePath, outputStream)
+            } catch (e: SocketTimeoutException) {
+                Timber.w(e, "FTP passive mode timeout, switching to active mode for download")
+                
+                // Switch to active mode and retry
+                client.enterLocalActiveMode()
+                Timber.d("FTP retrying download in active mode: $remotePath")
+                
+                try {
+                    client.retrieveFile(remotePath, outputStream)
+                } finally {
+                    // Switch back to passive for future operations
+                    try {
+                        client.enterLocalPassiveMode()
+                        Timber.d("FTP switched back to passive mode")
+                    } catch (ignored: Exception) {
+                        Timber.w(ignored, "Failed to switch back to passive mode")
+                    }
+                }
+            }
+            
             if (!success) {
                 return@withContext Result.failure(
                     IOException("FTP download failed: ${client.replyString}")

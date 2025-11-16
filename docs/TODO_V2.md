@@ -1,14 +1,23 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511162151  
-**Version**: 2.0.0-build2511162151
+**Latest Build**: 2.0.2511162232  
+**Version**: 2.0.0-build2511162232
 
-- [ ] когда я открываю SMB, FTP папку , я вижу по центру текст "no media files found" и прогресс загрузки. Потом файлы появляются. текст "no media files found" должен появляться только в случае если файлы не найдены, как результат. При загрузке можно написать "идёт загрузка.."
-
-- [ ] в режиме SMB для проигрывания открывается не тот файл. который я кликнул в списке или сетке, а первый в списке
 ---
 
-## 🛠️ Recent Fixes (Build 2.0.2511162151) ✅ CONFIRMED WORKING
+## 🛠️ Recent Fixes
+
+### Build 2.0.2511162232 ✅
+- ✅ **FIXED: FTP thumbnails not loading** - Added active mode fallback for `downloadFile()` on passive timeout
+- Root cause: Parallel thumbnail requests create multiple data connections, emulator can't connect to passive ports
+- Solution: Catch `SocketTimeoutException` in `downloadFile()`, retry with active mode, restore passive
+- Test: FTP folder with images/videos → thumbnails load via active mode fallback
+
+### Build 2.0.2511162226 ✅ CONFIRMED WORKING
+- ✅ **FIXED: Loading state text bug** - "No media files found" during loading → now shows "Loading..."
+- ✅ **FIXED: SMB file selection bug** - Clicked file opens correctly (indexOf by path instead of object reference)
+
+### Build 2.0.2511162151 ✅ CONFIRMED WORKING
 - ✅ **FIXED: submitList redundancy during navigation** - Moved list tracking from Activity to ViewModel
 - ✅ **Root cause**: BrowseActivity destroyed/recreated on Back → local variables lost
 - ✅ **Solution**: `BrowseViewModel.lastEmittedMediaFiles` survives Activity recreation
