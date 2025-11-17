@@ -353,10 +353,10 @@ class SmbClient @Inject constructor() {
                             )
                         )
                         
-                        // Report progress: every 10 files OR every 2 seconds (whichever comes first)
+                        // Report progress: every 2 seconds (time-based only for better performance)
                         val currentTime = System.currentTimeMillis()
                         val timeSinceLastReport = currentTime - lastProgressTime[0]
-                        if (results.size % 10 == 0 || timeSinceLastReport >= 2000) {
+                        if (timeSinceLastReport >= 2000) {
                             progressCallback?.onProgress(results.size, fileInfo.fileName)
                             lastProgressTime[0] = currentTime
                         }

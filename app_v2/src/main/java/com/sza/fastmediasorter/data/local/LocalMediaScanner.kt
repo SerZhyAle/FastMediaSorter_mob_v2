@@ -86,11 +86,11 @@ class LocalMediaScanner @Inject constructor(
                             videoFrameRate = null,
                             videoRotation = null
                         ).also {
-                            // Report progress: every 100 files OR every 2 seconds (whichever comes first)
+                            // Report progress: every 2 seconds or on last file (time-based for better performance)
                             processedCount++
                             val currentTime = System.currentTimeMillis()
                             val timeSinceLastReport = currentTime - lastProgressReportTime
-                            if (processedCount % 100 == 0 || processedCount == totalFiles || timeSinceLastReport >= 2000) {
+                            if (processedCount == totalFiles || timeSinceLastReport >= 2000) {
                                 onProgress?.invoke(processedCount, totalFiles)
                                 lastProgressReportTime = currentTime
                             }
