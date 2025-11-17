@@ -195,7 +195,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    Timber.d("State collected: mediaFiles.size=${state.mediaFiles.size}, resource=${state.resource?.name}")
+                    // Don't log every collect - only when actually submitting list (reduces log spam)
                     
                     // Always use standard mode (no pagination)
                     // Only submit list if content actually changed
@@ -236,7 +236,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         // Standard mode - submit full list to MediaFileAdapter
                         val previousListSize = mediaFileAdapter.itemCount
                         
-                        Timber.d("Submitting ${state.mediaFiles.size} files to adapter (previous size: $previousListSize)")
+                        val reason = when {
+                            previousMediaFiles == null -> "First load"
+                            state.mediaFiles.size != previousSize -> "Size changed ($previousSize → ${state.mediaFiles.size})"
+                            else -> "Content changed"
+                        }
+                        Timber.d("Submitting list: $reason, resource=${state.resource?.name}")
                         
                         mediaFileAdapter.submitList(state.mediaFiles) {
                             Timber.d("Adapter list submitted successfully, current itemCount=${mediaFileAdapter.itemCount}")
