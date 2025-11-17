@@ -348,6 +348,11 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showPlayerHintOnFirstRun = isChecked))
         }
         
+        binding.switchShowVideoThumbnails.setOnCheckedChangeListener { _, isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
+        }
+        
         binding.btnShowHintNow.setOnClickListener {
             // Reset first-run flag to trigger hint on next PlayerActivity launch
             viewModel.resetPlayerFirstRun()
@@ -412,6 +417,9 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.switchShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
                         binding.switchShowPlayerHint.isChecked = settings.showPlayerHintOnFirstRun
+                    }
+                    if (binding.switchShowVideoThumbnails.isChecked != settings.showVideoThumbnails) {
+                        binding.switchShowVideoThumbnails.isChecked = settings.showVideoThumbnails
                     }
                     
                     // Icon size

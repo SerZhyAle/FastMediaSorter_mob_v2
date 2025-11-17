@@ -128,6 +128,8 @@
     <string name="show_player_hint">Show touch zones hint on first run</string>
     <string name="show_player_hint_description">Display touch zones overlay when opening player for the first time</string>
     <string name="show_hint_now">Show Hint Now</string>
+    <string name="show_video_thumbnails">Show video thumbnails</string>
+    <string name="show_video_thumbnails_description">Extract and display first frame for video files (may take 2+ seconds for network files)</string>
     <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video)</string>
     <string name="default_icon_size">Default icon size (pixels)</string>
     <string name="enable_copying">Allow copying</string>

@@ -37,6 +37,7 @@ data class AppSettings(
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
     val showDetailedErrors: Boolean = false,
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
+    val showVideoThumbnails: Boolean = false, // Extract and show first frame for video thumbnails (may be slow for network files)
     
     // Destinations settings
     val enableCopying: Boolean = true,

@@ -17,6 +17,7 @@ import coil.transform.RoundedCornersTransformation
 import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileGridBinding
+import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import timber.log.Timber
@@ -35,7 +36,8 @@ class PagingMediaFileAdapter(
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
     private val onPlayClick: (MediaFile) -> Unit,
     private var isGridMode: Boolean = false,
-    private var thumbnailSize: Int = 96
+    private var thumbnailSize: Int = 96,
+    private val getShowVideoThumbnails: () -> Boolean = { false } // Callback to get current setting
 ) : PagingDataAdapter<MediaFile, RecyclerView.ViewHolder>(MediaFileDiffCallback()) {
 
     private var selectedPaths = setOf<String>()
@@ -350,8 +352,23 @@ class PagingMediaFileAdapter(
                     }
                     MediaType.VIDEO -> {
                         if (isNetworkPath) {
-                            // Show placeholder icon immediately (no network delay, no decoding attempt)
-                            setImageResource(R.drawable.ic_video_placeholder)
+                            // If setting enabled, attempt frame extraction; otherwise show placeholder
+                            if (getShowVideoThumbnails()) {
+                                val data = if (file.path.startsWith("content://")) {
+                                    Uri.parse(file.path)
+                                } else {
+                                    NetworkFileData(file.path, credentialsId)
+                                }
+                                load(data) {
+                                    crossfade(false)
+                                    placeholder(R.drawable.ic_video_placeholder)
+                                    error(R.drawable.ic_video_placeholder)
+                                    transformations(RoundedCornersTransformation(8f))
+                                }
+                            } else {
+                                // Show placeholder icon immediately (no network delay, no decoding attempt)
+                                setImageResource(R.drawable.ic_video_placeholder)
+                            }
                         } else {
                             val data = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)

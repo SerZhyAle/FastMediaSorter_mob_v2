@@ -26,6 +26,7 @@ import com.sza.fastmediasorter_v2.R
 import timber.log.Timber
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter_v2.databinding.ItemMediaFileGridBinding
+import com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData
 import com.sza.fastmediasorter_v2.domain.model.MediaFile
 import com.sza.fastmediasorter_v2.domain.model.MediaType
 import java.io.File
@@ -39,7 +40,8 @@ class MediaFileAdapter(
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
     private val onPlayClick: (MediaFile) -> Unit,
     private var isGridMode: Boolean = false,
-    private var thumbnailSize: Int = 96 // Default size in dp
+    private var thumbnailSize: Int = 96, // Default size in dp
+    private val getShowVideoThumbnails: () -> Boolean = { false } // Callback to get current setting
 ) : ListAdapter<MediaFile, RecyclerView.ViewHolder>(MediaFileDiffCallback()) {
 
     private var selectedPaths = setOf<String>()
@@ -287,8 +289,29 @@ class MediaFileAdapter(
                                 }
                             }
                             isNetworkPath -> {
-                                // Show placeholder icon immediately (no network delay, no decoding attempt)
-                                setImageResource(R.drawable.ic_video_placeholder)
+                                // If setting enabled, attempt frame extraction; otherwise show placeholder
+                                if (getShowVideoThumbnails()) {
+                                    val data = if (file.path.startsWith("content://")) {
+                                        Uri.parse(file.path)
+                                    } else {
+                                        NetworkFileData(file.path, credentialsId)
+                                    }
+                                    load(data) {
+                                        size(512)
+                                        crossfade(false)
+                                        placeholder(R.drawable.ic_video_placeholder)
+                                        error(R.drawable.ic_video_placeholder)
+                                        transformations(RoundedCornersTransformation(8f))
+                                        listener(
+                                            onError = { _, result ->
+                                                Timber.w(result.throwable, "Failed to load network video thumbnail: ${file.name}")
+                                            }
+                                        )
+                                    }
+                                } else {
+                                    // Show placeholder icon immediately (no network delay, no decoding attempt)
+                                    setImageResource(R.drawable.ic_video_placeholder)
+                                }
                             }
                             else -> {
                                 // Load video first frame using Coil with video frame decoder for local files
@@ -514,8 +537,24 @@ class MediaFileAdapter(
                                 }
                             }
                             isNetworkPath -> {
-                                // Show placeholder icon immediately (no network delay, no decoding attempt)
-                                setImageResource(R.drawable.ic_video_placeholder)
+                                // If setting enabled, attempt frame extraction; otherwise show placeholder
+                                if (getShowVideoThumbnails()) {
+                                    val data = if (file.path.startsWith("content://")) {
+                                        Uri.parse(file.path)
+                                    } else {
+                                        NetworkFileData(file.path, credentialsId)
+                                    }
+                                    load(data) {
+                                        size(512)
+                                        crossfade(false)
+                                        placeholder(R.drawable.ic_video_placeholder)
+                                        error(R.drawable.ic_video_placeholder)
+                                        transformations(RoundedCornersTransformation(8f))
+                                    }
+                                } else {
+                                    // Show placeholder icon immediately (no network delay, no decoding attempt)
+                                    setImageResource(R.drawable.ic_video_placeholder)
+                                }
                             }
                             else -> {
                                 // Support both file:// paths and content:// URIs

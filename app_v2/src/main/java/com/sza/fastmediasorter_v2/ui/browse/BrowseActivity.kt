@@ -77,6 +77,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
+    
+    private var showVideoThumbnails = false // Cached setting value
 
     override fun getViewBinding(): ActivityBrowseBinding {
         return ActivityBrowseBinding.inflate(layoutInflater)
@@ -101,7 +103,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             },
             onPlayClick = { file ->
                 viewModel.openFile(file)
-            }
+            },
+            getShowVideoThumbnails = { showVideoThumbnails }
         )
         
         // Setup paging adapter (for large lists 1000+)
@@ -117,7 +120,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             },
             onPlayClick = { file ->
                 viewModel.openFile(file)
-            }
+            },
+            getShowVideoThumbnails = { showVideoThumbnails }
         )
         
         // Add footer adapter for "Loading more..." indicator
@@ -406,6 +410,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.loading.collect { isLoading ->
                     binding.progressBar.isVisible = isLoading
+                }
+            }
+        }
+
+        // Observe settings changes
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                settingsRepository.getSettings().collect { settings ->
+                    showVideoThumbnails = settings.showVideoThumbnails
                 }
             }
         }

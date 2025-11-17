@@ -128,6 +128,8 @@
     <string name="show_player_hint">Показувати підказку сенсорних зон при першому запуску</string>
     <string name="show_player_hint_description">Відображати оверлей сенсорних зон при першому відкритті програвача</string>
     <string name="show_hint_now">Показати підказку зараз</string>
+    <string name="show_video_thumbnails">Показувати мініатюри відеофайлів</string>
+    <string name="show_video_thumbnails_description">Витягувати і відображати перший кадр відеофайлів (може зайняти 2+ секунди для мережевих файлів)</string>
     <string name="touch_zones_scheme">Схема сенсорних зон (Зображення/Відео)</string>
     <string name="default_icon_size">Розмір іконок за замовчуванням (пікселі)</string>
     <string name="enable_copying">Дозволити копіювання</string>

@@ -133,6 +133,16 @@
             android:layout_marginBottom="24dp"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchShowVideoThumbnails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/show_video_thumbnails"
+            android:layout_marginBottom="24dp"/>
+
         <!-- Touch Zones Scheme Section -->
         <TextView
             android:layout_width="match_parent"
