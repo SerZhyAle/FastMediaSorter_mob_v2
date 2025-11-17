@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter_v2.ui.main
 
 import android.content.res.ColorStateList
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -11,6 +12,7 @@ import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.databinding.ItemResourceBinding
 import com.sza.fastmediasorter_v2.domain.model.MediaResource
 import com.sza.fastmediasorter_v2.domain.model.MediaType
+import com.sza.fastmediasorter_v2.domain.model.ResourceType
 
 class ResourceAdapter(
     private val onItemClick: (MediaResource) -> Unit,
@@ -96,6 +98,27 @@ class ResourceAdapter(
                     rootLayout.backgroundTintList = ColorStateList.valueOf(bgColor)
                 } else {
                     rootLayout.backgroundTintList = null
+                }
+                
+                // Show last sync time for network resources (SMB, SFTP, FTP)
+                val isNetworkResource = resource.type == ResourceType.SMB || 
+                                        resource.type == ResourceType.SFTP || 
+                                        resource.type == ResourceType.FTP
+                
+                if (isNetworkResource && resource.lastSyncDate != null) {
+                    val syncTimeAgo = DateUtils.getRelativeTimeSpanString(
+                        resource.lastSyncDate,
+                        System.currentTimeMillis(),
+                        DateUtils.MINUTE_IN_MILLIS,
+                        DateUtils.FORMAT_ABBREV_RELATIVE
+                    )
+                    tvLastSync.text = root.context.getString(R.string.last_sync_time, syncTimeAgo)
+                    tvLastSync.visibility = android.view.View.VISIBLE
+                } else if (isNetworkResource) {
+                    tvLastSync.text = root.context.getString(R.string.never_synced)
+                    tvLastSync.visibility = android.view.View.VISIBLE
+                } else {
+                    tvLastSync.visibility = android.view.View.GONE
                 }
                 
                 root.isSelected = resource.id == selectedId

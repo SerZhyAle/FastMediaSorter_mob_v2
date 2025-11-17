@@ -20,6 +20,7 @@
     <string name="settings_tab_general">General</string>
     <string name="settings_tab_media">Media</string>
     <string name="settings_tab_playback">Playback</string>
+    <string name="settings_tab_network">Network</string>
     <string name="settings_tab_destinations">Destinations</string>
     
     <!-- Copy Dialog -->
@@ -369,6 +370,27 @@
         <string name="sort_by_type_desc">by Type ↓</string>
     <string name="sort_by_manual">Manual Order</string>
     <string name="sort_by_random">Random</string>
+    
+    <!-- Network Sync -->
+    <string name="network_sync_settings">Network Sync Settings</string>
+    <string name="enable_background_sync">Enable background sync</string>
+    <string name="background_sync_description">Automatically check network resources for file changes in the background</string>
+    <string name="sync_interval">Sync interval</string>
+    <plurals name="sync_interval_hours">
+        <item quantity="one">%d hour</item>
+        <item quantity="other">%d hours</item>
+    </plurals>
+    <string name="sync_now">Sync Now</string>
+    <string name="sync_status_idle">Ready to sync</string>
+    <string name="sync_status_in_progress">Syncing…</string>
+    <string name="sync_status_completed">Synced %d resources</string>
+    <string name="sync_status_failed">Sync failed</string>
+    <string name="sync_completed_successfully">Synced %d resources successfully</string>
+    <string name="sync_failed">Sync failed: %s</string>
+    <string name="background_sync_enabled">Background sync enabled</string>
+    <string name="background_sync_disabled">Background sync disabled</string>
+    <string name="last_sync_time">Last sync: %s</string>
+    <string name="never_synced">Never synced</string>
     
     <!-- EXIF and video metadata labels -->
     

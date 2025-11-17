@@ -389,6 +389,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         when (zone) {
             TouchZone.BACK -> {
                 finish()
+                overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
             }
             TouchZone.COPY -> {
                 showCopyDialog()

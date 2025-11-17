@@ -293,6 +293,7 @@ class ResourceRepositoryImpl @Inject constructor(
             showCommandPanel = showCommandPanel,
             createdDate = createdDate,
             lastBrowseDate = lastBrowseDate,
+            lastSyncDate = lastSyncDate,
             displayOrder = displayOrder
         )
     }
@@ -325,6 +326,7 @@ class ResourceRepositoryImpl @Inject constructor(
             showCommandPanel = showCommandPanel,
             createdDate = createdDate,
             lastBrowseDate = lastBrowseDate,
+            lastSyncDate = lastSyncDate,
             displayOrder = displayOrder
         )
     }

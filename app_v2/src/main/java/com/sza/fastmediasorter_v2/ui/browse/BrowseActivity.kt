@@ -87,6 +87,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun setupViews() {
         binding.btnBack.setOnClickListener {
             finish()
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
         // Setup standard adapter (for small lists)
@@ -465,6 +466,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 event.fileIndex,
                                 skipCheck
                             ))
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         }
                     }
                 }

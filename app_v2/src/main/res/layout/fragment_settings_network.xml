@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Network Sync Section Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/network_sync_settings"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="?android:textColorPrimary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Enable/Disable Background Sync -->
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchEnableBackgroundSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/enable_background_sync"
+            android:checked="true"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/background_sync_description"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Sync Interval Slider -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_interval"
+            android:textSize="14sp"
+            android:textColor="?android:textColorPrimary"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvSyncIntervalValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="4 hours"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginBottom="8dp" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/sliderSyncInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="1"
+            android:valueTo="24"
+            android:value="4"
+            android:stepSize="1"
+            android:layout_marginBottom="24dp" />
+
+        <!-- Manual Sync Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSyncNow"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_now"
+            android:layout_marginBottom="8dp"
+            app:icon="@android:drawable/ic_popup_sync" />
+
+        <!-- Sync Status -->
+        <TextView
+            android:id="@+id/tvSyncStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_status_idle"
+            android:textSize="12sp"
+            android:textColor="?android:textColorSecondary"
+            android:textStyle="italic"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+
+</ScrollView>

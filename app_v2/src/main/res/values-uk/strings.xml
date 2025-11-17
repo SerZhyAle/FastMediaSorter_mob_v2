@@ -20,6 +20,7 @@
     <string name="settings_tab_general">Загальні</string>
     <string name="settings_tab_media">Медіа</string>
     <string name="settings_tab_playback">Відтворення</string>
+    <string name="settings_tab_network">Мережа</string>
     <string name="settings_tab_destinations">Призначення</string>
     
     <!-- Copy Dialog -->
@@ -341,4 +342,27 @@
         <string name="sort_by_type_desc">за типом ↓</string>
     <string name="sort_by_manual">Вручну</string>
     <string name="sort_by_random">Випадково</string>
+    
+    <!-- Network Sync -->
+    <string name="network_sync_settings">Налаштування синхронізації мережі</string>
+    <string name="enable_background_sync">Увімкнути фонову синхронізацію</string>
+    <string name="background_sync_description">Автоматично перевіряти мережеві ресурси на зміни файлів у фоновому режимі</string>
+    <string name="sync_interval">Інтервал синхронізації</string>
+    <plurals name="sync_interval_hours">
+        <item quantity="one">%d година</item>
+        <item quantity="few">%d години</item>
+        <item quantity="many">%d годин</item>
+        <item quantity="other">%d годин</item>
+    </plurals>
+    <string name="sync_now">Синхронізувати зараз</string>
+    <string name="sync_status_idle">Готово до синхронізації</string>
+    <string name="sync_status_in_progress">Синхронізація…</string>
+    <string name="sync_status_completed">Синхронізовано %d ресурсів</string>
+    <string name="sync_status_failed">Помилка синхронізації</string>
+    <string name="sync_completed_successfully">Успішно синхронізовано %d ресурсів</string>
+    <string name="sync_failed">Помилка синхронізації: %s</string>
+    <string name="background_sync_enabled">Фонову синхронізацію увімкнено</string>
+    <string name="background_sync_disabled">Фонову синхронізацію вимкнено</string>
+    <string name="last_sync_time">Остання синхронізація: %s</string>
+    <string name="never_synced">Ніколи не синхронізувалося</string>
 </resources>

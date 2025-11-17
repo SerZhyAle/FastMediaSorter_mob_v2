@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ResourceEntity::class,
         NetworkCredentialsEntity::class
     ],
-    version = 10,
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -78,6 +78,22 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(database: SupportSQLiteDatabase) {
                 // Add last browse date for resources
                 database.execSQL("ALTER TABLE resources ADD COLUMN lastBrowseDate INTEGER DEFAULT NULL")
+            }
+        }
+        
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add last sync date for network resources
+                database.execSQL("ALTER TABLE resources ADD COLUMN lastSyncDate INTEGER DEFAULT NULL")
+            }
+        }
+        
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add indexes for performance optimization
+                database.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_display_order_name ON resources(displayOrder, name)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_type_display_order_name ON resources(type, displayOrder, name)")
+                database.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_is_destination_order ON resources(isDestination, destinationOrder)")
             }
         }
     }

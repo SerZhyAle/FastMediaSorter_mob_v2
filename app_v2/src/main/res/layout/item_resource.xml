@@ -112,6 +112,21 @@
             app:layout_constraintTop_toTopOf="@+id/tvResourceType"
             tools:text="IVAG" />
 
+        <TextView
+            android:id="@+id/tvLastSync"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textSize="10sp"
+            android:textColor="?android:textColorTertiary"
+            android:textStyle="italic"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/tvResourceName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourceType"
+            tools:text="Last sync: 2 hours ago"
+            tools:visibility="visible" />
+
         <ImageButton
             android:id="@+id/btnEdit"
             android:layout_width="32dp"

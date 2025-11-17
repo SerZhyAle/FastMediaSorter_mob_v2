@@ -10,6 +10,8 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DefaultItemAnimator
+import com.sza.fastmediasorter_v2.R
 import com.sza.fastmediasorter_v2.core.ui.BaseActivity
 import com.sza.fastmediasorter_v2.databinding.ActivityMainBinding
 import com.sza.fastmediasorter_v2.domain.repository.SettingsRepository
@@ -103,6 +105,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         
         binding.rvResources.adapter = resourceAdapter
+        
+        // Enable item animations for add/remove/move operations
+        binding.rvResources.itemAnimator = DefaultItemAnimator().apply {
+            addDuration = 300
+            removeDuration = 300
+            moveDuration = 300
+            changeDuration = 300
+        }
         
         binding.btnStartPlayer.setOnClickListener {
             viewModel.startPlayer()
@@ -231,6 +241,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                                 event.resourceId, 
                                 event.skipAvailabilityCheck
                             ))
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         }
                         is MainEvent.NavigateToEditResource -> {
                             val intent = Intent(this@MainActivity, EditResourceActivity::class.java).apply {

@@ -72,10 +72,16 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                     // Update resource if count changed
                     if (fileCount != resource.fileCount) {
                         Timber.i("NetworkFilesSyncWorker: ${resource.name} file count changed: ${resource.fileCount} → $fileCount")
-                        val updatedResource = resource.copy(fileCount = fileCount)
+                        val updatedResource = resource.copy(
+                            fileCount = fileCount,
+                            lastSyncDate = System.currentTimeMillis()
+                        )
                         resourceRepository.updateResource(updatedResource)
                     } else {
                         Timber.d("NetworkFilesSyncWorker: ${resource.name} file count unchanged: $fileCount")
+                        // Update lastSyncDate even if count unchanged
+                        val updatedResource = resource.copy(lastSyncDate = System.currentTimeMillis())
+                        resourceRepository.updateResource(updatedResource)
                     }
                     
                 } catch (e: Exception) {

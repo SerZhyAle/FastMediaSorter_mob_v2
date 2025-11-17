@@ -20,6 +20,7 @@
     <string name="settings_tab_general">Общие</string>
     <string name="settings_tab_media">Медиа</string>
     <string name="settings_tab_playback">Воспроизведение</string>
+    <string name="settings_tab_network">Сеть</string>
     <string name="settings_tab_destinations">Назначения</string>
     
     <!-- Copy Dialog -->
@@ -341,4 +342,27 @@
         <string name="sort_by_type_desc">по типу ↓</string>
     <string name="sort_by_manual">Вручную</string>
     <string name="sort_by_random">Случайно</string>
+    
+    <!-- Network Sync -->
+    <string name="network_sync_settings">Настройки синхронизации сети</string>
+    <string name="enable_background_sync">Включить фоновую синхронизацию</string>
+    <string name="background_sync_description">Автоматически проверять сетевые ресурсы на изменения файлов в фоновом режиме</string>
+    <string name="sync_interval">Интервал синхронизации</string>
+    <plurals name="sync_interval_hours">
+        <item quantity="one">%d час</item>
+        <item quantity="few">%d часа</item>
+        <item quantity="many">%d часов</item>
+        <item quantity="other">%d часов</item>
+    </plurals>
+    <string name="sync_now">Синхронизировать сейчас</string>
+    <string name="sync_status_idle">Готово к синхронизации</string>
+    <string name="sync_status_in_progress">Синхронизация…</string>
+    <string name="sync_status_completed">Синхронизировано %d ресурсов</string>
+    <string name="sync_status_failed">Ошибка синхронизации</string>
+    <string name="sync_completed_successfully">Успешно синхронизировано %d ресурсов</string>
+    <string name="sync_failed">Ошибка синхронизации: %s</string>
+    <string name="background_sync_enabled">Фоновая синхронизация включена</string>
+    <string name="background_sync_disabled">Фоновая синхронизация отключена</string>
+    <string name="last_sync_time">Последняя синхронизация: %s</string>
+    <string name="never_synced">Никогда не синхронизировалось</string>
 </resources>

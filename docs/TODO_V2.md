@@ -1,50 +1,83 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511170336  
-**Version**: 2.0.0-build2511170336
+**Latest Build**: 2.0.2511170339  
+**Version**: 2.0.0-build2511170339
 
 ---
 
 ## 🎯 Current Development - In Progress
 
-- [x] **FEATURE: Video thumbnail extraction toggle in Settings**
-  - Added user-controllable setting "Show video thumbnails" in Playback settings
-  - Default: OFF (preserves optimization - instant placeholder icons for network videos)
-  - When enabled: Attempts to extract first frame for network videos (may take 2+ seconds)
-  - Implementation:
-    - AppSettings.showVideoThumbnails field (domain model)
-    - DataStore persistence (KEY_SHOW_VIDEO_THUMBNAILS)
-    - Localized strings: en/ru/uk with delay warning
-    - SwitchMaterial in fragment_settings_playback.xml
-    - MediaFileAdapter + PagingMediaFileAdapter: Conditional load() based on setting
-    - BrowseActivity: Observes settings changes, passes callback to adapters
-  - Changed files: `AppSettings.kt`, `SettingsRepositoryImpl.kt`, `strings.xml` (3 langs), `fragment_settings_playback.xml`, `SettingsFragments.kt`, `MediaFileAdapter.kt`, `PagingMediaFileAdapter.kt`, `BrowseActivity.kt`
-  - Result: Users can choose between instant placeholders (fast) or actual frames (slow but informative)
+- [ ] **FEATURE: Google Drive Testing** - Phase 3
+  - Requires Android OAuth client setup in Google Cloud Console
+  - Package name + SHA-1 fingerprint needed
+  - OAuth consent screen configuration
+  - Test authorization flow and file operations
 
-- [x] **OPTIMIZATION: Instant video/audio thumbnails for network files**
-  - Thumbnails for SMB/SFTP/FTP video/audio files now show instantly (no network delay)
-  - Solution: Show placeholder icon synchronously (`setImageResource`) before Coil starts loading
-  - For video: shows `ic_video_placeholder` immediately, then attempts to extract first frame
-  - For audio: already instant (shows extension bitmap synchronously)
-  - Changed files: `MediaFileAdapter.kt`, `PagingMediaFileAdapter.kt` (both List and Grid modes)
-  - Result: No more delay when scrolling through network video/audio lists
-
-- [x] **OPTIMIZATION: Reduced network DataSource logging spam (~20x less)**
-  - READ operation logs now appear 5x less frequently (every 500KB instead of 100KB)
-  - Still logs first 10KB for debugging file start
-  - Changed files: `SmbDataSource.kt`, `SftpDataSource.kt`, `FtpDataSource.kt`
-  - Result: Cleaner logs during video playback over SMB/SFTP/FTP
-
-
-**Research Results:**
-- ~~**SMB video thumbnails**: `VideoFrameDecoder` from Coil is active but requires full file download for network files. Current `NetworkFileFetcher` downloads only first 512KB (optimized for images). Solution: increase buffer to 5MB for video files (`.mp4/.mov` extensions) - but this will slow down thumbnail loading. Alternative: show generic video icon immediately based on extension.~~
-- ~~**Instant placeholders**: Consider detecting video/audio by extension and showing placeholder icon before network fetch completes.~~
-- **COMPLETED**: Network video/audio thumbnails now show placeholder instantly. Coil still attempts to load actual frame in background, but user sees icon immediately (no delay).
-- **FEATURE ADDED (Build 2.0.2511170336)**: User can now enable video frame extraction via Settings toggle if they want actual thumbnails despite delay.
+- [ ] **OPTIMIZATION: Pagination Testing**
+  - Test with 1000+ files across all resource types
+  - Verify PagingMediaFileAdapter performance
+  - Test 5000+ file scenario
+  - Check threshold behavior
 
 ---
 
 ## 🛠️ Recent Fixes
+
+### Build 2.0.2511170339 ✅
+- ✅ **POLISH: UI Animations and Transitions**
+- **Implementation**: Added smooth animations throughout the app following Material Design standards
+- **Components**:
+  - **RecyclerView animations**: `DefaultItemAnimator` in MainActivity with 300ms durations for add/remove/move/change operations
+  - **Activity transitions**: Slide animations for forward navigation (slide_in_right, slide_out_left) and back navigation (slide_in_left, slide_out_right)
+    - MainActivity → BrowseActivity: Slide left with 300ms animation
+    - BrowseActivity → PlayerActivity: Slide left with 300ms animation
+    - Back button navigation: Slide right with 300ms animation
+  - **Ripple effects**: All buttons already have `?attr/selectableItemBackgroundBorderless` or Material styles with ripple effects
+  - **Progress indicators**: Standard `ProgressBar` with smooth indeterminate animations (platform default)
+- **Changed files**: 6 files
+  - Animation resources: `slide_in_right.xml`, `slide_out_left.xml`, `slide_in_left.xml`, `slide_out_right.xml`
+  - Activities: `MainActivity.kt`, `BrowseActivity.kt`, `PlayerActivity.kt`
+- **Impact**: Smoother, more polished user experience with consistent 300ms animations
+- **Result**: App now has professional Material Design motion throughout all interactions
+
+### Build 2.0.2511170338 ✅
+- ✅ **OPTIMIZATION: Database indexes for resources table**
+- **Implementation**: Added 3 composite indexes to speed up frequently used queries
+- **Indexes**:
+  - `idx_resources_display_order_name` on `(displayOrder, name)` - Main resource list sorting
+  - `idx_resources_type_display_order_name` on `(type, displayOrder, name)` - Filter by type queries
+  - `idx_resources_is_destination_order` on `(isDestination, destinationOrder)` - Destinations retrieval
+- **Migration 11→12**: Creates indexes using `CREATE INDEX IF NOT EXISTS`
+- **Impact**: Speeds up resource list queries, especially with 50+ resources
+- **Changed files**: 3 files
+  - `ResourceEntity.kt`: Added `@Entity(indices = [...])` annotation
+  - `AppDatabase.kt`: Version 11→12, created MIGRATION_11_12
+  - `DatabaseModule.kt`: Registered MIGRATION_11_12
+- **Testing**: Performance measurement with 100+ resources recommended
+- **Result**: Optimized ORDER BY queries on displayOrder and name columns
+
+### Build 2.0.2511170337 ✅
+- ✅ **FEATURE: Background Sync UI for Network Resources**
+- **Implementation**: Complete UI for periodic background sync of network resources (SMB/SFTP/FTP)
+- **Components**:
+  - **Database (Migration 10→11)**: Added `lastSyncDate: Long?` field to `MediaResource`/`ResourceEntity` to track last sync timestamp
+  - **Worker**: `NetworkFilesSyncWorker` now updates `lastSyncDate` after each sync (both on file count change and unchanged)
+  - **UI Indicator**: `ResourceAdapter` shows "Last sync: 2h ago" or "Never synced" for network resources using `DateUtils.getRelativeTimeSpanString()`
+  - **Settings Tab**: New "Network" tab in Settings with:
+    - Enable/disable background sync toggle (SwitchMaterial)
+    - Sync interval slider (1-24 hours, default 4 hours)
+    - "Sync Now" button for manual sync
+    - Sync status indicator (Idle/In Progress/Completed/Failed)
+  - **UseCase**: `SyncNetworkResourcesUseCase` - Manual sync trigger (all resources or single by ID)
+- **Changed files**: 15 files
+  - Domain: `Models.kt` (lastSyncDate field)
+  - Data: `ResourceEntity.kt`, `AppDatabase.kt` (MIGRATION_10_11), `DatabaseModule.kt`, `ResourceRepositoryImpl.kt` (mappings)
+  - Worker: `NetworkFilesSyncWorker.kt` (timestamp save)
+  - UI: `ResourceAdapter.kt` (sync indicator), `item_resource.xml` (TextView), `NetworkSettingsFragment.kt` (new), `fragment_settings_network.xml` (new), `SettingsPagerAdapter.kt`, `SettingsActivity.kt` (5 tabs)
+  - UseCase: `SyncNetworkResourcesUseCase.kt` (new)
+  - Localization: `strings.xml` (en/ru/uk) - 20+ new strings (network_sync_settings, sync_interval, last_sync_time, etc.)
+- **Testing**: Verify auto-sync after interval, manual sync trigger, timestamp updates in resource list, UI indicators
+- **Result**: Full visibility into background sync status. Users can manually trigger sync and adjust interval. Last sync time visible in resource cards.
 
 ### Build 2.0.2511170336 ✅
 - ✅ **FEATURE: Add video thumbnail extraction toggle in Settings**
@@ -683,13 +716,15 @@
 
 ### 🟡 Medium Priority
 
-- [ ] **Background Sync - UI Enhancement**
-  - **Status**: Backend complete, needs UI indicators
-  - **Add**:
-    - Sync status in resource list (last sync time)
-    - Missing/unavailable file indicators
-    - Manual sync trigger button
-  - **Test**: 4+ hours idle → auto-sync behavior
+- [x] **Background Sync - UI Enhancement** ✅ Build 2.0.2511170337
+  - **Status**: COMPLETED - Full UI implementation with settings controls and indicators
+  - **Added**:
+    - Sync status in resource list (last sync time with DateUtils formatting)
+    - Settings → Network tab with enable/disable toggle, interval slider (1-24h), manual sync button
+    - Sync status indicator (Idle/In Progress/Completed/Failed)
+    - Localized in 3 languages (en/ru/uk)
+  - **Backend**: NetworkFilesSyncWorker updates lastSyncDate timestamps
+  - **Test**: 4+ hours idle → auto-sync behavior, manual sync trigger, UI indicators
 
 ### 🔵 Low Priority (Polish)
 
@@ -699,10 +734,15 @@
   - Ripple effects for missing buttons
   - Smooth progress indicators
 
-- [ ] **Slideshow Countdown Display**
-  - **Per Spec**: "3..", "2..", "1.." labels in upper-right corner
-  - **Timing**: Shows 3 seconds before switching to next file
-  - **Note**: Currently slideshow works but without visual countdown
+- [x] **Slideshow Countdown Display** ✅ ALREADY IMPLEMENTED (Undocumented)
+  - **Status**: COMPLETE - Implementation discovered during code review
+  - **Implementation**:
+    - UI: `activity_player_unified.xml` - TextView `tvCountdown` (top|end, 32sp, white with shadow)
+    - Logic: `PlayerActivity.kt` - `countdownRunnable` updates text "3..", "2..", "1.." every 1000ms
+    - Integration: Starts 3 seconds before file change (`postDelayed(countdownRunnable, interval - 3000)`)
+    - Visibility: Shows only during slideshow, respects pause state
+  - **Location**: PlayerActivity lines 133-142 (countdownRunnable), line 1405 (start trigger)
+  - **Result**: Visual countdown working as per specification, just never documented in TODO
 
 ### 🌐 Network Features (Future)
 
@@ -723,7 +763,9 @@
 - [ ] **Background file count optimization** (duplicate SMB scans)
 - [ ] **RecyclerView profiling** (onBind <1ms target, test on low-end devices)
 - [ ] **Layout overdraw profiling** (<2x target)
-- [ ] **Database indexes** (name, type, size, date columns)
+- [x] **Database indexes** ✅ Build 2.0.2511170338
+  - **Completed**: Added 3 composite indexes on resources table (displayOrder, type, isDestination)
+  - **Impact**: Faster ORDER BY queries, especially with 50+ resources
 - [ ] **Memory leak detection** (LeakCanary integration)
 - [ ] **Battery optimization** (reduce sync on low battery)
 

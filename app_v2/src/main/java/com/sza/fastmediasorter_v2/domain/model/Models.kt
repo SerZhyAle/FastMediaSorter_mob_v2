@@ -86,6 +86,7 @@ data class MediaResource(
     val showCommandPanel: Boolean? = null, // User preference: null = use global default, true/false = override
     val createdDate: Long = System.currentTimeMillis(),
     val lastBrowseDate: Long? = null, // Last time resource was opened in BrowseActivity
+    val lastSyncDate: Long? = null, // Last time network resource was synced (for SMB/SFTP/FTP only)
     val displayOrder: Int = 0 // Order for display in resource list
 )
 
