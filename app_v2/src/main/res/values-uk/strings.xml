@@ -335,6 +335,15 @@
     <string name="dropbox_connection_test_success">Успішно підключено!</string>
     <string name="dropbox_connection_test_failed">Помилка підключення: %1$s</string>
     
+    <!-- OneDrive -->
+    <string name="onedrive_sign_in">Увійти через OneDrive</string>
+    <string name="onedrive_signed_in">Вхід виконано: %1$s</string>
+    <string name="onedrive_sign_out">Вийти</string>
+    <string name="onedrive_select_folder">Вибрати папку</string>
+    <string name="onedrive_authentication_failed">Помилка входу в OneDrive</string>
+    <string name="onedrive_connection_test_success">Успішно підключено!</string>
+    <string name="onedrive_connection_test_failed">Помилка підключення: %1$s</string>
+    
     <string name="no_folders_found">Папки не знайдено</string>
     <string name="add_folder">Додати папку</string>
     <string name="selected_folder">Вибрано: %1$s</string>

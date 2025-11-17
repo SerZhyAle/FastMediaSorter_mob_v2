@@ -363,6 +363,15 @@
     <string name="dropbox_connection_test_success">Connected successfully!</string>
     <string name="dropbox_connection_test_failed">Connection failed: %1$s</string>
     
+    <!-- OneDrive -->
+    <string name="onedrive_sign_in">Sign in to OneDrive</string>
+    <string name="onedrive_signed_in">Signed in: %1$s</string>
+    <string name="onedrive_sign_out">Sign out</string>
+    <string name="onedrive_select_folder">Select Folder</string>
+    <string name="onedrive_authentication_failed">OneDrive authentication failed</string>
+    <string name="onedrive_connection_test_success">Connected successfully!</string>
+    <string name="onedrive_connection_test_failed">Connection failed: %1$s</string>
+    
     <string name="no_folders_found">No folders found</string>
     <string name="add_folder">Add Folder</string>
     <string name="selected_folder">Selected: %1$s</string>

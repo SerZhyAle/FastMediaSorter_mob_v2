@@ -1,11 +1,34 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511171110  
-**Version**: 2.0.0-build2511171110
+**Latest Build**: 2.0.2511171211  
+**Version**: 2.0.0-build2511171211
 
 ---
 
 ## 🎯 Current Development - In Progress
+
+- [ ] **FEATURE: OneDrive Integration - Phase 4** (Core REST API Implementation Complete)
+  - ✅ MSAL 6.0.1 authentication library added (without Graph SDK)
+  - ✅ OneDriveRestClient implemented with Microsoft Graph REST API v1.0
+  - ✅ CloudMediaScanner updated to support OneDrive
+  - ✅ Localized strings added (en/ru/uk)
+  - ✅ msal_config.json template created
+  - ⏳ **Remaining Tasks**:
+    - Register Azure AD application in Microsoft Entra admin center
+    - Configure Azure AD Client ID and redirect URI in `msal_config.json`
+    - Create OneDriveFolderPickerActivity (similar to GoogleDriveFolderPickerActivity)
+    - Add OneDrive authentication UI in AddResourceActivity
+    - Handle MSAL interactive authentication flow
+    - Test OAuth 2.0 flow and Graph API calls
+  - **Technical Notes**:
+    - **REST API approach** (no Graph SDK dependency) - avoids CompletableFuture/Coroutine conflicts
+    - Direct HTTP calls to `graph.microsoft.com/v1.0` endpoints
+    - MSAL 6.0.1 for OAuth 2.0 authentication only
+    - Manual JSON parsing with org.json (no SDK models)
+    - All CRUD operations: list, download, upload, delete, rename, move, copy, search
+    - Thumbnail support with 3 sizes: small (96px), medium (176px), large (800px)
+    - Uses `@microsoft.graph.downloadUrl` for efficient file downloads
+    - ISO 8601 date parsing for `lastModifiedDateTime`
 
 - [ ] **FEATURE: Dropbox Integration - Phase 4** (Core Implementation Complete)
   - ✅ Dropbox SDK 5.4.5 added to dependencies
@@ -40,6 +63,24 @@
 ---
 
 ## 🛠️ Recent Fixes
+
+### Build 2.0.2511171211 ✅
+- ✅ **FEATURE: OneDrive REST API Implementation**
+- **Implementation**: Microsoft Graph REST API v1.0 approach without Graph SDK
+- **Components**:
+  - **OneDriveRestClient.kt**: Full CloudStorageClient implementation via REST API
+    - Authentication: MSAL 6.0.1 OAuth 2.0 with ISingleAccountPublicClientApplication
+    - API: Direct HttpURLConnection calls to `graph.microsoft.com/v1.0`
+    - Endpoints: `/me/drive`, `/me/drive/items/{id}`, `/me/drive/items/{id}/children`
+    - File operations: download (via `@microsoft.graph.downloadUrl`), upload (PUT with InputStream)
+    - Management: create/delete/rename/move/copy folders, search files, get thumbnails
+    - JSON parsing: Manual with org.json.JSONObject/JSONArray
+    - Progress callbacks: Supported for upload/download operations
+  - **CloudMediaScanner**: OneDrive provider routing added
+  - **Localization**: 7 strings per language (en/ru/uk) - sign_in, signed_in, sign_out, select_folder, etc.
+  - **Configuration**: `msal_config.json` template for Azure AD setup
+- **Build Status**: Successful (1m 57s), 3 nullable-type warnings (non-critical)
+- **Key Advantage**: Avoids Graph SDK v5 CompletableFuture incompatibility with Kotlin coroutines
 
 ### Build 2.0.2511171110 ✅
 - ✅ **FEATURE: Dropbox Core Implementation**

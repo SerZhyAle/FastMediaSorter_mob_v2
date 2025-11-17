@@ -22,6 +22,7 @@ class CloudMediaScanner @Inject constructor(
     @ApplicationContext private val context: Context,
     private val googleDriveClient: GoogleDriveClient,
     private val dropboxClient: DropboxClient,
+    private val oneDriveRestClient: OneDriveRestClient,
     private val resourceRepository: ResourceRepository
 ) : MediaScanner {
 
@@ -132,7 +133,7 @@ class CloudMediaScanner @Inject constructor(
         return when (provider) {
             CloudProvider.GOOGLE_DRIVE -> googleDriveClient
             CloudProvider.DROPBOX -> dropboxClient
-            CloudProvider.ONEDRIVE -> null // TODO: implement
+            CloudProvider.ONEDRIVE -> oneDriveRestClient
             null -> null
         }
     }

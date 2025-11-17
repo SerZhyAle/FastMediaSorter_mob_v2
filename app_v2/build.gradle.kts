@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11171200
-        versionName = "2.0.0-build2511171200"
+        versionCode = 11171211
+        versionName = "2.0.0-build2511171211"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -181,6 +181,14 @@ dependencies {
     
     // Cloud Storage - Dropbox
     implementation("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    
+    // Cloud Storage - OneDrive (REST API + MSAL OAuth)
+    implementation("com.microsoft.identity.client:msal:6.0.1") {
+        exclude(group = "io.opentelemetry", module = "opentelemetry-bom")
+        exclude(group = "io.opentelemetry", module = "opentelemetry-context")
+        exclude(group = "io.opentelemetry", module = "opentelemetry-api")
+        exclude(group = "io.opentelemetry", module = "opentelemetry-sdk")
+    }
     
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
