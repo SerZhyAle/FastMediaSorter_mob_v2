@@ -318,7 +318,8 @@ class SmbClient @Inject constructor() {
         path: String,
         extensions: Set<String>,
         results: MutableList<SmbFileInfo>,
-        progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback? = null
+        progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback? = null,
+        lastProgressTime: LongArray = longArrayOf(System.currentTimeMillis()) // Mutable time tracker
     ) {
         try {
             val dirPath = path.trim('/', '\\')
@@ -336,7 +337,7 @@ class SmbClient @Inject constructor() {
                 
                 if (isDirectory) {
                     // Recursively scan subdirectories
-                    scanDirectoryRecursive(share, fullPath, extensions, results, progressCallback)
+                    scanDirectoryRecursive(share, fullPath, extensions, results, progressCallback, lastProgressTime)
                 } else {
                     // Check if file has media extension
                     val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
@@ -351,9 +352,12 @@ class SmbClient @Inject constructor() {
                             )
                         )
                         
-                        // Report progress every 10 files
-                        if (results.size % 10 == 0) {
+                        // Report progress: every 10 files OR every 2 seconds (whichever comes first)
+                        val currentTime = System.currentTimeMillis()
+                        val timeSinceLastReport = currentTime - lastProgressTime[0]
+                        if (results.size % 10 == 0 || timeSinceLastReport >= 2000) {
                             progressCallback?.onProgress(results.size, fileInfo.fileName)
+                            lastProgressTime[0] = currentTime
                         }
                     }
                 }

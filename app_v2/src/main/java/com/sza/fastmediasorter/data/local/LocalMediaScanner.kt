@@ -57,6 +57,7 @@ class LocalMediaScanner @Inject constructor(
             val files = folder.listFiles() ?: return@withContext emptyList()
             val totalFiles = files.count { it.isFile }
             var processedCount = 0
+            var lastProgressReportTime = System.currentTimeMillis()
             
             val result = files.mapNotNull { file ->
                 if (file.isFile) {
@@ -105,10 +106,13 @@ class LocalMediaScanner @Inject constructor(
                             videoFrameRate = videoMetadata?.frameRate,
                             videoRotation = videoMetadata?.rotation
                         ).also {
-                            // Report progress every 100 files
+                            // Report progress: every 100 files OR every 2 seconds (whichever comes first)
                             processedCount++
-                            if (processedCount % 100 == 0 || processedCount == totalFiles) {
+                            val currentTime = System.currentTimeMillis()
+                            val timeSinceLastReport = currentTime - lastProgressReportTime
+                            if (processedCount % 100 == 0 || processedCount == totalFiles || timeSinceLastReport >= 2000) {
                                 onProgress?.invoke(processedCount, totalFiles)
+                                lastProgressReportTime = currentTime
                             }
                         }
                     } else null

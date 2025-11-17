@@ -205,22 +205,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     val shouldSubmit = if (previousMediaFiles == null) {
                         // First load - always submit
-                        Timber.d("shouldSubmit=true: First load (previousMediaFiles=null)")
                         true
                     } else if (state.mediaFiles === previousMediaFiles) {
-                        // Exact same object reference - skip
-                        Timber.d("shouldSubmit=false: Same reference (===)")
+                        // Exact same object reference - skip (no log spam during loading)
                         false
                     } else if (state.mediaFiles.size != previousSize) {
                         // Size changed - definitely submit
-                        Timber.d("shouldSubmit=true: Size changed (${state.mediaFiles.size} != $previousSize)")
                         true
                     } else {
                         // Same size, different reference - check if content actually changed
                         // Compare first and last items' paths as quick heuristic
                         val prevList = previousMediaFiles // Capture for null-safety
                         val contentChanged = if (state.mediaFiles.isEmpty()) {
-                            Timber.d("List is empty, contentChanged=false")
                             false
                         } else {
                             val firstPathCurrent = state.mediaFiles.first().path
@@ -229,10 +225,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             val lastPathPrev = prevList?.lastOrNull()?.path
                             val firstDiff = firstPathCurrent != firstPathPrev
                             val lastDiff = lastPathCurrent != lastPathPrev
-                            Timber.d("Content check: first=$firstPathCurrent vs $firstPathPrev (diff=$firstDiff), last=$lastPathCurrent vs $lastPathPrev (diff=$lastDiff)")
                             firstDiff || lastDiff
                         }
-                        Timber.d("shouldSubmit=contentChanged=$contentChanged (size=${state.mediaFiles.size}, prevSize=$previousSize)")
                         contentChanged
                     }
                     
@@ -289,9 +283,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 }
                             }
                         }
-                    } else {
-                        Timber.d("Skipping submitList: list unchanged (size=${state.mediaFiles.size}, sameRef=${state.mediaFiles === previousMediaFiles})")
                     }
+                    // No log for skipped submitList - reduces log spam during large folder loading
                     
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
                     state.resource?.let { resource ->
