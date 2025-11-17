@@ -29,7 +29,8 @@ interface MediaScanner {
         path: String,
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter? = null,
-        credentialsId: String? = null
+        credentialsId: String? = null,
+        onProgress: ((current: Int, total: Int) -> Unit)? = null
     ): List<MediaFile>
     
     /**
@@ -65,7 +66,8 @@ class GetMediaFilesUseCase @Inject constructor(
         sortMode: SortMode = SortMode.NAME_ASC,
         sizeFilter: SizeFilter? = null,
         useChunkedLoading: Boolean = false,
-        maxFiles: Int = 100
+        maxFiles: Int = 100,
+        onProgress: ((current: Int, total: Int) -> Unit)? = null
     ): Flow<List<MediaFile>> = flow {
         timber.log.Timber.d("GetMediaFilesUseCase: Starting scan for ${resource.name}, useChunked=$useChunkedLoading")
         
@@ -85,12 +87,13 @@ class GetMediaFilesUseCase @Inject constructor(
             )
         } else {
             timber.log.Timber.d("GetMediaFilesUseCase: Using standard loading")
-            // Standard full scan for other types
+            // Standard full scan for other types with progress reporting
             scanner.scanFolder(
                 path = resource.path,
                 supportedTypes = resource.supportedMediaTypes,
                 sizeFilter = sizeFilter,
-                credentialsId = resource.credentialsId
+                credentialsId = resource.credentialsId,
+                onProgress = onProgress
             )
         }
         

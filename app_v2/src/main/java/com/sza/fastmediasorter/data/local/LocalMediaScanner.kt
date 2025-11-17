@@ -38,7 +38,8 @@ class LocalMediaScanner @Inject constructor(
         path: String,
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
-        credentialsId: String?
+        credentialsId: String?,
+        onProgress: ((current: Int, total: Int) -> Unit)?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Check if path is a content:// URI (SAF)
@@ -54,8 +55,10 @@ class LocalMediaScanner @Inject constructor(
             }
 
             val files = folder.listFiles() ?: return@withContext emptyList()
+            val totalFiles = files.count { it.isFile }
+            var processedCount = 0
             
-            files.mapNotNull { file ->
+            val result = files.mapNotNull { file ->
                 if (file.isFile) {
                     val mediaType = getMediaType(file)
                     if (mediaType != null && supportedTypes.contains(mediaType)) {
@@ -101,10 +104,18 @@ class LocalMediaScanner @Inject constructor(
                             videoBitrate = videoMetadata?.bitrate,
                             videoFrameRate = videoMetadata?.frameRate,
                             videoRotation = videoMetadata?.rotation
-                        )
+                        ).also {
+                            // Report progress every 100 files
+                            processedCount++
+                            if (processedCount % 100 == 0 || processedCount == totalFiles) {
+                                onProgress?.invoke(processedCount, totalFiles)
+                            }
+                        }
                     } else null
                 } else null
             }
+            
+            return@withContext result
         } catch (e: Exception) {
             Timber.e(e, "Error scanning folder: $path")
             emptyList()

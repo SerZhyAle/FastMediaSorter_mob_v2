@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -60,6 +62,7 @@ class PlayerViewModel @Inject constructor(
     sealed class PlayerEvent {
         data class ShowError(val message: String) : PlayerEvent()
         data class ShowMessage(val message: String) : PlayerEvent()
+        data class LoadingProgress(val current: Int, val total: Int) : PlayerEvent()
         object FinishActivity : PlayerEvent()
     }
 
@@ -73,6 +76,8 @@ class PlayerViewModel @Inject constructor(
         ?: savedStateHandle.get<String>("initialIndex")?.toIntOrNull() ?: 0
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
     private val initialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
+    
+    private var loadingJob: Job? = null
 
     init {
         loadMediaFiles()
@@ -116,7 +121,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     private fun loadMediaFiles() {
-        viewModelScope.launch {
+        loadingJob = viewModelScope.launch {
             setLoading(true)
             try {
                 val resource = getResourcesUseCase.getById(resourceId)
@@ -146,18 +151,17 @@ class PlayerViewModel @Inject constructor(
                     audioSizeMax = settings.audioSizeMax
                 )
 
-                // Use chunked loading for network resources with many files (>= 200)
-                // For small folders, full scan is faster (avoids recursive traversal overhead)
-                val isNetworkResource = resource.type == ResourceType.SMB || 
-                                       resource.type == ResourceType.SFTP || 
-                                       resource.type == ResourceType.FTP
-                val useChunked = isNetworkResource && resource.fileCount >= 200
-                
+                // Load all files with progress tracking
+                Timber.d("Loading all files from resource (fileCount=${resource.fileCount})")
                 val files = getMediaFilesUseCase(
                     resource = resource,
                     sizeFilter = sizeFilter,
-                    useChunkedLoading = useChunked,
-                    maxFiles = 200 // Load first 200 files quickly for player
+                    useChunkedLoading = false,
+                    maxFiles = Int.MAX_VALUE,
+                    onProgress = { current, total ->
+                        // Emit progress event for UI
+                        sendEvent(PlayerEvent.LoadingProgress(current, total))
+                    }
                 ).first()
                 
                 if (files.isEmpty()) {
@@ -229,6 +233,12 @@ class PlayerViewModel @Inject constructor(
             currentState.currentIndex - 1
         }
         updateState { it.copy(currentIndex = prevIndex) }
+    }
+    
+    fun cancelLoading() {
+        Timber.d("Cancelling file loading")
+        loadingJob?.cancel()
+        loadingJob = null
     }
 
     fun toggleSlideShow() {
@@ -310,6 +320,9 @@ class PlayerViewModel @Inject constructor(
                         val updatedFiles = state.value.files.toMutableList()
                         val deletedIndex = state.value.currentIndex
                         updatedFiles.removeAt(deletedIndex)
+                        
+                        // Update cache to reflect deletion
+                        MediaFilesCacheManager.removeFile(resource.id, currentFile.path)
                         
                         if (updatedFiles.isEmpty()) {
                             // No files left, close activity
@@ -515,5 +528,21 @@ class PlayerViewModel @Inject constructor(
         }
         
         return result
+    }
+    
+    /**
+     * Save last viewed file path to resource for position restoration
+     */
+    fun saveLastViewedFile(filePath: String) {
+        val resource = state.value.resource ?: return
+        
+        viewModelScope.launch {
+            try {
+                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
+                Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save lastViewedFile")
+            }
+        }
     }
 }

@@ -161,6 +161,8 @@
     <string name="created_date">Дата создания</string>
     <string name="last_browse_date">Дата последнего просмотра</string>
     <string name="never_browsed">Никогда не просматривался</string>
+    <string name="loading_files">Загрузка файлов…</string>
+    <string name="files_loaded_progress">Загружено: %1$d / %2$d</string>
     <string name="file_count">Количество файлов</string>
     <string name="supported_media_types">Поддерживаемые типы медиа</string>
     <string name="images">Изображения</string>

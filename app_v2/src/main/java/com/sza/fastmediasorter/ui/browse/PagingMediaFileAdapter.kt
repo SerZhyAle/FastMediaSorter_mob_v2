@@ -31,7 +31,7 @@ import kotlin.math.pow
  * Efficiently loads files in pages to prevent OOM crashes.
  */
 class PagingMediaFileAdapter(
-    private val onFileClick: (MediaFile) -> Unit,
+    private val onFileClick: (MediaFile, Int) -> Unit, // Added position parameter
     private val onFileLongClick: (MediaFile) -> Unit,
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
     private val onPlayClick: (MediaFile) -> Unit,
@@ -133,11 +133,11 @@ class PagingMediaFileAdapter(
                 loadThumbnail(file)
 
                 ivThumbnail.setOnClickListener {
-                    onFileClick(file)
+                    onFileClick(file, bindingAdapterPosition)
                 }
 
                 root.setOnClickListener {
-                    onFileClick(file)
+                    onFileClick(file, bindingAdapterPosition)
                 }
 
                 root.setOnLongClickListener {
@@ -291,11 +291,11 @@ class PagingMediaFileAdapter(
                 loadThumbnail(file)
 
                 ivThumbnail.setOnClickListener {
-                    onFileClick(file)
+                    onFileClick(file, bindingAdapterPosition)
                 }
 
                 root.setOnClickListener {
-                    onFileClick(file)
+                    onFileClick(file, bindingAdapterPosition)
                 }
 
                 root.setOnLongClickListener {

@@ -6,10 +6,12 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.data.paging.MediaFilesPagingSource
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.ResourceType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +32,7 @@ import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
@@ -48,7 +51,9 @@ data class BrowseState(
     val displayMode: DisplayMode = DisplayMode.LIST,
     val filter: FileFilter? = null,
     val lastOperation: UndoOperation? = null,
-    val undoOperationTimestamp: Long? = null // Timestamp when undo operation was saved (for expiry check)
+    val undoOperationTimestamp: Long? = null, // Timestamp when undo operation was saved (for expiry check)
+    val loadingProgress: Int = 0, // Number of files found during scan (0 = not scanning)
+    val isCloudResource: Boolean = false // True for cloud resources (to show animated dots)
 )
 
 sealed class BrowseEvent {
@@ -143,17 +148,33 @@ class BrowseViewModel @Inject constructor(
                 return@launch
             }
             
+            // Determine if cloud resource for progress UI
+            val isCloudResource = resource.type == ResourceType.CLOUD
+            
             updateState { 
                 it.copy(
                     resource = resource,
                     sortMode = resource.sortMode,
-                    displayMode = resource.displayMode
+                    displayMode = resource.displayMode,
+                    isCloudResource = isCloudResource
                 ) 
             }
             
             Timber.d("loadResource: Resource loaded - name=${resource.name}, displayMode=${resource.displayMode}, sortMode=${resource.sortMode}")
             
-            // Start background file count (for header display)
+            // Check if we have cached data
+            val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
+            if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+                Timber.d("loadResource: Using cached list (${cachedFiles.size} files)")
+                updateState { it.copy(mediaFiles = cachedFiles, totalFileCount = cachedFiles.size) }
+                setLoading(false)
+                
+                // Start background file count (for header display) but don't block UI
+                startFileCountInBackground()
+                return@launch
+            }
+            
+            // No cache - start background file count (for header display)
             startFileCountInBackground()
             
             loadMediaFiles()
@@ -172,7 +193,20 @@ class BrowseViewModel @Inject constructor(
         Timber.d("loadMediaFiles: Starting new load")
         
         // Clear current list immediately to prevent stale data clicks
-        updateState { it.copy(mediaFiles = emptyList()) }
+        updateState { it.copy(mediaFiles = emptyList(), loadingProgress = 0) }
+        
+        // Start progress timer for UI updates every 2 seconds
+        var lastProgressUpdate = 0
+        val progressJob = viewModelScope.launch(ioDispatcher) {
+            while (true) {
+                delay(2000) // Update every 2 seconds
+                val currentProgress = state.value.loadingProgress
+                if (currentProgress > 0 && currentProgress != lastProgressUpdate) {
+                    Timber.d("loadMediaFiles: Progress update - $currentProgress files found")
+                    lastProgressUpdate = currentProgress
+                }
+            }
+        }
         
         loadFilesJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -210,65 +244,51 @@ class BrowseViewModel @Inject constructor(
                 
                 updateState { it.copy(totalFileCount = fileCount) }
                 
-                // Decide loading strategy based on file count AND sort mode
-                // Pagination only works correctly with NAME sorting (files returned in sorted order)
-                // For DATE/SIZE/TYPE sorting, we need all files to determine global order
-                val canUsePagination = fileCount >= PAGINATION_THRESHOLD && 
-                    (state.value.sortMode == SortMode.NAME_ASC || state.value.sortMode == SortMode.NAME_DESC)
-                
-                if (canUsePagination) {
-                    Timber.i("Using pagination for large folder ($fileCount files, sort=${state.value.sortMode})")
-                    loadMediaFilesWithPagination(resource, sizeFilter)
-                } else {
-                    if (fileCount >= PAGINATION_THRESHOLD && state.value.sortMode !in setOf(SortMode.NAME_ASC, SortMode.NAME_DESC)) {
-                        Timber.w("Large folder ($fileCount files) with sort mode ${state.value.sortMode} - pagination disabled, using full scan (may be slow)")
-                    } else {
-                        Timber.d("Using standard loading for folder ($fileCount files, sort=${state.value.sortMode})")
-                    }
-                    loadMediaFilesStandard(resource, sizeFilter)
-                }
+                // Always load all files (no pagination)
+                Timber.d("Loading all files for folder ($fileCount files, sort=${state.value.sortMode})")
+                loadMediaFilesStandard(resource, sizeFilter, progressJob)
             } catch (e: Exception) {
                 Timber.e(e, "Error determining file count")
+                progressJob.cancel()
                 // Fallback to standard loading if count fails
-                loadMediaFilesStandard(resource, sizeFilter)
+                loadMediaFilesStandard(resource, sizeFilter, progressJob)
             }
         }
     }
     
-    private fun loadMediaFilesStandard(resource: MediaResource, sizeFilter: SizeFilter) {
+    private fun loadMediaFilesStandard(resource: MediaResource, sizeFilter: SizeFilter, progressJob: Job? = null) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            // Use chunked loading for network resources ONLY if file count suggests large folder
-            // For small folders (<200 files), full scan is faster than chunked with limit
-            val isNetworkResource = resource.type in setOf(
-                com.sza.fastmediasorter.domain.model.ResourceType.SMB,
-                com.sza.fastmediasorter.domain.model.ResourceType.SFTP,
-                com.sza.fastmediasorter.domain.model.ResourceType.FTP
-            )
-            val fileCount = state.value.totalFileCount ?: 0
-            val useChunked = isNetworkResource && fileCount >= 200
+            // Always load all files (no chunked loading)
+            Timber.d("Starting loadMediaFilesStandard: resource=${resource.name}, loading all files")
             
-            Timber.d("Starting loadMediaFilesStandard: resource=${resource.name}, useChunked=$useChunked (fileCount=$fileCount)")
+            // Progress callback to update UI every time scanner emits progress
+            val progressCallback: (current: Int, total: Int) -> Unit = { current, _ ->
+                updateState { it.copy(loadingProgress = current) }
+            }
             
             getMediaFilesUseCase(
                 resource = resource,
                 sortMode = state.value.sortMode,
                 sizeFilter = sizeFilter,
-                useChunkedLoading = useChunked,
-                maxFiles = 100
+                useChunkedLoading = false,
+                maxFiles = Int.MAX_VALUE,
+                onProgress = progressCallback
             )
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
+                    progressJob?.cancel()
                     setLoading(false)
                     handleLoadingError(resource, e)
                 }
                 .collect { files ->
                     Timber.d("Collected ${files.size} files from flow")
-                    updateState { it.copy(mediaFiles = files, usePagination = false) }
-                    setLoading(false)
                     
-                    if (useChunked && files.size >= 100) {
-                        Timber.d("Loaded first ${files.size} files via chunked loading")
-                    }
+                    // Cache the list for future use
+                    MediaFilesCacheManager.setCachedList(resourceId, files)
+                    
+                    updateState { it.copy(mediaFiles = files, usePagination = false, loadingProgress = 0) }
+                    progressJob?.cancel()
+                    setLoading(false)
                     
                     // Update resource metadata (fileCount and lastBrowseDate) after successful load
                     updateResourceMetadataAfterBrowse(resource, files.size)
@@ -502,7 +522,17 @@ class BrowseViewModel @Inject constructor(
             Timber.d("Saved sortMode=$sortMode for resource: ${resource.name}")
         }
         
-        loadMediaFiles()
+        // If we have cached list, re-sort it instead of rescanning
+        val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
+        if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+            Timber.d("setSortMode: Applying sort to cached list (${cachedFiles.size} files)")
+            val sortedFiles = sortFiles(cachedFiles, sortMode)
+            MediaFilesCacheManager.setCachedList(resourceId, sortedFiles)
+            updateState { it.copy(mediaFiles = sortedFiles) }
+        } else {
+            // No cache - need to reload
+            loadMediaFiles()
+        }
     }
 
     fun toggleDisplayMode() {
@@ -588,14 +618,13 @@ class BrowseViewModel @Inject constructor(
         updateState { it.copy(selectedFiles = allPaths, lastSelectedPath = allPaths.lastOrNull()) }
     }
 
-    fun openFile(file: MediaFile) {
+    fun openFile(file: MediaFile, approximatePosition: Int = 0) {
         val resource = state.value.resource ?: return
         
-        // In pagination mode, mediaFiles list is empty (data in PagingData)
-        // Player will reload all files anyway, so index doesn't matter - use 0
+        // In pagination mode, pass approximatePosition to Player for smart chunk loading
         val index = if (state.value.usePagination) {
-            Timber.d("openFile (pagination mode): ${file.name}, using index=0 (Player will reload)")
-            0
+            Timber.d("openFile (pagination mode): ${file.name}, approximatePosition=$approximatePosition")
+            approximatePosition
         } else {
             // Standard mode - find actual index in mediaFiles list
             val foundIndex = state.value.mediaFiles.indexOfFirst { it.path == file.path }
@@ -705,9 +734,14 @@ class BrowseViewModel @Inject constructor(
                     oldNames = null
                 )
                 saveUndoOperation(undoOp)
+                
+                // Update cache: remove deleted files without rescanning
+                deletedFiles.forEach { path ->
+                    MediaFilesCacheManager.removeFile(resourceId, path)
+                }
             }
             
-            // Clear selection and reload files
+            // Clear selection and reload files (will use updated cache if available)
             clearSelection()
             loadResource()
             
@@ -998,5 +1032,35 @@ class BrowseViewModel @Inject constructor(
         fileObserver?.stopWatching()
         fileObserver = null
         Timber.d("Stopped FileObserver")
+    }
+    
+    /**
+     * Sorts files according to sort mode. Used for in-memory sorting without rescanning.
+     */
+    private fun sortFiles(files: List<MediaFile>, mode: SortMode): List<MediaFile> {
+        return when (mode) {
+            SortMode.MANUAL -> files // Keep original order for manual mode
+            SortMode.NAME_ASC -> files.sortedBy { it.name.lowercase() }
+            SortMode.NAME_DESC -> files.sortedByDescending { it.name.lowercase() }
+            SortMode.DATE_ASC -> files.sortedBy { it.createdDate }
+            SortMode.DATE_DESC -> files.sortedByDescending { it.createdDate }
+            SortMode.SIZE_ASC -> files.sortedBy { it.size }
+            SortMode.SIZE_DESC -> files.sortedByDescending { it.size }
+            SortMode.TYPE_ASC -> files.sortedBy { it.type.ordinal }
+            SortMode.TYPE_DESC -> files.sortedByDescending { it.type.ordinal }
+            SortMode.RANDOM -> files.shuffled() // Random order for slideshows
+        }
+    }
+    
+    /**
+     * Save last viewed file path to resource for position restoration
+     */
+    fun saveLastViewedFile(filePath: String) {
+        val resource = state.value.resource ?: return
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            updateResourceUseCase(resource.copy(lastViewedFile = filePath))
+            Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
+        }
     }
 }

@@ -33,7 +33,8 @@ class SftpMediaScanner @Inject constructor(
         path: String,
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
-        credentialsId: String?
+        credentialsId: String?,
+        onProgress: ((current: Int, total: Int) -> Unit)?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Parse path format: sftp://server:port/remotePath

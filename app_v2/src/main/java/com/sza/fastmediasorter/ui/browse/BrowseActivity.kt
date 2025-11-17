@@ -51,8 +51,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private val viewModel: BrowseViewModel by viewModels()
     private lateinit var mediaFileAdapter: MediaFileAdapter
-    private lateinit var pagingMediaFileAdapter: PagingMediaFileAdapter
-    private var usePagination = false
     private var mediaStoreObserver: MediaStoreObserver? = null
     
     // Flag to prevent duplicate file loading on first onResume after onCreate
@@ -90,7 +88,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
-        // Setup standard adapter (for small lists)
+        // Setup standard adapter (always used - no pagination)
         mediaFileAdapter = MediaFileAdapter(
             onFileClick = { file ->
                 viewModel.openFile(file)
@@ -107,31 +105,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             },
             getShowVideoThumbnails = { showVideoThumbnails }
         )
-        
-        // Setup paging adapter (for large lists 1000+)
-        pagingMediaFileAdapter = PagingMediaFileAdapter(
-            onFileClick = { file ->
-                viewModel.openFile(file)
-            },
-            onFileLongClick = { file ->
-                viewModel.selectFileRange(file.path)
-            },
-            onSelectionChanged = { file, _ ->
-                viewModel.selectFile(file.path)
-            },
-            onPlayClick = { file ->
-                viewModel.openFile(file)
-            },
-            getShowVideoThumbnails = { showVideoThumbnails }
-        )
-        
-        // Add footer adapter for "Loading more..." indicator
-        val loadStateAdapter = PagingLoadStateAdapter { pagingMediaFileAdapter.retry() }
-        val adapterWithFooter = pagingMediaFileAdapter.withLoadStateFooter(loadStateAdapter)
 
         binding.rvMediaFiles.apply {
-            // Set initial adapter based on usePagination flag
-            adapter = if (usePagination) adapterWithFooter else mediaFileAdapter
+            // Always use standard adapter (pagination removed)
+            adapter = mediaFileAdapter
             
             // Calculate optimal cache size based on screen size
             val displayMetrics = resources.displayMetrics
@@ -218,87 +195,84 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    Timber.d("State collected: usePagination=${state.usePagination}, mediaFiles.size=${state.mediaFiles.size}, resource=${state.resource?.name}")
+                    Timber.d("State collected: mediaFiles.size=${state.mediaFiles.size}, resource=${state.resource?.name}")
                     
-                    // Switch between pagination and standard mode
-                    if (state.usePagination != usePagination) {
-                        usePagination = state.usePagination
-                        switchAdapter(usePagination)
+                    // Always use standard mode (no pagination)
+                    // Only submit list if content actually changed
+                    // Compare with last emitted list from ViewModel (survives Activity recreation)
+                    val previousMediaFiles = viewModel.lastEmittedMediaFiles
+                    val previousSize = previousMediaFiles?.size ?: -1
+                    
+                    val shouldSubmit = if (previousMediaFiles == null) {
+                        // First load - always submit
+                        Timber.d("shouldSubmit=true: First load (previousMediaFiles=null)")
+                        true
+                    } else if (state.mediaFiles === previousMediaFiles) {
+                        // Exact same object reference - skip
+                        Timber.d("shouldSubmit=false: Same reference (===)")
+                        false
+                    } else if (state.mediaFiles.size != previousSize) {
+                        // Size changed - definitely submit
+                        Timber.d("shouldSubmit=true: Size changed (${state.mediaFiles.size} != $previousSize)")
+                        true
+                    } else {
+                        // Same size, different reference - check if content actually changed
+                        // Compare first and last items' paths as quick heuristic
+                        val prevList = previousMediaFiles // Capture for null-safety
+                        val contentChanged = if (state.mediaFiles.isEmpty()) {
+                            Timber.d("List is empty, contentChanged=false")
+                            false
+                        } else {
+                            val firstPathCurrent = state.mediaFiles.first().path
+                            val firstPathPrev = prevList?.firstOrNull()?.path
+                            val lastPathCurrent = state.mediaFiles.last().path
+                            val lastPathPrev = prevList?.lastOrNull()?.path
+                            val firstDiff = firstPathCurrent != firstPathPrev
+                            val lastDiff = lastPathCurrent != lastPathPrev
+                            Timber.d("Content check: first=$firstPathCurrent vs $firstPathPrev (diff=$firstDiff), last=$lastPathCurrent vs $lastPathPrev (diff=$lastDiff)")
+                            firstDiff || lastDiff
+                        }
+                        Timber.d("shouldSubmit=contentChanged=$contentChanged (size=${state.mediaFiles.size}, prevSize=$previousSize)")
+                        contentChanged
                     }
                     
-                    // Handle pagination mode vs standard mode
-                    if (!state.usePagination) {
-                        // Only submit list if content actually changed
-                        // Compare with last emitted list from ViewModel (survives Activity recreation)
-                        val previousMediaFiles = viewModel.lastEmittedMediaFiles
-                        val previousSize = previousMediaFiles?.size ?: -1
+                    if (shouldSubmit) {
+                        viewModel.markListAsSubmitted(state.mediaFiles)
                         
-                        val shouldSubmit = if (previousMediaFiles == null) {
-                            // First load - always submit
-                            Timber.d("shouldSubmit=true: First load (previousMediaFiles=null)")
-                            true
-                        } else if (state.mediaFiles === previousMediaFiles) {
-                            // Exact same object reference - skip
-                            Timber.d("shouldSubmit=false: Same reference (===)")
-                            false
-                        } else if (state.mediaFiles.size != previousSize) {
-                            // Size changed - definitely submit
-                            Timber.d("shouldSubmit=true: Size changed (${state.mediaFiles.size} != $previousSize)")
-                            true
-                        } else {
-                            // Same size, different reference - check if content actually changed
-                            // Compare first and last items' paths as quick heuristic
-                            val prevList = previousMediaFiles // Capture for null-safety
-                            val contentChanged = if (state.mediaFiles.isEmpty()) {
-                                Timber.d("List is empty, contentChanged=false")
-                                false
-                            } else {
-                                val firstPathCurrent = state.mediaFiles.first().path
-                                val firstPathPrev = prevList?.firstOrNull()?.path
-                                val lastPathCurrent = state.mediaFiles.last().path
-                                val lastPathPrev = prevList?.lastOrNull()?.path
-                                val firstDiff = firstPathCurrent != firstPathPrev
-                                val lastDiff = lastPathCurrent != lastPathPrev
-                                Timber.d("Content check: first=$firstPathCurrent vs $firstPathPrev (diff=$firstDiff), last=$lastPathCurrent vs $lastPathPrev (diff=$lastDiff)")
-                                firstDiff || lastDiff
-                            }
-                            Timber.d("shouldSubmit=contentChanged=$contentChanged (size=${state.mediaFiles.size}, prevSize=$previousSize)")
-                            contentChanged
-                        }
+                        // Standard mode - submit full list to MediaFileAdapter
+                        val previousListSize = mediaFileAdapter.itemCount
                         
-                        if (shouldSubmit) {
-                            viewModel.markListAsSubmitted(state.mediaFiles)
-                            
-                            // Standard mode - submit full list to MediaFileAdapter
-                            val previousListSize = mediaFileAdapter.itemCount
-                            
-                            Timber.d("Submitting ${state.mediaFiles.size} files to adapter (previous size: $previousListSize)")
-                            
-                            mediaFileAdapter.submitList(state.mediaFiles) {
+                        Timber.d("Submitting ${state.mediaFiles.size} files to adapter (previous size: $previousListSize)")
+                        
+                        mediaFileAdapter.submitList(state.mediaFiles) {
                             Timber.d("Adapter list submitted successfully, current itemCount=${mediaFileAdapter.itemCount}")
                             
                             // Update empty state AFTER adapter updates itemCount
-                            val isLoading = viewModel.loading.value
                             val itemCount = mediaFileAdapter.itemCount
                             
-                            if (isLoading && itemCount == 0) {
-                                // Loading in progress - show "Loading..." message
-                                binding.tvEmpty.isVisible = true
-                                binding.tvEmpty.text = getString(R.string.loading)
-                                Timber.d("Empty state: showing loading message (isLoading=true, itemCount=0)")
-                            } else if (!isLoading && itemCount == 0) {
-                                // Loading complete, no files - show "No files found"
-                                binding.tvEmpty.isVisible = true
-                                binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
-                                    getString(R.string.no_files_match_criteria)
-                                } else {
-                                    getString(R.string.no_media_files_found)
-                                }
-                                Timber.d("Empty state: no files found (isLoading=false, itemCount=0)")
-                            } else {
-                                // Files loaded - hide empty state
+                            if (itemCount > 0) {
+                                // Files loaded - hide empty state (even if background loading continues)
                                 binding.tvEmpty.isVisible = false
                                 Timber.d("Empty state: hidden (itemCount=$itemCount)")
+                            } else {
+                                // No items yet - check loading state
+                                val isLoading = viewModel.loading.value
+                                
+                                if (isLoading) {
+                                    // Loading in progress - show "Loading..." message
+                                    binding.tvEmpty.isVisible = true
+                                    binding.tvEmpty.text = getString(R.string.loading)
+                                    Timber.d("Empty state: showing loading message (isLoading=true, itemCount=0)")
+                                } else {
+                                    // Loading complete, no files - show "No files found"
+                                    binding.tvEmpty.isVisible = true
+                                    binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
+                                        getString(R.string.no_files_match_criteria)
+                                    } else {
+                                        getString(R.string.no_media_files_found)
+                                    }
+                                    Timber.d("Empty state: no files found (isLoading=false, itemCount=0)")
+                                }
                             }
                             Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}, tvEmpty.isVisible=${binding.tvEmpty.isVisible}")
                             
@@ -315,19 +289,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 }
                             }
                         }
-                        } else {
-                            Timber.d("Skipping submitList: list unchanged (size=${state.mediaFiles.size}, sameRef=${state.mediaFiles === previousMediaFiles})")
-                        }
-                        mediaFileAdapter.setSelectedPaths(state.selectedFiles)
-                        state.resource?.let { resource ->
-                            mediaFileAdapter.setCredentialsId(resource.credentialsId)
-                        }
                     } else {
-                        // Pagination mode - flow is handled separately below
-                        pagingMediaFileAdapter.setSelectedPaths(state.selectedFiles)
-                        state.resource?.let { resource ->
-                            pagingMediaFileAdapter.setCredentialsId(resource.credentialsId)
-                        }
+                        Timber.d("Skipping submitList: list unchanged (size=${state.mediaFiles.size}, sameRef=${state.mediaFiles === previousMediaFiles})")
+                    }
+                    
+                    mediaFileAdapter.setSelectedPaths(state.selectedFiles)
+                    state.resource?.let { resource ->
+                        mediaFileAdapter.setCredentialsId(resource.credentialsId)
                     }
 
                     state.resource?.let { resource ->
@@ -355,78 +323,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     if (state.displayMode != currentDisplayMode) {
                         currentDisplayMode = state.displayMode
                         updateDisplayMode(state.displayMode)
-                    }
-                }
-            }
-        }
-        
-        // Subscribe to pagingDataFlow for large datasets
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.pagingDataFlow.collect { flow ->
-                    flow?.collect { pagingData ->
-                        Timber.d("Submitting pagingData to adapter")
-                        pagingMediaFileAdapter.submitData(pagingData)
-                    }
-                }
-            }
-        }
-        
-        // Handle paging adapter LoadState
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                pagingMediaFileAdapter.loadStateFlow.collect { loadStates ->
-                    // Show loading indicator during initial load or refresh
-                    val isLoading = loadStates.refresh is androidx.paging.LoadState.Loading
-                    binding.progressBar.isVisible = isLoading
-                    
-                    // Update empty state for pagination mode
-                    val itemCount = pagingMediaFileAdapter.itemCount
-                    val isNotLoading = loadStates.refresh is androidx.paging.LoadState.NotLoading
-                    
-                    if (isLoading && itemCount == 0) {
-                        // Loading in progress - show "Loading..." message
-                        binding.tvEmpty.isVisible = true
-                        binding.tvEmpty.text = getString(R.string.loading)
-                        Timber.d("Pagination empty state: showing loading message")
-                    } else if (isNotLoading && itemCount == 0) {
-                        // Loading complete, no files - show "No files found"
-                        val currentFilter = viewModel.state.value.filter
-                        binding.tvEmpty.isVisible = true
-                        binding.tvEmpty.text = if (currentFilter != null && !currentFilter.isEmpty()) {
-                            getString(R.string.no_files_match_criteria)
-                        } else {
-                            getString(R.string.no_media_files_found)
-                        }
-                        Timber.d("Pagination empty state: no files found")
-                    } else if (itemCount > 0) {
-                        // Files loaded - hide empty state
-                        binding.tvEmpty.isVisible = false
-                        Timber.d("Pagination empty state: hidden (itemCount=$itemCount)")
-                    }
-                    
-                    // Show error state if initial load failed
-                    val isError = loadStates.refresh is androidx.paging.LoadState.Error
-                    if (isError) {
-                        val error = (loadStates.refresh as androidx.paging.LoadState.Error).error
-                        Timber.e(error, "Paging load error")
-                        showError("Failed to load files", error.stackTraceToString(), error)
-                    }
-                    
-                    // Log append state for debugging
-                    when (loadStates.append) {
-                        is androidx.paging.LoadState.Loading -> {
-                            Timber.d("Loading more files...")
-                        }
-                        is androidx.paging.LoadState.Error -> {
-                            val error = (loadStates.append as androidx.paging.LoadState.Error).error
-                            Timber.e(error, "Error loading more files")
-                        }
-                        is androidx.paging.LoadState.NotLoading -> {
-                            if (loadStates.append.endOfPaginationReached) {
-                                Timber.d("Reached end of pagination")
-                            }
-                        }
                     }
                 }
             }
@@ -579,6 +475,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private fun buildResourceInfo(state: BrowseState): String {
         val resource = state.resource ?: return ""
+        
+        // Show loading progress if scanning
+        if (state.loadingProgress > 0) {
+            val dots = if (state.isCloudResource) {
+                // Animated dots for cloud resources (will be updated periodically)
+                val dotCount = ((System.currentTimeMillis() / 500) % 4).toInt() // 0-3 dots every 0.5s
+                ".".repeat(dotCount)
+            } else {
+                ""
+            }
+            return "${resource.name} • Loading$dots (${state.loadingProgress})"
+        }
+        
         val selected = if (state.selectedFiles.isEmpty()) {
             ""
         } else {
@@ -635,25 +544,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     private suspend fun updateDisplayMode(mode: DisplayMode) {
-        Timber.d("updateDisplayMode: mode=$mode, usePagination=$usePagination")
+        Timber.d("updateDisplayMode: mode=$mode")
         
         val settings = settingsRepository.getSettings().first()
         val iconSize = settings.defaultIconSize
         
-        // Update adapter mode
-        if (usePagination) {
-            pagingMediaFileAdapter.setGridMode(
-                enabled = mode == DisplayMode.GRID,
-                iconSize = iconSize
-            )
-            Timber.d("updateDisplayMode: Updated pagingAdapter gridMode=${mode == DisplayMode.GRID}")
-        } else {
-            mediaFileAdapter.setGridMode(
-                enabled = mode == DisplayMode.GRID,
-                iconSize = iconSize
-            )
-            Timber.d("updateDisplayMode: Updated mediaFileAdapter gridMode=${mode == DisplayMode.GRID}")
-        }
+        // Update adapter mode (standard mode only)
+        mediaFileAdapter.setGridMode(
+            enabled = mode == DisplayMode.GRID,
+            iconSize = iconSize
+        )
+        Timber.d("updateDisplayMode: Updated mediaFileAdapter gridMode=${mode == DisplayMode.GRID}")
         
         // Update toggle button icon
         binding.btnToggleView.setImageResource(
@@ -681,22 +582,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         binding.rvMediaFiles.layoutManager = newLayoutManager
         Timber.d("updateDisplayMode: Layout manager updated to ${newLayoutManager::class.simpleName}")
-    }
-    
-    /**
-     * Switch between standard MediaFileAdapter and PagingMediaFileAdapter
-     */
-    private fun switchAdapter(usePagination: Boolean) {
-        Timber.d("Switching to ${if (usePagination) "pagination" else "standard"} adapter")
-        
-        if (usePagination) {
-            // Use adapter with footer for pagination
-            val loadStateAdapter = PagingLoadStateAdapter { pagingMediaFileAdapter.retry() }
-            binding.rvMediaFiles.adapter = pagingMediaFileAdapter.withLoadStateFooter(loadStateAdapter)
-        } else {
-            // Use standard adapter
-            binding.rvMediaFiles.adapter = mediaFileAdapter
-        }
     }
 
     private fun showFilterDialog() {
@@ -1201,6 +1086,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         super.onPause()
         // Stop MediaStore observer to avoid unnecessary updates
         stopMediaStoreObserver()
+        
+        // Save current scroll position
+        saveLastViewedFile()
     }
     
     private fun startMediaStoreObserver() {
@@ -1229,6 +1117,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         mediaStoreObserver?.stopWatching()
         mediaStoreObserver = null
         Timber.d("Stopped MediaStore observer")
+    }
+    
+    private fun saveLastViewedFile() {
+        val layoutManager = binding.rvMediaFiles.layoutManager as? LinearLayoutManager ?: return
+        val firstVisiblePosition = layoutManager.findFirstVisibleItemPosition()
+        
+        if (firstVisiblePosition != RecyclerView.NO_POSITION) {
+            val currentFile = mediaFileAdapter.currentList.getOrNull(firstVisiblePosition)
+            if (currentFile != null) {
+                viewModel.saveLastViewedFile(currentFile.path)
+                Timber.d("Saved last viewed file: ${currentFile.path}")
+            }
+        }
     }
 
     companion object {

@@ -161,6 +161,8 @@
     <string name="created_date">Created Date</string>
     <string name="last_browse_date">Last Browse Date</string>
     <string name="never_browsed">Never browsed</string>
+    <string name="loading_files">Loading files…</string>
+    <string name="files_loaded_progress">Loaded: %1$d / %2$d</string>
     <string name="file_count">File Count</string>
     <string name="supported_media_types">Supported Media Types</string>
     <string name="images">Images</string>
