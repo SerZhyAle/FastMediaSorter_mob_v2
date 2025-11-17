@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.data.network
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.usecase.ExtractExifMetadataUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
@@ -20,8 +19,8 @@ import javax.inject.Singleton
 @Singleton
 class SmbMediaScanner @Inject constructor(
     private val smbClient: SmbClient,
-    private val credentialsDao: NetworkCredentialsDao,
-    private val exifExtractor: ExtractExifMetadataUseCase
+    private val credentialsDao: NetworkCredentialsDao
+    // Metadata extraction removed - loaded on-demand
 ) : MediaScanner {
 
     companion object {

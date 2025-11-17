@@ -6,8 +6,6 @@ import android.webkit.MimeTypeMap
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.usecase.ExtractExifMetadataUseCase
-import com.sza.fastmediasorter.domain.usecase.ExtractVideoMetadataUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
@@ -22,9 +20,8 @@ import javax.inject.Singleton
 
 @Singleton
 class LocalMediaScanner @Inject constructor(
-    @ApplicationContext private val context: Context,
-    private val exifExtractor: ExtractExifMetadataUseCase,
-    private val videoExtractor: ExtractVideoMetadataUseCase
+    @ApplicationContext private val context: Context
+    // EXIF/video metadata extraction removed from scanning - loaded on-demand in PlayerActivity
 ) : MediaScanner {
 
     companion object {
@@ -68,25 +65,8 @@ class LocalMediaScanner @Inject constructor(
                             return@mapNotNull null
                         }
                         
-                        // Extract EXIF metadata for IMAGE type files
-                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
-                            try {
-                                exifExtractor.extractFromFile(file.absolutePath)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract EXIF for: ${file.name}")
-                                null
-                            }
-                        } else null
-                        
-                        // Extract video metadata for VIDEO type files
-                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
-                            try {
-                                videoExtractor.extractFromFile(file.absolutePath)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract video metadata for: ${file.name}")
-                                null
-                            }
-                        } else null
+                        // Metadata (EXIF, video codec/duration) extracted on-demand in PlayerActivity FileInfoDialog
+                        // Not needed for scanning - saves ~90% scan time on large folders
                         
                         MediaFile(
                             name = file.name,
@@ -94,17 +74,17 @@ class LocalMediaScanner @Inject constructor(
                             size = file.length(),
                             createdDate = file.lastModified(),
                             type = mediaType,
-                            duration = videoMetadata?.duration,
-                            width = videoMetadata?.width,
-                            height = videoMetadata?.height,
-                            exifOrientation = exifMetadata?.orientation,
-                            exifDateTime = exifMetadata?.dateTime,
-                            exifLatitude = exifMetadata?.latitude,
-                            exifLongitude = exifMetadata?.longitude,
-                            videoCodec = videoMetadata?.codec,
-                            videoBitrate = videoMetadata?.bitrate,
-                            videoFrameRate = videoMetadata?.frameRate,
-                            videoRotation = videoMetadata?.rotation
+                            duration = null,
+                            width = null,
+                            height = null,
+                            exifOrientation = null,
+                            exifDateTime = null,
+                            exifLatitude = null,
+                            exifLongitude = null,
+                            videoCodec = null,
+                            videoBitrate = null,
+                            videoFrameRate = null,
+                            videoRotation = null
                         ).also {
                             // Report progress: every 100 files OR every 2 seconds (whichever comes first)
                             processedCount++
@@ -164,25 +144,7 @@ class LocalMediaScanner @Inject constructor(
                             return@forEach
                         }
                         
-                        // Extract EXIF metadata for IMAGE type files
-                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
-                            try {
-                                exifExtractor.extractFromFile(file.absolutePath)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract EXIF for: ${file.name}")
-                                null
-                            }
-                        } else null
-                        
-                        // Extract video metadata for VIDEO type files
-                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
-                            try {
-                                videoExtractor.extractFromFile(file.absolutePath)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract video metadata for: ${file.name}")
-                                null
-                            }
-                        } else null
+                        // Metadata extracted on-demand - not needed for scanning
                         
                         result.add(
                             MediaFile(
@@ -191,17 +153,17 @@ class LocalMediaScanner @Inject constructor(
                                 type = mediaType,
                                 size = file.length(),
                                 createdDate = file.lastModified(),
-                                duration = videoMetadata?.duration,
-                                width = videoMetadata?.width,
-                                height = videoMetadata?.height,
-                                exifOrientation = exifMetadata?.orientation,
-                                exifDateTime = exifMetadata?.dateTime,
-                                exifLatitude = exifMetadata?.latitude,
-                                exifLongitude = exifMetadata?.longitude,
-                                videoCodec = videoMetadata?.codec,
-                                videoBitrate = videoMetadata?.bitrate,
-                                videoFrameRate = videoMetadata?.frameRate,
-                                videoRotation = videoMetadata?.rotation
+                                duration = null,
+                                width = null,
+                                height = null,
+                                exifOrientation = null,
+                                exifDateTime = null,
+                                exifLatitude = null,
+                                exifLongitude = null,
+                                videoCodec = null,
+                                videoBitrate = null,
+                                videoFrameRate = null,
+                                videoRotation = null
                             )
                         )
                         
@@ -259,25 +221,7 @@ class LocalMediaScanner @Inject constructor(
                             return@mapNotNull null
                         }
                         
-                        // Extract EXIF metadata for IMAGE type files
-                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
-                            try {
-                                exifExtractor.extractFromFile(file.absolutePath)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract EXIF for: ${file.name}")
-                                null
-                            }
-                        } else null
-                        
-                        // Extract video metadata for VIDEO type files
-                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
-                            try {
-                                videoExtractor.extractFromFile(file.absolutePath)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract video metadata for: ${file.name}")
-                                null
-                            }
-                        } else null
+                        // Metadata extracted on-demand
                         
                         MediaFile(
                             name = file.name,
@@ -285,17 +229,17 @@ class LocalMediaScanner @Inject constructor(
                             size = file.length(),
                             createdDate = file.lastModified(),
                             type = mediaType,
-                            duration = videoMetadata?.duration,
-                            width = videoMetadata?.width,
-                            height = videoMetadata?.height,
-                            exifOrientation = exifMetadata?.orientation,
-                            exifDateTime = exifMetadata?.dateTime,
-                            exifLatitude = exifMetadata?.latitude,
-                            exifLongitude = exifMetadata?.longitude,
-                            videoCodec = videoMetadata?.codec,
-                            videoBitrate = videoMetadata?.bitrate,
-                            videoFrameRate = videoMetadata?.frameRate,
-                            videoRotation = videoMetadata?.rotation
+                            duration = null,
+                            width = null,
+                            height = null,
+                            exifOrientation = null,
+                            exifDateTime = null,
+                            exifLatitude = null,
+                            exifLongitude = null,
+                            videoCodec = null,
+                            videoBitrate = null,
+                            videoFrameRate = null,
+                            videoRotation = null
                         )
                     } else null
                 } else null
@@ -347,25 +291,7 @@ class LocalMediaScanner @Inject constructor(
                             return@mapNotNull null
                         }
                         
-                        // Extract EXIF metadata for IMAGE type files
-                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
-                            try {
-                                exifExtractor.extractFromUri(file.uri)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract EXIF for SAF file: ${file.name}")
-                                null
-                            }
-                        } else null
-                        
-                        // Extract video metadata for VIDEO type files
-                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
-                            try {
-                                videoExtractor.extractFromUri(file.uri)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract video metadata for SAF file: ${file.name}")
-                                null
-                            }
-                        } else null
+                        // Metadata extracted on-demand
                         
                         MediaFile(
                             name = file.name ?: "unknown",
@@ -373,17 +299,17 @@ class LocalMediaScanner @Inject constructor(
                             size = fileSize,
                             createdDate = file.lastModified(),
                             type = mediaType,
-                            duration = videoMetadata?.duration,
-                            width = videoMetadata?.width,
-                            height = videoMetadata?.height,
-                            exifOrientation = exifMetadata?.orientation,
-                            exifDateTime = exifMetadata?.dateTime,
-                            exifLatitude = exifMetadata?.latitude,
-                            exifLongitude = exifMetadata?.longitude,
-                            videoCodec = videoMetadata?.codec,
-                            videoBitrate = videoMetadata?.bitrate,
-                            videoFrameRate = videoMetadata?.frameRate,
-                            videoRotation = videoMetadata?.rotation
+                            duration = null,
+                            width = null,
+                            height = null,
+                            exifOrientation = null,
+                            exifDateTime = null,
+                            exifLatitude = null,
+                            exifLongitude = null,
+                            videoCodec = null,
+                            videoBitrate = null,
+                            videoFrameRate = null,
+                            videoRotation = null
                         )
                     } else null
                 } else null
@@ -432,25 +358,7 @@ class LocalMediaScanner @Inject constructor(
                             return@mapNotNull null
                         }
                         
-                        // Extract EXIF metadata for IMAGE type files
-                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
-                            try {
-                                exifExtractor.extractFromUri(file.uri)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract EXIF for SAF file: ${file.name}")
-                                null
-                            }
-                        } else null
-                        
-                        // Extract video metadata for VIDEO type files
-                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
-                            try {
-                                videoExtractor.extractFromUri(file.uri)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract video metadata for SAF file: ${file.name}")
-                                null
-                            }
-                        } else null
+                        // Metadata extracted on-demand
                         
                         MediaFile(
                             name = file.name ?: "unknown",
@@ -458,17 +366,17 @@ class LocalMediaScanner @Inject constructor(
                             size = fileSize,
                             createdDate = file.lastModified(),
                             type = mediaType,
-                            duration = videoMetadata?.duration,
-                            width = videoMetadata?.width,
-                            height = videoMetadata?.height,
-                            exifOrientation = exifMetadata?.orientation,
-                            exifDateTime = exifMetadata?.dateTime,
-                            exifLatitude = exifMetadata?.latitude,
-                            exifLongitude = exifMetadata?.longitude,
-                            videoCodec = videoMetadata?.codec,
-                            videoBitrate = videoMetadata?.bitrate,
-                            videoFrameRate = videoMetadata?.frameRate,
-                            videoRotation = videoMetadata?.rotation
+                            duration = null,
+                            width = null,
+                            height = null,
+                            exifOrientation = null,
+                            exifDateTime = null,
+                            exifLatitude = null,
+                            exifLongitude = null,
+                            videoCodec = null,
+                            videoBitrate = null,
+                            videoFrameRate = null,
+                            videoRotation = null
                         )
                     } else null
                 } else null
@@ -518,25 +426,7 @@ class LocalMediaScanner @Inject constructor(
                             return@forEach
                         }
                         
-                        // Extract EXIF metadata for IMAGE type files
-                        val exifMetadata = if (mediaType == MediaType.IMAGE) {
-                            try {
-                                exifExtractor.extractFromUri(file.uri)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract EXIF for SAF file: ${file.name}")
-                                null
-                            }
-                        } else null
-                        
-                        // Extract video metadata for VIDEO type files
-                        val videoMetadata = if (mediaType == MediaType.VIDEO) {
-                            try {
-                                videoExtractor.extractFromUri(file.uri)
-                            } catch (e: Exception) {
-                                Timber.w(e, "Failed to extract video metadata for SAF file: ${file.name}")
-                                null
-                            }
-                        } else null
+                        // Metadata extracted on-demand
                         
                         result.add(
                             MediaFile(
@@ -545,17 +435,17 @@ class LocalMediaScanner @Inject constructor(
                                 size = fileSize,
                                 createdDate = file.lastModified(),
                                 type = mediaType,
-                                duration = videoMetadata?.duration,
-                                width = videoMetadata?.width,
-                                height = videoMetadata?.height,
-                                exifOrientation = exifMetadata?.orientation,
-                                exifDateTime = exifMetadata?.dateTime,
-                                exifLatitude = exifMetadata?.latitude,
-                                exifLongitude = exifMetadata?.longitude,
-                                videoCodec = videoMetadata?.codec,
-                                videoBitrate = videoMetadata?.bitrate,
-                                videoFrameRate = videoMetadata?.frameRate,
-                                videoRotation = videoMetadata?.rotation
+                                duration = null,
+                                width = null,
+                                height = null,
+                                exifOrientation = null,
+                                exifDateTime = null,
+                                exifLatitude = null,
+                                exifLongitude = null,
+                                videoCodec = null,
+                                videoBitrate = null,
+                                videoFrameRate = null,
+                                videoRotation = null
                             )
                         )
                         
