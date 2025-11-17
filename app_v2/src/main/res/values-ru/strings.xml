@@ -168,6 +168,11 @@
     <string name="audio">Аудио</string>
     <string name="gif_animations">GIF-анимации</string>
     <string name="use_as_destination">Использовать как назначение</string>
+    <string name="clear_trash">Очистить корзину</string>
+    <string name="clear_trash_confirm_title">Очистить корзину?</string>
+    <string name="clear_trash_confirm_message">Это окончательно удалит %d папок корзины и все файлы внутри них. Отменить действие будет невозможно.</string>
+    <string name="trash_cleared">Успешно удалено папок корзины: %d</string>
+    <string name="trash_clear_failed">Не удалось очистить корзину: %s</string>
     <string name="add_to_destinations">Добавить в назначения</string>
     <string name="back">Назад</string>
     <string name="test">Тест</string>

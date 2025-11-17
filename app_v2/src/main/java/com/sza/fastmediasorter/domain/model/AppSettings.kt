@@ -12,6 +12,10 @@ data class AppSettings(
     val defaultUser: String = "",
     val defaultPassword: String = "",
     
+    // Network sync settings
+    val enableBackgroundSync: Boolean = true,
+    val backgroundSyncIntervalHours: Int = 4, // hours (1-24)
+    
     // Media Files settings
     val supportImages: Boolean = true,
     val imageSizeMin: Long = 1024L, // 1KB

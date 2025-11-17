@@ -1,8 +1,44 @@
 # TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.25.1117.1748  
-**Version**: 2.25.1117.1748
+**Latest Build**: 2.0.0-build2511171500  
+**Version**: 2.0.0-build2511171500
 **Package**: com.sza.fastmediasorter
+
+---
+
+### Build 2.0.0-build2511171500 ✅
+- ✅ **UI: Hide lock icon for destination resources**
+- **Issue**: Lock icon (🔒) displayed for destination resources even when they have write access
+- **Root cause**: Logic showed lock for any resource with `isWritable = false`, regardless of destination status
+- **Changes**:
+  - `ResourceAdapter.kt`: Updated visibility logic for `tvWritableIndicator`
+  - New condition: Show lock ONLY if `!isDestination && !isWritable`
+  - Destinations are expected to be writable by definition, no visual indicator needed
+- **Pattern**: `tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable) VISIBLE else GONE`
+- **Result**: Lock icon hidden for all destination resources. Only non-destination read-only resources show lock icon.
+
+---
+
+### Build 2.0.0-build2511171445 ✅
+- ✅ **REFACTOR: Network settings restructure**
+- **Issue**: Network settings had dedicated tab (5 tabs total), underutilized space
+- **Changes**:
+  - Removed Network tab from SettingsActivity (5 tabs → 4 tabs)
+  - Moved "Show video thumbnails" from Playback tab → Media tab (Video section)
+  - Moved all Network settings → General tab (new "Network Sync" section before User/Password)
+  - Added background sync controls: enable switch, interval slider (1-24 hours), manual sync button, status text
+- **Architecture updates**:
+  - `AppSettings.kt`: Added `enableBackgroundSync: Boolean = true`, `backgroundSyncIntervalHours: Int = 4`
+  - `SettingsRepositoryImpl.kt`: Added DataStore keys + read/write logic for new fields
+  - `strings.xml` (en/ru/uk): Added `sync_interval_hours` plurals resource
+- **UI changes**:
+  - `fragment_settings_general.xml`: Added 7 widgets (header, switch, description, slider label, slider, button, status)
+  - `fragment_settings_media.xml`: Added `switchShowVideoThumbnails` after supported formats
+  - `fragment_settings_playback.xml`: Removed `switchShowVideoThumbnails` widget
+  - `SettingsPagerAdapter.kt`: Changed itemCount 5 → 4, removed NetworkSettingsFragment
+  - `SettingsFragments.kt`: Removed `NetworkSettingsFragment` class, added network sync logic to `GeneralSettingsFragment`
+- **Pattern**: Interval slider updates label dynamically using plurals (1 hour / 2-24 hours)
+- **Result**: Cleaner tab structure. Network settings grouped logically in General tab. All persistence working correctly.
 
 ---
 

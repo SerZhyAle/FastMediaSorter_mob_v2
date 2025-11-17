@@ -140,6 +140,17 @@
             android:layout_marginStart="48dp"
             android:layout_marginBottom="8dp" />
 
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchShowVideoThumbnails"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/show_video_thumbnails"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="16dp" />
+
         <TextView
             android:id="@+id/tvVideoSizeLabel"
             android:layout_width="wrap_content"

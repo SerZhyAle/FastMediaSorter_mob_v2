@@ -21,6 +21,7 @@ data class EditResourceState(
     val originalResource: MediaResource? = null,
     val currentResource: MediaResource? = null,
     val hasChanges: Boolean = false,
+    val hasResourceChanges: Boolean = false, // Changes to resource properties (name, isDestination, etc.)
     val smbServer: String = "",
     val smbShareName: String = "",
     val smbUsername: String = "",
@@ -34,7 +35,10 @@ data class EditResourceState(
     val sftpUsername: String = "",
     val sftpPassword: String = "",
     val sftpPath: String = "/",
-    val hasSftpCredentialsChanges: Boolean = false
+    val hasSftpCredentialsChanges: Boolean = false,
+    // Trash folders
+    val hasTrashFolders: Boolean = false,
+    val trashFolderCount: Int = 0
 )
 
 sealed class EditResourceEvent {
@@ -42,6 +46,8 @@ sealed class EditResourceEvent {
     data class ShowMessage(val message: String) : EditResourceEvent()
     object ResourceUpdated : EditResourceEvent()
     data class TestResult(val success: Boolean, val message: String) : EditResourceEvent()
+    data class ConfirmClearTrash(val count: Int) : EditResourceEvent()
+    data class TrashCleared(val count: Int) : EditResourceEvent()
 }
 
 @HiltViewModel
@@ -92,6 +98,9 @@ class EditResourceViewModel @Inject constructor(
             if (resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP && resource.credentialsId != null) {
                 loadSftpCredentials(resource.credentialsId!!)
             }
+            
+            // Check for trash folders
+            checkTrashFolders()
             
             setLoading(false)
         }
@@ -152,6 +161,12 @@ class EditResourceViewModel @Inject constructor(
 
     fun updateIsDestination(isDestination: Boolean) {
         val current = state.value.currentResource ?: return
+        
+        // Exit early if no actual change (prevents unnecessary updates)
+        if (current.isDestination == isDestination) {
+            Timber.d("updateIsDestination: no change, already $isDestination")
+            return
+        }
         
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             if (isDestination && current.destinationOrder == null) {
@@ -230,11 +245,9 @@ class EditResourceViewModel @Inject constructor(
                     Timber.d("Fixed destination order from $currentOrder to $nextOrder")
                 } else {
                     // Valid order, just ensure flag is set
-                    if (!current.isDestination) {
-                        val updated = current.copy(isDestination = true)
-                        updateCurrentResource(updated)
-                        Timber.d("Re-enabled destination with existing order $currentOrder")
-                    }
+                    val updated = current.copy(isDestination = true)
+                    updateCurrentResource(updated)
+                    Timber.d("Re-enabled destination with existing order $currentOrder")
                 }
             } else if (!isDestination) {
                 // Remove from destinations - clear order and color
@@ -297,11 +310,14 @@ class EditResourceViewModel @Inject constructor(
 
     private fun updateCurrentResource(updated: MediaResource) {
         val original = state.value.originalResource ?: return
-        val hasChanges = updated != original
+        val previous = state.value.currentResource
+        val hasResourceChanges = updated != original
+        Timber.d("updateCurrentResource: hasResourceChanges=$hasResourceChanges, prev.isDest=${previous?.isDestination}, updated.isDest=${updated.isDestination}, orig.isDest=${original.isDestination}")
         updateState { 
             it.copy(
                 currentResource = updated,
-                hasChanges = hasChanges
+                hasChanges = hasResourceChanges,
+                hasResourceChanges = hasResourceChanges
             ) 
         }
     }
@@ -311,7 +327,8 @@ class EditResourceViewModel @Inject constructor(
         updateState { 
             it.copy(
                 currentResource = original,
-                hasChanges = false
+                hasChanges = false,
+                hasResourceChanges = false
             ) 
         }
         sendEvent(EditResourceEvent.ShowMessage("Changes reset"))
@@ -522,7 +539,81 @@ class EditResourceViewModel @Inject constructor(
                     sendEvent(EditResourceEvent.TestResult(false, e.message ?: "Unknown error"))
                 }
             }
+
+            setLoading(false)
+        }
+    }
+    
+    /**
+     * Check for trash folders in the resource
+     */
+    fun checkTrashFolders() {
+        val current = state.value.currentResource ?: return
+        
+        // Only check network resources
+        if (current.type !in listOf(
+            com.sza.fastmediasorter.domain.model.ResourceType.SMB,
+            com.sza.fastmediasorter.domain.model.ResourceType.SFTP,
+            com.sza.fastmediasorter.domain.model.ResourceType.FTP
+        )) {
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val credentialsId = current.credentialsId ?: return@launch
+            val result = smbOperationsUseCase.checkTrashFolders(current.type, credentialsId, current.path).getOrNull()
+            val (hasTrash, trashFolders) = result ?: (false to emptyList())
             
+            updateState { 
+                it.copy(
+                    hasTrashFolders = hasTrash,
+                    trashFolderCount = trashFolders.size
+                )
+            }
+            
+            Timber.d("Trash check: hasTrash=$hasTrash, count=${trashFolders.size}, folders=$trashFolders")
+        }
+    }
+    
+    /**
+     * Request confirmation to clear trash
+     */
+    fun requestClearTrash() {
+        val count = state.value.trashFolderCount
+        if (count > 0) {
+            sendEvent(EditResourceEvent.ConfirmClearTrash(count))
+        }
+    }
+    
+    /**
+     * Clear all trash folders in the resource
+     */
+    fun clearTrash() {
+        val current = state.value.currentResource ?: return
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            val credentialsId = current.credentialsId ?: run {
+                Timber.e("Cannot clear trash: missing credentialsId")
+                sendEvent(EditResourceEvent.ShowError("Invalid credentials"))
+                setLoading(false)
+                return@launch
+            }
+            
+            smbOperationsUseCase.cleanupTrash(current.type, credentialsId, current.path)
+                .onSuccess { deletedCount ->
+                    Timber.i("Successfully cleared $deletedCount trash folders")
+                    sendEvent(EditResourceEvent.TrashCleared(deletedCount))
+                    
+                    // Re-check trash status
+                    updateState { it.copy(hasTrashFolders = false, trashFolderCount = 0) }
+                }
+                .onFailure { e ->
+                    Timber.e(e, "Failed to clear trash")
+                    sendEvent(EditResourceEvent.ShowError(e.message ?: "Failed to clear trash"))
+                }
+
             setLoading(false)
         }
     }

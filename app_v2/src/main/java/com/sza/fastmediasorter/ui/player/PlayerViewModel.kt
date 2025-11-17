@@ -9,6 +9,8 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
@@ -17,6 +19,7 @@ import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -69,6 +72,7 @@ class PlayerViewModel @Inject constructor(
     private val initialIndex = savedStateHandle.get<Int>("initialIndex")
         ?: savedStateHandle.get<String>("initialIndex")?.toIntOrNull() ?: 0
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
+    private val initialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
 
     init {
         loadMediaFiles()
@@ -160,7 +164,20 @@ class PlayerViewModel @Inject constructor(
                     sendEvent(PlayerEvent.ShowError("No media files found"))
                     sendEvent(PlayerEvent.FinishActivity)
                 } else {
-                    val safeIndex = initialIndex.coerceIn(0, files.size - 1)
+                    // If initialFilePath provided, find file by path (for pagination mode)
+                    // Otherwise use initialIndex
+                    val safeIndex = if (initialFilePath != null) {
+                        val foundIndex = files.indexOfFirst { it.path == initialFilePath }
+                        if (foundIndex >= 0) {
+                            Timber.d("Found file by path: $initialFilePath at index $foundIndex")
+                            foundIndex
+                        } else {
+                            Timber.w("File not found by path: $initialFilePath, using index 0")
+                            0
+                        }
+                    } else {
+                        initialIndex.coerceIn(0, files.size - 1)
+                    }
                     // Use resource-specific slideshow interval if available (non-default), otherwise keep global settings
                     val intervalToUse = if (resource.slideshowInterval != 10) {
                         resource.slideshowInterval * 1000L
@@ -253,71 +270,114 @@ class PlayerViewModel @Inject constructor(
      */
     fun deleteCurrentFile(): Boolean? {
         val currentFile = state.value.currentFile
+        val resource = state.value.resource
+        
         if (currentFile == null) {
             sendEvent(PlayerEvent.ShowError("No file to delete"))
             return false
         }
         
-        val file = java.io.File(currentFile.path)
-        if (!file.exists()) {
-            sendEvent(PlayerEvent.ShowError("File not found"))
+        if (resource == null) {
+            sendEvent(PlayerEvent.ShowError("Resource not loaded"))
             return false
         }
         
-        return try {
-            // Create .trash folder for soft-delete (undo support)
-            val parentDir = file.parentFile
-            val trashDir = java.io.File(parentDir, ".trash_${System.currentTimeMillis()}")
-            
-            if (!trashDir.exists() && !trashDir.mkdirs()) {
-                sendEvent(PlayerEvent.ShowError("Failed to create trash folder"))
-                return false
-            }
-            
-            // Move file to trash folder
-            val trashedFile = java.io.File(trashDir, file.name)
-            if (file.renameTo(trashedFile)) {
-                // Save undo operation
-                val undoOp = UndoOperation(
-                    type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
-                    sourceFiles = listOf(currentFile.path), // Original path
-                    destinationFolder = null,
-                    copiedFiles = listOf(trashDir.absolutePath, currentFile.path), // trash dir + original path
-                    oldNames = null
-                )
-                saveUndoOperation(undoOp)
+        viewModelScope.launch {
+            try {
+                Timber.d("Deleting file: ${currentFile.path}")
                 
-                // Remove deleted file from the list
-                val updatedFiles = state.value.files.toMutableList()
-                val deletedIndex = state.value.currentIndex
-                updatedFiles.removeAt(deletedIndex)
-                
-                if (updatedFiles.isEmpty()) {
-                    // No files left, close activity
-                    sendEvent(PlayerEvent.ShowMessage("File deleted. Tap UNDO to restore."))
-                    sendEvent(PlayerEvent.FinishActivity)
-                    null
-                } else {
-                    // Navigate to next file, or previous if we deleted the last one
-                    val newIndex = if (deletedIndex >= updatedFiles.size) {
-                        updatedFiles.size - 1 // Move to last file
-                    } else {
-                        deletedIndex // Stay at same index (which now points to next file)
+                // Wrap path in File object for FileOperationUseCase
+                val file = if (currentFile.path.startsWith("smb://") || 
+                               currentFile.path.startsWith("sftp://") || 
+                               currentFile.path.startsWith("ftp://")) {
+                    // Network file - wrap with original path
+                    object : java.io.File(currentFile.path) {
+                        override fun getAbsolutePath(): String = currentFile.path
+                        override fun getPath(): String = currentFile.path
                     }
-                    
-                    updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
-                    sendEvent(PlayerEvent.ShowMessage("File deleted. Tap UNDO to restore."))
-                    true
+                } else {
+                    // Local file
+                    java.io.File(currentFile.path)
                 }
-            } else {
-                // Clean up empty trash folder
-                trashDir.delete()
-                sendEvent(PlayerEvent.ShowError("Failed to delete file"))
-                false
+                
+                // Use FileOperationUseCase for both local and network files
+                val deleteOperation = FileOperation.Delete(files = listOf(file))
+                
+                when (val result = fileOperationUseCase.execute(deleteOperation)) {
+                    is FileOperationResult.Success,
+                    is FileOperationResult.PartialSuccess -> {
+                        // Remove deleted file from the list
+                        val updatedFiles = state.value.files.toMutableList()
+                        val deletedIndex = state.value.currentIndex
+                        updatedFiles.removeAt(deletedIndex)
+                        
+                        if (updatedFiles.isEmpty()) {
+                            // No files left, close activity
+                            sendEvent(PlayerEvent.ShowMessage("File deleted. Tap UNDO to restore."))
+                            sendEvent(PlayerEvent.FinishActivity)
+                        } else {
+                            // Navigate to next file, or previous if we deleted the last one
+                            val newIndex = if (deletedIndex >= updatedFiles.size) {
+                                updatedFiles.size - 1 // Move to last file
+                            } else {
+                                deletedIndex // Stay at same index (which now points to next file)
+                            }
+                            
+                            updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                            sendEvent(PlayerEvent.ShowMessage("File deleted. Tap UNDO to restore."))
+                            Timber.d("File deleted successfully, new list size: ${updatedFiles.size}")
+                        }
+                    }
+                    is FileOperationResult.Failure -> {
+                        sendEvent(PlayerEvent.ShowError(result.error))
+                        Timber.e("Delete failed: ${result.error}")
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error deleting file: ${currentFile.path}")
+                sendEvent(PlayerEvent.ShowError("Error deleting file: ${e.message}"))
             }
-        } catch (e: Exception) {
-            sendEvent(PlayerEvent.ShowError("Error deleting file: ${e.message}"))
-            false
+        }
+        
+        return null // Async operation, result via events
+    }
+    
+    /**
+     * Reload files after rename operation to update current file path
+     */
+    fun reloadAfterRename() {
+        viewModelScope.launch {
+            try {
+                val resource = state.value.resource ?: return@launch
+                
+                // Reload files from resource
+                val files = getMediaFilesUseCase(
+                    resource = resource,
+                    sortMode = resource.sortMode,
+                    sizeFilter = null
+                ).first()
+                
+                // Find renamed file by name (may have changed)
+                // Try to locate file at same index
+                val currentIndex = state.value.currentIndex
+                val newIndex = if (currentIndex < files.size) {
+                    currentIndex
+                } else {
+                    0
+                }
+                
+                updateState { 
+                    it.copy(
+                        files = files,
+                        currentIndex = newIndex
+                    )
+                }
+                
+                Timber.d("Files reloaded after rename, total: ${files.size}")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to reload files after rename")
+                sendEvent(PlayerEvent.ShowError("Failed to reload files: ${e.message}"))
+            }
         }
     }
     

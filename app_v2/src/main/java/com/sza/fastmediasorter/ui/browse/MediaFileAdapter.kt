@@ -217,7 +217,7 @@ class MediaFileAdapter(
                                                 Timber.d("Successfully loaded cloud thumbnail: ${file.name}")
                                             },
                                             onError = { _, result ->
-                                                Timber.e(result.throwable, "Failed to load cloud thumbnail: ${file.name}")
+                                                Timber.w(result.throwable, "Failed to load cloud thumbnail: ${file.name}")
                                             }
                                         )
                                     }
@@ -245,7 +245,7 @@ class MediaFileAdapter(
                                             Timber.d("Successfully loaded network thumbnail: ${file.name}")
                                         },
                                         onError = { _, result ->
-                                            Timber.e(result.throwable, "Failed to load network thumbnail: ${file.name}")
+                                            Timber.w(result.throwable, "Failed to load network thumbnail: ${file.name}")
                                         }
                                     )
                                 }

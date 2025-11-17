@@ -76,10 +76,12 @@ class ResourceAdapter(
                 
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
                 
-                tvWritableIndicator.visibility = if (resource.isWritable) {
-                    android.view.View.GONE
-                } else {
+                // Show lock icon only for non-destination resources without write access
+                // Destinations are expected to be writable, so no lock icon needed
+                tvWritableIndicator.visibility = if (!resource.isDestination && !resource.isWritable) {
                     android.view.View.VISIBLE
+                } else {
+                    android.view.View.GONE
                 }
                 
                 // Update availability indicator - show N/A text and set background color

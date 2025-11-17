@@ -6,15 +6,14 @@ import androidx.viewpager2.adapter.FragmentStateAdapter
 
 class SettingsPagerAdapter(activity: FragmentActivity) : FragmentStateAdapter(activity) {
     
-    override fun getItemCount(): Int = 5
+    override fun getItemCount(): Int = 4
 
     override fun createFragment(position: Int): Fragment {
         return when (position) {
             0 -> GeneralSettingsFragment()
             1 -> MediaSettingsFragment()
             2 -> PlaybackSettingsFragment()
-            3 -> NetworkSettingsFragment()
-            4 -> DestinationsSettingsFragment()
+            3 -> DestinationsSettingsFragment()
             else -> throw IllegalStateException("Unexpected position $position")
         }
     }

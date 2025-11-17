@@ -380,6 +380,31 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val isLoading = loadStates.refresh is androidx.paging.LoadState.Loading
                     binding.progressBar.isVisible = isLoading
                     
+                    // Update empty state for pagination mode
+                    val itemCount = pagingMediaFileAdapter.itemCount
+                    val isNotLoading = loadStates.refresh is androidx.paging.LoadState.NotLoading
+                    
+                    if (isLoading && itemCount == 0) {
+                        // Loading in progress - show "Loading..." message
+                        binding.tvEmpty.isVisible = true
+                        binding.tvEmpty.text = getString(R.string.loading)
+                        Timber.d("Pagination empty state: showing loading message")
+                    } else if (isNotLoading && itemCount == 0) {
+                        // Loading complete, no files - show "No files found"
+                        val currentFilter = viewModel.state.value.filter
+                        binding.tvEmpty.isVisible = true
+                        binding.tvEmpty.text = if (currentFilter != null && !currentFilter.isEmpty()) {
+                            getString(R.string.no_files_match_criteria)
+                        } else {
+                            getString(R.string.no_media_files_found)
+                        }
+                        Timber.d("Pagination empty state: no files found")
+                    } else if (itemCount > 0) {
+                        // Files loaded - hide empty state
+                        binding.tvEmpty.isVisible = false
+                        Timber.d("Pagination empty state: hidden (itemCount=$itemCount)")
+                    }
+                    
                     // Show error state if initial load failed
                     val isError = loadStates.refresh is androidx.paging.LoadState.Error
                     if (isError) {
@@ -464,7 +489,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 this@BrowseActivity,
                                 resourceId,
                                 event.fileIndex,
-                                skipCheck
+                                skipCheck,
+                                event.filePath // Pass file path for pagination mode
                             ))
                             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         }

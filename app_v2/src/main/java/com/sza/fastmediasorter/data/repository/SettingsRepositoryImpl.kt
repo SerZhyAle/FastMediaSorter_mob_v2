@@ -29,6 +29,10 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_DEFAULT_USER = stringPreferencesKey("default_user")
         private val KEY_DEFAULT_PASSWORD = stringPreferencesKey("default_password")
         
+        // Network sync settings keys
+        private val KEY_ENABLE_BACKGROUND_SYNC = booleanPreferencesKey("enable_background_sync")
+        private val KEY_BACKGROUND_SYNC_INTERVAL_HOURS = intPreferencesKey("background_sync_interval_hours")
+        
         // Media Files settings keys
         private val KEY_SUPPORT_IMAGES = booleanPreferencesKey("support_images")
         private val KEY_IMAGE_SIZE_MIN = longPreferencesKey("image_size_min")
@@ -94,6 +98,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
                     defaultPassword = preferences[KEY_DEFAULT_PASSWORD] ?: "",
                     
+                    // Network sync
+                    enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: true,
+                    backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
+                    
                     // Media Files
                     supportImages = preferences[KEY_SUPPORT_IMAGES] ?: true,
                     imageSizeMin = preferences[KEY_IMAGE_SIZE_MIN] ?: 1024L,
@@ -150,6 +158,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
             preferences[KEY_DEFAULT_USER] = settings.defaultUser
             preferences[KEY_DEFAULT_PASSWORD] = settings.defaultPassword
+            preferences[KEY_ENABLE_BACKGROUND_SYNC] = settings.enableBackgroundSync
+            preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] = settings.backgroundSyncIntervalHours
             
             // Media Files
             preferences[KEY_SUPPORT_IMAGES] = settings.supportImages

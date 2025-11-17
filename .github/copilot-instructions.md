@@ -36,7 +36,7 @@ Android media management app supporting local, network (SMB/SFTP/FTP), and cloud
 # Auto-versioned build (updates versionCode/versionName with timestamp)
 .\build-with-version.ps1
 ```
-Version format: `2.0.0-buildYYMMDDHHmm` (e.g., `2.0.0-build2511160117`). Script auto-reverts on build failure.
+Version format: `2.YY.MMDD.HHmm` (e.g., `2.25.1117.1646`). Script auto-reverts on build failure.
 
 ### Testing Network Protocols
 - **SMB**: Server requires smbj 0.12.1 + BouncyCastle 1.78.1 (critical: avoids libpenguin.so native crash).

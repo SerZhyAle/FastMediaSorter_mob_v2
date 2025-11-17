@@ -390,6 +390,51 @@ class FtpClient @Inject constructor() {
     }
 
     /**
+     * Delete directory recursively on FTP server
+     * @param remotePath Full path to directory to delete
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun deleteDirectory(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val client = ftpClient ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            Timber.d("FTP deleting directory: $remotePath")
+            
+            // List directory contents
+            val files = client.listFiles(remotePath)
+            
+            // Delete all files and subdirectories recursively
+            files.forEach { file ->
+                val fullPath = "$remotePath/${file.name}"
+                if (file.isDirectory) {
+                    deleteDirectory(fullPath).getOrThrow()
+                } else {
+                    deleteFile(fullPath).getOrThrow()
+                }
+            }
+            
+            // Delete the directory itself
+            val success = client.removeDirectory(remotePath)
+            if (!success) {
+                return@withContext Result.failure(
+                    IOException("FTP remove directory failed: ${client.replyString}")
+                )
+            }
+            
+            Timber.i("FTP delete directory success: $remotePath")
+            Result.success(Unit)
+        } catch (e: IOException) {
+            Timber.e(e, "FTP delete directory failed: $remotePath")
+            Result.failure(e)
+        } catch (e: Exception) {
+            Timber.e(e, "FTP delete directory error: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
      * Rename file on FTP server
      * @param oldPath Current file path
      * @param newName New filename (without path)

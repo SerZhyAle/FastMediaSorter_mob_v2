@@ -521,15 +521,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resource = viewModel.state.value.resource
         
+        // Create File object - for network paths, this is just a path holder
+        val file = File(currentFile.path)
+        
         RenameDialog(
             context = this,
             lifecycleOwner = this,
-            files = listOf(File(currentFile.path)),
+            files = listOf(file),
             sourceFolderName = resource?.name ?: "Current folder",
             fileOperationUseCase = viewModel.fileOperationUseCase,
             onComplete = {
-                // File list will be reloaded in BrowseActivity.onResume()
-                // No need to refresh here
+                // Reload file in player after rename
+                viewModel.reloadAfterRename()
             }
         ).show()
     }
@@ -587,34 +590,42 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun setupCommandPanelControls() {
         binding.btnBack.setOnClickListener {
+            Timber.d("PlayerActivity: btnBack clicked")
             finish()
         }
 
         binding.btnPreviousCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnPreviousCmd clicked")
             viewModel.previousFile()
         }
 
         binding.btnNextCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnNextCmd clicked")
             viewModel.nextFile()
         }
 
         binding.btnRenameCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnRenameCmd clicked")
             showRenameDialog()
         }
 
         binding.btnDeleteCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnDeleteCmd clicked")
             deleteCurrentFile()
         }
         
         binding.btnEditCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnEditCmd clicked")
             showImageEditDialog()
         }
         
         binding.btnUndoCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnUndoCmd clicked")
             viewModel.undoLastOperation()
         }
 
         binding.btnFullscreenCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnFullscreenCmd clicked")
             // Toggle to fullscreen mode (hide command panel)
             if (viewModel.state.value.showCommandPanel) {
                 viewModel.toggleCommandPanel()
@@ -622,6 +633,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
 
         binding.btnSlideshowCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnSlideshowCmd clicked")
             val wasActive = viewModel.state.value.isSlideShowActive
             viewModel.toggleSlideShow()
             
@@ -923,19 +935,35 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
         val currentFile = state.currentFile ?: return
-        val file = File(currentFile.path)
+        val resource = state.resource
         
-        // Check file permissions
-        val canWrite = file.canWrite()
-        val canRead = file.canRead()
+        // For network resources, assume permissions based on resource type
+        val isNetworkResource = resource != null && 
+            (resource.type == ResourceType.SMB || 
+             resource.type == ResourceType.SFTP || 
+             resource.type == ResourceType.FTP)
+        
+        val canWrite: Boolean
+        val canRead: Boolean
+        
+        if (isNetworkResource) {
+            // Network resources: assume read/write based on resource configuration
+            canWrite = true // Network resources typically allow operations
+            canRead = true
+        } else {
+            // Local resources: check actual file permissions
+            val file = File(currentFile.path)
+            canWrite = file.canWrite()
+            canRead = file.canRead()
+        }
         
         // Rename: requires write permission and allowRename setting
         binding.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
+        binding.btnRenameCmd.isVisible = state.showCommandPanel
         
-        // Delete: requires write permission on parent directory and allowDelete setting
-        val parentDir = file.parentFile
-        val canDeleteFile = parentDir?.canWrite() == true && canRead
-        binding.btnDeleteCmd.isEnabled = canDeleteFile && state.allowDelete
+        // Delete: requires write permission and allowDelete setting
+        binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
+        binding.btnDeleteCmd.isVisible = state.showCommandPanel
         
         // Edit: visible only for images with write permission
         binding.btnEditCmd.isVisible = state.showCommandPanel && 
@@ -1599,10 +1627,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 val destinations = viewModel.getDestinationsUseCase().first()
                     .filter { it.id != resourceId } // Exclude current resource
                 
-                // Save CURRENT UI state BEFORE clearing buttons (not from settings)
-                // This prevents state loss during button rebuild
-                val copyCollapsed = !binding.copyToButtonsGrid.isVisible
-                val moveCollapsed = !binding.moveToButtonsGrid.isVisible
+                // Read collapsed state from settings (persistent storage)
+                val settings = settingsRepository.getSettings().first()
+                val copyCollapsed = settings.copyPanelCollapsed
+                val moveCollapsed = settings.movePanelCollapsed
                 
                 // Clear existing buttons
                 binding.copyToButtonsGrid.removeAllViews()
@@ -1630,6 +1658,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     updateCopyPanelVisibility(copyCollapsed)
                     updateMovePanelVisibility(moveCollapsed)
                 }
+                
+                // Update command availability to refresh panel visibility
+                updateCommandAvailability(viewModel.state.value)
             } catch (e: Exception) {
                 Toast.makeText(this@PlayerActivity, "Failed to load destinations", Toast.LENGTH_SHORT).show()
             }
@@ -1658,7 +1689,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             setBackgroundColor(destination.destinationColor)
             
             // Square buttons with fixed size
-            val buttonSize = 120 // Square 120x120 dp
+            val buttonSize = 80 // Square 80x80 dp
             val density = resources.displayMetrics.density
             val buttonSizePx = (buttonSize * density).toInt()
             
@@ -1918,11 +1949,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     companion object {
-        fun createIntent(context: Context, resourceId: Long, initialIndex: Int = 0, skipAvailabilityCheck: Boolean = false): Intent {
+        fun createIntent(
+            context: Context,
+            resourceId: Long,
+            initialIndex: Int = 0,
+            skipAvailabilityCheck: Boolean = false,
+            initialFilePath: String? = null
+        ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra("resourceId", resourceId)
                 putExtra("initialIndex", initialIndex)
                 putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
+                initialFilePath?.let { putExtra("initialFilePath", it) }
             }
         }
     }

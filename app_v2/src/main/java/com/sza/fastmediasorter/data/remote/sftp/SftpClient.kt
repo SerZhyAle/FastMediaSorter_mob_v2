@@ -519,7 +519,7 @@ class SftpClient @Inject constructor() {
     }
 
     /**
-     * Delete directory (must be empty)
+     * Delete directory recursively
      * @param remotePath Full path to directory
      * @return Result with Unit on success or exception on failure
      */
@@ -529,8 +529,27 @@ class SftpClient @Inject constructor() {
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
+            Timber.d("SFTP deleting directory: $remotePath")
+            
+            // List directory contents
+            @Suppress("UNCHECKED_CAST")
+            val files = ch.ls(remotePath) as Vector<ChannelSftp.LsEntry>
+            
+            // Delete all files and subdirectories recursively
+            files.forEach { entry ->
+                if (entry.filename == "." || entry.filename == "..") return@forEach
+                
+                val fullPath = "$remotePath/${entry.filename}"
+                if (entry.attrs.isDir) {
+                    deleteDirectory(fullPath).getOrThrow()
+                } else {
+                    ch.rm(fullPath)
+                }
+            }
+            
+            // Delete the directory itself
             ch.rmdir(remotePath)
-            Timber.d("SFTP deleted directory: $remotePath")
+            Timber.i("SFTP deleted directory: $remotePath")
             Result.success(Unit)
         } catch (e: Exception) {
             Timber.e(e, "SFTP delete directory failed: $remotePath")

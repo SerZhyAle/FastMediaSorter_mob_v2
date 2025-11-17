@@ -171,6 +171,9 @@ class BrowseViewModel @Inject constructor(
         
         Timber.d("loadMediaFiles: Starting new load")
         
+        // Clear current list immediately to prevent stale data clicks
+        updateState { it.copy(mediaFiles = emptyList()) }
+        
         loadFilesJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
@@ -186,16 +189,25 @@ class BrowseViewModel @Inject constructor(
             )
             
             try {
-                // First, get file count to decide if we need pagination
-                val scanner = mediaScannerFactory.getScanner(resource.type)
-                val fileCount = scanner.getFileCount(
-                    path = resource.path,
-                    supportedTypes = resource.supportedMediaTypes,
-                    sizeFilter = sizeFilter,
-                    credentialsId = resource.credentialsId
-                )
+                // Use cached fileCount if available, otherwise scan
+                val fileCount = if (resource.fileCount > 0 && resource.lastBrowseDate != null) {
+                    // Use cached count if resource was browsed before (lastBrowseDate exists)
+                    Timber.d("Using cached file count for ${resource.name}: ${resource.fileCount}")
+                    resource.fileCount
+                } else {
+                    // First browse or fileCount not set - need to scan
+                    Timber.d("No cached file count, scanning ${resource.name}...")
+                    val scanner = mediaScannerFactory.getScanner(resource.type)
+                    scanner.getFileCount(
+                        path = resource.path,
+                        supportedTypes = resource.supportedMediaTypes,
+                        sizeFilter = sizeFilter,
+                        credentialsId = resource.credentialsId
+                    ).also { count ->
+                        Timber.d("Scanned file count for ${resource.name}: $count")
+                    }
+                }
                 
-                Timber.d("File count for ${resource.name}: $fileCount")
                 updateState { it.copy(totalFileCount = fileCount) }
                 
                 // Decide loading strategy based on file count AND sort mode
@@ -578,19 +590,28 @@ class BrowseViewModel @Inject constructor(
 
     fun openFile(file: MediaFile) {
         val resource = state.value.resource ?: return
-        // Find index by path (not object reference) to handle adapter copies
-        val index = state.value.mediaFiles.indexOfFirst { it.path == file.path }
         
-        if (index == -1) {
-            Timber.e("openFile: File not found in mediaFiles list: ${file.path}")
-            sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", null))
-            return
+        // In pagination mode, mediaFiles list is empty (data in PagingData)
+        // Player will reload all files anyway, so index doesn't matter - use 0
+        val index = if (state.value.usePagination) {
+            Timber.d("openFile (pagination mode): ${file.name}, using index=0 (Player will reload)")
+            0
+        } else {
+            // Standard mode - find actual index in mediaFiles list
+            val foundIndex = state.value.mediaFiles.indexOfFirst { it.path == file.path }
+            if (foundIndex == -1) {
+                Timber.e("openFile: File not found in mediaFiles list: ${file.path}")
+                sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", null))
+                return
+            }
+            Timber.d("openFile (standard mode): ${file.name}, index=$foundIndex")
+            foundIndex
         }
         
         // Save last viewed file to resource
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             updateResourceUseCase(resource.copy(lastViewedFile = file.path))
-            Timber.d("Saved lastViewedFile=${file.name} for resource: ${resource.name}, index=$index")
+            Timber.d("Saved lastViewedFile=${file.name} for resource: ${resource.name}")
         }
         
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))

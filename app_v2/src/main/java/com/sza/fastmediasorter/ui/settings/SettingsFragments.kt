@@ -151,6 +151,13 @@ class MediaSettingsFragment : Fragment() {
             updateAudioSizeVisibility(isChecked)
         }
         
+        // Show video thumbnails
+        binding.switchShowVideoThumbnails.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
+        }
+        
         // Audio size text fields (in MB)
         binding.etAudioSizeMin.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -197,6 +204,9 @@ class MediaSettingsFragment : Fragment() {
                     }
                     if (binding.switchSupportAudio.isChecked != settings.supportAudio) {
                         binding.switchSupportAudio.isChecked = settings.supportAudio
+                    }
+                    if (binding.switchShowVideoThumbnails.isChecked != settings.showVideoThumbnails) {
+                        binding.switchShowVideoThumbnails.isChecked = settings.showVideoThumbnails
                     }
                     
                     // Update image size text fields (in KB)
@@ -365,12 +375,6 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showPlayerHintOnFirstRun = isChecked))
         }
         
-        binding.switchShowVideoThumbnails.setOnCheckedChangeListener { _, isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
-        }
-        
         binding.btnShowHintNow.setOnClickListener {
             // Reset first-run flag to trigger hint on next PlayerActivity launch
             viewModel.resetPlayerFirstRun()
@@ -436,9 +440,6 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.switchShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
                         binding.switchShowPlayerHint.isChecked = settings.showPlayerHintOnFirstRun
-                    }
-                    if (binding.switchShowVideoThumbnails.isChecked != settings.showVideoThumbnails) {
-                        binding.switchShowVideoThumbnails.isChecked = settings.showVideoThumbnails
                     }
                     
                     // Icon size
@@ -796,6 +797,26 @@ class GeneralSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showSmallControls = isChecked))
         }
         
+        // Network sync settings
+        binding.switchEnableBackgroundSync.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableBackgroundSync = isChecked))
+        }
+        
+        binding.sliderSyncInterval.addOnChangeListener { _, value, _ ->
+            if (isUpdatingSpinner) return@addOnChangeListener
+            val hours = value.toInt()
+            binding.tvSyncIntervalValue.text = resources.getQuantityString(R.plurals.sync_interval_hours, hours, hours)
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = value.toInt()))
+        }
+        
+        binding.btnSyncNow.setOnClickListener {
+            // TODO: Trigger manual sync
+            android.widget.Toast.makeText(requireContext(), "Manual sync triggered", android.widget.Toast.LENGTH_SHORT).show()
+        }
+        
         // Default User
         binding.etDefaultUser.setText(viewModel.settings.value.defaultUser)
         binding.etDefaultUser.setOnFocusChangeListener { _, hasFocus ->
@@ -878,6 +899,16 @@ class GeneralSettingsFragment : Fragment() {
                     }
                     if (binding.switchSmallControls.isChecked != settings.showSmallControls) {
                         binding.switchSmallControls.isChecked = settings.showSmallControls
+                    }
+                    if (binding.switchEnableBackgroundSync.isChecked != settings.enableBackgroundSync) {
+                        binding.switchEnableBackgroundSync.isChecked = settings.enableBackgroundSync
+                    }
+                    
+                    // Update sync interval
+                    if (binding.sliderSyncInterval.value != settings.backgroundSyncIntervalHours.toFloat()) {
+                        binding.sliderSyncInterval.value = settings.backgroundSyncIntervalHours.toFloat()
+                        val hours = settings.backgroundSyncIntervalHours
+                        binding.tvSyncIntervalValue.text = resources.getQuantityString(R.plurals.sync_interval_hours, hours, hours)
                     }
                 }
             }

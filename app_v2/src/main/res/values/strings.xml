@@ -168,6 +168,11 @@
     <string name="audio">Audio</string>
     <string name="gif_animations">GIF Animations</string>
     <string name="use_as_destination">Use as Destination</string>
+    <string name="clear_trash">Clear Trash</string>
+    <string name="clear_trash_confirm_title">Clear Trash Folders?</string>
+    <string name="clear_trash_confirm_message">This will permanently delete %d trash folder(s) and all files inside them. This action cannot be undone.</string>
+    <string name="trash_cleared">Successfully deleted %d trash folder(s)</string>
+    <string name="trash_clear_failed">Failed to clear trash: %s</string>
     <string name="add_to_destinations">Add to Destinations</string>
     <string name="back">Back</string>
     <string name="test">Test</string>

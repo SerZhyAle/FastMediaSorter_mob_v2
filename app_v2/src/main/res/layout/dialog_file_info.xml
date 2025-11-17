@@ -7,15 +7,6 @@
     android:padding="24dp"
     android:minWidth="320dp">
 
-    <TextView
-        android:id="@+id/tvDialogTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/file_information"
-        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-        android:textAlignment="center"
-        android:paddingBottom="20dp" />
-
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

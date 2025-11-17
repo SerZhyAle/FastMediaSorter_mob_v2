@@ -300,7 +300,7 @@ class SmbClient @Inject constructor() {
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
-        maxCount: Int = 10000 // Stop counting after this limit to avoid long scans
+        maxCount: Int = 100000 // Stop counting after this limit to avoid extremely long scans
     ): SmbResult<Int> {
         return try {
             withConnection(connectionInfo) { share ->
@@ -399,7 +399,6 @@ class SmbClient @Inject constructor() {
                 
                 val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
                 if (extension in extensions) {
-                    Timber.d("SmbClient.scanDirectoryRecursiveWithLimit: Found media file ${fileInfo.fileName}")
                     results.add(
                         SmbFileInfo(
                             name = fileInfo.fileName,
@@ -442,7 +441,7 @@ class SmbClient @Inject constructor() {
         share: DiskShare,
         path: String,
         extensions: Set<String>,
-        maxCount: Int = 10000,
+        maxCount: Int = 100000,
         currentCount: Int = 0
     ): Int {
         // Early exit if limit reached
@@ -850,14 +849,82 @@ class SmbClient @Inject constructor() {
         connectionInfo: SmbConnectionInfo,
         remotePath: String
     ): SmbResult<Unit> {
+        Timber.d("SmbClient.deleteFile: START - remotePath='$remotePath'")
+        Timber.d("SmbClient.deleteFile: Connection - server=${connectionInfo.server}, share=${connectionInfo.shareName}, port=${connectionInfo.port}")
+        Timber.d("SmbClient.deleteFile: Credentials - username=${connectionInfo.username}, domain=${connectionInfo.domain}")
+        
         return try {
             withConnection(connectionInfo) { share ->
-                share.rm(remotePath)
-                SmbResult.Success(Unit)
+                Timber.d("SmbClient.deleteFile: Share connected, checking if file exists...")
+                
+                // Check if file exists before deleting
+                val exists = try {
+                    share.fileExists(remotePath)
+                } catch (e: Exception) {
+                    Timber.w(e, "SmbClient.deleteFile: Failed to check file existence")
+                    false
+                }
+                
+                if (!exists) {
+                    Timber.e("SmbClient.deleteFile: File does not exist: $remotePath")
+                    return@withConnection SmbResult.Error("File not found: $remotePath", Exception("File does not exist"))
+                }
+                
+                Timber.d("SmbClient.deleteFile: File exists, attempting to delete...")
+                
+                try {
+                    share.rm(remotePath)
+                    Timber.i("SmbClient.deleteFile: SUCCESS - File deleted: $remotePath")
+                    SmbResult.Success(Unit)
+                } catch (deleteEx: Exception) {
+                    Timber.e(deleteEx, "SmbClient.deleteFile: FAILED - Exception during rm() call")
+                    Timber.e("SmbClient.deleteFile: Delete error type: ${deleteEx.javaClass.name}")
+                    Timber.e("SmbClient.deleteFile: Delete error message: ${deleteEx.message}")
+                    deleteEx.cause?.let { cause ->
+                        Timber.e("SmbClient.deleteFile: Cause: ${cause.javaClass.name} - ${cause.message}")
+                    }
+                    SmbResult.Error("Delete operation failed: ${deleteEx.message}", deleteEx)
+                }
             }
         } catch (e: Exception) {
-            Timber.e(e, "Failed to delete file from SMB")
+            Timber.e(e, "SmbClient.deleteFile: EXCEPTION - Failed to establish connection or execute delete")
+            Timber.e("SmbClient.deleteFile: Exception type: ${e.javaClass.name}")
+            Timber.e("SmbClient.deleteFile: Exception message: ${e.message}")
+            e.cause?.let { cause ->
+                Timber.e("SmbClient.deleteFile: Cause: ${cause.javaClass.name} - ${cause.message}")
+            }
             SmbResult.Error("Failed to delete file: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Delete directory recursively on SMB share
+     */
+    suspend fun deleteDirectory(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String
+    ): SmbResult<Unit> {
+        Timber.d("SmbClient.deleteDirectory: START - remotePath='$remotePath'")
+        
+        return try {
+            withConnection(connectionInfo) { share ->
+                if (!share.fileExists(remotePath)) {
+                    Timber.w("SmbClient.deleteDirectory: Directory does not exist: $remotePath")
+                    return@withConnection SmbResult.Success(Unit)
+                }
+                
+                try {
+                    share.rmdir(remotePath, true)
+                    Timber.i("SmbClient.deleteDirectory: SUCCESS - Directory deleted: $remotePath")
+                    SmbResult.Success(Unit)
+                } catch (deleteEx: Exception) {
+                    Timber.e(deleteEx, "SmbClient.deleteDirectory: FAILED - ${deleteEx.message}")
+                    SmbResult.Error("Delete directory failed: ${deleteEx.message}", deleteEx)
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "SmbClient.deleteDirectory: EXCEPTION - ${e.message}")
+            SmbResult.Error("Failed to delete directory: ${e.message}", e)
         }
     }
 
@@ -874,15 +941,20 @@ class SmbClient @Inject constructor() {
     ): SmbResult<Unit> {
         return try {
             withConnection(connectionInfo) { share ->
-                // Extract directory path and construct new full path
-                val directory = oldPath.substringBeforeLast('/', "")
-                val newPath = if (directory.isEmpty()) newName else "$directory/$newName"
+                // Parse newName: if contains '/', treat it as full path from share root
+                // Otherwise, keep in same directory
+                val newPath = if (newName.contains('/')) {
+                    newName
+                } else {
+                    val directory = oldPath.substringBeforeLast('/', "")
+                    if (directory.isEmpty()) newName else "$directory/$newName"
+                }
                 
-                Timber.d("Renaming SMB file: $oldPath → $newPath")
+                Timber.d("Renaming SMB file: oldPath='$oldPath' → newPath='$newPath'")
                 
                 // Check if target exists
                 if (share.fileExists(newPath)) {
-                    return@withConnection SmbResult.Error("File with name '$newName' already exists")
+                    return@withConnection SmbResult.Error("File already exists at target location")
                 }
                 
                 // Open source file for rename
@@ -896,7 +968,8 @@ class SmbClient @Inject constructor() {
                 )
                 
                 file.use {
-                    it.rename(newPath)
+                    // SMBJ rename() accepts full path relative to share root
+                    it.rename(newPath, false)
                 }
                 
                 Timber.i("Successfully renamed SMB file to: $newPath")
@@ -905,6 +978,76 @@ class SmbClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.e(e, "Failed to rename file on SMB")
             SmbResult.Error("Failed to rename file: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Move file to different location on SMB share (copy + delete)
+     * Use this instead of renameFile when moving to subdirectories
+     */
+    suspend fun moveFile(
+        connectionInfo: SmbConnectionInfo,
+        sourcePath: String,
+        destinationPath: String
+    ): SmbResult<Unit> {
+        return try {
+            withConnection(connectionInfo) { share ->
+                Timber.d("Moving SMB file: sourcePath='$sourcePath' → destinationPath='$destinationPath'")
+                
+                // Check if source exists
+                if (!share.fileExists(sourcePath)) {
+                    return@withConnection SmbResult.Error("Source file does not exist: $sourcePath")
+                }
+                
+                // Check if destination exists
+                if (share.fileExists(destinationPath)) {
+                    return@withConnection SmbResult.Error("Destination file already exists: $destinationPath")
+                }
+                
+                // Open source file for reading
+                val sourceFile = share.openFile(
+                    sourcePath,
+                    EnumSet.of(AccessMask.GENERIC_READ, AccessMask.DELETE),
+                    null,
+                    SMB2ShareAccess.ALL,
+                    SMB2CreateDisposition.FILE_OPEN,
+                    null
+                )
+                
+                try {
+                    // Open destination file for writing
+                    val destFile = share.openFile(
+                        destinationPath,
+                        EnumSet.of(AccessMask.GENERIC_WRITE),
+                        null,
+                        SMB2ShareAccess.ALL,
+                        SMB2CreateDisposition.FILE_CREATE,
+                        null
+                    )
+                    
+                    try {
+                        // Copy data
+                        sourceFile.inputStream.use { input ->
+                            destFile.outputStream.use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        
+                        // Delete source file after successful copy
+                        sourceFile.deleteOnClose()
+                        
+                        Timber.i("Successfully moved SMB file to: $destinationPath")
+                        SmbResult.Success(Unit)
+                    } finally {
+                        destFile.close()
+                    }
+                } finally {
+                    sourceFile.close()
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to move file on SMB")
+            SmbResult.Error("Failed to move file: ${e.message}", e)
         }
     }
 
@@ -1016,7 +1159,8 @@ class SmbClient @Inject constructor() {
     private fun isConnectionValid(pooled: PooledConnection): Boolean {
         return try {
             pooled.connection.isConnected &&
-            pooled.session.connection.isConnected
+            pooled.session.connection.isConnected &&
+            pooled.share.isConnected
         } catch (e: Exception) {
             false
         }

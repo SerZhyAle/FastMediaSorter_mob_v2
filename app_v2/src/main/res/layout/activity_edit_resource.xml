@@ -510,6 +510,21 @@
                 android:textOn=""
                 android:textOff="" />
 
+            <!-- Clear Trash Button (shown only if trash folders exist) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearTrash"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="@string/clear_trash"
+                android:textColor="?attr/colorError"
+                app:strokeColor="?attr/colorError"
+                app:icon="@android:drawable/ic_menu_delete"
+                app:iconTint="?attr/colorError"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
             <!-- Metadata at bottom -->
             <View
                 android:layout_width="match_parent"

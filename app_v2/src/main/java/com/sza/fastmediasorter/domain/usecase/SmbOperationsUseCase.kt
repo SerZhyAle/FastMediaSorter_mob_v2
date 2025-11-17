@@ -450,4 +450,118 @@ class SmbOperationsUseCase @Inject constructor(
             Result.failure(e)
         }
     }
+    
+    // ===== Trash Management =====
+    
+    /**
+     * Check if network resource has trash folders
+     * @return Pair<hasTrash, trashFolderNames>
+     */
+    suspend fun checkTrashFolders(
+        type: com.sza.fastmediasorter.domain.model.ResourceType,
+        credentialsId: String,
+        path: String
+    ): Result<Pair<Boolean, List<String>>> {
+        return try {
+            when (type) {
+                com.sza.fastmediasorter.domain.model.ResourceType.SMB -> {
+                    val connectionInfo = getConnectionInfo(credentialsId).getOrThrow()
+                    val listResult = smbClient.listFiles(connectionInfo, path)
+                    when (listResult) {
+                        is SmbClient.SmbResult.Success -> {
+                            val trashFolders = listResult.data
+                                .filter { it.name.startsWith(".trash_") && it.isDirectory }
+                                .map { it.name }
+                            Result.success(Pair(trashFolders.isNotEmpty(), trashFolders))
+                        }
+                        is SmbClient.SmbResult.Error -> Result.failure(Exception(listResult.message))
+                    }
+                }
+                com.sza.fastmediasorter.domain.model.ResourceType.SFTP -> {
+                    val credentials = getSftpCredentials(credentialsId).getOrThrow()
+                    val remotePath = path.substringAfter("://").substringAfter("/")
+                    sftpClient.connect(
+                        credentials.server, credentials.port, credentials.username, credentials.password
+                    ).getOrThrow()
+                    val files = sftpClient.listFiles(remotePath).getOrDefault(emptyList())
+                    sftpClient.disconnect()
+                    val trashFolders = files.filter { it.startsWith(".trash_") }
+                    Result.success(Pair(trashFolders.isNotEmpty(), trashFolders))
+                }
+                com.sza.fastmediasorter.domain.model.ResourceType.FTP -> {
+                    val credentials = credentialsDao.getCredentialsById(credentialsId) ?: throw Exception("Credentials not found")
+                    val remotePath = path.substringAfter("://").substringAfter("/")
+                    ftpClient.connect(
+                        credentials.server, credentials.port, credentials.username, credentials.password
+                    ).getOrThrow()
+                    val files = ftpClient.listFiles(remotePath).getOrDefault(emptyList())
+                    ftpClient.disconnect()
+                    val trashFolders = files.filter { it.startsWith(".trash_") }
+                    Result.success(Pair(trashFolders.isNotEmpty(), trashFolders))
+                }
+                else -> Result.success(Pair(false, emptyList()))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to check trash folders")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Cleanup all trash folders on network resource
+     * @return Number of deleted folders
+     */
+    suspend fun cleanupTrash(
+        type: com.sza.fastmediasorter.domain.model.ResourceType,
+        credentialsId: String,
+        path: String
+    ): Result<Int> {
+        return try {
+            val (hasTrash, trashFolders) = checkTrashFolders(type, credentialsId, path).getOrThrow()
+            if (!hasTrash) return Result.success(0)
+            
+            var deletedCount = 0
+            when (type) {
+                com.sza.fastmediasorter.domain.model.ResourceType.SMB -> {
+                    val connectionInfo = getConnectionInfo(credentialsId).getOrThrow()
+                    trashFolders.forEach { folderName ->
+                        val remotePath = if (path.isEmpty()) folderName else "$path/$folderName"
+                        when (smbClient.deleteDirectory(connectionInfo, remotePath)) {
+                            is SmbClient.SmbResult.Success -> deletedCount++
+                            is SmbClient.SmbResult.Error -> Timber.e("Failed to delete SMB trash: $folderName")
+                        }
+                    }
+                }
+                com.sza.fastmediasorter.domain.model.ResourceType.SFTP -> {
+                    val credentials = getSftpCredentials(credentialsId).getOrThrow()
+                    val remotePath = path.substringAfter("://").substringAfter("/")
+                    sftpClient.connect(
+                        credentials.server, credentials.port, credentials.username, credentials.password
+                    ).getOrThrow()
+                    trashFolders.forEach { folderName ->
+                        val fullPath = if (remotePath.isEmpty()) folderName else "$remotePath/$folderName"
+                        sftpClient.deleteDirectory(fullPath).onSuccess { deletedCount++ }
+                    }
+                    sftpClient.disconnect()
+                }
+                com.sza.fastmediasorter.domain.model.ResourceType.FTP -> {
+                    val credentials = credentialsDao.getCredentialsById(credentialsId) ?: throw Exception("Credentials not found")
+                    val remotePath = path.substringAfter("://").substringAfter("/")
+                    ftpClient.connect(
+                        credentials.server, credentials.port, credentials.username, credentials.password
+                    ).getOrThrow()
+                    trashFolders.forEach { folderName ->
+                        val fullPath = if (remotePath.isEmpty()) folderName else "$remotePath/$folderName"
+                        ftpClient.deleteDirectory(fullPath).onSuccess { deletedCount++ }
+                    }
+                    ftpClient.disconnect()
+                }
+                else -> {}
+            }
+            Result.success(deletedCount)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to cleanup trash")
+            Result.failure(e)
+        }
+    }
 }

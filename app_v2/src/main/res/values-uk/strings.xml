@@ -168,6 +168,11 @@
     <string name="audio">Аудіо</string>
     <string name="gif_animations">GIF-анімації</string>
     <string name="use_as_destination">Використовувати як призначення</string>
+    <string name="clear_trash">Очистити кошик</string>
+    <string name="clear_trash_confirm_title">Очистити кошик?</string>
+    <string name="clear_trash_confirm_message">Це остаточно видалить %d папок кошика та всі файли всередині них. Скасувати дію буде неможливо.</string>
+    <string name="trash_cleared">Успішно видалено папок кошика: %d</string>
+    <string name="trash_clear_failed">Не вдалося очистити кошик: %s</string>
     <string name="add_to_destinations">Додати до призначень</string>
     <string name="back">Назад</string>
     <string name="test">Тест</string>
