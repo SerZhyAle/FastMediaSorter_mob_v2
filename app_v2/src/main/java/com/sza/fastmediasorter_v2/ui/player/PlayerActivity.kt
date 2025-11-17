@@ -946,9 +946,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Undo: visible only when there is a pending undo operation
         binding.btnUndoCmd.isVisible = state.showCommandPanel && state.lastOperation != null
         
-        // Copy/Move panels visibility based on settings
-        binding.copyToPanel.isVisible = state.showCommandPanel && state.enableCopying
-        binding.moveToPanel.isVisible = state.showCommandPanel && state.enableMoving
+        // Copy/Move panels visibility based on settings AND whether there are destination buttons
+        val hasCopyButtons = binding.copyToButtonsGrid.childCount > 0
+        val hasMoveButtons = binding.moveToButtonsGrid.childCount > 0
+        binding.copyToPanel.isVisible = state.showCommandPanel && state.enableCopying && hasCopyButtons
+        binding.moveToPanel.isVisible = state.showCommandPanel && state.enableMoving && hasMoveButtons
     }
 
     private fun displayImage(path: String) {
@@ -1618,9 +1620,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     }
                 }
                 
-                // Restore collapsed state AFTER adding buttons
-                updateCopyPanelVisibility(copyCollapsed)
-                updateMovePanelVisibility(moveCollapsed)
+                // Hide panels if no destination buttons created
+                val hasDestinations = destinations.isNotEmpty()
+                if (!hasDestinations) {
+                    binding.copyToPanel.isVisible = false
+                    binding.moveToPanel.isVisible = false
+                } else {
+                    // Restore collapsed state AFTER adding buttons
+                    updateCopyPanelVisibility(copyCollapsed)
+                    updateMovePanelVisibility(moveCollapsed)
+                }
             } catch (e: Exception) {
                 Toast.makeText(this@PlayerActivity, "Failed to load destinations", Toast.LENGTH_SHORT).show()
             }
