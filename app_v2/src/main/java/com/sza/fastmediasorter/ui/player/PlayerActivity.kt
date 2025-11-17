@@ -73,7 +73,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var countdownSeconds = 3 // Current countdown value
     private var isFirstResume = true // Track first onResume to avoid duplicate load
     private var hasShownFirstRunHint = false // Track if first-run hint has been shown in this session
-    private var loadingProgressDialog: AlertDialog? = null // Progress dialog for file loading
 
     // Injected dependencies for network playback
     @Inject
@@ -754,15 +753,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     }
                 }
 
-                launch {
-                    viewModel.loading.collect { isLoading ->
-                        if (isLoading) {
-                            showLoadingDialog()
-                        } else {
-                            dismissLoadingDialog()
-                        }
-                    }
-                }
+                // Removed: loading dialog during file list load (not needed - single file loads fast)
+                // Image loading progress handled by showLoadingIndicatorRunnable with 2s delay
             }
         }
     }
@@ -1583,9 +1575,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             is PlayerViewModel.PlayerEvent.ShowMessage -> {
                 Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
             }
-            is PlayerViewModel.PlayerEvent.LoadingProgress -> {
-                updateLoadingProgress(event.current, event.total)
-            }
+            // Removed: LoadingProgress event handler (dialog not needed)
             PlayerViewModel.PlayerEvent.FinishActivity -> {
                 finish()
             }
@@ -1949,31 +1939,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         viewModel.togglePause()
     }
     
-    private fun showLoadingDialog() {
-        if (loadingProgressDialog == null) {
-            val dialog = AlertDialog.Builder(this)
-                .setTitle(getString(R.string.loading_files))
-                .setMessage(getString(R.string.files_loaded_progress, 0, 0))
-                .setCancelable(true)
-                .setNegativeButton(android.R.string.cancel) { _, _ ->
-                    viewModel.cancelLoading()
-                    finish()
-                }
-                .create()
-            
-            loadingProgressDialog = dialog
-            dialog.show()
-        }
-    }
-    
-    private fun dismissLoadingDialog() {
-        loadingProgressDialog?.dismiss()
-        loadingProgressDialog = null
-    }
-    
-    private fun updateLoadingProgress(current: Int, total: Int) {
-        loadingProgressDialog?.setMessage(getString(R.string.files_loaded_progress, current, total))
-    }
+    // Removed: showLoadingDialog/dismissLoadingDialog/updateLoadingProgress
+    // File list loading is fast (cached), no dialog needed
+    // Image loading uses ProgressBar (showLoadingIndicatorRunnable with 2s delay)
     
     override fun onResume() {
         super.onResume()

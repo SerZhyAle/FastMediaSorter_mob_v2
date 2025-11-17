@@ -62,7 +62,7 @@ class PlayerViewModel @Inject constructor(
     sealed class PlayerEvent {
         data class ShowError(val message: String) : PlayerEvent()
         data class ShowMessage(val message: String) : PlayerEvent()
-        data class LoadingProgress(val current: Int, val total: Int) : PlayerEvent()
+        // Removed: LoadingProgress event (dialog not needed for single file loads)
         object FinishActivity : PlayerEvent()
     }
 
@@ -151,17 +151,14 @@ class PlayerViewModel @Inject constructor(
                     audioSizeMax = settings.audioSizeMax
                 )
 
-                // Load all files with progress tracking
+                // Load all files (fast from cache via MediaFilesCacheManager)
                 Timber.d("Loading all files from resource (fileCount=${resource.fileCount})")
                 val files = getMediaFilesUseCase(
                     resource = resource,
                     sizeFilter = sizeFilter,
                     useChunkedLoading = false,
                     maxFiles = Int.MAX_VALUE,
-                    onProgress = { current, total ->
-                        // Emit progress event for UI
-                        sendEvent(PlayerEvent.LoadingProgress(current, total))
-                    }
+                    onProgress = null // No progress needed - loads from cache instantly
                 ).first()
                 
                 if (files.isEmpty()) {
