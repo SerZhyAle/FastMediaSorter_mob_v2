@@ -753,14 +753,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             return
         }
         
-        // Show first-run hint if enabled and not shown yet
-        if (!hasShownFirstRunHint && state.currentFile != null) {
+        // Show first-run hint if enabled and not shown yet (only in fullscreen mode without command panel)
+        if (!hasShownFirstRunHint && state.currentFile != null && !state.showCommandPanel) {
             lifecycleScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val isFirstRun = settingsRepository.isPlayerFirstRun()
                 
                 if (settings.showPlayerHintOnFirstRun && isFirstRun) {
-                    Timber.d("PlayerActivity.updateUI: Showing first-run hint overlay")
+                    Timber.d("PlayerActivity.updateUI: Showing first-run hint overlay (fullscreen mode)")
                     // Delay hint to allow UI to settle
                     delay(500)
                     showFirstRunHintOverlay()
