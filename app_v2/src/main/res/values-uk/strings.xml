@@ -325,6 +325,16 @@
     <string name="google_drive_authentication_failed">Помилка входу в Google Диск</string>
     <string name="google_drive_connection_test_success">Успішно підключено!</string>
     <string name="google_drive_connection_test_failed">Помилка підключення: %1$s</string>
+    
+    <!-- Dropbox strings -->
+    <string name="dropbox_sign_in">Увійти через Dropbox</string>
+    <string name="dropbox_signed_in">Вхід виконано: %1$s</string>
+    <string name="dropbox_sign_out">Вийти</string>
+    <string name="dropbox_select_folder">Вибрати папку</string>
+    <string name="dropbox_authentication_failed">Помилка входу в Dropbox</string>
+    <string name="dropbox_connection_test_success">Успішно підключено!</string>
+    <string name="dropbox_connection_test_failed">Помилка підключення: %1$s</string>
+    
     <string name="no_folders_found">Папки не знайдено</string>
     <string name="add_folder">Додати папку</string>
     <string name="selected_folder">Вибрано: %1$s</string>

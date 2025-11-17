@@ -1,11 +1,29 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511170339  
-**Version**: 2.0.0-build2511170339
+**Latest Build**: 2.0.2511171110  
+**Version**: 2.0.0-build2511171110
 
 ---
 
 ## 🎯 Current Development - In Progress
+
+- [ ] **FEATURE: Dropbox Integration - Phase 4** (Core Implementation Complete)
+  - ✅ Dropbox SDK 5.4.5 added to dependencies
+  - ✅ DropboxClient implemented with full CloudStorageClient interface
+  - ✅ CloudMediaScanner updated to support Dropbox
+  - ✅ Localized strings added (en/ru/uk)
+  - ⏳ **Remaining Tasks**:
+    - Add Dropbox APP_KEY to `strings.xml` (requires Dropbox App Console registration)
+    - Configure `Auth.startOAuth2PKCE()` in Application class or AddResourceActivity
+    - Create DropboxFolderPickerActivity (similar to GoogleDriveFolderPickerActivity)
+    - Add Dropbox authentication UI in AddResourceActivity
+    - Add auth_callback scheme to AndroidManifest.xml
+  - **Technical Notes**:
+    - Uses OAuth 2.0 PKCE flow (more secure than legacy OAuth 1.0)
+    - Paths use "/" prefix (e.g., "/Photos/vacation.jpg"), "" for root
+    - Credentials serialized as JSON (access_token, refresh_token, expires_at, app_key)
+    - All CRUD operations implemented (list, download, upload, delete, rename, move, copy)
+    - Thumbnail support with 8 size options (64px to 2048px)
 
 - [ ] **FEATURE: Google Drive Testing** - Phase 3
   - Requires Android OAuth client setup in Google Cloud Console
@@ -23,7 +41,33 @@
 
 ## 🛠️ Recent Fixes
 
-### Build 2.0.2511170339 ✅
+### Build 2.0.2511171110 ✅
+- ✅ **FEATURE: Dropbox Core Implementation**
+- **Implementation**: Complete CloudStorageClient implementation for Dropbox with OAuth 2.0 PKCE
+- **Components**:
+  - **DropboxClient.kt**: Full implementation of CloudStorageClient interface
+    - Authentication: OAuth 2.0 PKCE flow with DbxCredential serialization
+    - File operations: list, download, upload (with progress), getThumbnail
+    - Management: create/delete/rename/move/copy files and folders
+    - Search: Full-text search with optional MIME filter
+    - Connection test: Validates authentication via currentAccount API
+  - **CloudMediaScanner.kt**: Injected DropboxClient, updated getClient() to return dropboxClient for DROPBOX provider
+  - **build.gradle.kts**: Added Dropbox Core SDK 5.4.5 dependency
+  - **Localized strings**: Added 7 Dropbox-specific strings (sign_in, signed_in, sign_out, select_folder, authentication_failed, connection_test_success/failed) in English, Russian, Ukrainian
+- **Changed files**: 6 files
+  - Data layer: `DropboxClient.kt` (new, 700+ lines), `CloudMediaScanner.kt`
+  - Build: `build.gradle.kts`
+  - Resources: `strings.xml`, `values-ru/strings.xml`, `values-uk/strings.xml`
+- **Technical Details**:
+  - Uses DbxClientV2 with OAuth2 PKCE (more secure than OAuth 1.0)
+  - Credentials stored as JSON: {access_token, refresh_token, expires_at, app_key}
+  - Path convention: "/" prefix for all paths, "" for root folder
+  - Thumbnail sizes: 8 options from 64x64 to 2048x1536
+  - File type detection: Extension-based MIME type guessing
+- **Next Steps**: UI integration (DropboxFolderPickerActivity, AddResourceActivity updates), APP_KEY configuration
+- **Result**: Dropbox backend ready for UI integration, follows same pattern as Google Drive
+
+### Build 2.0.2511170339 ✅ (Now Build 2.0.2511171110)
 - ✅ **POLISH: UI Animations and Transitions**
 - **Implementation**: Added smooth animations throughout the app following Material Design standards
 - **Components**:

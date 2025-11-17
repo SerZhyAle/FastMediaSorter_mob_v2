@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter_v2"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11171110
-        versionName = "2.0.0-build2511171110"
+        versionCode = 11171119
+        versionName = "2.0.0-build2511171119"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -178,6 +178,9 @@ dependencies {
     implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
     implementation("com.google.http-client:google-http-client-gson:1.43.3")
     implementation("com.google.http-client:google-http-client-android:1.43.3")
+    
+    // Cloud Storage - Dropbox
+    implementation("com.dropbox.core:dropbox-core-sdk:5.4.5")
     
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")

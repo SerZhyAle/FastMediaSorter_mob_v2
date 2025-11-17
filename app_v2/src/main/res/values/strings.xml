@@ -353,6 +353,16 @@
     <string name="google_drive_authentication_failed">Google Drive authentication failed</string>
     <string name="google_drive_connection_test_success">Connected successfully!</string>
     <string name="google_drive_connection_test_failed">Connection failed: %1$s</string>
+    
+    <!-- Dropbox strings -->
+    <string name="dropbox_sign_in">Sign in with Dropbox</string>
+    <string name="dropbox_signed_in">Signed in: %1$s</string>
+    <string name="dropbox_sign_out">Sign out</string>
+    <string name="dropbox_select_folder">Select Folder</string>
+    <string name="dropbox_authentication_failed">Dropbox authentication failed</string>
+    <string name="dropbox_connection_test_success">Connected successfully!</string>
+    <string name="dropbox_connection_test_failed">Connection failed: %1$s</string>
+    
     <string name="no_folders_found">No folders found</string>
     <string name="add_folder">Add Folder</string>
     <string name="selected_folder">Selected: %1$s</string>

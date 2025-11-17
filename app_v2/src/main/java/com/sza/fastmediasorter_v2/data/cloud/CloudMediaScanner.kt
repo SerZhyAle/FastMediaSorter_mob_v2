@@ -21,6 +21,7 @@ import javax.inject.Singleton
 class CloudMediaScanner @Inject constructor(
     @ApplicationContext private val context: Context,
     private val googleDriveClient: GoogleDriveClient,
+    private val dropboxClient: DropboxClient,
     private val resourceRepository: ResourceRepository
 ) : MediaScanner {
 
@@ -130,8 +131,8 @@ class CloudMediaScanner @Inject constructor(
     private fun getClient(provider: CloudProvider?): CloudStorageClient? {
         return when (provider) {
             CloudProvider.GOOGLE_DRIVE -> googleDriveClient
+            CloudProvider.DROPBOX -> dropboxClient
             CloudProvider.ONEDRIVE -> null // TODO: implement
-            CloudProvider.DROPBOX -> null // TODO: implement
             null -> null
         }
     }
