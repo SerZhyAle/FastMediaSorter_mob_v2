@@ -148,6 +148,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     /**
      * ExoPlayer listener for video/audio playback events
      * Handles: STATE_READY (hide loading indicator), STATE_ENDED (auto-advance in slideshow)
+     * 
+     * NOTE: ExoPlayer may log non-critical warnings internally (e.g., AudioSink discontinuity, 
+     * ExoPlayer initialization timing). These are handled internally by ExoPlayer and don't 
+     * affect playback. They appear as ERROR in logcat but are actually recoverable warnings.
+     * Example: "Audio sink error... UnexpectedDiscontinuityException" - playback continues normally.
      */
     private val exoPlayerListener = object : androidx.media3.common.Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
