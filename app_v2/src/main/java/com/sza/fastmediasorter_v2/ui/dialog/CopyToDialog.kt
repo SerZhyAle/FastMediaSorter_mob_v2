@@ -102,21 +102,21 @@ class CopyToDialog(
 
     /**
      * Create colored destination buttons dynamically based on count
-     * Per spec: 1-2 buttons take full width, 3+ arranged in rows
+     * Buttons always stretch to fill row width:
+     * 1 button = 100%, 2 buttons = 50% each, 3 buttons = 33% each, etc.
      */
     private fun createDestinationButtons(destinations: List<MediaResource>) {
         Log.d(TAG, "createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
         
-        // For 1-2 destinations: full width buttons (each button takes full row)
-        // For 3+ destinations: multiple buttons per row
+        // Buttons per row: stretch to fill width (1-5 buttons max per row)
         val buttonsPerRow = when {
-            destinations.size <= 2 -> 1  // Full width for 1-2 buttons
-            destinations.size == 3 -> 3
-            destinations.size == 4 -> 2  // 2x2 grid
-            destinations.size <= 6 -> 3  // 3 per row
-            destinations.size <= 8 -> 4
+            destinations.size == 1 -> 1  // 1 button = 100% width
+            destinations.size == 2 -> 2  // 2 buttons = 50% each
+            destinations.size == 3 -> 3  // 3 buttons = 33% each
+            destinations.size == 4 -> 2  // 2x2 grid (50% each)
+            destinations.size <= 10 -> 5 // 5 buttons = 20% each
             else -> 5
         }
         
