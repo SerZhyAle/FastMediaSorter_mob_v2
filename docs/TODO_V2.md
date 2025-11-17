@@ -1,11 +1,25 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511170301  
-**Version**: 2.0.0-build2511170301
+**Latest Build**: 2.0.2511170336  
+**Version**: 2.0.0-build2511170336
 
 ---
 
 ## 🎯 Current Development - In Progress
+
+- [x] **FEATURE: Video thumbnail extraction toggle in Settings**
+  - Added user-controllable setting "Show video thumbnails" in Playback settings
+  - Default: OFF (preserves optimization - instant placeholder icons for network videos)
+  - When enabled: Attempts to extract first frame for network videos (may take 2+ seconds)
+  - Implementation:
+    - AppSettings.showVideoThumbnails field (domain model)
+    - DataStore persistence (KEY_SHOW_VIDEO_THUMBNAILS)
+    - Localized strings: en/ru/uk with delay warning
+    - SwitchMaterial in fragment_settings_playback.xml
+    - MediaFileAdapter + PagingMediaFileAdapter: Conditional load() based on setting
+    - BrowseActivity: Observes settings changes, passes callback to adapters
+  - Changed files: `AppSettings.kt`, `SettingsRepositoryImpl.kt`, `strings.xml` (3 langs), `fragment_settings_playback.xml`, `SettingsFragments.kt`, `MediaFileAdapter.kt`, `PagingMediaFileAdapter.kt`, `BrowseActivity.kt`
+  - Result: Users can choose between instant placeholders (fast) or actual frames (slow but informative)
 
 - [x] **OPTIMIZATION: Instant video/audio thumbnails for network files**
   - Thumbnails for SMB/SFTP/FTP video/audio files now show instantly (no network delay)
@@ -21,17 +35,33 @@
   - Changed files: `SmbDataSource.kt`, `SftpDataSource.kt`, `FtpDataSource.kt`
   - Result: Cleaner logs during video playback over SMB/SFTP/FTP
 
-- [ ] Добавить в настройки в раздел к Видеофайлам новую опцию галочку - "демострировать миниатюры для видеофайлов". Если она включена, для для видеофайлов на любом виде ресурсов нужно попытаться выявить первый кадр видеофайла и показать в качестве миниатюры. В случае, если это занимает больше 2 секунд (определение первого кадра картинку) тогда показывать миниатюру по типа (расширению). Мы же миниатюры читаем только для тех файлов, которыые показываем на экране пользователю, верно? Даже если файлов десятки тысяч - их миниатюры загружаются только когда они показаны на текущем экране Browse
-
 
 **Research Results:**
 - ~~**SMB video thumbnails**: `VideoFrameDecoder` from Coil is active but requires full file download for network files. Current `NetworkFileFetcher` downloads only first 512KB (optimized for images). Solution: increase buffer to 5MB for video files (`.mp4/.mov` extensions) - but this will slow down thumbnail loading. Alternative: show generic video icon immediately based on extension.~~
 - ~~**Instant placeholders**: Consider detecting video/audio by extension and showing placeholder icon before network fetch completes.~~
 - **COMPLETED**: Network video/audio thumbnails now show placeholder instantly. Coil still attempts to load actual frame in background, but user sees icon immediately (no delay).
+- **FEATURE ADDED (Build 2.0.2511170336)**: User can now enable video frame extraction via Settings toggle if they want actual thumbnails despite delay.
 
 ---
 
 ## 🛠️ Recent Fixes
+
+### Build 2.0.2511170336 ✅
+- ✅ **FEATURE: Add video thumbnail extraction toggle in Settings**
+- **Implementation**: User-controlled setting "Show video thumbnails" in Playback section
+- **Default behavior**: OFF (instant placeholder icons for network videos - preserves optimization)
+- **When enabled**: Attempts to extract first frame from network videos (may take 2+ seconds)
+- **Architecture**:
+  - Domain: `AppSettings.showVideoThumbnails` field (default: false)
+  - Data: `SettingsRepositoryImpl` - DataStore key + read/write logic
+  - UI: `fragment_settings_playback.xml` - SwitchMaterial widget
+  - Binding: `SettingsFragments.kt` - ObserveData updates switch state
+  - Adapters: `MediaFileAdapter` + `PagingMediaFileAdapter` - Conditional `load()` for network videos
+  - Activity: `BrowseActivity` - Observes settings, passes `showVideoThumbnails` callback to adapters
+- **Localization**: English, Russian, Ukrainian strings with "2+ seconds delay" warning
+- **Changed files**: 8 files modified (AppSettings, SettingsRepositoryImpl, 3x strings.xml, fragment layout, SettingsFragments, 2x adapters, BrowseActivity)
+- **Testing**: Toggle ON/OFF in Settings, verify network videos show placeholder when OFF, attempt extraction when ON
+- **Result**: Users get choice between fast placeholders (default) or informative thumbnails (opt-in)
 
 ### Build 2.0.2511170301 ✅
 - ✅ **BUG FIX: FTP file copy operation failing with "both source and destination are local"**
