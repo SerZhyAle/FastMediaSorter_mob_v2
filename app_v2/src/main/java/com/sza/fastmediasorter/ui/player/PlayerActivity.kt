@@ -891,8 +891,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.copyPanelCollapsed
             
+            Timber.d("PlayerActivity.toggleCopyPanel: CLICK - current state: collapsed=${currentSettings.copyPanelCollapsed}, new state: collapsed=$newCollapsedState")
+            
             // Save new state
             settingsRepository.updateSettings(currentSettings.copy(copyPanelCollapsed = newCollapsedState))
+            Timber.d("PlayerActivity.toggleCopyPanel: State SAVED to settings - copyPanelCollapsed=$newCollapsedState")
             
             // Update UI
             updateCopyPanelVisibility(newCollapsedState)
@@ -907,8 +910,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             val currentSettings = settingsRepository.getSettings().first()
             val newCollapsedState = !currentSettings.movePanelCollapsed
             
+            Timber.d("PlayerActivity.toggleMovePanel: CLICK - current state: collapsed=${currentSettings.movePanelCollapsed}, new state: collapsed=$newCollapsedState")
+            
             // Save new state
             settingsRepository.updateSettings(currentSettings.copy(movePanelCollapsed = newCollapsedState))
+            Timber.d("PlayerActivity.toggleMovePanel: State SAVED to settings - movePanelCollapsed=$newCollapsedState")
             
             // Update UI
             updateMovePanelVisibility(newCollapsedState)
@@ -919,6 +925,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Update Copy to panel buttons visibility and indicator
      */
     private fun updateCopyPanelVisibility(collapsed: Boolean) {
+        Timber.d("PlayerActivity.updateCopyPanelVisibility: Applying UI state - collapsed=$collapsed, buttonsVisible=${!collapsed}")
         binding.copyToButtonsGrid.isVisible = !collapsed
         binding.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
     }
@@ -927,6 +934,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Update Move to panel buttons visibility and indicator
      */
     private fun updateMovePanelVisibility(collapsed: Boolean) {
+        Timber.d("PlayerActivity.updateMovePanelVisibility: Applying UI state - collapsed=$collapsed, buttonsVisible=${!collapsed}")
         binding.moveToButtonsGrid.isVisible = !collapsed
         binding.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
     }
@@ -1638,6 +1646,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 val copyCollapsed = settings.copyPanelCollapsed
                 val moveCollapsed = settings.movePanelCollapsed
                 
+                Timber.d("PlayerActivity.populateDestinationButtons: READ from settings - copyPanelCollapsed=$copyCollapsed, movePanelCollapsed=$moveCollapsed")
+                
                 // Clear existing buttons
                 binding.copyToButtonsGrid.removeAllViews()
                 binding.moveToButtonsGrid.removeAllViews()
@@ -1661,6 +1671,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     binding.moveToPanel.isVisible = false
                 } else {
                     // Restore collapsed state AFTER adding buttons
+                    Timber.d("PlayerActivity.populateDestinationButtons: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")
                     updateCopyPanelVisibility(copyCollapsed)
                     updateMovePanelVisibility(moveCollapsed)
                 }

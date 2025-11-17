@@ -68,6 +68,10 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_OVERWRITE_ON_MOVE = booleanPreferencesKey("overwrite_on_move")
         private val KEY_ENABLE_UNDO = booleanPreferencesKey("enable_undo")
         private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
+        
+        // Player UI settings keys
+        private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
+        private val KEY_MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
     }
 
     override fun getSettings(): Flow<AppSettings> {
@@ -141,7 +145,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     overwriteOnCopy = preferences[KEY_OVERWRITE_ON_COPY] ?: false,
                     enableMoving = preferences[KEY_ENABLE_MOVING] ?: true,
                     overwriteOnMove = preferences[KEY_OVERWRITE_ON_MOVE] ?: false,
-                    enableUndo = preferences[KEY_ENABLE_UNDO] ?: true
+                    enableUndo = preferences[KEY_ENABLE_UNDO] ?: true,
+                    
+                    // Player UI
+                    copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
+                    movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false
                 )
             }
     }
@@ -195,6 +203,10 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ENABLE_MOVING] = settings.enableMoving
             preferences[KEY_OVERWRITE_ON_MOVE] = settings.overwriteOnMove
             preferences[KEY_ENABLE_UNDO] = settings.enableUndo
+            
+            // Player UI
+            preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
+            preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
         }
     }
 
