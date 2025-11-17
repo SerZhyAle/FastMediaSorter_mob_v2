@@ -38,6 +38,7 @@ class MediaSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: SettingsViewModel by activityViewModels()
+    private var isUpdatingFromSettings = false
 
     companion object {
         // Conversion constants
@@ -63,6 +64,7 @@ class MediaSettingsFragment : Fragment() {
     private fun setupViews() {
         // Support Images
         binding.switchSupportImages.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(supportImages = isChecked))
             updateImageSizeVisibility(isChecked, current.supportGifs)
@@ -70,6 +72,7 @@ class MediaSettingsFragment : Fragment() {
         
         // Load full size images
         binding.switchLoadFullSizeImages.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(loadFullSizeImages = isChecked))
         }
@@ -101,6 +104,7 @@ class MediaSettingsFragment : Fragment() {
         
         // Support GIFs
         binding.switchSupportGifs.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(supportGifs = isChecked))
             updateImageSizeVisibility(current.supportImages, isChecked)
@@ -108,6 +112,7 @@ class MediaSettingsFragment : Fragment() {
         
         // Support Videos
         binding.switchSupportVideos.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(supportVideos = isChecked))
             updateVideoSizeVisibility(isChecked)
@@ -140,6 +145,7 @@ class MediaSettingsFragment : Fragment() {
         
         // Support Audio
         binding.switchSupportAudio.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(supportAudio = isChecked))
             updateAudioSizeVisibility(isChecked)
@@ -175,6 +181,7 @@ class MediaSettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.settings.collect { settings ->
+                    isUpdatingFromSettings = true
                     // Update switches (only if changed)
                     if (binding.switchSupportImages.isChecked != settings.supportImages) {
                         binding.switchSupportImages.isChecked = settings.supportImages
@@ -226,6 +233,7 @@ class MediaSettingsFragment : Fragment() {
                     updateImageSizeVisibility(settings.supportImages, settings.supportGifs)
                     updateVideoSizeVisibility(settings.supportVideos)
                     updateAudioSizeVisibility(settings.supportAudio)
+                    isUpdatingFromSettings = false
                 }
             }
         }
@@ -258,6 +266,7 @@ class PlaybackSettingsFragment : Fragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
+    private var isUpdatingFromSettings = false
     
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsPlaybackBinding.inflate(inflater, container, false)
@@ -309,46 +318,55 @@ class PlaybackSettingsFragment : Fragment() {
         
         // Switches
         binding.switchPlayToEnd.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(playToEndInSlideshow = isChecked))
         }
         
         binding.switchAllowRename.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(allowRename = isChecked))
         }
         
         binding.switchAllowDelete.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(allowDelete = isChecked))
         }
         
         binding.switchConfirmDelete.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(confirmDelete = isChecked))
         }
         
         binding.switchGridMode.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
         }
         
         binding.switchShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
         
         binding.switchDetailedErrors.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showDetailedErrors = isChecked))
         }
         
         binding.switchShowPlayerHint.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showPlayerHintOnFirstRun = isChecked))
         }
         
         binding.switchShowVideoThumbnails.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showVideoThumbnails = isChecked))
         }
@@ -384,6 +402,7 @@ class PlaybackSettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.settings.collect { settings ->
+                    isUpdatingFromSettings = true
                     // Sort mode
                     binding.spinnerSortMode.setText(getSortModeName(settings.defaultSortMode), false)
                     
@@ -427,6 +446,7 @@ class PlaybackSettingsFragment : Fragment() {
                     if (currentIconSize != settings.defaultIconSize) {
                         binding.etIconSize.setText(settings.defaultIconSize.toString())
                     }
+                    isUpdatingFromSettings = false
                 }
             }
         }
@@ -453,6 +473,7 @@ class DestinationsSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
     private lateinit var adapter: DestinationsAdapter
+    private var isUpdatingFromSettings = false
     
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsDestinationsBinding.inflate(inflater, container, false)
@@ -473,29 +494,34 @@ class DestinationsSettingsFragment : Fragment() {
     private fun setupViews() {
         // Copying switches
         binding.switchEnableCopying.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableCopying = isChecked))
             updateCopyOptionsVisibility(isChecked)
         }
         
         binding.switchGoToNextAfterCopy.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(goToNextAfterCopy = isChecked))
         }
         
         binding.switchOverwriteOnCopy.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(overwriteOnCopy = isChecked))
         }
         
         // Moving switches
         binding.switchEnableMoving.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableMoving = isChecked))
             updateMoveOptionsVisibility(isChecked)
         }
         
         binding.switchOverwriteOnMove.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(overwriteOnMove = isChecked))
         }
@@ -561,6 +587,7 @@ class DestinationsSettingsFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.settings.collect { settings ->
+                        isUpdatingFromSettings = true
                         // Update switches
                         binding.switchEnableCopying.isChecked = settings.enableCopying
                         binding.switchGoToNextAfterCopy.isChecked = settings.goToNextAfterCopy
@@ -570,6 +597,7 @@ class DestinationsSettingsFragment : Fragment() {
                         
                         updateCopyOptionsVisibility(settings.enableCopying)
                         updateMoveOptionsVisibility(settings.enableMoving)
+                        isUpdatingFromSettings = false
                     }
                 }
                 
@@ -756,12 +784,14 @@ class GeneralSettingsFragment : Fragment() {
         
         // Prevent Sleep
         binding.switchPreventSleep.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(preventSleep = isChecked))
         }
         
         // Small Controls
         binding.switchSmallControls.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(showSmallControls = isChecked))
         }

@@ -1004,7 +1004,7 @@ class SmbClient @Inject constructor() {
             
             block(share)
         } catch (e: Exception) {
-            Timber.e(e, "SMB connection error")
+            Timber.w(e, "SMB resource unavailable")
             removeConnection(key) // Remove failed connection from pool
             SmbResult.Error("Connection error: ${e.message}", e)
         }

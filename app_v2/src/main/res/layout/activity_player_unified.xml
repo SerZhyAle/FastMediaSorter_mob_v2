@@ -40,10 +40,6 @@
             android:contentDescription="Next"
             android:src="@android:drawable/ic_media_next" />
 
-        <Space
-            android:layout_width="16dp"
-            android:layout_height="1dp" />
-
         <ImageButton
             android:id="@+id/btnRenameCmd"
             android:layout_width="48dp"
@@ -59,7 +55,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete" />
-        
+
         <ImageButton
             android:id="@+id/btnInfoCmd"
             android:layout_width="48dp"
@@ -67,7 +63,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/file_information"
             android:src="@android:drawable/ic_menu_info_details" />
-        
+
         <ImageButton
             android:id="@+id/btnEditCmd"
             android:layout_width="48dp"
@@ -85,10 +81,6 @@
             android:contentDescription="Undo"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone" />
-
-        <Space
-            android:layout_width="16dp"
-            android:layout_height="1dp" />
 
         <ImageButton
             android:id="@+id/btnFullscreenCmd"

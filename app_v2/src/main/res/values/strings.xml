@@ -198,7 +198,7 @@
     <string name="welcome_description_1">Organize your media files efficiently:\n\n• Browse photos, videos, GIFs, and audio\n• Sort and filter by name, date, or size\n• Copy/move with touch gestures\n• Local, network (SMB/SFTP/FTP), and cloud storage\n• Up to 10 quick destination folders\n• Slideshow mode\n\nLet\'s get started!</string>
     <string name="welcome_title_2">Resource Types</string>
     <string name="welcome_description_2">Supported resource types:\n\n📱 LOCAL: Device storage, SD cards\n\n🌐 NETWORK: SMB/CIFS, SFTP, FTP\n\n☁️ CLOUD: Google Drive, OneDrive, Dropbox\n\nAdd resources in Settings!</string>
-    <string name="welcome_title_3">Touch Zones (Images/Video)</string>
+    <string name="welcome_title_3">Touch Zones (Images/Video)\nuse in full screen view mode</string>
     <string name="welcome_description_3" formatted="false">Player uses 9 touch zones (3×3 grid) for quick actions. Tap zones to navigate, copy, move, delete files, or access the command panel. See the scheme above for details.</string>
     <string name="welcome_title_4">Resources and Destinations</string>
     <string name="welcome_description_4">RESOURCES: Add folders from local storage, network shares, or cloud services.\n\nDESTINATIONS: Set up to 10 quick-access folders with color coding for fast copy/move operations.\n\nConfigure in Settings anytime!</string>

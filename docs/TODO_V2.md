@@ -1,21 +1,37 @@
 # TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.25.1117.1337  
-**Version**: 2.0.0-build2511171337
+**Latest Build**: 2.25.1117.1748  
+**Version**: 2.25.1117.1748
 **Package**: com.sza.fastmediasorter
 
 ---
-Замечания при тестировании, которые следует исправить:
 
-- [ ] наименование версии вместо 2.0.0-build2511171337 должно быть 2.2511.1713
+### Build 2.25.1117.1748 ✅
+- ✅ **BUG FIX: Infinite "Settings updated successfully" loop**
+- **Issue**: Toast message appeared infinitely when opening Settings, causing UI lag
+- **Root cause**: Race condition - `observeData()` programmatically updated switch states → listeners triggered → `updateSettings()` called → Flow emitted → `observeData()` triggered again → infinite loop
+- **Solution**: Added `isUpdatingFromSettings` flags to all 4 settings fragments
+  - Flag set to `true` before programmatic UI updates
+  - All `setOnCheckedChangeListener` callbacks check flag and early-return if updating from code
+  - Flag reset to `false` after UI update complete
+- **Changed files**:
+  - `SettingsFragments.kt`: Added flags to `MediaSettingsFragment`, `PlaybackSettingsFragment`, `DestinationsSettingsFragment`, `GeneralSettingsFragment`
+  - Modified 22+ switch listeners (all media type toggles, playback options, copy/move/destinations settings)
+  - Wrapped `observeData()` UI updates in flag checks
+- **Pattern**: `if (isUpdatingFromSettings) return@setOnCheckedChangeListener` in every listener
+- **Result**: Settings open instantly without loops. User interactions update settings once. Programmatic updates don't trigger listeners.
 
-- [ ] Панель команд наверху экрана проигрывателя не помещается на мобильном устройстве. можно удалить пробелы между кнопками "предыдущий, следующи", информация и редакция. Ну и сделать чтобы панель занимала 100% ширины экрана.
+- ✅ **UI: Welcome screen improvements**
+- **Changes**:
+  - **Touch Zones title**: Added "use in full screen view mode" clarification (en/ru/uk)
+  - **Resource Types slide**: Replaced app icon with `resource_types.png` drawable
+  - **Resources and Destinations slide**: Replaced app icon with `destinations.png` drawable
+- **Changed files**:
+  - `strings.xml` (en/ru/uk): Updated `welcome_title_3` with newline + fullscreen mode hint
+  - `WelcomeActivity.kt`: Updated page 2 iconRes → `R.drawable.resource_types`, page 4 iconRes → `R.drawable.destinations`
+- **Result**: Welcome screen now uses prepared visual assets instead of launcher icon. Touch zones purpose clearly stated (fullscreen mode only).
 
-- [ ] В панели комаед наверху экрана проигрывателя первая кнопка "назад" серенькая. Выглядит как будто выключена. Нужно яркая (белая для черной темы).
-
-- [ ] При запуске приожения, предположим какие то ресурсы сейчас недобступны. Например SMB. В логая я вижу "SMB connection error". Но это не ошибка - ресурс просто недоступен. Желательно обернуть в warning
-
-
+---
 
 
 ## 🚀 Pre-Release Tasks (Ready to Implement)

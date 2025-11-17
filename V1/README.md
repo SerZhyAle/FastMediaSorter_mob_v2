@@ -130,7 +130,7 @@ Enable this mode in **Settings → Slideshow Settings → Show Controls**. A min
 -   **Max Video Size**: Set maximum file size for videos (in MB).
 -   **Play video till end**: Choose whether videos play completely or follow slideshow interval timing.
 -   **Show detailed video error information**: Display comprehensive error diagnostics when video playback fails.
--   **Supported Formats**: MP4, MKV, MOV, WEBM, 3GP (AVI format not supported for SMB streaming due to library compatibility issues). Images: JPG, JPEG, PNG, GIF, BMP, WEBP.
+-   **Supported Formats**: MP4, MKV, MOV, WEBM, 3GP. Images: JPG, JPEG, PNG, GIF, BMP, WEBP.
 
 ### General Settings
 
