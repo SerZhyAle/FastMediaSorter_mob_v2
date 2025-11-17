@@ -1,7 +1,7 @@
 {
   "client_id": "YOUR_AZURE_AD_CLIENT_ID",
   "authorization_user_agent": "DEFAULT",
-  "redirect_uri": "msauth://com.sza.fastmediasorter_v2/YOUR_SIGNATURE_HASH",
+  "redirect_uri": "msauth://com.sza.fastmediasorter/YOUR_SIGNATURE_HASH",
   "account_mode": "SINGLE",
   "broker_redirect_uri_registered": true,
   "authorities": [

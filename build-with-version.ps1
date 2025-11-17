@@ -1,20 +1,22 @@
 # Build script with automatic version increment
-# Version format: YYMMDDHHmm (e.g., 2511072217)
+# Version format: 2.YY.MMdd.HHmm (e.g., 2.25.1117.1223)
 # versionCode format: shorter to fit Int max value (2147483647)
-# Using format: MMDDHHmm (e.g., 11072217)
+# Using format: MMDDHHmm (e.g., 11171223)
 
 $ErrorActionPreference = "Stop"
 
 # Generate version code from current date/time
 $now = Get-Date
-$versionCodeFull = $now.ToString("yyMMddHHmm")  # Full format for display
+$yy = $now.ToString("yy")
+$mmdd = $now.ToString("MMdd")
+$hhmm = $now.ToString("HHmm")
 $versionCodeInt = [int]$now.ToString("MMddHHmm")  # Short format for versionCode (fits in Int)
-$versionName = "2.0.$versionCodeFull"
+$versionName = "2.$yy.$mmdd.$hhmm"
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "Building with version:" -ForegroundColor Cyan
 Write-Host "  versionCode: $versionCodeInt (MMddHHmm)" -ForegroundColor Green
-Write-Host "  versionName: $versionName (YYMMddHHmm)" -ForegroundColor Green
+Write-Host "  versionName: $versionName (2.YY.MMdd.HHmm)" -ForegroundColor Green
 Write-Host "==================================" -ForegroundColor Cyan
 
 # Path to build.gradle.kts

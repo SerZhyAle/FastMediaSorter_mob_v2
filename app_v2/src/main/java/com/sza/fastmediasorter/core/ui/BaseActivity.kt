@@ -1,0 +1,64 @@
+package com.sza.fastmediasorter.core.ui
+
+import android.content.Context
+import android.os.Bundle
+import android.view.WindowManager
+import androidx.appcompat.app.AppCompatActivity
+import androidx.viewbinding.ViewBinding
+import com.sza.fastmediasorter.core.util.LocaleHelper
+import timber.log.Timber
+
+/**
+ * Base Activity that provides common functionality for all activities.
+ * - Handles keep screen awake
+ * - Provides logging
+ * - Manages ViewBinding lifecycle
+ * - Applies locale
+ */
+abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
+
+    private var _binding: VB? = null
+    protected val binding: VB
+        get() = _binding ?: throw IllegalStateException("Binding is only valid between onCreateView and onDestroyView")
+
+    abstract fun getViewBinding(): VB
+    abstract fun setupViews()
+    abstract fun observeData()
+
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        Timber.d("onCreate: ${this::class.simpleName}")
+        
+        _binding = getViewBinding()
+        setContentView(binding.root)
+        
+        // Apply keep screen awake if needed (will be controlled by settings)
+        applyKeepScreenAwake()
+        
+        // Defer heavy initialization to allow first frame to render quickly
+        binding.root.post {
+            setupViews()
+            observeData()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _binding = null
+        Timber.d("onDestroy: ${this::class.simpleName}")
+    }
+
+    protected open fun shouldKeepScreenAwake(): Boolean = true
+
+    private fun applyKeepScreenAwake() {
+        if (shouldKeepScreenAwake()) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+}

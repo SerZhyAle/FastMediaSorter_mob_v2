@@ -1,7 +1,124 @@
-# TODO V2 - FastMediaSorter v2
+# TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.0.2511171211  
-**Version**: 2.0.0-build2511171211
+**Latest Build**: 2.25.1117.1337  
+**Version**: 2.0.0-build2511171337
+**Package**: com.sza.fastmediasorter
+
+---
+Замечания при тестировании, которые следует исправить:
+
+- [ ] наименование версии вместо 2.0.0-build2511171337 должно быть 2.2511.1713
+
+- [ ] Панель команд наверху экрана проигрывателя не помещается на мобильном устройстве. можно удалить пробелы между кнопками "предыдущий, следующи", информация и редакция. Ну и сделать чтобы панель занимала 100% ширины экрана.
+
+- [ ] В панели комаед наверху экрана проигрывателя первая кнопка "назад" серенькая. Выглядит как будто выключена. Нужно яркая (белая для черной темы).
+
+- [ ] При запуске приожения, предположим какие то ресурсы сейчас недобступны. Например SMB. В логая я вижу "SMB connection error". Но это не ошибка - ресурс просто недоступен. Желательно обернуть в warning
+
+
+
+
+## 🚀 Pre-Release Tasks (Ready to Implement)
+
+### 🔴 Critical (Blocking Release)
+
+- [x] **ProGuard/R8 Configuration** *(Build 2.25.1117.1223)*
+  - ✅ ProGuard rules extended for all network protocols (SMB, SFTP, FTP)
+  - ✅ Cloud services rules added (Google Drive, Dropbox, OneDrive)
+  - ✅ Logging removal in release (Timber stripped)
+  - ✅ Missing classes warnings fixed (Apache HTTP, Tink, OpenTelemetry, Nimbus JOSE)
+  - ✅ Release APK built successfully (26.4 MB)
+  - 🔧 Full feature testing on release APK pending
+
+- [x] **APK Signing Verification** *(Build 2.25.1117.1223)*
+  - ✅ Keystore file exists (created 2025-10-17)
+  - ✅ Signing configuration verified in build.gradle.kts
+  - ✅ Release APK signed successfully
+  - ✅ APK location: `app_v2/build/outputs/apk/release/app_v2-release.apk`
+
+- [x] **File Operations Matrix Verification** *(Build 2.25.1117.1223)*
+  - ✅ **Copy/Move Operations**: All combinations implemented
+    - Local↔Local: ✅ Standard File API
+    - Local↔SMB: ✅ SmbFileOperationHandler (upload/download)
+    - Local↔SFTP: ✅ SftpFileOperationHandler (upload/download)
+    - Local↔FTP: ✅ FtpFileOperationHandler (upload/download)
+    - Local↔Cloud: ✅ CloudFileOperationHandler (upload/download)
+    - SMB↔SFTP: ✅ Via memory buffer (download→upload)
+    - SMB↔FTP: ✅ Via memory buffer (download→upload)
+    - SMB↔Cloud: ✅ Via memory buffer (download→upload)
+    - SFTP↔FTP: ✅ Via memory buffer (download→upload)
+    - SFTP↔Cloud: ✅ Via memory buffer (download→upload)
+    - FTP↔Cloud: ✅ Via memory buffer (download→upload)
+    - Cloud↔Cloud: ✅ Native API copy (Google Drive)
+  - ✅ **Delete Operations**: All resource types
+    - Local: ✅ Soft-delete (trash folder) + hard delete
+    - SMB: ✅ Soft-delete + hard delete
+    - SFTP: ✅ Soft-delete + hard delete
+    - FTP: ✅ Soft-delete + hard delete
+    - Cloud: ✅ Trash API (Google Drive)
+  - ✅ **Rename Operations**: All resource types
+    - Local: ✅ File.renameTo()
+    - SMB: ✅ SmbClient.rename()
+    - SFTP: ✅ SftpClient.rename()
+    - FTP: ✅ FTPClient.rename()
+    - Cloud: ✅ Drive API update()
+
+### 🟠 High Priority (Quality & UX)
+
+- [ ] **Edge Cases Handling**
+  - Empty folders: Add explicit empty state indicators
+  - Long filenames: Add ellipsize and proper text overflow
+  - Special characters: Verify correct display in all UI components
+  - Large file counts: Test >10000 files display
+
+- [ ] **Static Analysis Integration**
+  - Add detekt to build.gradle.kts
+  - Configure baseline rules
+  - Fix critical warnings
+  - Add to CI/CD pipeline (future)
+
+### 🟡 Medium Priority (Documentation & Polish)
+
+- [ ] **README Update**
+  - Document v2 features and changes
+  - Add screenshots of main screens
+  - Localize in en/ru/uk
+  - Add installation instructions
+
+- [ ] **CHANGELOG Creation**
+  - Format: Added/Changed/Fixed/Removed
+  - Document migration from v1 to v2
+  - List all major features
+
+- [ ] **Size Optimization**
+  - Enable resource shrinking in release build
+  - Check APK/AAB size
+  - Remove unused resources and assets
+  - Optimize images and drawables
+
+- [ ] **Dependencies Update**
+  - Update libraries to latest stable versions
+  - Check compatibility and breaking changes
+  - Test after updates
+
+### 🔵 Low Priority (Store Preparation)
+
+- [ ] **Play Store Materials**
+  - Feature graphic (1024x500px) with app highlights
+  - Screenshots (4-8 per device type)
+  - Localized screenshots (en/ru/uk)
+  - App icon verification on different launchers
+
+- [ ] **Privacy Policy**
+  - Document v2 data usage
+  - Host online (GitHub Pages or own site)
+  - Link in app and store listing
+
+- [ ] **User Guide**
+  - Features overview
+  - FAQ section
+  - Troubleshooting common issues
+  - Localized (en/ru/uk)
 
 ---
 
@@ -62,9 +179,113 @@
 
 ---
 
-## 🛠️ Recent Fixes
+## 🎯 Current Development Tasks
 
-### Build 2.0.2511171211 ✅
+### 🔴 Critical (Blocking Release)
+
+- [ ] **Google Drive OAuth Configuration**
+  - **Status**: Implementation complete, needs OAuth2 client configuration in Google Cloud Console
+  - **Blocker**: Cannot test without valid client ID + SHA-1 fingerprint
+  - **Action**: Create Android OAuth client, add credentials to project
+  - **Testing**: Add Google Drive folder → Browse → File operations
+
+- [ ] **Pagination Testing (1000+ files)**
+  - **Status**: Implementation complete, needs real-world testing
+  - **Test scenarios**:
+    - LOCAL: 1000+, 5000+ files (images/videos mix)
+    - SMB: Large network shares (test over slow connection)
+    - SFTP/FTP: 1000+ files with thumbnails
+  - **Expected**: No lag, smooth scrolling, memory efficient
+
+### 🟠 High Priority
+
+- [ ] **Network Undo Operations - Testing**
+  - **Status**: Implementation complete, needs verification
+  - **Test cases**:
+    - SMB/SFTP/FTP: Delete file → Undo → Verify restoration
+    - Check trash folder creation permissions
+    - Network timeout handling (slow connections)
+    - Trash cleanup after 24 hours
+
+- [ ] **Network Image Editing - Performance Testing**
+  - **Status**: Implementation complete, needs performance validation
+  - **Test with**:
+    - Large images (10MB+) over slow network
+    - Multiple edits (rotate, flip) in sequence
+    - Connection interruption during download/upload
+  - **Add**: Progress reporting, cancellation support
+
+### 🔵 Low Priority (Polish)
+
+- [ ] **Animations and Transitions**
+  - Screen transitions (slide, fade, shared element)
+  - RecyclerView item animations (add, remove, reorder)
+  - Ripple effects for missing buttons
+  - Smooth progress indicators
+
+## ⚡ Performance Optimization (LOW PRIORITY)
+
+- [ ] **ExoPlayer initialization off main thread** (~39ms blocking)
+- [ ] **ExoPlayer audio discontinuity investigation** (warning in logs, не критично)
+- [ ] **Background file count optimization** (duplicate SMB scans)
+- [ ] **RecyclerView profiling** (onBind <1ms target, test on low-end devices)
+- [ ] **Layout overdraw profiling** (<2x target)
+- [ ] **Memory leak detection** (LeakCanary integration)
+- [ ] **Battery optimization** (reduce sync on low battery)
+
+## 🌐 Network Features
+
+- [ ] **Cloud storage expansion** (OneDrive, Dropbox)
+  - OneDrive/Dropbox API integration with OAuth2
+  - Reuse CloudStorageClient interface
+  - Test multi-cloud operations
+
+- [ ] **Offline mode**
+  - Cache thumbnails and metadata locally
+  - Show cached data when network unavailable
+  - Operation queue for delayed sync
+
+## 🧪 Testing
+
+- [ ] **Unit tests** (domain layer, >80% coverage)
+- [ ] **Instrumented tests** (Room, Espresso UI flows)
+- [ ] **Manual testing** (Android 8-14, tablets, file types, edge cases)
+- [ ] **Security audit** (credentials, input validation, permissions)
+
+## 🧰 Code Quality
+
+- [ ] **Static analysis** (detekt/ktlint integration)
+- [ ] **Edge cases** (empty folders, 1000+ files, long names, special chars)
+
+## 📦 Release Preparation
+
+### Build
+- [ ] **ProGuard/R8** (rules, test obfuscated APK)
+- [ ] **APK signing** (keystore, test signed APK)
+- [ ] **Size optimization** (resource/code shrinking, AAB)
+- [ ] **Versioning** (versionCode/Name, Git tag v2.0.0)
+- [ ] **Dependencies** (update to latest stable)
+
+### Documentation
+- [ ] **README** (v2 features, screenshots, en/ru/uk)
+- [ ] **CHANGELOG** (Added/Changed/Fixed/Removed)
+- [ ] **User guide** (features, FAQ, troubleshooting)
+
+## 🚀 Google Play Store
+
+### Store Materials
+- [ ] **Listing** (title, descriptions en/ru/uk)
+- [ ] **Screenshots** (4-8 per device, localized)
+- [ ] **Feature graphic** (1024x500px)
+- [ ] **App icon** (adaptive, test launchers)
+- [ ] **Privacy Policy** (v2 data usage, host online)
+- [ ] **Content rating** (IARC questionnaire)
+
+### Release
+- [ ] **Internal testing** (APK/AAB upload, ProGuard mapping)
+- [ ] **Closed beta** (5-20 testers, crash monitoring)
+- [ ] **Production** (staged rollout 10→100%)
+- [ ] **Post-release** (metrics, reviews, analytics)
 - ✅ **FEATURE: OneDrive REST API Implementation**
 - **Implementation**: Microsoft Graph REST API v1.0 approach without Graph SDK
 - **Components**:

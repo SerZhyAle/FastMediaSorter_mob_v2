@@ -10,15 +10,15 @@ plugins {
 }
 
 android {
-    namespace = "com.sza.fastmediasorter_v2"
+    namespace = "com.sza.fastmediasorter"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.sza.fastmediasorter_v2"
+        applicationId = "com.sza.fastmediasorter"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11171223
-        versionName = "2.0.0-build2511171223"
+        versionCode = 11171337
+        versionName = "2.0.0-build2511171337"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
