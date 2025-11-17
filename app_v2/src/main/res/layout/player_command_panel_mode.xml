@@ -49,7 +49,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Rename"
-            android:src="@android:drawable/ic_menu_edit" />
+            android:src="@drawable/ic_rename" />
 
         <ImageButton
             android:id="@+id/btnDeleteCmd"
@@ -71,6 +71,14 @@
         <Space
             android:layout_width="16dp"
             android:layout_height="1dp" />
+
+        <ImageButton
+            android:id="@+id/btnFullscreenCmd"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/fullscreen_mode"
+            android:src="@drawable/ic_fullscreen" />
 
         <ImageButton
             android:id="@+id/btnSlideshowCmd"

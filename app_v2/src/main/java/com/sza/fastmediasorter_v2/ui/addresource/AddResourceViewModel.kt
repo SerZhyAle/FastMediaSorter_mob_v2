@@ -883,4 +883,146 @@ class AddResourceViewModel @Inject constructor(
             setLoading(false)
         }
     }
+    
+    /**
+     * Test SFTP connection with SSH private key
+     */
+    fun testSftpConnectionWithKey(
+        host: String,
+        port: Int,
+        username: String,
+        privateKey: String,
+        keyPassphrase: String?
+    ) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            val result = smbOperationsUseCase.testSftpConnection(
+                host = host,
+                port = port,
+                username = username,
+                password = "", // Not used for key auth
+                privateKey = privateKey,
+                keyPassphrase = keyPassphrase
+            )
+            
+            result.onSuccess { message ->
+                Timber.d("SFTP SSH key connection test successful: $message")
+                sendEvent(AddResourceEvent.ShowTestResult(message, true))
+            }.onFailure { e ->
+                Timber.e(e, "SFTP SSH key connection test failed")
+                val errorMessage = "Connection failed: ${e.message}"
+                sendEvent(AddResourceEvent.ShowTestResult(errorMessage, false))
+            }
+            
+            setLoading(false)
+        }
+    }
+    
+    /**
+     * Add SFTP resource with SSH private key
+     */
+    fun addSftpResourceWithKey(
+        host: String,
+        port: Int,
+        username: String,
+        privateKey: String,
+        keyPassphrase: String?,
+        remotePath: String
+    ) {
+        if (host.isBlank()) {
+            sendEvent(AddResourceEvent.ShowError("Host is required"))
+            return
+        }
+        
+        if (privateKey.isBlank()) {
+            sendEvent(AddResourceEvent.ShowError("SSH private key is required"))
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            
+            // Save credentials with SSH key (passphrase stored in password field)
+            smbOperationsUseCase.saveSftpCredentials(
+                host = host,
+                port = port,
+                username = username,
+                password = keyPassphrase ?: "", // Passphrase stored in password field
+                privateKey = privateKey
+            ).onSuccess { credentialsId ->
+                Timber.d("Saved SFTP SSH key credentials with ID: $credentialsId")
+                
+                // Create resource
+                val path = "sftp://$host:$port$remotePath"
+                val resourceName = if (remotePath == "/" || remotePath.isBlank()) {
+                    "$username@$host"
+                } else {
+                    remotePath.substringAfterLast('/')
+                }
+                
+                val resource = MediaResource(
+                    id = 0, // Ensure autoincrement
+                    name = resourceName,
+                    path = path,
+                    type = ResourceType.SFTP,
+                    isDestination = false,
+                    credentialsId = credentialsId
+                )
+                
+                // Add resource to database
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
+                    Timber.d("Added SFTP resource with SSH key")
+                    
+                    // Scan resource to update fileCount and isWritable
+                    var scanSuccessful = false
+                    viewModelScope.launch(ioDispatcher) {
+                        try {
+                            val scanner = mediaScannerFactory.getScanner(resource.type)
+                            val supportedTypes = getSupportedMediaTypes()
+                            
+                            val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
+                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            
+                            // Get the inserted resource from DB to get real ID
+                            val allResources = resourceRepository.getAllResources().first()
+                            val insertedResource = allResources.firstOrNull { 
+                                it.path == resource.path && it.credentialsId == credentialsId 
+                            } ?: return@launch
+                            
+                            // Update resource with real values
+                            val updatedResource = insertedResource.copy(
+                                fileCount = fileCount,
+                                isWritable = isWritable
+                            )
+                            resourceRepository.updateResource(updatedResource)
+                            
+                            Timber.d("Scanned ${resource.name}: $fileCount files, writable=$isWritable")
+                            scanSuccessful = true
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to scan resource ${resource.name}")
+                        }
+                    }.join() // Wait for scan to complete
+                    
+                    if (scanSuccessful) {
+                        sendEvent(AddResourceEvent.ShowMessage("SFTP resource added successfully"))
+                    } else {
+                        sendEvent(AddResourceEvent.ShowError(
+                            "SFTP resource '$resourceName' added but is currently unavailable. " +
+                            "Check that the remote path exists and is accessible."
+                        ))
+                    }
+                    sendEvent(AddResourceEvent.ResourcesAdded)
+                }.onFailure { e ->
+                    Timber.e(e, "Failed to add SFTP resource")
+                    sendEvent(AddResourceEvent.ShowError("Failed to add resource: ${e.message}"))
+                }
+            }.onFailure { e ->
+                Timber.e(e, "Failed to save SFTP SSH key credentials")
+                sendEvent(AddResourceEvent.ShowError("Failed to save credentials: ${e.message}"))
+            }
+            
+            setLoading(false)
+        }
+    }
 }

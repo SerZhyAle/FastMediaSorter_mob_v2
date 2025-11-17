@@ -580,41 +580,147 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Username and Password in one row -->
-            <LinearLayout
+            <!-- Authentication Method Selection -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sftp_auth_method"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="?attr/colorPrimary"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"/>
+
+            <RadioGroup
+                android:id="@+id/rgSftpAuthMethod"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="8dp">
+                android:layout_marginBottom="12dp">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilSftpUsername"
+                <RadioButton
+                    android:id="@+id/rbSftpPassword"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="4dp"
-                    android:hint="@string/sftp_username">
+                    android:text="@string/sftp_auth_password"
+                    android:checked="true"/>
+
+                <RadioButton
+                    android:id="@+id/rbSftpSshKey"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/sftp_auth_ssh_key"/>
+
+            </RadioGroup>
+
+            <!-- Username -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSftpUsername"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/sftp_username"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSftpUsername"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Password Authentication Section -->
+            <LinearLayout
+                android:id="@+id/layoutSftpPasswordAuth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSftpPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/sftp_password"
+                    app:endIconMode="password_toggle"
+                    android:layout_marginBottom="8dp">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etSftpUsername"
+                        android:id="@+id/etSftpPassword"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="text"
+                        android:inputType="textPassword"
                         android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilSftpPassword"
-                    android:layout_width="0dp"
+            </LinearLayout>
+
+            <!-- SSH Key Authentication Section -->
+            <LinearLayout
+                android:id="@+id/layoutSftpSshKeyAuth"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- SSH Private Key Input with Load Button -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="4dp"
-                    android:hint="@string/sftp_password"
-                    app:endIconMode="password_toggle">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="8dp">
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilSftpPrivateKey"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:hint="@string/sftp_private_key"
+                        app:helperText="@string/sftp_private_key_hint"
+                        app:helperTextEnabled="true"
+                        android:layout_marginEnd="8dp">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etSftpPrivateKey"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textMultiLine"
+                            android:minLines="3"
+                            android:maxLines="5"
+                            android:scrollbars="vertical"
+                            android:fontFamily="monospace"
+                            android:textSize="12sp"/>
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnSftpLoadKey"
+                        style="@style/Widget.MaterialComponents.Button.Icon"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/sftp_load_key"
+                        app:icon="@android:drawable/ic_menu_upload"/>
+
+                </LinearLayout>
+
+                <!-- SSH Key Passphrase (Optional) -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSftpKeyPassphrase"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/sftp_key_passphrase"
+                    app:helperText="@string/sftp_key_passphrase_hint"
+                    app:helperTextEnabled="true"
+                    app:endIconMode="password_toggle"
+                    android:layout_marginBottom="8dp">
 
                     <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etSftpPassword"
+                        android:id="@+id/etSftpKeyPassphrase"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="textPassword"

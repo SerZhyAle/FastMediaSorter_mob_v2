@@ -5,11 +5,10 @@ import androidx.media3.common.C
 import androidx.media3.datasource.BaseDataSource
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.Session
 import com.sza.fastmediasorter_v2.data.remote.sftp.SftpClient
-import net.schmizz.sshj.SSHClient
-import net.schmizz.sshj.sftp.RemoteFile
-import net.schmizz.sshj.sftp.SFTPClient
-import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
@@ -18,7 +17,7 @@ import java.io.InputStream
  * Custom DataSource for streaming video from SFTP server via ExoPlayer.
  * Allows video playback without downloading entire file.
  * 
- * Uses SSHJ library's RemoteFile API for reading file chunks with seek support.
+ * Uses JSch library's ChannelSftp API for reading file chunks with seek support.
  */
 class SftpDataSource(
     private val sftpClient: SftpClient,
@@ -28,9 +27,9 @@ class SftpDataSource(
     private val password: String
 ) : BaseDataSource(true) {
 
-    private var sshClient: SSHClient? = null
-    private var sftp: SFTPClient? = null
-    private var remoteFile: RemoteFile? = null
+    private var jsch: JSch? = null
+    private var session: Session? = null
+    private var channel: ChannelSftp? = null
     private var inputStream: InputStream? = null
     private var uri: Uri? = null
     private var bytesRemaining: Long = 0
@@ -44,26 +43,34 @@ class SftpDataSource(
 
             Timber.d("SftpDataSource: Opening SFTP file: $remotePath")
 
-            // Establish connection
-            sshClient = SSHClient()
-            sshClient?.addHostKeyVerifier(PromiscuousVerifier()) // Accept all host keys
-            sshClient?.connect(host, port)
-            sshClient?.authPassword(username, password)
+            // Establish JSch connection
+            jsch = JSch()
+            session = jsch?.getSession(username, host, port)
+            session?.setPassword(password)
+            
+            // Disable strict host key checking
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = "no"
+            // Explicitly enable password authentication
+            config["PreferredAuthentications"] = "password,publickey,keyboard-interactive"
+            session?.setConfig(config)
+            
+            session?.connect(30000) // 30 second timeout
+            
+            channel = session?.openChannel("sftp") as? ChannelSftp
+            channel?.connect(10000) // 10 second timeout
 
-            sftp = sshClient?.newSFTPClient()
-            remoteFile = sftp?.open(remotePath)
-
-            if (remoteFile == null) {
-                throw IOException("Failed to open remote file: $remotePath")
+            if (channel == null) {
+                throw IOException("Failed to open SFTP channel")
             }
 
             // Get file size
-            val fileAttributes = sftp?.stat(remotePath)
+            val fileAttributes = channel?.stat(remotePath)
             val fileLength = fileAttributes?.size ?: 0L
 
             // Handle range request (for seeking)
             val position = dataSpec.position
-            inputStream = remoteFile?.RemoteFileInputStream(position)
+            inputStream = channel?.get(remotePath, null, position)
 
             bytesRemaining = if (dataSpec.length != C.LENGTH_UNSET.toLong()) {
                 dataSpec.length
@@ -152,27 +159,19 @@ class SftpDataSource(
         }
 
         try {
-            remoteFile?.close()
+            channel?.disconnect()
         } catch (e: Exception) {
-            Timber.e(e, "SftpDataSource: Error closing RemoteFile")
+            Timber.e(e, "SftpDataSource: Error closing ChannelSftp")
         } finally {
-            remoteFile = null
+            channel = null
         }
 
         try {
-            sftp?.close()
+            session?.disconnect()
         } catch (e: Exception) {
-            Timber.e(e, "SftpDataSource: Error closing SFTPClient")
+            Timber.e(e, "SftpDataSource: Error disconnecting Session")
         } finally {
-            sftp = null
-        }
-
-        try {
-            sshClient?.disconnect()
-        } catch (e: Exception) {
-            Timber.e(e, "SftpDataSource: Error disconnecting SSH")
-        } finally {
-            sshClient = null
+            session = null
         }
 
         if (opened) {

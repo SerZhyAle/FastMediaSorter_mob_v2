@@ -571,6 +571,30 @@
 
             </LinearLayout>
 
+            <!-- Last Browse Date - full width row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvLastBrowseDateLabel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/last_browse_date"
+                    android:textSize="12sp"
+                    android:textColor="?android:textColorSecondary" />
+
+                <TextView
+                    android:id="@+id/tvLastBrowseDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textSize="14sp"
+                    tools:text="2025-11-17 03:21:45" />
+            </LinearLayout>
+
         </LinearLayout>
 
         <ProgressBar

@@ -333,9 +333,9 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(defaultGridMode = isChecked))
         }
         
-        binding.switchFullScreen.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(fullScreenMode = isChecked))
+            viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
         
         binding.switchDetailedErrors.setOnCheckedChangeListener { _, isChecked ->
@@ -389,8 +389,8 @@ class PlaybackSettingsFragment : Fragment() {
                     if (binding.switchGridMode.isChecked != settings.defaultGridMode) {
                         binding.switchGridMode.isChecked = settings.defaultGridMode
                     }
-                    if (binding.switchFullScreen.isChecked != settings.fullScreenMode) {
-                        binding.switchFullScreen.isChecked = settings.fullScreenMode
+                    if (binding.switchShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
+                        binding.switchShowCommandPanel.isChecked = settings.defaultShowCommandPanel
                     }
                     if (binding.switchDetailedErrors.isChecked != settings.showDetailedErrors) {
                         binding.switchDetailedErrors.isChecked = settings.showDetailedErrors

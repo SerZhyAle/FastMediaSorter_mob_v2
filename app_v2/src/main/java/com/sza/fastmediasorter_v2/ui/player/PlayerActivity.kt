@@ -446,19 +446,30 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         Timber.d("PlayerActivity.showCopyDialog: sourceFile.path=${sourceFile.path}")
         Timber.d("PlayerActivity.showCopyDialog: sourceFile.absolutePath=${sourceFile.absolutePath}")
         
-        CopyToDialog(
-            context = this,
-            sourceFiles = listOf(sourceFile),
-            sourceFolderName = "Current folder", // TODO: Get actual resource name
-            currentResourceId = resourceId,
-            fileOperationUseCase = viewModel.fileOperationUseCase,
-            getDestinationsUseCase = viewModel.getDestinationsUseCase,
-            overwriteFiles = false, // TODO: Get from settings
-            onComplete = {
-                // Refresh current view or go to next file based on settings
-                // TODO: Check settings for goToNextAfterCopy
-            }
-        ).show()
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val resource = viewModel.state.value.resource
+            
+            CopyToDialog(
+                context = this@PlayerActivity,
+                sourceFiles = listOf(sourceFile),
+                sourceFolderName = resource?.name ?: "Current folder",
+                currentResourceId = resourceId,
+                fileOperationUseCase = viewModel.fileOperationUseCase,
+                getDestinationsUseCase = viewModel.getDestinationsUseCase,
+                overwriteFiles = settings.overwriteOnCopy,
+                onComplete = { undoOperation ->
+                    // Save undo operation if enabled
+                    if (settings.enableUndo && undoOperation != null) {
+                        viewModel.saveUndoOperation(undoOperation)
+                    }
+                    // Go to next file if setting enabled
+                    if (settings.goToNextAfterCopy) {
+                        viewModel.nextFile()
+                    }
+                }
+            ).show()
+        }
     }
     
     private fun showMoveDialog() {
@@ -475,19 +486,28 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             File(currentFile.path)
         }
         
-        MoveToDialog(
-            context = this,
-            sourceFiles = listOf(sourceFile),
-            sourceFolderName = "Current folder", // TODO: Get actual resource name
-            currentResourceId = resourceId,
-            fileOperationUseCase = viewModel.fileOperationUseCase,
-            getDestinationsUseCase = viewModel.getDestinationsUseCase,
-            overwriteFiles = false, // TODO: Get from settings
-            onComplete = {
-                // Go to next file after move
-                viewModel.nextFile()
-            }
-        ).show()
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val resource = viewModel.state.value.resource
+            
+            MoveToDialog(
+                context = this@PlayerActivity,
+                sourceFiles = listOf(sourceFile),
+                sourceFolderName = resource?.name ?: "Current folder",
+                currentResourceId = resourceId,
+                fileOperationUseCase = viewModel.fileOperationUseCase,
+                getDestinationsUseCase = viewModel.getDestinationsUseCase,
+                overwriteFiles = settings.overwriteOnMove,
+                onComplete = { undoOperation ->
+                    // Save undo operation if enabled
+                    if (settings.enableUndo && undoOperation != null) {
+                        viewModel.saveUndoOperation(undoOperation)
+                    }
+                    // Go to next file after move (current file was moved)
+                    viewModel.nextFile()
+                }
+            ).show()
+        }
     }
     
     private fun showRenameDialog() {
@@ -585,6 +605,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         binding.btnUndoCmd.setOnClickListener {
             viewModel.undoLastOperation()
+        }
+
+        binding.btnFullscreenCmd.setOnClickListener {
+            // Toggle to fullscreen mode (hide command panel)
+            if (viewModel.state.value.showCommandPanel) {
+                viewModel.toggleCommandPanel()
+            }
         }
 
         binding.btnSlideshowCmd.setOnClickListener {
@@ -1626,18 +1653,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         
         lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            
             try {
                 val operation = com.sza.fastmediasorter_v2.domain.usecase.FileOperation.Copy(
                     sources = listOf(File(currentFile.path)),
                     destination = File(destination.path),
-                    overwrite = false // TODO: Get from settings
+                    overwrite = settings.overwriteOnCopy
                 )
                 val result = viewModel.fileOperationUseCase.execute(operation)
                 
                 when (result) {
                     is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Success -> {
                         Toast.makeText(this@PlayerActivity, "File copied to ${destination.name}", Toast.LENGTH_SHORT).show()
-                        // TODO: Check settings for goToNextAfterCopy
+                        
+                        // Go to next file if setting enabled
+                        if (settings.goToNextAfterCopy) {
+                            viewModel.nextFile()
+                        }
                     }
                     is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.PartialSuccess -> {
                         val message = buildString {
@@ -1662,18 +1695,22 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         
         lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            
             try {
                 val operation = com.sza.fastmediasorter_v2.domain.usecase.FileOperation.Move(
                     sources = listOf(File(currentFile.path)),
                     destination = File(destination.path),
-                    overwrite = false // TODO: Get from settings
+                    overwrite = settings.overwriteOnMove
                 )
                 val result = viewModel.fileOperationUseCase.execute(operation)
                 
                 when (result) {
                     is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.Success -> {
                         Toast.makeText(this@PlayerActivity, "File moved to ${destination.name}", Toast.LENGTH_SHORT).show()
-                        viewModel.nextFile() // Go to next file after move
+                        
+                        // Go to next file after move (current file was moved)
+                        viewModel.nextFile()
                     }
                     is com.sza.fastmediasorter_v2.domain.usecase.FileOperationResult.PartialSuccess -> {
                         val message = buildString {

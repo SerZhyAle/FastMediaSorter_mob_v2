@@ -217,12 +217,14 @@ class ResourceRepositoryImpl @Inject constructor(
         val host = matchResult.groupValues[1]
         val port = matchResult.groupValues[2].toIntOrNull() ?: 22
         
-        // Test SFTP connection
+        // Test SFTP connection (with password or private key)
+        val privateKey = credentialsEntity.decryptedSshPrivateKey
         return smbOperationsUseCase.testSftpConnection(
             host = host,
             port = port,
             username = credentialsEntity.username,
-            password = credentialsEntity.password
+            password = credentialsEntity.password,
+            privateKey = privateKey
         )
     }
     
@@ -287,7 +289,10 @@ class ResourceRepositoryImpl @Inject constructor(
             destinationOrder = destinationOrder,
             destinationColor = destinationColor,
             isWritable = isWritable,
+            isAvailable = isAvailable,
+            showCommandPanel = showCommandPanel,
             createdDate = createdDate,
+            lastBrowseDate = lastBrowseDate,
             displayOrder = displayOrder
         )
     }
@@ -316,7 +321,10 @@ class ResourceRepositoryImpl @Inject constructor(
             destinationOrder = destinationOrder ?: -1,
             destinationColor = destinationColor,
             isWritable = isWritable,
+            isAvailable = isAvailable,
+            showCommandPanel = showCommandPanel,
             createdDate = createdDate,
+            lastBrowseDate = lastBrowseDate,
             displayOrder = displayOrder
         )
     }

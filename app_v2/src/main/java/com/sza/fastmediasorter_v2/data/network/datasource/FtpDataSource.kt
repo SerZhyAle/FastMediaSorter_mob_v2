@@ -53,13 +53,33 @@ class FtpDataSource(
             client?.setFileType(org.apache.commons.net.ftp.FTP.BINARY_FILE_TYPE)
             client?.soTimeout = 30000
 
-            // Get file size
-            val fileSize = client?.mlistFile(remotePath)?.size ?: run {
-                // Fallback: try SIZE command
-                val sizeResponse = client?.getStatus(remotePath)
+            // Get file size using SIZE command
+            val fileSize = try {
+                // Try MLST first (more reliable)
+                client?.mlistFile(remotePath)?.size
+            } catch (e: Exception) {
+                null
+            } ?: run {
+                // Fallback: use SIZE command
                 Timber.w("FtpDataSource: Could not get file size from MLST, trying SIZE command")
-                0L
-            }
+                try {
+                    // Send SIZE command and parse response
+                    val sizeCommand = client?.sendCommand("SIZE", remotePath)
+                    if (sizeCommand == 213) {
+                        // 213 response contains file size
+                        val reply = client?.replyString?.trim()
+                        val size = reply?.split(" ")?.lastOrNull()?.toLongOrNull()
+                        Timber.d("FtpDataSource: SIZE command returned: $size bytes")
+                        size
+                    } else {
+                        Timber.w("FtpDataSource: SIZE command failed: ${client?.replyString}")
+                        null
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "FtpDataSource: Could not get file size")
+                    null
+                }
+            } ?: 0L
 
             // Handle range request (for seeking)
             val position = dataSpec.position
@@ -167,14 +187,18 @@ class FtpDataSource(
         }
 
         try {
-            // Complete pending command to finalize transfer
-            client?.completePendingCommand()
+            // Abort transfer if needed before disconnect
+            if (client?.isConnected == true) {
+                client?.abort()
+            }
         } catch (e: Exception) {
-            Timber.d(e, "FtpDataSource: completePendingCommand error (non-critical)")
+            Timber.d(e, "FtpDataSource: abort error (non-critical)")
         }
 
         try {
-            client?.logout()
+            if (client?.isConnected == true) {
+                client?.logout()
+            }
         } catch (e: Exception) {
             Timber.d(e, "FtpDataSource: logout error (non-critical)")
         }

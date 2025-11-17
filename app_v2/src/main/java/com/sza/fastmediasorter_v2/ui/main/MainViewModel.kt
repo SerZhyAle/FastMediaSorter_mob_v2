@@ -176,11 +176,21 @@ class MainViewModel @Inject constructor(
                 testResult.fold(
                     onSuccess = { message ->
                         Timber.d("Connection test OK: $message - opening Browse")
+                        // Update availability to true
+                        if (!resource.isAvailable) {
+                            val updatedResource = resource.copy(isAvailable = true)
+                            updateResourceUseCase(updatedResource)
+                        }
                         // Connection OK - open resource (even if empty for network)
                         sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
                     },
                     onFailure = { error ->
                         Timber.e(error, "Connection test failed for ${resource.name}")
+                        // Update availability to false
+                        if (resource.isAvailable) {
+                            val updatedResource = resource.copy(isAvailable = false)
+                            updateResourceUseCase(updatedResource)
+                        }
                         sendEvent(MainEvent.ShowError(
                             message = "Failed to connect to '${resource.name}'",
                             details = if (showDetails) {
@@ -191,6 +201,11 @@ class MainViewModel @Inject constructor(
                 )
             } catch (e: Exception) {
                 Timber.e(e, "Exception testing connection for ${resource.name}")
+                // Update availability to false on exception
+                if (resource.isAvailable) {
+                    val updatedResource = resource.copy(isAvailable = false)
+                    updateResourceUseCase(updatedResource)
+                }
                 sendEvent(MainEvent.ShowError(
                     message = "Failed to check resource '${resource.name}'",
                     details = if (showDetails) {
@@ -385,6 +400,15 @@ class MainViewModel @Inject constructor(
                             onSuccess = {
                                 Timber.d("Resource available: ${resource.name}")
                                 
+                                // Update availability to true
+                                var needsUpdate = false
+                                var updatedResource = resource
+                                
+                                if (!resource.isAvailable) {
+                                    updatedResource = updatedResource.copy(isAvailable = true)
+                                    needsUpdate = true
+                                }
+                                
                                 val scanner = mediaScannerFactory.getScanner(resource.type)
                                 
                                 // Check write permission (fast)
@@ -397,20 +421,36 @@ class MainViewModel @Inject constructor(
                                 
                                 if (isWritable) writableCount++ else readOnlyCount++
                                 
-                                // Update resource only if write permission changed
+                                // Update resource if write permission changed
                                 if (isWritable != resource.isWritable) {
-                                    val updatedResource = resource.copy(isWritable = isWritable)
+                                    updatedResource = updatedResource.copy(isWritable = isWritable)
+                                    needsUpdate = true
+                                }
+                                
+                                if (needsUpdate) {
                                     updateResourceUseCase(updatedResource)
                                 }
                             },
                             onFailure = { error ->
                                 Timber.w("Resource unavailable: ${resource.name} - ${error.message}")
                                 unavailableCount++
+                                
+                                // Update availability to false
+                                if (resource.isAvailable) {
+                                    val updatedResource = resource.copy(isAvailable = false)
+                                    updateResourceUseCase(updatedResource)
+                                }
                             }
                         )
                     } catch (e: Exception) {
                         Timber.w(e, "Resource check failed: ${resource.name}")
                         unavailableCount++
+                        
+                        // Update availability to false on exception
+                        if (resource.isAvailable) {
+                            val updatedResource = resource.copy(isAvailable = false)
+                            updateResourceUseCase(updatedResource)
+                        }
                     }
                 }
                 

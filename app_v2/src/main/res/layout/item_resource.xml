@@ -9,6 +9,7 @@
     app:cardElevation="2dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/rootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="12dp">
@@ -43,6 +44,20 @@
             android:layout_height="wrap_content"
             android:textSize="14sp"
             android:text="🔒"
+            android:visibility="gone"
+            android:layout_marginEnd="4dp"
+            app:layout_constraintEnd_toStartOf="@+id/tvAvailabilityIndicator"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvAvailabilityIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="12sp"
+            android:text="N/A"
+            android:textColor="?android:textColorSecondary"
+            android:textStyle="bold"
             android:visibility="gone"
             android:layout_marginEnd="8dp"
             app:layout_constraintEnd_toStartOf="@+id/btnEdit"

@@ -26,7 +26,8 @@ class PlayerViewModel @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     val fileOperationUseCase: FileOperationUseCase,
     val getDestinationsUseCase: GetDestinationsUseCase,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val resourceRepository: com.sza.fastmediasorter_v2.domain.repository.ResourceRepository
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -86,10 +87,14 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val settings = settingsRepository.getSettings().first()
-                // If fullScreenMode is true, showCommandPanel should be false (and vice versa)
+                val resource = state.value.resource
+                
+                // Determine showCommandPanel: use resource-specific setting if available, otherwise use global default
+                val showCommandPanel = resource?.showCommandPanel ?: settings.defaultShowCommandPanel
+                
                 updateState { 
                     it.copy(
-                        showCommandPanel = !settings.fullScreenMode,
+                        showCommandPanel = showCommandPanel,
                         showSmallControls = settings.showSmallControls,
                         allowRename = settings.allowRename,
                         allowDelete = settings.allowDelete,
@@ -221,7 +226,20 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun toggleCommandPanel() {
-        updateState { it.copy(showCommandPanel = !it.showCommandPanel) }
+        val newShowCommandPanel = !state.value.showCommandPanel
+        updateState { it.copy(showCommandPanel = newShowCommandPanel) }
+        
+        // Save user preference for this resource
+        val resource = state.value.resource
+        if (resource != null) {
+            viewModelScope.launch {
+                try {
+                    resourceRepository.updateResource(resource.copy(showCommandPanel = newShowCommandPanel))
+                } catch (e: Exception) {
+                    timber.log.Timber.e(e, "Failed to save command panel preference")
+                }
+            }
+        }
     }
     
     /**

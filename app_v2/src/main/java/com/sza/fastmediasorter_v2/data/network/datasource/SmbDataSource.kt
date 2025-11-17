@@ -171,7 +171,16 @@ class SmbDataSource(
 
             return bytesRead
         } catch (e: Exception) {
-            Timber.e(e, "SmbDataSource: Error reading from SMB file")
+            // Check if this is a normal interruption (user closed player) or a real error
+            val isInterruption = e is InterruptedException || 
+                                 (e.cause is InterruptedException) ||
+                                 e.message?.contains("InterruptedException", ignoreCase = true) == true
+            
+            if (isInterruption) {
+                Timber.d("SmbDataSource: Read operation interrupted (player closed)")
+            } else {
+                Timber.e(e, "SmbDataSource: Error reading from SMB file")
+            }
             throw IOException("Failed to read from SMB file: ${e.message}", e)
         }
     }

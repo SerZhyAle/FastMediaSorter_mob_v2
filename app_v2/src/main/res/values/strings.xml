@@ -102,7 +102,7 @@
     <string name="support_gif_description">Support GIF animation</string>
     <string name="support_video">Support Video</string>
     <string name="support_video_description">Support video</string>
-    <string name="supported_video_formats">Supported: MP4, MKV, AVI, MOV, WEBM</string>
+    <string name="supported_video_formats">Supported: MP4, MKV, MOV, WEBM</string>
     <string name="video_size_limit">Video file size limit</string>
     <string name="video_size_range">100 KB - 1 GB</string>
     <string name="support_audio">Support Audio</string>
@@ -115,6 +115,7 @@
     <string name="audio_size_limits">Audio size limits (MB)</string>
     <string name="default_sort_mode">Default sort mode</string>
     <string name="slideshow_interval">Slideshow interval</string>
+    <string name="fullscreen_mode">Fullscreen mode</string>
     <string name="seconds">Seconds</string>
     <string name="minutes">Minutes</string>
     <string name="play_video_to_end">Play video/audio in slideshow to end</string>
@@ -122,7 +123,7 @@
     <string name="allow_delete">Allow delete</string>
     <string name="confirm_delete">Confirm delete</string>
     <string name="grid_mode">Grid mode</string>
-    <string name="full_screen_mode">Full screen mode</string>
+    <string name="show_command_panel_by_default">Show command panel by default</string>
     <string name="show_detailed_errors">Show detailed errors</string>
     <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video)</string>
     <string name="default_icon_size">Default icon size (pixels)</string>
@@ -149,6 +150,8 @@
     <string name="resource_path">Resource Path</string>
     <string name="resource_type">Resource Type</string>
     <string name="created_date">Created Date</string>
+    <string name="last_browse_date">Last Browse Date</string>
+    <string name="never_browsed">Never browsed</string>
     <string name="file_count">File Count</string>
     <string name="supported_media_types">Supported Media Types</string>
     <string name="images">Images</string>
@@ -260,6 +263,18 @@
     <string name="sftp_remote_path_hint">e.g. /home/user/media or /</string>
     <string name="sftp_test_connection">Test Connection</string>
     <string name="sftp_add_resource">Add Resource</string>
+    
+    <!-- SFTP Authentication -->
+    <string name="sftp_auth_method">Authentication Method:</string>
+    <string name="sftp_auth_password">Password</string>
+    <string name="sftp_auth_ssh_key">SSH Key</string>
+    <string name="sftp_private_key">Private Key (PEM format)</string>
+    <string name="sftp_private_key_hint">Paste key content or load from file</string>
+    <string name="sftp_load_key">Load File</string>
+    <string name="sftp_key_passphrase">Key Passphrase (optional)</string>
+    <string name="sftp_key_passphrase_hint">Leave empty if key is not encrypted</string>
+    <string name="sftp_key_load_error">Failed to load key file</string>
+    <string name="sftp_key_invalid">Invalid SSH private key format</string>
     
     <!-- Touch Zones -->
     <string name="touch_zone_queue">Queue</string>

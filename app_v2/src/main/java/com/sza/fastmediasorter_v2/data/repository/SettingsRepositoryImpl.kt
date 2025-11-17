@@ -51,7 +51,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_CONFIRM_DELETE = booleanPreferencesKey("confirm_delete")
         private val KEY_DEFAULT_GRID_MODE = booleanPreferencesKey("default_grid_mode")
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
-        private val KEY_FULL_SCREEN_MODE = booleanPreferencesKey("full_screen_mode")
+        private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
         
         // Destinations settings keys
@@ -119,7 +119,7 @@ class SettingsRepositoryImpl @Inject constructor(
                         // Validate: must be 32 + 8*N (valid range: 32..256)
                         if (savedSize < 32 || savedSize > 256 || (savedSize - 32) % 8 != 0) 96 else savedSize
                     },
-                    fullScreenMode = preferences[KEY_FULL_SCREEN_MODE] ?: true,
+                    defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     
                     // Destinations
@@ -168,7 +168,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_CONFIRM_DELETE] = settings.confirmDelete
             preferences[KEY_DEFAULT_GRID_MODE] = settings.defaultGridMode
             preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
-            preferences[KEY_FULL_SCREEN_MODE] = settings.fullScreenMode
+            preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
             preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
             
             // Destinations

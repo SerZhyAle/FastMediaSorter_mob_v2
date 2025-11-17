@@ -27,6 +27,7 @@ data class NetworkCredentialsEntity(
     
     val domain: String = "", // For SMB domain authentication
     val shareName: String? = null, // For SMB: share name
+    val sshPrivateKey: String? = null, // For SFTP: SSH private key (encrypted, PEM format)
     val createdDate: Long = System.currentTimeMillis()
 ) {
     /**
@@ -63,6 +64,21 @@ data class NetworkCredentialsEntity(
             encryptedPassword
         }
     
+    /**
+     * Returns decrypted SSH private key for use in app.
+     * Use this property instead of accessing sshPrivateKey directly.
+     */
+    @get:Ignore
+    val decryptedSshPrivateKey: String?
+        get() = sshPrivateKey?.let { encrypted ->
+            try {
+                CryptoHelper.decrypt(encrypted)
+            } catch (e: Exception) {
+                Timber.e(e, "SSH private key decryption failed for credentialId: $credentialId")
+                null
+            }
+        }
+    
     companion object {
         /**
          * Creates entity with encrypted password.
@@ -77,6 +93,7 @@ data class NetworkCredentialsEntity(
             plaintextPassword: String,
             domain: String = "",
             shareName: String? = null,
+            sshPrivateKey: String? = null,
             id: Long = 0
         ): NetworkCredentialsEntity {
             return NetworkCredentialsEntity(
@@ -88,7 +105,8 @@ data class NetworkCredentialsEntity(
                 username = username,
                 encryptedPassword = CryptoHelper.encrypt(plaintextPassword) ?: "",
                 domain = domain,
-                shareName = shareName
+                shareName = shareName,
+                sshPrivateKey = sshPrivateKey?.let { CryptoHelper.encrypt(it) }
             )
         }
     }

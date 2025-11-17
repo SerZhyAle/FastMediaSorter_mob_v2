@@ -95,13 +95,13 @@
             android:layout_marginBottom="8dp"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchFullScreen"
+            android:id="@+id/switchShowCommandPanel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="48dp"
             android:paddingTop="12dp"
             android:paddingBottom="12dp"
-            android:text="@string/full_screen_mode"
+            android:text="@string/show_command_panel_by_default"
             android:layout_marginBottom="8dp"/>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
@@ -130,7 +130,7 @@
             android:layout_height="280dp"
             android:contentDescription="@string/touch_zones_scheme"
             android:scaleType="fitCenter"
-            android:src="@drawable/touch_zones_numbered"
+            android:src="@drawable/touch_zones_scheme"
             android:layout_marginBottom="8dp"/>
 
         <TextView

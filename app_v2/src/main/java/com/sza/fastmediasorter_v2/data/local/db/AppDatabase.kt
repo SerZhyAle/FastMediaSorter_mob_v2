@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ResourceEntity::class,
         NetworkCredentialsEntity::class
     ],
-    version = 6,
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -50,6 +50,34 @@ abstract class AppDatabase : RoomDatabase() {
                 // Add cloud provider fields for CLOUD type resources
                 database.execSQL("ALTER TABLE resources ADD COLUMN cloudProvider TEXT DEFAULT NULL")
                 database.execSQL("ALTER TABLE resources ADD COLUMN cloudFolderId TEXT DEFAULT NULL")
+            }
+        }
+        
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add availability indicator for resources
+                database.execSQL("ALTER TABLE resources ADD COLUMN isAvailable INTEGER NOT NULL DEFAULT 1")
+            }
+        }
+        
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add user-specific command panel preference (null = use global default)
+                database.execSQL("ALTER TABLE resources ADD COLUMN showCommandPanel INTEGER DEFAULT NULL")
+            }
+        }
+        
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add SSH private key field for SFTP authentication
+                database.execSQL("ALTER TABLE network_credentials ADD COLUMN sshPrivateKey TEXT DEFAULT NULL")
+            }
+        }
+        
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add last browse date for resources
+                database.execSQL("ALTER TABLE resources ADD COLUMN lastBrowseDate INTEGER DEFAULT NULL")
             }
         }
     }

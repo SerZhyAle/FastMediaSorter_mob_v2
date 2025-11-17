@@ -42,13 +42,23 @@ class SftpMediaScanner @Inject constructor(
                 return@withContext emptyList()
             }
 
-            // Connect and list files
-            val connectResult = sftpClient.connect(
-                host = connectionInfo.host,
-                port = connectionInfo.port,
-                username = connectionInfo.username,
-                password = connectionInfo.password
-            )
+            // Connect and list files (with password or private key)
+            val connectResult = if (connectionInfo.privateKey != null) {
+                sftpClient.connectWithPrivateKey(
+                    host = connectionInfo.host,
+                    port = connectionInfo.port,
+                    username = connectionInfo.username,
+                    privateKey = connectionInfo.privateKey,
+                    passphrase = connectionInfo.password.ifEmpty { null } // Passphrase stored in password field
+                )
+            } else {
+                sftpClient.connect(
+                    host = connectionInfo.host,
+                    port = connectionInfo.port,
+                    username = connectionInfo.username,
+                    password = connectionInfo.password
+                )
+            }
 
             if (connectResult.isFailure) {
                 Timber.e("Failed to connect to SFTP: ${connectResult.exceptionOrNull()?.message}")
@@ -246,13 +256,23 @@ class SftpMediaScanner @Inject constructor(
         try {
             val connectionInfo = parseSftpPath(path, credentialsId) ?: return@withContext false
 
-            // Test connection
-            val result = sftpClient.testConnection(
-                host = connectionInfo.host,
-                port = connectionInfo.port,
-                username = connectionInfo.username,
-                password = connectionInfo.password
-            )
+            // Test connection (with password or private key)
+            val result = if (connectionInfo.privateKey != null) {
+                sftpClient.testConnectionWithPrivateKey(
+                    host = connectionInfo.host,
+                    port = connectionInfo.port,
+                    username = connectionInfo.username,
+                    privateKey = connectionInfo.privateKey,
+                    passphrase = connectionInfo.password.ifEmpty { null } // Passphrase stored in password field
+                )
+            } else {
+                sftpClient.testConnection(
+                    host = connectionInfo.host,
+                    port = connectionInfo.port,
+                    username = connectionInfo.username,
+                    password = connectionInfo.password
+                )
+            }
 
             result.isSuccess
         } catch (e: Exception) {
@@ -303,6 +323,7 @@ class SftpMediaScanner @Inject constructor(
                 port = port,
                 username = credentials.username,
                 password = credentials.password,
+                privateKey = credentials.decryptedSshPrivateKey,
                 remotePath = remotePath
             )
         } catch (e: Exception) {
@@ -332,6 +353,7 @@ class SftpMediaScanner @Inject constructor(
         val port: Int,
         val username: String,
         val password: String,
+        val privateKey: String?,
         val remotePath: String
     )
 }

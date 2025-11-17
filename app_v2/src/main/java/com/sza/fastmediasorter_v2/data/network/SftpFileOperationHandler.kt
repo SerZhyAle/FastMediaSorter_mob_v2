@@ -595,8 +595,8 @@ class SftpFileOperationHandler @Inject constructor(
             return null
         }
         
-        val inputStream = localFile.inputStream()
-        val uploadResult = sftpClient.uploadFile(connectionInfo.remotePath, inputStream, fileSize, progressCallback)
+        val fileBytes = localFile.readBytes()
+        val uploadResult = sftpClient.uploadFile(connectionInfo.remotePath, fileBytes)
         sftpClient.disconnect()
 
         return when {
@@ -689,8 +689,7 @@ class SftpFileOperationHandler @Inject constructor(
             return null
         }
         
-        val inputStream = ByteArrayInputStream(bytes)
-        val uploadResult = sftpClient.uploadFile(destConnectionInfo.remotePath, inputStream)
+        val uploadResult = sftpClient.uploadFile(destConnectionInfo.remotePath, bytes)
         sftpClient.disconnect()
 
         return when {
@@ -786,8 +785,7 @@ class SftpFileOperationHandler @Inject constructor(
                 return null
             }
             
-            val inputStream = ByteArrayInputStream(fileBytes)
-            val uploadResult = sftpClient.uploadFile(sftpConnectionInfo.remotePath, inputStream)
+            val uploadResult = sftpClient.uploadFile(sftpConnectionInfo.remotePath, fileBytes)
             sftpClient.disconnect()
             
             return when {

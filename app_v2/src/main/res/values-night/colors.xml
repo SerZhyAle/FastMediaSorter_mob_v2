@@ -23,4 +23,5 @@
     <color name="audio_icon_bg">#FF78909C</color> <!-- Lighter gray for dark -->
     <color name="filter_warning_bg">#FF6D4C00</color> <!-- Dark orange/brown for warnings -->
     <color name="filter_warning_text">#FFFFD54F</color> <!-- Light yellow text for contrast -->
+    <color name="unavailable_resource_bg">#FF3A3A3A</color> <!-- Dark gray for unavailable resources -->
 </resources>

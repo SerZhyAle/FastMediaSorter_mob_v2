@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.net.wifi.WifiManager
 import android.text.InputFilter
 import android.text.TextWatcher
@@ -55,6 +56,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         handleGoogleSignInResult(result.data)
+    }
+    
+    private val sshKeyFilePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let { loadSshKeyFromFile(it) }
     }
 
     override fun getViewBinding(): ActivityAddResourceBinding {
@@ -173,6 +180,25 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         binding.btnSftpAddResource.setOnClickListener {
             addSftpResource()
+        }
+        
+        // SFTP auth method selection
+        binding.rgSftpAuthMethod.setOnCheckedChangeListener { _, checkedId ->
+            when (checkedId) {
+                R.id.rbSftpPassword -> {
+                    binding.layoutSftpPasswordAuth.isVisible = true
+                    binding.layoutSftpSshKeyAuth.isVisible = false
+                }
+                R.id.rbSftpSshKey -> {
+                    binding.layoutSftpPasswordAuth.isVisible = false
+                    binding.layoutSftpSshKeyAuth.isVisible = true
+                }
+            }
+        }
+        
+        // SSH key file picker
+        binding.btnSftpLoadKey.setOnClickListener {
+            sshKeyFilePickerLauncher.launch(arrayOf("*/*"))
         }
     }
 
@@ -567,14 +593,36 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val defaultPort = if (protocolType == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP) 22 else 21
         val port = portStr.toIntOrNull() ?: defaultPort
         val username = binding.etSftpUsername.text.toString().trim()
-        val password = binding.etSftpPassword.text.toString().trim()
         
         if (host.isEmpty()) {
             Toast.makeText(this, "Host is required", Toast.LENGTH_SHORT).show()
             return
         }
         
-        viewModel.testSftpFtpConnection(protocolType, host, port, username, password)
+        // Determine auth method for SFTP
+        if (protocolType == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP) {
+            val useSshKey = binding.rbSftpSshKey.isChecked
+            if (useSshKey) {
+                val privateKey = binding.etSftpPrivateKey.text.toString().trim()
+                val keyPassphrase = binding.etSftpKeyPassphrase.text.toString().trim().ifEmpty { null }
+                
+                if (privateKey.isEmpty()) {
+                    Toast.makeText(this, "SSH private key is required", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                
+                // Test with SSH key
+                viewModel.testSftpConnectionWithKey(host, port, username, privateKey, keyPassphrase)
+            } else {
+                // Test with password
+                val password = binding.etSftpPassword.text.toString().trim()
+                viewModel.testSftpFtpConnection(protocolType, host, port, username, password)
+            }
+        } else {
+            // FTP always uses password
+            val password = binding.etSftpPassword.text.toString().trim()
+            viewModel.testSftpFtpConnection(protocolType, host, port, username, password)
+        }
     }
     
     private fun addSftpResource() {
@@ -584,7 +632,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val defaultPort = if (protocolType == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP) 22 else 21
         val port = portStr.toIntOrNull() ?: defaultPort
         val username = binding.etSftpUsername.text.toString().trim()
-        val password = binding.etSftpPassword.text.toString().trim()
         val remotePath = binding.etSftpPath.text.toString().trim().ifEmpty { "/" }
         
         if (host.isEmpty()) {
@@ -592,6 +639,42 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             return
         }
         
-        viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath)
+        // Determine auth method for SFTP
+        if (protocolType == com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP) {
+            val useSshKey = binding.rbSftpSshKey.isChecked
+            if (useSshKey) {
+                val privateKey = binding.etSftpPrivateKey.text.toString().trim()
+                val keyPassphrase = binding.etSftpKeyPassphrase.text.toString().trim().ifEmpty { null }
+                
+                if (privateKey.isEmpty()) {
+                    Toast.makeText(this, "SSH private key is required", Toast.LENGTH_SHORT).show()
+                    return
+                }
+                
+                // Add with SSH key
+                viewModel.addSftpResourceWithKey(host, port, username, privateKey, keyPassphrase, remotePath)
+            } else {
+                // Add with password
+                val password = binding.etSftpPassword.text.toString().trim()
+                viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath)
+            }
+        } else {
+            // FTP always uses password
+            val password = binding.etSftpPassword.text.toString().trim()
+            viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath)
+        }
+    }
+    
+    private fun loadSshKeyFromFile(uri: Uri) {
+        try {
+            contentResolver.openInputStream(uri)?.use { inputStream ->
+                val keyContent = inputStream.bufferedReader().use { it.readText() }
+                binding.etSftpPrivateKey.setText(keyContent)
+                Toast.makeText(this, "SSH key loaded successfully", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load SSH key from file")
+            Toast.makeText(this, getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
+        }
     }
 }

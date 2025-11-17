@@ -1,17 +1,18 @@
 package com.sza.fastmediasorter_v2.data.remote.sftp
 
+import com.jcraft.jsch.ChannelSftp
+import com.jcraft.jsch.JSch
+import com.jcraft.jsch.JSchException
+import com.jcraft.jsch.Session
+import com.jcraft.jsch.SftpATTRS
 import com.sza.fastmediasorter_v2.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter_v2.domain.usecase.ByteProgressCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import net.schmizz.sshj.DefaultConfig
-import net.schmizz.sshj.SSHClient
-import net.schmizz.sshj.sftp.SFTPClient
-import net.schmizz.sshj.transport.verification.PromiscuousVerifier
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 import timber.log.Timber
 import java.io.IOException
-import java.security.Security
+import java.io.OutputStream
+import java.util.Vector
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,22 +27,16 @@ data class SftpFileAttributes(
 )
 
 /**
- * Low-level SFTP client wrapper using SSHJ library
- * Handles SFTP connection, authentication and file operations
+ * Low-level SFTP client wrapper using JSch library
+ * JSch has built-in KEX implementations (including ECDH) without requiring EC KeyPairGenerator from BouncyCastle
+ * This solves Android BouncyCastle limitations with modern SSH servers
  */
 @Singleton
 class SftpClient @Inject constructor() {
 
-    init {
-        // Ensure BouncyCastle provider is registered
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null) {
-            Security.addProvider(BouncyCastleProvider())
-            Timber.d("Registered BouncyCastle security provider")
-        }
-    }
-
-    private var sshClient: SSHClient? = null
-    private var sftpClient: SFTPClient? = null
+    private var session: Session? = null
+    private var channel: ChannelSftp? = null
+    private val jsch = JSch()
 
     /**
      * Connect to SFTP server with password authentication
@@ -60,42 +55,118 @@ class SftpClient @Inject constructor() {
         try {
             disconnect() // Ensure clean state
             
-            // Use default config - Curve25519 will fail but fallback to other algorithms
-            val config = DefaultConfig()
+            Timber.d("SFTP connecting to $host:$port with password...")
             
-            Timber.d("SFTP creating SSHClient with default config")
-            val client = SSHClient(config)
-            client.addHostKeyVerifier(PromiscuousVerifier()) // Accept all host keys (security risk in production)
+            val newSession = jsch.getSession(username, host, port)
+            newSession.setPassword(password)
             
-            // Set connection and socket timeout to 4 seconds (default is much longer)
-            client.connectTimeout = 4000 // 4 seconds
-            client.timeout = 4000 // 4 seconds for socket operations
-            
-            Timber.d("SFTP connecting to $host:$port...")
-            
-            // Try connection - if Curve25519 fails, SSHJ will automatically try other algorithms
-            try {
-                client.connect(host, port)
-            } catch (e: Exception) {
-                // If connection fails with X25519 error, server may be forcing Curve25519
-                // Unfortunately we can't disable it without modifying SSHJ library
-                Timber.e(e, "SFTP first connection attempt failed, may need X25519 support")
-                throw e
+            // UserInfo for keyboard-interactive authentication with password
+            newSession.userInfo = object : com.jcraft.jsch.UserInfo {
+                override fun getPassphrase(): String? = null
+                override fun getPassword(): String = password
+                override fun promptPassword(message: String?): Boolean = true
+                override fun promptPassphrase(message: String?): Boolean = false
+                override fun promptYesNo(message: String?): Boolean = true
+                override fun showMessage(message: String?) {}
             }
             
-            client.authPassword(username, password)
+            // Disable strict host key checking (accept all host keys)
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = "no"
+            // Try keyboard-interactive first (for servers that require it), then password
+            config["PreferredAuthentications"] = "keyboard-interactive,password"
+            newSession.setConfig(config)
             
-            sshClient = client
-            sftpClient = client.newSFTPClient()
+            // Set timeouts
+            newSession.timeout = 4000 // 4 seconds for socket operations
+            newSession.connect(4000) // 4 seconds connection timeout
+            
+            val newChannel = newSession.openChannel("sftp") as ChannelSftp
+            newChannel.connect(4000)
+            
+            session = newSession
+            channel = newChannel
             
             Timber.d("SFTP connected to $host:$port as $username")
             Result.success(Unit)
-        } catch (e: IOException) {
+        } catch (e: JSchException) {
             Timber.e(e, "SFTP connection failed: $host:$port")
             disconnect()
-            Result.failure(e)
+            Result.failure(IOException("SFTP connection failed: ${e.message}", e))
         } catch (e: Exception) {
             Timber.e(e, "SFTP connection error: $host:$port")
+            disconnect()
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Connect to SFTP server with SSH private key authentication
+     * @param host Server hostname or IP address
+     * @param port Server port (default 22)
+     * @param username Username for authentication
+     * @param privateKey SSH private key in PEM format
+     * @param passphrase Optional passphrase for encrypted private key
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun connectWithPrivateKey(
+        host: String,
+        port: Int = 22,
+        username: String,
+        privateKey: String,
+        passphrase: String? = null
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            disconnect() // Ensure clean state
+            
+            Timber.d("SFTP connecting to $host:$port with private key...")
+            
+            // Add private key to JSch
+            if (passphrase != null) {
+                jsch.addIdentity("key", privateKey.toByteArray(), null, passphrase.toByteArray())
+            } else {
+                jsch.addIdentity("key", privateKey.toByteArray(), null, null)
+            }
+            
+            val newSession = jsch.getSession(username, host, port)
+            
+            // UserInfo for passphrase prompts if key is encrypted
+            if (passphrase != null) {
+                newSession.userInfo = object : com.jcraft.jsch.UserInfo {
+                    override fun getPassphrase(): String = passphrase
+                    override fun getPassword(): String? = null
+                    override fun promptPassword(message: String?): Boolean = false
+                    override fun promptPassphrase(message: String?): Boolean = true
+                    override fun promptYesNo(message: String?): Boolean = true
+                    override fun showMessage(message: String?) {}
+                }
+            }
+            
+            // Disable strict host key checking (accept all host keys)
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = "no"
+            // Public key authentication only
+            config["PreferredAuthentications"] = "publickey"
+            newSession.setConfig(config)
+            
+            // Set timeouts
+            newSession.timeout = 4000 // 4 seconds for socket operations
+            newSession.connect(4000) // 4 seconds connection timeout
+            
+            val newChannel = newSession.openChannel("sftp") as ChannelSftp
+            newChannel.connect(4000)
+            
+            session = newSession
+            channel = newChannel
+            
+            Timber.d("SFTP connected to $host:$port as $username with private key")
+            Result.success(Unit)
+        } catch (e: JSchException) {
+            Timber.e(e, "SFTP private key connection failed: $host:$port")
+            disconnect()
+            Result.failure(IOException("SFTP private key connection failed: ${e.message}", e))
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP private key connection error: $host:$port")
             disconnect()
             Result.failure(e)
         }
@@ -108,26 +179,97 @@ class SftpClient @Inject constructor() {
      */
     suspend fun listFiles(remotePath: String = "/"): Result<List<String>> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            val files = client.ls(remotePath).mapNotNull { fileEntry ->
+            @Suppress("UNCHECKED_CAST")
+            val entries = ch.ls(remotePath) as Vector<ChannelSftp.LsEntry>
+            val files = entries.mapNotNull { entry ->
                 // Skip . and .. entries
-                if (fileEntry.name == "." || fileEntry.name == "..") {
+                if (entry.filename == "." || entry.filename == "..") {
                     null
                 } else {
-                    fileEntry.path
+                    if (remotePath.endsWith("/")) {
+                        remotePath + entry.filename
+                    } else {
+                        "$remotePath/${entry.filename}"
+                    }
                 }
             }
             
             Timber.d("SFTP listed ${files.size} files in $remotePath")
             Result.success(files)
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             Timber.e(e, "SFTP list files failed: $remotePath")
             Result.failure(e)
+        }
+    }
+
+    /**
+     * Test connection to SFTP server with private key
+     * @param host Server hostname or IP address
+     * @param port Server port (default 22)
+     * @param username Username for authentication
+     * @param privateKey SSH private key in PEM format
+     * @param passphrase Optional passphrase for encrypted private key
+     * @return Result with true on success or exception on failure
+     */
+    suspend fun testConnectionWithPrivateKey(
+        host: String,
+        port: Int = 22,
+        username: String,
+        privateKey: String,
+        passphrase: String? = null
+    ): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val testJsch = JSch()
+            
+            // Add private key to test JSch instance
+            if (passphrase != null) {
+                testJsch.addIdentity("key", privateKey.toByteArray(), null, passphrase.toByteArray())
+            } else {
+                testJsch.addIdentity("key", privateKey.toByteArray(), null, null)
+            }
+            
+            val testSession = testJsch.getSession(username, host, port)
+            
+            // UserInfo for passphrase prompts
+            if (passphrase != null) {
+                testSession.userInfo = object : com.jcraft.jsch.UserInfo {
+                    override fun getPassphrase(): String = passphrase
+                    override fun getPassword(): String? = null
+                    override fun promptPassword(message: String?): Boolean = false
+                    override fun promptPassphrase(message: String?): Boolean = true
+                    override fun promptYesNo(message: String?): Boolean = true
+                    override fun showMessage(message: String?) {}
+                }
+            }
+            
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = "no"
+            config["PreferredAuthentications"] = "publickey"
+            testSession.setConfig(config)
+            
+            testSession.timeout = 10000 // 10 seconds
+            testSession.connect(10000)
+            
+            val testChannel = testSession.openChannel("sftp") as ChannelSftp
+            testChannel.connect(10000)
+            
+            // Test listing root directory
+            testChannel.ls("/")
+            
+            testChannel.disconnect()
+            testSession.disconnect()
+            
+            Timber.d("SFTP test connection with private key successful: $host:$port")
+            Result.success(true)
+        } catch (e: JSchException) {
+            Timber.e(e, "SFTP test connection with private key failed: $host:$port")
+            Result.failure(IOException("SFTP test connection with private key failed: ${e.message}", e))
         } catch (e: Exception) {
-            Timber.e(e, "SFTP list files error: $remotePath")
+            Timber.e(e, "SFTP test connection with private key error: $host:$port")
             Result.failure(e)
         }
     }
@@ -147,27 +289,42 @@ class SftpClient @Inject constructor() {
         password: String
     ): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
-            val testClient = SSHClient()
-            testClient.addHostKeyVerifier(PromiscuousVerifier())
+            val testSession = jsch.getSession(username, host, port)
+            testSession.setPassword(password)
             
-            // Set connection and socket timeout to 10 seconds
-            testClient.connectTimeout = 10000 // 10 seconds
-            testClient.timeout = 10000 // 10 seconds for socket operations
+            // UserInfo for keyboard-interactive authentication with password
+            testSession.userInfo = object : com.jcraft.jsch.UserInfo {
+                override fun getPassphrase(): String? = null
+                override fun getPassword(): String = password
+                override fun promptPassword(message: String?): Boolean = true
+                override fun promptPassphrase(message: String?): Boolean = false
+                override fun promptYesNo(message: String?): Boolean = true
+                override fun showMessage(message: String?) {}
+            }
             
-            testClient.connect(host, port)
-            testClient.authPassword(username, password)
+            val config = java.util.Properties()
+            config["StrictHostKeyChecking"] = "no"
+            // Try keyboard-interactive first, then password
+            config["PreferredAuthentications"] = "keyboard-interactive,password"
+            testSession.setConfig(config)
+            
+            testSession.timeout = 10000 // 10 seconds
+            testSession.connect(10000)
+            
+            val testChannel = testSession.openChannel("sftp") as ChannelSftp
+            testChannel.connect(10000)
             
             // Test listing root directory
-            val testSftp = testClient.newSFTPClient()
-            testSftp.ls("/")
-            testSftp.close()
-            testClient.disconnect()
+            testChannel.ls("/")
+            
+            testChannel.disconnect()
+            testSession.disconnect()
             
             Timber.d("SFTP test connection successful: $host:$port")
             Result.success(true)
-        } catch (e: IOException) {
+        } catch (e: JSchException) {
             Timber.e(e, "SFTP test connection failed: $host:$port")
-            Result.failure(e)
+            Result.failure(IOException("SFTP test connection failed: ${e.message}", e))
         } catch (e: Exception) {
             Timber.e(e, "SFTP test connection error: $host:$port")
             Result.failure(e)
@@ -185,27 +342,23 @@ class SftpClient @Inject constructor() {
         maxBytes: Long = Long.MAX_VALUE
     ): Result<ByteArray> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            val remoteFile = client.open(remotePath)
-            remoteFile.use { file ->
-                file.RemoteFileInputStream().use { inputStream ->
-                    val bytes = if (maxBytes < Long.MAX_VALUE) {
-                        inputStream.readNBytes(maxBytes.toInt())
-                    } else {
-                        inputStream.readBytes()
-                    }
-                    Timber.d("SFTP read ${bytes.size} bytes from $remotePath")
-                    Result.success(bytes)
+            ch.get(remotePath).use { inputStream ->
+                val bytes = if (maxBytes < Long.MAX_VALUE) {
+                    val buffer = ByteArray(maxBytes.toInt())
+                    val bytesRead = inputStream.read(buffer, 0, maxBytes.toInt())
+                    buffer.copyOf(bytesRead)
+                } else {
+                    inputStream.readBytes()
                 }
+                Timber.d("SFTP read ${bytes.size} bytes from $remotePath")
+                Result.success(bytes)
             }
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP read file bytes failed: $remotePath")
-            Result.failure(e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP read file bytes error: $remotePath")
+            Timber.e(e, "SFTP read file bytes failed: $remotePath")
             Result.failure(e)
         }
     }
@@ -220,219 +373,226 @@ class SftpClient @Inject constructor() {
      */
     suspend fun downloadFile(
         remotePath: String,
-        outputStream: java.io.OutputStream,
-        fileSize: Long = 0L,
+        outputStream: OutputStream,
+        fileSize: Long = 0,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("SFTP downloading: $remotePath (size=$fileSize bytes)")
-            
-            val remoteFile = client.open(remotePath)
-            remoteFile.use { file ->
-                file.RemoteFileInputStream().use { inputStream ->
-                    if (progressCallback != null && fileSize > 0L) {
-                        inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
-                    } else {
-                        inputStream.copyTo(outputStream)
-                    }
+            ch.get(remotePath).use { inputStream ->
+                if (progressCallback != null && fileSize > 0) {
+                    inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
+                } else {
+                    inputStream.copyTo(outputStream)
                 }
             }
             
-            Timber.i("SFTP download success: $remotePath")
+            Timber.d("SFTP downloaded file: $remotePath")
             Result.success(Unit)
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP download failed: $remotePath")
-            Result.failure(e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP download error: $remotePath")
+            Timber.e(e, "SFTP download file failed: $remotePath")
             Result.failure(e)
         }
     }
 
     /**
-     * Upload file to SFTP server from InputStream
-     * @param remotePath Full path where file should be uploaded
-     * @param inputStream InputStream to read data from
-     * @param fileSize Size of the file to upload (for progress tracking), 0 if unknown
-     * @param progressCallback Optional callback for tracking upload progress
+     * Upload file to SFTP server from byte array
+     * @param remotePath Full path to remote file
+     * @param data Byte array to upload
      * @return Result with Unit on success or exception on failure
      */
     suspend fun uploadFile(
         remotePath: String,
-        inputStream: java.io.InputStream,
-        fileSize: Long = 0L,
-        progressCallback: ByteProgressCallback? = null
+        data: ByteArray
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("SFTP uploading: $remotePath (size=$fileSize bytes)")
-            
-            val remoteFile = client.open(remotePath, 
-                java.util.EnumSet.of(
-                    net.schmizz.sshj.sftp.OpenMode.WRITE,
-                    net.schmizz.sshj.sftp.OpenMode.CREAT,
-                    net.schmizz.sshj.sftp.OpenMode.TRUNC
-                )
-            )
-            
-            remoteFile.use { file ->
-                file.RemoteFileOutputStream().use { outputStream ->
-                    if (progressCallback != null && fileSize > 0L) {
-                        inputStream.copyToWithProgress(outputStream, fileSize, progressCallback)
-                    } else {
-                        inputStream.copyTo(outputStream)
-                    }
-                }
+            data.inputStream().use { inputStream ->
+                ch.put(inputStream, remotePath)
             }
             
-            Timber.i("SFTP upload success: $remotePath")
+            Timber.d("SFTP uploaded file: $remotePath (${data.size} bytes)")
             Result.success(Unit)
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP upload failed: $remotePath")
-            Result.failure(e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP upload error: $remotePath")
+            Timber.e(e, "SFTP upload file failed: $remotePath")
             Result.failure(e)
         }
     }
 
     /**
-     * Delete file on SFTP server
-     * @param remotePath Full path to file to delete
+     * Get file attributes (size, dates, type)
+     * @param remotePath Full path to remote file/directory
+     * @return Result with SftpFileAttributes or exception on failure
+     */
+    suspend fun stat(remotePath: String): Result<SftpFileAttributes> = withContext(Dispatchers.IO) {
+        try {
+            val ch = channel ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            val attrs = ch.stat(remotePath)
+            val attributes = SftpFileAttributes(
+                size = attrs.size,
+                modifiedDate = attrs.mTime * 1000L, // Convert seconds to milliseconds
+                accessDate = attrs.aTime * 1000L,
+                isDirectory = attrs.isDir
+            )
+            
+            Timber.d("SFTP stat: $remotePath - size=${attributes.size}, isDir=${attributes.isDirectory}")
+            Result.success(attributes)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP stat failed: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Check if path exists
+     * @param remotePath Full path to check
+     * @return Result with true if exists, false if not exists, or exception on error
+     */
+    suspend fun exists(remotePath: String): Result<Boolean> = withContext(Dispatchers.IO) {
+        try {
+            val ch = channel ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            ch.stat(remotePath)
+            Result.success(true)
+        } catch (e: com.jcraft.jsch.SftpException) {
+            if (e.id == ChannelSftp.SSH_FX_NO_SUCH_FILE) {
+                Result.success(false)
+            } else {
+                Timber.e(e, "SFTP exists check failed: $remotePath")
+                Result.failure(e)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP exists check error: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Create directory
+     * @param remotePath Full path to directory
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun mkdir(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val ch = channel ?: return@withContext Result.failure(
+                IllegalStateException("Not connected. Call connect() first.")
+            )
+            
+            ch.mkdir(remotePath)
+            Timber.d("SFTP created directory: $remotePath")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Timber.e(e, "SFTP mkdir failed: $remotePath")
+            Result.failure(e)
+        }
+    }
+
+    /**
+     * Delete file
+     * @param remotePath Full path to file
      * @return Result with Unit on success or exception on failure
      */
     suspend fun deleteFile(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            Timber.d("SFTP deleting: $remotePath")
-            client.rm(remotePath)
-            Timber.i("SFTP delete success: $remotePath")
+            ch.rm(remotePath)
+            Timber.d("SFTP deleted file: $remotePath")
             Result.success(Unit)
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP delete failed: $remotePath")
-            Result.failure(e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP delete error: $remotePath")
+            Timber.e(e, "SFTP delete file failed: $remotePath")
             Result.failure(e)
         }
     }
 
     /**
-     * Rename file on SFTP server
-     * @param oldPath Current file path
-     * @param newName New filename (without path)
+     * Delete directory (must be empty)
+     * @param remotePath Full path to directory
      * @return Result with Unit on success or exception on failure
      */
-    suspend fun renameFile(oldPath: String, newName: String): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun deleteDirectory(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            // Extract directory and construct new path
-            val directory = oldPath.substringBeforeLast('/', "")
-            val newPath = if (directory.isEmpty()) newName else "$directory/$newName"
-            
-            Timber.d("SFTP renaming: $oldPath → $newPath")
-            
-            // Check if target exists
-            try {
-                client.stat(newPath)
-                // If stat succeeds, file exists
-                return@withContext Result.failure(IOException("File '$newName' already exists"))
-            } catch (e: IOException) {
-                // File doesn't exist, proceed with rename
-            }
-            
-            client.rename(oldPath, newPath)
-            Timber.i("SFTP rename success: $newPath")
+            ch.rmdir(remotePath)
+            Timber.d("SFTP deleted directory: $remotePath")
             Result.success(Unit)
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP rename failed: $oldPath")
-            Result.failure(e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP rename error: $oldPath")
+            Timber.e(e, "SFTP delete directory failed: $remotePath")
             Result.failure(e)
         }
     }
 
     /**
-     * Get file attributes (size, dates) via SFTP stat()
-     * @param remotePath Full path to remote file
-     * @return Result with SftpFileAttributes or exception on failure
+     * Rename/move file or directory
+     * @param oldPath Current path
+     * @param newPath New path
+     * @return Result with Unit on success or exception on failure
      */
-    suspend fun getFileAttributes(remotePath: String): Result<SftpFileAttributes> = withContext(Dispatchers.IO) {
+    suspend fun rename(oldPath: String, newPath: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
-            val client = sftpClient ?: return@withContext Result.failure(
+            val ch = channel ?: return@withContext Result.failure(
                 IllegalStateException("Not connected. Call connect() first.")
             )
             
-            val attrs = client.stat(remotePath)
-            
-            val attributes = SftpFileAttributes(
-                size = attrs.size,
-                modifiedDate = attrs.mtime * 1000L, // Convert Unix seconds to milliseconds
-                accessDate = attrs.atime * 1000L,   // Convert Unix seconds to milliseconds
-                isDirectory = attrs.type == net.schmizz.sshj.sftp.FileMode.Type.DIRECTORY
-            )
-            
-            Result.success(attributes)
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP get file attributes failed: $remotePath")
-            Result.failure(e)
-        } catch (e: Exception) {
-            Timber.e(e, "SFTP get file attributes error: $remotePath")
-            Result.failure(e)
-        }
-    }
-    
-    /**
-     * Create directory on SFTP server
-     * @param remotePath Full path to directory to create
-     * @return Result with Unit or exception on failure
-     */
-    suspend fun createDirectory(remotePath: String): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val client = sftpClient ?: return@withContext Result.failure(
-                IllegalStateException("Not connected. Call connect() first.")
-            )
-            
-            Timber.d("SFTP creating directory: $remotePath")
-            client.mkdir(remotePath)
-            Timber.i("SFTP directory created: $remotePath")
+            ch.rename(oldPath, newPath)
+            Timber.d("SFTP renamed: $oldPath -> $newPath")
             Result.success(Unit)
-        } catch (e: IOException) {
-            Timber.e(e, "SFTP create directory failed: $remotePath")
-            Result.failure(e)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP create directory error: $remotePath")
+            Timber.e(e, "SFTP rename failed: $oldPath -> $newPath")
             Result.failure(e)
         }
     }
 
     /**
-     * Disconnect from SFTP server and cleanup resources
+     * Rename file (convenience method for rename with new name only)
+     * @param oldPath Current full path
+     * @param newName New filename only (not full path)
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun renameFile(oldPath: String, newName: String): Result<Unit> {
+        val parentPath = oldPath.substringBeforeLast('/')
+        val newPath = if (parentPath.isEmpty()) newName else "$parentPath/$newName"
+        return rename(oldPath, newPath)
+    }
+
+    /**
+     * Create directory (alias for mkdir)
+     */
+    suspend fun createDirectory(remotePath: String): Result<Unit> = mkdir(remotePath)
+
+    /**
+     * Get file attributes (alias for stat with different return type for compatibility)
+     */
+    suspend fun getFileAttributes(remotePath: String): Result<SftpFileAttributes> = stat(remotePath)
+
+    /**
+     * Disconnect from SFTP server
      */
     suspend fun disconnect() = withContext(Dispatchers.IO) {
         try {
-            sftpClient?.close()
-            sshClient?.disconnect()
+            channel?.disconnect()
+            session?.disconnect()
+            channel = null
+            session = null
             Timber.d("SFTP disconnected")
         } catch (e: Exception) {
-            Timber.w(e, "SFTP disconnect error (non-critical)")
-        } finally {
-            sftpClient = null
-            sshClient = null
+            Timber.e(e, "Error during SFTP disconnect")
         }
     }
 
@@ -440,6 +600,6 @@ class SftpClient @Inject constructor() {
      * Check if currently connected
      */
     fun isConnected(): Boolean {
-        return sshClient?.isConnected == true && sftpClient != null
+        return session?.isConnected == true && channel?.isConnected == true
     }
 }

@@ -35,7 +35,13 @@ data class ResourceEntity(
     val destinationColor: Int = 0xFF4CAF50.toInt(), // Default green color
     val isWritable: Boolean = false,
     
+    val isAvailable: Boolean = true, // Resource availability indicator
+    
+    val showCommandPanel: Boolean? = null, // User preference: null = use global default, true/false = override
+    
     val createdDate: Long = System.currentTimeMillis(),
+    
+    val lastBrowseDate: Long? = null, // Last time resource was opened in BrowseActivity
     
     val displayOrder: Int = 0 // Order for display in resource list
 )

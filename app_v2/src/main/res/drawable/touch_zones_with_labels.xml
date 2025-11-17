@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Touch Zones Scheme with Large Number Labels -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="360dp"
+    android:height="640dp"
+    android:viewportWidth="360"
+    android:viewportHeight="640">
+    
+    <!-- Background -->
+    <path android:fillColor="#1A1A1A"
+        android:pathData="M0,0 L360,0 L360,640 L0,640 Z"/>
+    
+    <!-- Sample Video/Image area -->
+    <path android:fillColor="#2A2A2A"
+        android:pathData="M10,10 L350,10 Q355,10 355,15 L355,465 Q355,470 350,470 L10,470 Q5,470 5,465 L5,15 Q5,10 10,10 Z"/>
+    
+    <!-- ZONE 1: BACK (top-left, RED) -->
+    <path android:fillColor="#FF6B6B" android:fillAlpha="0.6"
+        android:pathData="M5,5 L123,5 L123,165 L5,165 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,5 L123,5 L123,165 L5,165 Z"
+        android:strokeColor="#CC0000" android:strokeWidth="3"/>
+    <!-- White circle background for number -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 64,85 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "1" - large bold -->
+    <path android:fillColor="#CC0000"
+        android:pathData="M 52,62 L 60,54 L 68,62 L 68,116 L 76,116 L 76,54 L 68,54 L 60,62 L 52,70 L 52,62 Z"/>
+    
+    <!-- ZONE 2: COPY (top-center, CYAN) -->
+    <path android:fillColor="#4ECDC4" android:fillAlpha="0.6"
+        android:pathData="M127,5 L237,5 L237,165 L127,165 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M127,5 L237,5 L237,165 L127,165 Z"
+        android:strokeColor="#00A896" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 182,85 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "2" -->
+    <path android:fillColor="#00A896"
+        android:pathData="M 170,54 L 194,54 L 194,69 L 178,85 L 178,108 L 194,108 L 194,116 L 170,116 L 170,92 L 186,76 L 186,62 L 170,62 Z"/>
+    
+    <!-- ZONE 3: RENAME (top-right, YELLOW) -->
+    <path android:fillColor="#FFD93D" android:fillAlpha="0.6"
+        android:pathData="M241,5 L355,5 L355,165 L241,165 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M241,5 L355,5 L355,165 L241,165 Z"
+        android:strokeColor="#F6C90E" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 298,85 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "3" -->
+    <path android:fillColor="#F6C90E"
+        android:pathData="M 286,54 L 310,54 L 310,62 L 294,62 L 294,81 L 306,81 L 306,89 L 294,89 L 294,108 L 310,108 L 310,116 L 286,116 Z"/>
+    
+    <!-- ZONE 4: PREVIOUS (middle-left, LIGHT CYAN) -->
+    <path android:fillColor="#95E1D3" android:fillAlpha="0.6"
+        android:pathData="M5,169 L123,169 L123,325 L5,325 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,169 L123,169 L123,325 L5,325 Z"
+        android:strokeColor="#00A896" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 64,247 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "4" -->
+    <path android:fillColor="#00A896"
+        android:pathData="M 52,220 L 60,220 L 60,250 L 76,250 L 76,220 L 76,270 L 68,270 L 68,258 L 60,258 L 60,278 L 52,278 Z"/>
+    
+    <!-- ZONE 5: MOVE (middle-center, LIGHT GREEN) -->
+    <path android:fillColor="#A8E6CF" android:fillAlpha="0.6"
+        android:pathData="M127,169 L237,169 L237,325 L127,325 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M127,169 L237,169 L237,325 L127,325 Z"
+        android:strokeColor="#56C596" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 182,247 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "5" -->
+    <path android:fillColor="#56C596"
+        android:pathData="M 194,220 L 170,220 L 170,246 L 190,246 L 190,270 L 170,270 L 170,278 L 194,278 L 194,254 L 178,254 L 178,228 L 194,228 Z"/>
+    
+    <!-- ZONE 6: NEXT (middle-right, LIGHT CYAN) -->
+    <path android:fillColor="#95E1D3" android:fillAlpha="0.6"
+        android:pathData="M241,169 L355,169 L355,325 L241,325 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M241,169 L355,169 L355,325 L241,325 Z"
+        android:strokeColor="#00A896" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 298,247 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "6" -->
+    <path android:fillColor="#00A896"
+        android:pathData="M 310,228 Q 306,220 298,220 Q 286,220 286,232 L 286,266 Q 286,278 298,278 Q 310,278 310,266 L 310,254 Q 310,246 302,246 L 286,246 L 286,238 L 302,238 Q 310,238 310,246 L 310,266 Q 310,270 298,270 Q 294,270 294,266 L 294,232 Q 294,228 298,228 Q 302,228 306,232 Z"/>
+    
+    <!-- ZONE 7: COMMAND PANEL (bottom-left, PURPLE) -->
+    <path android:fillColor="#C7A3FF" android:fillAlpha="0.6"
+        android:pathData="M5,329 L123,329 L123,475 L5,475 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,329 L123,329 L123,475 L5,475 Z"
+        android:strokeColor="#9B6FFF" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 64,402 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "7" -->
+    <path android:fillColor="#9B6FFF"
+        android:pathData="M 52,375 L 76,375 L 76,383 L 64,416 L 56,416 L 68,383 L 52,383 Z"/>
+    
+    <!-- ZONE 8: DELETE (bottom-center, LIGHT RED) -->
+    <path android:fillColor="#FF8B94" android:fillAlpha="0.6"
+        android:pathData="M127,329 L237,329 L237,475 L127,475 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M127,329 L237,329 L237,475 L127,475 Z"
+        android:strokeColor="#FF5A66" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 182,402 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "8" -->
+    <path android:fillColor="#FF5A66"
+        android:pathData="M 182,375 Q 170,375 170,387 Q 170,395 178,398 Q 186,401 186,409 Q 186,421 182,421 Q 178,421 178,417 L 170,417 Q 170,429 182,429 Q 194,429 194,417 Q 194,409 186,406 Q 178,403 178,395 Q 178,383 182,383 Q 186,383 186,387 L 194,387 Q 194,375 182,375 Z"/>
+    
+    <!-- ZONE 9: SLIDESHOW (bottom-right, ORANGE) -->
+    <path android:fillColor="#FFA07A" android:fillAlpha="0.6"
+        android:pathData="M241,329 L355,329 L355,475 L241,475 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M241,329 L355,329 L355,475 L241,475 Z"
+        android:strokeColor="#FF7F50" android:strokeWidth="3"/>
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M 298,402 m -35,0 a 35,35 0 1,1 70,0 a 35,35 0 1,1 -70,0"/>
+    <!-- Number "9" -->
+    <path android:fillColor="#FF7F50"
+        android:pathData="M 286,387 Q 286,375 298,375 Q 310,375 310,387 L 310,395 Q 310,407 302,407 L 286,407 L 286,399 L 302,399 Q 302,395 302,391 Q 302,387 298,387 Q 294,387 294,391 L 294,395 Q 294,399 298,399 L 298,407 Q 310,407 310,399 L 310,387 Q 310,383 298,383 Q 286,383 286,391 L 286,395 Z"/>
+    
+    <!-- Bottom area - ExoPlayer controls zone -->
+    <path android:fillColor="#404040" android:fillAlpha="0.8"
+        android:pathData="M5,480 L355,480 L355,630 L5,630 Z"/>
+    <path android:fillColor="#00000000"
+        android:pathData="M5,480 L355,480 L355,630 L5,630 Z"
+        android:strokeColor="#666666" android:strokeWidth="2"/>
+    
+    <!-- Outer border -->
+    <path android:fillColor="#00000000"
+        android:pathData="M0,0 L360,0 L360,640 L0,640 Z"
+        android:strokeColor="#FFFFFF" android:strokeWidth="3"/>
+    
+</vector>

@@ -258,6 +258,9 @@ class BrowseViewModel @Inject constructor(
                         Timber.d("Loaded first ${files.size} files via chunked loading")
                     }
                     
+                    // Update resource metadata (fileCount and lastBrowseDate) after successful load
+                    updateResourceMetadataAfterBrowse(resource, files.size)
+                    
                     // Start FileObserver for local resources
                     startFileObserver()
                 }
@@ -288,6 +291,10 @@ class BrowseViewModel @Inject constructor(
             updateState { it.copy(usePagination = true, mediaFiles = emptyList()) }
             setLoading(false)
             
+            // Update resource metadata (fileCount from totalFileCount and lastBrowseDate)
+            val actualFileCount = state.value.totalFileCount ?: 0
+            updateResourceMetadataAfterBrowse(resource, actualFileCount)
+            
             Timber.d("Pagination enabled for ${resource.name}")
         } catch (e: Exception) {
             Timber.e(e, "Error setting up pagination")
@@ -296,7 +303,44 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Updates resource metadata (fileCount and lastBrowseDate) after successful file loading.
+     * Called after both standard and pagination loading completes.
+     */
+    private fun updateResourceMetadataAfterBrowse(resource: MediaResource, actualFileCount: Int) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val updatedResource = resource.copy(
+                    fileCount = actualFileCount,
+                    lastBrowseDate = System.currentTimeMillis()
+                )
+                updateResourceUseCase(updatedResource)
+                Timber.d("Updated resource metadata: fileCount=$actualFileCount, lastBrowseDate set")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to update resource metadata after browse")
+            }
+        }
+    }
+    
     private fun handleLoadingError(resource: MediaResource, e: Throwable) {
+        // Update resource availability to false on connection errors
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val isConnectionError = e.message?.contains("Connection", ignoreCase = true) == true ||
+                    e.message?.contains("Network", ignoreCase = true) == true ||
+                    e.message?.contains("Authentication", ignoreCase = true) == true ||
+                    e.message?.contains("timed out", ignoreCase = true) == true
+                
+                if (isConnectionError && resource.isAvailable) {
+                    Timber.d("Updating resource availability to false due to connection error")
+                    val updatedResource = resource.copy(isAvailable = false)
+                    updateResourceUseCase(updatedResource)
+                }
+            } catch (ex: Exception) {
+                Timber.e(ex, "Failed to update resource availability")
+            }
+        }
+        
         // Build detailed error information
         val errorTitle = when {
             e.message?.contains("Authentication failed", ignoreCase = true) == true ||

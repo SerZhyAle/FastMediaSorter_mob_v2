@@ -173,6 +173,11 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         binding.etResourcePath.setText(resource.path)
                         binding.tvCreatedDate.text = dateFormat.format(Date(resource.createdDate))
                         binding.tvFileCount.text = resource.fileCount.toString()
+                        
+                        // Display last browse date or "Never browsed"
+                        binding.tvLastBrowseDate.text = resource.lastBrowseDate?.let {
+                            dateFormat.format(Date(it))
+                        } ?: getString(R.string.never_browsed)
 
                         // Slideshow interval - convert to input field
                         updateSlideshowIntervalUI(resource.slideshowInterval)

@@ -248,18 +248,26 @@ class SmbOperationsUseCase @Inject constructor(
     // ========== SFTP Operations ==========
     
     /**
-     * Test SFTP connection with given credentials
+     * Test SFTP connection with given credentials (password or private key)
      */
     suspend fun testSftpConnection(
         host: String,
         port: Int = 22,
         username: String,
-        password: String
+        password: String,
+        privateKey: String? = null,
+        keyPassphrase: String? = null
     ): Result<String> = withContext(ioDispatcher) {
         try {
-            val result = sftpClient.testConnection(host, port, username, password)
+            val result = if (privateKey != null) {
+                sftpClient.testConnectionWithPrivateKey(host, port, username, privateKey, keyPassphrase)
+            } else {
+                sftpClient.testConnection(host, port, username, password)
+            }
+            
             if (result.isSuccess) {
-                Result.success("SFTP connection successful to $host:$port")
+                val authMethod = if (privateKey != null) "private key" else "password"
+                Result.success("SFTP connection successful to $host:$port using $authMethod")
             } else {
                 Result.failure(result.exceptionOrNull() ?: Exception("SFTP connection failed"))
             }
@@ -270,13 +278,14 @@ class SmbOperationsUseCase @Inject constructor(
     }
     
     /**
-     * Save SFTP credentials to database
+     * Save SFTP credentials to database (password or private key)
      */
     suspend fun saveSftpCredentials(
         host: String,
         port: Int = 22,
         username: String,
-        password: String
+        password: String,
+        privateKey: String? = null
     ): Result<String> = withContext(ioDispatcher) {
         try {
             val credentialId = UUID.randomUUID().toString()
@@ -288,7 +297,8 @@ class SmbOperationsUseCase @Inject constructor(
                 username = username,
                 plaintextPassword = password,
                 domain = "", // Not used for SFTP
-                shareName = null // Not used for SFTP
+                shareName = null, // Not used for SFTP
+                sshPrivateKey = privateKey // SSH private key (encrypted)
             )
             
             credentialsDao.insert(entity)

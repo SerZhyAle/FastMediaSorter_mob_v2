@@ -195,22 +195,25 @@ class NetworkFileFetcher(
 
         Timber.d("fetchFromFtp: Downloading $remotePath from $server:$port")
         
-        // Connect and download file to ByteArrayOutputStream
-        val result = ftpClient.connect(server, port, credentials.username, credentials.password)
-        if (result.isFailure) {
-            Timber.e("fetchFromFtp: Connection failed")
-            return null
-        }
-        
+        // Use temporary connection for parallel downloads (avoid singleton FTPClient race condition)
         val outputStream = java.io.ByteArrayOutputStream()
-        val downloadResult = ftpClient.downloadFile(remotePath, outputStream)
-        
-        ftpClient.disconnect()
-        
-        return if (downloadResult.isSuccess) {
-            outputStream.toByteArray()
-        } else {
-            null
+        return try {
+            val downloadResult = ftpClient.downloadFileWithNewConnection(
+                host = server,
+                port = port,
+                username = credentials.username,
+                password = credentials.password,
+                remotePath = remotePath,
+                outputStream = outputStream
+            )
+            
+            if (downloadResult.isSuccess) {
+                outputStream.toByteArray()
+            } else {
+                null
+            }
+        } finally {
+            outputStream.close()
         }
     }
 

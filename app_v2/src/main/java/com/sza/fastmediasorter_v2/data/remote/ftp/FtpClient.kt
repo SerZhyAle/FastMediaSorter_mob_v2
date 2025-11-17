@@ -19,11 +19,14 @@ import javax.inject.Singleton
 /**
  * Low-level FTP client wrapper using Apache Commons Net
  * Handles FTP connection, authentication and file operations with passive mode
+ * 
+ * Thread-safe: Uses mutex for synchronized access to FTPClient instance
  */
 @Singleton
 class FtpClient @Inject constructor() {
 
     private var ftpClient: FTPClient? = null
+    private val mutex = Any() // Synchronization lock for FTPClient operations
 
     /**
      * Connect to FTP server with password authentication
@@ -94,53 +97,55 @@ class FtpClient @Inject constructor() {
      * @return Result with list of file names (not full paths) or exception on failure
      */
     suspend fun listFiles(remotePath: String = "/"): Result<List<String>> = withContext(Dispatchers.IO) {
-        try {
-            val client = ftpClient ?: return@withContext Result.failure(
-                IllegalStateException("Not connected. Call connect() first.")
-            )
-            
-            // Try passive mode first, fallback to active mode on timeout
-            val files = try {
-                Timber.d("FTP listing files in passive mode: $remotePath")
-                val ftpFiles = client.listFiles(remotePath)
+        synchronized(mutex) {
+            try {
+                val client = ftpClient ?: return@withContext Result.failure(
+                    IllegalStateException("Not connected. Call connect() first.")
+                )
                 
-                // Filter out . and .. entries
-                ftpFiles.mapNotNull { ftpFile ->
-                    if (ftpFile.name == "." || ftpFile.name == "..") null else ftpFile.name
-                }
-            } catch (e: SocketTimeoutException) {
-                Timber.w(e, "FTP passive mode timeout, switching to active mode")
-                
-                // Switch to active mode and retry
-                client.enterLocalActiveMode()
-                Timber.d("FTP retrying listFiles in active mode: $remotePath")
-                
-                val ftpFiles = try {
-                    client.listFiles(remotePath)
-                } finally {
-                    // Switch back to passive for future operations
-                    try { 
-                        client.enterLocalPassiveMode() 
-                        Timber.d("FTP switched back to passive mode")
-                    } catch (ignored: Exception) {
-                        Timber.w(ignored, "Failed to switch back to passive mode")
+                // Try passive mode first, fallback to active mode on timeout
+                val files = try {
+                    Timber.d("FTP listing files in passive mode: $remotePath")
+                    val ftpFiles = client.listFiles(remotePath)
+                    
+                    // Filter out . and .. entries
+                    ftpFiles.mapNotNull { ftpFile ->
+                        if (ftpFile.name == "." || ftpFile.name == "..") null else ftpFile.name
+                    }
+                } catch (e: SocketTimeoutException) {
+                    Timber.w(e, "FTP passive mode timeout, switching to active mode")
+                    
+                    // Switch to active mode and retry
+                    client.enterLocalActiveMode()
+                    Timber.d("FTP retrying listFiles in active mode: $remotePath")
+                    
+                    val ftpFiles = try {
+                        client.listFiles(remotePath)
+                    } finally {
+                        // Switch back to passive for future operations
+                        try { 
+                            client.enterLocalPassiveMode() 
+                            Timber.d("FTP switched back to passive mode")
+                        } catch (ignored: Exception) {
+                            Timber.w(ignored, "Failed to switch back to passive mode")
+                        }
+                    }
+                    
+                    // Filter out . and .. entries
+                    ftpFiles.mapNotNull { ftpFile ->
+                        if (ftpFile.name == "." || ftpFile.name == "..") null else ftpFile.name
                     }
                 }
                 
-                // Filter out . and .. entries
-                ftpFiles.mapNotNull { ftpFile ->
-                    if (ftpFile.name == "." || ftpFile.name == "..") null else ftpFile.name
-                }
+                Timber.d("FTP listed ${files.size} files in $remotePath")
+                Result.success(files)
+            } catch (e: IOException) {
+                Timber.e(e, "FTP list files failed: $remotePath")
+                Result.failure(e)
+            } catch (e: Exception) {
+                Timber.e(e, "FTP list files error: $remotePath")
+                Result.failure(e)
             }
-            
-            Timber.d("FTP listed ${files.size} files in $remotePath")
-            Result.success(files)
-        } catch (e: IOException) {
-            Timber.e(e, "FTP list files failed: $remotePath")
-            Result.failure(e)
-        } catch (e: Exception) {
-            Timber.e(e, "FTP list files error: $remotePath")
-            Result.failure(e)
         }
     }
 
@@ -259,50 +264,58 @@ class FtpClient @Inject constructor() {
         fileSize: Long = 0L,
         progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
-        try {
-            val client = ftpClient ?: return@withContext Result.failure(
-                IllegalStateException("Not connected. Call connect() first.")
-            )
-            
-            Timber.d("FTP downloading: $remotePath (size=$fileSize bytes)")
-            
-            // Try passive mode first, fallback to active mode on timeout
-            val success = try {
-                client.retrieveFile(remotePath, outputStream)
-            } catch (e: SocketTimeoutException) {
-                Timber.w(e, "FTP passive mode timeout, switching to active mode for download")
-                
-                // Switch to active mode and retry
-                client.enterLocalActiveMode()
-                Timber.d("FTP retrying download in active mode: $remotePath")
-                
-                try {
-                    client.retrieveFile(remotePath, outputStream)
-                } finally {
-                    // Switch back to passive for future operations
-                    try {
-                        client.enterLocalPassiveMode()
-                        Timber.d("FTP switched back to passive mode")
-                    } catch (ignored: Exception) {
-                        Timber.w(ignored, "Failed to switch back to passive mode")
-                    }
-                }
-            }
-            
-            if (!success) {
-                return@withContext Result.failure(
-                    IOException("FTP download failed: ${client.replyString}")
+        synchronized(mutex) {
+            try {
+                val client = ftpClient ?: return@withContext Result.failure(
+                    IllegalStateException("Not connected. Call connect() first.")
                 )
+                
+                Timber.d("FTP downloading: $remotePath (size=$fileSize bytes)")
+                
+                // Try passive mode first, fallback to active mode on timeout
+                val success = try {
+                    client.retrieveFile(remotePath, outputStream)
+                } catch (e: SocketTimeoutException) {
+                    Timber.w(e, "FTP passive mode timeout, switching to active mode for download")
+                    
+                    // Switch to active mode and retry
+                    client.enterLocalActiveMode()
+                    Timber.d("FTP retrying download in active mode: $remotePath")
+                    
+                    try {
+                        client.retrieveFile(remotePath, outputStream)
+                    } finally {
+                        // Switch back to passive for future operations
+                        try {
+                            client.enterLocalPassiveMode()
+                            Timber.d("FTP switched back to passive mode")
+                        } catch (ignored: Exception) {
+                            Timber.w(ignored, "Failed to switch back to passive mode")
+                        }
+                    }
+                } catch (e: Exception) {
+                    // Handle any other exception during retrieveFile (including NPE from internal FTPClient issues)
+                    Timber.e(e, "FTP download error during retrieveFile: $remotePath")
+                    return@withContext Result.failure(
+                        IOException("FTP download failed: ${e.message}", e)
+                    )
+                }
+                
+                if (!success) {
+                    return@withContext Result.failure(
+                        IOException("FTP download failed: ${client.replyString}")
+                    )
+                }
+                
+                Timber.i("FTP download success: $remotePath")
+                Result.success(Unit)
+            } catch (e: IOException) {
+                Timber.e(e, "FTP download failed: $remotePath")
+                Result.failure(e)
+            } catch (e: Exception) {
+                Timber.e(e, "FTP download error: $remotePath")
+                Result.failure(e)
             }
-            
-            Timber.i("FTP download success: $remotePath")
-            Result.success(Unit)
-        } catch (e: IOException) {
-            Timber.e(e, "FTP download failed: $remotePath")
-            Result.failure(e)
-        } catch (e: Exception) {
-            Timber.e(e, "FTP download error: $remotePath")
-            Result.failure(e)
         }
     }
 
@@ -482,5 +495,103 @@ class FtpClient @Inject constructor() {
      */
     fun isConnected(): Boolean {
         return ftpClient?.isConnected == true
+    }
+
+    /**
+     * Download file using a temporary FTP connection (for parallel downloads)
+     * Creates a new connection, downloads the file, and closes immediately
+     * Thread-safe: Each call creates its own FTPClient instance
+     * 
+     * @param host Server hostname or IP address
+     * @param port Server port
+     * @param username Username for authentication
+     * @param password Password for authentication
+     * @param remotePath Full path to remote file
+     * @param outputStream OutputStream to write downloaded data
+     * @return Result with Unit on success or exception on failure
+     */
+    suspend fun downloadFileWithNewConnection(
+        host: String,
+        port: Int,
+        username: String,
+        password: String,
+        remotePath: String,
+        outputStream: OutputStream
+    ): Result<Unit> = withContext(Dispatchers.IO) {
+        val tempClient = FTPClient()
+        try {
+            // Set connection and socket timeout
+            tempClient.connectTimeout = 15000
+            tempClient.defaultTimeout = 15000
+            tempClient.setDataTimeout(15000)
+            tempClient.controlKeepAliveTimeout = Duration.ofSeconds(10).seconds
+            
+            tempClient.connect(host, port)
+            
+            val replyCode = tempClient.replyCode
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                tempClient.disconnect()
+                return@withContext Result.failure(
+                    IOException("FTP server refused connection. Reply code: $replyCode")
+                )
+            }
+            
+            if (!tempClient.login(username, password)) {
+                tempClient.disconnect()
+                return@withContext Result.failure(
+                    IOException("FTP authentication failed for user: $username")
+                )
+            }
+            
+            // Enable passive mode and binary transfer
+            tempClient.enterLocalPassiveMode()
+            tempClient.setFileType(FTP.BINARY_FILE_TYPE)
+            
+            Timber.d("FTP temp connection: downloading $remotePath")
+            
+            // Download file
+            val success = try {
+                tempClient.retrieveFile(remotePath, outputStream)
+            } catch (e: SocketTimeoutException) {
+                Timber.w(e, "FTP passive mode timeout, switching to active mode")
+                tempClient.enterLocalActiveMode()
+                tempClient.setDataTimeout(30000)
+                tempClient.controlKeepAliveTimeout = Duration.ofSeconds(15).seconds
+                tempClient.retrieveFile(remotePath, outputStream)
+            } catch (e: Exception) {
+                Timber.e(e, "FTP temp connection download error: $remotePath")
+                throw e
+            }
+            
+            // Ensure all data is written to stream
+            outputStream.flush()
+            
+            if (success) {
+                Timber.i("FTP temp connection download success: $remotePath")
+                Result.success(Unit)
+            } else {
+                val message = "FTP retrieveFile returned false: $remotePath"
+                Timber.e(message)
+                Result.failure(IOException(message))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "FTP temp connection failed: $remotePath")
+            Result.failure(e)
+        } finally {
+            // Always cleanup temporary connection
+            try {
+                if (tempClient.isConnected) {
+                    tempClient.soTimeout = 1000
+                    try {
+                        tempClient.logout()
+                    } catch (e: Exception) {
+                        Timber.d(e, "FTP temp logout error (ignored)")
+                    }
+                    tempClient.disconnect()
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "FTP temp disconnect error (ignored)")
+            }
+        }
     }
 }
