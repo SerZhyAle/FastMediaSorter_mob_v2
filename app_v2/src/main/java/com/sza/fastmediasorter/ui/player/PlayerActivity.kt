@@ -861,6 +861,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     binding.btnRenameCmd,
                     binding.btnDeleteCmd,
                     binding.btnUndoCmd,
+                    binding.btnFullscreenCmd,
                     binding.btnSlideshowCmd
                 )
                 buttons.forEach { button ->
@@ -973,6 +974,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Undo: visible only when there is a pending undo operation
         binding.btnUndoCmd.isVisible = state.showCommandPanel && state.lastOperation != null
+        
+        // Back, Fullscreen, Slideshow: always enabled
+        binding.btnBack.isEnabled = true
+        binding.btnFullscreenCmd.isEnabled = true
+        binding.btnSlideshowCmd.isEnabled = true
         
         // Copy/Move panels visibility based on settings AND whether there are destination buttons
         val hasCopyButtons = binding.copyToButtonsGrid.childCount > 0

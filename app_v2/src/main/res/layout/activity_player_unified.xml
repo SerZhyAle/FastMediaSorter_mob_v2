@@ -18,56 +18,56 @@
 
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_back" />
 
         <ImageButton
             android:id="@+id/btnPreviousCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Previous"
             android:src="@android:drawable/ic_media_previous" />
 
         <ImageButton
             android:id="@+id/btnNextCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Next"
             android:src="@android:drawable/ic_media_next" />
 
         <ImageButton
             android:id="@+id/btnRenameCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Rename"
             android:src="@drawable/ic_rename" />
 
         <ImageButton
             android:id="@+id/btnDeleteCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete" />
 
         <ImageButton
             android:id="@+id/btnInfoCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/file_information"
             android:src="@android:drawable/ic_menu_info_details" />
 
         <ImageButton
             android:id="@+id/btnEditCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Edit image"
             android:src="@android:drawable/ic_menu_edit"
@@ -75,8 +75,8 @@
 
         <ImageButton
             android:id="@+id/btnUndoCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Undo"
             android:src="@android:drawable/ic_menu_revert"
@@ -84,16 +84,16 @@
 
         <ImageButton
             android:id="@+id/btnFullscreenCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/fullscreen_mode"
             android:src="@drawable/ic_fullscreen" />
 
         <ImageButton
             android:id="@+id/btnSlideshowCmd"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Slideshow"
             android:src="@android:drawable/ic_media_play" />
