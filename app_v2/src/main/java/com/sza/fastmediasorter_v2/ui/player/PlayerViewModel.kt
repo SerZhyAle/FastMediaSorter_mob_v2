@@ -72,7 +72,7 @@ class PlayerViewModel @Inject constructor(
 
     init {
         loadMediaFiles()
-        loadSettings()
+        // loadSettings() is called from loadMediaFiles() after resource is loaded
     }
     
     /**
@@ -167,6 +167,8 @@ class PlayerViewModel @Inject constructor(
                     } else {
                         state.value.slideShowInterval // Keep global settings value
                     }
+                    
+                    // Update state with resource first
                     updateState { 
                         it.copy(
                             files = files, 
@@ -175,6 +177,9 @@ class PlayerViewModel @Inject constructor(
                             slideShowInterval = intervalToUse
                         ) 
                     }
+                    
+                    // Load settings AFTER resource is set (to apply resource-specific showCommandPanel)
+                    loadSettings()
                 }
                 setLoading(false)
             } catch (e: Exception) {
