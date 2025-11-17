@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okio.Buffer
@@ -56,6 +57,10 @@ class NetworkFileFetcher(
                 mimeType = null, // Let Coil detect mime type
                 dataSource = DataSource.NETWORK
             )
+        } catch (e: CancellationException) {
+            // Normal behavior when Coil cancels fetch during RecyclerView scroll
+            // Don't log as error - this happens hundreds of times during fast scrolling
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "NetworkFileFetcher: Failed to fetch ${data.path}")
             throw e

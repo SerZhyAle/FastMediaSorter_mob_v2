@@ -20,6 +20,7 @@ import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.ConcurrentHashMap
@@ -798,6 +799,10 @@ class SmbClient @Inject constructor() {
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            // Normal behavior when coroutine is cancelled (e.g., Coil cancels image fetch during RecyclerView scroll)
+            // Re-throw to propagate cancellation properly without logging as error
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Failed to read file bytes from SMB")
             SmbResult.Error("Failed to read file: ${e.message}", e)
