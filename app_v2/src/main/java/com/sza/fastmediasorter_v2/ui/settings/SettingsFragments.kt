@@ -343,6 +343,21 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showDetailedErrors = isChecked))
         }
         
+        binding.switchShowPlayerHint.setOnCheckedChangeListener { _, isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showPlayerHintOnFirstRun = isChecked))
+        }
+        
+        binding.btnShowHintNow.setOnClickListener {
+            // Reset first-run flag to trigger hint on next PlayerActivity launch
+            viewModel.resetPlayerFirstRun()
+            Toast.makeText(
+                requireContext(),
+                "Touch zones hint will be shown next time you open media player",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        
         // Icon size text field
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
@@ -394,6 +409,9 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.switchDetailedErrors.isChecked != settings.showDetailedErrors) {
                         binding.switchDetailedErrors.isChecked = settings.showDetailedErrors
+                    }
+                    if (binding.switchShowPlayerHint.isChecked != settings.showPlayerHintOnFirstRun) {
+                        binding.switchShowPlayerHint.isChecked = settings.showPlayerHintOnFirstRun
                     }
                     
                     // Icon size

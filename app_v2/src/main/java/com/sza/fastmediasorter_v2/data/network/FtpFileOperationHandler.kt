@@ -51,8 +51,12 @@ class FtpFileOperationHandler @Inject constructor(
             try {
                 val destPath = "${operation.destination.absolutePath}/${source.name}"
                 
-                val isSourceFtp = source.absolutePath.startsWith("ftp://")
-                val isDestFtp = destPath.startsWith("ftp://")
+                // Normalize paths: "ftp:/host" -> "ftp://host"
+                val normalizedSourcePath = normalizeFtpPath(source.absolutePath)
+                val normalizedDestPath = normalizeFtpPath(destPath)
+                
+                val isSourceFtp = normalizedSourcePath.startsWith("ftp://")
+                val isDestFtp = normalizedDestPath.startsWith("ftp://")
                 
                 Timber.d("FTP executeCopy: Source=${if (isSourceFtp) "FTP" else "Local"}, Dest=${if (isDestFtp) "FTP" else "Local"}")
 
@@ -61,7 +65,7 @@ class FtpFileOperationHandler @Inject constructor(
                 when {
                     isSourceFtp && !isDestFtp -> {
                         Timber.d("FTP executeCopy: FTP→Local - downloading ${source.name}")
-                        downloadFromFtp(source.absolutePath, File(destPath), progressCallback)?.let {
+                        downloadFromFtp(normalizedSourcePath, File(normalizedDestPath), progressCallback)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -79,7 +83,7 @@ class FtpFileOperationHandler @Inject constructor(
                     }
                     !isSourceFtp && isDestFtp -> {
                         Timber.d("FTP executeCopy: Local→FTP - uploading ${source.name}")
-                        uploadToFtp(source, destPath, progressCallback)?.let {
+                        uploadToFtp(source, normalizedDestPath, progressCallback)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -97,7 +101,7 @@ class FtpFileOperationHandler @Inject constructor(
                     }
                     isSourceFtp && isDestFtp -> {
                         Timber.d("FTP executeCopy: FTP→FTP - copying ${source.name}")
-                        copyFtpToFtp(source.absolutePath, destPath)?.let {
+                        copyFtpToFtp(normalizedSourcePath, normalizedDestPath)?.let {
                             val duration = System.currentTimeMillis() - startTime
                             copiedPaths.add(destPath)
                             successCount++
@@ -165,8 +169,12 @@ class FtpFileOperationHandler @Inject constructor(
             try {
                 val destPath = "${operation.destination.absolutePath}/${source.name}"
                 
-                val isSourceFtp = source.absolutePath.startsWith("ftp://")
-                val isDestFtp = destPath.startsWith("ftp://")
+                // Normalize paths: "ftp:/host" -> "ftp://host"
+                val normalizedSourcePath = normalizeFtpPath(source.absolutePath)
+                val normalizedDestPath = normalizeFtpPath(destPath)
+                
+                val isSourceFtp = normalizedSourcePath.startsWith("ftp://")
+                val isDestFtp = normalizedDestPath.startsWith("ftp://")
                 
                 Timber.d("FTP executeMove: Source=${if (isSourceFtp) "FTP" else "Local"}, Dest=${if (isDestFtp) "FTP" else "Local"}")
 
@@ -176,12 +184,12 @@ class FtpFileOperationHandler @Inject constructor(
                     isSourceFtp && !isDestFtp -> {
                         Timber.d("FTP executeMove: FTP→Local - download+delete ${source.name}")
                         // FTP to Local (download + delete)
-                        val localFile = downloadFromFtp(source.absolutePath, File(destPath), progressCallback)
+                        val localFile = downloadFromFtp(normalizedSourcePath, File(normalizedDestPath), progressCallback)
                         if (localFile != null) {
                             val downloadDuration = System.currentTimeMillis() - startTime
                             Timber.d("FTP executeMove: Downloaded in ${downloadDuration}ms, attempting delete from source FTP")
                             
-                            if (deleteFromFtp(source.absolutePath)) {
+                            if (deleteFromFtp(normalizedSourcePath)) {
                                 val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
@@ -212,7 +220,7 @@ class FtpFileOperationHandler @Inject constructor(
                     !isSourceFtp && isDestFtp -> {
                         Timber.d("FTP executeMove: Local→FTP - upload+delete ${source.name}")
                         // Local to FTP (upload + delete)
-                        if (uploadToFtp(source, destPath, progressCallback) != null) {
+                        if (uploadToFtp(source, normalizedDestPath, progressCallback) != null) {
                             val uploadDuration = System.currentTimeMillis() - startTime
                             Timber.d("FTP executeMove: Uploaded in ${uploadDuration}ms, attempting delete from local")
                             
@@ -245,11 +253,11 @@ class FtpFileOperationHandler @Inject constructor(
                     isSourceFtp && isDestFtp -> {
                         Timber.d("FTP executeMove: FTP→FTP - copy+delete ${source.name}")
                         // FTP to FTP (copy + delete)
-                        if (copyFtpToFtp(source.absolutePath, destPath) != null) {
+                        if (copyFtpToFtp(normalizedSourcePath, normalizedDestPath) != null) {
                             val copyDuration = System.currentTimeMillis() - startTime
                             Timber.d("FTP executeMove: Copied in ${copyDuration}ms, attempting delete from source FTP")
                             
-                            if (deleteFromFtp(source.absolutePath)) {
+                            if (deleteFromFtp(normalizedSourcePath)) {
                                 val totalDuration = System.currentTimeMillis() - startTime
                                 movedPaths.add(destPath)
                                 successCount++
@@ -379,7 +387,7 @@ class FtpFileOperationHandler @Inject constructor(
         var ftpConnectionInfo: FtpConnectionInfoWithPath? = null
         
         if (operation.softDelete && operation.files.isNotEmpty()) {
-            val firstFilePath = operation.files.first().absolutePath
+            val firstFilePath = normalizeFtpPath(operation.files.first().absolutePath)
             if (firstFilePath.startsWith("ftp://")) {
                 // Extract parent directory from FTP path
                 val parentDir = firstFilePath.substringBeforeLast('/')
@@ -417,15 +425,16 @@ class FtpFileOperationHandler @Inject constructor(
 
         operation.files.forEach { file ->
             try {
-                val isFtp = file.absolutePath.startsWith("ftp://")
+                val normalizedFilePath = normalizeFtpPath(file.absolutePath)
+                val isFtp = normalizedFilePath.startsWith("ftp://")
 
                 if (isFtp) {
                     if (operation.softDelete && trashDirPath != null && ftpConnectionInfo != null) {
                         // Soft delete: move to trash folder using rename
-                        val fileName = file.absolutePath.substringAfterLast('/')
+                        val fileName = normalizedFilePath.substringAfterLast('/')
                         val trashFilePath = "$trashDirPath/$fileName"
                         
-                        val fileConnectionInfo = parseFtpPath(file.absolutePath)
+                        val fileConnectionInfo = parseFtpPath(normalizedFilePath)
                         if (fileConnectionInfo != null) {
                             // Ensure connection for file operation
                             val ensureConnectResult = ftpClient.connect(
@@ -462,7 +471,7 @@ class FtpFileOperationHandler @Inject constructor(
                         }
                     } else {
                         // Hard delete: permanent deletion
-                        if (deleteFromFtp(file.absolutePath)) {
+                        if (deleteFromFtp(normalizedFilePath)) {
                             deletedPaths.add(file.absolutePath)
                             successCount++
                             Timber.d("FTP hard delete: permanently deleted ${file.name}")
@@ -684,11 +693,27 @@ class FtpFileOperationHandler @Inject constructor(
         }
     }
 
+    /**
+     * Normalize FTP path: "ftp:/host" -> "ftp://host"
+     * Handles malformed paths where single slash is used instead of double slash
+     */
+    private fun normalizeFtpPath(path: String): String {
+        return when {
+            path.startsWith("ftp:/") && !path.startsWith("ftp://") -> {
+                path.replaceFirst("ftp:/", "ftp://")
+            }
+            else -> path
+        }
+    }
+
     private suspend fun parseFtpPath(path: String): FtpConnectionInfoWithPath? {
         return try {
-            if (path.startsWith("ftp://")) {
+            // Normalize path first
+            val normalizedPath = normalizeFtpPath(path)
+            
+            if (normalizedPath.startsWith("ftp://")) {
                 // Format: ftp://host:port/path or ftp://host/path
-                val withoutProtocol = path.removePrefix("ftp://")
+                val withoutProtocol = normalizedPath.removePrefix("ftp://")
                 
                 // Split by first '/' to separate host[:port] from path
                 val firstSlash = withoutProtocol.indexOf('/')

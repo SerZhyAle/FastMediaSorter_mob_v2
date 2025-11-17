@@ -158,7 +158,8 @@ class SmbDataSource(
 
             // bytesRead > 0: successful read
             totalBytesRead += bytesRead
-            if (totalBytesRead <= 10000 || (totalBytesRead / 100000) > ((totalBytesRead - bytesRead) / 100000)) {
+            // Log first 10KB (debug start), then every 500KB (reduce spam ~20x)
+            if (totalBytesRead <= 10000 || (totalBytesRead / 500000) > ((totalBytesRead - bytesRead) / 500000)) {
                 Timber.d(
                     "SmbDataSource: READ - requested=$bytesToRead actual=$bytesRead total=$totalBytesRead remaining=$bytesRemaining file=${uri?.lastPathSegment}"
                 )

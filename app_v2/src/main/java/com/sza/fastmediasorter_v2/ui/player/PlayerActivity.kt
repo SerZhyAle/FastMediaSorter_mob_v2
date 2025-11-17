@@ -43,6 +43,8 @@ import com.sza.fastmediasorter_v2.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter_v2.ui.dialog.RenameDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -62,11 +64,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private val hideControlsHandler = Handler(Looper.getMainLooper())
     private val loadingIndicatorHandler = Handler(Looper.getMainLooper())
     private val countdownHandler = Handler(Looper.getMainLooper())
+    
+    // Track preload jobs to cancel on destroy
+    private val preloadJobs = mutableListOf<Job>()
     private lateinit var gestureDetector: GestureDetector
     private val touchZoneDetector = TouchZoneDetector()
     private var useTouchZones = true // Use touch zones for images, gestures for video
     private var countdownSeconds = 3 // Current countdown value
     private var isFirstResume = true // Track first onResume to avoid duplicate load
+    private var hasShownFirstRunHint = false // Track if first-run hint has been shown in this session
 
     // Injected dependencies for network playback
     @Inject
@@ -746,6 +752,23 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             return
         }
         
+        // Show first-run hint if enabled and not shown yet
+        if (!hasShownFirstRunHint && state.currentFile != null) {
+            lifecycleScope.launch {
+                val settings = settingsRepository.getSettings().first()
+                val isFirstRun = settingsRepository.isPlayerFirstRun()
+                
+                if (settings.showPlayerHintOnFirstRun && isFirstRun) {
+                    Timber.d("PlayerActivity.updateUI: Showing first-run hint overlay")
+                    // Delay hint to allow UI to settle
+                    delay(500)
+                    showFirstRunHintOverlay()
+                    settingsRepository.setPlayerFirstRun(false)
+                    hasShownFirstRunHint = true
+                }
+            }
+        }
+        
         state.currentFile?.let { file ->
             binding.toolbar.title = "${state.currentIndex + 1}/${state.files.size} - ${file.name}"
             binding.btnPrevious.isEnabled = state.hasPrevious
@@ -811,15 +834,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             // Copy/Move panel visibility is controlled by updateCommandAvailability()
             binding.controlsOverlay.isVisible = false
             
-            // Populate destination buttons
+            // Populate destination buttons (handles state restoration internally)
             populateDestinationButtons()
-            
-            // Restore collapsed state from settings
-            lifecycleScope.launch {
-                val settings = settingsRepository.getSettings().first()
-                updateCopyPanelVisibility(settings.copyPanelCollapsed)
-                updateMovePanelVisibility(settings.movePanelCollapsed)
-            }
 
             // Apply small controls setting if enabled
             val state = viewModel.state.value
@@ -1053,7 +1069,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             if (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP) {
                 Timber.d("PlayerActivity: Preloading network image: ${file.path}")
                 
-                lifecycleScope.launch {
+                val job = lifecycleScope.launch {
                     val settings = settingsRepository.getSettings().first()
                     val imageSize = if (settings.loadFullSizeImages) {
                         Size.ORIGINAL
@@ -1079,6 +1095,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     
                     imageLoader.enqueue(preloadRequest)
                 }
+                preloadJobs.add(job)
             } else {
                 // Preload local file
                 Timber.d("PlayerActivity: Preloading local image: ${file.path}")
@@ -1579,12 +1596,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 val destinations = viewModel.getDestinationsUseCase().first()
                     .filter { it.id != resourceId } // Exclude current resource
                 
+                // Save CURRENT UI state BEFORE clearing buttons (not from settings)
+                // This prevents state loss during button rebuild
+                val copyCollapsed = !binding.copyToButtonsGrid.isVisible
+                val moveCollapsed = !binding.moveToButtonsGrid.isVisible
+                
                 // Clear existing buttons
                 binding.copyToButtonsGrid.removeAllViews()
                 binding.moveToButtonsGrid.removeAllViews()
-                
-                // Calculate grid dimensions (max 5 columns, up to 2 rows)
-                val buttonCount = destinations.size.coerceAtMost(10)
                 
                 destinations.take(10).forEachIndexed { index, destination ->
                     // Create copy button
@@ -1597,6 +1616,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         binding.moveToButtonsGrid.addView(btn)
                     }
                 }
+                
+                // Restore collapsed state AFTER adding buttons
+                updateCopyPanelVisibility(copyCollapsed)
+                updateMovePanelVisibility(moveCollapsed)
             } catch (e: Exception) {
                 Toast.makeText(this@PlayerActivity, "Failed to load destinations", Toast.LENGTH_SHORT).show()
             }
@@ -1878,6 +1901,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         countdownHandler.removeCallbacks(countdownRunnable)
+        
+        // Cancel all preload jobs to prevent memory leaks
+        preloadJobs.forEach { it.cancel() }
+        preloadJobs.clear()
     }
 
     companion object {

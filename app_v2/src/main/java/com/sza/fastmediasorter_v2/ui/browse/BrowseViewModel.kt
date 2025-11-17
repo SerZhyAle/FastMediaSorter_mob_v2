@@ -444,7 +444,8 @@ class BrowseViewModel @Inject constructor(
                 val count = scanner.getFileCount(
                     path = resource.path,
                     supportedTypes = resource.supportedMediaTypes,
-                    sizeFilter = sizeFilter
+                    sizeFilter = sizeFilter,
+                    credentialsId = resource.credentialsId
                 )
                 
                 updateState { it.copy(totalFileCount = count) }
@@ -478,7 +479,17 @@ class BrowseViewModel @Inject constructor(
     }
 
     fun setSortMode(sortMode: SortMode) {
+        val resource = state.value.resource ?: return
+        
+        // Update state immediately for UI responsiveness
         updateState { it.copy(sortMode = sortMode) }
+        
+        // Save to database
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            updateResourceUseCase(resource.copy(sortMode = sortMode))
+            Timber.d("Saved sortMode=$sortMode for resource: ${resource.name}")
+        }
+        
         loadMediaFiles()
     }
 

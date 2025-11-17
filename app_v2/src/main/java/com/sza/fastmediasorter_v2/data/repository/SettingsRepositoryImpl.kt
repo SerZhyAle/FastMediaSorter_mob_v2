@@ -53,6 +53,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
         private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
+        private val KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
         
         // Destinations settings keys
         private val KEY_ENABLE_COPYING = booleanPreferencesKey("enable_copying")
@@ -61,6 +62,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_MOVING = booleanPreferencesKey("enable_moving")
         private val KEY_OVERWRITE_ON_MOVE = booleanPreferencesKey("overwrite_on_move")
         private val KEY_ENABLE_UNDO = booleanPreferencesKey("enable_undo")
+        private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
     }
 
     override fun getSettings(): Flow<AppSettings> {
@@ -121,6 +123,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     },
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
+                    showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
                     
                     // Destinations
                     enableCopying = preferences[KEY_ENABLE_COPYING] ?: true,
@@ -170,6 +173,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
             preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
             preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
+            preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun
             
             // Destinations
             preferences[KEY_ENABLE_COPYING] = settings.enableCopying
@@ -183,5 +187,16 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun resetToDefaults() {
         updateSettings(AppSettings())
+    }
+    
+    override suspend fun setPlayerFirstRun(isFirstRun: Boolean) {
+        val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        sharedPrefs.edit().putBoolean("is_player_first_run", isFirstRun).apply()
+    }
+    
+    override suspend fun isPlayerFirstRun(): Boolean {
+        val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        // Default to true for first launch
+        return sharedPrefs.getBoolean("is_player_first_run", true)
     }
 }

@@ -239,7 +239,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             startActivity(intent)
                         }
                         is MainEvent.NavigateToAddResource -> {
-                            startActivity(Intent(this@MainActivity, AddResourceActivity::class.java))
+                            startActivity(AddResourceActivity.createIntent(this@MainActivity))
+                        }
+                        is MainEvent.NavigateToAddResourceCopy -> {
+                            startActivity(AddResourceActivity.createIntent(this@MainActivity, event.copyResourceId))
                         }
                         MainEvent.NavigateToSettings -> {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))

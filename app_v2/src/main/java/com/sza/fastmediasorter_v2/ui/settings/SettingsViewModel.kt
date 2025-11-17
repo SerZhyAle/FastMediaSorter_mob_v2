@@ -63,6 +63,17 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+    
+    fun resetPlayerFirstRun() {
+        viewModelScope.launch {
+            try {
+                settingsRepository.setPlayerFirstRun(true)
+                Timber.d("Player first-run flag reset successfully")
+            } catch (e: Exception) {
+                Timber.e(e, "Error resetting player first-run flag")
+            }
+        }
+    }
 
     fun moveDestination(resource: MediaResource, direction: Int) {
         viewModelScope.launch {

@@ -24,13 +24,15 @@ import javax.inject.Inject
 data class AddResourceState(
     val resourcesToAdd: List<MediaResource> = emptyList(),
     val selectedPaths: Set<String> = emptySet(),
-    val isScanning: Boolean = false
+    val isScanning: Boolean = false,
+    val copyFromResource: MediaResource? = null
 )
 
 sealed class AddResourceEvent {
     data class ShowError(val message: String) : AddResourceEvent()
     data class ShowMessage(val message: String) : AddResourceEvent()
     data class ShowTestResult(val message: String, val isSuccess: Boolean) : AddResourceEvent()
+    data class LoadResourceForCopy(val resource: MediaResource) : AddResourceEvent()
     object ResourcesAdded : AddResourceEvent()
 }
 
@@ -60,6 +62,28 @@ class AddResourceViewModel @Inject constructor(
         if (settings.supportGifs) types.add(MediaType.GIF)
         
         return types
+    }
+    
+    /**
+     * Load resource data for copy mode
+     */
+    fun loadResourceForCopy(resourceId: Long) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            try {
+                val resource = resourceRepository.getResourceById(resourceId)
+                if (resource != null) {
+                    Timber.d("Loaded resource for copy: ${resource.name}")
+                    updateState { it.copy(copyFromResource = resource) }
+                    sendEvent(AddResourceEvent.LoadResourceForCopy(resource))
+                } else {
+                    Timber.e("Resource not found for copy: $resourceId")
+                    sendEvent(AddResourceEvent.ShowError("Resource not found"))
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load resource for copy: $resourceId")
+                sendEvent(AddResourceEvent.ShowError("Failed to load resource: ${e.message}"))
+            }
+        }
     }
 
     fun scanLocalFolders() {

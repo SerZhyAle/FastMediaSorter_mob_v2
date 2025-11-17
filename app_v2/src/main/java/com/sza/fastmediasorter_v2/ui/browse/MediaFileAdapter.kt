@@ -287,17 +287,8 @@ class MediaFileAdapter(
                                 }
                             }
                             isNetworkPath -> {
-                                // Load network video frame using NetworkFileData
-                                load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                    size(thumbnailSize) // Use configured thumbnail size from settings
-                                    crossfade(false)
-                                    allowHardware(true) // GPU-accelerated decoding
-                                    placeholder(R.drawable.ic_video_placeholder)
-                                    error(R.drawable.ic_video_error)
-                                    transformations(RoundedCornersTransformation(8f))
-                                    memoryCacheKey(file.path)
-                                    diskCacheKey(file.path)
-                                }
+                                // Show placeholder icon immediately (no network delay, no decoding attempt)
+                                setImageResource(R.drawable.ic_video_placeholder)
                             }
                             else -> {
                                 // Load video first frame using Coil with video frame decoder for local files
@@ -353,8 +344,13 @@ class MediaFileAdapter(
         }
         
         private fun buildFileInfo(file: MediaFile): String {
-            val size = formatFileSize(file.size)
-            val date = DateFormat.format("yyyy-MM-dd", Date(file.createdDate))
+            // Hide invalid FTP metadata (size=0 or date=1970-01-01)
+            val size = if (file.size > 0) formatFileSize(file.size) else "—"
+            val date = if (file.createdDate > 0) {
+                DateFormat.format("yyyy-MM-dd", Date(file.createdDate))
+            } else {
+                "—"
+            }
             return "$size • $date"
         }
         
@@ -518,16 +514,8 @@ class MediaFileAdapter(
                                 }
                             }
                             isNetworkPath -> {
-                                // Load network video frame using NetworkFileData
-                                load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                    size(512) // Fixed size for consistent caching across List/Grid modes
-                                    crossfade(false)
-                                    placeholder(R.drawable.ic_video_placeholder)
-                                    error(R.drawable.ic_video_error)
-                                    transformations(RoundedCornersTransformation(8f))
-                                    memoryCacheKey(file.path)
-                                    diskCacheKey(file.path)
-                                }
+                                // Show placeholder icon immediately (no network delay, no decoding attempt)
+                                setImageResource(R.drawable.ic_video_placeholder)
                             }
                             else -> {
                                 // Support both file:// paths and content:// URIs

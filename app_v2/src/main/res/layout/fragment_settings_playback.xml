@@ -112,7 +112,26 @@
             android:paddingTop="12dp"
             android:paddingBottom="12dp"
             android:text="@string/show_detailed_errors"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchShowPlayerHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:text="@string/show_player_hint"
+            android:layout_marginBottom="8dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnShowHintNow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/show_hint_now"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="24dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
 
         <!-- Touch Zones Scheme Section -->
         <TextView

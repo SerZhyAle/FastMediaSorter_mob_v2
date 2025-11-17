@@ -36,6 +36,7 @@ data class AppSettings(
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
     val showDetailedErrors: Boolean = false,
+    val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     
     // Destinations settings
     val enableCopying: Boolean = true,

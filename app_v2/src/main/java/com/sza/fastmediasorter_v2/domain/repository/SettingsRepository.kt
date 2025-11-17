@@ -10,4 +10,6 @@ interface SettingsRepository {
     fun getSettings(): Flow<AppSettings>
     suspend fun updateSettings(settings: AppSettings)
     suspend fun resetToDefaults()
+    suspend fun setPlayerFirstRun(isFirstRun: Boolean)
+    suspend fun isPlayerFirstRun(): Boolean
 }

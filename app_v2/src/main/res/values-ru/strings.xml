@@ -123,8 +123,11 @@
     <string name="allow_delete">Разрешить удаление</string>
     <string name="confirm_delete">Подтверждать удаление</string>
     <string name="grid_mode">Режим сетки</string>
-    <string name="show_command_panel_by_default">Показывать командную панель по умолчанию</string>
+    <string name="show_command_panel_by_default">Показывать панель команд по умолчанию</string>
     <string name="show_detailed_errors">Показывать детальные ошибки</string>
+    <string name="show_player_hint">Показывать подсказку сенсорных зон при первом запуске</string>
+    <string name="show_player_hint_description">Отображать оверлей сенсорных зон при первом открытии проигрывателя</string>
+    <string name="show_hint_now">Показать подсказку сейчас</string>
     <string name="touch_zones_scheme">Схема сенсорных зон (Изображения/Видео)</string>
     <string name="default_icon_size">Размер иконок по умолчанию (пиксели)</string>
     <string name="enable_copying">Разрешить копирование</string>
@@ -141,7 +144,10 @@
     <!-- Edit Resource -->
     <string name="edit_resource">Редактирование ресурса</string>
     <string name="edit_resource_with_type">Редактирование ресурса (%1$s)</string>
-    <string name="resource_type_local">Локальный</string>
+        <!-- Add Resource -->
+    <string name="add_resource_title">Добавить ресурс</string>
+    <string name="copy_resource_title">Копировать ресурс</string>
+    <string name="resource_type_local">Локальная папка</string>
     <string name="resource_type_smb">SMB</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
@@ -322,4 +328,15 @@
     <string name="folder_icon">Значок папки</string>
     <string name="loading">Загрузка…</string>
     
+    <!-- Sort modes -->
+    <string name="sort_by_name_asc">по имени ↑</string>
+    <string name="sort_by_name_desc">по имени ↓</string>
+    <string name="sort_by_date_asc">по дате ↑</string>
+    <string name="sort_by_date_desc">по дате ↓</string>
+    <string name="sort_by_size_asc">по размеру ↑</string>
+    <string name="sort_by_size_desc">по размеру ↓</string>
+    <string name="sort_by_type_asc">по типу ↑</string>
+        <string name="sort_by_type_desc">по типу ↓</string>
+    <string name="sort_by_manual">Вручную</string>
+    <string name="sort_by_random">Случайно</string>
 </resources>

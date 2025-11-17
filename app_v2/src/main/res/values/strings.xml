@@ -125,6 +125,9 @@
     <string name="grid_mode">Grid mode</string>
     <string name="show_command_panel_by_default">Show command panel by default</string>
     <string name="show_detailed_errors">Show detailed errors</string>
+    <string name="show_player_hint">Show touch zones hint on first run</string>
+    <string name="show_player_hint_description">Display touch zones overlay when opening player for the first time</string>
+    <string name="show_hint_now">Show Hint Now</string>
     <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video)</string>
     <string name="default_icon_size">Default icon size (pixels)</string>
     <string name="enable_copying">Allow copying</string>
@@ -141,7 +144,10 @@
     <!-- Edit Resource -->
     <string name="edit_resource">Edit Resource</string>
     <string name="edit_resource_with_type">Edit Resource (%1$s)</string>
-    <string name="resource_type_local">Local</string>
+        <!-- Add Resource -->
+    <string name="add_resource_title">Add Resource</string>
+    <string name="copy_resource_title">Copy Resource</string>
+    <string name="resource_type_local">Local Folder</string>
     <string name="resource_type_smb">SMB</string>
     <string name="resource_type_sftp">SFTP</string>
     <string name="resource_type_ftp">FTP</string>
@@ -349,6 +355,20 @@
     <string name="selected_folder">Selected: %1$s</string>
     <string name="folder_icon">Folder icon</string>
     <string name="loading">Loading…</string>
+    
+    <!-- Sort modes -->
+    <string name="sort_by_name_asc">by Name ↑</string>
+    <string name="sort_by_name_desc">by Name ↓</string>
+    <string name="sort_by_date_asc">by Date ↑</string>
+    <string name="sort_by_date_desc">by Date ↓</string>
+    <string name="sort_by_size_asc">by Size ↑</string>
+    <string name="sort_by_size_desc">by Size ↓</string>
+    <string name="sort_by_type_asc">by Type ↑</string>
+        <string name="sort_by_type_desc">by Type ↓</string>
+    <string name="sort_by_manual">Manual Order</string>
+    <string name="sort_by_random">Random</string>
+    
+    <!-- EXIF and video metadata labels -->
     
 </resources>
 

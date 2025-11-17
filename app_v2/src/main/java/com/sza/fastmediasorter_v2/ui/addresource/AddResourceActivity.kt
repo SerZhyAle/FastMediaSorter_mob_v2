@@ -35,6 +35,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val viewModel: AddResourceViewModel by viewModels()
     
+    private var copyResourceId: Long? = null
+    
     @Inject
     lateinit var googleDriveClient: GoogleDriveClient
     
@@ -66,6 +68,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     override fun getViewBinding(): ActivityAddResourceBinding {
         return ActivityAddResourceBinding.inflate(layoutInflater)
+    }
+    
+    override fun onCreate(savedInstanceState: android.os.Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Check if copying existing resource
+        copyResourceId = intent.getLongExtra(EXTRA_COPY_RESOURCE_ID, -1L).takeIf { it != -1L }
+        
+        copyResourceId?.let { resourceId ->
+            // Update toolbar title for copy mode
+            binding.toolbar.title = getString(R.string.copy_resource_title)
+            // Load resource data for pre-filling
+            viewModel.loadResourceForCopy(resourceId)
+        } ?: run {
+            binding.toolbar.title = getString(R.string.add_resource_title)
+        }
     }
 
     override fun setupViews() {
@@ -256,6 +274,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         }
                         is AddResourceEvent.ShowTestResult -> {
                             showTestResultDialog(event.message, event.isSuccess)
+                        }
+                        is AddResourceEvent.LoadResourceForCopy -> {
+                            preFillResourceData(event.resource)
                         }
                         AddResourceEvent.ResourcesAdded -> {
                             finish()
@@ -675,6 +696,135 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         } catch (e: Exception) {
             Timber.e(e, "Failed to load SSH key from file")
             Toast.makeText(this, getString(R.string.sftp_key_load_error), Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
+     * Pre-fill form fields with data from resource being copied
+     */
+    private fun preFillResourceData(resource: com.sza.fastmediasorter_v2.domain.model.MediaResource) {
+        Timber.d("Pre-filling data from resource: ${resource.name} (type: ${resource.type})")
+        
+        when (resource.type) {
+            com.sza.fastmediasorter_v2.domain.model.ResourceType.LOCAL -> {
+                // Show local folder section
+                showLocalFolderOptions()
+                // For local, path is already selected by user via folder picker
+                // We can't pre-select it, but show message
+                Toast.makeText(
+                    this,
+                    "Select folder location for the copy",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            
+            com.sza.fastmediasorter_v2.domain.model.ResourceType.SMB -> {
+                // Show SMB section and pre-fill fields
+                showSmbFolderOptions()
+                
+                // Parse SMB path: smb://server/share/path
+                val smbPath = resource.path.removePrefix("smb://")
+                val parts = smbPath.split("/")
+                
+                if (parts.isNotEmpty()) {
+                    binding.etSmbServer.setText(parts[0])
+                }
+                if (parts.size > 1) {
+                    binding.etSmbShareName.setText(parts[1])
+                }
+                
+                // Note: credentials loaded separately via viewModel
+                binding.etSmbPort.setText("445")
+                
+                Toast.makeText(
+                    this,
+                    "Review and modify SMB connection details",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            
+            com.sza.fastmediasorter_v2.domain.model.ResourceType.SFTP -> {
+                // Show SFTP section and pre-fill fields
+                showSftpFolderOptions()
+                
+                // Parse SFTP path: sftp://host:port/path
+                val sftpPath = resource.path.removePrefix("sftp://")
+                val hostAndPath = sftpPath.split("/", limit = 2)
+                
+                if (hostAndPath.isNotEmpty()) {
+                    val hostPort = hostAndPath[0].split(":")
+                    binding.etSftpHost.setText(hostPort[0])
+                    if (hostPort.size > 1) {
+                        binding.etSftpPort.setText(hostPort[1])
+                    } else {
+                        binding.etSftpPort.setText("22")
+                    }
+                }
+                
+                if (hostAndPath.size > 1) {
+                    binding.etSftpPath.setText("/" + hostAndPath[1])
+                }
+                
+                binding.rbSftp.isChecked = true
+                
+                Toast.makeText(
+                    this,
+                    "Review and modify SFTP connection details",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            
+            com.sza.fastmediasorter_v2.domain.model.ResourceType.FTP -> {
+                // Show FTP section (same UI as SFTP)
+                showSftpFolderOptions()
+                
+                // Parse FTP path: ftp://host:port/path
+                val ftpPath = resource.path.removePrefix("ftp://")
+                val hostAndPath = ftpPath.split("/", limit = 2)
+                
+                if (hostAndPath.isNotEmpty()) {
+                    val hostPort = hostAndPath[0].split(":")
+                    binding.etSftpHost.setText(hostPort[0])
+                    if (hostPort.size > 1) {
+                        binding.etSftpPort.setText(hostPort[1])
+                    } else {
+                        binding.etSftpPort.setText("21")
+                    }
+                }
+                
+                if (hostAndPath.size > 1) {
+                    binding.etSftpPath.setText("/" + hostAndPath[1])
+                }
+                
+                binding.rbFtp.isChecked = true
+                
+                Toast.makeText(
+                    this,
+                    "Review and modify FTP connection details",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            
+            else -> {
+                // CLOUD or other future types
+                showCloudStorageOptions()
+                
+                Toast.makeText(
+                    this,
+                    "Select cloud folder for the copy",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    
+    companion object {
+        private const val EXTRA_COPY_RESOURCE_ID = "extra_copy_resource_id"
+        
+        fun createIntent(context: Context, copyResourceId: Long? = null): Intent {
+            return Intent(context, AddResourceActivity::class.java).apply {
+                copyResourceId?.let { putExtra(EXTRA_COPY_RESOURCE_ID, it) }
+            }
         }
     }
 }

@@ -39,8 +39,9 @@ sealed class MainEvent {
     data class NavigateToBrowse(val resourceId: Long, val skipAvailabilityCheck: Boolean = false) : MainEvent()
     data class NavigateToEditResource(val resourceId: Long) : MainEvent()
     object NavigateToAddResource : MainEvent()
+    data class NavigateToAddResourceCopy(val copyResourceId: Long) : MainEvent()
     object NavigateToSettings : MainEvent()
-    data class ScanProgress(val scannedCount: Int, val currentFile: String?) : MainEvent()
+    data class ScanProgress(val currentFile: String?, val scannedCount: Int) : MainEvent()
     object ScanComplete : MainEvent()
 }
 
@@ -316,35 +317,9 @@ class MainViewModel @Inject constructor(
             return
         }
         
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            try {
-                // Create a copy with a new name
-                val copyName = generateCopyName(selected.name)
-                val copy = selected.copy(
-                    id = 0, // New resource will get a new ID
-                    name = copyName,
-                    isDestination = false, // Reset destination flag
-                    destinationOrder = null, // Reset destination order
-                    destinationColor = 0xFF4CAF50.toInt() // Reset to default green
-                )
-                
-                Timber.d("Copying resource: ${selected.name} -> $copyName")
-                val result = addResourceUseCase(copy)
-                
-                result.onSuccess { newResourceId ->
-                    Timber.d("Resource copied successfully with ID: $newResourceId")
-                    // Navigate to edit the copied resource
-                    sendEvent(MainEvent.NavigateToEditResource(newResourceId))
-                    loadResources()
-                }.onFailure { error ->
-                    Timber.e(error, "Failed to copy resource: ${selected.name}")
-                    sendEvent(MainEvent.ShowError("Failed to copy resource: ${error.message}"))
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to copy resource: ${selected.name}")
-                sendEvent(MainEvent.ShowError("Failed to copy resource: ${e.message}"))
-            }
-        }
+        // Navigate to AddResourceActivity with copyResourceId to pre-fill data
+        Timber.d("Opening AddResourceActivity to copy resource: ${selected.name}")
+        sendEvent(MainEvent.NavigateToAddResourceCopy(selected.id))
     }
     
     /**

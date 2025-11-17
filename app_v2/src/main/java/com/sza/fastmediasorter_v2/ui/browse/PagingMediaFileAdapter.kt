@@ -196,14 +196,8 @@ class PagingMediaFileAdapter(
                     }
                     MediaType.VIDEO -> {
                         if (isNetworkPath) {
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_video_placeholder)
-                                error(R.drawable.ic_video_error)
-                                transformations(RoundedCornersTransformation(8f))
-                                memoryCacheKey(file.path)
-                                diskCacheKey(file.path)
-                            }
+                            // Show placeholder icon immediately (no network delay, no decoding attempt)
+                            setImageResource(R.drawable.ic_video_placeholder)
                         } else {
                             val data = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)
@@ -356,14 +350,8 @@ class PagingMediaFileAdapter(
                     }
                     MediaType.VIDEO -> {
                         if (isNetworkPath) {
-                            load(com.sza.fastmediasorter_v2.data.network.coil.NetworkFileData(file.path, credentialsId)) {
-                                crossfade(false)
-                                placeholder(R.drawable.ic_video_placeholder)
-                                error(R.drawable.ic_video_error)
-                                transformations(RoundedCornersTransformation(8f))
-                                memoryCacheKey(file.path)
-                                diskCacheKey(file.path)
-                            }
+                            // Show placeholder icon immediately (no network delay, no decoding attempt)
+                            setImageResource(R.drawable.ic_video_placeholder)
                         } else {
                             val data = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)

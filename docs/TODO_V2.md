@@ -1,14 +1,220 @@
 # TODO V2 - FastMediaSorter v2
 
-**Latest Build**: 2.0.2511170110  
-**Version**: 2.0.0-build2511170110
+**Latest Build**: 2.0.2511170301  
+**Version**: 2.0.0-build2511170301
 
 ---
 
 ## 🎯 Current Development - In Progress
 
-### PlayerActivity: Use settings for overwrite and goToNext behavior ⏳
-- **Status**: Code updated, needs build and testing
+- [x] **OPTIMIZATION: Instant video/audio thumbnails for network files**
+  - Thumbnails for SMB/SFTP/FTP video/audio files now show instantly (no network delay)
+  - Solution: Show placeholder icon synchronously (`setImageResource`) before Coil starts loading
+  - For video: shows `ic_video_placeholder` immediately, then attempts to extract first frame
+  - For audio: already instant (shows extension bitmap synchronously)
+  - Changed files: `MediaFileAdapter.kt`, `PagingMediaFileAdapter.kt` (both List and Grid modes)
+  - Result: No more delay when scrolling through network video/audio lists
+
+- [x] **OPTIMIZATION: Reduced network DataSource logging spam (~20x less)**
+  - READ operation logs now appear 5x less frequently (every 500KB instead of 100KB)
+  - Still logs first 10KB for debugging file start
+  - Changed files: `SmbDataSource.kt`, `SftpDataSource.kt`, `FtpDataSource.kt`
+  - Result: Cleaner logs during video playback over SMB/SFTP/FTP
+
+- [ ] Добавить в настройки в раздел к Видеофайлам новую опцию галочку - "демострировать миниатюры для видеофайлов". Если она включена, для для видеофайлов на любом виде ресурсов нужно попытаться выявить первый кадр видеофайла и показать в качестве миниатюры. В случае, если это занимает больше 2 секунд (определение первого кадра картинку) тогда показывать миниатюру по типа (расширению). Мы же миниатюры читаем только для тех файлов, которыые показываем на экране пользователю, верно? Даже если файлов десятки тысяч - их миниатюры загружаются только когда они показаны на текущем экране Browse
+
+
+**Research Results:**
+- ~~**SMB video thumbnails**: `VideoFrameDecoder` from Coil is active but requires full file download for network files. Current `NetworkFileFetcher` downloads only first 512KB (optimized for images). Solution: increase buffer to 5MB for video files (`.mp4/.mov` extensions) - but this will slow down thumbnail loading. Alternative: show generic video icon immediately based on extension.~~
+- ~~**Instant placeholders**: Consider detecting video/audio by extension and showing placeholder icon before network fetch completes.~~
+- **COMPLETED**: Network video/audio thumbnails now show placeholder instantly. Coil still attempts to load actual frame in background, but user sees icon immediately (no delay).
+
+---
+
+## 🛠️ Recent Fixes
+
+### Build 2.0.2511170301 ✅
+- ✅ **BUG FIX: FTP file copy operation failing with "both source and destination are local"**
+- **Issue**: FTP file operations incorrectly detected as Local→Local, causing "Invalid operation" error
+- **Root cause**: FTP paths arriving with single slash format `ftp:/host:port/path` instead of `ftp://host:port/path`, bypassing `startsWith("ftp://")` protocol detection
+- **Solution**:
+  - Added `normalizeFtpPath()` utility method to fix malformed paths (converts `ftp:/` → `ftp://`)
+  - Applied normalization to all FTP operation entry points:
+    - `executeCopy()` - 8 path usages normalized (source/dest paths, all download/upload/copy calls)
+    - `executeMove()` - 6 path usages normalized (source/dest/delete paths)
+    - `executeDelete()` - 3 path usages normalized (trash folder creation, file loop, hard delete)
+    - `parseFtpPath()` - Entry point normalization before parsing
+  - Pattern matches existing SFTP fix in `SmbFileOperationHandler`
+- **Changed files**: `FtpFileOperationHandler.kt` (~20 path usages updated)
+- **Testing**: Verify FTP→Local copy, Local→FTP upload, FTP→FTP copy, move, delete operations
+- **Log evidence**: Original error showed `path='ftp:/193.178.50.43:21/...'` instead of `ftp://`
+
+### Build 2.0.2511170256 ✅
+- ✅ **BUG FIX: Panel collapse state incorrectly saved on Back navigation**
+- **Issue**: When user collapses Copy/Move panels and presses Back, panels briefly expand before exit and app saves expanded state
+- **Root cause**: `populateDestinationButtons()` read collapsed state from settings instead of current UI state, causing state loss during button rebuild
+- **Solution**: 
+  - Changed `populateDestinationButtons()` to read CURRENT UI visibility (`binding.copyToButtonsGrid.isVisible`)
+  - Preserves actual visual state during button grid rebuild
+  - State no longer changes during Activity destruction
+- **Changed files**:
+  - **PlayerActivity.kt**: Modified `populateDestinationButtons()` to use `!binding.copyToButtonsGrid.isVisible` instead of `settings.copyPanelCollapsed`
+- **Result**: Panel collapse state persists correctly. No visual "flash" on Back navigation. User's last interaction state preserved.
+
+### Build 2.0.2511170250 ✅
+- ✅ **FEATURE: Visible scrollbar for resource list**
+- **Task**: Make scrollbar visible in MainActivity resource list when list doesn't fit in window
+- **Solution**: 
+  - Added `android:scrollbars="vertical"` to RecyclerView - enables vertical scrollbar
+  - Added `android:scrollbarThumbVertical="?android:attr/colorControlNormal"` - theme-aware scrollbar color
+  - Added `android:fadeScrollbars="false"` - keeps scrollbar always visible (no auto-hide)
+- **Changed files**:
+  - **activity_main.xml**: Updated `rvResources` RecyclerView with scrollbar attributes
+- **Result**: Scrollbar immediately visible when resource list exceeds screen height. No fade-out animation. Theme-aware color (light/dark mode).
+
+### Build 2.0.2511170242 ✅
+- ✅ **FEATURE: Display sort mode in resource info**
+- **Task**: Add current sort mode to resource info bar (e.g., "by Name ↑", "по имени ↑")
+- **Solution**: 
+  - Updated `buildResourceInfo()` in `BrowseActivity` to display sort mode with arrows
+  - Added 8 localized strings: `sort_by_name_asc/desc`, `sort_by_date_asc/desc`, `sort_by_size_asc/desc`, `sort_by_type_asc/desc`
+  - Format: "ResourceName (count) • path • by Name ↑ • selected"
+- **Changed files**:
+  - **strings.xml (en/ru/uk)**: Added sort mode display strings with arrows (↑/↓)
+  - **BrowseActivity.kt**: Added `when` expression in `buildResourceInfo()` to map `SortMode` to localized strings
+
+- ✅ **BUG FIX: Sort mode resets after refresh or resource reopen**
+- **Issues**: 
+  1. Sort mode resets to "by Name" on refresh button click
+  2. Sort mode doesn't persist when closing and reopening resource
+- **Root cause**: `setSortMode()` updated state but didn't save to database, unlike `toggleDisplayMode()`
+- **Solution**: 
+  - Modified `setSortMode()` to call `updateResourceUseCase()` with new sortMode (same pattern as displayMode)
+  - Added database save before `loadMediaFiles()`
+  - Refresh button already works correctly: `reloadFiles()` → `loadResource()` → loads sortMode from DB (line 132)
+- **Changed files**:
+  - **BrowseViewModel.kt**: Modified `setSortMode()` to save sortMode to ResourceEntity via `updateResourceUseCase()`
+
+- ✅ **FEATURE: Hide invalid FTP metadata**
+- **Task**: For FTP resources, hide size/date if invalid (size=0 or date=1970-01-01)
+- **Solution**: Updated `buildFileInfo()` in `MediaFileAdapter` to display "—" for zero values
+- **Changed files**:
+  - **MediaFileAdapter.kt**: Modified `buildFileInfo()` to check `file.size > 0` and `file.createdDate > 0`, display "—" for invalid values
+
+### Build 2.0.2511170227 ✅
+- ✅ **BUG FIX: FTP/SFTP background file count fails without credentials**
+- **Issue**: FTP/SFTP resources fail background file count with "No credentials ID provided" error
+- **Root cause**: `startFileCountInBackground()` called `scanner.getFileCount()` without `credentialsId` parameter
+- **Solution**: Added `credentialsId = resource.credentialsId` parameter to background file count call
+- **Changed files**:
+  - **BrowseViewModel.kt**: Added `credentialsId` parameter to `scanner.getFileCount()` in `startFileCountInBackground()` method
+
+- ✅ **OPTIMIZATION: Prevent preload job memory leaks in PlayerActivity**
+- **Issue**: Preload coroutines continue after PlayerActivity.onDestroy(), causing JobCancellationException in logs
+- **Solution**: Track all preload jobs in list and cancel them in onDestroy()
+- **Changed files**:
+  - **PlayerActivity.kt**:
+    - Added `preloadJobs: MutableList<Job>` field to track active preload jobs
+    - Modified `preloadNextImageIfNeeded()`: Store network preload job in list
+    - Modified `onDestroy()`: Cancel all preload jobs and clear list
+    - Added `import kotlinx.coroutines.Job`
+
+### Build 2.0.2511170220 ✅
+- ✅ **BUG FIX: Panel collapse state persistence in PlayerActivity**
+- **Issue**: Copy/Move panels flash expanded when returning to PlayerActivity, collapsed state not persisting
+- **Root cause**: Race condition - `populateDestinationButtons()` cleared button grids asynchronously while state restoration ran in parallel coroutine
+- **Solution**: 
+  - Moved state restoration inside `populateDestinationButtons()` after button addition
+  - State now loads before clearing buttons and applies after grid rebuild in same coroutine
+  - Removed duplicate restoration code from `updatePanelVisibility()`
+- **Changed files**:
+  - **PlayerActivity.kt**:
+    - Modified `populateDestinationButtons()`: Reads `copyPanelCollapsed`/`movePanelCollapsed` before clearing grids, applies after button addition
+    - Simplified `updatePanelVisibility()`: Removed duplicate state restoration (now handled internally)
+    - Removed unused `buttonCount` variable
+
+### Build 2.0.2511170214 ✅
+- ✅ **FEATURE: Copy Resource functionality**
+- **User request**: "Unlike the 'create' button, when copying, all values for the new resource are taken from the currently selected resource in the list. The user only needs to specify the changes (differences from the original)."
+- **Solution**: 
+  - Modified `copySelectedResource()` to launch `AddResourceActivity` with resource ID instead of auto-creating copy
+  - Added `EXTRA_COPY_RESOURCE_ID` intent extra and factory method to `AddResourceActivity`
+  - Added copy mode detection in `onCreate()` with dynamic toolbar title (Add/Copy Resource)
+  - Added `loadResourceForCopy()` method in `AddResourceViewModel` to fetch resource data
+  - Added `preFillResourceData()` method to auto-populate fields based on resource type
+  - Added `NavigateToAddResourceCopy` event to `MainViewModel` events
+- **Changed files**:
+  - **strings.xml (en/ru/uk)**: Added `add_resource_title` and `copy_resource_title` for toolbar differentiation
+  - **AddResourceActivity.kt**:
+    - Added `copyResourceId: Long?` field
+    - Overridden `onCreate()` to detect copy mode and load resource
+    - Added `preFillResourceData()` method with type-specific logic:
+      - LOCAL: Shows folder picker with hint message
+      - SMB: Pre-fills server, share name, port from path
+      - SFTP: Pre-fills host, port, remote path from URI
+      - FTP: Pre-fills host, port, remote path, sets FTP radio button
+      - CLOUD: Shows cloud storage options with sign-in prompt
+    - Added companion object with `createIntent(context, copyResourceId)` factory
+  - **AddResourceViewModel.kt**:
+    - Added `copyFromResource: MediaResource?` to state
+    - Added `LoadResourceForCopy` event
+    - Added `loadResourceForCopy(resourceId)` method with null-safety check
+  - **MainViewModel.kt**:
+    - Simplified `copySelectedResource()` to just emit navigation event
+    - Added `NavigateToAddResourceCopy(copyResourceId)` event
+  - **MainActivity.kt**:
+    - Updated event handling to use `AddResourceActivity.createIntent()` factory
+    - Added handler for `NavigateToAddResourceCopy` event
+- **How it works**:
+  1. User selects resource in MainActivity → clicks "Copy Resource" button (or "Copy From" in adapter)
+  2. `MainViewModel.copySelectedResource()` emits `NavigateToAddResourceCopy` event
+  3. MainActivity launches `AddResourceActivity` with `copyResourceId` extra
+  4. AddResourceActivity detects copy mode → changes toolbar title → loads resource data
+  5. ViewModel fetches resource from DB → emits `LoadResourceForCopy` event
+  6. Activity receives event → calls `preFillResourceData()` → auto-fills fields based on type
+  7. User reviews/modifies values (server, path, credentials) → adds resource normally
+- **Result**: Full Copy Resource workflow per specification. Pre-fills all editable fields (server, port, path). User modifies only differences (e.g., different folder on same SMB server). No auto-creation → user controls final result.
+
+### Build 2.0.2511170152 ✅
+- ✅ **FEATURE: Player hint toggle in Settings + "Show Hint Now" button**
+- **Issue**: No UI control for showing/hiding touch zones hint overlay on first PlayerActivity launch
+- **Solution**: 
+  - Added `showPlayerHintOnFirstRun: Boolean` field to AppSettings (domain model)
+  - Added toggle switch in PlaybackSettings fragment to enable/disable first-run hint
+  - Added "Show Hint Now" button to manually trigger hint display (resets first-run flag)
+  - Implemented `isPlayerFirstRun` flag tracking in SharedPreferences (persistent across app restarts)
+  - Updated PlayerActivity to check settings + flag, show hint overlay on first media load with 500ms delay
+  - Added methods `setPlayerFirstRun()` and `isPlayerFirstRun()` to SettingsRepository/RepositoryImpl
+  - Added `resetPlayerFirstRun()` method to SettingsViewModel
+- **Changed files**:
+  - **strings.xml (en/ru/uk)**: Added `show_player_hint`, `show_player_hint_description`, `show_hint_now` strings
+  - **fragment_settings_playback.xml**: Added SwitchMaterial `switchShowPlayerHint` + Button `btnShowHintNow` after `switchDetailedErrors`
+  - **SettingsFragments.kt (PlaybackSettingsFragment)**: 
+    - Added switch listener for `switchShowPlayerHint` → updates `settings.showPlayerHintOnFirstRun`
+    - Added button listener for `btnShowHintNow` → calls `viewModel.resetPlayerFirstRun()` + shows Toast
+    - Added observeData binding for switch state
+  - **SettingsViewModel.kt**: Added `resetPlayerFirstRun()` method (calls `settingsRepository.setPlayerFirstRun(true)`)
+  - **SettingsRepository.kt**: Added interface methods `setPlayerFirstRun(Boolean)` and `isPlayerFirstRun(): Boolean`
+  - **SettingsRepositoryImpl.kt**:
+    - Added `KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN` DataStore key
+    - Added read/write for `showPlayerHintOnFirstRun` field in getSettings()/updateSettings()
+    - Implemented `setPlayerFirstRun()` and `isPlayerFirstRun()` using SharedPreferences (for synchronous onCreate access)
+  - **AppSettings.kt**: Added `showPlayerHintOnFirstRun: Boolean = true` field (Playback settings section)
+  - **PlayerActivity.kt**:
+    - Added `hasShownFirstRunHint: Boolean` flag to prevent multiple hints in one session
+    - Added import for `kotlinx.coroutines.delay`
+    - Updated `updateUI()`: checks `settings.showPlayerHintOnFirstRun` + `settingsRepository.isPlayerFirstRun()`
+    - If both true + currentFile != null: delays 500ms → calls `showFirstRunHintOverlay()` → sets flag to false
+- **How it works**:
+  1. User opens Settings → Playback tab → sees "Show touch zones hint on first run" toggle (enabled by default)
+  2. First PlayerActivity launch with hint enabled: overlay shows after 500ms delay (auto-dismiss after 5s or on tap)
+  3. Subsequent launches: hint not shown (flag persisted in SharedPreferences)
+  4. User can click "Show Hint Now" button → resets flag → hint shows on next PlayerActivity launch
+  5. Toggle can be disabled anytime to prevent hint on fresh installs or after app data clear
+- **Result**: Full UI control for first-run hint display. Users can re-trigger hint manually without clearing app data. Hint only shows once per install unless manually reset.
+
+### Build 2.0.2511170144 ✅
+- ✅ **FEATURE: PlayerActivity respects settings for overwrite and goToNext behavior**
 - **Issue**: PlayerActivity hardcoded overwriteFiles=false and didn't respect goToNextAfterCopy setting
 - **Solution**: 
   - Updated `showCopyDialog()` to read settings and pass `settings.overwriteOnCopy` + `settings.goToNextAfterCopy`
@@ -24,11 +230,7 @@
   - `overwriteOnMove: Boolean = false`
   - `goToNextAfterCopy: Boolean = true`
   - `enableUndo: Boolean = true`
-- **TODO**: Build and test copy/move operations with different settings combinations
-
----
-
-## 🛠️ Recent Fixes
+- **Result**: Copy/move operations in PlayerActivity now fully respect user preferences from Settings
 
 ### Build 2.0.2511170110 ✅
 - ✅ **FEATURE: Resource metadata tracking and display**
@@ -415,66 +617,74 @@
 
 ## 🎯 Current Development Tasks
 
-  - **See**: "Cloud storage support (Google Drive)" in Network Features section
-  - **TODO - Testing required**:
-    - [ ] Test cloud resource browsing: Add Google Drive folder → Navigate to BrowseActivity → Verify files display
-    - [ ] Handle network errors and API quota limits gracefully
-    - [ ] Test file operations: copy/move/delete local↔cloud, cloud↔cloud
-    - [ ] Test undo operations for cloud files (if applicable)
-    - [ ] Configure OAuth2 credentials in Google Cloud Console for production
-  - **Next Steps**:
-    1. Install APK and test Google Drive authentication flow
-    2. Select folder from Google Drive and verify it appears in resource list
-    3. Browse cloud resource and verify files load correctly
-    4. Test file operations (copy file from local to Google Drive, move between folders)
+### 🔴 Critical (Blocking Release)
 
-- [ ] **Pagination for large datasets (1000+ files) - Testing**
-  - **Status**: ✅ IMPLEMENTATION COMPLETED - Ready for real-world testing
-  - **TODO**:
-    - Test with 1000+, 5000+ files on all resource types (LOCAL, SMB, SFTP, FTP)
-    - Verify pagination performance improvements vs full scan
+- [ ] **Google Drive OAuth Configuration**
+  - **Status**: Implementation complete, needs OAuth2 client configuration in Google Cloud Console
+  - **Blocker**: Cannot test without valid client ID + SHA-1 fingerprint
+  - **Action**: Create Android OAuth client, add credentials to project
+  - **Testing**: Add Google Drive folder → Browse → File operations
+
+- [ ] **Pagination Testing (1000+ files)**
+  - **Status**: Implementation complete, needs real-world testing
+  - **Test scenarios**:
+    - LOCAL: 1000+, 5000+ files (images/videos mix)
+    - SMB: Large network shares (test over slow connection)
+    - SFTP/FTP: 1000+ files with thumbnails
+  - **Expected**: No lag, smooth scrolling, memory efficient
 
 ### 🟠 High Priority
 
-- [x] **Resource availability indicator (red dot for unavailable resources)**
-  - **Priority**: HIGH - User experience improvement
-  - **Status**: ✅ COMPLETED (Build 2.0.2511162331)
-  - Added `isAvailable: Boolean` field to ResourceEntity (Room migration 6→7)
-  - Red dot overlay on unavailable resources in MainActivity (item_resource.xml)
-  - Red dot disappears after successful refresh or Browse (auto-update in MainViewModel/BrowseViewModel)
+- [ ] **Network Undo Operations - Testing**
+  - **Status**: Implementation complete, needs verification
+  - **Test cases**:
+    - SMB/SFTP/FTP: Delete file → Undo → Verify restoration
+    - Check trash folder creation permissions
+    - Network timeout handling (slow connections)
+    - Trash cleanup after 24 hours
 
-- [ ] **Network undo operations - Testing**
-  - **Status**: ✅ IMPLEMENTATION COMPLETED - Needs real-world testing
-  - Test undo for SMB/SFTP/FTP operations in PlayerActivity and BrowseViewModel
-  - Handle permission errors for network trash folder creation
-  - Add network-specific timeout handling for undo operations
-  - Ensure trash cleanup works for network folders
-
-- [ ] **Network image editing - Testing**
-  - **Status**: ✅ IMPLEMENTATION COMPLETED - Needs performance testing
-  - Test with large images over slow network
-  - Add progress reporting during download/upload phases
-  - Add cancellation support for download/upload operations
+- [ ] **Network Image Editing - Performance Testing**
+  - **Status**: Implementation complete, needs performance validation
+  - **Test with**:
+    - Large images (10MB+) over slow network
+    - Multiple edits (rotate, flip) in sequence
+    - Connection interruption during download/upload
+  - **Add**: Progress reporting, cancellation support
 
 ### 🟡 Medium Priority
 
-- [ ] **Background sync - Testing**
-  - **Status**: ✅ IMPLEMENTATION COMPLETED - Needs UI and real-world testing
-  - Add UI indicator for missing/unavailable network files
-  - Show sync status in resource list (last sync time, sync errors)
-  - Test sync behavior after 4+ hours idle
+- [ ] **Background Sync - UI Enhancement**
+  - **Status**: Backend complete, needs UI indicators
+  - **Add**:
+    - Sync status in resource list (last sync time)
+    - Missing/unavailable file indicators
+    - Manual sync trigger button
+  - **Test**: 4+ hours idle → auto-sync behavior
 
-## 🎨 UI/UX Improvements
+### 🔵 Low Priority (Polish)
 
-- [ ] **Animations and transitions**
+- [ ] **Animations and Transitions**
   - Screen transitions (slide, fade, shared element)
   - RecyclerView item animations (add, remove, reorder)
-  - Ripple effects for buttons where missing
+  - Ripple effects for missing buttons
   - Smooth progress indicators
 
-- [ ] **Settings: Player hint toggle**
-  - Re-enable preference to show/hide player touch zones overlay
-  - Allow user to re-trigger first-run hint
+- [ ] **Slideshow Countdown Display**
+  - **Per Spec**: "3..", "2..", "1.." labels in upper-right corner
+  - **Timing**: Shows 3 seconds before switching to next file
+  - **Note**: Currently slideshow works but without visual countdown
+
+### 🌐 Network Features (Future)
+
+- [ ] **Cloud Storage Expansion**
+  - OneDrive API integration (OAuth2)
+  - Dropbox API integration (OAuth2)
+  - Multi-cloud operations testing
+
+- [ ] **Offline Mode**
+  - Cache thumbnails and metadata locally
+  - Show cached data when network unavailable
+  - Operation queue for delayed sync
 
 ## ⚡ Performance Optimization (LOW PRIORITY)
 

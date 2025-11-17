@@ -550,7 +550,21 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             else -> " (counting...)"
         }
         
-        return "${resource.name}$fileCount • ${resource.path}$selected"
+        // Add sort mode display
+        val sortMode = when (state.sortMode) {
+            SortMode.NAME_ASC -> getString(R.string.sort_by_name_asc)
+            SortMode.NAME_DESC -> getString(R.string.sort_by_name_desc)
+            SortMode.DATE_ASC -> getString(R.string.sort_by_date_asc)
+            SortMode.DATE_DESC -> getString(R.string.sort_by_date_desc)
+            SortMode.SIZE_ASC -> getString(R.string.sort_by_size_asc)
+            SortMode.SIZE_DESC -> getString(R.string.sort_by_size_desc)
+            SortMode.TYPE_ASC -> getString(R.string.sort_by_type_asc)
+            SortMode.TYPE_DESC -> getString(R.string.sort_by_type_desc)
+            SortMode.MANUAL -> getString(R.string.sort_by_manual)
+            SortMode.RANDOM -> getString(R.string.sort_by_random)
+        }
+        
+        return "${resource.name}$fileCount • ${resource.path} • $sortMode$selected"
     }
 
     private fun buildFilterDescription(filter: FileFilter): String {
