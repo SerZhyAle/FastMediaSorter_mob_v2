@@ -24,9 +24,9 @@ object ConnectionThrottleManager {
      */
     enum class ProtocolLimits(val maxConcurrent: Int, val minConcurrent: Int) {
         LOCAL(24, 24),        // No throttling for local files
-        SMB(6, 2),            // Start at 6, degrade to 2 on repeated failures
-        SFTP(3, 1),           // Conservative: SSH overhead + single TCP connection
-        FTP(3, 1),            // Conservative: FTP control/data channel multiplexing
+        SMB(12, 3),           // Start at 12, degrade to 3 on repeated failures
+        SFTP(4, 1),           // Conservative: SSH overhead + single TCP connection
+        FTP(4, 1),            // Conservative: FTP control/data channel multiplexing
         CLOUD(8, 3)           // Cloud APIs usually handle batching well
     }
     
