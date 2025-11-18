@@ -118,15 +118,13 @@ class NetworkFileFetcher(
             domain = credentials.domain
         )
 
-        // Read file with reasonable limit for thumbnail loading
-        // PNG files need more space than JPEG (lossless compression)
-        // 3MB covers most thumbnails while keeping memory usage reasonable
-        val maxBytes = 3 * 1024 * 1024L // 3 MB for thumbnails (handles PNG better)
+        // Read full file (no size limit) - better to load completely than show partial image
+        // For 20 thumbnails on screen, even large PNG files won't cause memory issues
         
         // Add timeout to avoid blocking UI on slow network
         val result = try {
-            kotlinx.coroutines.withTimeout(10000) { // 10 seconds max for thumbnail load
-                smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
+            kotlinx.coroutines.withTimeout(15000) { // 15 seconds max for full image load
+                smbClient.readFileBytes(connectionInfo, remotePath)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             Timber.w("SMB thumbnail load timeout (8s) for: $remotePath")
@@ -180,14 +178,12 @@ class NetworkFileFetcher(
             return null
         }
 
-        // Read file with reasonable limit for thumbnail loading
-        // PNG files need more space than JPEG (lossless compression)
-        val maxBytes = 3 * 1024 * 1024L // 3 MB for thumbnails (handles PNG better)
+        // Read full file (no size limit) - better to load completely than show partial image
         
         // Add timeout to avoid blocking UI on slow network
         val result = try {
-            kotlinx.coroutines.withTimeout(10000) { // 10 seconds max for thumbnail load
-                sftpClient.readFileBytes(remotePath, maxBytes)
+            kotlinx.coroutines.withTimeout(15000) { // 15 seconds max for full image load
+                sftpClient.readFileBytes(remotePath)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             Timber.w("SFTP thumbnail load timeout for: $remotePath")
@@ -235,7 +231,7 @@ class NetworkFileFetcher(
         val outputStream = java.io.ByteArrayOutputStream()
         return try {
             // Add timeout to avoid blocking UI on slow network
-            kotlinx.coroutines.withTimeout(10000) { // 10 seconds max for thumbnail load
+            kotlinx.coroutines.withTimeout(15000) { // 15 seconds max for full image load
                 val downloadResult = ftpClient.downloadFileWithNewConnection(
                     host = server,
                     port = port,
