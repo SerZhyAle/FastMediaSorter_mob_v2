@@ -81,7 +81,10 @@ class ResourceToAddAdapter(
                 etName.addTextChangedListener(nameWatcher)
                 
                 tvPath.text = resource.path
-                tvFileCount.text = "${resource.fileCount} files"
+                tvFileCount.text = when {
+                    resource.fileCount >= 1000 -> ">1000 files"
+                    else -> "${resource.fileCount} files"
+                }
                 
                 cbDestination.isVisible = resource.isWritable
                 cbDestination.setOnCheckedChangeListener(null)

@@ -246,8 +246,11 @@ class SftpMediaScanner @Inject constructor(
         credentialsId: String?
     ): Int = withContext(Dispatchers.IO) {
         try {
-            val files = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
-            files.size
+            // Fast count: use paged scan with limit 1000
+            val page = scanFolderPaged(path, supportedTypes, sizeFilter, offset = 0, limit = 1000, credentialsId)
+            // If we got exactly 1000 files, there are likely more (return 1000 to show ">1000")
+            // If we got less, that's the actual count
+            page.files.size
         } catch (e: Exception) {
             Timber.e(e, "Error counting SFTP files in: $path")
             0

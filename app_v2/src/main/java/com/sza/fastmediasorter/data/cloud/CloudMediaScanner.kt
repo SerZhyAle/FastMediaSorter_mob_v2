@@ -123,7 +123,11 @@ class CloudMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         credentialsId: String?
     ): Int {
-        return scanFolder(path, supportedTypes, sizeFilter, credentialsId).size
+        // Fast count: use paged scan with limit 1000
+        val page = scanFolderPaged(path, supportedTypes, sizeFilter, offset = 0, limit = 1000, credentialsId)
+        // If we got exactly 1000 files, there are likely more (return 1000 to show ">1000")
+        // If we got less, that's the actual count
+        return page.files.size
     }
 
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean {

@@ -311,14 +311,26 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(defaultSortMode = sortMode))
         }
         
-        // Slideshow interval text field
+        // Slideshow interval dropdown (1,5,10,30,60,120,300 sec)
+        val slideshowOptions = arrayOf("1", "5", "10", "30", "60", "120", "300")
+        val slideshowAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, slideshowOptions)
+        binding.etSlideshowInterval.setAdapter(slideshowAdapter)
+        binding.etSlideshowInterval.setText(viewModel.settings.value.slideshowInterval.toString(), false)
+        
+        binding.etSlideshowInterval.setOnItemClickListener { _, _, position, _ ->
+            val seconds = slideshowOptions[position].toInt()
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(slideshowInterval = seconds))
+        }
+        
+        // Handle manual input
         binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val text = binding.etSlideshowInterval.text.toString()
                 val seconds = text.toIntOrNull() ?: 5
                 val clampedSeconds = seconds.coerceIn(1, 3600)
                 if (seconds != clampedSeconds) {
-                    binding.etSlideshowInterval.setText(clampedSeconds.toString())
+                    binding.etSlideshowInterval.setText(clampedSeconds.toString(), false)
                 }
                 val current = viewModel.settings.value
                 if (clampedSeconds != current.slideshowInterval) {
@@ -386,14 +398,26 @@ class PlaybackSettingsFragment : Fragment() {
             ).show()
         }
         
-        // Icon size text field
+        // Icon size dropdown (24-1024px)
+        val iconSizeOptions = arrayOf("24", "32", "48", "64", "96", "128", "160", "192", "256", "320", "384", "512", "768", "1024")
+        val iconSizeAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)
+        binding.etIconSize.setAdapter(iconSizeAdapter)
+        binding.etIconSize.setText(viewModel.settings.value.defaultIconSize.toString(), false)
+        
+        binding.etIconSize.setOnItemClickListener { _, _, position, _ ->
+            val size = iconSizeOptions[position].toInt()
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(defaultIconSize = size))
+        }
+        
+        // Handle manual input
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {
                 val text = binding.etIconSize.text.toString()
                 val size = text.toIntOrNull() ?: 96
-                val clampedSize = size.coerceIn(32, 256)
+                val clampedSize = size.coerceIn(24, 1024)
                 if (size != clampedSize) {
-                    binding.etIconSize.setText(clampedSize.toString())
+                    binding.etIconSize.setText(clampedSize.toString(), false)
                 }
                 val current = viewModel.settings.value
                 if (clampedSize != current.defaultIconSize) {
@@ -414,7 +438,7 @@ class PlaybackSettingsFragment : Fragment() {
                     // Slideshow interval
                     val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
                     if (currentSlideshow != settings.slideshowInterval) {
-                        binding.etSlideshowInterval.setText(settings.slideshowInterval.toString())
+                        binding.etSlideshowInterval.setText(settings.slideshowInterval.toString(), false)
                     }
                     
                     // Switches (only update if value changed)
@@ -446,7 +470,7 @@ class PlaybackSettingsFragment : Fragment() {
                     // Icon size
                     val currentIconSize = binding.etIconSize.text.toString().toIntOrNull()
                     if (currentIconSize != settings.defaultIconSize) {
-                        binding.etIconSize.setText(settings.defaultIconSize.toString())
+                        binding.etIconSize.setText(settings.defaultIconSize.toString(), false)
                     }
                     isUpdatingFromSettings = false
                 }
@@ -805,12 +829,39 @@ class GeneralSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(enableBackgroundSync = isChecked))
         }
         
-        binding.sliderSyncInterval.addOnChangeListener { _, value, _ ->
-            if (isUpdatingSpinner) return@addOnChangeListener
-            val hours = value.toInt()
-            binding.tvSyncIntervalValue.text = resources.getQuantityString(R.plurals.sync_interval_hours, hours, hours)
+        // Sync interval dropdown
+        val syncIntervalOptions = arrayOf("5", "15", "60", "120", "300")
+        val syncAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, syncIntervalOptions)
+        binding.actvSyncInterval.setAdapter(syncAdapter)
+        
+        // Convert hours to minutes for initial display
+        val currentMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
+        binding.actvSyncInterval.setText(currentMinutes.toString(), false)
+        
+        binding.actvSyncInterval.setOnItemClickListener { _, _, position, _ ->
+            if (isUpdatingSpinner) return@setOnItemClickListener
+            val minutes = syncIntervalOptions[position].toInt()
+            val hours = (minutes / 60.0).toInt().coerceAtLeast(1) // At least 1 hour
             val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = value.toInt()))
+            viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
+        }
+        
+        // Handle manual input
+        binding.actvSyncInterval.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus && !isUpdatingSpinner) {
+                val text = binding.actvSyncInterval.text.toString()
+                val minutes = text.toIntOrNull()
+                if (minutes != null && minutes >= 5) {
+                    val hours = (minutes / 60.0).toInt().coerceAtLeast(1) // At least 1 hour
+                    val current = viewModel.settings.value
+                    viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
+                } else {
+                    // Invalid input, restore previous value
+                    val previousMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
+                    binding.actvSyncInterval.setText(previousMinutes.toString(), false)
+                    android.widget.Toast.makeText(requireContext(), "Minimum interval is 5 minutes", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
         }
         
         binding.btnSyncNow.setOnClickListener {
@@ -857,7 +908,9 @@ class GeneralSettingsFragment : Fragment() {
             importSettings()
         }
         
-        // Permissions Buttons
+        // Permissions Buttons - enable only if permissions not granted
+        updatePermissionButtonsState()
+        
         binding.btnLocalFilesPermission.setOnClickListener {
             requestStoragePermissions()
         }
@@ -880,6 +933,12 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnShowSessionLog.setOnClickListener {
             showLogDialog(fullLog = false)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Update permission buttons state when returning from system settings
+        updatePermissionButtonsState()
     }
 
     private fun observeData() {
@@ -914,11 +973,11 @@ class GeneralSettingsFragment : Fragment() {
                         binding.switchEnableBackgroundSync.isChecked = settings.enableBackgroundSync
                     }
                     
-                    // Update sync interval
-                    if (binding.sliderSyncInterval.value != settings.backgroundSyncIntervalHours.toFloat()) {
-                        binding.sliderSyncInterval.value = settings.backgroundSyncIntervalHours.toFloat()
-                        val hours = settings.backgroundSyncIntervalHours
-                        binding.tvSyncIntervalValue.text = resources.getQuantityString(R.plurals.sync_interval_hours, hours, hours)
+                    // Update sync interval (convert hours to minutes)
+                    val syncMinutes = settings.backgroundSyncIntervalHours * 60
+                    val displayedText = binding.actvSyncInterval.text.toString()
+                    if (displayedText != syncMinutes.toString()) {
+                        binding.actvSyncInterval.setText(syncMinutes.toString(), false)
                     }
                 }
             }
@@ -1058,6 +1117,18 @@ class GeneralSettingsFragment : Fragment() {
             }
             .setCancelable(false)
             .show()
+    }
+    
+    private fun updatePermissionButtonsState() {
+        // Local Files Permission - enable only if not granted
+        val hasStoragePermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasStoragePermission(requireContext())
+        binding.btnLocalFilesPermission.isEnabled = !hasStoragePermission
+        binding.btnLocalFilesPermission.alpha = if (hasStoragePermission) 0.5f else 1.0f
+        
+        // Network Permission - always granted (normal permission), so always disabled
+        val hasNetworkPermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasInternetPermission(requireContext())
+        binding.btnNetworkPermission.isEnabled = !hasNetworkPermission
+        binding.btnNetworkPermission.alpha = if (hasNetworkPermission) 0.5f else 1.0f
     }
     
     private fun requestStoragePermissions() {

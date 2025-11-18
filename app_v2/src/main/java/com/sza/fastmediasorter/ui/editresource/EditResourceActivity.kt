@@ -259,7 +259,10 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         binding.etResourceName.setText(resource.name)
                         binding.etResourcePath.setText(resource.path)
                         binding.tvCreatedDate.text = dateFormat.format(Date(resource.createdDate))
-                        binding.tvFileCount.text = resource.fileCount.toString()
+                        binding.tvFileCount.text = when {
+                            resource.fileCount >= 1000 -> ">1000"
+                            else -> resource.fileCount.toString()
+                        }
                         
                         // Display last browse date or "Never browsed"
                         binding.tvLastBrowseDate.text = resource.lastBrowseDate?.let {

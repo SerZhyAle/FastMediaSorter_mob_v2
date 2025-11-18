@@ -610,8 +610,10 @@ class BrowseViewModel @Inject constructor(
             // Standard mode - find actual index in mediaFiles list
             val foundIndex = state.value.mediaFiles.indexOfFirst { it.path == file.path }
             if (foundIndex == -1) {
-                Timber.e("openFile: File not found in mediaFiles list: ${file.path}")
-                sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", null))
+                Timber.w("openFile: Cache miss detected for ${file.path}, attempting fallback")
+                if (!tryResolveMissingFile(file, approximatePosition)) {
+                    sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", null))
+                }
                 return
             }
             Timber.d("openFile (standard mode): ${file.name}, index=$foundIndex")
@@ -625,6 +627,72 @@ class BrowseViewModel @Inject constructor(
         }
         
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))
+    }
+
+    private fun tryResolveMissingFile(file: MediaFile, approximatePosition: Int): Boolean {
+        val resource = state.value.resource ?: return false
+        return when (resource.type) {
+            ResourceType.SMB -> {
+                resolveMissingSmbFile(resource, file, approximatePosition)
+                true
+            }
+            else -> false
+        }
+    }
+
+    private fun resolveMissingSmbFile(resource: MediaResource, file: MediaFile, approximatePosition: Int) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            Timber.d("resolveMissingSmbFile: Refreshing metadata for ${file.path}")
+            setLoading(true)
+            try {
+                val scanner = mediaScannerFactory.getScanner(resource.type)
+                val smbScanner = scanner as? com.sza.fastmediasorter.data.network.SmbMediaScanner
+                if (smbScanner == null) {
+                    Timber.e("resolveMissingSmbFile: Unable to obtain SMB scanner for resource ${resource.name}")
+                    sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", file.path))
+                    return@launch
+                }
+
+                val refreshed = smbScanner.getFileByPath(
+                    path = file.path,
+                    supportedTypes = resource.supportedMediaTypes,
+                    credentialsId = resource.credentialsId
+                )
+
+                if (refreshed != null) {
+                    mergeResolvedFileAndOpen(refreshed, approximatePosition)
+                } else {
+                    Timber.e("resolveMissingSmbFile: Remote SMB file still missing ${file.path}")
+                    sendEvent(BrowseEvent.ShowError("File not found: ${file.name}", file.path))
+                }
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    private fun mergeResolvedFileAndOpen(resolvedFile: MediaFile, approximatePosition: Int) {
+        val resource = state.value.resource ?: return
+
+        val updatedList = state.value.mediaFiles.toMutableList().apply {
+            removeAll { it.path == resolvedFile.path }
+            add(resolvedFile)
+        }
+
+        val sortedList = sortFiles(updatedList, state.value.sortMode, forceSort = true)
+
+        MediaFilesCacheManager.setCachedList(resourceId, sortedList)
+        updateState { current ->
+            current.copy(
+                mediaFiles = sortedList,
+                totalFileCount = sortedList.size
+            )
+        }
+
+        val targetIndex = sortedList.indexOfFirst { it.path == resolvedFile.path }
+        val indexForPlayer = if (targetIndex >= 0) targetIndex else approximatePosition
+
+        sendEvent(BrowseEvent.NavigateToPlayer(resolvedFile.path, indexForPlayer))
     }
 
     fun deleteSelectedFiles() {

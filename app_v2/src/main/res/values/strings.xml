@@ -131,7 +131,7 @@
     <string name="video_size_limits">Video size limits (GB)</string>
     <string name="audio_size_limits">Audio size limits (MB)</string>
     <string name="default_sort_mode">Default sort mode</string>
-    <string name="slideshow_interval">Slideshow interval</string>
+    <string name="slideshow_interval">Default slideshow (sec.)</string>
     <string name="fullscreen_mode">Fullscreen mode</string>
     <string name="seconds">Seconds</string>
     <string name="minutes">Minutes</string>
@@ -149,8 +149,8 @@
     <string name="show_hint_now">Show Hint Now</string>
     <string name="show_video_thumbnails">Show video thumbnails</string>
     <string name="show_video_thumbnails_description">Extract and display first frame for video files (may take 2+ seconds for network files)</string>
-    <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video)</string>
-    <string name="default_icon_size">Default icon size (pixels)</string>
+    <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video) for full screen mode</string>
+    <string name="default_icon_size">Icon size for grid (pixels)</string>
     <string name="enable_copying">Allow copying</string>
     <string name="go_to_next_after_copy">Go to next file after copying</string>
     <string name="overwrite_on_copy">Overwrite existing file when copying</string>
@@ -159,6 +159,7 @@
     <string name="destinations_list">Destinations (0-9)</string>
     <string name="destinations_description">Up to 10 destination resources. Each has a color and number (0-9).</string>
     <string name="add_destination">Add Destination</string>
+    <string name="destinations_list_header">Destination List for Sorting Commands (up to 10)</string>
     <string name="add_resources_first_message">Add the resources first at the main screen, before mark any as destination.</string>
     <string name="register_as_destination">Register as destination</string>
     
@@ -419,7 +420,8 @@
     <string name="network_sync_settings">Network Sync Settings</string>
     <string name="enable_background_sync">Enable background sync</string>
     <string name="background_sync_description">Automatically check network resources for file changes in the background</string>
-    <string name="sync_interval">Sync interval</string>
+    <string name="sync_interval">Sync interval (min)</string>
+    <string name="sync_interval_hint">Enter minutes or select from list</string>
     <plurals name="sync_interval_hours">
         <item quantity="one">%d hour</item>
         <item quantity="other">%d hours</item>

@@ -65,6 +65,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     // Cache current display mode to avoid redundant updateDisplayMode() calls
     private var currentDisplayMode: DisplayMode? = null
+    // Track last submitted sort mode to force adapter refresh when the user changes sorting
+    private var lastSubmittedSortMode: SortMode? = null
     
     // Shared RecycledViewPool for optimizing ViewHolder reuse
     private val sharedViewPool = RecyclerView.RecycledViewPool().apply {
@@ -237,35 +239,31 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val previousMediaFiles = viewModel.lastEmittedMediaFiles
                     val previousSize = previousMediaFiles?.size ?: -1
                     
+                    val sortChanged = state.sortMode != lastSubmittedSortMode
                     val shouldSubmit = if (previousMediaFiles == null) {
-                        // First load - always submit
+                        true
+                    } else if (sortChanged) {
                         true
                     } else if (state.mediaFiles === previousMediaFiles) {
-                        // Exact same object reference - skip (no log spam during loading)
                         false
                     } else if (state.mediaFiles.size != previousSize) {
-                        // Size changed - definitely submit
                         true
                     } else {
-                        // Same size, different reference - check if content actually changed
-                        // Compare first and last items' paths as quick heuristic
-                        val prevList = previousMediaFiles // Capture for null-safety
-                        val contentChanged = if (state.mediaFiles.isEmpty()) {
+                        val prevList = previousMediaFiles
+                        if (state.mediaFiles.isEmpty()) {
                             false
                         } else {
                             val firstPathCurrent = state.mediaFiles.first().path
                             val firstPathPrev = prevList?.firstOrNull()?.path
                             val lastPathCurrent = state.mediaFiles.last().path
                             val lastPathPrev = prevList?.lastOrNull()?.path
-                            val firstDiff = firstPathCurrent != firstPathPrev
-                            val lastDiff = lastPathCurrent != lastPathPrev
-                            firstDiff || lastDiff
+                            firstPathCurrent != firstPathPrev || lastPathCurrent != lastPathPrev
                         }
-                        contentChanged
                     }
                     
                     if (shouldSubmit) {
                         viewModel.markListAsSubmitted(state.mediaFiles)
+                        lastSubmittedSortMode = state.sortMode
                         
                         // Standard mode - submit full list to MediaFileAdapter
                         val previousListSize = mediaFileAdapter.itemCount

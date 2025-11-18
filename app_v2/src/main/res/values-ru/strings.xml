@@ -131,7 +131,7 @@
     <string name="video_size_limits">Ограничения размера видео (ГБ)</string>
     <string name="audio_size_limits">Ограничения размера аудио (МБ)</string>
     <string name="default_sort_mode">Режим сортировки по умолчанию</string>
-    <string name="slideshow_interval">Интервал слайдшоу</string>
+    <string name="slideshow_interval">Слайдшоу по умолч. (сек.)</string>
     <string name="fullscreen_mode">Полноэкранный режим</string>
     <string name="seconds">Секунд</string>
     <string name="minutes">Минут</string>
@@ -149,8 +149,8 @@
     <string name="show_hint_now">Показать подсказку сейчас</string>
     <string name="show_video_thumbnails">Показывать миниатюры видеофайлов</string>
     <string name="show_video_thumbnails_description">Извлекать и отображать первый кадр видеофайлов (может занять 2+ секунды для сетевых файлов)</string>
-    <string name="touch_zones_scheme">Схема сенсорных зон (Изображения/Видео)</string>
-    <string name="default_icon_size">Размер иконок по умолчанию (пиксели)</string>
+    <string name="touch_zones_scheme">Схема сенсорных зон (Изображения/Видео) для полноэкранного режима</string>
+    <string name="default_icon_size">Размер иконок для сетки (пиксели)</string>
     <string name="enable_copying">Разрешить копирование</string>
     <string name="go_to_next_after_copy">Переходить к следующему после копирования</string>
     <string name="overwrite_on_copy">Перезаписывать при копировании</string>
@@ -158,7 +158,8 @@
     <string name="overwrite_on_move">Перезаписывать при перемещении</string>
     <string name="destinations_list">Получатели (0-9)</string>
     <string name="destinations_description">До 10 ресурсов-получателей. Каждый имеет цвет и номер (0-9).</string>
-    <string name="add_destination">Добавить получателя</string>
+    <string name="add_destination">Добавить Назначение</string>
+    <string name="destinations_list_header">Список назначений для команд сортировки (до 10)</string>
     <string name="add_resources_first_message">Сначала добавьте ресурсы на главном экране, прежде чем отмечать их как получателей.</string>
     <string name="register_as_destination">Зарегистрировать как получателя</string>
     
@@ -391,7 +392,8 @@
     <string name="network_sync_settings">Настройки синхронизации сети</string>
     <string name="enable_background_sync">Включить фоновую синхронизацию</string>
     <string name="background_sync_description">Автоматически проверять сетевые ресурсы на изменения файлов в фоновом режиме</string>
-    <string name="sync_interval">Интервал синхронизации</string>
+    <string name="sync_interval">Интервал синхронизации (мин)</string>
+    <string name="sync_interval_hint">Введите минуты или выберите из списка</string>
     <plurals name="sync_interval_hours">
         <item quantity="one">%d час</item>
         <item quantity="few">%d часа</item>

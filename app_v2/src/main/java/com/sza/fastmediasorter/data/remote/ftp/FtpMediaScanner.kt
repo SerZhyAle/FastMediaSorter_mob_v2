@@ -130,9 +130,12 @@ class FtpMediaScanner @Inject constructor(
     ): Int = withContext(Dispatchers.IO) {
         try {
             Timber.d("FTP getFileCount: path=$path, credentialsId=$credentialsId")
-            val files = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
-            Timber.d("FTP getFileCount result: ${files.size} files")
-            files.size
+            // Fast count: use paged scan with limit 1000
+            val page = scanFolderPaged(path, supportedTypes, sizeFilter, offset = 0, limit = 1000, credentialsId)
+            // If we got exactly 1000 files, there are likely more (return 1000 to show ">1000")
+            // If we got less, that's the actual count
+            Timber.d("FTP getFileCount result: ${page.files.size} files")
+            page.files.size
         } catch (e: Exception) {
             Timber.e(e, "Error counting FTP files in: $path")
             0

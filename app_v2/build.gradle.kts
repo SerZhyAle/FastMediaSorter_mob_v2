@@ -19,13 +19,20 @@ android {
         applicationId = "com.sza.fastmediasorter"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11181251
+        versionCode = 11181449
         versionName = "2.${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yy.MMdd.HHmm"))}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
         vectorDrawables {
             useSupportLibrary = true
+        }
+    }
+    
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true // Required for Robolectric
+            isReturnDefaultValues = true
         }
     }
 
@@ -219,11 +226,14 @@ dependencies {
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation("io.mockk:mockk:1.13.9")
+    testImplementation("org.robolectric:robolectric:4.11.1") // For Android framework in JVM tests
     
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
     androidTestImplementation("com.google.dagger:hilt-android-testing:2.50")
+    androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
+    androidTestImplementation("androidx.room:room-testing:2.6.1")
     kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.50")
 }
 

@@ -1079,7 +1079,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 
                 // Use NetworkFileData for Coil to load via NetworkFileFetcher
                 // path is already in format: /shareName/path/to/file.jpg
-                val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId)
+                // loadFullImage = true for high quality fullscreen display
+                val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId, loadFullImage = true)
                 
                 val request = ImageRequest.Builder(this@PlayerActivity)
                     .data(networkData)
@@ -1171,7 +1172,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         Size(1920, 1920)
                     }
                 
-                    val networkData = NetworkFileData(path = file.path, credentialsId = resource.credentialsId)
+                    // loadFullImage = true for high quality fullscreen preload
+                    val networkData = NetworkFileData(path = file.path, credentialsId = resource.credentialsId, loadFullImage = true)
                     val preloadRequest = ImageRequest.Builder(this@PlayerActivity)
                         .data(networkData)
                         .size(imageSize) // Use setting-based size

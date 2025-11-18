@@ -250,7 +250,7 @@ class MediaFileAdapter(
                             isNetworkPath -> {
                                 // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
                                 Timber.d("Loading network image via NetworkFileData: ${file.path}")
-                                load(com.sza.fastmediasorter.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                load(com.sza.fastmediasorter.data.network.coil.NetworkFileData(file.path, credentialsId, loadFullImage = false)) {
                                     size(thumbnailSize) // Use configured thumbnail size from settings
                                     crossfade(false) // Disable crossfade for faster loading
                                     allowHardware(true) // GPU-accelerated decoding
@@ -316,7 +316,7 @@ class MediaFileAdapter(
                                     val data: Any = if (file.path.startsWith("content://")) {
                                         Uri.parse(file.path)
                                     } else {
-                                        NetworkFileData(file.path, credentialsId)
+                                        NetworkFileData(file.path, credentialsId, loadFullImage = false)
                                     }
                                     load(data) {
                                         size(512)
@@ -522,7 +522,7 @@ class MediaFileAdapter(
                             }
                             isNetworkPath -> {
                                 // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
-                                load(com.sza.fastmediasorter.data.network.coil.NetworkFileData(file.path, credentialsId)) {
+                                load(com.sza.fastmediasorter.data.network.coil.NetworkFileData(file.path, credentialsId, loadFullImage = false)) {
                                     size(512) // Fixed size for consistent caching across List/Grid modes
                                     crossfade(false)
                                     placeholder(R.drawable.ic_image_placeholder)
@@ -577,7 +577,7 @@ class MediaFileAdapter(
                                     val data: Any = if (file.path.startsWith("content://")) {
                                         Uri.parse(file.path)
                                     } else {
-                                        NetworkFileData(file.path, credentialsId)
+                                        NetworkFileData(file.path, credentialsId, loadFullImage = false)
                                     }
                                     load(data) {
                                         size(512)

@@ -60,9 +60,9 @@ class ResourceAdapter(
                 tvResourcePath.text = resource.path
                 tvResourceType.text = resource.type.name
                 
-                // Format file count with ">10000" for large numbers
+                // Format file count with ">1000" for resources with 1000+ files
                 tvFileCount.text = when {
-                    resource.fileCount > 10000 -> ">10000 files"
+                    resource.fileCount >= 1000 -> ">1000 files"
                     else -> "${resource.fileCount} files"
                 }
                 

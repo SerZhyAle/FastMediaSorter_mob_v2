@@ -314,7 +314,7 @@ class SmbClient @Inject constructor() {
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
-        maxCount: Int = 100000 // Stop counting after this limit to avoid extremely long scans
+        maxCount: Int = 1000 // Fast initial scan: stop at 1000 to return quickly
     ): SmbResult<Int> {
         return try {
             withConnection(connectionInfo) { share ->
@@ -516,12 +516,12 @@ class SmbClient @Inject constructor() {
         share: DiskShare,
         path: String,
         extensions: Set<String>,
-        maxCount: Int = 100000,
+        maxCount: Int = 1000,
         currentCount: Int = 0
     ): Int {
         // Early exit if limit reached
         if (currentCount >= maxCount) {
-            Timber.d("Count limit reached: $maxCount files, stopping scan")
+            Timber.d("Fast count limit reached: $maxCount+ files, returning early")
             return currentCount
         }
         
@@ -532,7 +532,7 @@ class SmbClient @Inject constructor() {
             for (fileInfo in share.list(dirPath)) {
                 // Check limit on each iteration to stop quickly
                 if (count >= maxCount) {
-                    Timber.d("Count limit reached during scan: $maxCount files")
+                    Timber.d("Fast count limit reached during scan: $maxCount+ files")
                     return count
                 }
                 
@@ -1189,6 +1189,52 @@ class SmbClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.e(e, "Failed to check if path exists on SMB")
             SmbResult.Error("Failed to check path: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Retrieve file metadata for a single SMB path without listing entire directories.
+     * Used as a fallback when cached lists are out of sync with remote storage.
+     */
+    suspend fun getFileInfo(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String
+    ): SmbResult<SmbFileInfo> {
+        return try {
+            withConnection(connectionInfo) { share ->
+                if (!share.fileExists(remotePath)) {
+                    Timber.w("SmbClient.getFileInfo: File not found: $remotePath")
+                    return@withConnection SmbResult.Error("File not found: $remotePath")
+                }
+
+                val info = try {
+                    share.getFileInformation(remotePath)
+                } catch (infoError: Exception) {
+                    Timber.e(infoError, "SmbClient.getFileInfo: Failed to read metadata for $remotePath")
+                    return@withConnection SmbResult.Error(
+                        "Failed to read file info: ${infoError.message}",
+                        infoError
+                    )
+                }
+
+                val name = remotePath.substringAfterLast('/').ifEmpty { remotePath }
+                val size = info.standardInformation?.endOfFile ?: 0L
+                val lastModified = info.basicInformation?.lastWriteTime?.toEpochMillis()
+                    ?: System.currentTimeMillis()
+
+                SmbResult.Success(
+                    SmbFileInfo(
+                        name = name,
+                        path = remotePath,
+                        isDirectory = false,
+                        size = size,
+                        lastModified = lastModified
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get SMB file info for $remotePath")
+            SmbResult.Error("Failed to get file info: ${e.message}", e)
         }
     }
 

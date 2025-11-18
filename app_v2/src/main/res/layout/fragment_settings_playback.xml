@@ -12,37 +12,49 @@
         android:padding="16dp">
 
         <!-- Sort Mode Dropdown -->
-        <com.google.android.material.textfield.TextInputLayout
+        <!-- Sort Mode and Slideshow Interval (one row) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/default_sort_mode"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginBottom="16dp">
 
-            <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                android:id="@+id/spinnerSortMode"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:inputType="none"/>
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:hint="@string/default_sort_mode"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/spinnerSortMode"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"/>
 
-        <!-- Slideshow Interval Text Field -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/slideshow_interval"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_marginBottom="16dp">
+            </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etSlideshowInterval"
-                android:layout_width="match_parent"
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSlideshowInterval"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:inputType="number"
-                android:maxLength="5"/>
+                android:layout_weight="1"
+                android:hint="@string/slideshow_interval"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
-        </com.google.android.material.textfield.TextInputLayout>
+                <AutoCompleteTextView
+                    android:id="@+id/etSlideshowInterval"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="5"
+                    android:text="5"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchPlayToEnd"
@@ -124,6 +136,26 @@
             android:text="@string/show_player_hint"
             android:layout_marginBottom="8dp"/>
 
+        <!-- Icon Size Field (moved above button, reduced width) -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilIconSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="200dp"
+            android:hint="@string/default_icon_size"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_marginBottom="8dp">
+
+            <AutoCompleteTextView
+                android:id="@+id/etIconSize"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:maxLength="4"
+                android:text="96"/>
+
+        </com.google.android.material.textfield.TextInputLayout>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnShowHintNow"
             android:layout_width="wrap_content"
@@ -144,95 +176,96 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp"/>
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="280dp"
-            android:contentDescription="@string/touch_zones_scheme"
-            android:scaleType="fitCenter"
-            android:src="@drawable/touch_zones_scheme"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
+        <!-- Horizontal layout: Map (50%) + Legend (50%) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/touch_zones_legend_title"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
-            android:layout_marginBottom="4dp"/>
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_1_back"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_2_copy"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_3_rename"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_4_previous"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_5_move"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_6_next"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_7_command"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_8_delete"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/touch_zone_9_slideshow"
-            android:textSize="12sp"
-            android:lineSpacingMultiplier="1.3"
-            android:layout_marginBottom="16dp"/>
-
-        <!-- Icon Size Text Field -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="@string/default_icon_size"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginBottom="16dp">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etIconSize"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:maxLength="3"/>
+            <ImageView
+                android:layout_width="0dp"
+                android:layout_height="140dp"
+                android:layout_weight="1"
+                android:contentDescription="@string/touch_zones_scheme"
+                android:scaleType="fitCenter"
+                android:src="@drawable/touch_zones_scheme"
+                android:layout_marginEnd="8dp"/>
 
-        </com.google.android.material.textfield.TextInputLayout>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zones_legend_title"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="?attr/colorPrimary"
+                    android:layout_marginBottom="4dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_1_back"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_2_copy"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_3_rename"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_4_previous"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_5_move"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_6_next"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_7_command"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_8_delete"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/touch_zone_9_slideshow"
+                    android:textSize="10sp"
+                    android:lineSpacingMultiplier="1.2"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

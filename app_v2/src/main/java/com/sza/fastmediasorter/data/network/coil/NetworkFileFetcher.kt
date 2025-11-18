@@ -118,13 +118,28 @@ class NetworkFileFetcher(
             domain = credentials.domain
         )
 
-        // Read full file (no size limit) - better to load completely than show partial image
-        // For 20 thumbnails on screen, even large PNG files won't cause memory issues
+        // Determine load strategy based on context:
+        // - Thumbnails: 512KB sufficient for JPEG compression (fast load)
+        // - Fullscreen: load complete file for high quality
+        // - PNG/WebP always full: lossless compression or unknown mode needs complete data
+        val maxBytes = if (data.loadFullImage) {
+            Long.MAX_VALUE // Fullscreen view - load complete file
+        } else {
+            // Thumbnail view - limit to 512KB for JPEG (adequate for preview)
+            // PNG/WebP files need full load even for thumbnails (checked by extension)
+            val extension = remotePath.substringAfterLast('.', "").lowercase()
+            if (connectionInfo.shareName.isNotEmpty() && (extension == "png" || extension == "webp")) {
+                Long.MAX_VALUE // PNG/WebP require full file
+            } else {
+                512 * 1024L // 512KB for JPEG thumbnails
+            }
+        }
         
         // Add timeout to avoid blocking UI on slow network
         val result = try {
-            kotlinx.coroutines.withTimeout(15000) { // 15 seconds max for full image load
-                smbClient.readFileBytes(connectionInfo, remotePath)
+            val timeoutMs = if (data.loadFullImage) 20000L else 10000L // More time for full images
+            kotlinx.coroutines.withTimeout(timeoutMs) {
+                smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             Timber.w("SMB thumbnail load timeout (8s) for: $remotePath")
@@ -178,12 +193,23 @@ class NetworkFileFetcher(
             return null
         }
 
-        // Read full file (no size limit) - better to load completely than show partial image
+        // Determine load strategy: thumbnails vs fullscreen, JPEG vs PNG/WebP
+        val maxBytes = if (data.loadFullImage) {
+            Long.MAX_VALUE // Fullscreen view
+        } else {
+            val extension = remotePath.substringAfterLast('.', "").lowercase()
+            if (extension == "png" || extension == "webp") {
+                Long.MAX_VALUE // PNG/WebP require full file
+            } else {
+                512 * 1024L // 512KB for JPEG thumbnails
+            }
+        }
         
         // Add timeout to avoid blocking UI on slow network
         val result = try {
-            kotlinx.coroutines.withTimeout(15000) { // 15 seconds max for full image load
-                sftpClient.readFileBytes(remotePath)
+            val timeoutMs = if (data.loadFullImage) 20000L else 10000L
+            kotlinx.coroutines.withTimeout(timeoutMs) {
+                sftpClient.readFileBytes(remotePath, maxBytes)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
             Timber.w("SFTP thumbnail load timeout for: $remotePath")
@@ -231,7 +257,8 @@ class NetworkFileFetcher(
         val outputStream = java.io.ByteArrayOutputStream()
         return try {
             // Add timeout to avoid blocking UI on slow network
-            kotlinx.coroutines.withTimeout(15000) { // 15 seconds max for full image load
+            val timeoutMs = if (data.loadFullImage) 20000L else 10000L
+            kotlinx.coroutines.withTimeout(timeoutMs) {
                 val downloadResult = ftpClient.downloadFileWithNewConnection(
                     host = server,
                     port = port,
@@ -280,5 +307,6 @@ class NetworkFileFetcher(
  */
 data class NetworkFileData(
     val path: String, // smb:// or sftp:// URL
-    val credentialsId: String? = null // Optional credentialsId to use specific credentials
+    val credentialsId: String? = null, // Optional credentialsId to use specific credentials
+    val loadFullImage: Boolean = false // true for fullscreen view, false for thumbnails
 )

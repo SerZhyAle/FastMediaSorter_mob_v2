@@ -131,7 +131,7 @@
     <string name="video_size_limits">Обмеження розміру відео (ГБ)</string>
     <string name="audio_size_limits">Обмеження розміру аудіо (МБ)</string>
     <string name="default_sort_mode">Режим сортування за замовчуванням</string>
-    <string name="slideshow_interval">Інтервал слайдшоу</string>
+    <string name="slideshow_interval">Слайдшоу за замовч. (сек.)</string>
     <string name="fullscreen_mode">Повноекранний режим</string>
     <string name="seconds">Секунд</string>
     <string name="minutes">Хвилин</string>
@@ -149,8 +149,8 @@
     <string name="show_hint_now">Показати підказку зараз</string>
     <string name="show_video_thumbnails">Показувати мініатюри відеофайлів</string>
     <string name="show_video_thumbnails_description">Витягувати і відображати перший кадр відеофайлів (може зайняти 2+ секунди для мережевих файлів)</string>
-    <string name="touch_zones_scheme">Схема сенсорних зон (Зображення/Відео)</string>
-    <string name="default_icon_size">Розмір іконок за замовчуванням (пікселі)</string>
+    <string name="touch_zones_scheme">Схема сенсорних зон (Зображення/Відео) для повноекранного режиму</string>
+    <string name="default_icon_size">Розмір іконок для сітки (пікселі)</string>
     <string name="enable_copying">Дозволити копіювання</string>
     <string name="go_to_next_after_copy">Переходити до наступного після копіювання</string>
     <string name="overwrite_on_copy">Перезаписувати при копіюванні</string>
@@ -158,7 +158,8 @@
     <string name="overwrite_on_move">Перезаписувати при переміщенні</string>
     <string name="destinations_list">Отримувачі (0-9)</string>
     <string name="destinations_description">До 10 ресурсів-отримувачів. Кожен має колір і номер (0-9).</string>
-    <string name="add_destination">Додати отримувача</string>
+    <string name="add_destination">Додати призначення</string>
+    <string name="destinations_list_header">Список призначень для команд сортування (до 10)</string>
     <string name="add_resources_first_message">Спочатку додайте ресурси на головному екрані, перш ніж позначати їх як отримувачів.</string>
     <string name="register_as_destination">Зареєструвати як отримувача</string>
     
@@ -391,7 +392,8 @@
     <string name="network_sync_settings">Налаштування синхронізації мережі</string>
     <string name="enable_background_sync">Увімкнути фонову синхронізацію</string>
     <string name="background_sync_description">Автоматично перевіряти мережеві ресурси на зміни файлів у фоновому режимі</string>
-    <string name="sync_interval">Інтервал синхронізації</string>
+    <string name="sync_interval">Інтервал синхронізації (хв)</string>
+    <string name="sync_interval_hint">Введіть хвилини або оберіть зі списку</string>
     <plurals name="sync_interval_hours">
         <item quantity="one">%d година</item>
         <item quantity="few">%d години</item>

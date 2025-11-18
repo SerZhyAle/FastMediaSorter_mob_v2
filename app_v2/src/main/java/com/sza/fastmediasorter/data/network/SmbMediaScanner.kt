@@ -107,6 +107,58 @@ class SmbMediaScanner @Inject constructor(
     }
 
     /**
+     * Fetch single file metadata directly from SMB share without full folder rescan.
+     */
+    suspend fun getFileByPath(
+        path: String,
+        supportedTypes: Set<MediaType>,
+        credentialsId: String?
+    ): MediaFile? = withContext(Dispatchers.IO) {
+        try {
+            val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
+                Timber.w("getFileByPath: Invalid SMB path: $path")
+                return@withContext null
+            }
+
+            if (connectionInfo.remotePath.isEmpty()) {
+                Timber.w("getFileByPath: Remote path is empty for $path")
+                return@withContext null
+            }
+
+            val fileResult = smbClient.getFileInfo(
+                connectionInfo = connectionInfo.connectionInfo,
+                remotePath = connectionInfo.remotePath
+            )
+
+            when (fileResult) {
+                is SmbClient.SmbResult.Success -> {
+                    val smbFile = fileResult.data
+                    val mediaType = getMediaType(smbFile.name)
+                    if (mediaType == null || !supportedTypes.contains(mediaType)) {
+                        Timber.d("getFileByPath: Unsupported media type for ${smbFile.name}")
+                        null
+                    } else {
+                        MediaFile(
+                            name = smbFile.name,
+                            path = buildFullSmbPath(connectionInfo, smbFile.path),
+                            size = smbFile.size,
+                            createdDate = smbFile.lastModified,
+                            type = mediaType
+                        )
+                    }
+                }
+                is SmbClient.SmbResult.Error -> {
+                    Timber.w("getFileByPath: ${fileResult.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "getFileByPath: Error resolving SMB file: $path")
+            null
+        }
+    }
+
+    /**
      * Scan folder with limit (for lazy loading initial batch)
      * Returns first maxFiles files quickly
      */

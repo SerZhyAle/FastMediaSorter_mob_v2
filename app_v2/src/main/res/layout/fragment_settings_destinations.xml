@@ -81,6 +81,18 @@
                 android:layout_marginBottom="4dp"/>
         </LinearLayout>
 
+        <!-- Header: Destinations List -->
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/destinations_list_header"
+            android:textSize="16sp"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            android:paddingTop="8dp"
+            android:paddingBottom="12dp"
+            android:layout_marginBottom="8dp"/>
+
         <!-- Add Destination Button (before list) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAddDestination"

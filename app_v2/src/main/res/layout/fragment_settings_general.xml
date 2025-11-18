@@ -11,7 +11,7 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Language -->
+        <!-- Language + User Guide -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -31,7 +31,16 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="120dp"
-                android:entries="@array/languages" />
+                android:entries="@array/languages"
+                android:layout_marginEnd="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUserGuide"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/user_guide"
+                app:icon="@android:drawable/ic_menu_help" />
 
         </LinearLayout>
 
@@ -88,41 +97,41 @@
             android:textColor="?android:textColorSecondary"
             android:layout_marginBottom="12dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/sync_interval"
-            android:textSize="14sp"
-            android:textColor="?android:textColorPrimary"
-            android:layout_marginBottom="4dp" />
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:layout_marginBottom="8dp">
 
-        <TextView
-            android:id="@+id/tvSyncIntervalValue"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="4 hours"
-            android:textSize="12sp"
-            android:textColor="?android:textColorSecondary"
-            android:layout_marginBottom="4dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSyncInterval"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:hint="@string/sync_interval">
 
-        <com.google.android.material.slider.Slider
-            android:id="@+id/sliderSyncInterval"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:valueFrom="1"
-            android:valueTo="24"
-            android:value="4"
-            android:stepSize="1"
-            android:layout_marginBottom="8dp" />
+                <AutoCompleteTextView
+                    android:id="@+id/actvSyncInterval"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="240"
+                    android:textSize="14sp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnSyncNow"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/sync_now"
-            android:layout_marginBottom="4dp"
-            app:icon="@android:drawable/ic_popup_sync" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSyncNow"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/sync_now"
+                app:icon="@android:drawable/ic_popup_sync" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvSyncStatus"
@@ -173,45 +182,34 @@
 
         </LinearLayout>
 
-        <!-- User Guide -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnUserGuide"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <!-- Export/Import Settings (one line) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/user_guide"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            app:icon="@android:drawable/ic_menu_help" />
-
-        <!-- Export/Import Settings -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/backup_restore_settings"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="?attr/colorPrimary"
+            android:orientation="horizontal"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="12dp" />
+            android:layout_marginBottom="16dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnExportSettings"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/export_settings"
-            android:layout_marginBottom="8dp"
-            app:icon="@android:drawable/ic_menu_upload" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportSettings"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/export_settings"
+                app:icon="@android:drawable/ic_menu_upload" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnImportSettings"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/import_settings"
-            android:layout_marginBottom="16dp"
-            app:icon="@android:drawable/ic_menu_revert" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImportSettings"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/import_settings"
+                app:icon="@android:drawable/ic_menu_revert" />
+
+        </LinearLayout>
 
         <!-- Permissions -->
         <com.google.android.material.button.MaterialButton
@@ -231,22 +229,31 @@
             android:text="@string/grant_network_permission"
             android:layout_marginBottom="16dp" />
 
-        <!-- Logs -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnShowLog"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        <!-- Logs (one line) -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/show_log"
-            android:layout_marginBottom="8dp" />
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnShowSessionLog"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/show_current_session_log"
-            android:layout_marginBottom="16dp" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowLog"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="@string/show_log" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowSessionLog"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/show_current_session_log" />
+
+        </LinearLayout>
 
         <!-- Version Info -->
         <TextView
