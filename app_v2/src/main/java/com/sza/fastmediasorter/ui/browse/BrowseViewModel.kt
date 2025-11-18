@@ -191,9 +191,6 @@ class BrowseViewModel @Inject constructor(
                 Timber.d("loadResource: Using cached list (${cachedFiles.size} files)")
                 updateState { it.copy(mediaFiles = cachedFiles, totalFileCount = cachedFiles.size) }
                 setLoading(false)
-                
-                // Start background file count (for header display) but don't block UI
-                startFileCountInBackground()
                 return@launch
             } else if (cachedFiles != null && cachedFiles.isEmpty()) {
                 // Cache exists but is empty (process was killed and restored empty cache)
@@ -201,9 +198,6 @@ class BrowseViewModel @Inject constructor(
                 Timber.w("loadResource: Found empty cache for resource $resourceId, clearing and rescanning")
                 MediaFilesCacheManager.clearCache(resourceId)
             }
-            
-            // No cache or empty cache - start background file count (for header display)
-            startFileCountInBackground()
             
             loadMediaFiles()
         }
@@ -263,29 +257,13 @@ class BrowseViewModel @Inject constructor(
             )
             
             try {
-                // Use cached fileCount if available, otherwise scan
-                val fileCount = if (resource.fileCount > 0 && resource.lastBrowseDate != null) {
-                    // Use cached count if resource was browsed before (lastBrowseDate exists)
+                // Use cached fileCount from resource metadata if available
+                if (resource.fileCount > 0 && resource.lastBrowseDate != null) {
                     Timber.d("Using cached file count for ${resource.name}: ${resource.fileCount}")
-                    resource.fileCount
-                } else {
-                    // First browse or fileCount not set - need to scan
-                    Timber.d("No cached file count, scanning ${resource.name}...")
-                    val scanner = mediaScannerFactory.getScanner(resource.type)
-                    scanner.getFileCount(
-                        path = resource.path,
-                        supportedTypes = resource.supportedMediaTypes,
-                        sizeFilter = sizeFilter,
-                        credentialsId = resource.credentialsId
-                    ).also { count ->
-                        Timber.d("Scanned file count for ${resource.name}: $count")
-                    }
+                    updateState { it.copy(totalFileCount = resource.fileCount) }
                 }
+                // If no cache, totalFileCount stays null (shows "counting..." in UI)
                 
-                updateState { it.copy(totalFileCount = fileCount) }
-                
-                // Always load all files (no pagination)
-                Timber.d("Loading all files for folder ($fileCount files, sort=${state.value.sortMode})")
                 loadMediaFilesStandard(resource, sizeFilter, progressJob)
             } catch (e: Exception) {
                 Timber.e(e, "Error determining file count")
@@ -507,63 +485,6 @@ class BrowseViewModel @Inject constructor(
             exception = e
         ))
         handleError(e)
-    }
-
-    /**
-     * Start background file counting for large folders.
-     * Updates totalFileCount in state without blocking UI.
-     */
-    private fun startFileCountInBackground() {
-        val resource = state.value.resource ?: return
-        
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            try {
-                val settings = settingsRepository.getSettings().first()
-                val sizeFilter = SizeFilter(
-                    imageSizeMin = settings.imageSizeMin,
-                    imageSizeMax = settings.imageSizeMax,
-                    videoSizeMin = settings.videoSizeMin,
-                    videoSizeMax = settings.videoSizeMax,
-                    audioSizeMin = settings.audioSizeMin,
-                    audioSizeMax = settings.audioSizeMax
-                )
-                
-                val scanner = mediaScannerFactory.getScanner(resource.type)
-                val count = scanner.getFileCount(
-                    path = resource.path,
-                    supportedTypes = resource.supportedMediaTypes,
-                    sizeFilter = sizeFilter,
-                    credentialsId = resource.credentialsId
-                )
-                
-                updateState { it.copy(totalFileCount = count) }
-                Timber.d("Background file count completed: $count files")
-            } catch (e: Exception) {
-                Timber.e(e, "Error counting files in background")
-                
-                // Show error if it's authentication-related (critical)
-                if (e.message?.contains("Authentication failed", ignoreCase = true) == true ||
-                    e.message?.contains("LOGON_FAILURE", ignoreCase = true) == true) {
-                    
-                    val errorDetails = buildString {
-                        append("Resource: ${resource.name}\n")
-                        append("Path: ${resource.path}\n")
-                        append("Type: ${resource.type}\n\n")
-                        append("Error: ${e.message ?: "Unknown error"}\n\n")
-                        append("Stack trace:\n${e.stackTraceToString()}")
-                    }
-                    
-                    sendEvent(BrowseEvent.ShowError(
-                        message = "Authentication Failed\n\n" +
-                                 "Cannot count files: Invalid credentials.\n\n" +
-                                 "Please edit this resource and update credentials.",
-                        details = errorDetails,
-                        exception = e
-                    ))
-                }
-                // Don't show error for other cases, count is optional
-            }
-        }
     }
 
     fun setSortMode(sortMode: SortMode) {
