@@ -440,6 +440,15 @@ class MainViewModel @Inject constructor(
                                     needsUpdate = true
                                 }
                                 
+                                // Update lastSyncDate for network resources
+                                val isNetworkResource = resource.type == ResourceType.SMB || 
+                                                        resource.type == ResourceType.SFTP || 
+                                                        resource.type == ResourceType.FTP
+                                if (isNetworkResource) {
+                                    updatedResource = updatedResource.copy(lastSyncDate = System.currentTimeMillis())
+                                    needsUpdate = true
+                                }
+                                
                                 val scanner = mediaScannerFactory.getScanner(resource.type)
                                 
                                 // Check write permission (fast)
