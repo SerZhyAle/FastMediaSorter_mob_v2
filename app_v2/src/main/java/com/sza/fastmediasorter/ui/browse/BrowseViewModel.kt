@@ -376,12 +376,18 @@ class BrowseViewModel @Inject constructor(
     private fun updateResourceMetadataAfterBrowse(resource: MediaResource, actualFileCount: Int) {
         viewModelScope.launch(ioDispatcher) {
             try {
+                // For network resources (SMB/SFTP/FTP), update lastSyncDate
+                val isNetworkResource = resource.type == ResourceType.SMB || 
+                                        resource.type == ResourceType.SFTP || 
+                                        resource.type == ResourceType.FTP
+                
                 val updatedResource = resource.copy(
                     fileCount = actualFileCount,
-                    lastBrowseDate = System.currentTimeMillis()
+                    lastBrowseDate = System.currentTimeMillis(),
+                    lastSyncDate = if (isNetworkResource) System.currentTimeMillis() else resource.lastSyncDate
                 )
                 updateResourceUseCase(updatedResource)
-                Timber.d("Updated resource metadata: fileCount=$actualFileCount, lastBrowseDate set")
+                Timber.d("Updated resource metadata: fileCount=$actualFileCount, lastBrowseDate set, lastSyncDate=${if (isNetworkResource) "updated" else "unchanged"}")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to update resource metadata after browse")
             }
