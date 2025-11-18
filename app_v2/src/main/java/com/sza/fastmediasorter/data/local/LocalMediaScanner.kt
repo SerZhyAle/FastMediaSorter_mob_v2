@@ -119,7 +119,7 @@ class LocalMediaScanner @Inject constructor(
         path: String,
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
-        credentialsId: String?,
+        @Suppress("UNUSED_PARAMETER") credentialsId: String?,
         progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         val startTime = System.currentTimeMillis()

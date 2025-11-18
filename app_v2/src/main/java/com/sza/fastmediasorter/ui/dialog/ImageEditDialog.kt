@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.sza.fastmediasorter.ui.dialog
 
 import android.app.Dialog

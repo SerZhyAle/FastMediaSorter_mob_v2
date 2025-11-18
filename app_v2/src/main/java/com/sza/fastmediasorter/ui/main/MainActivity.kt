@@ -241,6 +241,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                                 event.resourceId, 
                                 event.skipAvailabilityCheck
                             ))
+                            @Suppress("DEPRECATION")
                             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         }
                         is MainEvent.NavigateToEditResource -> {

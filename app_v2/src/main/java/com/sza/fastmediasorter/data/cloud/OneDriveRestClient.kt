@@ -157,6 +157,7 @@ class OneDriveRestClient @Inject constructor(
             }
             
             val scopes = arrayOf(SCOPES)
+            @Suppress("DEPRECATION")
             app.acquireTokenSilentAsync(
                 scopes,
                 account.authority,
@@ -294,7 +295,7 @@ class OneDriveRestClient @Inject constructor(
                     val items = json.getJSONArray("value")
                     val cloudFiles = parseItems(items, folderId ?: "root")
                     
-                    val nextLink = json.optString("@odata.nextLink", null)
+                    val nextLink: String? = json.optString("@odata.nextLink").takeIf { it.isNotEmpty() }
                     val nextToken = nextLink?.substringAfterLast("skiptoken=")
                     
                     CloudResult.Success(cloudFiles to nextToken)
@@ -768,7 +769,7 @@ class OneDriveRestClient @Inject constructor(
         val isFolder = item.has("folder")
         val size = item.optLong("size", 0L)
         val modifiedTime = item.optString("lastModifiedDateTime", "")
-        val mimeType = item.optString("mimeType", null)
+        val mimeType: String? = item.optString("mimeType").takeIf { it.isNotEmpty() }
         
         // Parse ISO 8601 date to timestamp
         val modifiedDate = try {
@@ -789,7 +790,7 @@ class OneDriveRestClient @Inject constructor(
             ?.optJSONObject("large")
             ?.optString("url")
         
-        val webViewUrl = item.optString("webUrl", null)
+        val webViewUrl: String? = item.optString("webUrl").takeIf { it.isNotEmpty() }
         
         return CloudFile(
             id = id,

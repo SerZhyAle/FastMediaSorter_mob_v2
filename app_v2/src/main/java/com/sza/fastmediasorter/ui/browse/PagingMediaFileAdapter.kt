@@ -362,7 +362,7 @@ class PagingMediaFileAdapter(
                         if (isNetworkPath) {
                             // If setting enabled, attempt frame extraction; otherwise show placeholder
                             if (getShowVideoThumbnails()) {
-                                val data = if (file.path.startsWith("content://")) {
+                                val data: Any = if (file.path.startsWith("content://")) {
                                     Uri.parse(file.path)
                                 } else {
                                     NetworkFileData(file.path, credentialsId)
@@ -384,7 +384,7 @@ class PagingMediaFileAdapter(
                                 setImageResource(R.drawable.ic_video_placeholder)
                             }
                         } else {
-                            val data = if (file.path.startsWith("content://")) {
+                            val data: Any = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)
                             } else {
                                 File(file.path)

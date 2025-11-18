@@ -569,7 +569,7 @@ class SftpFileOperationHandler @Inject constructor(
     private suspend fun uploadToSftp(
         localFile: File, 
         sftpPath: String,
-        progressCallback: ByteProgressCallback? = null
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): String? {
         Timber.d("uploadToSftp: ${localFile.absolutePath} → $sftpPath")
         

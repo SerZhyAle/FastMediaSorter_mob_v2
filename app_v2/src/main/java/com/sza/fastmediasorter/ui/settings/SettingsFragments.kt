@@ -18,6 +18,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
+import timber.log.Timber
 import kotlin.math.roundToInt
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
@@ -560,7 +561,7 @@ class DestinationsSettingsFragment : Fragment() {
             
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle("Select Destination")
-                .setItems(items) { dialog, which ->
+                .setItems(items) { _, which ->
                     val selectedResource = availableResources[which]
                     viewModel.addDestination(selectedResource)
                     Toast.makeText(
@@ -847,6 +848,15 @@ class GeneralSettingsFragment : Fragment() {
             startActivity(intent)
         }
         
+        // Export/Import Settings
+        binding.btnExportSettings.setOnClickListener {
+            exportSettings()
+        }
+        
+        binding.btnImportSettings.setOnClickListener {
+            importSettings()
+        }
+        
         // Permissions Buttons
         binding.btnLocalFilesPermission.setOnClickListener {
             requestStoragePermissions()
@@ -1079,6 +1089,7 @@ class GeneralSettingsFragment : Fragment() {
             }
             
             if (needsPermission) {
+                @Suppress("DEPRECATION")
                 requestPermissions(permissions, 100)
             } else {
                 Toast.makeText(requireContext(), "Storage permissions already granted", Toast.LENGTH_SHORT).show()
@@ -1087,6 +1098,100 @@ class GeneralSettingsFragment : Fragment() {
             // Android 5.x and below: permissions granted at install time
             Toast.makeText(requireContext(), "Storage permissions already granted", Toast.LENGTH_SHORT).show()
         }
+    }
+    
+    private fun exportSettings() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val exportUseCase = com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase(
+                    settingsRepository = viewModel.settingsRepository,
+                    resourceRepository = viewModel.resourceRepository,
+                    credentialsRepository = viewModel.credentialsRepository
+                )
+                
+                val result = exportUseCase()
+                
+                result.onSuccess { _ ->
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.export_success),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }.onFailure { error ->
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.export_failed, error.message ?: "Unknown error"),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Export settings failed")
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.export_failed, e.message ?: "Unknown error"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    
+    private fun importSettings() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val importUseCase = com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase(
+                    settingsRepository = viewModel.settingsRepository,
+                    resourceRepository = viewModel.resourceRepository,
+                    credentialsRepository = viewModel.credentialsRepository
+                )
+                
+                val result = importUseCase()
+                
+                result.onSuccess {
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.import_success),
+                        Toast.LENGTH_LONG
+                    ).show()
+                    
+                    // Show restart dialog
+                    showRestartAfterImportDialog()
+                }.onFailure { error ->
+                    val message = if (error.message == "File not found") {
+                        getString(R.string.import_file_not_found)
+                    } else {
+                        getString(R.string.import_failed, error.message ?: "Unknown error")
+                    }
+                    Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Import settings failed")
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.import_failed, e.message ?: "Unknown error"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
+    
+    private fun showRestartAfterImportDialog() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.restart_required_title)
+            .setMessage(R.string.restart_required_message)
+            .setPositiveButton(R.string.restart_now) { _, _ ->
+                // Restart app
+                val intent = requireActivity().packageManager.getLaunchIntentForPackage(requireActivity().packageName)
+                intent?.let {
+                    it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+                    startActivity(it)
+                    requireActivity().finish()
+                }
+            }
+            .setNegativeButton(R.string.restart_later) { dialog, _ ->
+                dialog.dismiss()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     override fun onDestroyView() {

@@ -338,7 +338,7 @@ class CloudFileOperationHandler @Inject constructor(
     private suspend fun downloadFromCloud(
         cloudPath: String,
         localFile: File,
-        progressCallback: ByteProgressCallback? = null
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): File? {
         Timber.d("downloadFromCloud: $cloudPath → ${localFile.absolutePath}")
         
@@ -386,7 +386,7 @@ class CloudFileOperationHandler @Inject constructor(
     private suspend fun uploadToCloud(
         localFile: File,
         cloudPath: String,
-        progressCallback: ByteProgressCallback? = null
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): String? {
         Timber.d("uploadToCloud: ${localFile.absolutePath} → $cloudPath")
         

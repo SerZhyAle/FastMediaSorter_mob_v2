@@ -184,6 +184,35 @@
             android:layout_marginBottom="8dp"
             app:icon="@android:drawable/ic_menu_help" />
 
+        <!-- Export/Import Settings -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/backup_restore_settings"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="?attr/colorPrimary"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExportSettings"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/export_settings"
+            android:layout_marginBottom="8dp"
+            app:icon="@android:drawable/ic_menu_upload" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnImportSettings"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/import_settings"
+            android:layout_marginBottom="16dp"
+            app:icon="@android:drawable/ic_menu_revert" />
+
         <!-- Permissions -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLocalFilesPermission"

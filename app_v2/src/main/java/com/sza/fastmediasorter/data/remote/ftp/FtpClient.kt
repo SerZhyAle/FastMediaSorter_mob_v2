@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.sza.fastmediasorter.data.remote.ftp
 
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
@@ -262,7 +264,7 @@ class FtpClient @Inject constructor() {
         remotePath: String,
         outputStream: OutputStream,
         fileSize: Long = 0L,
-        progressCallback: ByteProgressCallback? = null
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         synchronized(mutex) {
             try {
@@ -331,7 +333,7 @@ class FtpClient @Inject constructor() {
         remotePath: String,
         inputStream: InputStream,
         fileSize: Long = 0L,
-        progressCallback: ByteProgressCallback? = null
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
     ): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val client = ftpClient ?: return@withContext Result.failure(

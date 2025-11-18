@@ -124,6 +124,8 @@ class BrowseViewModel @Inject constructor(
     }
 
     fun reloadFiles() {
+        Timber.d("reloadFiles: Clearing cache for resource $resourceId")
+        MediaFilesCacheManager.clearCache(resourceId)
         loadResource()
     }
     

@@ -68,7 +68,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                     }
                     is CloudResult.Error -> {
                         Timber.e("Failed to load folders: ${result.message}")
-                        _events.send(GoogleDriveFolderPickerEvent.ShowError(result.message ?: "Unknown error"))
+                        _events.send(GoogleDriveFolderPickerEvent.ShowError(result.message))
                         _state.update { it.copy(isLoading = false) }
                     }
                 }

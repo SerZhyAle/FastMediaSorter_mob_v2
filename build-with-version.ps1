@@ -33,13 +33,16 @@ Write-Host "Backup created: $backupPath" -ForegroundColor Yellow
 # Replace versionCode
 $content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
 
-# Replace versionName (with debug to verify)
-$oldVersionMatch = [regex]::Match($content, '(versionName\s*=\s*)"([^"]*)"')
-if ($oldVersionMatch.Success) {
-    $oldVersion = $oldVersionMatch.Groups[2].Value
-    Write-Host "Current versionName: $oldVersion" -ForegroundColor Yellow
-}
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
+# Don't replace versionName - it's auto-generated dynamically from java.time.LocalDateTime
+# Comment out the old logic:
+# $oldVersionMatch = [regex]::Match($content, '(versionName\s*=\s*)"([^"]*)"')
+# if ($oldVersionMatch.Success) {
+#     $oldVersion = $oldVersionMatch.Groups[2].Value
+#     Write-Host "Current versionName: $oldVersion" -ForegroundColor Yellow
+# }
+# $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
+
+Write-Host "versionName will be auto-generated dynamically by Gradle" -ForegroundColor Yellow
 
 # Write updated content
 Set-Content $buildGradlePath $content -NoNewline
@@ -65,6 +68,7 @@ if ($LASTEXITCODE -eq 0) {
 } else {
     Write-Host "`n==================================" -ForegroundColor Red
     Write-Host "BUILD FAILED" -ForegroundColor Red
+    Write-Host "Version: $versionName" -ForegroundColor Green
     Write-Host "==================================" -ForegroundColor Red
     
     # Restore backup

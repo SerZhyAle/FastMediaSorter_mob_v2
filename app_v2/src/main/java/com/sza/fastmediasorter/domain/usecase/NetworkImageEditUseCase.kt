@@ -186,7 +186,7 @@ class NetworkImageEditUseCase @Inject constructor(
                         overwrite = true
                     )
                     
-                    when (val result = smbFileOperationHandler.executeCopy(copyOperation)) {
+                    when (smbFileOperationHandler.executeCopy(copyOperation)) {
                         is FileOperationResult.Success -> tempFile
                         else -> {
                             Timber.e("SMB download failed for $networkPath")
@@ -207,7 +207,7 @@ class NetworkImageEditUseCase @Inject constructor(
                         overwrite = true
                     )
                     
-                    when (val result = sftpFileOperationHandler.executeCopy(copyOperation)) {
+                    when (sftpFileOperationHandler.executeCopy(copyOperation)) {
                         is FileOperationResult.Success -> tempFile
                         else -> {
                             Timber.e("SFTP download failed for $networkPath")

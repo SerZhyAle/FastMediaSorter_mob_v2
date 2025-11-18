@@ -89,7 +89,7 @@ class FileInfoDialog(
         if (mediaFile.exifDateTime != null) {
             binding.tvExifDateTime.text = context.getString(
                 R.string.exif_datetime_label,
-                formatDate(mediaFile.exifDateTime!!)
+                formatDate(mediaFile.exifDateTime)
             )
             binding.tvExifDateTime.visibility = View.VISIBLE
         } else {
@@ -100,7 +100,7 @@ class FileInfoDialog(
         if (mediaFile.exifOrientation != null) {
             binding.tvExifOrientation.text = context.getString(
                 R.string.exif_orientation_label,
-                formatOrientation(mediaFile.exifOrientation!!)
+                formatOrientation(mediaFile.exifOrientation)
             )
             binding.tvExifOrientation.visibility = View.VISIBLE
         } else {
@@ -111,7 +111,7 @@ class FileInfoDialog(
         if (mediaFile.exifLatitude != null && mediaFile.exifLongitude != null) {
             binding.tvExifGPS.text = context.getString(
                 R.string.exif_gps_label,
-                formatGPS(mediaFile.exifLatitude!!, mediaFile.exifLongitude!!)
+                formatGPS(mediaFile.exifLatitude, mediaFile.exifLongitude)
             )
             binding.tvExifGPS.visibility = View.VISIBLE
         } else {
@@ -124,7 +124,7 @@ class FileInfoDialog(
         if (mediaFile.duration != null) {
             binding.tvVideoDuration.text = context.getString(
                 R.string.video_duration_label,
-                formatDuration(mediaFile.duration!!)
+                formatDuration(mediaFile.duration)
             )
             binding.tvVideoDuration.visibility = View.VISIBLE
         } else {

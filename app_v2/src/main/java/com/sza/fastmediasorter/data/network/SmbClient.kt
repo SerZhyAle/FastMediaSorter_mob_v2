@@ -45,9 +45,9 @@ import java.util.concurrent.Executors
 class SmbClient @Inject constructor() {
     
     companion object {
-        private const val CONNECTION_TIMEOUT_MS = 30000L
-        private const val READ_TIMEOUT_MS = 30000L
-        private const val WRITE_TIMEOUT_MS = 30000L
+        private const val CONNECTION_TIMEOUT_MS = 10000L // 10 seconds for connection attempts
+        private const val READ_TIMEOUT_MS = 10000L // 10 seconds for read operations (thumbnails)
+        private const val WRITE_TIMEOUT_MS = 30000L // 30 seconds for write operations (longer for large files)
         private const val MAX_CONCURRENT_CONNECTIONS = 8 // Limit parallel SMB connections
         private const val CONNECTION_IDLE_TIMEOUT_MS = 5000L // 5 seconds idle timeout
         private const val SMB_PARALLEL_SCAN_THREADS = 20 // Thread pool size for parallel directory scanning

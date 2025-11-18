@@ -87,7 +87,20 @@
     <string name="media_files">Медіафайли</string>
     <string name="playback">Відтворення та сортування</string>
     <string name="destinations">Отримувачі</string>
+        <!-- Settings - General -->
     <string name="language">Мова</string>
+    <string name="backup_restore_settings">Резервне копіювання</string>
+    <string name="export_settings">Вивантажити всі налаштування у файл</string>
+    <string name="import_settings">Завантажити налаштування з файлу</string>
+    <string name="export_success">Налаштування експортовано до Downloads/FastMediaSorter_export.xml</string>
+    <string name="export_failed">Помилка експорту налаштувань: %s</string>
+    <string name="import_success">Налаштування успішно імпортовано</string>
+    <string name="import_failed">Помилка імпорту налаштувань: %s</string>
+    <string name="import_file_not_found">Файл не знайдено. Помістіть файл FastMediaSorter_export.xml у каталог Downloads</string>
+    <string name="restart_required_title">Потрібен перезапуск</string>
+    <string name="restart_required_message">Налаштування імпортовано. Перезапустіть додаток для застосування змін.</string>
+    <string name="restart_now">Перезапустити</string>
+    <string name="restart_later">Пізніше</string>
     <string name="prevent_sleep">Заборонити сон пристрою</string>
     <string name="small_controls">Малі елементи керування</string>
     <string name="default_smb_user">SMB користувач за замовчуванням</string>
@@ -99,7 +112,7 @@
     <string name="support_images_description">Підтримка статичних зображень</string>
     <string name="supported_image_formats">Підтримуються: JPG, PNG, BMP, WEBP</string>
     <string name="load_full_size_images">Завантажувати зображення повністю</string>
-    <string name="load_full_size_images_hint">Дозволяє наближати, але використовує більше даних і пам\'яті. За замовчуванням вимк. (завантажується 1920px).</string>
+    <string name="load_full_size_images_hint">Вмикає жести масштабування та обертання в режимі командної панелі, але використовує більше даних і пам\'яті. За замовчуванням вимк. (завантажується 1920px).</string>
     <string name="image_size_limit">Обмеження розміру зображень</string>
     <string name="image_size_range">1 КБ - 10 МБ</string>
     <string name="support_gif">Підтримка GIF</string>

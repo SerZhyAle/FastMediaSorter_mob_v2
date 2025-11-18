@@ -140,7 +140,7 @@ class CloudMediaScanner @Inject constructor(
         }
     }
 
-    private suspend fun ensureAuthenticated(client: CloudStorageClient, provider: CloudProvider?) {
+    private suspend fun ensureAuthenticated(@Suppress("UNUSED_PARAMETER") client: CloudStorageClient, provider: CloudProvider?) {
         // Check if already authenticated
         val isAuthenticated = when (provider) {
             CloudProvider.GOOGLE_DRIVE -> {

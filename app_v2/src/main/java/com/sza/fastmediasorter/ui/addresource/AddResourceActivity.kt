@@ -565,8 +565,11 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private fun getLocalIpAddress(): String? {
         try {
             // Try WiFi first
+            @Suppress("DEPRECATION")
             val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            @Suppress("DEPRECATION")
             wifiManager?.connectionInfo?.let { wifiInfo ->
+                @Suppress("DEPRECATION")
                 val ipInt = wifiInfo.ipAddress
                 if (ipInt != 0) {
                     return String.format(

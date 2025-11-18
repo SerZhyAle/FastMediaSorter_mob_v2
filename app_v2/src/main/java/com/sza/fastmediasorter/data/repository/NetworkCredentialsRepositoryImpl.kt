@@ -40,4 +40,8 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         // DAO doesn't have delete by entity, use deleteByCredentialId
         dao.deleteByCredentialId(credentials.credentialId)
     }
+
+    override fun getAllCredentials(): kotlinx.coroutines.flow.Flow<List<NetworkCredentialsEntity>> {
+        return dao.getAllCredentials()
+    }
 }

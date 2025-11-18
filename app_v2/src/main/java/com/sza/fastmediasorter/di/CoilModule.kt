@@ -37,12 +37,6 @@ object CoilModule {
         ftpClient: FtpClient,
         credentialsRepository: NetworkCredentialsRepository
     ): ImageLoader {
-        // Configure dispatcher for parallel network requests
-        val dispatcher = Dispatcher().apply {
-            maxRequests = 12 // Increase from default 64 to limit parallel SMB connections
-            maxRequestsPerHost = 4 // Limit per host to avoid overwhelming SMB server
-        }
-        
         // Calculate optimal memory cache size based on device RAM
         val memoryCache = calculateMemoryCacheSize(context)
         Timber.d("CoilModule: Configured memory cache size: $memoryCache bytes (${memoryCache / 1024 / 1024}MB)")

@@ -157,12 +157,21 @@
                 android:lineSpacingMultiplier="1.2" />
         </LinearLayout>
 
+        <!-- Standard ImageView for non-zoomable mode -->
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
             android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+
+        <!-- PhotoView for zoomable mode (when loadFullSizeImages=true) -->
+        <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/photoView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
             android:contentDescription="@null" />
 
         <!-- Touch zones for command panel mode (2 columns: left=Previous, right=Next) -->
@@ -185,6 +194,36 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:background="@android:color/transparent" />
+        </LinearLayout>
+
+        <!-- 3-zone touch overlay for zoomable mode: 25% left=Previous, 50% center=Gestures, 25% right=Next -->
+        <LinearLayout
+            android:id="@+id/touchZones3Overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/touchZone3Previous"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.25"
+                android:background="@android:color/transparent" />
+
+            <View
+                android:id="@+id/touchZone3Gestures"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.50"
+                android:background="@android:color/transparent" />
+
+            <View
+                android:id="@+id/touchZone3Next"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.25"
                 android:background="@android:color/transparent" />
         </LinearLayout>
 

@@ -1,18 +1,56 @@
 # TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.25.1118.0134  
-**Version**: 2.25.1118.0134
+**Latest Build**: 2.25.1118.0356  
+**Version**: 2.25.1118.0356
 **Package**: com.sza.fastmediasorter
 
 
 
-- [ ] В блоке настроек General нужно две кнопки - "Выгрузить все настройки в файл" и "Загрузить настройки из файла". Создаётся файл XML со всеми настройками, списком ресурсов (всевсе данные) и списком desinations. При экспорте создаётся файл FastMediaSorter_import.xml в папке Downloads. Импорт читает этот файл из того же каталога. Если такого файла там нет - сообщение об оибке "поместите файл FastMediaSorter_import.xml в каталог Downloads".
-
-
-- [ ] Во время проигрывателя статичных изображений с демонстрацией командной панели над изображением мы имеем две тач-зоны "предыдущий" и "следующий". Я хчу, чтобы при включённой настройке "загружать изображения полностью" над изображением в этом режиме было не две, а три тач зоны. Три вертикальные зоны. Первые 25% слева - "предыдущий". Вторые 50% - место для "щипка" пользователя. Последняя 25% - "следующий". В области щипка пользовааель может приблизить изобржение раздвигая пальцы или повернуть изображение поворачивая пальцы по часовой стрелке или против часовой стрелки.
-
-
-
+### Build 2.25.1118.0356 ✅
+- ✅ **FEATURE: 3-zone touch layout with PhotoView for pinch-to-zoom and rotation gestures**
+- **User request**: Enable pinch-to-zoom and rotation gestures in command panel mode when "Load images at full resolution" setting is ON
+- **Implementation**: 
+  - Added PhotoView library 2.3.0 via JitPack repository for gesture support
+  - Created 3-zone touch overlay layout (25% left = Previous, 50% center = Gestures, 25% right = Next)
+  - Standard ImageView used when `loadFullSizeImages=false` (default, 2-zone mode)
+  - PhotoView used when `loadFullSizeImages=true` (3-zone mode with gesture area)
+  - Automatic mode switching based on setting state
+- **Changes**:
+  - **build.gradle.kts**: Added `com.github.chrisbanes:PhotoView:2.3.0` dependency
+  - **settings.gradle.kts**: Added JitPack Maven repository (`maven { url = uri("https://jitpack.io") }`)
+  - **activity_player_unified.xml**:
+    - Added `PhotoView` widget (id: `photoView`, initially hidden)
+    - Added 3-zone touch overlay (`touchZones3Overlay`) with weighted columns (0.25 / 0.50 / 0.25)
+    - Kept legacy 2-zone overlay (`touchZonesOverlay`) for compatibility
+  - **PlayerActivity.kt**:
+    - Added PhotoView import
+    - Updated `setupTouchZones()`: Added listeners for 3-zone overlay (Previous/Next zones)
+    - Refactored `displayImage()`: 
+      - Reads `loadFullSizeImages` setting from repository
+      - Conditionally shows ImageView (2-zone) or PhotoView (3-zone) based on setting
+      - Switches touch overlay visibility (`touchZonesOverlay` vs `touchZones3Overlay`)
+      - Loads images into correct view (ImageView or PhotoView)
+      - PhotoView center zone has no click handler (gestures handled by library)
+    - Updated `updatePanelVisibility()`: Comment clarifies touch zones managed by `displayImage()`
+  - **strings.xml (en/ru/uk)**: Updated `load_full_size_images_hint` to mention "pinch-to-zoom and rotation gestures in command panel mode"
+- **How it works**:
+  1. User enables "Load images at full resolution" in Settings → Media
+  2. Opens static image in PlayerActivity with command panel visible
+  3. App automatically switches from 2-zone to 3-zone layout
+  4. PhotoView loads full-resolution image
+  5. User can:
+     - Tap left 25% → Previous image
+     - Tap right 25% → Next image
+     - Pinch center 50% → Zoom in/out
+     - Rotate fingers in center 50% → Rotate image clockwise/counterclockwise
+  6. When setting OFF → returns to standard 2-zone ImageView (1920px resolution, no gestures)
+- **PhotoView features**:
+  - Pinch-to-zoom (2-finger spread/pinch)
+  - Rotation gestures (2-finger rotate clockwise/counterclockwise)
+  - Double-tap to zoom
+  - Pan/scroll when zoomed
+  - Smooth animations
+- **Result**: Full gesture support for static images in command panel mode. Conditional activation via existing setting. No changes to fullscreen mode behavior. Memory-efficient (only loads full resolution when explicitly enabled).
 
 ### Build 2.0.0-build2511171445 ✅
 - ✅ **REFACTOR: Network settings restructure**

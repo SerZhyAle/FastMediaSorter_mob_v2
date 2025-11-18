@@ -140,6 +140,10 @@ class ResourceRepositoryImpl @Inject constructor(
         resourceDao.deleteById(resourceId)
     }
     
+    override suspend fun deleteAllResources() {
+        resourceDao.deleteAll()
+    }
+    
     override suspend fun testConnection(resource: MediaResource): Result<String> {
         return when (resource.type) {
             ResourceType.LOCAL -> {

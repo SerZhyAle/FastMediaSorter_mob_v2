@@ -12,8 +12,10 @@ import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -91,12 +93,12 @@ class EditResourceViewModel @Inject constructor(
             
             // Load SMB credentials if resource is SMB type
             if (resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SMB && resource.credentialsId != null) {
-                loadSmbCredentials(resource.credentialsId!!)
+                loadSmbCredentials(resource.credentialsId)
             }
             
             // Load SFTP credentials if resource is SFTP type
             if (resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP && resource.credentialsId != null) {
-                loadSftpCredentials(resource.credentialsId!!)
+                loadSftpCredentials(resource.credentialsId)
             }
             
             // Check for trash folders
@@ -415,44 +417,31 @@ class EditResourceViewModel @Inject constructor(
                 }
             }
             
-            // If resource is destination, verify it's still writable after credential changes
-            if (updatedResource.isDestination) {
-                val scanner = mediaScannerFactory.getScanner(updatedResource.type)
-                val isWritable = try {
+            // Check if resource is still writable after credential changes
+            val scanner = mediaScannerFactory.getScanner(updatedResource.type)
+            val isWritable = try {
+                withTimeout(5000) { // 5 second timeout for write permission check
                     scanner.isWritable(updatedResource.path, updatedResource.credentialsId)
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to check write permissions")
-                    false
                 }
-                
-                if (!isWritable) {
-                    // Resource is no longer writable - remove from destinations
-                    Timber.w("Resource ${updatedResource.name} is no longer writable, removing from destinations")
-                    updatedResource = updatedResource.copy(
-                        isWritable = false,
-                        isDestination = false,
-                        destinationOrder = null,
-                        destinationColor = 0
-                    )
-                    sendEvent(EditResourceEvent.ShowError(
-                        "Warning: Resource is not writable (read-only). " +
-                        "It has been removed from destinations. " +
-                        "Only writable resources can be destinations."
-                    ))
-                } else {
-                    // Update isWritable flag
-                    updatedResource = updatedResource.copy(isWritable = true)
-                }
-            } else {
-                // For non-destination resources, just update the isWritable flag
-                val scanner = mediaScannerFactory.getScanner(updatedResource.type)
-                val isWritable = try {
-                    scanner.isWritable(updatedResource.path, updatedResource.credentialsId)
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to check write permissions")
-                    false
-                }
-                updatedResource = updatedResource.copy(isWritable = isWritable)
+            } catch (e: TimeoutCancellationException) {
+                Timber.w("Write permission check timed out after 5 seconds - resource may be unavailable")
+                false
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to check write permissions")
+                false
+            }
+            
+            // Update isWritable flag (but keep destination status even if temporarily unavailable)
+            updatedResource = updatedResource.copy(isWritable = isWritable)
+            
+            if (!isWritable && updatedResource.isDestination) {
+                // Warn user but don't remove from destinations - they may just be outside network
+                Timber.w("Resource ${updatedResource.name} appears unavailable but keeping as destination")
+                sendEvent(EditResourceEvent.ShowError(
+                    "Warning: Unable to verify write access. " +
+                    "Resource may be temporarily unavailable (e.g., outside home network). " +
+                    "Destination status preserved - resource will work when available again."
+                ))
             }
             
             updateResourceUseCase(updatedResource).onSuccess {

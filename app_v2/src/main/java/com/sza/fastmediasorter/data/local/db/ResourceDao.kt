@@ -21,6 +21,9 @@ interface ResourceDao {
     @Query("DELETE FROM resources WHERE id = :id")
     suspend fun deleteById(id: Long)
     
+    @Query("DELETE FROM resources")
+    suspend fun deleteAll()
+    
     @Query("SELECT * FROM resources WHERE id = :id")
     fun getResourceById(id: Long): Flow<ResourceEntity?>
     

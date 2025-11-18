@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.annotation.ExperimentalCoilApi
+import coil.dispose
 import coil.imageLoader
 import coil.load
 import coil.memory.MemoryCache
@@ -117,10 +118,23 @@ class MediaFileAdapter(
             is GridViewHolder -> holder.bind(file, selectedPaths)
         }
     }
+    
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        super.onViewRecycled(holder)
+        // Cancel pending Coil image loads when ViewHolder is recycled (scrolled off screen)
+        when (holder) {
+            is ListViewHolder -> holder.disposeImage()
+            is GridViewHolder -> holder.disposeImage()
+        }
+    }
 
     inner class ListViewHolder(
         private val binding: ItemMediaFileBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun disposeImage() {
+            binding.ivThumbnail.dispose()
+        }
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             binding.apply {
@@ -243,7 +257,9 @@ class MediaFileAdapter(
                                     placeholder(R.drawable.ic_image_placeholder)
                                     error(R.drawable.ic_image_error)
                                     transformations(RoundedCornersTransformation(8f))
-                                    // Set memory and disk cache policy
+                                    // Aggressive caching for network files to reduce re-downloads
+                                    memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    diskCachePolicy(coil.request.CachePolicy.ENABLED)
                                     memoryCacheKey(file.path)
                                     diskCacheKey(file.path)
                                     listener(
@@ -328,7 +344,7 @@ class MediaFileAdapter(
                             else -> {
                                 // Load video first frame using Coil with video frame decoder for local files
                                 // Support both file:// paths and content:// URIs
-                                val data = if (file.path.startsWith("content://")) {
+                                val data: Any = if (file.path.startsWith("content://")) {
                                     Uri.parse(file.path)
                                 } else {
                                     File(file.path)
@@ -405,6 +421,10 @@ class MediaFileAdapter(
     inner class GridViewHolder(
         private val binding: ItemMediaFileGridBinding
     ) : RecyclerView.ViewHolder(binding.root) {
+        
+        fun disposeImage() {
+            binding.ivThumbnail.dispose()
+        }
         
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             binding.apply {
@@ -508,6 +528,9 @@ class MediaFileAdapter(
                                     placeholder(R.drawable.ic_image_placeholder)
                                     error(R.drawable.ic_image_error)
                                     transformations(RoundedCornersTransformation(8f))
+                                    // Aggressive caching for network files
+                                    memoryCachePolicy(coil.request.CachePolicy.ENABLED)
+                                    diskCachePolicy(coil.request.CachePolicy.ENABLED)
                                     memoryCacheKey(file.path)
                                     diskCacheKey(file.path)
                                 }
@@ -576,7 +599,7 @@ class MediaFileAdapter(
                             }
                             else -> {
                                 // Support both file:// paths and content:// URIs
-                                val data = if (file.path.startsWith("content://")) {
+                                val data: Any = if (file.path.startsWith("content://")) {
                                     Uri.parse(file.path)
                                 } else {
                                     File(file.path)

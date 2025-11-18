@@ -48,5 +48,7 @@ interface ResourceRepository {
     
     suspend fun deleteResource(resourceId: Long)
     
+    suspend fun deleteAllResources()
+    
     suspend fun testConnection(resource: MediaResource): Result<String>
 }

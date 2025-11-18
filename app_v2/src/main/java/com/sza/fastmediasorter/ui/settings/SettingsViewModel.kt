@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -22,7 +24,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    private val settingsRepository: SettingsRepository,
+    val settingsRepository: SettingsRepository,
+    val resourceRepository: ResourceRepository,
+    val credentialsRepository: NetworkCredentialsRepository,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val getResourcesUseCase: GetResourcesUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase

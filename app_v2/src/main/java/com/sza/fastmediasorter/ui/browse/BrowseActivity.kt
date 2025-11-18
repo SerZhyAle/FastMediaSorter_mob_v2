@@ -104,6 +104,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun setupViews() {
         binding.btnBack.setOnClickListener {
             finish()
+            @Suppress("DEPRECATION")
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
         }
 
@@ -316,11 +317,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     // No log for skipped submitList - reduces log spam during large folder loading
                     
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
-                    state.resource?.let { resource ->
-                        mediaFileAdapter.setCredentialsId(resource.credentialsId)
+                    state.resource?.let { _ ->
+                        mediaFileAdapter.setCredentialsId(state.resource.credentialsId)
                     }
 
-                    state.resource?.let { resource ->
+                    state.resource?.let { _ ->
                         binding.tvResourceInfo.text = buildResourceInfo(state)
                     }
 
@@ -439,6 +440,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 skipCheck,
                                 event.filePath // Pass file path for pagination mode
                             ))
+                            @Suppress("DEPRECATION")
                             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         }
                     }
@@ -1232,7 +1234,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                                                     shareName = shareName,
                                                                     username = credentials.username,
                                                                     password = credentials.password,
-                                                                    domain = credentials.domain ?: "",
+                                                                    domain = credentials.domain,
                                                                     port = if (uri.port > 0) uri.port else 445
                                                                 ),
                                                                 remotePath = filePath,
@@ -1301,13 +1303,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                             false
                                         }
                                     }
-                                    else -> false
+                                    com.sza.fastmediasorter.domain.model.ResourceType.LOCAL,
+                                    com.sza.fastmediasorter.domain.model.ResourceType.CLOUD -> {
+                                        // Local and cloud files already have URIs
+                                        false
+                                    }
                                 }
                                 
                                 if (downloadSuccess && tempFile.exists()) tempFile else null
                             }
                         }
-                        else -> null
                     }
                     
                     if (fileToShare != null && fileToShare.exists()) {

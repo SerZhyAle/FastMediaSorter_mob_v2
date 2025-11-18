@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context

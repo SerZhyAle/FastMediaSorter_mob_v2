@@ -24,6 +24,7 @@ import coil.imageLoader
 import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
+import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -395,6 +396,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         when (zone) {
             TouchZone.BACK -> {
                 finish()
+                @Suppress("DEPRECATION")
                 overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
             }
             TouchZone.COPY -> {
@@ -669,6 +671,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun setupTouchZones() {
+        // 2-zone mode (legacy): left=Previous, right=Next
         binding.touchZonePrevious.setOnClickListener {
             viewModel.previousFile()
         }
@@ -676,6 +679,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.touchZoneNext.setOnClickListener {
             viewModel.nextFile()
         }
+        
+        // 3-zone mode (for full-size images): 25% left=Previous, 50% center=Gestures, 25% right=Next
+        binding.touchZone3Previous.setOnClickListener {
+            viewModel.previousFile()
+        }
+        
+        binding.touchZone3Next.setOnClickListener {
+            viewModel.nextFile()
+        }
+        
+        // Center gesture zone - no click handler (PhotoView handles pinch/rotate)
         
         // First-run hint overlay removed (migrated to new settings system)
     }
@@ -857,7 +871,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (showCommandPanel) {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
-            binding.touchZonesOverlay.isVisible = true
+            // Touch zones visibility will be managed by displayImage() based on loadFullSizeImages setting
+            // (standard 2-zone overlay vs 3-zone overlay with gesture area)
             // Copy/Move panel visibility is controlled by updateCommandAvailability()
             binding.controlsOverlay.isVisible = false
             
@@ -888,6 +903,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             // Fullscreen mode
             binding.topCommandPanel.isVisible = false
             binding.touchZonesOverlay.isVisible = false
+            binding.touchZones3Overlay.isVisible = false
             binding.copyToPanel.isVisible = false
             binding.moveToPanel.isVisible = false
             // controlsOverlay visibility is controlled in updateUI based on showControls
@@ -1012,7 +1028,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private fun displayImage(path: String) {
         releasePlayer()
         binding.playerView.isVisible = false
-        binding.imageView.isVisible = true
         
         // Hide touch zones overlay for images
         binding.audioTouchZonesOverlay.isVisible = false
@@ -1026,31 +1041,50 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
         
-        // Check if this is a network resource
-        if (currentFile != null && resource != null && 
-            (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP)) {
+        // Get settings to determine which view to use
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val usePhotoView = settings.loadFullSizeImages && viewModel.state.value.showCommandPanel
             
-            Timber.d("PlayerActivity: Loading network image: $path from ${resource.type}")
+            // Switch visibility between ImageView and PhotoView
+            binding.imageView.isVisible = !usePhotoView
+            binding.photoView.isVisible = usePhotoView
             
-            // Use NetworkFileData for Coil to load via NetworkFileFetcher
-            // path is already in format: /shareName/path/to/file.jpg
-            val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId)
+            // Determine which touch zone overlay to show (only in command panel mode)
+            if (viewModel.state.value.showCommandPanel) {
+                binding.touchZonesOverlay.isVisible = !usePhotoView
+                binding.touchZones3Overlay.isVisible = usePhotoView
+            } else {
+                binding.touchZonesOverlay.isVisible = false
+                binding.touchZones3Overlay.isVisible = false
+            }
+            
+            // Determine target view for image loading
+            val targetView = if (usePhotoView) binding.photoView else binding.imageView
             
             // Get image size setting (full resolution or limited to 1920px)
-            lifecycleScope.launch {
-                val settings = settingsRepository.getSettings().first()
-                val imageSize = if (settings.loadFullSizeImages) {
-                    // Load full resolution for zoom support
-                    Size.ORIGINAL
-                } else {
-                    // Load 1920px for faster loading
-                    Size(1920, 1920)
-                }
+            val imageSize = if (settings.loadFullSizeImages) {
+                // Load full resolution for zoom support
+                Size.ORIGINAL
+            } else {
+                // Load 1920px for faster loading
+                Size(1920, 1920)
+            }
             
+            // Check if this is a network resource
+            if (currentFile != null && resource != null && 
+                (resource.type == ResourceType.SMB || resource.type == ResourceType.SFTP || resource.type == ResourceType.FTP)) {
+                
+                Timber.d("PlayerActivity: Loading network image: $path from ${resource.type}, usePhotoView=$usePhotoView")
+                
+                // Use NetworkFileData for Coil to load via NetworkFileFetcher
+                // path is already in format: /shareName/path/to/file.jpg
+                val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId)
+                
                 val request = ImageRequest.Builder(this@PlayerActivity)
                     .data(networkData)
                     .size(imageSize)
-                    .target(binding.imageView)
+                    .target(targetView)
                     .memoryCacheKey(path) // Use path as consistent cache key
                     .diskCacheKey(path)
                     .listener(
@@ -1078,37 +1112,38 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     .build()
                 
                 imageLoader.enqueue(request)
-            }
-        } else {
-            // Local file - support both file:// paths and content:// URIs
-            val data = if (path.startsWith("content://")) {
-                android.net.Uri.parse(path)
             } else {
-                File(path)
+                // Local file - support both file:// paths and content:// URIs
+                val data = if (path.startsWith("content://")) {
+                    android.net.Uri.parse(path)
+                } else {
+                    File(path)
+                }
+                targetView.load(data) {
+                    size(imageSize)
+                    listener(
+                        onStart = {
+                            // Loading started - indicator will show after 1 second if still loading
+                        },
+                        onSuccess = { _, _ ->
+                            // Cancel and hide loading indicator
+                            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                            binding.progressBar.isVisible = false
+                            
+                            // Preload next image for local files too
+                            preloadNextImageIfNeeded()
+                        },
+                        onError = { _, _ ->
+                            // Cancel and hide loading indicator
+                            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                            binding.progressBar.isVisible = false
+                        }
+                    )
+                }
             }
-            binding.imageView.load(data) {
-                listener(
-                    onStart = {
-                        // Loading started - indicator will show after 1 second if still loading
-                    },
-                    onSuccess = { _, _ ->
-                        // Cancel and hide loading indicator
-                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                        binding.progressBar.isVisible = false
-                        
-                        // Preload next image for local files too
-                        preloadNextImageIfNeeded()
-                    },
-                    onError = { _, _ ->
-                        // Cancel and hide loading indicator
-                        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                        binding.progressBar.isVisible = false
-                    }
-                )
-            }
-        }
 
-        updateSlideShow()
+            updateSlideShow()
+        }
     }
 
     /**
@@ -1701,7 +1736,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun createDestinationButton(
         destination: com.sza.fastmediasorter.domain.model.MediaResource,
-        index: Int,
+        @Suppress("UNUSED_PARAMETER") index: Int,
         isCopy: Boolean
     ): com.google.android.material.button.MaterialButton {
         return com.google.android.material.button.MaterialButton(this).apply {
@@ -1888,8 +1923,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     private fun updateAudioFormatInfo() {
-        val currentFile = viewModel.state.value.currentFile ?: return
-        
         val formatInfo = exoPlayer?.currentTracks?.groups?.firstOrNull { group ->
             group.type == androidx.media3.common.C.TRACK_TYPE_AUDIO
         }?.let { audioGroup ->
@@ -1991,7 +2024,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                                 ResourceType.SFTP -> downloadSftpFile(currentFile.path, tempFile, resource.credentialsId)
                                 ResourceType.FTP -> downloadFtpFile(currentFile.path, tempFile, resource.credentialsId)
                                 ResourceType.CLOUD -> downloadCloudFile(currentFile.path, tempFile, resource.credentialsId?.toLongOrNull())
-                                else -> false
+                                ResourceType.LOCAL -> false // Local files don't need download
                             }
                             
                             Timber.d("shareCurrentFile: Download result=$downloadSuccess, fileExists=${tempFile.exists()}, fileSize=${tempFile.length()}")
@@ -1999,7 +2032,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             if (downloadSuccess) tempFile else null
                         }
                     }
-                    else -> null
                 }
                 
                 if (fileToShare == null || !fileToShare.exists()) {
@@ -2033,7 +2065,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
                 
             } catch (e: Exception) {
-                val errorMsg = "Share failed: ${e::class.simpleName}: ${e.message}\nFile: ${currentFile?.name}\nResource: ${resource?.type}"
+                val errorMsg = "Share failed: ${e::class.simpleName}: ${e.message}\nFile: ${currentFile.name}\nResource: ${resource.type}"
                 Timber.e(e, "PlayerActivity: Failed to share file")
                 showError(errorMsg, e)
             }
@@ -2080,7 +2112,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         shareName = shareName,
                         username = credentials.username,
                         password = credentials.password,
-                        domain = credentials.domain ?: "",
+                        domain = credentials.domain,
                         port = if (uri.port > 0) uri.port else 445
                     ),
                     remotePath = filePath,
@@ -2143,7 +2175,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
     
-    private suspend fun downloadCloudFile(remotePath: String, localFile: File, credentialsId: Long?): Boolean {
+    private suspend fun downloadCloudFile(@Suppress("UNUSED_PARAMETER") remotePath: String, @Suppress("UNUSED_PARAMETER") localFile: File, @Suppress("UNUSED_PARAMETER") credentialsId: Long?): Boolean {
         // TODO: Implement cloud download when cloud storage is integrated
         Timber.w("Cloud file sharing not yet implemented")
         return false

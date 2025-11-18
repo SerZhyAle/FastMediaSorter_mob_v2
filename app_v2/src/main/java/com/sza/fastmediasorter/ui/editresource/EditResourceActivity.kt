@@ -62,7 +62,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             }
         })
         
-        binding.toggleSlideshowUnit.addOnButtonCheckedListener { _, checkedId, isChecked ->
+        binding.toggleSlideshowUnit.addOnButtonCheckedListener { _, _, isChecked ->
             if (isChecked) {
                 updateSlideshowIntervalFromInput()
             }

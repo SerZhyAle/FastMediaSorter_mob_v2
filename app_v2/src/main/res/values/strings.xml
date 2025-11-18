@@ -87,7 +87,20 @@
     <string name="media_files">Media Files</string>
     <string name="playback">Playback and Sorting</string>
     <string name="destinations">Destinations</string>
+        <!-- Settings - General -->
     <string name="language">Language</string>
+    <string name="backup_restore_settings">Backup &amp; Restore</string>
+    <string name="export_settings">Export All Settings to File</string>
+    <string name="import_settings">Import Settings from File</string>
+    <string name="export_success">Settings exported to Downloads/FastMediaSorter_export.xml</string>
+    <string name="export_failed">Failed to export settings: %s</string>
+    <string name="import_success">Settings imported successfully</string>
+    <string name="import_failed">Failed to import settings: %s</string>
+    <string name="import_file_not_found">File not found. Please place FastMediaSorter_export.xml in Downloads folder</string>
+    <string name="restart_required_title">Restart Required</string>
+    <string name="restart_required_message">Settings have been imported. Please restart the app to apply changes.</string>
+    <string name="restart_now">Restart Now</string>
+    <string name="restart_later">Later</string>
     <string name="prevent_sleep">Prevent sleep</string>
     <string name="small_controls">Small controls</string>
     <string name="default_smb_user">Default SMB user</string>
@@ -99,7 +112,7 @@
     <string name="support_images_description">Support static images</string>
     <string name="supported_image_formats">Supported: JPG, PNG, BMP, WEBP</string>
     <string name="load_full_size_images">Load images at full resolution</string>
-    <string name="load_full_size_images_hint">Enables zoom but uses more data and memory. Off by default (loads 1920px resolution).</string>
+    <string name="load_full_size_images_hint">Enables pinch-to-zoom and rotation gestures in command panel mode, but uses more data and memory. Off by default (loads 1920px resolution).</string>
     <string name="image_size_limit">Image size limit</string>
     <string name="image_size_range">1 KB - 10 MB</string>
     <string name="support_gif">Support GIF</string>

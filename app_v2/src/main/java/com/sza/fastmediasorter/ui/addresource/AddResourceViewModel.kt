@@ -16,8 +16,10 @@ import com.sza.fastmediasorter.domain.usecase.ScanLocalFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -222,7 +224,12 @@ class AddResourceViewModel @Inject constructor(
                 }
                 
                 val isWritable = try {
-                    scanner.isWritable(path, credentialsId = null)
+                    withTimeout(5000) { // 5 second timeout
+                        scanner.isWritable(path, credentialsId = null)
+                    }
+                } catch (e: TimeoutCancellationException) {
+                    Timber.w("Write permission check timed out for $path")
+                    false
                 } catch (e: Exception) {
                     Timber.e(e, "Error checking write access for $path")
                     false
@@ -422,7 +429,9 @@ class AddResourceViewModel @Inject constructor(
                                 val supportedTypes = getSupportedMediaTypes()
                                 
                                 val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
-                                val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                                val isWritable = withTimeout(5000) { // 5 second timeout
+                                    scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                                }
                                 
                                 // Update resource with real values
                                 val updatedResource = resource.copy(
@@ -535,7 +544,7 @@ class AddResourceViewModel @Inject constructor(
                 )
                 
                 // Add resource to database
-                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { addResult ->
+                addResourceUseCase.addMultiple(listOf(resource)).onSuccess { _ ->
                     Timber.d("Added manually entered SMB resource")
                     
                     // Scan resource to update fileCount and isWritable
@@ -546,7 +555,9 @@ class AddResourceViewModel @Inject constructor(
                             val supportedTypes = getSupportedMediaTypes()
                             
                             val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
-                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            val isWritable = withTimeout(5000) { // 5 second timeout
+                                scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            }
                             
                             // Update resource with real values
                             val updatedResource = resource.copy(
@@ -774,7 +785,9 @@ class AddResourceViewModel @Inject constructor(
                             Timber.d("Starting scan: path=${insertedResource.path}, credentialsId=${insertedResource.credentialsId}, supportedTypes=$supportedTypes")
                             
                             val fileCount = scanner.getFileCount(insertedResource.path, supportedTypes, credentialsId = insertedResource.credentialsId)
-                            val isWritable = scanner.isWritable(insertedResource.path, credentialsId = insertedResource.credentialsId)
+                            val isWritable = withTimeout(5000) { // 5 second timeout
+                                scanner.isWritable(insertedResource.path, credentialsId = insertedResource.credentialsId)
+                            }
                             
                             Timber.d("Scan completed: fileCount=$fileCount, isWritable=$isWritable")
                             
@@ -870,7 +883,9 @@ class AddResourceViewModel @Inject constructor(
                             val supportedTypes = getSupportedMediaTypes()
                             
                             val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
-                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            val isWritable = withTimeout(5000) { // 5 second timeout
+                                scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            }
                             
                             // Update resource with real values
                             val updatedResource = resource.copy(
@@ -1006,13 +1021,20 @@ class AddResourceViewModel @Inject constructor(
                             val supportedTypes = getSupportedMediaTypes()
                             
                             val fileCount = scanner.getFileCount(resource.path, supportedTypes, credentialsId = resource.credentialsId)
-                            val isWritable = scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            val isWritable = withTimeout(5000) { // 5 second timeout
+                                scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
+                            }
                             
                             // Get the inserted resource from DB to get real ID
                             val allResources = resourceRepository.getAllResources().first()
                             val insertedResource = allResources.firstOrNull { 
                                 it.path == resource.path && it.credentialsId == credentialsId 
-                            } ?: return@launch
+                            }
+                            
+                            if (insertedResource == null) {
+                                Timber.e("Failed to find inserted resource in database")
+                                return@launch
+                            }
                             
                             // Update resource with real values
                             val updatedResource = insertedResource.copy(

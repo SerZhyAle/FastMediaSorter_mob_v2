@@ -12,4 +12,5 @@ interface NetworkCredentialsRepository {
     suspend fun getByTypeServerAndPort(type: String, server: String, port: Int): NetworkCredentialsEntity?
     suspend fun update(credentials: NetworkCredentialsEntity)
     suspend fun delete(credentials: NetworkCredentialsEntity)
+    fun getAllCredentials(): kotlinx.coroutines.flow.Flow<List<NetworkCredentialsEntity>>
 }
