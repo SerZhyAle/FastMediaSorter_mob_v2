@@ -457,7 +457,7 @@ class MediaFileAdapter(
                 tvFileName.layoutParams.width = sizeInPx
                 
                 // Highlight selected items
-                root.setCardBackgroundColor(
+                cvCard.setCardBackgroundColor(
                     if (isSelected) {
                         root.context.getColor(R.color.item_selected)
                     } else {

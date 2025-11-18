@@ -19,7 +19,7 @@ android {
         applicationId = "com.sza.fastmediasorter"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11182256
+        versionCode = 11182302
         versionName = "2.${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yy.MMdd.HHmm"))}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

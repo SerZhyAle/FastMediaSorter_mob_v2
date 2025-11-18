@@ -293,7 +293,7 @@ class PagingMediaFileAdapter(
                 ivThumbnail.layoutParams.height = sizeInPx
                 tvFileName.layoutParams.width = sizeInPx
 
-                root.setCardBackgroundColor(
+                cvCard.setCardBackgroundColor(
                     if (isSelected) {
                         root.context.getColor(R.color.item_selected)
                     } else {
