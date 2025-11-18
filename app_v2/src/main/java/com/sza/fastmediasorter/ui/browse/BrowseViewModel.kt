@@ -123,9 +123,7 @@ class BrowseViewModel @Inject constructor(
     private fun loadSettings() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             val settings = settingsRepository.getSettings().first()
-            updateState {
-                copy(showSmallControls = settings.showSmallControls)
-            }
+            updateState { it.copy(showSmallControls = settings.showSmallControls) }
         }
     }
     
