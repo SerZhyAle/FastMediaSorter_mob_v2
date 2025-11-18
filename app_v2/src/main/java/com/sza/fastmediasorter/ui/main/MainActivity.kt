@@ -163,13 +163,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Load resources after UI is ready (deferred from onCreate via BaseActivity)
         viewModel.refreshResources()
         
-        // Log app version (non-critical)
-        try {
-            val versionName = packageManager.getPackageInfo(packageName, 0).versionName
-            val versionCode = packageManager.getPackageInfo(packageName, 0).longVersionCode
-            Timber.d("App version: $versionName (code: $versionCode)")
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to get app version")
+        // Log app version in background (non-critical)
+        lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+                val versionCode = packageManager.getPackageInfo(packageName, 0).longVersionCode
+                Timber.d("App version: $versionName (code: $versionCode)")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to get app version")
+            }
         }
     }
 
