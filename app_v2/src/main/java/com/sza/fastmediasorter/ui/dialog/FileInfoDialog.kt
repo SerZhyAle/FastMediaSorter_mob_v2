@@ -135,8 +135,8 @@ class FileInfoDialog(
         if (mediaFile.width != null && mediaFile.height != null) {
             binding.tvVideoResolution.text = context.getString(
                 R.string.video_resolution_label,
-                mediaFile.width!!,
-                mediaFile.height!!
+                mediaFile.width,
+                mediaFile.height
             )
             binding.tvVideoResolution.visibility = View.VISIBLE
         } else {
@@ -147,7 +147,7 @@ class FileInfoDialog(
         if (mediaFile.videoCodec != null) {
             binding.tvVideoCodec.text = context.getString(
                 R.string.video_codec_label,
-                mediaFile.videoCodec!!
+                mediaFile.videoCodec
             )
             binding.tvVideoCodec.visibility = View.VISIBLE
         } else {
@@ -158,7 +158,7 @@ class FileInfoDialog(
         if (mediaFile.videoBitrate != null) {
             binding.tvVideoBitrate.text = context.getString(
                 R.string.video_bitrate_label,
-                formatBitrate(mediaFile.videoBitrate!!)
+                formatBitrate(mediaFile.videoBitrate)
             )
             binding.tvVideoBitrate.visibility = View.VISIBLE
         } else {
@@ -169,7 +169,7 @@ class FileInfoDialog(
         if (mediaFile.videoFrameRate != null) {
             binding.tvVideoFrameRate.text = context.getString(
                 R.string.video_framerate_label,
-                mediaFile.videoFrameRate!!
+                mediaFile.videoFrameRate
             )
             binding.tvVideoFrameRate.visibility = View.VISIBLE
         } else {
@@ -180,7 +180,7 @@ class FileInfoDialog(
         if (mediaFile.videoRotation != null) {
             binding.tvVideoRotation.text = context.getString(
                 R.string.video_rotation_label,
-                mediaFile.videoRotation!!
+                mediaFile.videoRotation
             )
             binding.tvVideoRotation.visibility = View.VISIBLE
         } else {

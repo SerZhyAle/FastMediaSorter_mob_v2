@@ -1931,11 +1931,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 format.sampleMimeType?.let { 
                     append(it.substringAfter("audio/").uppercase())
                 }
-                format.sampleRate?.let { 
+                format.sampleRate.let { 
                     if (isNotEmpty()) append(" • ")
                     append("${it / 1000} kHz")
                 }
-                format.channelCount?.let {
+                format.channelCount.let {
                     if (isNotEmpty()) append(" • ")
                     append(when (it) {
                         1 -> "Mono"
@@ -1943,7 +1943,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         else -> "$it channels"
                     })
                 }
-                format.bitrate?.let {
+                format.bitrate.let {
                     if (it > 0) {
                         if (isNotEmpty()) append(" • ")
                         append("${it / 1000} kbps")

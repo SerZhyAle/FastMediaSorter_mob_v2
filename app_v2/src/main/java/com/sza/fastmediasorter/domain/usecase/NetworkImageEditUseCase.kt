@@ -228,7 +228,7 @@ class NetworkImageEditUseCase @Inject constructor(
                         overwrite = true
                     )
                     
-                    when (val result = ftpFileOperationHandler.executeCopy(copyOperation)) {
+                    when (ftpFileOperationHandler.executeCopy(copyOperation)) {
                         is FileOperationResult.Success -> tempFile
                         else -> {
                             Timber.e("FTP download failed for $networkPath")
