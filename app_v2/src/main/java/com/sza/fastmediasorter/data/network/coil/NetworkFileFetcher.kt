@@ -118,13 +118,14 @@ class NetworkFileFetcher(
             domain = credentials.domain
         )
 
-        // Read file with smaller buffer for faster thumbnail loading
-        // Thumbnails only need first 512KB (enough for compressed JPEG data at 256px)
-        val maxBytes = 512 * 1024L // 512 KB for thumbnails
+        // Read file with reasonable limit for thumbnail loading
+        // PNG files need more space than JPEG (lossless compression)
+        // 3MB covers most thumbnails while keeping memory usage reasonable
+        val maxBytes = 3 * 1024 * 1024L // 3 MB for thumbnails (handles PNG better)
         
         // Add timeout to avoid blocking UI on slow network
         val result = try {
-            kotlinx.coroutines.withTimeout(8000) { // 8 seconds max for thumbnail load
+            kotlinx.coroutines.withTimeout(10000) { // 10 seconds max for thumbnail load
                 smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
@@ -179,12 +180,13 @@ class NetworkFileFetcher(
             return null
         }
 
-        // Read file with smaller buffer for faster thumbnail loading
-        val maxBytes = 2 * 1024 * 1024L // 2 MB for thumbnails
+        // Read file with reasonable limit for thumbnail loading
+        // PNG files need more space than JPEG (lossless compression)
+        val maxBytes = 3 * 1024 * 1024L // 3 MB for thumbnails (handles PNG better)
         
         // Add timeout to avoid blocking UI on slow network
         val result = try {
-            kotlinx.coroutines.withTimeout(8000) { // 8 seconds max for thumbnail load
+            kotlinx.coroutines.withTimeout(10000) { // 10 seconds max for thumbnail load
                 sftpClient.readFileBytes(remotePath, maxBytes)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
@@ -233,7 +235,7 @@ class NetworkFileFetcher(
         val outputStream = java.io.ByteArrayOutputStream()
         return try {
             // Add timeout to avoid blocking UI on slow network
-            kotlinx.coroutines.withTimeout(8000) { // 8 seconds max for thumbnail load
+            kotlinx.coroutines.withTimeout(10000) { // 10 seconds max for thumbnail load
                 val downloadResult = ftpClient.downloadFileWithNewConnection(
                     host = server,
                     port = port,
