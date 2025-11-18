@@ -378,69 +378,42 @@
             </LinearLayout>
 
             <!-- Slideshow Interval -->
-            <TextView
-                android:id="@+id/tvSlideshowIntervalLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="@string/slideshow_interval"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
+                android:layout_marginTop="12dp"
                 android:orientation="horizontal"
                 android:gravity="center_vertical">
 
-                <com.google.android.material.textfield.TextInputLayout
+                <TextView
+                    android:id="@+id/tvSlideshowIntervalLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                    android:text="@string/slideshow_interval_for_resource"
+                    android:textSize="16sp" />
 
-                    <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSlideshowInterval"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="120dp"
+                    android:hint="@string/slideshow_interval_for_resource"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                    <AutoCompleteTextView
                         android:id="@+id/etSlideshowInterval"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
-                        android:maxLength="2"
-                        android:hint="1-60" />
+                        android:maxLength="5"
+                        android:text="5"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
 
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/toggleSlideshowUnit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    app:singleSelection="true"
-                    app:selectionRequired="true">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnSeconds"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/seconds"
-                        android:textSize="12sp"
-                        android:paddingHorizontal="12dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnMinutes"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/minutes"
-                        android:textSize="12sp"
-                        android:paddingHorizontal="12dp" />
-
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-
             </LinearLayout>
 
-            <!-- Supported Media Types (2x2 grid) -->
+            <!-- Supported Media Types -->
             <TextView
                 android:id="@+id/tvMediaTypesLabel"
                 android:layout_width="wrap_content"
@@ -459,56 +432,113 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/images"
+                        android:textSize="16sp" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportImages"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/images" />
-
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbSupportVideo"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/video" />
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/video"
+                        android:textSize="16sp" />
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportVideo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/audio"
+                        android:textSize="16sp" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="48dp">
+
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/audio" />
+                        android:text="@string/gif_animations"
+                        android:textSize="16sp" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportGif"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/gif_animations" />
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
             <!-- Is Destination -->
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchIsDestination"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="@string/use_as_destination"
-                android:textOn=""
-                android:textOff="" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="48dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/use_as_destination"
+                    android:textSize="16sp" />
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchIsDestination"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textOn=""
+                    android:textOff="" />
+
+            </LinearLayout>
 
             <!-- Clear Trash Button (shown only if trash folders exist) -->
             <com.google.android.material.button.MaterialButton

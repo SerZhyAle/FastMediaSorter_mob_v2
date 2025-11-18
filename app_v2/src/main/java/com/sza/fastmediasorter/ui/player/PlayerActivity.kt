@@ -696,22 +696,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     /**
      * Show first-run hint overlay with touch zones guide
-     * Dismisses on tap or after 5 seconds timeout
+     * Dismisses on first tap (removed auto-dismiss timeout)
      */
     private fun showFirstRunHintOverlay() {
-        // Make overlay visible with semi-transparent background
+        // Make overlay visible with solid background (increased from 0.9f)
         binding.audioTouchZonesOverlay.isVisible = true
-        binding.audioTouchZonesOverlay.alpha = 0.9f
+        binding.audioTouchZonesOverlay.alpha = 1.0f
         
         // Dismiss on any tap
         binding.audioTouchZonesOverlay.setOnClickListener {
             dismissFirstRunHintOverlay()
         }
         
-        // Auto-dismiss after 5 seconds
-        Handler(Looper.getMainLooper()).postDelayed({
-            dismissFirstRunHintOverlay()
-        }, 5000)
+        // No auto-dismiss timeout - only dismisses on tap
     }
     
     /**
@@ -889,6 +886,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     binding.btnNextCmd,
                     binding.btnRenameCmd,
                     binding.btnDeleteCmd,
+                    binding.btnShareCmd,
+                    binding.btnInfoCmd,
+                    binding.btnEditCmd,
                     binding.btnUndoCmd,
                     binding.btnFullscreenCmd,
                     binding.btnSlideshowCmd

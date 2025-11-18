@@ -71,6 +71,7 @@
     <string name="no_files_match_criteria">Немає файлів, що відповідають критеріям</string>
     <string name="connection_failed">Помилка підключення</string>
     <string name="retry">Повторити</string>
+    <string name="select_resource_type">Оберіть тип ресурсу</string>
     
     <!-- Filter Dialog -->
     <string name="filter_by_name">Фільтр за іменем (без урахування регістру)</string>
@@ -132,6 +133,7 @@
     <string name="audio_size_limits">Обмеження розміру аудіо (МБ)</string>
     <string name="default_sort_mode">Режим сортування за замовчуванням</string>
     <string name="slideshow_interval">Слайдшоу за замовч. (сек.)</string>
+    <string name="slideshow_interval_for_resource">Інтервал для слайдшоу (сек.)</string>
     <string name="fullscreen_mode">Повноекранний режим</string>
     <string name="seconds">Секунд</string>
     <string name="minutes">Хвилин</string>
@@ -146,7 +148,8 @@
     <string name="show_detailed_errors">Показувати детальні помилки</string>
     <string name="show_player_hint">Показувати підказку сенсорних зон при першому запуску</string>
     <string name="show_player_hint_description">Відображати оверлей сенсорних зон при першому відкритті програвача</string>
-    <string name="show_hint_now">Показати підказку зараз</string>
+    <string name="show_hint_now">Показати підказку наступного разу</string>
+    <string name="hint_will_be_shown_next_time">Підказка сенсорних зон буде показана при наступному відкритті плеєра</string>
     <string name="show_video_thumbnails">Показувати мініатюри відеофайлів</string>
     <string name="show_video_thumbnails_description">Витягувати і відображати перший кадр відеофайлів (може зайняти 2+ секунди для мережевих файлів)</string>
     <string name="touch_zones_scheme">Схема сенсорних зон (Зображення/Відео) для повноекранного режиму</string>
@@ -402,7 +405,7 @@
     </plurals>
     <string name="sync_now">Синхронізувати зараз</string>
     <string name="sync_status_idle">Готово до синхронізації</string>
-    <string name="sync_status_in_progress">Синхронізація…</string>
+    <string name="sync_status_in_progress">Синхронізація...</string>
     <string name="sync_status_completed">Синхронізовано %d ресурсів</string>
     <string name="sync_status_failed">Помилка синхронізації</string>
     <string name="sync_completed_successfully">Успішно синхронізовано %d ресурсів</string>

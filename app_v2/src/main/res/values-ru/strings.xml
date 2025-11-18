@@ -71,6 +71,7 @@
     <string name="no_files_match_criteria">Нет файлов, соответствующих критериям</string>
     <string name="connection_failed">Сбой подключения</string>
     <string name="retry">Повторить</string>
+    <string name="select_resource_type">Выберите тип ресурса</string>
     
     <!-- Filter Dialog -->
     <string name="filter_by_name">Фильтр по имени (без учёта регистра)</string>
@@ -132,6 +133,7 @@
     <string name="audio_size_limits">Ограничения размера аудио (МБ)</string>
     <string name="default_sort_mode">Режим сортировки по умолчанию</string>
     <string name="slideshow_interval">Слайдшоу по умолч. (сек.)</string>
+    <string name="slideshow_interval_for_resource">Интервал для слайдшоу (сек.)</string>
     <string name="fullscreen_mode">Полноэкранный режим</string>
     <string name="seconds">Секунд</string>
     <string name="minutes">Минут</string>
@@ -146,7 +148,8 @@
     <string name="show_detailed_errors">Показывать детальные ошибки</string>
     <string name="show_player_hint">Показывать подсказку сенсорных зон при первом запуске</string>
     <string name="show_player_hint_description">Отображать оверлей сенсорных зон при первом открытии проигрывателя</string>
-    <string name="show_hint_now">Показать подсказку сейчас</string>
+    <string name="show_hint_now">Показать подсказку в следующий раз</string>
+    <string name="hint_will_be_shown_next_time">Подсказка сенсорных зон будет показана при следующем открытии плеера</string>
     <string name="show_video_thumbnails">Показывать миниатюры видеофайлов</string>
     <string name="show_video_thumbnails_description">Извлекать и отображать первый кадр видеофайлов (может занять 2+ секунды для сетевых файлов)</string>
     <string name="touch_zones_scheme">Схема сенсорных зон (Изображения/Видео) для полноэкранного режима</string>
@@ -402,7 +405,7 @@
     </plurals>
     <string name="sync_now">Синхронизировать сейчас</string>
     <string name="sync_status_idle">Готово к синхронизации</string>
-    <string name="sync_status_in_progress">Синхронизация…</string>
+    <string name="sync_status_in_progress">Синхронизация...</string>
     <string name="sync_status_completed">Синхронизировано %d ресурсов</string>
     <string name="sync_status_failed">Ошибка синхронизации</string>
     <string name="sync_completed_successfully">Успешно синхронизировано %d ресурсов</string>

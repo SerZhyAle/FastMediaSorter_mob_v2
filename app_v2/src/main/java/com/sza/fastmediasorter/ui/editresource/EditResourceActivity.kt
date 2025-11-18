@@ -57,14 +57,29 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         binding.etSlideshowInterval.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                updateSlideshowIntervalFromInput()
-            }
+            override fun afterTextChanged(s: Editable?) {}
         })
         
-        binding.toggleSlideshowUnit.addOnButtonCheckedListener { _, _, isChecked ->
-            if (isChecked) {
-                updateSlideshowIntervalFromInput()
+        // Slideshow interval dropdown (1,5,10,30,60,120,300 sec)
+        val slideshowOptions = arrayOf("1", "5", "10", "30", "60", "120", "300")
+        val slideshowAdapter = android.widget.ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, slideshowOptions)
+        binding.etSlideshowInterval.setAdapter(slideshowAdapter)
+        
+        binding.etSlideshowInterval.setOnItemClickListener { _, _, position, _ ->
+            val seconds = slideshowOptions[position].toInt()
+            viewModel.updateSlideshowInterval(seconds)
+        }
+        
+        // Handle manual input
+        binding.etSlideshowInterval.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                val text = binding.etSlideshowInterval.text.toString()
+                val seconds = text.toIntOrNull() ?: 5
+                val clampedSeconds = seconds.coerceIn(1, 3600)
+                if (seconds != clampedSeconds) {
+                    binding.etSlideshowInterval.setText(clampedSeconds.toString(), false)
+                }
+                viewModel.updateSlideshowInterval(clampedSeconds)
             }
         }
 
@@ -269,8 +284,8 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                             dateFormat.format(Date(it))
                         } ?: getString(R.string.never_browsed)
 
-                        // Slideshow interval - convert to input field
-                        updateSlideshowIntervalUI(resource.slideshowInterval)
+                        // Slideshow interval
+                        binding.etSlideshowInterval.setText(resource.slideshowInterval.toString(), false)
 
                         // Media types
                         binding.cbSupportImages.isChecked = MediaType.IMAGE in resource.supportedMediaTypes
@@ -381,35 +396,6 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                 }
             }
         }
-    }
-
-    private fun updateSlideshowIntervalUI(totalSeconds: Int) {
-        // Determine best unit (prefer seconds if <= 60, otherwise minutes)
-        if (totalSeconds <= 60) {
-            binding.etSlideshowInterval.setText(totalSeconds.toString())
-            binding.btnSeconds.isChecked = true
-        } else {
-            val minutes = totalSeconds / 60
-            binding.etSlideshowInterval.setText(minutes.toString())
-            binding.btnMinutes.isChecked = true
-        }
-    }
-
-    private fun updateSlideshowIntervalFromInput() {
-        val inputValue = binding.etSlideshowInterval.text.toString().toIntOrNull() ?: return
-        val clampedValue = inputValue.coerceIn(1, 60)
-        
-        if (inputValue != clampedValue) {
-            binding.etSlideshowInterval.setText(clampedValue.toString())
-        }
-        
-        val totalSeconds = if (binding.btnMinutes.isChecked) {
-            clampedValue * 60
-        } else {
-            clampedValue
-        }
-        
-        viewModel.updateSlideshowInterval(totalSeconds)
     }
 
     private fun updateMediaTypes() {

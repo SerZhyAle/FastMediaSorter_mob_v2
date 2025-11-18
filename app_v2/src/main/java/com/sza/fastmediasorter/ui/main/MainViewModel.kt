@@ -139,6 +139,19 @@ class MainViewModel @Inject constructor(
         updateState { it.copy(selectedResource = resource) }
     }
 
+    fun openBrowse() {
+        viewModelScope.launch(ioDispatcher) {
+            val resource = state.value.selectedResource
+            if (resource != null && resource.id != 0L) {
+                // User explicitly selected a resource - use it
+                saveLastUsedResourceId(resource.id)
+                validateAndOpenResource(resource, slideshowMode = false)
+            } else {
+                sendEvent(MainEvent.ShowMessage("Please select a resource first"))
+            }
+        }
+    }
+
     fun startPlayer() {
         viewModelScope.launch(ioDispatcher) {
             val resource = state.value.selectedResource

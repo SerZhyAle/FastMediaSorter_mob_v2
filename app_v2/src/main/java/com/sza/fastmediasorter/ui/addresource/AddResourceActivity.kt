@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.net.wifi.WifiManager
 import android.text.InputFilter
+import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
@@ -556,6 +557,66 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
         
         binding.etSmbServer.filters = arrayOf(serverFilter)
+        
+        // Auto-replace comma, hyphen, space with dot for IP addresses
+        binding.etSmbServer.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                s?.let { text ->
+                    var cursorPosition = binding.etSmbServer.selectionStart
+                    val originalLength = text.length
+                    
+                    // Replace comma, hyphen, space with dot
+                    val modified = text.toString()
+                        .replace(',', '.')
+                        .replace('-', '.')
+                        .replace(' ', '.')
+                    
+                    if (modified != text.toString()) {
+                        binding.etSmbServer.removeTextChangedListener(this)
+                        text.replace(0, text.length, modified)
+                        binding.etSmbServer.addTextChangedListener(this)
+                        
+                        // Adjust cursor if text length changed
+                        if (cursorPosition > modified.length) {
+                            cursorPosition = modified.length
+                        }
+                        binding.etSmbServer.setSelection(cursorPosition)
+                    }
+                }
+            }
+        })
+        
+        // Same for SFTP host field
+        binding.etSftpHost.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                s?.let { text ->
+                    var cursorPosition = binding.etSftpHost.selectionStart
+                    val originalLength = text.length
+                    
+                    // Replace comma, hyphen, space with dot
+                    val modified = text.toString()
+                        .replace(',', '.')
+                        .replace('-', '.')
+                        .replace(' ', '.')
+                    
+                    if (modified != text.toString()) {
+                        binding.etSftpHost.removeTextChangedListener(this)
+                        text.replace(0, text.length, modified)
+                        binding.etSftpHost.addTextChangedListener(this)
+                        
+                        // Adjust cursor if text length changed
+                        if (cursorPosition > modified.length) {
+                            cursorPosition = modified.length
+                        }
+                        binding.etSftpHost.setSelection(cursorPosition)
+                    }
+                }
+            }
+        })
     }
 
     /**

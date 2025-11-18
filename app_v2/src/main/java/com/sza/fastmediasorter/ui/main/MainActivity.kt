@@ -75,7 +75,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onItemClick = { resource ->
                 // Simple click = select and open Browse
                 viewModel.selectResource(resource)
-                viewModel.startPlayer()
+                viewModel.openBrowse()
             },
             onItemLongClick = { resource ->
                 // Long click = open Edit

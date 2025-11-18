@@ -393,7 +393,7 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.resetPlayerFirstRun()
             Toast.makeText(
                 requireContext(),
-                "Touch zones hint will be shown next time you open media player",
+                R.string.hint_will_be_shown_next_time,
                 Toast.LENGTH_SHORT
             ).show()
         }

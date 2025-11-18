@@ -96,15 +96,44 @@
             android:text="@string/confirm_delete"
             android:layout_marginBottom="8dp"/>
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchGridMode"
+        <!-- Grid Mode and Icon Size in one row -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/grid_mode"
-            android:layout_marginBottom="8dp"/>
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchGridMode"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:minHeight="48dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:text="@string/grid_mode"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilIconSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="120dp"
+                android:hint="@string/default_icon_size"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_marginStart="8dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/etIconSize"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="4"
+                    android:text="96"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
 
         <com.google.android.material.switchmaterial.SwitchMaterial
             android:id="@+id/switchShowCommandPanel"
@@ -135,26 +164,6 @@
             android:paddingBottom="12dp"
             android:text="@string/show_player_hint"
             android:layout_marginBottom="8dp"/>
-
-        <!-- Icon Size Field (moved above button, reduced width) -->
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilIconSize"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="200dp"
-            android:hint="@string/default_icon_size"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-            android:layout_marginBottom="8dp">
-
-            <AutoCompleteTextView
-                android:id="@+id/etIconSize"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="number"
-                android:maxLength="4"
-                android:text="96"/>
-
-        </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnShowHintNow"

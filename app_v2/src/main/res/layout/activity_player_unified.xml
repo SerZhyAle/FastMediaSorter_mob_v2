@@ -366,10 +366,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_back"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF" />
+                android:background="#50FFFFFF" />
 
             <TextView
                 android:id="@+id/zoneCopy"
@@ -381,10 +381,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_copy"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF"
+                android:background="#50FFFFFF"
                 android:layout_marginStart="1dp"
                 android:layout_marginEnd="1dp" />
 
@@ -398,10 +398,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_rename"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF" />
+                android:background="#50FFFFFF" />
 
             <!-- Row 1: PREVIOUS, MOVE, NEXT -->
             <TextView
@@ -414,10 +414,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_previous"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF"
+                android:background="#50FFFFFF"
                 android:layout_marginTop="1dp"
                 android:layout_marginBottom="1dp" />
 
@@ -431,10 +431,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_move"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF"
+                android:background="#50FFFFFF"
                 android:layout_marginStart="1dp"
                 android:layout_marginEnd="1dp"
                 android:layout_marginTop="1dp"
@@ -450,10 +450,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_next"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF"
+                android:background="#50FFFFFF"
                 android:layout_marginTop="1dp"
                 android:layout_marginBottom="1dp" />
 
@@ -468,10 +468,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_command_panel"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF" />
+                android:background="#50FFFFFF" />
 
             <TextView
                 android:id="@+id/zoneDelete"
@@ -483,10 +483,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_delete"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF"
+                android:background="#50FFFFFF"
                 android:layout_marginStart="1dp"
                 android:layout_marginEnd="1dp" />
 
@@ -500,10 +500,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_queue"
-                android:textColor="#80FFFFFF"
+                android:textColor="#D0FFFFFF"
                 android:textSize="16sp"
                 android:textStyle="bold"
-                android:background="#20FFFFFF" />
+                android:background="#50FFFFFF" />
         </GridLayout>
     </FrameLayout>
 

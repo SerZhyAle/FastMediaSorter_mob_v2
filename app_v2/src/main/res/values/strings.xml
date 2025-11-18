@@ -71,6 +71,7 @@
     <string name="no_files_match_criteria">No files match your criteria</string>
     <string name="connection_failed">Connection failed</string>
     <string name="retry">Retry</string>
+    <string name="select_resource_type">Select Resource Type</string>
     
     <!-- Filter Dialog -->
     <string name="filter_by_name">Filter by name (case-insensitive)</string>
@@ -132,6 +133,7 @@
     <string name="audio_size_limits">Audio size limits (MB)</string>
     <string name="default_sort_mode">Default sort mode</string>
     <string name="slideshow_interval">Default slideshow (sec.)</string>
+    <string name="slideshow_interval_for_resource">Slideshow interval (sec.)</string>
     <string name="fullscreen_mode">Fullscreen mode</string>
     <string name="seconds">Seconds</string>
     <string name="minutes">Minutes</string>
@@ -146,7 +148,8 @@
     <string name="show_detailed_errors">Show detailed errors</string>
     <string name="show_player_hint">Show touch zones hint on first run</string>
     <string name="show_player_hint_description">Display touch zones overlay when opening player for the first time</string>
-    <string name="show_hint_now">Show Hint Now</string>
+    <string name="show_hint_now">Show Hint Next Time</string>
+    <string name="hint_will_be_shown_next_time">Touch zones hint will be shown next time you open media player</string>
     <string name="show_video_thumbnails">Show video thumbnails</string>
     <string name="show_video_thumbnails_description">Extract and display first frame for video files (may take 2+ seconds for network files)</string>
     <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video) for full screen mode</string>
@@ -428,7 +431,7 @@
     </plurals>
     <string name="sync_now">Sync Now</string>
     <string name="sync_status_idle">Ready to sync</string>
-    <string name="sync_status_in_progress">Syncing…</string>
+    <string name="sync_status_in_progress">Syncing...</string>
     <string name="sync_status_completed">Synced %d resources</string>
     <string name="sync_status_failed">Sync failed</string>
     <string name="sync_completed_successfully">Synced %d resources successfully</string>
