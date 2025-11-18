@@ -37,11 +37,15 @@ object ConnectionThrottleManager {
         var currentLimit: Int,
         val consecutiveTimeouts: AtomicInteger = AtomicInteger(0),
         val consecutiveSuccesses: AtomicInteger = AtomicInteger(0),
-        var isDegraded: Boolean = false  // Tracks if protocol is in degraded state with extended timeouts
+        var isDegraded: Boolean = false,  // Tracks if protocol is in degraded state with extended timeouts
+        val activeTasks: AtomicInteger = AtomicInteger(0)  // Track active operations
     )
     
     private val protocolStates = ConcurrentHashMap<String, ProtocolState>()
     private val semaphores = ConcurrentHashMap<String, Semaphore>()
+    
+    // Lock for semaphore recreation
+    private val semaphoreLocks = ConcurrentHashMap<String, Any>()
     
     // Degradation/restoration thresholds
     private const val DEGRADE_AFTER_TIMEOUTS = 3       // Reduce limit after 3 consecutive timeouts
@@ -67,11 +71,38 @@ object ConnectionThrottleManager {
     }
     
     /**
-     * Get or create semaphore for resource with current limit
+     * Get or create semaphore for resource with current limit.
+     * Thread-safe: uses lock per resource to prevent concurrent recreation.
      */
-    private fun getSemaphore(resourceKey: String, permits: Int): Semaphore {
-        return semaphores.getOrPut(resourceKey) {
-            Semaphore(permits)
+    private fun getSemaphoreAndLock(resourceKey: String, state: ProtocolState): Pair<Semaphore, Any> {
+        val lock = semaphoreLocks.getOrPut(resourceKey) { Any() }
+        
+        synchronized(lock) {
+            val semaphore = semaphores[resourceKey]
+            
+            // Recreate semaphore if limit changed and no active tasks
+            if (semaphore == null) {
+                val newSemaphore = Semaphore(state.currentLimit)
+                semaphores[resourceKey] = newSemaphore
+                Timber.d("ConnectionThrottle: Created semaphore for $resourceKey with limit ${state.currentLimit}")
+                return newSemaphore to lock
+            }
+            
+            // Check if limit changed
+            val currentPermits = semaphore.availablePermits + state.activeTasks.get()
+            if (currentPermits != state.currentLimit) {
+                // Limit changed - recreate semaphore when safe
+                if (state.activeTasks.get() == 0) {
+                    val newSemaphore = Semaphore(state.currentLimit)
+                    semaphores[resourceKey] = newSemaphore
+                    Timber.d("ConnectionThrottle: Recreated semaphore for $resourceKey with new limit ${state.currentLimit} (was $currentPermits)")
+                    return newSemaphore to lock
+                } else {
+                    Timber.w("ConnectionThrottle: Cannot change $resourceKey limit to ${state.currentLimit} (${state.activeTasks.get()} active tasks, current=$currentPermits)")
+                }
+            }
+            
+            return semaphore to lock
         }
     }
     
@@ -95,32 +126,11 @@ object ConnectionThrottleManager {
         }
         
         val state = getState(protocol, resourceKey)
-        val semaphore = getSemaphore(resourceKey, state.currentLimit)
-        
-        // Adjust semaphore if limit changed
-        synchronized(state) {
-            val currentPermits = semaphore.availablePermits
-            val targetPermits = state.currentLimit
-            
-            if (currentPermits < targetPermits) {
-                // Increase permits (restoration)
-                val toAdd = targetPermits - currentPermits
-                repeat(toAdd) { semaphore.release() }
-                Timber.d("ConnectionThrottle: Increased $resourceKey limit to ${state.currentLimit}")
-            } else if (currentPermits > targetPermits) {
-                // Decrease permits (degradation) - drain excess
-                val toDrain = currentPermits - targetPermits
-                repeat(toDrain) { 
-                    if (semaphore.tryAcquire()) {
-                        // Successfully acquired, don't release
-                    }
-                }
-                Timber.d("ConnectionThrottle: Decreased $resourceKey limit to ${state.currentLimit}")
-            }
-        }
+        val (semaphore, _) = getSemaphoreAndLock(resourceKey, state)
         
         semaphore.acquire()
-        var permitReleased = false
+        state.activeTasks.incrementAndGet()
+        
         try {
             val result = operation()
             
@@ -167,10 +177,8 @@ object ConnectionThrottleManager {
             
             throw e
         } finally {
-            if (!permitReleased) {
-                permitReleased = true
-                semaphore.release()
-            }
+            state.activeTasks.decrementAndGet()
+            semaphore.release()
         }
     }
     
