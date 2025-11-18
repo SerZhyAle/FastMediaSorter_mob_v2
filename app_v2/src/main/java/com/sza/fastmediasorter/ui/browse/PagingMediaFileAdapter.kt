@@ -55,9 +55,17 @@ class PagingMediaFileAdapter(
 
     fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
         if (isGridMode != enabled || thumbnailSize != iconSize) {
+            val modeChanged = isGridMode != enabled
+            val sizeChanged = thumbnailSize != iconSize
             isGridMode = enabled
             thumbnailSize = iconSize
-            notifyItemRangeChanged(0, itemCount, PAYLOAD_VIEW_MODE_CHANGE)
+            
+            // When only size changes, force full refresh to update view layouts
+            if (sizeChanged && !modeChanged) {
+                notifyDataSetChanged()
+            } else {
+                notifyItemRangeChanged(0, itemCount, PAYLOAD_VIEW_MODE_CHANGE)
+            }
         }
     }
 
@@ -364,6 +372,12 @@ class PagingMediaFileAdapter(
                                     placeholder(R.drawable.ic_video_placeholder)
                                     error(R.drawable.ic_video_placeholder)
                                     transformations(RoundedCornersTransformation(8f))
+                                    // Pass NetworkFileData through parameters for NetworkVideoFrameDecoder
+                                    if (data is NetworkFileData) {
+                                        parameters(coil.request.Parameters.Builder().apply {
+                                            set("network_file_data", data)
+                                        }.build())
+                                    }
                                 }
                             } else {
                                 // Show placeholder icon immediately (no network delay, no decoding attempt)

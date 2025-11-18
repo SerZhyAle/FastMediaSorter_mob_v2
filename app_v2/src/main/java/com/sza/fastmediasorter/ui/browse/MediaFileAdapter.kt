@@ -59,12 +59,18 @@ class MediaFileAdapter(
     
     fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
         if (isGridMode != enabled || thumbnailSize != iconSize) {
+            val modeChanged = isGridMode != enabled
+            val sizeChanged = thumbnailSize != iconSize
             isGridMode = enabled
             thumbnailSize = iconSize
-            // Instead of notifyDataSetChanged(), trigger rebind with payload
-            // This forces RecyclerView to call onCreateViewHolder for each item
-            // but preserves scroll position and animations
-            notifyItemRangeChanged(0, itemCount, PAYLOAD_VIEW_MODE_CHANGE)
+            
+            // When mode changes (List↔Grid), use payload to rebind items efficiently
+            // When only size changes, use notifyDataSetChanged to force layout recalculation
+            if (sizeChanged && !modeChanged) {
+                notifyDataSetChanged() // Force view recreation for size changes
+            } else {
+                notifyItemRangeChanged(0, itemCount, PAYLOAD_VIEW_MODE_CHANGE)
+            }
         }
     }
 
@@ -302,6 +308,12 @@ class MediaFileAdapter(
                                         placeholder(R.drawable.ic_video_placeholder)
                                         error(R.drawable.ic_video_placeholder)
                                         transformations(RoundedCornersTransformation(8f))
+                                        // Pass NetworkFileData through parameters for NetworkVideoFrameDecoder
+                                        if (data is NetworkFileData) {
+                                            parameters(coil.request.Parameters.Builder().apply {
+                                                set("network_file_data", data)
+                                            }.build())
+                                        }
                                         listener(
                                             onError = { _, result ->
                                                 Timber.w(result.throwable, "Failed to load network video thumbnail: ${file.name}")
@@ -550,6 +562,12 @@ class MediaFileAdapter(
                                         placeholder(R.drawable.ic_video_placeholder)
                                         error(R.drawable.ic_video_placeholder)
                                         transformations(RoundedCornersTransformation(8f))
+                                        // Pass NetworkFileData through parameters for NetworkVideoFrameDecoder
+                                        if (data is NetworkFileData) {
+                                            parameters(coil.request.Parameters.Builder().apply {
+                                                set("network_file_data", data)
+                                            }.build())
+                                        }
                                     }
                                 } else {
                                     // Show placeholder icon immediately (no network delay, no decoding attempt)

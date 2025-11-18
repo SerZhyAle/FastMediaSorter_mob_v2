@@ -210,7 +210,12 @@ class SmbDataSource(
         try {
             share?.close()
         } catch (e: Exception) {
-            Timber.e(e, "SmbDataSource: Error closing DiskShare")
+            // InterruptedException during close is normal when ExoPlayer cancels loading
+            if (e.cause?.cause is InterruptedException) {
+                Timber.d("SmbDataSource: DiskShare close interrupted (normal during playback cancel)")
+            } else {
+                Timber.e(e, "SmbDataSource: Error closing DiskShare")
+            }
         } finally {
             share = null
         }
@@ -218,7 +223,12 @@ class SmbDataSource(
         try {
             session?.close()
         } catch (e: Exception) {
-            Timber.e(e, "SmbDataSource: Error closing Session")
+            // InterruptedException during close is normal when ExoPlayer cancels loading
+            if (e.cause?.cause is InterruptedException) {
+                Timber.d("SmbDataSource: Session close interrupted (normal during playback cancel)")
+            } else {
+                Timber.e(e, "SmbDataSource: Error closing Session")
+            }
         } finally {
             session = null
         }
@@ -226,7 +236,12 @@ class SmbDataSource(
         try {
             connection?.close()
         } catch (e: Exception) {
-            Timber.e(e, "SmbDataSource: Error closing Connection")
+            // InterruptedException during close is normal when ExoPlayer cancels loading
+            if (e.cause?.cause is InterruptedException) {
+                Timber.d("SmbDataSource: Connection close interrupted (normal during playback cancel)")
+            } else {
+                Timber.e(e, "SmbDataSource: Error closing Connection")
+            }
         } finally {
             connection = null
         }

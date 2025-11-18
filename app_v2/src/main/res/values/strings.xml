@@ -15,6 +15,9 @@
     <string name="no">No</string>
     <string name="select_all">Select All</string>
     <string name="deselect_all">Deselect All</string>
+    <string name="share">Share</string>
+    <string name="no_files_selected">No files selected</string>
+    <string name="please_wait">Please wait...</string>
     
     <!-- Settings Tabs -->
     <string name="settings_tab_general">General</string>

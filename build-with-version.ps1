@@ -60,22 +60,8 @@ if ($LASTEXITCODE -eq 0) {
     Remove-Item $backupPath -Force
     Write-Host "Version committed to build.gradle.kts" -ForegroundColor Green
     
-    # Gradle sync
-    Write-Host "`n[SYNC] Running Gradle sync..." -ForegroundColor Cyan
-    .\gradlew.bat tasks --refresh-dependencies | Out-Null
-    Write-Host "[SYNC] Gradle sync completed" -ForegroundColor Green
-    
-    # Install and run on device
-    Write-Host "`n[ADB] Installing APK on device..." -ForegroundColor Cyan
-    $apkPath = "app_v2\build\outputs\apk\debug\app_v2-debug.apk"
-    & adb install -r $apkPath
-    if ($LASTEXITCODE -eq 0) {
-        Write-Host "[ADB] Starting app..." -ForegroundColor Cyan
-        & adb shell am start -n com.sza.fastmediasorter/.ui.main.MainActivity
-        Write-Host "[ADB] App launched" -ForegroundColor Green
-    } else {
-        Write-Host "[ADB] Install failed (device connected?)" -ForegroundColor Yellow
-    }
+   
+   
 } else {
     Write-Host "`n==================================" -ForegroundColor Red
     Write-Host "BUILD FAILED" -ForegroundColor Red

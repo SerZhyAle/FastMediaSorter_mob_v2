@@ -347,6 +347,12 @@ class SmbClient @Inject constructor() {
         try {
             val dirPath = path.trim('/', '\\')
             
+            // Check stop flag BEFORE SMB call
+            if (progressCallback?.shouldStop() == true) {
+                Timber.d("Stop requested, returning partial results (${results.size} files collected)")
+                return@coroutineScope
+            }
+            
             // Check cancellation BEFORE SMB call
             if (!isActive) {
                 Timber.d("Scan cancelled by user before scanning $dirPath")
@@ -359,10 +365,14 @@ class SmbClient @Inject constructor() {
             }
             
             for (fileInfo in items) {
-                // Check cancellation every 100 files (performance optimization)
-                if (results.size % 100 == 0 && !isActive) {
-                    Timber.d("Scan cancelled by user after ${results.size} files")
-                    return@coroutineScope
+                // Check stop flag and cancellation every 100 files (performance optimization)
+                if (results.size % 100 == 0) {
+                    if (progressCallback?.shouldStop() == true) {
+                        return@coroutineScope
+                    }
+                    if (!isActive) {
+                        return@coroutineScope
+                    }
                 }
                 
                 if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
@@ -376,6 +386,11 @@ class SmbClient @Inject constructor() {
                 val isDirectory = fileInfo.fileAttributes and 0x10 != 0L // FILE_ATTRIBUTE_DIRECTORY = 0x10
                 
                 if (isDirectory) {
+                    // Check stop flag before launching subdirectory scan
+                    if (progressCallback?.shouldStop() == true) {
+                        return@coroutineScope
+                    }
+                    
                     // 🔑 Launch NEW coroutine for parallel subdirectory scanning
                     launch {
                         scanDirectoryRecursive(

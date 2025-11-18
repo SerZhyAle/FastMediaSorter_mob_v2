@@ -37,7 +37,7 @@ class LocalMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
         credentialsId: String?,
-        onProgress: ((current: Int, total: Int) -> Unit)?
+        onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Check if path is a content:// URI (SAF)
@@ -92,7 +92,11 @@ class LocalMediaScanner @Inject constructor(
                             val currentTime = System.currentTimeMillis()
                             val timeSinceLastReport = currentTime - lastProgressReportTime
                             if (processedCount == totalFiles || timeSinceLastReport >= 2000) {
-                                onProgress?.invoke(processedCount, totalFiles)
+                                onProgress?.let { callback ->
+                                    kotlinx.coroutines.runBlocking {
+                                        callback.onProgress(processedCount, file.name)
+                                    }
+                                }
                                 lastProgressReportTime = currentTime
                             }
                         }

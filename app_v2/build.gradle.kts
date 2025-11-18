@@ -17,8 +17,8 @@ android {
         applicationId = "com.sza.fastmediasorter"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11180135
-        versionName = "2.0.0-build2511180135"
+        versionCode = 11180337
+        versionName = "2.0.0-build2511180337"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -59,6 +59,19 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    applicationVariants.all {
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            val buildTypeName = buildType.name
+            
+            output.outputFileName = if (buildTypeName == "release") {
+                "FastMediaSorter.apk"
+            } else {
+                "FastMediaSorter_debug.apk"
+            }
         }
     }
 

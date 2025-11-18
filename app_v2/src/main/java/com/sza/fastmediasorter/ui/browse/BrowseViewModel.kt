@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.data.observer.MediaFileObserver
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
+import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,7 +55,7 @@ data class BrowseState(
     val undoOperationTimestamp: Long? = null, // Timestamp when undo operation was saved (for expiry check)
     val loadingProgress: Int = 0, // Number of files found during scan (0 = not scanning)
     val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
-    val isScanCancellable: Boolean = false // True when scan runs >10 seconds, shows STOP button
+    val isScanCancellable: Boolean = false // True when scan runs >5 seconds, shows STOP button
 )
 
 sealed class BrowseEvent {
@@ -92,6 +93,9 @@ class BrowseViewModel @Inject constructor(
     // Job for current file loading operation (to cancel on reload)
     private var loadFilesJob: Job? = null
     
+    // Graceful stop flag: when true, scanner should stop and return partial results
+    private val shouldStopScan = java.util.concurrent.atomic.AtomicBoolean(false)
+    
     // Job for delayed STOP button visibility (10 seconds after scan start)
     private var stopButtonTimerJob: Job? = null
     
@@ -128,25 +132,12 @@ class BrowseViewModel @Inject constructor(
      * Saves partial file list to cache for user to work with.
      */
     fun cancelScan() {
-        loadFilesJob?.cancel()
-        loadFilesJob = null
+        Timber.d("cancelScan: Setting graceful stop flag")
+        // Set flag to signal scanner to stop gracefully and return partial results
+        shouldStopScan.set(true)
         
-        val currentFiles = state.value.mediaFiles
-        val currentResource = state.value.resource
-        
-        // Save partial list to cache
-        if (currentFiles.isNotEmpty() && currentResource != null) {
-            MediaFilesCacheManager.setCachedList(
-                resourceId = currentResource.id,
-                files = currentFiles
-            )
-            Timber.d("Scan cancelled by user. Saved ${currentFiles.size} files to cache")
-        }
-        
-        updateState { it.copy(
-            loadingProgress = 0,
-            isScanCancellable = false
-        ) }
+        // Don't cancel the job - let it complete gracefully
+        // loadFilesJob will finish and emit partial results
     }
 
     private fun loadResource() {
@@ -246,12 +237,15 @@ class BrowseViewModel @Inject constructor(
         loadFilesJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
-            // Start 10-second timer to show STOP button (inside loadFilesJob context)
-            stopButtonTimerJob = viewModelScope.launch {
-                delay(10_000L)
+            // Reset graceful stop flag at start of new scan
+            shouldStopScan.set(false)
+            
+            // Start 5-second timer to show STOP button in the same coroutine context
+            launch {
+                delay(5_000L)
                 if (loadFilesJob?.isActive == true) {
                     updateState { it.copy(isScanCancellable = true) }
-                    Timber.d("Scan running >10s, showing STOP button")
+                    Timber.d("Scan running >5s, showing STOP button")
                 }
             }
             
@@ -300,57 +294,63 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
-    private fun loadMediaFilesStandard(resource: MediaResource, sizeFilter: SizeFilter, progressJob: Job? = null) {
-        viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            // Always load all files (no chunked loading)
-            Timber.d("Starting loadMediaFilesStandard: resource=${resource.name}, loading all files")
-            
-            // Progress callback to update UI every time scanner emits progress
-            val progressCallback: (current: Int, total: Int) -> Unit = { current, _ ->
-                updateState { it.copy(loadingProgress = current) }
+    private suspend fun loadMediaFilesStandard(resource: MediaResource, sizeFilter: SizeFilter, progressJob: Job? = null) {
+        // Always load all files (no chunked loading)
+        Timber.d("Starting loadMediaFilesStandard: resource=${resource.name}, loading all files")
+        
+        // Progress callback to update UI every time scanner emits progress
+        val progressCallback = object : ScanProgressCallback {
+            override suspend fun onProgress(scannedCount: Int, currentFile: String?) {
+                updateState { it.copy(loadingProgress = scannedCount) }
             }
             
-            getMediaFilesUseCase(
-                resource = resource,
-                sortMode = state.value.sortMode,
-                sizeFilter = sizeFilter,
-                useChunkedLoading = false,
-                maxFiles = Int.MAX_VALUE,
-                onProgress = progressCallback
-            )
-                .catch { e ->
-                    Timber.e(e, "Error loading media files")
-                    progressJob?.cancel()
-                    stopButtonTimerJob?.cancel()
-                    setLoading(false)
-                    handleLoadingError(resource, e)
-                }
-                .collect { files ->
-                    Timber.d("Collected ${files.size} files from flow")
-                    
-                    // Apply sorting for large folders (GetMediaFilesUseCase skipped it for performance)
-                    val finalFiles = if (files.size > PAGINATION_THRESHOLD) {
-                        Timber.d("Large folder detected, applying user-selected sort: ${state.value.sortMode}")
-                        sortFiles(files, state.value.sortMode, forceSort = true)
-                    } else {
-                        files  // Already sorted by GetMediaFilesUseCase
-                    }
-                    
-                    // Cache the sorted list for future use
-                    MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
-                    
-                    updateState { it.copy(mediaFiles = finalFiles, usePagination = false, loadingProgress = 0, isScanCancellable = false) }
-                    progressJob?.cancel()
-                    stopButtonTimerJob?.cancel()
-                    setLoading(false)
-                    
-                    // Update resource metadata (fileCount and lastBrowseDate) after successful load
-                    updateResourceMetadataAfterBrowse(resource, files.size)
-                    
-                    // Start FileObserver for local resources
-                    startFileObserver()
-                }
+            override suspend fun onComplete(totalFiles: Int, durationMs: Long) {
+                Timber.d("Scan completed: $totalFiles files in ${durationMs}ms")
+            }
+            
+            override fun shouldStop(): Boolean {
+                return shouldStopScan.get()
+            }
         }
+        
+        getMediaFilesUseCase(
+            resource = resource,
+            sortMode = state.value.sortMode,
+            sizeFilter = sizeFilter,
+            useChunkedLoading = false,
+            maxFiles = Int.MAX_VALUE,
+            onProgress = progressCallback
+        )
+            .catch { e ->
+                Timber.e(e, "Error loading media files")
+                progressJob?.cancel()
+                setLoading(false)
+                handleLoadingError(resource, e)
+            }
+            .collect { files ->
+                Timber.d("Collected ${files.size} files from flow")
+                
+                // Apply sorting for large folders (GetMediaFilesUseCase skipped it for performance)
+                val finalFiles = if (files.size > PAGINATION_THRESHOLD) {
+                    Timber.d("Large folder detected, applying user-selected sort: ${state.value.sortMode}")
+                    sortFiles(files, state.value.sortMode, forceSort = true)
+                } else {
+                    files  // Already sorted by GetMediaFilesUseCase
+                }
+                
+                // Cache the sorted list for future use
+                MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
+                
+                updateState { it.copy(mediaFiles = finalFiles, usePagination = false, loadingProgress = 0, isScanCancellable = false) }
+                progressJob?.cancel()
+                setLoading(false)
+                
+                // Update resource metadata (fileCount and lastBrowseDate) after successful load
+                updateResourceMetadataAfterBrowse(resource, files.size)
+                
+                // Start FileObserver for local resources
+                startFileObserver()
+            }
     }
     
     private fun loadMediaFilesWithPagination(resource: MediaResource, sizeFilter: SizeFilter) {

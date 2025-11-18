@@ -15,6 +15,9 @@
     <string name="no">Ні</string>
     <string name="select_all">Вибрати все</string>
     <string name="deselect_all">Зняти вибір</string>
+    <string name="share">Поділитися</string>
+    <string name="no_files_selected">Файли не вибрані</string>
+    <string name="please_wait">Будь ласка, зачекайте...</string>
     
     <!-- Settings Tabs -->
     <string name="settings_tab_general">Загальні</string>

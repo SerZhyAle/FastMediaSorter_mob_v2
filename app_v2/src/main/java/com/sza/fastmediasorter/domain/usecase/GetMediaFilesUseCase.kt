@@ -30,7 +30,7 @@ interface MediaScanner {
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter? = null,
         credentialsId: String? = null,
-        onProgress: ((current: Int, total: Int) -> Unit)? = null
+        onProgress: ScanProgressCallback? = null
     ): List<MediaFile>
     
     /**
@@ -71,7 +71,7 @@ class GetMediaFilesUseCase @Inject constructor(
         sizeFilter: SizeFilter? = null,
         useChunkedLoading: Boolean = false,
         maxFiles: Int = 100,
-        onProgress: ((current: Int, total: Int) -> Unit)? = null
+        onProgress: ScanProgressCallback? = null
     ): Flow<List<MediaFile>> = flow {
         timber.log.Timber.d("GetMediaFilesUseCase: Starting scan for ${resource.name}, useChunked=$useChunkedLoading")
         

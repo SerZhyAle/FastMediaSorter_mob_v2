@@ -11,6 +11,7 @@ import coil.size.Precision
 import coil.util.DebugLogger
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.coil.NetworkFileFetcher
+import com.sza.fastmediasorter.data.network.coil.NetworkVideoFrameDecoder
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -59,7 +60,10 @@ object CoilModule {
                 // Add video frame decoder for local video thumbnails
                 add(VideoFrameDecoder.Factory())
                 
-                // Add network file fetcher for SMB/SFTP/FTP thumbnails
+                // Add network video frame decoder for SMB/SFTP/FTP video thumbnails
+                add(NetworkVideoFrameDecoder.Factory(smbClient, sftpClient, ftpClient, credentialsRepository))
+                
+                // Add network file fetcher for SMB/SFTP/FTP image thumbnails
                 add(NetworkFileFetcher.Factory(smbClient, sftpClient, ftpClient, credentialsRepository))
             }
             .crossfade(true)

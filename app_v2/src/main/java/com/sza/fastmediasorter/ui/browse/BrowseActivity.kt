@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -10,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -22,7 +24,10 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.observer.MediaStoreObserver
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.databinding.DialogCopyToBinding
 import com.sza.fastmediasorter.databinding.DialogFilterBinding
@@ -77,6 +82,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
+    
+    @Inject
+    lateinit var smbClient: SmbClient
+    
+    @Inject
+    lateinit var sftpClient: SftpClient
+    
+    @Inject
+    lateinit var ftpClient: FtpClient
+    
+    @Inject
+    lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
     
     private var showVideoThumbnails = false // Cached setting value
 
@@ -189,6 +206,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         binding.btnUndo.setOnClickListener {
             viewModel.undoLastOperation()
         }
+        
+        binding.btnShare.setOnClickListener {
+            shareSelectedFiles()
+        }
 
         binding.btnPlay.setOnClickListener {
             val firstFile = viewModel.state.value.mediaFiles.firstOrNull()
@@ -262,29 +283,21 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             val itemCount = mediaFileAdapter.itemCount
                             
                             if (itemCount > 0) {
-                                // Files loaded - hide empty state (even if background loading continues)
-                                binding.tvEmpty.isVisible = false
+                                // Files loaded
                                 Timber.d("Empty state: hidden (itemCount=$itemCount)")
                             } else {
                                 // No items yet - check loading state
                                 val isLoading = viewModel.loading.value
                                 
                                 if (isLoading) {
-                                    // Loading in progress - hide tvEmpty (layoutProgress shows loading indicator)
-                                    binding.tvEmpty.isVisible = false
+                                    // Loading in progress
                                     Timber.d("Empty state: hidden during loading (layoutProgress visible)")
                                 } else {
-                                    // Loading complete, no files - show "No files found"
-                                    binding.tvEmpty.isVisible = true
-                                    binding.tvEmpty.text = if (state.filter != null && !state.filter.isEmpty()) {
-                                        getString(R.string.no_files_match_criteria)
-                                    } else {
-                                        getString(R.string.no_media_files_found)
-                                    }
+                                    // Loading complete, no files
                                     Timber.d("Empty state: no files found (isLoading=false, itemCount=0)")
                                 }
                             }
-                            Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}, tvEmpty.isVisible=${binding.tvEmpty.isVisible}")
+                            Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}")
                             
                             // Scroll to last viewed file after list is submitted
                             if (previousListSize == 0 && state.mediaFiles.isNotEmpty()) {
@@ -327,6 +340,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnRename.isVisible = hasSelection && isWritable
                     binding.btnDelete.isVisible = hasSelection && isWritable
                     binding.btnUndo.isVisible = state.lastOperation != null
+                    binding.btnShare.isVisible = hasSelection
 
                     // Only update display mode if it actually changed
                     if (state.displayMode != currentDisplayMode) {
@@ -360,10 +374,24 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
 
         // Observe settings changes
+        var lastIconSize = 96 // Track last known icon size
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 settingsRepository.getSettings().collect { settings ->
                     showVideoThumbnails = settings.showVideoThumbnails
+                    
+                    // Update grid cell size when thumbnail size changes in settings
+                    val currentResource = viewModel.state.value.resource
+                    if (currentResource != null && 
+                        currentResource.displayMode == DisplayMode.GRID && 
+                        settings.defaultIconSize != lastIconSize) {
+                        
+                        lastIconSize = settings.defaultIconSize
+                        Timber.d("Thumbnail size changed to ${settings.defaultIconSize}, updating grid layout")
+                        updateDisplayMode(DisplayMode.GRID)
+                    } else if (currentResource != null) {
+                        lastIconSize = settings.defaultIconSize
+                    }
                 }
             }
         }
@@ -376,7 +404,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val isEmpty = mediaFileAdapter.itemCount == 0
                     
                     binding.errorStateView.isVisible = hasError && isEmpty
-                    binding.tvEmpty.isVisible = !hasError && isEmpty
+                    // Empty state removed per user request
                     
                     if (hasError && isEmpty) {
                         binding.tvErrorMessage.text = errorMessage
@@ -566,6 +594,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         val settings = settingsRepository.getSettings().first()
         val iconSize = settings.defaultIconSize
         
+        // Save current scroll position before changing layout
+        val currentLayoutManager = binding.rvMediaFiles.layoutManager
+        val scrollPosition = when (currentLayoutManager) {
+            is LinearLayoutManager -> currentLayoutManager.findFirstVisibleItemPosition()
+            is GridLayoutManager -> currentLayoutManager.findFirstVisibleItemPosition()
+            else -> 0
+        }
+        Timber.d("updateDisplayMode: Saved scroll position=$scrollPosition")
+        
         // Update adapter mode (standard mode only)
         mediaFileAdapter.setGridMode(
             enabled = mode == DisplayMode.GRID,
@@ -598,6 +635,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         }
         binding.rvMediaFiles.layoutManager = newLayoutManager
+        
+        // Restore scroll position after layout manager change
+        if (scrollPosition > 0) {
+            newLayoutManager.scrollToPosition(scrollPosition)
+            Timber.d("updateDisplayMode: Restored scroll position=$scrollPosition")
+        }
+        
         Timber.d("updateDisplayMode: Layout manager updated to ${newLayoutManager::class.simpleName}")
     }
 
@@ -1123,6 +1167,184 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             if (currentFile != null) {
                 viewModel.saveLastViewedFile(currentFile.path)
                 Timber.d("Saved last viewed file: ${currentFile.path}")
+            }
+        }
+    }
+    
+    private fun shareSelectedFiles() {
+        val selectedFilePaths: Set<String> = viewModel.state.value.selectedFiles
+        val mediaFiles = viewModel.state.value.mediaFiles
+        val resource = viewModel.state.value.resource
+        
+        val selectedFiles = mediaFiles.filter { it.path in selectedFilePaths }
+        
+        if (selectedFiles.isEmpty() || resource == null) {
+            Toast.makeText(this, R.string.no_files_selected, Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        lifecycleScope.launch {
+            try {
+                // Show loading indicator
+                Toast.makeText(this@BrowseActivity, R.string.please_wait, Toast.LENGTH_SHORT).show()
+                
+                val uris = mutableListOf<Uri>()
+                
+                for (mediaFile in selectedFiles) {
+                    val fileToShare: File? = when (resource.type) {
+                        com.sza.fastmediasorter.domain.model.ResourceType.LOCAL -> {
+                            // Local file - use directly
+                            File(mediaFile.path)
+                        }
+                        com.sza.fastmediasorter.domain.model.ResourceType.SMB,
+                        com.sza.fastmediasorter.domain.model.ResourceType.SFTP,
+                        com.sza.fastmediasorter.domain.model.ResourceType.FTP,
+                        com.sza.fastmediasorter.domain.model.ResourceType.CLOUD -> {
+                            // Network file - download to cache
+                            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                val cacheDir = externalCacheDir ?: cacheDir
+                                val fileName = mediaFile.name
+                                val tempFile = File(cacheDir, "share_$fileName")
+                                
+                                val downloadSuccess = when (resource.type) {
+                                    com.sza.fastmediasorter.domain.model.ResourceType.SMB -> {
+                                        try {
+                                            if (resource.credentialsId == null) {
+                                                false
+                                            } else {
+                                                val credentials = credentialsRepository.getByCredentialId(resource.credentialsId)
+                                                if (credentials == null) {
+                                                    false
+                                                } else {
+                                                        // SMB path format: smb://server/share/path
+                                                        val uri = Uri.parse(mediaFile.path)
+                                                        val host = uri.host ?: return@withContext null
+                                                        val pathSegments = uri.pathSegments
+                                                        if (pathSegments == null || pathSegments.size < 2) return@withContext null
+                                                        
+                                                        val shareName = pathSegments[0]
+                                                        val filePath = "/" + pathSegments.drop(1).joinToString("/")
+                                                        
+                                                        tempFile.outputStream().use { outputStream ->
+                                                            val result = smbClient.downloadFile(
+                                                                SmbClient.SmbConnectionInfo(
+                                                                    server = host,
+                                                                    shareName = shareName,
+                                                                    username = credentials.username,
+                                                                    password = credentials.password,
+                                                                    domain = credentials.domain ?: "",
+                                                                    port = if (uri.port > 0) uri.port else 445
+                                                                ),
+                                                                remotePath = filePath,
+                                                                localOutputStream = outputStream
+                                                            )
+                                                            result is SmbClient.SmbResult.Success
+                                                        }
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            Timber.e(e, "Failed to download SMB file")
+                                            false
+                                        }
+                                    }
+                                    com.sza.fastmediasorter.domain.model.ResourceType.SFTP -> {
+                                        try {
+                                            if (resource.credentialsId == null) {
+                                                false
+                                            } else {
+                                                val credentials = credentialsRepository.getByCredentialId(resource.credentialsId)
+                                                if (credentials == null) {
+                                                    false
+                                                } else {
+                                                        val uri = Uri.parse(mediaFile.path)
+                                                        val host = uri.host ?: return@withContext null
+                                                        val port = if (uri.port > 0) uri.port else 22
+                                                        val sftpPath = uri.path ?: return@withContext null
+                                                        
+                                                        tempFile.outputStream().use { outputStream ->
+                                                            sftpClient.connect(host, port, credentials.username, credentials.password)
+                                                            sftpClient.downloadFile(sftpPath, outputStream)
+                                                            sftpClient.disconnect()
+                                                        }
+                                                        true
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            Timber.e(e, "Failed to download SFTP file")
+                                            false
+                                        }
+                                    }
+                                    com.sza.fastmediasorter.domain.model.ResourceType.FTP -> {
+                                        try {
+                                            if (resource.credentialsId == null) {
+                                                false
+                                            } else {
+                                                val credentials = credentialsRepository.getByCredentialId(resource.credentialsId)
+                                                if (credentials == null) {
+                                                    false
+                                                } else {
+                                                        val uri = Uri.parse(mediaFile.path)
+                                                        val host = uri.host ?: return@withContext null
+                                                        val port = if (uri.port > 0) uri.port else 21
+                                                        val ftpPath = uri.path ?: return@withContext null
+                                                        
+                                                        tempFile.outputStream().use { outputStream ->
+                                                            ftpClient.connect(host, port, credentials.username, credentials.password)
+                                                            ftpClient.downloadFile(ftpPath, outputStream)
+                                                            ftpClient.disconnect()
+                                                        }
+                                                        true
+                                                }
+                                            }
+                                        } catch (e: Exception) {
+                                            Timber.e(e, "Failed to download FTP file")
+                                            false
+                                        }
+                                    }
+                                    else -> false
+                                }
+                                
+                                if (downloadSuccess && tempFile.exists()) tempFile else null
+                            }
+                        }
+                        else -> null
+                    }
+                    
+                    if (fileToShare != null && fileToShare.exists()) {
+                        val uri = FileProvider.getUriForFile(
+                            this@BrowseActivity,
+                            "${packageName}.fileprovider",
+                            fileToShare
+                        )
+                        uris.add(uri)
+                    }
+                }
+                
+                if (uris.isEmpty()) {
+                    Toast.makeText(this@BrowseActivity, R.string.error, Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                // Create share intent
+                val shareIntent = if (uris.size == 1) {
+                    Intent(Intent.ACTION_SEND).apply {
+                        type = "*/*"
+                        putExtra(Intent.EXTRA_STREAM, uris[0])
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                } else {
+                    Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                        type = "*/*"
+                        putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+                }
+                
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
+                
+            } catch (e: Exception) {
+                Timber.e(e, "BrowseActivity: Failed to share files")
+                Toast.makeText(this@BrowseActivity, R.string.error, Toast.LENGTH_SHORT).show()
             }
         }
     }

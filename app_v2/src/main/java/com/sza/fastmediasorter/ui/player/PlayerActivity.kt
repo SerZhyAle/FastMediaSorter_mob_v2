@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.core.content.FileProvider
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -617,6 +618,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.btnDeleteCmd.setOnClickListener {
             Timber.d("PlayerActivity: btnDeleteCmd clicked")
             deleteCurrentFile()
+        }
+        
+        binding.btnShareCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnShareCmd clicked")
+            shareCurrentFile()
         }
         
         binding.btnEditCmd.setOnClickListener {
@@ -1947,6 +1953,201 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     // Removed: showLoadingDialog/dismissLoadingDialog/updateLoadingProgress
     // File list loading is fast (cached), no dialog needed
     // Image loading uses ProgressBar (showLoadingIndicatorRunnable with 2s delay)
+    
+    private fun shareCurrentFile() {
+        val currentFile = viewModel.state.value.currentFile
+        val resource = viewModel.state.value.resource
+        
+        Timber.d("shareCurrentFile: currentFile=${currentFile?.name}, resourceType=${resource?.type}")
+        
+        if (currentFile == null || resource == null) {
+            val errorMsg = "Share failed: currentFile=${currentFile?.name}, resource=${resource?.name}"
+            Timber.e(errorMsg)
+            showError(errorMsg)
+            return
+        }
+        
+        lifecycleScope.launch {
+            try {
+                // Show loading indicator
+                Toast.makeText(this@PlayerActivity, R.string.please_wait, Toast.LENGTH_SHORT).show()
+                
+                val fileToShare = when (resource.type) {
+                    ResourceType.LOCAL -> {
+                        // Local file - share directly
+                        File(currentFile.path)
+                    }
+                    ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
+                        // Network file - download to cache first
+                        Timber.d("shareCurrentFile: Downloading network file type=${resource.type}, path=${currentFile.path}")
+                        withContext(Dispatchers.IO) {
+                            val cacheDir = externalCacheDir ?: cacheDir
+                            val tempFile = File(cacheDir, "share_${currentFile.name}")
+                            
+                            Timber.d("shareCurrentFile: Cache file path=${tempFile.absolutePath}")
+                            
+                            val downloadSuccess = when (resource.type) {
+                                ResourceType.SMB -> downloadSmbFile(currentFile.path, tempFile, resource.credentialsId)
+                                ResourceType.SFTP -> downloadSftpFile(currentFile.path, tempFile, resource.credentialsId)
+                                ResourceType.FTP -> downloadFtpFile(currentFile.path, tempFile, resource.credentialsId)
+                                ResourceType.CLOUD -> downloadCloudFile(currentFile.path, tempFile, resource.credentialsId?.toLongOrNull())
+                                else -> false
+                            }
+                            
+                            Timber.d("shareCurrentFile: Download result=$downloadSuccess, fileExists=${tempFile.exists()}, fileSize=${tempFile.length()}")
+                            
+                            if (downloadSuccess) tempFile else null
+                        }
+                    }
+                    else -> null
+                }
+                
+                if (fileToShare == null || !fileToShare.exists()) {
+                    val errorMsg = "Download failed: file=${currentFile.name}, type=${resource.type}, credentialsId=${resource.credentialsId}, fileExists=${fileToShare?.exists()}"
+                    Timber.e(errorMsg)
+                    showError(errorMsg)
+                    return@launch
+                }
+                
+                // Create FileProvider URI
+                val uri = FileProvider.getUriForFile(
+                    this@PlayerActivity,
+                    "${packageName}.fileprovider",
+                    fileToShare
+                )
+                
+                // Determine MIME type
+                val mimeType = when (currentFile.type) {
+                    MediaType.IMAGE, MediaType.GIF -> "image/*"
+                    MediaType.VIDEO -> "video/*"
+                    MediaType.AUDIO -> "audio/*"
+                }
+                
+                // Create share intent
+                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = mimeType
+                    putExtra(Intent.EXTRA_STREAM, uri)
+                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                
+                startActivity(Intent.createChooser(shareIntent, getString(R.string.share)))
+                
+            } catch (e: Exception) {
+                val errorMsg = "Share failed: ${e::class.simpleName}: ${e.message}\nFile: ${currentFile?.name}\nResource: ${resource?.type}"
+                Timber.e(e, "PlayerActivity: Failed to share file")
+                showError(errorMsg, e)
+            }
+        }
+    }
+    
+    private suspend fun downloadSmbFile(remotePath: String, localFile: File, credentialsId: String?): Boolean {
+        return try {
+            Timber.d("downloadSmbFile: path=$remotePath, credentialsId=$credentialsId")
+            if (credentialsId == null) {
+                Timber.e("downloadSmbFile: credentialsId is null")
+                return false
+            }
+            val credentials = credentialsRepository.getByCredentialId(credentialsId)
+            if (credentials == null) {
+                Timber.e("downloadSmbFile: Credentials not found for credentialId=$credentialsId")
+                return false
+            }
+            
+            Timber.d("downloadSmbFile: Using credentials username=${credentials.username}, domain=${credentials.domain}")
+            
+            localFile.outputStream().use { outputStream ->
+                // SMB path format: smb://server/share/path
+                val uri = Uri.parse(remotePath)
+                val host = uri.host
+                if (host == null) {
+                    Timber.e("downloadSmbFile: Failed to parse host from $remotePath")
+                    return false
+                }
+                val pathSegments = uri.pathSegments
+                if (pathSegments.size < 2) {
+                    Timber.e("downloadSmbFile: Invalid path segments: ${pathSegments.size} from $remotePath")
+                    return false
+                }
+                
+                val shareName = pathSegments[0]
+                val filePath = "/" + pathSegments.drop(1).joinToString("/")
+                
+                Timber.d("downloadSmbFile: Connecting to host=$host, share=$shareName, path=$filePath")
+                
+                val result = smbClient.downloadFile(
+                    SmbClient.SmbConnectionInfo(
+                        server = host,
+                        shareName = shareName,
+                        username = credentials.username,
+                        password = credentials.password,
+                        domain = credentials.domain ?: "",
+                        port = if (uri.port > 0) uri.port else 445
+                    ),
+                    remotePath = filePath,
+                    localOutputStream = outputStream
+                )
+                val success = result is SmbClient.SmbResult.Success
+                Timber.d("downloadSmbFile: Result=$success, fileSize=${localFile.length()}")
+                if (!success && result is SmbClient.SmbResult.Error) {
+                    Timber.e("downloadSmbFile: SMB error: ${result.message}")
+                }
+                success
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "downloadSmbFile: Exception during download")
+            false
+        }
+    }
+    
+    private suspend fun downloadSftpFile(remotePath: String, localFile: File, credentialsId: String?): Boolean {
+        return try {
+            if (credentialsId == null) return false
+            val credentials = credentialsRepository.getByCredentialId(credentialsId) ?: return false
+            
+            val uri = Uri.parse(remotePath)
+            val host = uri.host ?: return false
+            val port = if (uri.port > 0) uri.port else 22
+            val path = uri.path ?: return false
+            
+            localFile.outputStream().use { outputStream ->
+                sftpClient.connect(host, port, credentials.username, credentials.password)
+                sftpClient.downloadFile(path, outputStream)
+                sftpClient.disconnect()
+            }
+            true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to download SFTP file for sharing")
+            false
+        }
+    }
+    
+    private suspend fun downloadFtpFile(remotePath: String, localFile: File, credentialsId: String?): Boolean {
+        return try {
+            if (credentialsId == null) return false
+            val credentials = credentialsRepository.getByCredentialId(credentialsId) ?: return false
+            
+            val uri = Uri.parse(remotePath)
+            val host = uri.host ?: return false
+            val port = if (uri.port > 0) uri.port else 21
+            val path = uri.path ?: return false
+            
+            localFile.outputStream().use { outputStream ->
+                ftpClient.connect(host, port, credentials.username, credentials.password)
+                ftpClient.downloadFile(path, outputStream)
+                ftpClient.disconnect()
+            }
+            true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to download FTP file for sharing")
+            false
+        }
+    }
+    
+    private suspend fun downloadCloudFile(remotePath: String, localFile: File, credentialsId: Long?): Boolean {
+        // TODO: Implement cloud download when cloud storage is integrated
+        Timber.w("Cloud file sharing not yet implemented")
+        return false
+    }
     
     override fun onResume() {
         super.onResume()

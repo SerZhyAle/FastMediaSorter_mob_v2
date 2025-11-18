@@ -32,7 +32,7 @@ class CloudMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
         credentialsId: String?,
-        onProgress: ((current: Int, total: Int) -> Unit)?
+        onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // For cloud resources, path is the cloud folder ID

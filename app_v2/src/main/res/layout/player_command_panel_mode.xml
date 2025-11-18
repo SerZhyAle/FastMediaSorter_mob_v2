@@ -48,6 +48,14 @@
             android:src="@drawable/ic_rename" />
 
         <ImageButton
+            android:id="@+id/btnShareCmd"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/share"
+            android:src="@drawable/ic_share" />
+
+        <ImageButton
             android:id="@+id/btnDeleteCmd"
             android:layout_width="48dp"
             android:layout_height="48dp"

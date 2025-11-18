@@ -17,4 +17,10 @@ interface ScanProgressCallback {
      * @param durationMs Time taken for scanning in milliseconds
      */
     suspend fun onComplete(totalFiles: Int, durationMs: Long)
+    
+    /**
+     * Called by scanner to check if it should stop gracefully
+     * @return true if scanner should stop and return partial results
+     */
+    fun shouldStop(): Boolean = false
 }

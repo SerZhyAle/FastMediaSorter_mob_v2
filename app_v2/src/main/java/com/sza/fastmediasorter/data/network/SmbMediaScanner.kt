@@ -35,20 +35,9 @@ class SmbMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
         credentialsId: String?,
-        onProgress: ((current: Int, total: Int) -> Unit)?
+        onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
-        scanFolderWithProgress(path, supportedTypes, sizeFilter, credentialsId, 
-            onProgress?.let { callback ->
-                object : com.sza.fastmediasorter.domain.usecase.ScanProgressCallback {
-                    override suspend fun onProgress(scannedCount: Int, currentFile: String?) {
-                        callback(scannedCount, scannedCount) // Use scannedCount as both (total unknown during scan)
-                    }
-                    override suspend fun onComplete(totalFiles: Int, durationMs: Long) {
-                        callback(totalFiles, totalFiles) // Final callback with actual total
-                    }
-                }
-            }
-        )
+        scanFolderWithProgress(path, supportedTypes, sizeFilter, credentialsId, onProgress)
     }
     
     /**
