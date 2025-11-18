@@ -55,7 +55,8 @@ data class BrowseState(
     val undoOperationTimestamp: Long? = null, // Timestamp when undo operation was saved (for expiry check)
     val loadingProgress: Int = 0, // Number of files found during scan (0 = not scanning)
     val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
-    val isScanCancellable: Boolean = false // True when scan runs >5 seconds, shows STOP button
+    val isScanCancellable: Boolean = false, // True when scan runs >5 seconds, shows STOP button
+    val showSmallControls: Boolean = false // True if "Small controls" setting is enabled
 )
 
 sealed class BrowseEvent {
@@ -116,6 +117,16 @@ class BrowseViewModel @Inject constructor(
 
     init {
         loadResource()
+        loadSettings()
+    }
+    
+    private fun loadSettings() {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val settings = settingsRepository.getSettings().first()
+            updateState {
+                copy(showSmallControls = settings.showSmallControls)
+            }
+        }
     }
     
     override fun onCleared() {

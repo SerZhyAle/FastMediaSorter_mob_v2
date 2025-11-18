@@ -80,8 +80,8 @@ class PlayerViewModel @Inject constructor(
     private var loadingJob: Job? = null
 
     init {
+        loadSettings()
         loadMediaFiles()
-        // loadSettings() is called from loadMediaFiles() after resource is loaded
     }
     
     /**
@@ -203,9 +203,6 @@ class PlayerViewModel @Inject constructor(
                             slideShowInterval = intervalToUse
                         ) 
                     }
-                    
-                    // Load settings AFTER resource is set (to apply resource-specific showCommandPanel)
-                    loadSettings()
                 }
                 setLoading(false)
             } catch (e: Exception) {

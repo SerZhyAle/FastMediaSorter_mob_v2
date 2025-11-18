@@ -52,6 +52,7 @@ import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
@@ -75,6 +76,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         setMaxRecycledViews(0, 30) // List view holders
         setMaxRecycledViews(1, 40) // Grid view holders (more needed for grid)
     }
+    
+    // Small controls support
+    private var smallControlsApplied = false
+    private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
     
     @Inject
     lateinit var fileOperationUseCase: FileOperationUseCase
@@ -345,6 +350,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     if (state.displayMode != currentDisplayMode) {
                         currentDisplayMode = state.displayMode
                         updateDisplayMode(state.displayMode)
+                    }
+                    
+                    // Apply or restore small controls based on setting
+                    if (state.showSmallControls) {
+                        applySmallControlsIfNeeded()
+                    } else {
+                        restoreCommandButtonHeightsIfNeeded()
                     }
                 }
             }
@@ -1351,10 +1363,72 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         }
     }
+    
+    private fun applySmallControlsIfNeeded() {
+        if (smallControlsApplied) return
+
+        commandPanelButtons().forEach { button ->
+            val baseline = originalCommandButtonHeights.getOrPut(button.id) {
+                resolveOriginalButtonHeight(button)
+            }
+
+            if (baseline <= 0) {
+                Timber.w("BrowseActivity.applySmallControlsIfNeeded: Skipping button ${button.id} with baseline=$baseline")
+                return@forEach
+            }
+
+            val params = button.layoutParams ?: return@forEach
+            params.height = (baseline * SMALL_CONTROLS_SCALE).roundToInt().coerceAtLeast(1)
+            button.layoutParams = params
+        }
+
+        smallControlsApplied = true
+    }
+
+    private fun restoreCommandButtonHeightsIfNeeded() {
+        if (!smallControlsApplied) return
+
+        commandPanelButtons().forEach { button ->
+            val baseline = originalCommandButtonHeights[button.id] ?: return@forEach
+            val params = button.layoutParams ?: return@forEach
+            params.height = baseline
+            button.layoutParams = params
+        }
+
+        smallControlsApplied = false
+    }
+
+    private fun commandPanelButtons(): List<android.view.View> = listOf(
+        binding.btnBack,
+        binding.btnSort,
+        binding.btnFilter,
+        binding.btnRefresh,
+        binding.btnToggleView,
+        binding.btnSelectAll,
+        binding.btnDeselectAll,
+        binding.btnCopy,
+        binding.btnMove,
+        binding.btnRename,
+        binding.btnDelete,
+        binding.btnUndo,
+        binding.btnShare,
+        binding.btnPlay
+    )
+
+    private fun resolveOriginalButtonHeight(button: android.view.View): Int {
+        val paramsHeight = button.layoutParams?.height ?: 0
+        return when {
+            paramsHeight > 0 -> paramsHeight
+            button.height > 0 -> button.height
+            button.measuredHeight > 0 -> button.measuredHeight
+            else -> 0
+        }
+    }
 
     companion object {
         const val EXTRA_RESOURCE_ID = "resourceId"
         const val EXTRA_SKIP_AVAILABILITY_CHECK = "skipAvailabilityCheck"
+        private const val SMALL_CONTROLS_SCALE = 0.5f
 
         fun createIntent(context: Context, resourceId: Long, skipAvailabilityCheck: Boolean = false): Intent {
             return Intent(context, BrowseActivity::class.java).apply {
