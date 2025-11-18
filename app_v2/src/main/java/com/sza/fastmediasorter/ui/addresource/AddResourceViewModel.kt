@@ -423,8 +423,22 @@ class AddResourceViewModel @Inject constructor(
                     // Scan each added resource to update fileCount and isWritable
                     var unavailableCount = 0
                     viewModelScope.launch(ioDispatcher) {
+                        // Get all inserted resources from DB by matching path and credentialsId
+                        val allResources = resourceRepository.getAllResources().first()
+                        
                         resourcesWithCredentials.forEach { resource ->
                             try {
+                                // Find the inserted resource with real ID
+                                val insertedResource = allResources.firstOrNull { 
+                                    it.path == resource.path && it.credentialsId == credentialsId 
+                                }
+                                
+                                if (insertedResource == null) {
+                                    Timber.e("Failed to find inserted resource ${resource.name} in database")
+                                    unavailableCount++
+                                    return@forEach
+                                }
+                                
                                 val scanner = mediaScannerFactory.getScanner(resource.type)
                                 val supportedTypes = getSupportedMediaTypes()
                                 
@@ -434,7 +448,7 @@ class AddResourceViewModel @Inject constructor(
                                 }
                                 
                                 // Update resource with real values
-                                val updatedResource = resource.copy(
+                                val updatedResource = insertedResource.copy(
                                     fileCount = fileCount,
                                     isWritable = isWritable
                                 )
@@ -559,8 +573,19 @@ class AddResourceViewModel @Inject constructor(
                                 scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
                             }
                             
+                            // Get the inserted resource from DB to get real ID
+                            val allResources = resourceRepository.getAllResources().first()
+                            val insertedResource = allResources.firstOrNull { 
+                                it.path == resource.path && it.credentialsId == credentialsId 
+                            }
+                            
+                            if (insertedResource == null) {
+                                Timber.e("Failed to find inserted SMB resource in database")
+                                return@launch
+                            }
+                            
                             // Update resource with real values
-                            val updatedResource = resource.copy(
+                            val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable
                             )
@@ -887,8 +912,19 @@ class AddResourceViewModel @Inject constructor(
                                 scanner.isWritable(resource.path, credentialsId = resource.credentialsId)
                             }
                             
+                            // Get the inserted resource from DB to get real ID
+                            val allResources = resourceRepository.getAllResources().first()
+                            val insertedResource = allResources.firstOrNull { 
+                                it.path == resource.path && it.credentialsId == credentialsId 
+                            }
+                            
+                            if (insertedResource == null) {
+                                Timber.e("Failed to find inserted SFTP resource in database")
+                                return@launch
+                            }
+                            
                             // Update resource with real values
-                            val updatedResource = resource.copy(
+                            val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable
                             )

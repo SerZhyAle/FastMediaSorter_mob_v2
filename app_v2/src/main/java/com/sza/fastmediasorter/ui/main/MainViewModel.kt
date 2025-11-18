@@ -439,6 +439,27 @@ class MainViewModel @Inject constructor(
                                     needsUpdate = true
                                 }
                                 
+                                // Update file count (fast count with 1000 limit)
+                                val currentSettings = settingsRepository.getSettings().first()
+                                val supportedTypes = mutableSetOf<MediaType>()
+                                if (currentSettings.supportImages) supportedTypes.add(MediaType.IMAGE)
+                                if (currentSettings.supportGifs) supportedTypes.add(MediaType.GIF)
+                                if (currentSettings.supportVideos) supportedTypes.add(MediaType.VIDEO)
+                                if (currentSettings.supportAudio) supportedTypes.add(MediaType.AUDIO)
+                                
+                                val fileCount = try {
+                                    scanner.getFileCount(resource.path, supportedTypes, null, resource.credentialsId)
+                                } catch (e: Exception) {
+                                    Timber.e(e, "Error counting files for ${resource.name}")
+                                    resource.fileCount
+                                }
+                                
+                                if (fileCount != resource.fileCount) {
+                                    updatedResource = updatedResource.copy(fileCount = fileCount)
+                                    needsUpdate = true
+                                    Timber.d("Updated file count for ${resource.name}: $fileCount files")
+                                }
+                                
                                 if (needsUpdate) {
                                     updateResourceUseCase(updatedResource)
                                 }
