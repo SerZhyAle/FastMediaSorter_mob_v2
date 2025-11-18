@@ -14,14 +14,27 @@
         android:orientation="vertical"
         android:padding="4dp">
 
-        <ImageView
-            android:id="@+id/ivThumbnail"
+        <FrameLayout
             android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:scaleType="centerCrop"
-            android:contentDescription="Thumbnail"
-            android:background="?android:selectableItemBackground"
-            tools:src="@android:drawable/ic_menu_gallery" />
+            android:layout_height="96dp">
+
+            <ImageView
+                android:id="@+id/ivThumbnail"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Thumbnail"
+                android:background="?android:selectableItemBackground"
+                tools:src="@android:drawable/ic_menu_gallery" />
+
+            <CheckBox
+                android:id="@+id/cbSelect"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|start"
+                android:layout_margin="4dp" />
+
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvFileName"
