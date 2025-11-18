@@ -349,6 +349,9 @@ class SmbClient @Inject constructor() {
         return try {
             withConnection(connectionInfo) { share ->
                 val count = countDirectoryRecursive(share, remotePath, extensions, maxCount)
+                if (count >= maxCount) {
+                    Timber.d("Fast count limit reached: $maxCount+ files")
+                }
                 SmbResult.Success(count)
             }
         } catch (e: Exception) {
@@ -549,9 +552,8 @@ class SmbClient @Inject constructor() {
         maxCount: Int = 1000,
         currentCount: Int = 0
     ): Int {
-        // Early exit if limit reached
+        // Early exit if limit reached (silent return, logging moved to countMediaFiles)
         if (currentCount >= maxCount) {
-            Timber.d("Fast count limit reached: $maxCount+ files, returning early")
             return currentCount
         }
         
@@ -560,9 +562,8 @@ class SmbClient @Inject constructor() {
             val dirPath = path.trim('/', '\\')
             
             for (fileInfo in share.list(dirPath)) {
-                // Check limit on each iteration to stop quickly
+                // Check limit on each iteration to stop quickly (silent)
                 if (count >= maxCount) {
-                    Timber.d("Fast count limit reached during scan: $maxCount+ files")
                     return count
                 }
                 
