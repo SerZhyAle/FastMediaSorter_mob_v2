@@ -1,3 +1,6 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic"
 }
+{
+  "github.copilot.chat.terminalChatTimeout": 420000
+}

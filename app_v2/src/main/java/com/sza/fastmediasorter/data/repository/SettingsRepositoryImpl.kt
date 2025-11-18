@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 import java.io.IOException
@@ -72,6 +73,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // Player UI settings keys
         private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
         private val KEY_MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
+        
+        // Last used resource key
+        private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
     }
 
     override fun getSettings(): Flow<AppSettings> {
@@ -149,7 +153,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     
                     // Player UI
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
-                    movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false
+                    movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
+                    
+                    // Last used resource
+                    lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L
                 )
             }
     }
@@ -207,6 +214,9 @@ class SettingsRepositoryImpl @Inject constructor(
             // Player UI
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
+            
+            // Last used resource
+            preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
         }
     }
 
@@ -223,5 +233,24 @@ class SettingsRepositoryImpl @Inject constructor(
         val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         // Default to true for first launch
         return sharedPrefs.getBoolean("is_player_first_run", true)
+    }
+    
+    override suspend fun saveLastUsedResourceId(resourceId: Long) {
+        dataStore.edit { preferences ->
+            preferences[KEY_LAST_USED_RESOURCE_ID] = resourceId
+        }
+    }
+    
+    override suspend fun getLastUsedResourceId(): Long {
+        return dataStore.data.map { preferences ->
+            preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L
+        }.catch { exception ->
+            if (exception is IOException) {
+                Timber.e(exception, "Error reading last used resource ID")
+                emit(-1L)
+            } else {
+                throw exception
+            }
+        }.first()
     }
 }

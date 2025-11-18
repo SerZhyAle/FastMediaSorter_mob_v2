@@ -37,6 +37,7 @@ sealed class MainEvent {
     data class ShowInfo(val message: String, val details: String? = null) : MainEvent()
     data class ShowMessage(val message: String) : MainEvent()
     data class NavigateToBrowse(val resourceId: Long, val skipAvailabilityCheck: Boolean = false) : MainEvent()
+    data class NavigateToPlayerSlideshow(val resourceId: Long) : MainEvent()
     data class NavigateToEditResource(val resourceId: Long) : MainEvent()
     object NavigateToAddResource : MainEvent()
     data class NavigateToAddResourceCopy(val copyResourceId: Long) : MainEvent()
@@ -139,15 +140,43 @@ class MainViewModel @Inject constructor(
     }
 
     fun startPlayer() {
-        val resource = state.value.selectedResource
-        if (resource != null && resource.id != 0L) {
-            viewModelScope.launch(ioDispatcher) {
-                validateAndOpenResource(resource)
+        viewModelScope.launch(ioDispatcher) {
+            val resource = state.value.selectedResource
+            if (resource != null && resource.id != 0L) {
+                // User explicitly selected a resource - use it
+                saveLastUsedResourceId(resource.id)
+                validateAndOpenResource(resource, slideshowMode = true)
+            } else {
+                // No selection - try last used resource or first available
+                val lastUsedId = settingsRepository.getLastUsedResourceId()
+                val targetResource = if (lastUsedId != -1L) {
+                    state.value.resources.firstOrNull { it.id == lastUsedId }
+                } else {
+                    null
+                }
+                
+                val resourceToOpen = targetResource ?: state.value.resources.firstOrNull()
+                
+                if (resourceToOpen != null && resourceToOpen.id != 0L) {
+                    saveLastUsedResourceId(resourceToOpen.id)
+                    validateAndOpenResource(resourceToOpen, slideshowMode = true)
+                } else {
+                    sendEvent(MainEvent.ShowMessage("No resources available"))
+                }
             }
         }
     }
     
-    private suspend fun validateAndOpenResource(resource: MediaResource) {
+    private suspend fun saveLastUsedResourceId(resourceId: Long) {
+        try {
+            settingsRepository.saveLastUsedResourceId(resourceId)
+            Timber.d("Saved last used resource ID: $resourceId")
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to save last used resource ID")
+        }
+    }
+    
+    private suspend fun validateAndOpenResource(resource: MediaResource, slideshowMode: Boolean = false) {
         val settings = settingsRepository.getSettings().first()
         val showDetails = settings.showDetailedErrors
         
@@ -183,7 +212,7 @@ class MainViewModel @Inject constructor(
                             updateResourceUseCase(updatedResource)
                         }
                         // Connection OK - open resource (even if empty for network)
-                        sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
+                        navigateToPlayerOrBrowse(resource.id, slideshowMode)
                     },
                     onFailure = { error ->
                         Timber.e(error, "Connection test failed for ${resource.name}")
@@ -216,7 +245,15 @@ class MainViewModel @Inject constructor(
             }
         } else {
             // Local resource with files - open directly
-            sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = false))
+            navigateToPlayerOrBrowse(resource.id, slideshowMode)
+        }
+    }
+    
+    private fun navigateToPlayerOrBrowse(resourceId: Long, slideshowMode: Boolean) {
+        if (slideshowMode) {
+            sendEvent(MainEvent.NavigateToPlayerSlideshow(resourceId))
+        } else {
+            sendEvent(MainEvent.NavigateToBrowse(resourceId, skipAvailabilityCheck = true))
         }
     }
 

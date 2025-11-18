@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.editresource.EditResourceActivity
+import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
@@ -179,7 +180,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                     resourceAdapter.submitList(state.resources)
                     resourceAdapter.setSelectedResource(state.selectedResource?.id)
                     
-                    binding.btnStartPlayer.isEnabled = state.selectedResource != null
+                    // Enable Play button if any resources exist (auto-selects last used or first)
+                    binding.btnStartPlayer.isEnabled = state.resources.isNotEmpty()
                     
                     // Use state.resources.size instead of adapter.itemCount 
                     // because submitList() updates itemCount asynchronously
@@ -241,6 +243,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                                 event.resourceId, 
                                 event.skipAvailabilityCheck
                             ))
+                            @Suppress("DEPRECATION")
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        }
+                        is MainEvent.NavigateToPlayerSlideshow -> {
+                            val intent = PlayerActivity.createIntent(
+                                this@MainActivity,
+                                event.resourceId,
+                                initialIndex = 0,
+                                skipAvailabilityCheck = true
+                            ).apply {
+                                putExtra("slideshow_mode", true)
+                            }
+                            startActivity(intent)
                             @Suppress("DEPRECATION")
                             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
                         }

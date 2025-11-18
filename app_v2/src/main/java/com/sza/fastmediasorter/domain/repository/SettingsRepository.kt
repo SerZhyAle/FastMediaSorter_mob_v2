@@ -12,4 +12,6 @@ interface SettingsRepository {
     suspend fun resetToDefaults()
     suspend fun setPlayerFirstRun(isFirstRun: Boolean)
     suspend fun isPlayerFirstRun(): Boolean
+    suspend fun saveLastUsedResourceId(resourceId: Long)
+    suspend fun getLastUsedResourceId(): Long
 }
