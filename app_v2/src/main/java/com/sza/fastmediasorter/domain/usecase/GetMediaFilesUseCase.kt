@@ -61,6 +61,10 @@ interface MediaScanner {
 class GetMediaFilesUseCase @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory
 ) {
+    companion object {
+        private const val LARGE_FOLDER_THRESHOLD = 1000
+    }
+    
     operator fun invoke(
         resource: MediaResource,
         sortMode: SortMode = SortMode.NAME_ASC,
@@ -99,7 +103,15 @@ class GetMediaFilesUseCase @Inject constructor(
         
         timber.log.Timber.d("GetMediaFilesUseCase: Scanned ${files.size} files, sorting by $sortMode")
         
-        emit(sortFiles(files, sortMode))
+        // Skip sorting for large folders (> 1000 files) - improves performance
+        val sortedFiles = if (files.size > LARGE_FOLDER_THRESHOLD) {
+            timber.log.Timber.d("GetMediaFilesUseCase: Large folder (${files.size} files), skipping sort for better performance")
+            files  // Return unsorted for large folders
+        } else {
+            sortFiles(files, sortMode)
+        }
+        
+        emit(sortedFiles)
         
         timber.log.Timber.d("GetMediaFilesUseCase: Emitted sorted files")
     }.flowOn(Dispatchers.IO) // Execute scanning and sorting on IO thread

@@ -119,7 +119,9 @@
     <string name="fullscreen_mode">Полноэкранный режим</string>
     <string name="seconds">Секунд</string>
     <string name="minutes">Минут</string>
-    <string name="play_video_to_end">Воспроизводить видео/аудио в слайдшоу до конца</string>
+    <string name="stop">Стоп</string>
+    <string name="scan_stopped">Сканирование остановлено. Работаем с %d файлами</string>
+    <string name="play_video_to_end">Проигрывать видео/аудио в слайдшоу до конца</string>
     <string name="allow_rename">Разрешить переименование</string>
     <string name="allow_delete">Разрешить удаление</string>
     <string name="confirm_delete">Подтверждать удаление</string>

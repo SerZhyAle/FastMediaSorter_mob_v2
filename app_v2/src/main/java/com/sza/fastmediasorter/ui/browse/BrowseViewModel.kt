@@ -53,7 +53,8 @@ data class BrowseState(
     val lastOperation: UndoOperation? = null,
     val undoOperationTimestamp: Long? = null, // Timestamp when undo operation was saved (for expiry check)
     val loadingProgress: Int = 0, // Number of files found during scan (0 = not scanning)
-    val isCloudResource: Boolean = false // True for cloud resources (to show animated dots)
+    val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
+    val isScanCancellable: Boolean = false // True when scan runs >10 seconds, shows STOP button
 )
 
 sealed class BrowseEvent {
@@ -91,6 +92,9 @@ class BrowseViewModel @Inject constructor(
     // Job for current file loading operation (to cancel on reload)
     private var loadFilesJob: Job? = null
     
+    // Job for delayed STOP button visibility (10 seconds after scan start)
+    private var stopButtonTimerJob: Job? = null
+    
     // Track last emitted list to avoid redundant UI updates (survives Activity recreation)
     var lastEmittedMediaFiles: List<MediaFile>? = null
         private set
@@ -117,6 +121,32 @@ class BrowseViewModel @Inject constructor(
 
     fun reloadFiles() {
         loadResource()
+    }
+    
+    /**
+     * Cancel currently running scan operation.
+     * Saves partial file list to cache for user to work with.
+     */
+    fun cancelScan() {
+        loadFilesJob?.cancel()
+        loadFilesJob = null
+        
+        val currentFiles = state.value.mediaFiles
+        val currentResource = state.value.resource
+        
+        // Save partial list to cache
+        if (currentFiles.isNotEmpty() && currentResource != null) {
+            MediaFilesCacheManager.setCachedList(
+                resourceId = currentResource.id,
+                files = currentFiles
+            )
+            Timber.d("Scan cancelled by user. Saved ${currentFiles.size} files to cache")
+        }
+        
+        updateState { it.copy(
+            loadingProgress = 0,
+            isScanCancellable = false
+        ) }
     }
 
     private fun loadResource() {
@@ -172,9 +202,14 @@ class BrowseViewModel @Inject constructor(
                 // Start background file count (for header display) but don't block UI
                 startFileCountInBackground()
                 return@launch
+            } else if (cachedFiles != null && cachedFiles.isEmpty()) {
+                // Cache exists but is empty (process was killed and restored empty cache)
+                // Clear it and rescan
+                Timber.w("loadResource: Found empty cache for resource $resourceId, clearing and rescanning")
+                MediaFilesCacheManager.clearCache(resourceId)
             }
             
-            // No cache - start background file count (for header display)
+            // No cache or empty cache - start background file count (for header display)
             startFileCountInBackground()
             
             loadMediaFiles()
@@ -193,7 +228,7 @@ class BrowseViewModel @Inject constructor(
         Timber.d("loadMediaFiles: Starting new load")
         
         // Clear current list immediately to prevent stale data clicks
-        updateState { it.copy(mediaFiles = emptyList(), loadingProgress = 0) }
+        updateState { it.copy(mediaFiles = emptyList(), loadingProgress = 0, isScanCancellable = false) }
         
         // Start progress timer for UI updates every 2 seconds
         var lastProgressUpdate = 0
@@ -210,6 +245,15 @@ class BrowseViewModel @Inject constructor(
         
         loadFilesJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
+            
+            // Start 10-second timer to show STOP button (inside loadFilesJob context)
+            stopButtonTimerJob = viewModelScope.launch {
+                delay(10_000L)
+                if (loadFilesJob?.isActive == true) {
+                    updateState { it.copy(isScanCancellable = true) }
+                    Timber.d("Scan running >10s, showing STOP button")
+                }
+            }
             
             // Get current settings for size filters
             val settings = settingsRepository.getSettings().first()
@@ -277,17 +321,27 @@ class BrowseViewModel @Inject constructor(
                 .catch { e ->
                     Timber.e(e, "Error loading media files")
                     progressJob?.cancel()
+                    stopButtonTimerJob?.cancel()
                     setLoading(false)
                     handleLoadingError(resource, e)
                 }
                 .collect { files ->
                     Timber.d("Collected ${files.size} files from flow")
                     
-                    // Cache the list for future use
-                    MediaFilesCacheManager.setCachedList(resourceId, files)
+                    // Apply sorting for large folders (GetMediaFilesUseCase skipped it for performance)
+                    val finalFiles = if (files.size > PAGINATION_THRESHOLD) {
+                        Timber.d("Large folder detected, applying user-selected sort: ${state.value.sortMode}")
+                        sortFiles(files, state.value.sortMode, forceSort = true)
+                    } else {
+                        files  // Already sorted by GetMediaFilesUseCase
+                    }
                     
-                    updateState { it.copy(mediaFiles = files, usePagination = false, loadingProgress = 0) }
+                    // Cache the sorted list for future use
+                    MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
+                    
+                    updateState { it.copy(mediaFiles = finalFiles, usePagination = false, loadingProgress = 0, isScanCancellable = false) }
                     progressJob?.cancel()
+                    stopButtonTimerJob?.cancel()
                     setLoading(false)
                     
                     // Update resource metadata (fileCount and lastBrowseDate) after successful load
@@ -526,11 +580,15 @@ class BrowseViewModel @Inject constructor(
         val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
         if (cachedFiles != null && cachedFiles.isNotEmpty()) {
             Timber.d("setSortMode: Applying sort to cached list (${cachedFiles.size} files)")
-            val sortedFiles = sortFiles(cachedFiles, sortMode)
+            val sortedFiles = sortFiles(cachedFiles, sortMode, forceSort = true)  // User-requested sort - always apply
             MediaFilesCacheManager.setCachedList(resourceId, sortedFiles)
             updateState { it.copy(mediaFiles = sortedFiles) }
         } else {
-            // No cache - need to reload
+            // No cache or empty cache - need to reload
+            if (cachedFiles != null && cachedFiles.isEmpty()) {
+                Timber.w("setSortMode: Found empty cache for resource $resourceId, clearing before reload")
+                MediaFilesCacheManager.clearCache(resourceId)
+            }
             loadMediaFiles()
         }
     }
@@ -743,7 +801,13 @@ class BrowseViewModel @Inject constructor(
             
             // Clear selection and reload files (will use updated cache if available)
             clearSelection()
+            
+            // Preserve current display mode before reloading
+            val currentDisplayMode = state.value.displayMode
             loadResource()
+            
+            // Restore display mode after reload (loadResource overwrites it from DB)
+            updateState { it.copy(displayMode = currentDisplayMode) }
             
             // Show result message
             val message = when {
@@ -1037,7 +1101,14 @@ class BrowseViewModel @Inject constructor(
     /**
      * Sorts files according to sort mode. Used for in-memory sorting without rescanning.
      */
-    private fun sortFiles(files: List<MediaFile>, mode: SortMode): List<MediaFile> {
+    private fun sortFiles(files: List<MediaFile>, mode: SortMode, forceSort: Boolean = false): List<MediaFile> {
+        // Skip sorting for large folders (> 1000 files) ONLY during initial load
+        // User-requested sorting (forceSort=true) always executes
+        if (!forceSort && files.size > PAGINATION_THRESHOLD) {
+            Timber.d("sortFiles: Large folder (${files.size} files), skipping auto-sort for performance")
+            return files
+        }
+        
         return when (mode) {
             SortMode.MANUAL -> files // Keep original order for manual mode
             SortMode.NAME_ASC -> files.sortedBy { it.name.lowercase() }

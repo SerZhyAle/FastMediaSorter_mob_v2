@@ -119,6 +119,8 @@
     <string name="fullscreen_mode">Fullscreen mode</string>
     <string name="seconds">Seconds</string>
     <string name="minutes">Minutes</string>
+    <string name="stop">Stop</string>
+    <string name="scan_stopped">Scan stopped. Working with %d files</string>
     <string name="play_video_to_end">Play video/audio in slideshow to end</string>
     <string name="allow_rename">Allow rename</string>
     <string name="allow_delete">Allow delete</string>

@@ -1,32 +1,58 @@
 package com.sza.fastmediasorter.core.cache
 
+import android.util.LruCache
 import com.sza.fastmediasorter.domain.model.MediaFile
 import timber.log.Timber
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Singleton cache manager for sharing media files list between BrowseActivity and PlayerActivity.
  * Eliminates need for re-scanning when navigating between screens.
- * Thread-safe implementation using ConcurrentHashMap.
+ * 
+ * Uses LruCache with 128MB limit to prevent memory leaks while keeping data across configuration changes.
+ * LruCache automatically evicts least recently used entries when memory limit is reached,
+ * but preserves data when app goes to background (unlike simple HashMap which is cleared by GC).
  */
 object MediaFilesCacheManager {
     
-    // Cache key = resourceId
-    private val cache = ConcurrentHashMap<Long, MutableList<MediaFile>>()
+    // Calculate cache size: 128MB = 128 * 1024 * 1024 bytes
+    // Average MediaFile size ~500 bytes, so this can hold ~260,000 files across all resources
+    private const val CACHE_SIZE_BYTES = 128 * 1024 * 1024
+    
+    // Cache key = resourceId, value = list of MediaFiles
+    // LruCache requires size calculation via sizeOf() override
+    private val cache = object : LruCache<Long, MutableList<MediaFile>>(CACHE_SIZE_BYTES) {
+        override fun sizeOf(key: Long, value: MutableList<MediaFile>): Int {
+            // Estimate: each MediaFile ~500 bytes (path 200 + metadata 300)
+            return value.size * 500
+        }
+        
+        override fun entryRemoved(
+            evicted: Boolean,
+            key: Long,
+            oldValue: MutableList<MediaFile>,
+            newValue: MutableList<MediaFile>?
+        ) {
+            if (evicted) {
+                Timber.w("MediaFilesCache: Evicted resource $key with ${oldValue.size} files due to memory pressure")
+            }
+        }
+    }
     
     /**
      * Stores cached list for a resource. Creates defensive copy to prevent external modifications.
+     * Thread-safe: LruCache handles synchronization internally.
      */
     fun setCachedList(resourceId: Long, files: List<MediaFile>) {
-        cache[resourceId] = files.toMutableList()
+        cache.put(resourceId, files.toMutableList())
         Timber.d("MediaFilesCache: Cached ${files.size} files for resource $resourceId")
     }
     
     /**
      * Retrieves cached list for a resource. Returns defensive copy.
+     * Thread-safe: LruCache handles synchronization internally.
      */
     fun getCachedList(resourceId: Long): List<MediaFile>? {
-        val files = cache[resourceId]?.toList()
+        val files = cache.get(resourceId)?.toList()
         Timber.d("MediaFilesCache: Retrieved ${files?.size ?: 0} files for resource $resourceId")
         return files
     }
@@ -36,7 +62,7 @@ object MediaFilesCacheManager {
      * @return true if file was found and updated, false otherwise
      */
     fun updateFile(resourceId: Long, oldPath: String, newFile: MediaFile): Boolean {
-        val list = cache[resourceId] ?: return false
+        val list = cache.get(resourceId) ?: return false
         val index = list.indexOfFirst { it.path == oldPath }
         if (index >= 0) {
             list[index] = newFile
@@ -52,7 +78,7 @@ object MediaFilesCacheManager {
      * @return true if file was found and removed, false otherwise
      */
     fun removeFile(resourceId: Long, filePath: String): Boolean {
-        val list = cache[resourceId] ?: return false
+        val list = cache.get(resourceId) ?: return false
         val removed = list.removeAll { it.path == filePath }
         if (removed) {
             Timber.d("MediaFilesCache: Removed file $filePath from resource $resourceId (${list.size} files remaining)")
@@ -67,7 +93,7 @@ object MediaFilesCacheManager {
      * Inserts in correct position based on current sort order (caller's responsibility to sort).
      */
     fun addFile(resourceId: Long, file: MediaFile) {
-        val list = cache[resourceId] ?: mutableListOf<MediaFile>().also { cache[resourceId] = it }
+        val list = cache.get(resourceId) ?: mutableListOf<MediaFile>().also { cache.put(resourceId, it) }
         list.add(file)
         Timber.d("MediaFilesCache: Added file ${file.path} to resource $resourceId (${list.size} files total)")
     }
@@ -84,7 +110,7 @@ object MediaFilesCacheManager {
      * Clears all cached lists (e.g., on app logout or memory pressure).
      */
     fun clearAllCaches() {
-        cache.clear()
+        cache.evictAll()
         Timber.d("MediaFilesCache: Cleared all caches")
     }
     
@@ -92,13 +118,13 @@ object MediaFilesCacheManager {
      * Checks if a resource has cached data.
      */
     fun isCached(resourceId: Long): Boolean {
-        return cache.containsKey(resourceId)
+        return cache.get(resourceId) != null
     }
     
     /**
      * Gets current size of cached list without retrieving it.
      */
     fun getCacheSize(resourceId: Long): Int {
-        return cache[resourceId]?.size ?: 0
+        return cache.get(resourceId)?.size ?: 0
     }
 }

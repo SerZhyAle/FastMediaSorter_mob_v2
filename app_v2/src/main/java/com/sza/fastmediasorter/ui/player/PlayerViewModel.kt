@@ -151,15 +151,23 @@ class PlayerViewModel @Inject constructor(
                     audioSizeMax = settings.audioSizeMax
                 )
 
-                // Load all files (fast from cache via MediaFilesCacheManager)
-                Timber.d("Loading all files from resource (fileCount=${resource.fileCount})")
-                val files = getMediaFilesUseCase(
-                    resource = resource,
-                    sizeFilter = sizeFilter,
-                    useChunkedLoading = false,
-                    maxFiles = Int.MAX_VALUE,
-                    onProgress = null // No progress needed - loads from cache instantly
-                ).first()
+                // Load from cache (instant) - BrowseActivity already loaded and cached the list
+                Timber.d("Loading files from cache for resource ${resource.id}")
+                val cachedFiles = MediaFilesCacheManager.getCachedList(resource.id)
+                val files = if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+                    Timber.d("Using cached list (${cachedFiles.size} files)")
+                    cachedFiles
+                } else {
+                    // Fallback: cache miss - load via UseCase (should rarely happen)
+                    Timber.w("Cache miss! Loading files via UseCase (slow path)")
+                    getMediaFilesUseCase(
+                        resource = resource,
+                        sizeFilter = sizeFilter,
+                        useChunkedLoading = false,
+                        maxFiles = Int.MAX_VALUE,
+                        onProgress = null
+                    ).first()
+                }
                 
                 if (files.isEmpty()) {
                     sendEvent(PlayerEvent.ShowError("No media files found"))
@@ -313,6 +321,19 @@ class PlayerViewModel @Inject constructor(
                 when (val result = fileOperationUseCase.execute(deleteOperation)) {
                     is FileOperationResult.Success,
                     is FileOperationResult.PartialSuccess -> {
+                        // Save undo operation if enabled in settings
+                        val settings = settingsRepository.getSettings().first()
+                        if (settings.enableUndo) {
+                            val undoOp = UndoOperation(
+                                type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
+                                sourceFiles = listOf(currentFile.path),
+                                destinationFolder = null,
+                                copiedFiles = null,
+                                oldNames = null
+                            )
+                            saveUndoOperation(undoOp)
+                        }
+                        
                         // Remove deleted file from the list
                         val updatedFiles = state.value.files.toMutableList()
                         val deletedIndex = state.value.currentIndex

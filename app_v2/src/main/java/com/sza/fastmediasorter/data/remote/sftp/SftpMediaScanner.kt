@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject

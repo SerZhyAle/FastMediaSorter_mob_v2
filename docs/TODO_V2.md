@@ -1,41 +1,117 @@
 # TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.0.0-build2511171500  
-**Version**: 2.0.0-build2511171500
+**Latest Build**: 2.25.1118.0134  
+**Version**: 2.25.1118.0134
 **Package**: com.sza.fastmediasorter
+
+- [ ] Нужна возможность остановить кнопкой сканирование Для ресурсов с большим количеством файлов (загрузка идёт дольше 10 секунд). Идея в том, что если пользователь нажал стоп то он оперирует только теми файлами, которые успели загрузиться. И может, если ему нужно, нажать "обновить" в Browse Для перезапуска этого сканирования сначала и получить полный список или остановить в другом месте.
+
+- [ ] В блоке настроек General нужно две кнопки - "Выгрузить все настройки в файл" и "Загрузить настройки из файла". Создаётся файл XML со всеми настройками, списком ресурсов (всевсе данные) и списком desinations. При экспорте создаётся файл FastMediaSorter_import.xml в папке Downloads. Импорт читает этот файл из того же каталога. Если такого файла там нет - сообщение об оибке "поместите файл FastMediaSorter_import.xml в каталог Downloads".
+
 
 - [ ] Во время проигрывателя статичных изображений с демонстрацией командной панели над изображением мы имеем две тач-зоны "предыдущий" и "следующий". Я хчу, чтобы при включённой настройке "загружать изображения полностью" над изображением в этом режиме было не две, а три тач зоны. Три вертикальные зоны. Первые 25% слева - "предыдущий". Вторые 50% - место для "щипка" пользователя. Последняя 25% - "следующий". В области щипка пользовааель может приблизить изобржение раздвигая пальцы или повернуть изображение поворачивая пальцы по часовой стрелке или против часовой стрелки.
 
-- [ ] В Android есть механизм "отправить файл". Он обычно доступен во всех программах и позволяет файл прикреплять к новому сообщению телеграмм или емейл. Понимешь о чём я? Я хочу такую кнопку в режим проигрывателя. 
-
-- [ ] НУЖНО МНОГО ПЕРЕПИСАТЬ
-Как должно быть: 
-Эта стратегия для всех видов ресорсов, в том числе для внутренних ресурсов. Если какой то тип ресурса (нпример облачный) не поддерживает такую стратегию,он должен быть упрощен. Но по-возможности её следует реалзоваь для всех.
-
-1. При выборе ресурса (запуске Browse для него) 
-1.1 Начинается поиск подерживаемых медиафайлов по расширению. У нас есть список расширений медиафайлов по каждому поддерживаемому типу (image, animation, video, audio). Поддерживаемые типы были указаны в записи ресурса при решистрации или редакции. Результат поиска - список файлов (адрес, имя, размер, датавремя создания, расширение).
-1.2 К найденным файлам нужно применитььл имиты по размерам, установленных в настройках.
-1.3 Полученный список файлов сортируется по выбранному режиму сортировки (задан в настройках или для ресурса)
-1.4 Пока идёт поиск демонстрируется "прогресс" "Loading.. (N)". Где N - количество уже найденных файлов.
-
-2. После поиска мы определяем отсортированный список файлов. 
-2.2 На экране Browse уже нужно спрятать "прогресс" и показать первые файлы списка по сортировке. И в несколько процессов загрузить миниатюры для показанных файлов, кешируя миниатюры. Если пользователь решит поменять позицию в списке (прокрутить сетку), то нужно будет мгновенно покзать файлы другого участка списка и запустить на фоне подзагрузку и кэширование миниатюр для продемонстрированных файлов нового участка списка.
-2.2 Пользователь может изменить сортировку (есть такой диалог), которая должна прмениться к загруженному списку.
-2.3 пользователь может задать отбор (есть такой диалог), который применится к загруженному списку.
-
-2.4 При выходе из Browse обратно в основное активити программы нужно сохранить и выбранный способо сортировки и последний файл просмотра. Чтобы при следующем запуске возобновить Browse c этой позиции си выбранным режимом сортировки.
-
-2.4 Если пользоатель применяет операции над файлами (перемещение, удаление, переименование) то помимо физических команд, они должны дублироваться и для элементов загруженного списка (без пересканирования).
-
-3. При проигрывании файла у нас есть отоортировынный список с адресами файлов - мы загружаем в проигрыватель
-3.1 этот список и текуций (*выбранный медиафайл), а точнее его адресс (индекс в нем). В проигрывателе пользователь может переходить к следующему или к предыдущему файлу по списку (следующий файл изображения подгружается в фоне). 
-3.2 Если пользователь в проигрывателе применил операции над файлами (перемещение, переименование, удаление), нужно обноовлять и загруженный список, не допуская пересканирования.
-
-3.3 Когда пользователь из проигрывателя возвращается в Browse никакого пересканирования - он возвращает измененный список, отражающий текущий массив медиафайлов ресурса. В окне Browse Программа позиционируется на тот файл, который пользователь просматривал последним.
+- [ ] В Android есть механизм "отправить файл". Он обычно доступен во всех программах и позволяет файл прикреплять к новому сообщению телеграмм или емейл. Понимешь о чём я? Я хочу такую кнопку в режим проигрывателя и в режим browse в нижнюю командную панель когда выбран один или несколько файлов. 
 
 
 
 
+
+
+---
+
+### Build 2.25.1118.0134 ✅
+- ✅ **FEATURE: Interactive FastScroller for file list**
+- **User request**: "ни в режиме списка, ни в режиме сетки бегунок справа для прокрутки списка 'не хватается пальцем или мышью'"
+- **Issue**: Standard Android scrollbar was visible but not draggable (indicator only)
+- **Solution**: 
+  - Added `me.zhanghai.android.fastscroll:library:1.3.0` dependency
+  - Integrated FastScrollerBuilder with Material Design 2 style
+  - Removed standard scrollbar attributes from RecyclerView (replaced by interactive FastScroller)
+  - FastScroller works in both LIST and GRID display modes
+- **Changed files**:
+  - **build.gradle.kts**: Added FastScroll library dependency
+  - **activity_browse.xml**: Removed `android:scrollbars`, `android:fadeScrollbars`, `android:scrollbarSize` attributes
+  - **BrowseActivity.kt**: 
+    - Added `import me.zhanghai.android.fastscroll.FastScrollerBuilder`
+    - Added `FastScrollerBuilder(binding.rvMediaFiles).useMd2Style().build()` in `setupViews()`
+- **Result**: 
+  - Interactive scrollbar appears on right side of file list
+  - User can drag scrollbar thumb with finger/mouse to quickly jump through large lists
+  - Works seamlessly with 62832+ file lists
+  - Material Design 2 styled thumb (matches app theme)
+
+### Build 2.25.1118.0127 ✅
+- ✅ **BUG FIX: STOP button timer and duplicate Loading text**
+- **Issue 1**: STOP button not visible during long scans (timer not firing)
+- **Issue 2**: Two "Loading" texts overlapping (tvEmpty + layoutProgress)
+- **Root causes**: 
+  1. Timer launched BEFORE loadFilesJob started → checked `isActive` on non-running job
+  2. tvEmpty showed "Loading..." simultaneously with layoutProgress
+- **Solution**:
+  - **Timer fix**: Moved stopButtonTimerJob launch INSIDE loadFilesJob (after `setLoading(true)`)
+  - **Duplicate text fix**: Hide tvEmpty when isLoading=true (only show layoutProgress)
+- **Changed files**:
+  - **BrowseViewModel.kt**: Relocated timer launch from before to inside loadFilesJob context
+  - **BrowseActivity.kt**: Changed tvEmpty visibility logic - hidden during loading, only shown after completion if empty
+- **Result**: 
+  - STOP button appears exactly after 10 seconds of scanning
+  - Single clean "Loading (N)" indicator with ProgressBar
+  - No text duplication or overlapping
+
+### Build 2.25.1118.0122 ✅
+- ✅ **BUG FIX: Enhanced SMB rename diagnostics**
+- **Issue**: STATUS_OBJECT_NAME_INVALID errors during SMB rename operations
+- **Root cause**: File naming conflicts or invalid characters not properly validated/logged
+- **Solution**: 
+  - Added pre-rename validation for invalid SMB characters (\ / : * ? " < > |)
+  - Wrapped fileExists() check in try-catch (handles permission errors gracefully)
+  - Added detailed error logging at each operation stage (validation, existence check, file open, rename call)
+  - Better error messages showing exact failure point
+- **Changed files**:
+  - **SmbClient.kt**: 
+    - Added `invalidChars` set validation before rename
+    - Added error handling for `share.fileExists()` call
+    - Added granular logging in `renameFile()` method
+- **Result**: Comprehensive diagnostics for SMB rename failures. Easier to identify root cause (invalid characters, permissions, existing files).
+
+---
+
+### Build 2.25.1118.0110 ✅
+- ✅ **BUG FIX: UNDO button not visible in PlayerActivity after delete**
+- **Issue**: After deleting a file in player, UNDO button didn't appear in command panel
+- **Root cause**: `deleteCurrentFile()` didn't save `UndoOperation` to state after successful deletion
+- **Solution**: 
+  - Added settings check `settings.enableUndo` before saving undo operation
+  - Created `UndoOperation` with DELETE type and deleted file path
+  - Called `saveUndoOperation()` after successful deletion
+  - UNDO button visibility controlled by `state.lastOperation != null`
+- **Changed files**:
+  - **PlayerViewModel.kt**: Added undo operation save in `deleteCurrentFile()` method after FileOperationResult.Success/PartialSuccess
+- **Pattern**: Same as BrowseViewModel - check settings, create UndoOperation, save to state
+- **Result**: UNDO button now appears in command panel after file deletion. User can restore deleted file by tapping UNDO.
+
+- ✅ **BUG FIX: STOP button and text rendering issues in BrowseActivity**
+- **Issue 1**: STOP button not visible during long scans (>10 seconds)
+- **Issue 2**: "Loading (N)" text displayed with corrupted rendering (overlapping characters)
+- **Root causes**: 
+  1. Two separate lifecycle observers for `loading` and `state.isScanCancellable` created race condition
+  2. TextView updated too frequently without singleLine/ellipsize attributes
+- **Solution**:
+  - **Combined observers**: Merged `loading` and `state` observation into single `combine()` flow
+  - **Button visibility**: Now depends on both conditions: `isLoading && state.isScanCancellable`
+  - **Text rendering**: Added `android:singleLine="true"`, `android:ellipsize="end"`, `android:maxWidth="200dp"` to TextView
+- **Changed files**:
+  - **BrowseActivity.kt**: 
+    - Replaced two separate `lifecycleScope.launch` blocks with single combined flow
+    - Added `import kotlinx.coroutines.flow.combine`
+    - STOP button visibility: `btnStopScan.isVisible = state.isScanCancellable && isLoading`
+  - **activity_browse.xml**: 
+    - Added singleLine, ellipsize, maxWidth attributes to `tvProgressMessage`
+- **Result**: 
+  - STOP button appears after 10 seconds during scans
+  - Loading text displays clearly without character overlapping
+  - No visual glitches or race conditions
 
 ---
 

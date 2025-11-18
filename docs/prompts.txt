@@ -16,3 +16,7 @@ no build, no git
 удали из TODO все реализованные задачи.
  если необходимо, исправь структуру файла и порядок задач.
  Оцени по спецификации, какие задачи здесь ещё нужно добавить?
+
+ .\gradlew.bat --refresh-dependencies
+ .\gradlew.bat clean build --refresh-dependencies
+ .\gradlew.bat tasks --refresh-dependencies

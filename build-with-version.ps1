@@ -33,13 +33,18 @@ Write-Host "Backup created: $backupPath" -ForegroundColor Yellow
 # Replace versionCode
 $content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
 
-# Replace versionName
+# Replace versionName (with debug to verify)
+$oldVersionMatch = [regex]::Match($content, '(versionName\s*=\s*)"([^"]*)"')
+if ($oldVersionMatch.Success) {
+    $oldVersion = $oldVersionMatch.Groups[2].Value
+    Write-Host "Current versionName: $oldVersion" -ForegroundColor Yellow
+}
 $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
 
 # Write updated content
 Set-Content $buildGradlePath $content -NoNewline
 
-Write-Host "build.gradle.kts updated" -ForegroundColor Green
+Write-Host "[RCS] Updated build.gradle.kts with version: $versionName" -ForegroundColor Green
 
 # Run gradle build
 Write-Host "`nStarting Gradle build..." -ForegroundColor Cyan
@@ -54,6 +59,23 @@ if ($LASTEXITCODE -eq 0) {
     # Keep the new version
     Remove-Item $backupPath -Force
     Write-Host "Version committed to build.gradle.kts" -ForegroundColor Green
+    
+    # Gradle sync
+    Write-Host "`n[SYNC] Running Gradle sync..." -ForegroundColor Cyan
+    .\gradlew.bat tasks --refresh-dependencies | Out-Null
+    Write-Host "[SYNC] Gradle sync completed" -ForegroundColor Green
+    
+    # Install and run on device
+    Write-Host "`n[ADB] Installing APK on device..." -ForegroundColor Cyan
+    $apkPath = "app_v2\build\outputs\apk\debug\app_v2-debug.apk"
+    & adb install -r $apkPath
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "[ADB] Starting app..." -ForegroundColor Cyan
+        & adb shell am start -n com.sza.fastmediasorter/.ui.main.MainActivity
+        Write-Host "[ADB] App launched" -ForegroundColor Green
+    } else {
+        Write-Host "[ADB] Install failed (device connected?)" -ForegroundColor Yellow
+    }
 } else {
     Write-Host "`n==================================" -ForegroundColor Red
     Write-Host "BUILD FAILED" -ForegroundColor Red

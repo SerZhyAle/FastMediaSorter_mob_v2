@@ -40,8 +40,10 @@ import com.sza.fastmediasorter.ui.dialog.CopyToDialog
 import com.sza.fastmediasorter.ui.dialog.MoveToDialog
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -132,6 +134,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             
             Timber.d("RecyclerView optimizations: cacheSize=$optimalCacheSize, screenHeightDp=$screenHeightDp")
         }
+        
+        // Setup FastScroller for interactive scrollbar (can drag with finger/mouse)
+        FastScrollerBuilder(binding.rvMediaFiles).useMd2Style().build()
 
         binding.btnSort.setOnClickListener {
             showSortDialog()
@@ -144,6 +149,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         binding.btnRefresh.setOnClickListener {
             Timber.d("Manual refresh requested")
             viewModel.reloadFiles()
+        }
+        
+        binding.btnStopScan.setOnClickListener {
+            Timber.d("Stop scan requested by user")
+            viewModel.cancelScan()
+            val fileCount = viewModel.state.value.mediaFiles.size
+            Toast.makeText(this, getString(R.string.scan_stopped, fileCount), Toast.LENGTH_SHORT).show()
         }
 
         binding.btnToggleView.setOnClickListener {
@@ -258,10 +270,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 val isLoading = viewModel.loading.value
                                 
                                 if (isLoading) {
-                                    // Loading in progress - show "Loading..." message
-                                    binding.tvEmpty.isVisible = true
-                                    binding.tvEmpty.text = getString(R.string.loading)
-                                    Timber.d("Empty state: showing loading message (isLoading=true, itemCount=0)")
+                                    // Loading in progress - hide tvEmpty (layoutProgress shows loading indicator)
+                                    binding.tvEmpty.isVisible = false
+                                    Timber.d("Empty state: hidden during loading (layoutProgress visible)")
                                 } else {
                                     // Loading complete, no files - show "No files found"
                                     binding.tvEmpty.isVisible = true
@@ -326,10 +337,24 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         }
 
+        // Observe loading state and STOP button visibility together
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.loading.collect { isLoading ->
-                    binding.progressBar.isVisible = isLoading
+                combine(viewModel.loading, viewModel.state) { isLoading, state ->
+                    Pair(isLoading, state)
+                }.collect { (isLoading, state) ->
+                    binding.layoutProgress.isVisible = isLoading
+                    binding.btnStopScan.isVisible = state.isScanCancellable && isLoading
+                    
+                    // Debug logging for STOP button visibility
+                    Timber.d("Progress UI update: isLoading=$isLoading, isScanCancellable=${state.isScanCancellable}, btnStopScan.visible=${state.isScanCancellable && isLoading}, progress=${state.loadingProgress}")
+                    
+                    // Update progress message
+                    if (state.loadingProgress > 0) {
+                        binding.tvProgressMessage.text = getString(R.string.loading) + " (${state.loadingProgress})"
+                    } else {
+                        binding.tvProgressMessage.text = getString(R.string.loading)
+                    }
                 }
             }
         }
@@ -474,16 +499,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private fun buildResourceInfo(state: BrowseState): String {
         val resource = state.resource ?: return ""
         
-        // Show loading progress if scanning
+        // Don't show loading in title when layoutProgress is visible (center of screen)
+        // to avoid duplicate "Loading" text
         if (state.loadingProgress > 0) {
-            val dots = if (state.isCloudResource) {
-                // Animated dots for cloud resources (will be updated periodically)
-                val dotCount = ((System.currentTimeMillis() / 500) % 4).toInt() // 0-3 dots every 0.5s
-                ".".repeat(dotCount)
-            } else {
-                ""
-            }
-            return "${resource.name} • Loading$dots (${state.loadingProgress})"
+            return resource.name
         }
         
         val selected = if (state.selectedFiles.isEmpty()) {
@@ -688,30 +707,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             .setTitle("Sort by")
             .setSingleChoiceItems(items, currentIndex) { dialog, which ->
                 val selectedMode = sortModes[which]
-                
-                // Warn if selecting non-NAME sorting for large folders (1000+ files)
-                val fileCount = viewModel.state.value.totalFileCount ?: 0
-                val isLargeFolder = fileCount >= 1000
-                val isNonNameSort = selectedMode !in setOf(SortMode.NAME_ASC, SortMode.NAME_DESC)
-                
-                if (isLargeFolder && isNonNameSort) {
-                    dialog.dismiss()
-                    showLargeFolderSortWarning(selectedMode, fileCount)
-                } else {
-                    viewModel.setSortMode(selectedMode)
-                    dialog.dismiss()
-                }
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-    
-    private fun showLargeFolderSortWarning(sortMode: SortMode, fileCount: Int) {
-        AlertDialog.Builder(this)
-            .setTitle("Performance Warning")
-            .setMessage("This folder contains $fileCount files. Sorting by ${getSortModeName(sortMode)} requires loading all files at once, which may take a long time (30+ seconds).\n\nFor better performance, use Name sorting (instant pagination).\n\nContinue anyway?")
-            .setPositiveButton("Continue") { _, _ ->
-                viewModel.setSortMode(sortMode)
+                viewModel.setSortMode(selectedMode)
+                dialog.dismiss()
             }
             .setNegativeButton("Cancel", null)
             .show()
