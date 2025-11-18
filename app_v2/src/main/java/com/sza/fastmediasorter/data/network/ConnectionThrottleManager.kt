@@ -120,6 +120,7 @@ object ConnectionThrottleManager {
         }
         
         semaphore.acquire()
+        var permitReleased = false
         try {
             val result = operation()
             
@@ -166,7 +167,10 @@ object ConnectionThrottleManager {
             
             throw e
         } finally {
-            semaphore.release()
+            if (!permitReleased) {
+                permitReleased = true
+                semaphore.release()
+            }
         }
     }
     
