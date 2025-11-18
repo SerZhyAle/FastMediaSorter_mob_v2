@@ -10,11 +10,13 @@ import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.network.SmbClient
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
 import java.util.EnumSet
+import java.util.Locale
 
 /**
  * Custom DataSource for streaming video from SMB server via ExoPlayer.
@@ -27,6 +29,24 @@ class SmbDataSource(
     private val smbClient: SmbClient,
     private val connectionInfo: SmbClient.SmbConnectionInfo
 ) : BaseDataSource(true) {
+    companion object {
+        private const val CHUNK_LOG_BYTES = 1_000_000L // ~1 MB summaries
+        private const val BYTES_IN_MEBIBYTE = 1_048_576.0
+    }
+
+    private fun isInterruption(error: Throwable?): Boolean {
+        var current: Throwable? = error
+        var depth = 0
+        while (current != null && depth < 5) {
+            val currentNonNull = current // immutable local for smart cast
+            if (currentNonNull is InterruptedException) {
+                return true
+            }
+            current = currentNonNull.cause
+            depth++
+        }
+        return false
+    }
     
     private var connection: com.hierynomus.smbj.connection.Connection? = null
     private var session: com.hierynomus.smbj.session.Session? = null
@@ -37,6 +57,7 @@ class SmbDataSource(
     private var bytesRemaining: Long = 0
     private var opened = false
     private var totalBytesRead = 0L
+    private var nextLogThresholdBytes = CHUNK_LOG_BYTES
 
     override fun open(dataSpec: DataSpec): Long {
         try {
@@ -110,6 +131,8 @@ class SmbDataSource(
             }
 
             opened = true
+            totalBytesRead = 0L
+            nextLogThresholdBytes = CHUNK_LOG_BYTES
             transferStarted(dataSpec)
 
             Timber.d(
@@ -158,15 +181,26 @@ class SmbDataSource(
 
             // bytesRead > 0: successful read
             totalBytesRead += bytesRead
-            // Log first 10KB (debug start), then every 500KB (reduce spam ~20x)
-            if (totalBytesRead <= 10000 || (totalBytesRead / 500000) > ((totalBytesRead - bytesRead) / 500000)) {
-                Timber.d(
-                    "SmbDataSource: READ - requested=$bytesToRead actual=$bytesRead total=$totalBytesRead remaining=$bytesRemaining file=${uri?.lastPathSegment}"
-                )
-            }
-
             if (bytesRemaining != C.LENGTH_UNSET.toLong()) {
                 bytesRemaining -= bytesRead.toLong()
+            }
+
+            if (BuildConfig.LOG_SMB_IO) {
+                Timber.d(
+                    "SmbDataSource: READ - requested=$bytesToRead actual=$bytesRead total=$totalBytesRead remaining=${formatRemaining()} file=${uri?.lastPathSegment}"
+                )
+            } else if (totalBytesRead >= nextLogThresholdBytes) {
+                val transferredMb = totalBytesRead / BYTES_IN_MEBIBYTE
+                Timber.d(
+                    String.format(
+                        Locale.US,
+                        "SmbDataSource: streamed %.2f MB so far (remaining=%s, file=%s)",
+                        transferredMb,
+                        formatRemaining(),
+                        uri?.lastPathSegment
+                    )
+                )
+                nextLogThresholdBytes += CHUNK_LOG_BYTES
             }
             bytesTransferred(bytesRead)
 
@@ -202,7 +236,12 @@ class SmbDataSource(
         try {
             file?.close()
         } catch (e: Exception) {
-            Timber.e(e, "SmbDataSource: Error closing File")
+            if (isInterruption(e)) {
+                Timber.d("SmbDataSource: File close interrupted (normal during playback cancel)")
+                Thread.currentThread().interrupt()
+            } else {
+                Timber.e(e, "SmbDataSource: Error closing File")
+            }
         } finally {
             file = null
         }
@@ -210,9 +249,9 @@ class SmbDataSource(
         try {
             share?.close()
         } catch (e: Exception) {
-            // InterruptedException during close is normal when ExoPlayer cancels loading
-            if (e.cause?.cause is InterruptedException) {
+            if (isInterruption(e)) {
                 Timber.d("SmbDataSource: DiskShare close interrupted (normal during playback cancel)")
+                Thread.currentThread().interrupt()
             } else {
                 Timber.e(e, "SmbDataSource: Error closing DiskShare")
             }
@@ -223,9 +262,9 @@ class SmbDataSource(
         try {
             session?.close()
         } catch (e: Exception) {
-            // InterruptedException during close is normal when ExoPlayer cancels loading
-            if (e.cause?.cause is InterruptedException) {
+            if (isInterruption(e)) {
                 Timber.d("SmbDataSource: Session close interrupted (normal during playback cancel)")
+                Thread.currentThread().interrupt()
             } else {
                 Timber.e(e, "SmbDataSource: Error closing Session")
             }
@@ -236,9 +275,9 @@ class SmbDataSource(
         try {
             connection?.close()
         } catch (e: Exception) {
-            // InterruptedException during close is normal when ExoPlayer cancels loading
-            if (e.cause?.cause is InterruptedException) {
+            if (isInterruption(e)) {
                 Timber.d("SmbDataSource: Connection close interrupted (normal during playback cancel)")
+                Thread.currentThread().interrupt()
             } else {
                 Timber.e(e, "SmbDataSource: Error closing Connection")
             }
@@ -251,7 +290,12 @@ class SmbDataSource(
             transferEnded()
         }
 
-        Timber.d("SmbDataSource: Closed SMB data source")
+        Timber.d("SmbDataSource: Closed SMB data source (totalRead=$totalBytesRead bytes)")
+    }
+
+    private fun formatRemaining(): String = when (bytesRemaining) {
+        C.LENGTH_UNSET.toLong() -> "unknown"
+        else -> bytesRemaining.toString()
     }
 }
 

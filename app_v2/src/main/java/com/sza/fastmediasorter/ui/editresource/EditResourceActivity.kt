@@ -88,6 +88,11 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         binding.cbSupportVideo.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbSupportAudio.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
         binding.cbSupportGif.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        
+        // Scan subdirectories checkbox
+        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.updateScanSubdirectories(isChecked)
+        }
 
         // Resource name
         binding.etResourceName.addTextChangedListener(object : TextWatcher {
@@ -292,6 +297,9 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         binding.cbSupportVideo.isChecked = MediaType.VIDEO in resource.supportedMediaTypes
                         binding.cbSupportAudio.isChecked = MediaType.AUDIO in resource.supportedMediaTypes
                         binding.cbSupportGif.isChecked = MediaType.GIF in resource.supportedMediaTypes
+                        
+                        // Scan subdirectories
+                        binding.cbScanSubdirectories.isChecked = resource.scanSubdirectories
 
                         // Is destination - temporarily remove listener to avoid triggering on programmatic change
                         binding.switchIsDestination.setOnCheckedChangeListener(null)

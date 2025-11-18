@@ -23,6 +23,7 @@ import coil.request.ErrorResult
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import coil.transform.RoundedCornersTransformation
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
@@ -132,11 +133,20 @@ class MediaFileAdapter(
         private val binding: ItemMediaFileBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
+        private fun logThumbnailEvent(message: String) {
+            if (BuildConfig.DEBUG) {
+                Timber.v(message)
+            }
+        }
+
         fun disposeImage() {
             binding.ivThumbnail.dispose()
         }
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
+            // Cancel any pending image load from previous bind
+            disposeImage()
+            
             binding.apply {
                 val isSelected = file.path in selectedPaths
                 
@@ -215,7 +225,7 @@ class MediaFileAdapter(
                     }
                 }
                 
-                Timber.d("Loading thumbnail for: ${file.name}, isCloud: $isCloudPath, isNetwork: $isNetworkPath, type: ${file.type}")
+                logThumbnailEvent("Loading thumbnail for: ${file.name}, isCloud: $isCloudPath, isNetwork: $isNetworkPath, type: ${file.type}")
                 
                 when (file.type) {
                     MediaType.IMAGE, MediaType.GIF -> {
@@ -223,7 +233,7 @@ class MediaFileAdapter(
                             isCloudPath -> {
                                 // Load cloud thumbnail using thumbnailUrl if available
                                 if (!file.thumbnailUrl.isNullOrEmpty()) {
-                                    Timber.d("Loading cloud thumbnail from URL: ${file.thumbnailUrl}")
+                                    logThumbnailEvent("Loading cloud thumbnail from URL: ${file.thumbnailUrl}")
                                     load(file.thumbnailUrl) {
                                         size(512) // Fixed size for consistent caching across List/Grid modes
                                         crossfade(false)
@@ -234,7 +244,7 @@ class MediaFileAdapter(
                                         diskCacheKey(file.path)
                                         listener(
                                             onSuccess = { _, _ ->
-                                                Timber.d("Successfully loaded cloud thumbnail: ${file.name}")
+                                                logThumbnailEvent("Successfully loaded cloud thumbnail: ${file.name}")
                                             },
                                             onError = { _, result ->
                                                 Timber.w(result.throwable, "Failed to load cloud thumbnail: ${file.name}")
@@ -249,7 +259,7 @@ class MediaFileAdapter(
                             }
                             isNetworkPath -> {
                                 // Load network image using NetworkFileData (Coil will use NetworkFileFetcher)
-                                Timber.d("Loading network image via NetworkFileData: ${file.path}")
+                                logThumbnailEvent("Loading network image via NetworkFileData: ${file.path}")
                                 load(com.sza.fastmediasorter.data.network.coil.NetworkFileData(file.path, credentialsId, loadFullImage = false)) {
                                     size(thumbnailSize) // Use configured thumbnail size from settings
                                     crossfade(false) // Disable crossfade for faster loading
@@ -264,7 +274,7 @@ class MediaFileAdapter(
                                     diskCacheKey(file.path)
                                     listener(
                                         onSuccess = { _, _ ->
-                                            Timber.d("Successfully loaded network thumbnail: ${file.name}")
+                                            logThumbnailEvent("Successfully loaded network thumbnail: ${file.name}")
                                         },
                                         onError = { _, result ->
                                             Timber.w(result.throwable, "Failed to load network thumbnail: ${file.name}")
@@ -295,7 +305,7 @@ class MediaFileAdapter(
                             isCloudPath -> {
                                 // Load cloud video thumbnail using thumbnailUrl if available
                                 if (!file.thumbnailUrl.isNullOrEmpty()) {
-                                    Timber.d("Loading cloud video thumbnail from URL: ${file.thumbnailUrl}")
+                                    logThumbnailEvent("Loading cloud video thumbnail from URL: ${file.thumbnailUrl}")
                                     load(file.thumbnailUrl) {
                                         crossfade(false)
                                         placeholder(R.drawable.ic_video_placeholder)
@@ -427,6 +437,9 @@ class MediaFileAdapter(
         }
         
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
+            // Cancel any pending image load from previous bind
+            disposeImage()
+            
             binding.apply {
                 val isSelected = file.path in selectedPaths
                 

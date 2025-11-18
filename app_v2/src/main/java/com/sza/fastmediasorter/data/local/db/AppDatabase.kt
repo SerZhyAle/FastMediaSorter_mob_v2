@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ResourceEntity::class,
         NetworkCredentialsEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -94,6 +94,13 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_display_order_name ON resources(displayOrder, name)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_type_display_order_name ON resources(type, displayOrder, name)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_is_destination_order ON resources(isDestination, destinationOrder)")
+            }
+        }
+        
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add scan subdirectories option for resources
+                db.execSQL("ALTER TABLE resources ADD COLUMN scanSubdirectories INTEGER NOT NULL DEFAULT 0")
             }
         }
     }

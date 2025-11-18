@@ -93,6 +93,7 @@
     <string name="backup_restore_settings">Резервное копирование</string>
     <string name="export_settings">Выгрузить все настройки в файл</string>
     <string name="import_settings">Загрузить настройки из файла</string>
+    <string name="export_import_file_info">Используется файл: Downloads/FastMediaSorter_export.xml</string>
     <string name="export_success">Настройки экспортированы в Downloads/FastMediaSorter_export.xml</string>
     <string name="export_failed">Ошибка экспорта настроек: %s</string>
     <string name="import_success">Настройки успешно импортированы</string>
@@ -191,6 +192,8 @@
     <string name="video">Видео</string>
     <string name="audio">Аудио</string>
     <string name="gif_animations">GIF-анимации</string>
+    <string name="scan_subdirectories">Сканировать подкаталоги</string>
+    <string name="scan_subdirectories_hint">Включите для поиска медиафайлов во всех вложенных подкаталогах. Отключите для сканирования только корневой папки.</string>
     <string name="use_as_destination">Использовать как назначение</string>
     <string name="clear_trash">Очистить корзину</string>
     <string name="clear_trash_confirm_title">Очистить корзину?</string>

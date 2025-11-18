@@ -7,6 +7,8 @@ import coil.fetch.FetchResult
 import coil.fetch.Fetcher
 import coil.fetch.SourceResult
 import coil.request.Options
+import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
@@ -14,6 +16,7 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.sync.withPermit
 import okio.Buffer
 import okio.BufferedSource
 import timber.log.Timber
@@ -32,6 +35,13 @@ class NetworkFileFetcher(
     private val credentialsRepository: NetworkCredentialsRepository
 ) : Fetcher {
 
+    private val verboseNetworkLogging = BuildConfig.LOG_NETWORK_THUMBNAILS
+
+    companion object {
+        private const val THUMBNAIL_TIMEOUT_MS = 2_000L
+        private const val FULL_IMAGE_TIMEOUT_MS = 20_000L
+    }
+
     override suspend fun fetch(): FetchResult = withContext(Dispatchers.IO) {
         try {
             val bytes = when {
@@ -42,8 +52,7 @@ class NetworkFileFetcher(
             }
 
             if (bytes == null) {
-                // Return null bytes triggers Coil's error drawable (don't spam logs)
-                Timber.d("Network file not available (timeout or error): ${data.path}")
+                Timber.d("Network file unavailable: ${data.path}")
                 throw Exception("Network file unavailable")
             }
 
@@ -64,9 +73,12 @@ class NetworkFileFetcher(
             // Don't log as error - this happens hundreds of times during fast scrolling
             throw e
         } catch (e: Exception) {
-            // Only log non-timeout errors (already logged in fetch* methods)
             if (e.message != "Network file unavailable") {
-                Timber.e(e, "NetworkFileFetcher: Failed to fetch ${data.path}")
+                if (verboseNetworkLogging) {
+                    Timber.d(e, "NetworkFileFetcher: Failed to fetch ${data.path}")
+                } else {
+                    Timber.d("NetworkFileFetcher: Failed to fetch ${data.path} (${e.message})")
+                }
             }
             throw e
         }
@@ -91,69 +103,84 @@ class NetworkFileFetcher(
             server = serverPort
             port = 445
         }
-
-        // Get credentials from database - prefer credentialsId if provided
-        val credentials = if (data.credentialsId != null) {
-            credentialsRepository.getByCredentialId(data.credentialsId)
-        } else {
-            credentialsRepository.getByTypeServerAndPort("SMB", server, port)
-        }
         
-        if (credentials == null) return null
+        // Build resource key for throttling
+        val resourceKey = "smb://${server}:${port}"
+        
+        return ConnectionThrottleManager.withThrottle(
+            protocol = ConnectionThrottleManager.ProtocolLimits.SMB,
+            resourceKey = resourceKey
+        ) {
 
-        // Extract share name and file path from pathParts
-        // pathParts format: "shareName/path/to/file"
-        val shareAndPath = pathParts.split("/", limit = 2)
-        val shareName = if (shareAndPath.isNotEmpty()) shareAndPath[0] else (credentials.shareName ?: "")
-        val remotePath = if (shareAndPath.size > 1) shareAndPath[1] else ""
-
-        if (shareName.isEmpty()) return null
-
-        val connectionInfo = SmbClient.SmbConnectionInfo(
-            server = server,
-            port = port,
-            shareName = shareName,
-            username = credentials.username,
-            password = credentials.password,
-            domain = credentials.domain
-        )
-
-        // Determine load strategy based on context:
-        // - Thumbnails: 512KB sufficient for JPEG compression (fast load)
-        // - Fullscreen: load complete file for high quality
-        // - PNG/WebP always full: lossless compression or unknown mode needs complete data
-        val maxBytes = if (data.loadFullImage) {
-            Long.MAX_VALUE // Fullscreen view - load complete file
-        } else {
-            // Thumbnail view - limit to 512KB for JPEG (adequate for preview)
-            // PNG/WebP files need full load even for thumbnails (checked by extension)
-            val extension = remotePath.substringAfterLast('.', "").lowercase()
-            if (connectionInfo.shareName.isNotEmpty() && (extension == "png" || extension == "webp")) {
-                Long.MAX_VALUE // PNG/WebP require full file
+            // Get credentials from database - prefer credentialsId if provided
+            val credentials = if (data.credentialsId != null) {
+                credentialsRepository.getByCredentialId(data.credentialsId)
             } else {
-                512 * 1024L // 512KB for JPEG thumbnails
+                credentialsRepository.getByTypeServerAndPort("SMB", server, port)
             }
-        }
-        
-        // Add timeout to avoid blocking UI on slow network
-        val result = try {
-            val timeoutMs = if (data.loadFullImage) 20000L else 10000L // More time for full images
-            kotlinx.coroutines.withTimeout(timeoutMs) {
-                smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
+            
+            if (credentials == null) return@withThrottle null
+
+            // Extract share name and file path from pathParts
+            // pathParts format: "shareName/path/to/file"
+            val shareAndPath = pathParts.split("/", limit = 2)
+            val shareName = if (shareAndPath.isNotEmpty()) shareAndPath[0] else (credentials.shareName ?: "")
+            val remotePath = if (shareAndPath.size > 1) shareAndPath[1] else ""
+
+            if (shareName.isEmpty()) return@withThrottle null
+
+            val connectionInfo = SmbClient.SmbConnectionInfo(
+                server = server,
+                port = port,
+                shareName = shareName,
+                username = credentials.username,
+                password = credentials.password,
+                domain = credentials.domain
+            )
+
+            // Determine load strategy based on context:
+            // - Thumbnails: 512KB sufficient for JPEG compression (fast load)
+            // - Fullscreen: load complete file for high quality
+            // - PNG/WebP always full: lossless compression or unknown mode needs complete data
+            val maxBytes = if (data.loadFullImage) {
+                Long.MAX_VALUE // Fullscreen view - load complete file
+            } else {
+                // Thumbnail view - limit to 512KB for JPEG (adequate for preview)
+                // PNG/WebP files need full load even for thumbnails (checked by extension)
+                val extension = remotePath.substringAfterLast('.', "").lowercase()
+                if (connectionInfo.shareName.isNotEmpty() && (extension == "png" || extension == "webp")) {
+                    Long.MAX_VALUE // PNG/WebP require full file
+                } else {
+                    512 * 1024L // 512KB for JPEG thumbnails
+                }
             }
-        } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            Timber.w("SMB thumbnail load timeout (8s) for: $remotePath")
-            return null
-        } catch (e: Exception) {
-            Timber.w(e, "SMB thumbnail load exception for: $remotePath")
-            return null
-        }
-        
-        return when (result) {
-            is SmbClient.SmbResult.Success -> result.data
-            is SmbClient.SmbResult.Error -> {
-                Timber.w("SMB thumbnail error: ${result.message} for: $remotePath")
-                null
+            
+            val timeoutMs = if (data.loadFullImage) FULL_IMAGE_TIMEOUT_MS else THUMBNAIL_TIMEOUT_MS
+            val result = try {
+                kotlinx.coroutines.withTimeout(timeoutMs) {
+                    smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
+                }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                Timber.d("SMB thumbnail load timeout (${timeoutMs}ms) for: $remotePath")
+                return@withThrottle null
+            } catch (e: CancellationException) {
+                Timber.d("SMB thumbnail request cancelled (${e::class.simpleName}) for: $remotePath")
+                return@withThrottle null
+            } catch (e: Exception) {
+                if (verboseNetworkLogging) {
+                    Timber.d(e, "SMB thumbnail load exception for: $remotePath")
+                } else {
+                    Timber.d("SMB thumbnail load exception for: $remotePath (${e.message})")
+                }
+                return@withThrottle null
+            }
+            
+            when (result) {
+                is SmbClient.SmbResult.Success -> result.data
+                is SmbClient.SmbResult.Error -> {
+                    Timber.d("SMB thumbnail error: ${result.message} for: $remotePath")
+                    null
+                }
             }
         }
     }
@@ -177,6 +204,14 @@ class NetworkFileFetcher(
             server = serverPort
             port = 22
         }
+        
+        // Build resource key for throttling
+        val resourceKey = "sftp://${server}:${port}"
+        
+        return ConnectionThrottleManager.withThrottle(
+            protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
+            resourceKey = resourceKey
+        ) {
 
         // Get credentials from database - prefer credentialsId if provided
         val credentials = if (data.credentialsId != null) {
@@ -185,12 +220,12 @@ class NetworkFileFetcher(
             credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
         }
         
-        if (credentials == null) return null
+        if (credentials == null) return@withThrottle null
 
         // Connect to SFTP
         sftpClient.connect(server, port, credentials.username, credentials.password)
         if (!sftpClient.isConnected()) {
-            return null
+            return@withThrottle null
         }
 
         // Determine load strategy: thumbnails vs fullscreen, JPEG vs PNG/WebP
@@ -205,18 +240,28 @@ class NetworkFileFetcher(
             }
         }
         
-        // Add timeout to avoid blocking UI on slow network
+        val timeoutMs = if (data.loadFullImage) FULL_IMAGE_TIMEOUT_MS else THUMBNAIL_TIMEOUT_MS
         val result = try {
-            val timeoutMs = if (data.loadFullImage) 20000L else 10000L
             kotlinx.coroutines.withTimeout(timeoutMs) {
                 sftpClient.readFileBytes(remotePath, maxBytes)
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            Timber.w("SFTP thumbnail load timeout for: $remotePath")
-            return null
+            Timber.d("SFTP thumbnail load timeout (${timeoutMs}ms) for: $remotePath")
+            return@withThrottle null
+        } catch (e: CancellationException) {
+            Timber.d("SFTP thumbnail request cancelled (${e::class.simpleName}) for: $remotePath")
+            return@withThrottle null
+        } catch (e: Exception) {
+            if (verboseNetworkLogging) {
+                Timber.d(e, "SFTP thumbnail load exception for: $remotePath")
+            } else {
+                Timber.d("SFTP thumbnail load exception for: $remotePath (${e.message})")
+            }
+            return@withThrottle null
         }
         
-        return result.getOrNull()
+            result.getOrNull()
+        }
     }
 
     private suspend fun fetchFromFtp(): ByteArray? {
@@ -238,6 +283,14 @@ class NetworkFileFetcher(
             server = serverPort
             port = 21
         }
+        
+        // Build resource key for throttling
+        val resourceKey = "ftp://${server}:${port}"
+        
+        return ConnectionThrottleManager.withThrottle(
+            protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+            resourceKey = resourceKey
+        ) {
 
         // Get credentials from database - prefer credentialsId if provided
         val credentials = if (data.credentialsId != null) {
@@ -248,16 +301,13 @@ class NetworkFileFetcher(
         
         if (credentials == null) {
             Timber.e("fetchFromFtp: No credentials found for FTP $server:$port")
-            return null
+            return@withThrottle null
         }
 
-        Timber.d("fetchFromFtp: Downloading $remotePath from $server:$port")
-        
         // Use temporary connection for parallel downloads (avoid singleton FTPClient race condition)
         val outputStream = java.io.ByteArrayOutputStream()
-        return try {
-            // Add timeout to avoid blocking UI on slow network
-            val timeoutMs = if (data.loadFullImage) 20000L else 10000L
+        val timeoutMs = if (data.loadFullImage) FULL_IMAGE_TIMEOUT_MS else THUMBNAIL_TIMEOUT_MS
+        try {
             kotlinx.coroutines.withTimeout(timeoutMs) {
                 val downloadResult = ftpClient.downloadFileWithNewConnection(
                     host = server,
@@ -271,14 +321,28 @@ class NetworkFileFetcher(
                 if (downloadResult.isSuccess) {
                     outputStream.toByteArray()
                 } else {
+                    if (verboseNetworkLogging) {
+                        Timber.d("FTP thumbnail download failed for: $remotePath (${downloadResult.exceptionOrNull()?.message ?: "unknown"})")
+                    }
                     null
                 }
             }
         } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-            Timber.w("FTP thumbnail load timeout for: $remotePath")
+            Timber.d("FTP thumbnail load timeout (${timeoutMs}ms) for: $remotePath")
+            null
+        } catch (e: CancellationException) {
+            Timber.d("FTP thumbnail request cancelled (${e::class.simpleName}) for: $remotePath")
+            null
+        } catch (e: Exception) {
+            if (verboseNetworkLogging) {
+                Timber.d(e, "FTP thumbnail load exception for: $remotePath")
+            } else {
+                Timber.d("FTP thumbnail load exception for: $remotePath (${e.message})")
+            }
             null
         } finally {
             outputStream.close()
+        }
         }
     }
 

@@ -40,7 +40,9 @@ data class EditResourceState(
     val hasSftpCredentialsChanges: Boolean = false,
     // Trash folders
     val hasTrashFolders: Boolean = false,
-    val trashFolderCount: Int = 0
+    val trashFolderCount: Int = 0,
+    // Scan subdirectories
+    val scanSubdirectories: Boolean = true
 )
 
 sealed class EditResourceEvent {
@@ -262,6 +264,12 @@ class EditResourceViewModel @Inject constructor(
                 Timber.d("Removed from destinations")
             }
         }
+    }
+    
+    fun updateScanSubdirectories(enabled: Boolean) {
+        val current = state.value.currentResource ?: return
+        val updated = current.copy(scanSubdirectories = enabled)
+        updateCurrentResource(updated)
     }
     
     // SMB Credentials updates

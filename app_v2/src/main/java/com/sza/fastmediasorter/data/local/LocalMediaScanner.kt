@@ -37,12 +37,13 @@ class LocalMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
         credentialsId: String?,
+        scanSubdirectories: Boolean,
         onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             // Check if path is a content:// URI (SAF)
             if (path.startsWith("content://")) {
-                return@withContext scanFolderSAF(path, supportedTypes, sizeFilter)
+                return@withContext scanFolderSAF(path, supportedTypes, sizeFilter, scanSubdirectories)
             }
             
             // Legacy file:// path handling
@@ -52,8 +53,12 @@ class LocalMediaScanner @Inject constructor(
                 return@withContext emptyList()
             }
 
-            val files = folder.listFiles() ?: return@withContext emptyList()
-            val totalFiles = files.count { it.isFile }
+            val files = if (scanSubdirectories) {
+                collectFilesRecursively(folder)
+            } else {
+                folder.listFiles()?.filter { it.isFile }?.toList() ?: emptyList()
+            }
+            val totalFiles = files.size
             var processedCount = 0
             var lastProgressReportTime = System.currentTimeMillis()
             
@@ -336,7 +341,8 @@ class LocalMediaScanner @Inject constructor(
     private suspend fun scanFolderSAF(
         uriString: String,
         supportedTypes: Set<MediaType>,
-        sizeFilter: SizeFilter?
+        sizeFilter: SizeFilter?,
+        scanSubdirectories: Boolean
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
             val uri = Uri.parse(uriString)
@@ -347,7 +353,12 @@ class LocalMediaScanner @Inject constructor(
                 return@withContext emptyList()
             }
             
-            val files = folder.listFiles()
+            val files = if (scanSubdirectories) {
+                collectDocumentFilesRecursively(folder)
+            } else {
+                folder.listFiles().filter { it.isFile }
+            }
+            
             if (files.isEmpty()) {
                 return@withContext emptyList()
             }
@@ -584,6 +595,46 @@ class LocalMediaScanner @Inject constructor(
             Timber.e(e, "Error checking SAF write access for: $uriString")
             false
         }
+    }
+    
+    private fun collectFilesRecursively(folder: File): List<File> {
+        val result = mutableListOf<File>()
+        val queue = ArrayDeque<File>()
+        queue.add(folder)
+        
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            val children = current.listFiles() ?: continue
+            
+            for (child in children) {
+                when {
+                    child.isFile -> result.add(child)
+                    child.isDirectory -> queue.add(child)
+                }
+            }
+        }
+        
+        return result
+    }
+    
+    private fun collectDocumentFilesRecursively(folder: DocumentFile): List<DocumentFile> {
+        val result = mutableListOf<DocumentFile>()
+        val queue = ArrayDeque<DocumentFile>()
+        queue.add(folder)
+        
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            val children = current.listFiles()
+            
+            for (child in children) {
+                when {
+                    child.isFile -> result.add(child)
+                    child.isDirectory -> queue.add(child)
+                }
+            }
+        }
+        
+        return result
     }
 
     private fun getMediaType(file: File): MediaType? {

@@ -282,6 +282,8 @@ class ResourceRepositoryImpl @Inject constructor(
             path = path,
             type = type,
             credentialsId = credentialsId,
+            cloudProvider = cloudProvider,
+            cloudFolderId = cloudFolderId,
             supportedMediaTypes = mediaTypes,
             sortMode = sortMode,
             displayMode = displayMode,
@@ -298,7 +300,8 @@ class ResourceRepositoryImpl @Inject constructor(
             createdDate = createdDate,
             lastBrowseDate = lastBrowseDate,
             lastSyncDate = lastSyncDate,
-            displayOrder = displayOrder
+            displayOrder = displayOrder,
+            scanSubdirectories = scanSubdirectories
         )
     }
     
@@ -315,6 +318,8 @@ class ResourceRepositoryImpl @Inject constructor(
             path = path,
             type = type,
             credentialsId = credentialsId,
+            cloudProvider = cloudProvider,
+            cloudFolderId = cloudFolderId,
             supportedMediaTypesFlags = flags,
             sortMode = sortMode,
             displayMode = displayMode,
@@ -331,7 +336,8 @@ class ResourceRepositoryImpl @Inject constructor(
             createdDate = createdDate,
             lastBrowseDate = lastBrowseDate,
             lastSyncDate = lastSyncDate,
-            displayOrder = displayOrder
+            displayOrder = displayOrder,
+            scanSubdirectories = scanSubdirectories
         )
     }
 }

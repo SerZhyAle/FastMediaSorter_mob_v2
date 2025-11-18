@@ -35,9 +35,10 @@ class SmbMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
         credentialsId: String?,
+        scanSubdirectories: Boolean,
         onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
-        scanFolderWithProgress(path, supportedTypes, sizeFilter, credentialsId, onProgress)
+        scanFolderWithProgress(path, supportedTypes, sizeFilter, credentialsId, scanSubdirectories, onProgress)
     }
     
     /**
@@ -48,6 +49,7 @@ class SmbMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
         credentialsId: String?,
+        scanSubdirectories: Boolean,
         progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {

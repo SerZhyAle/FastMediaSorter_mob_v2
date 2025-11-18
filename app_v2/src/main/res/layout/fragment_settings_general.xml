@@ -201,6 +201,16 @@
 
         </LinearLayout>
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/export_import_file_info"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:gravity="center"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="8dp" />
+
         <!-- Permissions -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLocalFilesPermission"

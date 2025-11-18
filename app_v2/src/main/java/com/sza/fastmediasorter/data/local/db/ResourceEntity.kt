@@ -52,5 +52,7 @@ data class ResourceEntity(
     
     val lastSyncDate: Long? = null, // Last time network resource was synced (for SMB/SFTP/FTP only)
     
+    val scanSubdirectories: Boolean = false, // Scan subdirectories for media files (default: disabled)
+    
     val displayOrder: Int = 0 // Order for display in resource list
 )

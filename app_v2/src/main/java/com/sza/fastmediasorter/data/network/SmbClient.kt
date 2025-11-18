@@ -24,6 +24,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -45,12 +46,22 @@ import java.util.concurrent.Executors
 class SmbClient @Inject constructor() {
     
     companion object {
-        private const val CONNECTION_TIMEOUT_MS = 10000L // 10 seconds for connection attempts
-        private const val READ_TIMEOUT_MS = 10000L // 10 seconds for read operations (thumbnails)
+        // Normal timeouts (healthy connection)
+        private const val CONNECTION_TIMEOUT_MS = 5000L // 5 seconds for connection attempts
+        private const val READ_TIMEOUT_MS = 8000L // 8 seconds for read operations
         private const val WRITE_TIMEOUT_MS = 30000L // 30 seconds for write operations (longer for large files)
+        
+        // Degraded timeouts (poor connection, activated by ConnectionThrottleManager)
+        private const val CONNECTION_TIMEOUT_DEGRADED_MS = 8000L // 8 seconds for degraded connections
+        private const val READ_TIMEOUT_DEGRADED_MS = 12000L // 12 seconds for degraded read operations
         private const val MAX_CONCURRENT_CONNECTIONS = 8 // Limit parallel SMB connections
         private const val CONNECTION_IDLE_TIMEOUT_MS = 5000L // 5 seconds idle timeout
         private const val SMB_PARALLEL_SCAN_THREADS = 20 // Thread pool size for parallel directory scanning
+        
+        // Timeout degradation tracking
+        private const val TIMEOUT_WARNING_THRESHOLD = 5 // Warn after 5 consecutive timeouts
+        @Volatile
+        private var consecutiveTimeouts = 0
     }
     
     // Dedicated dispatcher for blocking SMB I/O operations
@@ -59,15 +70,24 @@ class SmbClient @Inject constructor() {
 
     // Lazy initialization of config and client to speed up app startup
     // SMBClient initialization is expensive (~900ms due to SLF4J and BouncyCastle)
-    private val config by lazy {
+    private val normalConfig by lazy {
         SmbConfig.builder()
             .withTimeout(CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withSoTimeout(READ_TIMEOUT_MS, TimeUnit.MILLISECONDS)
             .withMultiProtocolNegotiate(true)
             .build()
     }
+    
+    private val degradedConfig by lazy {
+        SmbConfig.builder()
+            .withTimeout(CONNECTION_TIMEOUT_DEGRADED_MS, TimeUnit.MILLISECONDS)
+            .withSoTimeout(READ_TIMEOUT_DEGRADED_MS, TimeUnit.MILLISECONDS)
+            .withMultiProtocolNegotiate(true)
+            .build()
+    }
 
-    private val client by lazy { SMBClient(config) }
+    private val normalClient by lazy { SMBClient(normalConfig) }
+    private val degradedClient by lazy { SMBClient(degradedConfig) }
     
     // Connection pool with automatic cleanup
     private data class PooledConnection(
@@ -87,6 +107,16 @@ class SmbClient @Inject constructor() {
     
     private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
+    
+    /**
+     * Select appropriate SMB client based on connection health.
+     * Uses degraded client with extended timeouts when ConnectionThrottleManager reports degradation.
+     */
+    private fun getClient(server: String, port: Int): SMBClient {
+        val resourceKey = "smb://$server:$port"
+        val isDegraded = ConnectionThrottleManager.isDegraded(ConnectionThrottleManager.ProtocolLimits.SMB, resourceKey)
+        return if (isDegraded) degradedClient else normalClient
+    }
     
     /**
      * Data class for SMB connection parameters
@@ -652,6 +682,7 @@ class SmbClient @Inject constructor() {
         port: Int = 445
     ): SmbResult<List<String>> {
         return try {
+            val client = getClient(server, port)
             val connection = client.connect(server, port)
             val authContext = if (username.isEmpty()) {
                 AuthenticationContext.anonymous()
@@ -1263,11 +1294,34 @@ class SmbClient @Inject constructor() {
             if (pooled != null && isConnectionValid(pooled)) {
                 pooled.lastUsed = System.currentTimeMillis()
                 try {
-                    return@withPermit block(pooled.share)
+                    val result = block(pooled.share)
+                    // Success - reset timeout counter
+                    consecutiveTimeouts = 0
+                    return@withPermit result
                 } catch (e: Exception) {
-                    // Connection might be stale, remove from pool and create new
+                    // Connection might be stale - kill it asynchronously to avoid blocking
                     Timber.w(e, "Pooled connection failed, creating new")
-                    removeConnection(key)
+                    
+                    // Track consecutive timeouts
+                    if (e is kotlinx.coroutines.TimeoutCancellationException || 
+                        e is com.hierynomus.smbj.common.SMBRuntimeException) {
+                        consecutiveTimeouts++
+                        if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                            Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+                        }
+                    }
+                    
+                    // Async removal: don't wait for TreeConnect.close() to finish
+                    connectionPool.remove(key)
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            pooled.share.close()
+                            pooled.session.close()
+                            pooled.connection.close()
+                        } catch (closeError: Exception) {
+                            // Ignore errors during forced cleanup
+                        }
+                    }
                 }
             }
             
@@ -1276,7 +1330,8 @@ class SmbClient @Inject constructor() {
                 cleanupIdleConnectionsQuick()
             }
             
-            // Create new connection
+            // Create new connection with appropriate timeout settings
+            val client = getClient(connectionInfo.server, connectionInfo.port)
             val connection = client.connect(connectionInfo.server, connectionInfo.port)
             
             val authContext = if (connectionInfo.username.isEmpty()) {
@@ -1296,9 +1351,22 @@ class SmbClient @Inject constructor() {
             val newPooled = PooledConnection(connection, session, share)
             connectionPool[key] = newPooled
             
-            block(share)
+            val result = block(share)
+            // Reset timeout counter after successful new connection
+            consecutiveTimeouts = 0
+            result
         } catch (e: Exception) {
             Timber.w(e, "SMB resource unavailable")
+            
+            // Track consecutive timeouts
+            if (e is kotlinx.coroutines.TimeoutCancellationException || 
+                e is com.hierynomus.smbj.common.SMBRuntimeException) {
+                consecutiveTimeouts++
+                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+                }
+            }
+            
             removeConnection(key) // Remove failed connection from pool
             SmbResult.Error("Connection error: ${e.message}", e)
         }
@@ -1529,7 +1597,8 @@ class SmbClient @Inject constructor() {
      */
     fun close() {
         try {
-            client.close()
+            normalClient.close()
+            degradedClient.close()
         } catch (e: Exception) {
             Timber.w(e, "Error closing SMB client")
         }

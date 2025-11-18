@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
@@ -55,6 +56,7 @@ class MainViewModel @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
+    private val smbOperationsUseCase: SmbOperationsUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -411,6 +413,10 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             try {
+                // Clear all network connection pools to avoid stale/blocked connections
+                Timber.d("Clearing network connection pools before resource scan")
+                smbOperationsUseCase.clearAllConnectionPools()
+                
                 val resources = getResourcesUseCase().first()
                 var unavailableCount = 0
                 var writableCount = 0

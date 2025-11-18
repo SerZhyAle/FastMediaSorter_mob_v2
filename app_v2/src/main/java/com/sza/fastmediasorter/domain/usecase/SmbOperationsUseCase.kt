@@ -564,4 +564,19 @@ class SmbOperationsUseCase @Inject constructor(
             Result.failure(e)
         }
     }
+    
+    /**
+     * Clear all pooled SMB/SFTP/FTP connections
+     * Should be called when refreshing resources or on connection issues
+     */
+    suspend fun clearAllConnectionPools() = withContext(ioDispatcher) {
+        try {
+            Timber.d("Clearing all network connection pools")
+            smbClient.clearConnectionPool()
+            sftpClient.disconnect()
+            ftpClient.disconnect()
+        } catch (e: Exception) {
+            Timber.e(e, "Error clearing connection pools")
+        }
+    }
 }

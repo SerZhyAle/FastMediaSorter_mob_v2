@@ -93,6 +93,7 @@
     <string name="backup_restore_settings">Backup &amp; Restore</string>
     <string name="export_settings">Export All Settings to File</string>
     <string name="import_settings">Import Settings from File</string>
+    <string name="export_import_file_info">Using file: Downloads/FastMediaSorter_export.xml</string>
     <string name="export_success">Settings exported to Downloads/FastMediaSorter_export.xml</string>
     <string name="export_failed">Failed to export settings: %s</string>
     <string name="import_success">Settings imported successfully</string>
@@ -191,6 +192,8 @@
     <string name="video">Video</string>
     <string name="audio">Audio</string>
     <string name="gif_animations">GIF Animations</string>
+    <string name="scan_subdirectories">Scan subdirectories</string>
+    <string name="scan_subdirectories_hint">Enable to search for media files in all nested subdirectories. Disable to scan only the root folder.</string>
     <string name="use_as_destination">Use as Destination</string>
     <string name="clear_trash">Clear Trash</string>
     <string name="clear_trash_confirm_title">Clear Trash Folders?</string>

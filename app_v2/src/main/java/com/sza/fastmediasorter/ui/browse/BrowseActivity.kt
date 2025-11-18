@@ -136,8 +136,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             val displayMetrics = resources.displayMetrics
             val screenHeightDp = displayMetrics.heightPixels / displayMetrics.density
             // For list view: ~80dp per item, for grid: ~150dp per item
-            // Cache 1.5 screens worth of items for smooth scrolling
-            val optimalCacheSize = ((screenHeightDp / 80) * 1.5).toInt().coerceIn(10, 30)
+            // Cache 2 screens worth of items for smooth scrolling
+            val optimalCacheSize = ((screenHeightDp / 80) * 2.0).toInt().coerceIn(20, 50)
             setItemViewCacheSize(optimalCacheSize)
             
             // Use shared RecycledViewPool for efficient ViewHolder reuse

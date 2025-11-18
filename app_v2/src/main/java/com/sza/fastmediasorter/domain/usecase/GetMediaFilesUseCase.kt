@@ -30,6 +30,7 @@ interface MediaScanner {
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter? = null,
         credentialsId: String? = null,
+        scanSubdirectories: Boolean = true,
         onProgress: ScanProgressCallback? = null
     ): List<MediaFile>
     
@@ -97,6 +98,7 @@ class GetMediaFilesUseCase @Inject constructor(
                 supportedTypes = resource.supportedMediaTypes,
                 sizeFilter = sizeFilter,
                 credentialsId = resource.credentialsId,
+                scanSubdirectories = resource.scanSubdirectories,
                 onProgress = onProgress
             )
         }

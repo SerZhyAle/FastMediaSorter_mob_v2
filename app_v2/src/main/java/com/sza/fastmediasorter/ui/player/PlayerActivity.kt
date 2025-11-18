@@ -53,6 +53,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 @AndroidEntryPoint
 class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
@@ -75,6 +76,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var countdownSeconds = 3 // Current countdown value
     private var isFirstResume = true // Track first onResume to avoid duplicate load
     private var hasShownFirstRunHint = false // Track if first-run hint has been shown in this session
+    private var smallControlsApplied = false // Prevent repeated halving of command buttons
+    private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
 
     // Injected dependencies for network playback
     @Inject
@@ -865,6 +868,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Update panel visibility based on mode
      */
     private fun updatePanelVisibility(showCommandPanel: Boolean) {
+        val state = viewModel.state.value
         if (showCommandPanel) {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
@@ -877,27 +881,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             populateDestinationButtons()
 
             // Apply small controls setting if enabled
-            val state = viewModel.state.value
             if (state.showSmallControls) {
-                // Reduce button heights to 50%
-                val buttons = listOf(
-                    binding.btnBack,
-                    binding.btnPreviousCmd,
-                    binding.btnNextCmd,
-                    binding.btnRenameCmd,
-                    binding.btnDeleteCmd,
-                    binding.btnShareCmd,
-                    binding.btnInfoCmd,
-                    binding.btnEditCmd,
-                    binding.btnUndoCmd,
-                    binding.btnFullscreenCmd,
-                    binding.btnSlideshowCmd
-                )
-                buttons.forEach { button ->
-                    val params = button.layoutParams
-                    params.height = (params.height * 0.5f).toInt()
-                    button.layoutParams = params
-                }
+                applySmallControlsIfNeeded()
+            } else {
+                restoreCommandButtonHeightsIfNeeded()
             }
         } else {
             // Fullscreen mode
@@ -907,10 +894,72 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             binding.copyToPanel.isVisible = false
             binding.moveToPanel.isVisible = false
             // controlsOverlay visibility is controlled in updateUI based on showControls
+
+            if (!state.showSmallControls) {
+                restoreCommandButtonHeightsIfNeeded()
+            }
         }
         
         // Update audio touch zones overlay whenever panel visibility changes
         updateAudioTouchZonesVisibility()
+    }
+
+    private fun applySmallControlsIfNeeded() {
+        if (smallControlsApplied) return
+
+        commandPanelButtons().forEach { button ->
+            val baseline = originalCommandButtonHeights.getOrPut(button.id) {
+                resolveOriginalButtonHeight(button)
+            }
+
+            if (baseline <= 0) {
+                Timber.w("PlayerActivity.applySmallControlsIfNeeded: Skipping button ${button.id} with baseline=$baseline")
+                return@forEach
+            }
+
+            val params = button.layoutParams ?: return@forEach
+            params.height = (baseline * SMALL_CONTROLS_SCALE).roundToInt().coerceAtLeast(1)
+            button.layoutParams = params
+        }
+
+        smallControlsApplied = true
+    }
+
+    private fun restoreCommandButtonHeightsIfNeeded() {
+        if (!smallControlsApplied) return
+
+        commandPanelButtons().forEach { button ->
+            val baseline = originalCommandButtonHeights[button.id] ?: return@forEach
+            val params = button.layoutParams ?: return@forEach
+            params.height = baseline
+            button.layoutParams = params
+        }
+
+        smallControlsApplied = false
+    }
+
+    private fun commandPanelButtons(): List<View> = listOf(
+        binding.btnBack,
+        binding.btnPreviousCmd,
+        binding.btnNextCmd,
+        binding.btnRenameCmd,
+        binding.btnDeleteCmd,
+        binding.btnShareCmd,
+        binding.btnInfoCmd,
+        binding.btnEditCmd,
+        binding.btnUndoCmd,
+        binding.btnFullscreenCmd,
+        binding.btnSlideshowCmd
+    )
+
+    private fun resolveOriginalButtonHeight(button: View): Int {
+        val paramsHeight = button.layoutParams?.height ?: 0
+        return when {
+            paramsHeight > 0 -> paramsHeight
+            button.height > 0 -> button.height
+            button.measuredHeight > 0 -> button.measuredHeight
+            else -> 0
+        }
     }
     
     /**
@@ -2220,6 +2269,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     companion object {
+        private const val SMALL_CONTROLS_SCALE = 0.5f
+
         fun createIntent(
             context: Context,
             resourceId: Long,

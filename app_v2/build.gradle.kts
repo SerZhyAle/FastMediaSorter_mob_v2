@@ -19,7 +19,7 @@ android {
         applicationId = "com.sza.fastmediasorter"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11181548
+        versionCode = 11182146
         versionName = "2.${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yy.MMdd.HHmm"))}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -59,10 +59,14 @@ android {
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
             isMinifyEnabled = false
+            buildConfigField("boolean", "LOG_SMB_IO", "true")
+            buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            buildConfigField("boolean", "LOG_SMB_IO", "false")
+            buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "false")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
