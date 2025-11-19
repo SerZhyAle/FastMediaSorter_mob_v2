@@ -88,7 +88,8 @@ data class MediaResource(
     val lastBrowseDate: Long? = null, // Last time resource was opened in BrowseActivity
     val lastSyncDate: Long? = null, // Last time network resource was synced (for SMB/SFTP/FTP only)
     val displayOrder: Int = 0, // Order for display in resource list
-    val scanSubdirectories: Boolean = false // Scan subdirectories for media files (default: disabled)
+    val scanSubdirectories: Boolean = false, // Scan subdirectories for media files (default: disabled)
+    val disableThumbnails: Boolean = false // Disable thumbnail loading (use extension icons only). Auto-enabled for >10000 files.
 )
 
 /**

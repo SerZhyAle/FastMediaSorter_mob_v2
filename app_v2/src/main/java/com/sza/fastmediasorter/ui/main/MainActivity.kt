@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
@@ -37,6 +38,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
+    
+    @Inject
+    lateinit var smbClient: SmbClient
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
@@ -144,6 +148,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         }
         
         binding.btnRefresh.setOnClickListener {
+            // Force SMB client reset before scanning resources
+            smbClient.forceFullReset()
             viewModel.scanAllResources()
         }
         

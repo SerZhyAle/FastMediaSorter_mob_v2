@@ -194,7 +194,10 @@
     <string name="gif_animations">GIF-анімації</string>
     <string name="scan_subdirectories">Сканувати підкаталоги</string>
     <string name="scan_subdirectories_hint">Увімкніть для пошуку медіафайлів у всіх вкладених підкаталогах. Вимкніть для сканування лише кореневої папки.</string>
+    <string name="disable_thumbnails">Вимкнути мініатюри</string>
+    <string name="disable_thumbnails_description">Показувати лише іконки розширень файлів (без попереднього перегляду). Автоматично вмикається для ресурсів з >10000 файлів.</string>
     <string name="use_as_destination">Використовувати як призначення</string>
+    <string name="counting">підрахунок…</string>
     <string name="clear_trash">Очистити кошик</string>
     <string name="clear_trash_confirm_title">Очистити кошик?</string>
     <string name="clear_trash_confirm_message">Це остаточно видалить %d папок кошика та всі файли всередині них. Скасувати дію буде неможливо.</string>

@@ -32,7 +32,8 @@ class PlayerViewModel @Inject constructor(
     val fileOperationUseCase: FileOperationUseCase,
     val getDestinationsUseCase: GetDestinationsUseCase,
     private val settingsRepository: SettingsRepository,
-    private val resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
+    private val resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository,
+    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -131,6 +132,12 @@ class PlayerViewModel @Inject constructor(
                     setLoading(false)
                     return@launch
                 }
+                
+                // Reset SMB client before loading SMB media to ensure fresh connection
+                if (resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
+                    Timber.d("Resetting SMB client before playing media from: ${resource.name}")
+                    smbClient.resetClients()
+                }
 
                 // Check if resource is available (skip if already validated)
                 if (!skipAvailabilityCheck && resource.fileCount == 0 && !resource.isWritable) {
@@ -187,12 +194,8 @@ class PlayerViewModel @Inject constructor(
                     } else {
                         initialIndex.coerceIn(0, files.size - 1)
                     }
-                    // Use resource-specific slideshow interval if available (non-default), otherwise keep global settings
-                    val intervalToUse = if (resource.slideshowInterval != 10) {
-                        resource.slideshowInterval * 1000L
-                    } else {
-                        state.value.slideShowInterval // Keep global settings value
-                    }
+                    // Always use resource-specific slideshow interval (takes precedence over global settings)
+                    val intervalToUse = resource.slideshowInterval * 1000L
                     
                     // Update state with resource first
                     updateState { 

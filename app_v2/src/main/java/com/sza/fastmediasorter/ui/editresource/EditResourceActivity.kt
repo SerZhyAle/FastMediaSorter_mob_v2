@@ -94,6 +94,11 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             viewModel.updateScanSubdirectories(isChecked)
         }
 
+        // Disable thumbnails checkbox
+        binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.updateDisableThumbnails(isChecked)
+        }
+
         // Resource name
         binding.etResourceName.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -300,6 +305,9 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         
                         // Scan subdirectories
                         binding.cbScanSubdirectories.isChecked = resource.scanSubdirectories
+                        
+                        // Disable thumbnails
+                        binding.cbDisableThumbnails.isChecked = resource.disableThumbnails
 
                         // Is destination - temporarily remove listener to avoid triggering on programmatic change
                         binding.switchIsDestination.setOnCheckedChangeListener(null)

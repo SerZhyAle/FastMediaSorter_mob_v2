@@ -147,7 +147,8 @@ class SftpMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         offset: Int,
         limit: Int,
-        credentialsId: String?
+        credentialsId: String?,
+        scanSubdirectories: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
             // Parse path format: sftp://server:port/remotePath

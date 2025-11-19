@@ -450,7 +450,8 @@ class AddResourceViewModel @Inject constructor(
                                 // Update resource with real values
                                 val updatedResource = insertedResource.copy(
                                     fileCount = fileCount,
-                                    isWritable = isWritable
+                                    isWritable = isWritable,
+                                    disableThumbnails = fileCount > 10000 // Auto-enable for large folders
                                 )
                                 resourceRepository.updateResource(updatedResource)
                                 
@@ -587,7 +588,8 @@ class AddResourceViewModel @Inject constructor(
                             // Update resource with real values
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
-                                isWritable = isWritable
+                                isWritable = isWritable,
+                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             
@@ -819,7 +821,8 @@ class AddResourceViewModel @Inject constructor(
                             // Update resource with real values
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
-                                isWritable = isWritable
+                                isWritable = isWritable,
+                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             
@@ -926,7 +929,8 @@ class AddResourceViewModel @Inject constructor(
                             // Update resource with real values
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
-                                isWritable = isWritable
+                                isWritable = isWritable,
+                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             
@@ -1075,7 +1079,8 @@ class AddResourceViewModel @Inject constructor(
                             // Update resource with real values
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
-                                isWritable = isWritable
+                                isWritable = isWritable,
+                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             

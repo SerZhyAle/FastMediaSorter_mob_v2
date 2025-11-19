@@ -161,14 +161,8 @@ class NetworkImageEditUseCase @Inject constructor(
             tempDir.mkdirs()
         }
         
-        // Generate unique temp filename
-        val fileName = networkPath.substringAfterLast('/').let { name ->
-            val timestamp = System.currentTimeMillis()
-            val nameWithoutExt = name.substringBeforeLast('.')
-            val ext = name.substringAfterLast('.', "")
-            "${nameWithoutExt}_${timestamp}.${ext}"
-        }
-        
+        // Use original filename (handlers will create file with this name in tempDir)
+        val fileName = networkPath.substringAfterLast('/')
         val tempFile = File(tempDir, fileName)
         
         return try {

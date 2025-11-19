@@ -92,7 +92,8 @@ class CloudMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         offset: Int,
         limit: Int,
-        credentialsId: String?
+        credentialsId: String?,
+        scanSubdirectories: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
             val resourceId = path.toLongOrNull() ?: return@withContext MediaFilePage(emptyList(), false)

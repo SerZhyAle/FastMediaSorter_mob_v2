@@ -45,27 +45,53 @@
         </LinearLayout>
 
         <!-- Prevent Sleep -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchPreventSleep"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/prevent_sleep"
-            android:checked="true"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchPreventSleep"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/prevent_sleep"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <!-- Small Controls -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchSmallControls"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/small_controls"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSmallControls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/small_controls"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <!-- Network Sync Section -->
         <TextView
@@ -78,16 +104,29 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="12dp" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchEnableBackgroundSync"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/enable_background_sync"
-            android:checked="true"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnableBackgroundSync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/enable_background_sync"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
@@ -107,9 +146,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSyncInterval"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_width="0dp"
+                android:layout_width="160dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="8dp"
                 android:hint="@string/sync_interval">
 

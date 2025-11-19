@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -73,7 +74,8 @@ class BrowseViewModel @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     private val updateResourceUseCase: UpdateResourceUseCase,
-    private val fileOperationUseCase: FileOperationUseCase,
+    val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
+    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -160,6 +162,12 @@ class BrowseViewModel @Inject constructor(
                 sendEvent(BrowseEvent.ShowError("Resource not found"))
                 setLoading(false)
                 return@launch
+            }
+            
+            // Reset SMB client before opening SMB resource to ensure fresh connection
+            if (resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
+                Timber.d("Resetting SMB client before opening resource: ${resource.name}")
+                smbClient.resetClients()
             }
             
             // Check if resource is available (skip if already validated in MainActivity)
@@ -330,7 +338,7 @@ class BrowseViewModel @Inject constructor(
                 // Cache the sorted list for future use
                 MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
                 
-                updateState { it.copy(mediaFiles = finalFiles, usePagination = false, loadingProgress = 0, isScanCancellable = false) }
+                updateState { it.copy(mediaFiles = finalFiles, usePagination = false, loadingProgress = 0, totalFileCount = finalFiles.size, isScanCancellable = false) }
                 progressJob?.cancel()
                 setLoading(false)
                 
@@ -367,8 +375,11 @@ class BrowseViewModel @Inject constructor(
             setLoading(false)
             
             // Update resource metadata (fileCount from totalFileCount and lastBrowseDate)
-            val actualFileCount = state.value.totalFileCount ?: 0
-            updateResourceMetadataAfterBrowse(resource, actualFileCount)
+            // Launch in viewModelScope since updateResourceMetadataAfterBrowse is now suspend
+            viewModelScope.launch(ioDispatcher) {
+                val actualFileCount = state.value.totalFileCount ?: 0
+                updateResourceMetadataAfterBrowse(resource, actualFileCount)
+            }
             
             Timber.d("Pagination enabled for ${resource.name}")
         } catch (e: Exception) {
@@ -381,24 +392,35 @@ class BrowseViewModel @Inject constructor(
     /**
      * Updates resource metadata (fileCount and lastBrowseDate) after successful file loading.
      * Called after both standard and pagination loading completes.
+     * Uses withContext to ensure update completes before returning, preventing race conditions
+     * when EditResourceActivity opens immediately after browsing.
      */
-    private fun updateResourceMetadataAfterBrowse(resource: MediaResource, actualFileCount: Int) {
-        viewModelScope.launch(ioDispatcher) {
+    private suspend fun updateResourceMetadataAfterBrowse(resource: MediaResource, actualFileCount: Int) {
+        withContext(ioDispatcher) {
             try {
                 // For network resources (SMB/SFTP/FTP), update lastSyncDate
                 val isNetworkResource = resource.type == ResourceType.SMB || 
                                         resource.type == ResourceType.SFTP || 
                                         resource.type == ResourceType.FTP
                 
+                val timestamp = System.currentTimeMillis()
                 val updatedResource = resource.copy(
                     fileCount = actualFileCount,
-                    lastBrowseDate = System.currentTimeMillis(),
+                    lastBrowseDate = timestamp,
                     lastSyncDate = if (isNetworkResource) System.currentTimeMillis() else resource.lastSyncDate
                 )
-                updateResourceUseCase(updatedResource)
-                Timber.d("Updated resource metadata: fileCount=$actualFileCount, lastBrowseDate set, lastSyncDate=${if (isNetworkResource) "updated" else "unchanged"}")
+                
+                Timber.d("Updating resource metadata: id=${resource.id}, name=${resource.name}, OLD lastBrowseDate=${resource.lastBrowseDate}, NEW lastBrowseDate=$timestamp")
+                
+                val result = updateResourceUseCase(updatedResource)
+                
+                if (result.isSuccess) {
+                    Timber.d("Successfully updated resource metadata: fileCount=$actualFileCount, lastBrowseDate=$timestamp, lastSyncDate=${if (isNetworkResource) "updated" else "unchanged"}")
+                } else {
+                    Timber.e("Failed to update resource metadata: ${result.exceptionOrNull()?.message}")
+                }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to update resource metadata after browse")
+                Timber.e(e, "Exception while updating resource metadata after browse")
             }
         }
     }

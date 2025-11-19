@@ -124,7 +124,10 @@ class ResourceRepositoryImpl @Inject constructor(
     }
     
     override suspend fun updateResource(resource: MediaResource) {
-        resourceDao.update(resource.toEntity())
+        val entity = resource.toEntity()
+        Timber.d("Repository updating resource: id=${entity.id}, name=${entity.name}, lastBrowseDate=${entity.lastBrowseDate}")
+        resourceDao.update(entity)
+        Timber.d("Repository update completed for resource id=${entity.id}")
     }
     
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) {
@@ -301,7 +304,8 @@ class ResourceRepositoryImpl @Inject constructor(
             lastBrowseDate = lastBrowseDate,
             lastSyncDate = lastSyncDate,
             displayOrder = displayOrder,
-            scanSubdirectories = scanSubdirectories
+            scanSubdirectories = scanSubdirectories,
+            disableThumbnails = disableThumbnails
         )
     }
     
@@ -337,7 +341,8 @@ class ResourceRepositoryImpl @Inject constructor(
             lastBrowseDate = lastBrowseDate,
             lastSyncDate = lastSyncDate,
             displayOrder = displayOrder,
-            scanSubdirectories = scanSubdirectories
+            scanSubdirectories = scanSubdirectories,
+            disableThumbnails = disableThumbnails
         )
     }
 }

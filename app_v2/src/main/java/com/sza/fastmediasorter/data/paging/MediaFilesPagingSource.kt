@@ -41,7 +41,8 @@ class MediaFilesPagingSource(
                 sizeFilter = sizeFilter,
                 offset = offset,
                 limit = PAGE_SIZE,
-                credentialsId = resource.credentialsId
+                credentialsId = resource.credentialsId,
+                scanSubdirectories = resource.scanSubdirectories
             )
             
             // IMPORTANT: Do NOT sort pages here for NAME_ASC mode

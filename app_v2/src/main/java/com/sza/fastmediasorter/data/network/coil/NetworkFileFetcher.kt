@@ -39,7 +39,7 @@ class NetworkFileFetcher(
 
     companion object {
         private const val THUMBNAIL_TIMEOUT_MS = 2_000L
-        private const val FULL_IMAGE_TIMEOUT_MS = 20_000L
+        private const val FULL_IMAGE_TIMEOUT_MS = 60_000L  // 60 seconds for full image (PlayerActivity may compete with thumbnail requests)
     }
 
     override suspend fun fetch(): FetchResult = withContext(Dispatchers.IO) {
@@ -109,7 +109,8 @@ class NetworkFileFetcher(
         
         return ConnectionThrottleManager.withThrottle(
             protocol = ConnectionThrottleManager.ProtocolLimits.SMB,
-            resourceKey = resourceKey
+            resourceKey = resourceKey,
+            highPriority = data.highPriority  // PlayerActivity requests jump the queue
         ) {
 
             // Get credentials from database - prefer credentialsId if provided
@@ -156,32 +157,61 @@ class NetworkFileFetcher(
             }
             
             val timeoutMs = if (data.loadFullImage) FULL_IMAGE_TIMEOUT_MS else THUMBNAIL_TIMEOUT_MS
-            val result = try {
-                kotlinx.coroutines.withTimeout(timeoutMs) {
-                    smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
+            
+            // Retry logic for full image loading (PlayerActivity) when connection pool is exhausted
+            val maxRetries = if (data.loadFullImage) 1 else 0
+            var lastException: Exception? = null
+            
+            for (attempt in 0..maxRetries) {
+                val result = try {
+                    kotlinx.coroutines.withTimeout(timeoutMs) {
+                        smbClient.readFileBytes(connectionInfo, remotePath, maxBytes)
+                    }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    lastException = e
+                    if (data.loadFullImage && attempt < maxRetries) {
+                        Timber.w("SMB full image load timeout (${timeoutMs}ms), retrying (attempt ${attempt + 1}/$maxRetries) for: $remotePath")
+                        kotlinx.coroutines.delay(500) // Brief delay before retry
+                        continue
+                    } else {
+                        Timber.d("SMB thumbnail load timeout (${timeoutMs}ms) for: $remotePath")
+                        return@withThrottle null
+                    }
+                } catch (e: CancellationException) {
+                    Timber.d("SMB thumbnail request cancelled (${e::class.simpleName}) for: $remotePath")
+                    return@withThrottle null
+                } catch (e: Exception) {
+                    lastException = e
+                    // Check if connection-related error and retry if full image
+                    val isConnectionError = e.message?.contains("Connection", ignoreCase = true) == true ||
+                                           e.message?.contains("Timeout", ignoreCase = true) == true
+                    if (data.loadFullImage && attempt < maxRetries && isConnectionError) {
+                        Timber.w("SMB full image connection error, retrying (attempt ${attempt + 1}/$maxRetries): ${e.message} for: $remotePath")
+                        kotlinx.coroutines.delay(500)
+                        continue
+                    } else {
+                        if (verboseNetworkLogging) {
+                            Timber.d(e, "SMB thumbnail load exception for: $remotePath")
+                        } else {
+                            Timber.d("SMB thumbnail load exception for: $remotePath (${e.message})")
+                        }
+                        return@withThrottle null
+                    }
                 }
-            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                Timber.d("SMB thumbnail load timeout (${timeoutMs}ms) for: $remotePath")
-                return@withThrottle null
-            } catch (e: CancellationException) {
-                Timber.d("SMB thumbnail request cancelled (${e::class.simpleName}) for: $remotePath")
-                return@withThrottle null
-            } catch (e: Exception) {
-                if (verboseNetworkLogging) {
-                    Timber.d(e, "SMB thumbnail load exception for: $remotePath")
-                } else {
-                    Timber.d("SMB thumbnail load exception for: $remotePath (${e.message})")
+                
+                // Success - return result
+                return@withThrottle when (result) {
+                    is SmbClient.SmbResult.Success -> result.data
+                    is SmbClient.SmbResult.Error -> {
+                        Timber.d("SMB thumbnail error: ${result.message} for: $remotePath")
+                        null
+                    }
                 }
-                return@withThrottle null
             }
             
-            when (result) {
-                is SmbClient.SmbResult.Success -> result.data
-                is SmbClient.SmbResult.Error -> {
-                    Timber.d("SMB thumbnail error: ${result.message} for: $remotePath")
-                    null
-                }
-            }
+            // All retries failed
+            Timber.e(lastException, "SMB full image load failed after $maxRetries retries for: $remotePath")
+            null
         }
     }
 
@@ -210,7 +240,8 @@ class NetworkFileFetcher(
         
         return ConnectionThrottleManager.withThrottle(
             protocol = ConnectionThrottleManager.ProtocolLimits.SFTP,
-            resourceKey = resourceKey
+            resourceKey = resourceKey,
+            highPriority = data.highPriority  // PlayerActivity requests jump the queue
         ) {
 
         // Get credentials from database - prefer credentialsId if provided
@@ -289,7 +320,8 @@ class NetworkFileFetcher(
         
         return ConnectionThrottleManager.withThrottle(
             protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
-            resourceKey = resourceKey
+            resourceKey = resourceKey,
+            highPriority = data.highPriority  // PlayerActivity requests jump the queue
         ) {
 
         // Get credentials from database - prefer credentialsId if provided
@@ -372,5 +404,6 @@ class NetworkFileFetcher(
 data class NetworkFileData(
     val path: String, // smb:// or sftp:// URL
     val credentialsId: String? = null, // Optional credentialsId to use specific credentials
-    val loadFullImage: Boolean = false // true for fullscreen view, false for thumbnails
+    val loadFullImage: Boolean = false, // true for fullscreen view, false for thumbnails
+    val highPriority: Boolean = false // true for PlayerActivity (user clicked), false for background thumbnails
 )

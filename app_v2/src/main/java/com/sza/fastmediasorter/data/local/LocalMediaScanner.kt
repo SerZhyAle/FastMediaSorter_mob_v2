@@ -204,7 +204,8 @@ class LocalMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         offset: Int,
         limit: Int,
-        credentialsId: String?
+        credentialsId: String?,
+        scanSubdirectories: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
             // Check if path is a content:// URI (SAF)

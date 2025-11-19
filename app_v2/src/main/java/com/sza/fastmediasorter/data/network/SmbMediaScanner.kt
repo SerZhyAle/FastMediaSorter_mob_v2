@@ -67,6 +67,7 @@ class SmbMediaScanner @Inject constructor(
                 connectionInfo = connectionInfo.connectionInfo,
                 remotePath = connectionInfo.remotePath,
                 extensions = extensions,
+                scanSubdirectories = scanSubdirectories,
                 progressCallback = progressCallback
             )) {
                 is SmbClient.SmbResult.Success -> {
@@ -169,10 +170,11 @@ class SmbMediaScanner @Inject constructor(
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter? = null,
         maxFiles: Int = 100,
-        credentialsId: String? = null
+        credentialsId: String? = null,
+        scanSubdirectories: Boolean = true
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("scanFolderChunked: START - path=$path, maxFiles=$maxFiles, credentialsId=$credentialsId")
+            Timber.d("scanFolderChunked: START - path=$path, maxFiles=$maxFiles, scanSubdirectories=$scanSubdirectories, credentialsId=$credentialsId")
             
             val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
                 Timber.w("Invalid SMB path format: $path")
@@ -190,7 +192,8 @@ class SmbMediaScanner @Inject constructor(
                 connectionInfo = connectionInfo.connectionInfo,
                 remotePath = connectionInfo.remotePath,
                 extensions = extensions,
-                maxFiles = maxFiles
+                maxFiles = maxFiles,
+                scanSubdirectories = scanSubdirectories
             )) {
                 is SmbClient.SmbResult.Success -> {
                     Timber.d("scanFolderChunked: Got ${result.data.size} files from smbClient")
@@ -232,7 +235,8 @@ class SmbMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         offset: Int,
         limit: Int,
-        credentialsId: String?
+        credentialsId: String?,
+        scanSubdirectories: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
             val connectionInfo = parseSmbPath(path, credentialsId) ?: run {
@@ -248,7 +252,8 @@ class SmbMediaScanner @Inject constructor(
                 remotePath = connectionInfo.remotePath,
                 extensions = extensions,
                 offset = offset,
-                limit = limit
+                limit = limit,
+                scanSubdirectories = scanSubdirectories
             )) {
                 is SmbClient.SmbResult.Success -> {
                     // Convert to MediaFile list with optional size filtering

@@ -40,10 +40,12 @@ class MediaFileAdapter(
     private val onFileClick: (MediaFile) -> Unit,
     private val onFileLongClick: (MediaFile) -> Unit,
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
+    private val onSelectionRangeRequested: (MediaFile) -> Unit = {}, // Long click on checkbox
     private val onPlayClick: (MediaFile) -> Unit,
     private var isGridMode: Boolean = false,
     private var thumbnailSize: Int = 96, // Default size in dp
-    private val getShowVideoThumbnails: () -> Boolean = { false } // Callback to get current setting
+    private val getShowVideoThumbnails: () -> Boolean = { false }, // Callback to get current setting
+    private var disableThumbnails: Boolean = false // Skip thumbnail loading, show extension icons only
 ) : ListAdapter<MediaFile, RecyclerView.ViewHolder>(MediaFileDiffCallback()) {
 
     private var selectedPaths = setOf<String>()
@@ -51,6 +53,14 @@ class MediaFileAdapter(
     
     fun setCredentialsId(id: String?) {
         credentialsId = id
+    }
+    
+    fun setDisableThumbnails(disabled: Boolean) {
+        if (disableThumbnails != disabled) {
+            disableThumbnails = disabled
+            // Force rebind all items to switch between thumbnail/icon mode
+            notifyDataSetChanged()
+        }
     }
     
     companion object {
@@ -150,6 +160,15 @@ class MediaFileAdapter(
             binding.apply {
                 val isSelected = file.path in selectedPaths
                 
+                // Adjust thumbnail size for disableThumbnails mode
+                val thumbnailSizePx = if (this@MediaFileAdapter.disableThumbnails) {
+                    (32 * root.resources.displayMetrics.density).toInt() // 32dp for list when disabled
+                } else {
+                    (64 * root.resources.displayMetrics.density).toInt() // 64dp standard
+                }
+                ivThumbnail.layoutParams.width = thumbnailSizePx
+                ivThumbnail.layoutParams.height = thumbnailSizePx
+                
                 cbSelect.setOnCheckedChangeListener(null)
                 cbSelect.isChecked = isSelected
                 cbSelect.setOnCheckedChangeListener { _, isChecked ->
@@ -193,6 +212,20 @@ class MediaFileAdapter(
         @OptIn(ExperimentalCoilApi::class)
         private fun loadThumbnail(file: MediaFile) {
             binding.ivThumbnail.apply {
+                // If thumbnails disabled, show only extension-based icons (no Coil loading)
+                if (this@MediaFileAdapter.disableThumbnails) {
+                    when (file.type) {
+                        MediaType.IMAGE -> setImageResource(R.drawable.ic_image_placeholder)
+                        MediaType.VIDEO -> setImageResource(R.drawable.ic_video_placeholder)
+                        MediaType.AUDIO -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.GIF -> setImageResource(R.drawable.ic_image_placeholder)
+                    }
+                    return
+                }
+                
                 // Check if this is a cloud path (cloud://)
                 val isCloudPath = file.path.startsWith("cloud://")
                 // Check if this is a network path (SMB/SFTP/FTP)
@@ -450,8 +483,21 @@ class MediaFileAdapter(
                     onSelectionChanged(file, isChecked)
                 }
                 
+                // Long click on checkbox: select range from last selected to this file
+                cbSelect.setOnLongClickListener {
+                    if (!isSelected) {
+                        // Only handle long click on unchecked checkbox
+                        onSelectionRangeRequested(file)
+                    }
+                    true // Consume the event
+                }
+                
                 // Set dynamic thumbnail size
-                val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()
+                val sizeInPx = if (this@MediaFileAdapter.disableThumbnails) {
+                    (64 * root.context.resources.displayMetrics.density).toInt() // 64dp when disabled
+                } else {
+                    (thumbnailSize * root.context.resources.displayMetrics.density).toInt() // User preference
+                }
                 ivThumbnail.layoutParams.width = sizeInPx
                 ivThumbnail.layoutParams.height = sizeInPx
                 tvFileName.layoutParams.width = sizeInPx
@@ -488,6 +534,20 @@ class MediaFileAdapter(
         @OptIn(ExperimentalCoilApi::class)
         private fun loadThumbnail(file: MediaFile) {
             binding.ivThumbnail.apply {
+                // If thumbnails disabled, show only extension-based icons (no Coil loading)
+                if (this@MediaFileAdapter.disableThumbnails) {
+                    when (file.type) {
+                        MediaType.IMAGE -> setImageResource(R.drawable.ic_image_placeholder)
+                        MediaType.VIDEO -> setImageResource(R.drawable.ic_video_placeholder)
+                        MediaType.AUDIO -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.GIF -> setImageResource(R.drawable.ic_image_placeholder)
+                    }
+                    return
+                }
+                
                 // Check if this is a cloud path (cloud://)
                 val isCloudPath = file.path.startsWith("cloud://")
                 // Check if this is a network path (SMB/SFTP/FTP)

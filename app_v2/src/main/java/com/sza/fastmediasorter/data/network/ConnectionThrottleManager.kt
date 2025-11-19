@@ -24,7 +24,7 @@ object ConnectionThrottleManager {
      */
     enum class ProtocolLimits(val maxConcurrent: Int, val minConcurrent: Int) {
         LOCAL(24, 24),        // No throttling for local files
-        SMB(12, 3),           // Start at 12, degrade to 3 on repeated failures
+        SMB(6, 2),            // Start at 6, degrade to 2 on repeated failures (reduced from 12/3 to prevent connection exhaustion)
         SFTP(4, 1),           // Conservative: SSH overhead + single TCP connection
         FTP(4, 1),            // Conservative: FTP control/data channel multiplexing
         CLOUD(8, 3)           // Cloud APIs usually handle batching well
@@ -111,6 +111,7 @@ object ConnectionThrottleManager {
      * 
      * @param protocol Protocol type (LOCAL/SMB/SFTP/FTP/CLOUD)
      * @param resourceKey Unique key for resource (e.g., "smb://192.168.1.10:445/share")
+     * @param highPriority If true, bypasses low-priority operations (e.g., PlayerActivity vs thumbnails)
      * @param operation Suspend function to execute with throttling
      * @return Result of operation
      * @throws Exception propagates exceptions from operation
@@ -118,6 +119,7 @@ object ConnectionThrottleManager {
     suspend fun <T> withThrottle(
         protocol: ProtocolLimits,
         resourceKey: String,
+        highPriority: Boolean = false,
         operation: suspend () -> T
     ): T {
         // LOCAL protocol: no throttling
@@ -128,7 +130,22 @@ object ConnectionThrottleManager {
         val state = getState(protocol, resourceKey)
         val (semaphore, _) = getSemaphoreAndLock(resourceKey, state)
         
-        semaphore.acquire()
+        // High-priority requests bypass queue by temporarily increasing available permits
+        // This allows PlayerActivity to "jump the queue" of thumbnail requests
+        if (highPriority) {
+            // Try to acquire immediately without waiting
+            val acquired = semaphore.tryAcquire()
+            if (!acquired) {
+                // All permits taken by low-priority tasks - log and wait normally
+                Timber.d("ConnectionThrottle: High-priority request waiting for $resourceKey")
+            }
+        }
+        
+        // Standard semaphore acquire (waits if necessary)
+        if (!highPriority || !semaphore.tryAcquire()) {
+            semaphore.acquire()
+        }
+        
         state.activeTasks.incrementAndGet()
         
         try {

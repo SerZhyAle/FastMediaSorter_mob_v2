@@ -38,6 +38,7 @@ interface MediaScanner {
      * Scan folder with pagination support.
      * @param offset Starting position (0-based)
      * @param limit Maximum number of files to return
+     * @param scanSubdirectories Whether to scan subdirectories recursively
      * @return MediaFilePage with files and hasMore flag
      */
     suspend fun scanFolderPaged(
@@ -46,7 +47,8 @@ interface MediaScanner {
         sizeFilter: SizeFilter? = null,
         offset: Int,
         limit: Int,
-        credentialsId: String? = null
+        credentialsId: String? = null,
+        scanSubdirectories: Boolean = true
     ): MediaFilePage
     
     suspend fun getFileCount(
@@ -88,7 +90,8 @@ class GetMediaFilesUseCase @Inject constructor(
                 supportedTypes = resource.supportedMediaTypes,
                 sizeFilter = sizeFilter,
                 maxFiles = maxFiles,
-                credentialsId = resource.credentialsId
+                credentialsId = resource.credentialsId,
+                scanSubdirectories = resource.scanSubdirectories
             )
         } else {
             timber.log.Timber.d("GetMediaFilesUseCase: Using standard loading")

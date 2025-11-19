@@ -206,9 +206,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
         
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
-            Timber.e("PlayerActivity.exoPlayerListener: onPlayerError - errorCode=${error.errorCode}, message=${error.message}")
-            Timber.e("PlayerActivity.exoPlayerListener: Error cause: ${error.cause}")
-            Timber.e("PlayerActivity.exoPlayerListener: Stack trace: ${error.stackTraceToString()}")
+            // MediaCodec errors (0xe = decoder failure) are often recoverable - ExoPlayer retries with software decoder
+            // Downgrade to WARNING to reduce log noise (not user-facing errors in most cases)
+            val isMediaCodecError = error.cause?.javaClass?.simpleName?.contains("MediaCodec") == true ||
+                                     error.cause?.javaClass?.simpleName?.contains("DecoderException") == true
+            
+            if (isMediaCodecError) {
+                Timber.w("PlayerActivity.exoPlayerListener: MediaCodec error (often recoverable) - errorCode=${error.errorCode}, message=${error.message}")
+                Timber.w("PlayerActivity.exoPlayerListener: Cause: ${error.cause?.javaClass?.simpleName}")
+            } else {
+                Timber.e("PlayerActivity.exoPlayerListener: onPlayerError - errorCode=${error.errorCode}, message=${error.message}")
+                Timber.e("PlayerActivity.exoPlayerListener: Error cause: ${error.cause}")
+                Timber.e("PlayerActivity.exoPlayerListener: Stack trace: ${error.stackTraceToString()}")
+            }
             
             // Check if activity is being destroyed to avoid accessing binding after onDestroy
             if (isDestroyed || isFinishing) {
@@ -220,7 +230,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
             binding.progressBar.isVisible = false
             
-            showError("Playback error: ${error.message}", error.cause)
+            // Show user-facing error only for non-MediaCodec errors (MediaCodec failures auto-retry)
+            if (!isMediaCodecError) {
+                showError("Playback error: ${error.message}", error.cause)
+            } else {
+                Timber.d("PlayerActivity.exoPlayerListener: Suppressing MediaCodec error toast (ExoPlayer will retry)")
+            }
         }
     }
 
@@ -1129,7 +1144,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 // Use NetworkFileData for Coil to load via NetworkFileFetcher
                 // path is already in format: /shareName/path/to/file.jpg
                 // loadFullImage = true for high quality fullscreen display
-                val networkData = NetworkFileData(path = path, credentialsId = resource.credentialsId, loadFullImage = true)
+                // highPriority = true to bypass thumbnail loading queue
+                val networkData = NetworkFileData(
+                    path = path, 
+                    credentialsId = resource.credentialsId, 
+                    loadFullImage = true,
+                    highPriority = true
+                )
                 
                 val request = ImageRequest.Builder(this@PlayerActivity)
                     .data(networkData)

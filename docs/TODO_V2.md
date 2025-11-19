@@ -1,157 +1,109 @@
 # TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.25.1118.xxxx  
-**Version**: 2.25.1118.xxxx
+**Latest Build**: 2.25.1119.xxxx  
+**Version**: 2.25.1119.xxxx
 **Package**: com.sza.fastmediasorter
-
-В Browse в режиме списка у нас есть галочки на изображениях, выбрав которые можно произвести пакетное перемещение, копирование, удаление. Я хочу чтобы в режиме сетки в левом нижнем углу миниатюр появилась аналогичная "галочка" с аналогичным поведением как у списка
-
 
 ## 🎯 Current Development - In Progress
 
-- [x] **FEATURE: Checkboxes in grid mode for batch operations** *(Build 2.25.1118.xxxx - COMPLETED)*
-  - ✅ Layout: item_media_file_grid.xml - wrapped in FrameLayout, CheckBox positioned at bottom|start of card
-  - ✅ Adapters: MediaFileAdapter.GridViewHolder и PagingMediaFileAdapter.GridViewHolder - added checkbox setup logic
-  - ✅ Functionality: Same behavior as list mode - select files → batch copy/move/delete operations
-  - ✅ Dynamic sizing: ImageView and TextView size set via MediaFileAdapter from settings.defaultIconSize (no hardcoded 96dp)
-  - ✅ BUILD SUCCESSFUL
-
-- [x] **FEATURE: Small controls support in Browse mode** *(Build 2.25.1118.xxxx - COMPLETED)*
-  - ✅ BrowseState: Added showSmallControls field
-  - ✅ BrowseViewModel: loadSettings() reads setting from SettingsRepository
-  - ✅ BrowseActivity: Added applySmallControlsIfNeeded() and restoreCommandButtonHeightsIfNeeded()
-  - ✅ Logic: Reduces button height by 50% (SMALL_CONTROLS_SCALE = 0.5f) for top and bottom panels
-  - ✅ Buttons affected: All 14 command buttons (Back, Sort, Filter, Refresh, Toggle View, Select/Deselect, Copy, Move, Rename, Delete, Undo, Share, Play)
-  - **Technical Notes**:
-    - Same implementation pattern as PlayerActivity
-    - Original button heights cached in originalCommandButtonHeights map
-    - smallControlsApplied flag prevents repeated height modifications
-    - Applied in observeData() when state.showSmallControls changes
-
-- [x] **FEATURE: Опция "Сканировать подкаталоги" для ресурсов** *(Build 2.25.1118.xxxx - COMPLETED)*
-  - ✅ Migration 12→13: Добавлен столбец `scanSubdirectories BOOLEAN NOT NULL DEFAULT 1`
-  - ✅ Domain model: MediaResource.scanSubdirectories, mappers toDomain/toEntity
-  - ✅ UI: EditResourceActivity - MaterialCheckBox cbScanSubdirectories + listener + state binding
-  - ✅ ViewModel: EditResourceViewModel.updateScanSubdirectories(), EditResourceState.scanSubdirectories
-  - ✅ Локализация: scan_subdirectories + scan_subdirectories_hint (en/ru/uk)
-  - ✅ Сканеры: MediaScanner.scanFolder(scanSubdirectories), LocalMediaScanner (collectFilesRecursively/collectDocumentFilesRecursively), SmbMediaScanner, SftpMediaScanner, FtpMediaScanner, CloudMediaScanner
-  - ⏸️ BackupManager: XML export/import не реализован (будущая функция)
-  - ✅ BUILD SUCCESSFUL
-  - **Technical Notes**:
-    - По умолчанию выключено (scanSubdirectories = false)
-    - При отключении сканируется только корневая папка ресурса
-    - LocalMediaScanner: Breadth-first traversal (ArrayDeque) для File и DocumentFile
-    - Остальные сканеры готовы к добавлению рекурсии при необходимости
-
-- [x] **OPTIMIZATION: Адаптивные таймауты для деградированных соединений** *(Build 2.25.1118.xxxx - COMPLETED)*
-  - ✅ ConnectionThrottleManager: Добавлен флаг `isDegraded` в ProtocolState
-  - ✅ Метод `isDegraded(protocol, resourceKey): Boolean` для проверки состояния
-  - ✅ Флаг устанавливается при деградации (3 таймаута), сбрасывается при восстановлении (10 успехов)
-  - ✅ SmbClient: Два SMBClient instance - normalClient (5s/8s) и degradedClient (8s/12s)
-  - ✅ Метод `getClient(server, port)` выбирает клиент по состоянию ConnectionThrottleManager
-  - ✅ Обновлены вызовы в `listShares()` и `withConnection()`
-  - ✅ Логирование: "EXTENDED TIMEOUTS ENABLED" при деградации, "NORMAL TIMEOUTS RESTORED" при восстановлении
-  - ✅ BUILD SUCCESSFUL
-  - **Technical Details**:
-    - Нормальные таймауты: CONNECTION_TIMEOUT_MS=5s, READ_TIMEOUT_MS=8s
-    - Деградированные таймауты: CONNECTION_TIMEOUT_DEGRADED_MS=8s, READ_TIMEOUT_DEGRADED_MS=12s
-    - Фиксированное увеличение на 60% (8/5=1.6, 12/8=1.5) для плохих соединений
-    - Автоматическое переключение без вмешательства пользователя
-
-
-
-- [x] ОПТИМИЗАЦИЯ: Быстрый подсчет файлов при добавлении ресурса. Ограничение 1000 файлов для начального сканирования (вместо полного обхода). При fileCount >= 1000 отображается ">1000 files" в UI. Изменения: SmbClient.countMediaFiles (maxCount=1000), все сканеры используют scanFolderPaged(limit=1000) в getFileCount, ResourceAdapter/ResourceToAddAdapter/EditResourceActivity показывают ">1000" для ресурсов с 1000+ файлов. Время добавления SMB ресурса с 64k файлов: ~19 сек → ~2-3 сек. *(Build 2.25.1118.0715)*
-
-- [x] В окне настройки General настройка "Sync interval" теперь текстовое поле в минутах с выбором из списка 5, 15, 60, 120, 300 минут. Кнопка Sync Now размещена рядом с полем. *(Build 2.25.1118.0437)*
-
-- [x] "Default icon size" переименовано на "Icon size for grid" - поле сужено (wrap_content + minWidth 200dp), перемещено над кнопкой "Show hint now". Добавлен выпадающий список 24-1024px (14 значений), диапазон валидации 24-1024. *(Build 2.25.1118.0526)*
-
-- [x] В окне настройки "Playback" графическая карта тач-зон уменьшена в 2 раза (280dp→140dp), легенда размещена рядом (горизонтальный layout 50%/50%). Заголовок переименован в "Touch Zones Scheme (Images/Video) for full screen mode". *(Build 2.25.1118.0526)*
-
-- [x] В окне настройки "Playback" поля "Default sort mode" и "Slideshow interval" размещены в одну строчку (horizontal layout). Поле переименовано в "Default slideshow (sec.)". Добавлен выпадающий список 1,5,10,30,60,120,300 секунд. *(Build 2.25.1118.0526)*
-
-- [x] В окне настройки General удален заголовок "Backup and restore". Кнопки "Export..." и "Import..." размещены на одной строке (horizontal layout 50/50). *(Build 2.25.1118.0601)*
-
-- [x] Кнопки "Grant Local Files permission" и "Grant Network Permissions" теперь доступны только если прав нет. При наличии прав кнопки disabled (alpha 0.5). Добавлен updatePermissionButtonsState() + onResume() hook для обновления состояния после системных настроек. *(Build 2.25.1118.0601)*
-
-- [x] В окне настройки General кнопки "Show log" и "Show current session log" размещены на одной строке (horizontal layout 50/50). *(Build 2.25.1118.0601)*
-
-- [x] В окне настройки General кнопка "User GUIDE" размещена на одной строке с полем Language (spinner + button в горизонтальном layout). Удалена отдельная кнопка. *(Build 2.25.1118.0601)*
-
-- [x] В окне настройки "Destinations" переименована кнопка "Добавить Получателя" → "Добавить Назначение" (Add Destination). Добавлен заголовок перед кнопкой: "Список назначений для команд сортировки (до 10)" / "Destination List for Sorting Commands (up to 10)". Обновлены переводы ru/uk. *(Build 2.25.1118.0601)*
+- [ ] Нужна новая опция для записи ресурса "не показывать миниатюры". При создании ресурса, если в нём найдено более 10000 файлов эта опция включается сама по себе. Но потом, при редакции записи ресурса пользователь может сам изменить эту опцию. Включить или выключить. Если галочка включена то в окне Browse миниатюры показываются исключительно по расширению файла, даже если стоит галочка "показывать миниатюры видео". 
 
 - [ ] В основном окне на панели команд вверху есть последняя кнопка "плей" - основное её значение - запустить слайдшоу для "последнего испоьзованного или, если такого нет, то первого в списке ресурса". Нужно реализовать это поведение.
 
-- [ ] при работе на русском языке. При добавлении ресурса заголовок "Select Resource Type" не переведён. Видимо захадкожен. Нужен перевод на русский и украинский.
-
 - [ ] при вводе текста в поле IP Server нужно разрешить ввод цифр, точки. А запятую или дефис или пробел при вводе менять на точку.
-
-- [x] убрать надпись "готово к синхронизации" из настройки - общие
-
-- [x] при работе на русском языке. Заголовок Settings у активити настроек не переведен на языки *(Fixed: changed hardcoded 'Settings' to @string/settings in activity_settings.xml)*
-
-
-
-- [x] я включил и тестирую режим "маленькие элементы управления" в настройках. В режиме проигрывателе не все кнопки на панели команд наверу уменьшились *(Build 2.25.1118.xxxx - FIXED: PlayerViewModel now loads settings in init before loadMediaFiles, showSmallControls applies immediately)*
-
-
-
-- [x] во всех наших активити элементы типа "галочка" или выбор из списка выглядят на планшете неудобно. Скраю слева текст, а скраю справа галочка или поле выбора. На телефоне еще нормально, но на планшете неудобно. Можем ли мы использовать такие галочки, которые будут стоять слева сразу перед текстом? Можем ли мы использовать такое поле ввода, которое будет сразу за текстом легаенды ( пример поле "Язык" в снастройках )? *(Already implemented in previous commit: horizontal LinearLayouts with TextView (label, layout_weight=1) + MaterialCheckBox/Switch (control, wrap_content), minHeight=48dp for touch comfort)*
-
-- [x] я включил и тестирую режим "маленькие элементы управления" в настройках. В режиме проигрывателе не все кнопки на панели команд наверу уменьшились *(Implemented: PlayerActivity already has applySmallControlsIfNeeded())*
-
-- [x] я включил и тестирую режим "маленькие элементы управления" в настройках. В режиме Browse все кнопки на верхней и нижней панелях команд должны уменьшаться *(Build 2.25.1118.xxxx - COMPLETED: BrowseActivity now reduces button heights by 50% when setting enabled)*
 
 - [ ] я включил и тестирую режим "маленькие элементы управления" в настройках. В режиме Browse  все кнопки на ерхней и нижней панелях команд должны уменьшаться
 
+## 🚀 Recent Fixes
 
-### Build 2.25.1118.0356 ✅
-- ✅ **FEATURE: 3-zone touch layout with PhotoView for pinch-to-zoom and rotation gestures**
-- **User request**: Enable pinch-to-zoom and rotation gestures in command panel mode when "Load images at full resolution" setting is ON
-- **Implementation**: 
-  - Added PhotoView library 2.3.0 via JitPack repository for gesture support
-  - Created 3-zone touch overlay layout (25% left = Previous, 50% center = Gestures, 25% right = Next)
-  - Standard ImageView used when `loadFullSizeImages=false` (default, 2-zone mode)
-  - PhotoView used when `loadFullSizeImages=true` (3-zone mode with gesture area)
-  - Automatic mode switching based on setting state
-- **Changes**:
-  - **build.gradle.kts**: Added `com.github.chrisbanes:PhotoView:2.3.0` dependency
-  - **settings.gradle.kts**: Added JitPack Maven repository (`maven { url = uri("https://jitpack.io") }`)
-  - **activity_player_unified.xml**:
-    - Added `PhotoView` widget (id: `photoView`, initially hidden)
-    - Added 3-zone touch overlay (`touchZones3Overlay`) with weighted columns (0.25 / 0.50 / 0.25)
-    - Kept legacy 2-zone overlay (`touchZonesOverlay`) for compatibility
-  - **PlayerActivity.kt**:
-    - Added PhotoView import
-    - Updated `setupTouchZones()`: Added listeners for 3-zone overlay (Previous/Next zones)
-    - Refactored `displayImage()`: 
-      - Reads `loadFullSizeImages` setting from repository
-      - Conditionally shows ImageView (2-zone) or PhotoView (3-zone) based on setting
-      - Switches touch overlay visibility (`touchZonesOverlay` vs `touchZones3Overlay`)
-      - Loads images into correct view (ImageView or PhotoView)
-      - PhotoView center zone has no click handler (gestures handled by library)
-    - Updated `updatePanelVisibility()`: Comment clarifies touch zones managed by `displayImage()`
-  - **strings.xml (en/ru/uk)**: Updated `load_full_size_images_hint` to mention "pinch-to-zoom and rotation gestures in command panel mode"
-- **How it works**:
-  1. User enables "Load images at full resolution" in Settings → Media
-  2. Opens static image in PlayerActivity with command panel visible
-  3. App automatically switches from 2-zone to 3-zone layout
-  4. PhotoView loads full-resolution image
-  5. User can:
-     - Tap left 25% → Previous image
-     - Tap right 25% → Next image
-     - Pinch center 50% → Zoom in/out
-     - Rotate fingers in center 50% → Rotate image clockwise/counterclockwise
-  6. When setting OFF → returns to standard 2-zone ImageView (1920px resolution, no gestures)
-- **PhotoView features**:
-  - Pinch-to-zoom (2-finger spread/pinch)
-  - Rotation gestures (2-finger rotate clockwise/counterclockwise)
-  - Double-tap to zoom
-  - Pan/scroll when zoomed
-  - Smooth animations
-- **Result**: Full gesture support for static images in command panel mode. Conditional activation via existing setting. No changes to fullscreen mode behavior. Memory-efficient (only loads full resolution when explicitly enabled).
+### Build 2.25.1119.xxxx ✅
+- ✅ **FIXED: ExoPlayer MediaCodec Errors - Reduced Log Noise**
+- **Problem**: MediaCodec decoder errors (0xe) logged as ERROR, creating noise when they're often recoverable
+- **Root Cause**: 
+  - Hardware decoders fail on some video formats (especially emulator: `c2.goldfish.h264.decoder`)
+  - ExoPlayer automatically retries with software decoder, playback continues normally
+  - User sees error toast unnecessarily
+- **Solution**:
+  - Added MediaCodec error detection in `onPlayerError()` listener
+  - Downgraded MediaCodec/DecoderException errors to WARNING level
+  - Suppressed user-facing error toast for recoverable decoder failures
+  - Full error logs still captured for non-MediaCodec errors
+- **Changed Files**:
+  - `PlayerActivity.kt`: Updated `exoPlayerListener.onPlayerError()` (lines 208-235)
+    - Added `isMediaCodecError` check (class name contains "MediaCodec" or "DecoderException")
+    - Conditional logging: `Timber.w()` for MediaCodec, `Timber.e()` for others
+    - Suppress `showError()` toast when MediaCodec error (ExoPlayer will auto-retry)
+- **Impact**: Cleaner logs, no false-positive error toasts when video plays successfully after decoder retry
 
+- ✅ **CRITICAL: BrowseActivity Thumbnail Loading - Fixed Network Starvation**
+- **Problem**: "Network file unavailable" error when opening PlayerActivity after browsing 4000+ files
+- **Root Cause**: 
+  - `BrowseActivity.onPause()` had `if (!isFinishing)` check before clearing adapter
+  - When navigating to PlayerActivity, `isFinishing=false`, so adapter **not cleared**
+  - Coil thumbnail requests (6+ concurrent) kept running, exhausting SMB connection pool
+  - PlayerActivity's full-image request timed out waiting for free connection (2s timeout)
+  - `NetworkFileFetcher` returned `null` after timeout → "Network file unavailable" exception
+- **Solution**:
+  - Removed `!isFinishing` check - adapter now **always** cleared in `onPause()`
+  - When leaving Browse (any reason), all Coil requests cancelled via adapter recycling
+  - SMB connection pool freed immediately for PlayerActivity
+- **Changed Files**:
+  - `BrowseActivity.kt`: Removed conditional clearing (line 1158)
+    - Old: `if (!isFinishing) { binding.rvMediaFiles.adapter = null }`
+    - New: `binding.rvMediaFiles.adapter = null` (always)
+  - `SmbClient.kt`: Added missing `ScanProgressCallback` import
+- **Impact**: No more loading delays when opening images/videos from large network folders
 
+- ✅ **CRITICAL: SMB Connection Recovery After Socket Errors**
+- **Problem**: After `SocketException: Software caused connection abort`, SMB connections remain blocked until app restart
+- **Root Cause**: 
+  - SMBJ library's internal state becomes corrupted after critical socket errors
+  - Old implementation only closed connections, but kept same `SMBClient` instances
+  - After 20 consecutive errors, pool was cleared but clients retained corrupted state
+- **Solution**:
+  - Changed `normalClient`/`degradedClient` from `lazy val` to nullable `var` with synchronized getters
+  - Added `resetClients()` method to fully recreate `SMBClient` instances
+  - Immediate reset on critical socket errors: `Software caused connection abort`, `Connection reset`, `Broken pipe`
+  - Automatic reset after 20 consecutive non-critical errors (timeout threshold)
+- **Changed Files**:
+  - `SmbClient.kt`: Refactored client lifecycle management (4 edits)
+    - Lines 96-111: Converted to nullable vars with lazy initialization
+    - Line 120: Updated `getClient()` to use getter methods
+    - Lines 1367-1370: Added `resetClients()` call after critical threshold
+    - Lines 1486-1506: Added critical error detection in catch block
+    - Lines 1553-1569: Added `resetClients()` method with synchronized client recreation
+    - Lines 1795-1796: Fixed `close()` to use safe calls (`?.`)
+- **Technical Details**:
+  - Critical errors detected via `e.cause is SocketException` with message matching
+  - `resetClients()` calls `.close()` on old clients before nullifying
+  - Next connection attempt will recreate fresh `SMBClient` with clean state
+  - Thread-safe via `synchronized(this)` block during recreation
+- **Impact**: SMB shares now auto-recover from network interruptions without app restart
+- **Testing**: Trigger `Software caused connection abort` → verify next connection succeeds
+
+### Build 2.25.1118.xxxx ✅ (UI Consistency + Field Width Fixes)
+- ✅ **UI: Standardized All Boolean Controls (24 elements)**
+- **Pattern Applied**: CheckBox/Switch moved to **left** of text labels (marginEnd=12dp)
+- **Files Updated**: 6 layout files
+  - `activity_add_resource.xml`: 1 MaterialCheckBox ("Add to Destinations")
+  - `fragment_settings_destinations.xml`: 4 SwitchMaterial (Copy/Move options)
+  - `fragment_settings_general.xml`: 3 SwitchMaterial (Prevent Sleep, Small Controls, Background Sync)
+  - `fragment_settings_playback.xml`: 9 SwitchMaterial (Play to End, Rename, Delete, Confirm, Grid, Command Panel, Errors, Hint)
+  - `fragment_settings_media.xml`: 6 SwitchMaterial (Images, GIFs, Videos, Audio, Thumbnails)
+  - `fragment_settings_network.xml`: 1 SwitchMaterial (Background Sync)
+- **Structure Changed**: `<SwitchMaterial text="..." />` → `<Switch marginEnd=12dp /> + <TextView weight=1 text="..." />`
+
+- ✅ **UI: Fixed Short Numeric Input Fields (9 fields)**
+- **Problem**: Port/interval fields stretched to full width with `layout_weight=1`, inconvenient for 3-4 digit values
+- **Solution**: Changed to fixed width (`120dp` or `150dp`) instead of weight-based stretching
+- **Files Updated**: 4 layout files
+  - `activity_edit_resource.xml`: 3 fields (SMB port 120dp, SFTP port 150dp, Slideshow interval 120dp)
+  - `activity_add_resource.xml`: 2 fields (SMB port 120dp, SFTP port 150dp)
+  - `fragment_settings_playback.xml`: 2 fields (Slideshow interval 120dp, Icon size 120dp)
+  - `fragment_settings_general.xml`: 1 field (Sync interval 160dp)
+- **Impact**: Short fields no longer waste space, easier to scan visually
+
+- [ ] После ошибку с определенным SMB  он как бы блокируется. Пок ане перезапустишь программу 
 
 ## 🚀 Pre-Release Tasks (Ready to Implement)
 

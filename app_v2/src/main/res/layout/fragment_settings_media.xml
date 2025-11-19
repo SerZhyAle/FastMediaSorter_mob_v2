@@ -12,16 +12,29 @@
         android:padding="16dp">
 
         <!-- Support static images -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchSupportImages"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/support_images_description"
-            android:checked="true"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSupportImages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/support_images_description"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -33,17 +46,30 @@
             android:layout_marginBottom="16dp" />
 
         <!-- Load full size images -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchLoadFullSizeImages"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/load_full_size_images"
-            android:checked="false"
             android:layout_marginStart="48dp"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchLoadFullSizeImages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="false" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/load_full_size_images"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -55,15 +81,28 @@
             android:layout_marginBottom="16dp" />
 
         <!-- Support GIF animation -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchSupportGifs"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/support_gif_description"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSupportGifs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/support_gif_description"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <!-- Image size limit (for both static and GIF) -->
         <TextView
@@ -120,16 +159,29 @@
         </LinearLayout>
 
         <!-- Support video -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchSupportVideos"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/support_video_description"
-            android:checked="true"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSupportVideos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/support_video_description"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"
@@ -140,16 +192,29 @@
             android:layout_marginStart="48dp"
             android:layout_marginBottom="8dp" />
 
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchShowVideoThumbnails"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/show_video_thumbnails"
             android:layout_marginStart="48dp"
-            android:layout_marginBottom="16dp" />
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchShowVideoThumbnails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/show_video_thumbnails"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvVideoSizeLabel"
@@ -205,16 +270,29 @@
         </LinearLayout>
 
         <!-- Support audio -->
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchSupportAudio"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:minHeight="48dp"
-            android:paddingTop="12dp"
-            android:paddingBottom="12dp"
-            android:text="@string/support_audio_description"
-            android:checked="true"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="8dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSupportAudio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/support_audio_description"
+                android:textSize="16sp" />
+
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"

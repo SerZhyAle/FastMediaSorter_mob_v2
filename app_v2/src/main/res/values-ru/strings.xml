@@ -194,7 +194,10 @@
     <string name="gif_animations">GIF-анимации</string>
     <string name="scan_subdirectories">Сканировать подкаталоги</string>
     <string name="scan_subdirectories_hint">Включите для поиска медиафайлов во всех вложенных подкаталогах. Отключите для сканирования только корневой папки.</string>
+    <string name="disable_thumbnails">Отключить миниатюры</string>
+    <string name="disable_thumbnails_description">Показывать только иконки расширений файлов (без предпросмотра). Автоматически включается для ресурсов с >10000 файлов.</string>
     <string name="use_as_destination">Использовать как назначение</string>
+    <string name="counting">подсчёт…</string>
     <string name="clear_trash">Очистить корзину</string>
     <string name="clear_trash_confirm_title">Очистить корзину?</string>
     <string name="clear_trash_confirm_message">Это окончательно удалит %d папок корзины и все файлы внутри них. Отменить действие будет невозможно.</string>

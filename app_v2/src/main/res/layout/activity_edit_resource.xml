@@ -233,16 +233,13 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
-                    <com.google.android.material.textfield.TextInputLayout
-                        android:id="@+id/tilSmbPortEdit"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:hint="@string/smb_port"
-                        app:boxBackgroundMode="outline">
-
-                        <com.google.android.material.textfield.TextInputEditText
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSmbPortEdit"
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:hint="@string/smb_port"
+                    app:boxBackgroundMode="outline">                        <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/etSmbPortEdit"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -293,7 +290,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSftpPortEdit"
-                    android:layout_width="match_parent"
+                    android:layout_width="150dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:hint="@string/sftp_port"
@@ -394,10 +391,9 @@
                     android:textSize="16sp" />
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilSlideshowInterval"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/tilSlideshowIntervalForResource"
+                    android:layout_width="120dp"
                     android:layout_height="wrap_content"
-                    android:minWidth="120dp"
                     android:hint="@string/slideshow_interval_for_resource"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
@@ -436,17 +432,18 @@
                     android:gravity="center_vertical"
                     android:minHeight="48dp">
 
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportImages"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/images"
                         android:textSize="16sp" />
-
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbSupportImages"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
@@ -456,6 +453,12 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:minHeight="48dp">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportVideo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -464,11 +467,6 @@
                         android:text="@string/video"
                         android:textSize="16sp" />
 
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbSupportVideo"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
                 </LinearLayout>
 
                 <LinearLayout
@@ -477,6 +475,12 @@
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:minHeight="48dp">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportAudio"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp" />
 
                     <TextView
                         android:layout_width="0dp"
@@ -485,11 +489,6 @@
                         android:text="@string/audio"
                         android:textSize="16sp" />
 
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbSupportAudio"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
-
                 </LinearLayout>
 
                 <LinearLayout
@@ -499,17 +498,18 @@
                     android:gravity="center_vertical"
                     android:minHeight="48dp">
 
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbSupportGif"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp" />
+
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/gif_animations"
                         android:textSize="16sp" />
-
-                    <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbSupportGif"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content" />
 
                 </LinearLayout>
 
@@ -524,6 +524,13 @@
                 android:gravity="center_vertical"
                 android:minHeight="48dp">
 
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cbScanSubdirectories"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:checked="true" />
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -531,11 +538,44 @@
                     android:text="@string/scan_subdirectories"
                     android:textSize="16sp" />
 
+            </LinearLayout>
+
+            <!-- Disable Thumbnails -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="48dp">
+
                 <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/cbScanSubdirectories"
+                    android:id="@+id/cbDisableThumbnails"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:checked="true" />
+                    android:layout_marginEnd="12dp" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/disable_thumbnails"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/disable_thumbnails_description"
+                        android:textSize="12sp"
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:layout_marginTop="2dp" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
@@ -548,19 +588,20 @@
                 android:gravity="center_vertical"
                 android:minHeight="48dp">
 
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchIsDestination"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="12dp"
+                    android:textOn=""
+                    android:textOff="" />
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/use_as_destination"
                     android:textSize="16sp" />
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchIsDestination"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:textOn=""
-                    android:textOff="" />
 
             </LinearLayout>
 

@@ -194,7 +194,10 @@
     <string name="gif_animations">GIF Animations</string>
     <string name="scan_subdirectories">Scan subdirectories</string>
     <string name="scan_subdirectories_hint">Enable to search for media files in all nested subdirectories. Disable to scan only the root folder.</string>
+    <string name="disable_thumbnails">Disable thumbnails</string>
+    <string name="disable_thumbnails_description">Show only file extension icons (no image/video preview). Auto-enabled for resources with >10000 files.</string>
     <string name="use_as_destination">Use as Destination</string>
+    <string name="counting">counting…</string>
     <string name="clear_trash">Clear Trash</string>
     <string name="clear_trash_confirm_title">Clear Trash Folders?</string>
     <string name="clear_trash_confirm_message">This will permanently delete %d trash folder(s) and all files inside them. This action cannot be undone.</string>

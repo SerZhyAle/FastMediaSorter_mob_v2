@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.databinding.DialogFilterBinding
 import com.sza.fastmediasorter.databinding.DialogRenameMultipleBinding
 import com.sza.fastmediasorter.databinding.DialogRenameSingleBinding
 import com.sza.fastmediasorter.databinding.ItemRenameFileBinding
+import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -103,6 +104,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
     
     private var showVideoThumbnails = false // Cached setting value
+    private var shouldScrollToLastViewed = false // Flag for scroll restoration after PlayerActivity return
 
     override fun getViewBinding(): ActivityBrowseBinding {
         return ActivityBrowseBinding.inflate(layoutInflater)
@@ -126,6 +128,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             },
             onSelectionChanged = { file, _ ->
                 viewModel.selectFile(file.path)
+            },
+            onSelectionRangeRequested = { file ->
+                // Long click on checkbox: select range from last selected file
+                viewModel.selectFileRange(file.path)
             },
             onPlayClick = { file ->
                 viewModel.openFile(file)
@@ -303,8 +309,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             }
                             Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}")
                             
-                            // Scroll to last viewed file after list is submitted
-                            if (previousListSize == 0 && state.mediaFiles.isNotEmpty()) {
+                            // Scroll to last viewed file after returning from PlayerActivity
+                            if (shouldScrollToLastViewed && state.mediaFiles.isNotEmpty()) {
                                 state.resource?.lastViewedFile?.let { lastViewedPath ->
                                     val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
                                     if (position >= 0) {
@@ -312,6 +318,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                             binding.rvMediaFiles.scrollToPosition(position)
                                             Timber.d("Scrolled to last viewed file at position $position")
                                         }
+                                        shouldScrollToLastViewed = false // Clear flag after scroll
                                     }
                                 }
                             }
@@ -320,8 +327,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     // No log for skipped submitList - reduces log spam during large folder loading
                     
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
-                    state.resource?.let { _ ->
-                        mediaFileAdapter.setCredentialsId(state.resource.credentialsId)
+                    state.resource?.let { resource ->
+                        mediaFileAdapter.setCredentialsId(resource.credentialsId)
+                        mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
                     }
 
                     state.resource?.let { _ ->
@@ -553,8 +561,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         // Add file count if available
         val fileCount = when {
+            state.loadingProgress > 0 -> " (${state.loadingProgress}...)" // Show progress during scan
             state.totalFileCount != null -> " (${state.totalFileCount} files)"
-            else -> " (counting...)"
+            else -> " (${getString(R.string.counting)})"
         }
         
         // Add sort mode display
@@ -604,7 +613,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         Timber.d("updateDisplayMode: mode=$mode")
         
         val settings = settingsRepository.getSettings().first()
-        val iconSize = settings.defaultIconSize
+        // Use fixed small size (32dp) when thumbnails disabled, otherwise user preference
+        val currentResource = viewModel.state.value.resource
+        val iconSize = if (currentResource?.disableThumbnails == true) 32 else settings.defaultIconSize
         
         // Save current scroll position before changing layout
         val currentLayoutManager = binding.rvMediaFiles.layoutManager
@@ -649,9 +660,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         binding.rvMediaFiles.layoutManager = newLayoutManager
         
         // Restore scroll position after layout manager change
-        if (scrollPosition > 0) {
-            newLayoutManager.scrollToPosition(scrollPosition)
-            Timber.d("updateDisplayMode: Restored scroll position=$scrollPosition")
+        // Use post() to ensure adapter has time to bind ViewHolders before scrolling
+        if (scrollPosition >= 0) {
+            binding.rvMediaFiles.post {
+                newLayoutManager.scrollToPosition(scrollPosition)
+                Timber.d("updateDisplayMode: Restored scroll position=$scrollPosition")
+            }
         }
         
         Timber.d("updateDisplayMode: Layout manager updated to ${newLayoutManager::class.simpleName}")
@@ -817,81 +831,18 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     private fun showRenameSingleDialog(filePath: String) {
         val file = java.io.File(filePath)
-        val currentName = file.name
+        val resource = viewModel.state.value.resource
         
-        val dialogBinding = DialogRenameSingleBinding.inflate(LayoutInflater.from(this))
-        dialogBinding.etFileName.setText(currentName)
-        
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.renaming_files)
-            .setView(dialogBinding.root)
-            .create()
-        
-        // Set yellow background per specification
-        window?.setBackgroundDrawableResource(android.R.color.transparent)
-        
-        dialogBinding.btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-        
-        dialogBinding.btnApply.setOnClickListener {
-            val newName = dialogBinding.etFileName.text?.toString()?.trim()
-            if (newName.isNullOrBlank()) {
-                Toast.makeText(this, "File name cannot be empty", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+        RenameDialog(
+            context = this,
+            lifecycleOwner = this,
+            files = listOf(file),
+            sourceFolderName = resource?.name ?: "",
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            onComplete = {
+                viewModel.reloadFiles()
             }
-            
-            if (newName == currentName) {
-                dialog.dismiss()
-                return@setOnClickListener
-            }
-            
-            val newFile = java.io.File(file.parent, newName)
-            if (newFile.exists()) {
-                Toast.makeText(
-                    this, 
-                    getString(R.string.file_already_exists, newName), 
-                    Toast.LENGTH_SHORT
-                ).show()
-                return@setOnClickListener
-            }
-            
-            try {
-                if (file.renameTo(newFile)) {
-                    // Save undo operation
-                    val undoOp = com.sza.fastmediasorter.domain.model.UndoOperation(
-                        type = com.sza.fastmediasorter.domain.model.FileOperationType.RENAME,
-                        sourceFiles = listOf(file.absolutePath),
-                        destinationFolder = null,
-                        copiedFiles = null,
-                        oldNames = listOf(file.absolutePath to newFile.absolutePath)
-                    )
-                    viewModel.saveUndoOperation(undoOp)
-                    
-                    viewModel.reloadFiles()
-                    Toast.makeText(
-                        this,
-                        getString(R.string.renamed_n_files, 1),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    dialog.dismiss()
-                } else {
-                    Toast.makeText(
-                        this,
-                        getString(R.string.rename_failed, "Unknown error"),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.rename_failed, e.message),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-        
-        dialog.show()
+        ).show()
     }
     
     private fun showRenameMultipleDialog(filePaths: List<String>) {
@@ -1116,6 +1067,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun onResume() {
         super.onResume()
         
+        // Restore adapter if it was cleared in onPause (only if adapter was already initialized)
+        if (::mediaFileAdapter.isInitialized && binding.rvMediaFiles.adapter == null) {
+            binding.rvMediaFiles.adapter = mediaFileAdapter
+            Timber.d("BrowseActivity.onResume: Restored RecyclerView adapter")
+        }
+        
         // Skip reload on first onResume - files already loaded in ViewModel.init{}
         if (isFirstResume) {
             isFirstResume = false
@@ -1138,8 +1095,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Stop MediaStore observer to avoid unnecessary updates
         stopMediaStoreObserver()
         
-        // Save current scroll position
-        saveLastViewedFile()
+        // Set flag to restore scroll position on next resume (return from PlayerActivity)
+        shouldScrollToLastViewed = true
+        
+        // Cancel all pending Coil image requests to free up network connections
+        // Critical for SMB: prevents thumbnail loading from blocking PlayerActivity
+        // Clear adapter to trigger Coil request cancellation in onViewRecycled()
+        // Always clear adapter in onPause (not just when finishing) to cancel image loading
+        // when navigating to PlayerActivity - this frees network connections for full-size image
+        binding.rvMediaFiles.adapter = null
+        
+        // Note: lastViewedFile is already saved by openFile() when navigating to PlayerActivity.
+        // Do NOT save here - adapter.currentList may be empty after clearing, and we would
+        // overwrite the correct value saved by openFile() with incorrect firstVisiblePosition.
     }
     
     private fun startMediaStoreObserver() {

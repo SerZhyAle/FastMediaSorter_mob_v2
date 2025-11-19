@@ -105,7 +105,8 @@ class FtpMediaScanner @Inject constructor(
         sizeFilter: SizeFilter?,
         offset: Int,
         limit: Int,
-        credentialsId: String?
+        credentialsId: String?,
+        scanSubdirectories: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
             // For simplicity, reuse scanFolder and apply offset/limit

@@ -34,6 +34,7 @@ class PagingMediaFileAdapter(
     private val onFileClick: (MediaFile, Int) -> Unit, // Added position parameter
     private val onFileLongClick: (MediaFile) -> Unit,
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
+    private val onSelectionRangeRequested: (MediaFile) -> Unit = {}, // Long click on checkbox
     private val onPlayClick: (MediaFile) -> Unit,
     private var isGridMode: Boolean = false,
     private var thumbnailSize: Int = 96,
@@ -125,6 +126,15 @@ class PagingMediaFileAdapter(
                 cbSelect.isChecked = isSelected
                 cbSelect.setOnCheckedChangeListener { _, isChecked ->
                     onSelectionChanged(file, isChecked)
+                }
+                
+                // Long click on checkbox: select range from last selected to this file
+                cbSelect.setOnLongClickListener {
+                    if (!isSelected) {
+                        // Only handle long click on unchecked checkbox
+                        onSelectionRangeRequested(file)
+                    }
+                    true // Consume the event
                 }
 
                 root.setCardBackgroundColor(
@@ -286,6 +296,15 @@ class PagingMediaFileAdapter(
                 cbSelect.isChecked = isSelected
                 cbSelect.setOnCheckedChangeListener { _, isChecked ->
                     onSelectionChanged(file, isChecked)
+                }
+                
+                // Long click on checkbox: select range from last selected to this file
+                cbSelect.setOnLongClickListener {
+                    if (!isSelected) {
+                        // Only handle long click on unchecked checkbox
+                        onSelectionRangeRequested(file)
+                    }
+                    true // Consume the event
                 }
 
                 val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()

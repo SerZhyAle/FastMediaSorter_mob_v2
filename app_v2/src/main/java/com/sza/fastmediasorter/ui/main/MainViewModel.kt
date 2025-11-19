@@ -237,9 +237,9 @@ class MainViewModel @Inject constructor(
                             updateResourceUseCase(updatedResource)
                         }
                         sendEvent(MainEvent.ShowError(
-                            message = "Failed to connect to '${resource.name}'",
+                            message = error.message ?: "Resource unavailable",
                             details = if (showDetails) {
-                                "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nConnection error:\n${error.message ?: "Unknown error"}\n\nStack trace:\n${error.stackTraceToString()}"
+                                "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nTechnical details:\n${error.cause?.message ?: error.message}\n\nStack trace:\n${error.stackTraceToString()}"
                             } else null
                         ))
                     }
@@ -252,9 +252,9 @@ class MainViewModel @Inject constructor(
                     updateResourceUseCase(updatedResource)
                 }
                 sendEvent(MainEvent.ShowError(
-                    message = "Failed to check resource '${resource.name}'",
+                    message = "Resource unavailable",
                     details = if (showDetails) {
-                        "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nException:\n${e.message ?: "Unknown error"}\n\nStack trace:\n${e.stackTraceToString()}"
+                        "Resource: ${resource.name} (${resource.type})\nPath: ${resource.path}\n\nTechnical details:\n${e.message ?: "Unknown error"}\n\nStack trace:\n${e.stackTraceToString()}"
                     } else null
                 ))
             }
@@ -418,14 +418,18 @@ class MainViewModel @Inject constructor(
                 smbOperationsUseCase.clearAllConnectionPools()
                 
                 val resources = getResourcesUseCase().first()
+                Timber.d("Starting scan of ${resources.size} resources")
                 var unavailableCount = 0
                 var writableCount = 0
                 var readOnlyCount = 0
                 
-                resources.forEach { resource ->
+                resources.forEachIndexed { index, resource ->
+                    Timber.d("Scanning resource [${index + 1}/${resources.size}]: ${resource.name} (${resource.type})")
                     try {
                         // Test connection/availability
+                        Timber.d("Testing connection for ${resource.name}...")
                         val testResult = resourceRepository.testConnection(resource)
+                        Timber.d("Connection test completed for ${resource.name}")
                         
                         testResult.fold(
                             onSuccess = {
@@ -452,12 +456,14 @@ class MainViewModel @Inject constructor(
                                 val scanner = mediaScannerFactory.getScanner(resource.type)
                                 
                                 // Check write permission (fast)
+                                Timber.d("Checking write access for ${resource.name}...")
                                 val isWritable = try {
                                     scanner.isWritable(resource.path, resource.credentialsId)
                                 } catch (e: Exception) {
                                     Timber.e(e, "Error checking write access for ${resource.name}")
                                     resource.isWritable
                                 }
+                                Timber.d("Write access check completed for ${resource.name}: $isWritable")
                                 
                                 if (isWritable) writableCount++ else readOnlyCount++
                                 
@@ -475,12 +481,14 @@ class MainViewModel @Inject constructor(
                                 if (currentSettings.supportVideos) supportedTypes.add(MediaType.VIDEO)
                                 if (currentSettings.supportAudio) supportedTypes.add(MediaType.AUDIO)
                                 
+                                Timber.d("Counting files for ${resource.name}...")
                                 val fileCount = try {
                                     scanner.getFileCount(resource.path, supportedTypes, null, resource.credentialsId)
                                 } catch (e: Exception) {
                                     Timber.e(e, "Error counting files for ${resource.name}")
                                     resource.fileCount
                                 }
+                                Timber.d("File count completed for ${resource.name}: $fileCount files")
                                 
                                 if (fileCount != resource.fileCount) {
                                     updatedResource = updatedResource.copy(fileCount = fileCount)
@@ -515,6 +523,7 @@ class MainViewModel @Inject constructor(
                     }
                 }
                 
+                Timber.d("Resource scan completed: ${resources.size} total")
                 val totalResources = resources.size
                 val availableCount = totalResources - unavailableCount
                 

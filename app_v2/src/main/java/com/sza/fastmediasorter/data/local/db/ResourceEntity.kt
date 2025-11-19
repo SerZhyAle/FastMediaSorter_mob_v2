@@ -54,5 +54,7 @@ data class ResourceEntity(
     
     val scanSubdirectories: Boolean = false, // Scan subdirectories for media files (default: disabled)
     
+    val disableThumbnails: Boolean = false, // Disable thumbnail loading (use extension icons only). Auto-enabled for >10000 files.
+    
     val displayOrder: Int = 0 // Order for display in resource list
 )

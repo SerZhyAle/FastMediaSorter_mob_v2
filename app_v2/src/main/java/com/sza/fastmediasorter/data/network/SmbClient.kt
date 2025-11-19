@@ -12,6 +12,7 @@ import com.hierynomus.smbj.share.DiskShare
 import com.hierynomus.smbj.share.File
 import com.sza.fastmediasorter.core.util.InputStreamExt.copyToWithProgress
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
@@ -52,16 +53,19 @@ class SmbClient @Inject constructor() {
         private const val WRITE_TIMEOUT_MS = 30000L // 30 seconds for write operations (longer for large files)
         
         // Degraded timeouts (poor connection, activated by ConnectionThrottleManager)
-        private const val CONNECTION_TIMEOUT_DEGRADED_MS = 8000L // 8 seconds for degraded connections
-        private const val READ_TIMEOUT_DEGRADED_MS = 12000L // 12 seconds for degraded read operations
-        private const val MAX_CONCURRENT_CONNECTIONS = 8 // Limit parallel SMB connections
-        private const val CONNECTION_IDLE_TIMEOUT_MS = 5000L // 5 seconds idle timeout
+        private const val CONNECTION_TIMEOUT_DEGRADED_MS = 10000L // 10 seconds for degraded connections (increased from 8s)
+        private const val READ_TIMEOUT_DEGRADED_MS = 15000L // 15 seconds for degraded read operations (increased from 12s)
+        private const val MAX_CONCURRENT_CONNECTIONS = 12 // Match ConnectionThrottleManager.SMB limit
+        private const val CONNECTION_IDLE_TIMEOUT_MS = 60000L // 60 seconds - keep connections alive during active browsing
         private const val SMB_PARALLEL_SCAN_THREADS = 20 // Thread pool size for parallel directory scanning
         
         // Timeout degradation tracking
         private const val TIMEOUT_WARNING_THRESHOLD = 5 // Warn after 5 consecutive timeouts
+        private const val TIMEOUT_CRITICAL_THRESHOLD = 20 // Close all connections after 20 timeouts
         @Volatile
         private var consecutiveTimeouts = 0
+        @Volatile
+        private var lastSuccessfulOperation = System.currentTimeMillis() // Track last success for idle reset
     }
     
     // Dedicated dispatcher for blocking SMB I/O operations
@@ -86,8 +90,22 @@ class SmbClient @Inject constructor() {
             .build()
     }
 
-    private val normalClient by lazy { SMBClient(normalConfig) }
-    private val degradedClient by lazy { SMBClient(degradedConfig) }
+    @Volatile
+    private var normalClient: SMBClient? = null
+    @Volatile
+    private var degradedClient: SMBClient? = null
+    
+    private fun getNormalClient(): SMBClient {
+        return normalClient ?: synchronized(this) {
+            normalClient ?: SMBClient(normalConfig).also { normalClient = it }
+        }
+    }
+    
+    private fun getDegradedClient(): SMBClient {
+        return degradedClient ?: synchronized(this) {
+            degradedClient ?: SMBClient(degradedConfig).also { degradedClient = it }
+        }
+    }
     
     // Connection pool with automatic cleanup
     private data class PooledConnection(
@@ -115,7 +133,7 @@ class SmbClient @Inject constructor() {
     private fun getClient(server: String, port: Int): SMBClient {
         val resourceKey = "smb://$server:$port"
         val isDegraded = ConnectionThrottleManager.isDegraded(ConnectionThrottleManager.ProtocolLimits.SMB, resourceKey)
-        return if (isDegraded) degradedClient else normalClient
+        return if (isDegraded) getDegradedClient() else getNormalClient()
     }
     
     /**
@@ -207,7 +225,7 @@ class SmbClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.e(e, "SMB connection test failed")
             SmbResult.Error(
-                buildDiagnosticMessage(e, connectionInfo),
+                getUserFriendlyMessage(e),
                 e
             )
         }
@@ -260,6 +278,7 @@ class SmbClient @Inject constructor() {
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
+        scanSubdirectories: Boolean = true,
         progressCallback: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback? = null
     ): SmbResult<List<SmbFileInfo>> {
         return try {
@@ -267,7 +286,11 @@ class SmbClient @Inject constructor() {
             val mediaFiles = mutableListOf<SmbFileInfo>()
             
             withConnection(connectionInfo) { share ->
-                scanDirectoryRecursive(share, remotePath, extensions, mediaFiles, progressCallback)
+                if (scanSubdirectories) {
+                    scanDirectoryRecursive(share, remotePath, extensions, mediaFiles, progressCallback)
+                } else {
+                    scanDirectoryNonRecursive(share, remotePath, extensions, mediaFiles, Int.MAX_VALUE, progressCallback)
+                }
                 SmbResult.Success(mediaFiles)
             }.also {
                 if (it is SmbResult.Success) {
@@ -289,16 +312,22 @@ class SmbClient @Inject constructor() {
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
-        maxFiles: Int = 100
+        maxFiles: Int = 100,
+        scanSubdirectories: Boolean = true
     ): SmbResult<List<SmbFileInfo>> {
         return try {
-            Timber.d("SmbClient.scanMediaFilesChunked: START - share=${connectionInfo.shareName}, remotePath=$remotePath, maxFiles=$maxFiles")
+            Timber.d("SmbClient.scanMediaFilesChunked: START - share=${connectionInfo.shareName}, remotePath=$remotePath, maxFiles=$maxFiles, scanSubdirectories=$scanSubdirectories")
             
             val mediaFiles = mutableListOf<SmbFileInfo>()
             
             withConnection(connectionInfo) { share ->
-                Timber.d("SmbClient.scanMediaFilesChunked: Connection established, starting recursive scan")
-                scanDirectoryRecursiveWithLimit(share, remotePath, extensions, mediaFiles, maxFiles)
+                Timber.d("SmbClient.scanMediaFilesChunked: Connection established, starting scan")
+                if (scanSubdirectories) {
+                    scanDirectoryRecursiveWithLimit(share, remotePath, extensions, mediaFiles, maxFiles)
+                } else {
+                    // Only scan root folder, no recursion
+                    scanDirectoryNonRecursive(share, remotePath, extensions, mediaFiles, maxFiles)
+                }
                 Timber.d("SmbClient.scanMediaFilesChunked: Scan completed, found ${mediaFiles.size} files")
                 SmbResult.Success(mediaFiles)
             }
@@ -318,7 +347,8 @@ class SmbClient @Inject constructor() {
         remotePath: String = "",
         extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
         offset: Int = 0,
-        limit: Int = 50
+        limit: Int = 50,
+        scanSubdirectories: Boolean = true
     ): SmbResult<List<SmbFileInfo>> {
         return try {
             val startTime = System.currentTimeMillis()
@@ -326,8 +356,12 @@ class SmbClient @Inject constructor() {
             var skippedCount = 0
             
             withConnection(connectionInfo) { share ->
-                scanDirectoryWithOffsetLimit(share, remotePath, extensions, mediaFiles, offset, limit, skippedCount)
-                Timber.d("SmbClient.scanMediaFilesPaged: offset=$offset, limit=$limit, returned=${mediaFiles.size}, took ${System.currentTimeMillis() - startTime}ms")
+                if (scanSubdirectories) {
+                    scanDirectoryWithOffsetLimit(share, remotePath, extensions, mediaFiles, offset, limit, skippedCount)
+                } else {
+                    scanDirectoryNonRecursiveWithOffset(share, remotePath, extensions, mediaFiles, offset, limit)
+                }
+                Timber.d("SmbClient.scanMediaFilesPaged: offset=$offset, limit=$limit, scanSubdirs=$scanSubdirectories, returned=${mediaFiles.size}, took ${System.currentTimeMillis() - startTime}ms")
                 SmbResult.Success(mediaFiles)
             }
         } catch (e: Exception) {
@@ -344,11 +378,16 @@ class SmbClient @Inject constructor() {
         connectionInfo: SmbConnectionInfo,
         remotePath: String = "",
         extensions: Set<String> = setOf("jpg", "jpeg", "png", "gif", "mp4", "mov", "avi", "mp3", "wav"),
-        maxCount: Int = 1000 // Fast initial scan: stop at 1000 to return quickly
+        maxCount: Int = 1000, // Fast initial scan: stop at 1000 to return quickly
+        scanSubdirectories: Boolean = true
     ): SmbResult<Int> {
         return try {
             withConnection(connectionInfo) { share ->
-                val count = countDirectoryRecursive(share, remotePath, extensions, maxCount)
+                val count = if (scanSubdirectories) {
+                    countDirectoryRecursive(share, remotePath, extensions, maxCount)
+                } else {
+                    countDirectoryNonRecursive(share, remotePath, extensions, maxCount)
+                }
                 if (count >= maxCount) {
                     Timber.d("Fast count limit reached: $maxCount+ files")
                 }
@@ -540,6 +579,151 @@ class SmbClient @Inject constructor() {
             Timber.w(e, "Failed to scan directory: $path")
         }
         return results.size >= maxFiles
+    }
+
+    /**
+     * Scan directory non-recursively (root folder only)
+     * Used when scanSubdirectories=false
+     */
+    private suspend fun scanDirectoryNonRecursive(
+        share: DiskShare,
+        path: String,
+        extensions: Set<String>,
+        results: MutableList<SmbFileInfo>,
+        maxFiles: Int,
+        progressCallback: ScanProgressCallback? = null
+    ) {
+        try {
+            if (results.size >= maxFiles) return
+            
+            val dirPath = path.trim('/', '\\')
+            
+            Timber.d("SmbClient.scanDirectoryNonRecursive: Scanning dirPath='$dirPath' (root only)")
+            
+            val items = share.list(dirPath)
+            
+            // Process only files in root folder, skip subdirectories
+            for (fileInfo in items) {
+                if (results.size >= maxFiles) return
+                if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
+                
+                val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
+                if (isDirectory) continue // Skip subdirectories
+                
+                val fullPath = if (dirPath.isEmpty()) {
+                    fileInfo.fileName
+                } else {
+                    "$dirPath/${fileInfo.fileName}"
+                }
+                
+                val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
+                if (extension in extensions) {
+                    results.add(
+                        SmbFileInfo(
+                            name = fileInfo.fileName,
+                            path = fullPath,
+                            isDirectory = false,
+                            size = fileInfo.allocationSize,
+                            lastModified = fileInfo.lastWriteTime.toEpochMillis()
+                        )
+                    )
+                    // Report progress every 100 files or on last file
+                    if (results.size % 100 == 0) {
+                        progressCallback?.onProgress(results.size, fileInfo.fileName)
+                    }
+                }
+            }
+            
+            Timber.d("SmbClient.scanDirectoryNonRecursive: Found ${results.size} files in root folder")
+        } catch (e: Exception) {
+            Timber.w(e, "Error scanning directory non-recursively: $path")
+        }
+    }
+
+    /**
+     * Scan directory non-recursively with offset/limit support (for pagination)
+     */
+    private fun scanDirectoryNonRecursiveWithOffset(
+        share: DiskShare,
+        path: String,
+        extensions: Set<String>,
+        results: MutableList<SmbFileInfo>,
+        offset: Int,
+        limit: Int
+    ) {
+        try {
+            val dirPath = path.trim('/', '\\')
+            Timber.d("SmbClient.scanDirectoryNonRecursiveWithOffset: dirPath='$dirPath', offset=$offset, limit=$limit")
+            
+            val items = share.list(dirPath)
+            var skipped = 0
+            
+            for (fileInfo in items) {
+                if (results.size >= limit) break
+                if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
+                
+                val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
+                if (isDirectory) continue
+                
+                val fullPath = if (dirPath.isEmpty()) fileInfo.fileName else "$dirPath/${fileInfo.fileName}"
+                val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
+                
+                if (extension in extensions) {
+                    if (skipped < offset) {
+                        skipped++
+                        continue
+                    }
+                    
+                    results.add(
+                        SmbFileInfo(
+                            name = fileInfo.fileName,
+                            path = fullPath,
+                            isDirectory = false,
+                            size = fileInfo.allocationSize,
+                            lastModified = fileInfo.lastWriteTime.toEpochMillis()
+                        )
+                    )
+                }
+            }
+            
+            Timber.d("SmbClient.scanDirectoryNonRecursiveWithOffset: Returned ${results.size} files")
+        } catch (e: Exception) {
+            Timber.w(e, "Error scanning directory non-recursively with offset: $path")
+        }
+    }
+
+    /**
+     * Count media files non-recursively (root folder only)
+     */
+    private fun countDirectoryNonRecursive(
+        share: DiskShare,
+        path: String,
+        extensions: Set<String>,
+        maxCount: Int
+    ): Int {
+        try {
+            val dirPath = path.trim('/', '\\')
+            val items = share.list(dirPath)
+            var count = 0
+            
+            for (fileInfo in items) {
+                if (count >= maxCount) break
+                if (fileInfo.fileName == "." || fileInfo.fileName == "..") continue
+                
+                val isDirectory = fileInfo.fileAttributes and 0x10 != 0L
+                if (isDirectory) continue
+                
+                val extension = fileInfo.fileName.substringAfterLast('.', "").lowercase()
+                if (extension in extensions) {
+                    count++
+                }
+            }
+            
+            return count
+        } catch (e: Exception) {
+            Timber.w(e, "Error counting directory non-recursively: $path")
+            return 0
+        }
     }
 
     /**
@@ -1288,6 +1472,21 @@ class SmbClient @Inject constructor() {
         // Note: cleanupIdleConnections() removed from here to avoid blocking
         // Idle cleanup now happens lazily when connection pool is full or on explicit call
         
+        // Reset timeout counter if enough time passed since last failure (1 minute idle = recovery)
+        val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation
+        if (consecutiveTimeouts > 0 && timeSinceLastSuccess > 60000) {
+            Timber.d("Resetting timeout counter after 60s idle period (was: $consecutiveTimeouts)")
+            consecutiveTimeouts = 0
+        }
+        
+        // CRITICAL: If too many consecutive timeouts, force close all connections and RECREATE clients
+        if (consecutiveTimeouts >= TIMEOUT_CRITICAL_THRESHOLD) {
+            Timber.e("CRITICAL: $consecutiveTimeouts consecutive timeouts - forcing full SMB client reset")
+            closeAllConnections()
+            resetClients() // Full reset: recreate SMBClient objects
+            consecutiveTimeouts = 0
+        }
+        
         try {
             // Try to reuse existing connection
             val pooled = connectionPool[key]
@@ -1296,16 +1495,44 @@ class SmbClient @Inject constructor() {
                 pooled.lastUsed = System.currentTimeMillis()
                 try {
                     val result = block(pooled.share)
-                    // Success - reset timeout counter
+                    // Success - reset timeout counter and update last success time
                     consecutiveTimeouts = 0
+                    lastSuccessfulOperation = System.currentTimeMillis()
                     return@withPermit result
-                } catch (e: Exception) {
-                    // Connection might be stale - kill it asynchronously to avoid blocking
-                    Timber.w(e, "Pooled connection failed, creating new")
+                } catch (e: CancellationException) {
+                    // Operation cancelled (RecyclerView scroll) - keep connection alive
+                    Timber.d("Pooled connection operation cancelled: ${e::class.simpleName}")
+                    throw e
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    // Timeout doesn't mean connection is dead - just operation took too long
+                    // BUT: after multiple timeouts, remove connection to force fresh reconnect
+                    consecutiveTimeouts++
+                    Timber.d("Pooled connection timeout (#$consecutiveTimeouts), ${if (consecutiveTimeouts >= 3) "removing" else "keeping"}: ${e.message}")
                     
-                    // Track consecutive timeouts
-                    if (e is kotlinx.coroutines.TimeoutCancellationException || 
-                        e is com.hierynomus.smbj.common.SMBRuntimeException) {
+                    if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                        Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+                    }
+                    
+                    // After 3 timeouts on same pooled connection, remove it to force fresh connection
+                    if (consecutiveTimeouts >= 3) {
+                        connectionPool.remove(key)
+                        CoroutineScope(Dispatchers.IO).launch {
+                            try {
+                                pooled.share.close()
+                                pooled.session.close()
+                                pooled.connection.close()
+                            } catch (closeError: Exception) {
+                                Timber.w("Error closing timed-out connection: ${closeError.message}")
+                            }
+                        }
+                    }
+                    throw e
+                } catch (e: Exception) {
+                    // Real connection error - close and remove from pool
+                    Timber.w(e, "Pooled connection failed with error, removing from pool")
+                    
+                    // Track failures
+                    if (e is com.hierynomus.smbj.common.SMBRuntimeException) {
                         consecutiveTimeouts++
                         if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
                             Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
@@ -1323,6 +1550,7 @@ class SmbClient @Inject constructor() {
                             // Ignore errors during forced cleanup
                         }
                     }
+                    throw e
                 }
             }
             
@@ -1353,18 +1581,39 @@ class SmbClient @Inject constructor() {
             connectionPool[key] = newPooled
             
             val result = block(share)
-            // Reset timeout counter after successful new connection
+            // Reset timeout counter and update last success time after successful new connection
             consecutiveTimeouts = 0
+            lastSuccessfulOperation = System.currentTimeMillis()
             result
         } catch (e: Exception) {
             Timber.w(e, "SMB resource unavailable")
             
-            // Track consecutive timeouts
-            if (e is kotlinx.coroutines.TimeoutCancellationException || 
-                e is com.hierynomus.smbj.common.SMBRuntimeException) {
-                consecutiveTimeouts++
-                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                    Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+            // Check for critical socket-level errors that require full client reset
+            val isCriticalError = e.cause?.let { cause ->
+                cause is java.net.SocketException && 
+                (cause.message?.contains("Software caused connection abort") == true ||
+                 cause.message?.contains("Connection reset") == true ||
+                 cause.message?.contains("Broken pipe") == true)
+            } ?: false
+            
+            if (isCriticalError) {
+                Timber.e("CRITICAL socket error detected - forcing full SMB client reset")
+                closeAllConnections()
+                resetClients()
+                consecutiveTimeouts = 0 // Reset after forced recovery
+            } else {
+                // Track consecutive timeouts for non-critical errors
+                if (e is kotlinx.coroutines.TimeoutCancellationException || 
+                    e is com.hierynomus.smbj.common.SMBRuntimeException) {
+                    consecutiveTimeouts++
+                    if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                        Timber.e("SMB connection severely degraded: $consecutiveTimeouts consecutive failures - forcing full client reset")
+                        closeAllConnections()
+                        resetClients()
+                        consecutiveTimeouts = 0
+                    } else if (consecutiveTimeouts > TIMEOUT_WARNING_THRESHOLD / 2) {
+                        Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+                    }
                 }
             }
             
@@ -1399,6 +1648,57 @@ class SmbClient @Inject constructor() {
                 Timber.w(e, "Error closing pooled SMB connection")
             }
         }
+    }
+    
+    /**
+     * Force close all connections in pool (used during critical degradation)
+     */
+    private fun closeAllConnections() {
+        Timber.w("Closing all ${connectionPool.size} pooled SMB connections")
+        val keys = connectionPool.keys.toList()
+        keys.forEach { key ->
+            removeConnection(key)
+        }
+    }
+    
+    /**
+     * Full reset: close all connections and recreate SMBClient objects.
+     * Used after critical errors (e.g., SocketException: Software caused connection abort)
+     * to clear any corrupted internal state in SMBJ library.
+     * 
+     * PUBLIC METHOD for external forced recovery:
+     * - On MainActivity refresh button
+     * - Before opening SMB resource in BrowseActivity
+     * - Before editing SMB resource in EditResourceActivity
+     * - Before playing SMB media in PlayerActivity
+     */
+    fun resetClients() {
+        synchronized(this) {
+            try {
+                normalClient?.close()
+            } catch (e: Exception) {
+                Timber.w("Error closing normal client: ${e.message}")
+            }
+            try {
+                degradedClient?.close()
+            } catch (e: Exception) {
+                Timber.w("Error closing degraded client: ${e.message}")
+            }
+            normalClient = null
+            degradedClient = null
+            consecutiveTimeouts = 0 // Reset error counter
+            Timber.i("SMBClient instances reset - will recreate on next connection attempt")
+        }
+    }
+    
+    /**
+     * Full reset with connection pool cleanup.
+     * Use this for manual refresh actions (e.g., MainActivity refresh button).
+     */
+    fun forceFullReset() {
+        Timber.i("Force full SMB reset requested")
+        closeAllConnections()
+        resetClients()
     }
     
     /**
@@ -1504,6 +1804,29 @@ class SmbClient @Inject constructor() {
     /**
      * Build diagnostic message for connection errors
      */
+    /**
+     * Get user-friendly error message based on exception type
+     */
+    private fun getUserFriendlyMessage(exception: Exception): String {
+        val message = exception.message ?: ""
+        return when {
+            message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ->
+                "Resource unavailable. Share name not found on server."
+            message.contains("STATUS_LOGON_FAILURE", ignoreCase = true) ->
+                "Authentication failed. Check username and password."
+            message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ->
+                "Access denied. Check share permissions."
+            message.contains("ConnectException", ignoreCase = true) || 
+            message.contains("NoRouteToHostException", ignoreCase = true) ->
+                "Cannot reach server. Check network connection."
+            message.contains("SocketTimeoutException", ignoreCase = true) ->
+                "Connection timeout. Server not responding."
+            message.contains("UnknownHostException", ignoreCase = true) ->
+                "Server address not found. Check server name/IP."
+            else -> "Resource unavailable. Check connection settings."
+        }
+    }
+    
     private fun buildDiagnosticMessage(
         exception: Exception,
         connectionInfo: SmbConnectionInfo
@@ -1598,8 +1921,8 @@ class SmbClient @Inject constructor() {
      */
     fun close() {
         try {
-            normalClient.close()
-            degradedClient.close()
+            normalClient?.close()
+            degradedClient?.close()
         } catch (e: Exception) {
             Timber.w(e, "Error closing SMB client")
         }

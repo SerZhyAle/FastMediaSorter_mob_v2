@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ResourceEntity::class,
         NetworkCredentialsEntity::class
     ],
-    version = 13,
+    version = 15,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -101,6 +101,20 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Add scan subdirectories option for resources
                 db.execSQL("ALTER TABLE resources ADD COLUMN scanSubdirectories INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add disable thumbnails option for resources (auto-enabled for >10000 files)
+                db.execSQL("ALTER TABLE resources ADD COLUMN disableThumbnails INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Auto-enable disableThumbnails for existing resources with >10000 files
+                db.execSQL("UPDATE resources SET disableThumbnails = 1 WHERE fileCount > 10000")
             }
         }
     }

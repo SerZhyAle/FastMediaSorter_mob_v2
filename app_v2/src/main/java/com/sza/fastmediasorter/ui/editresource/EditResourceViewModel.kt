@@ -61,6 +61,7 @@ class EditResourceViewModel @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val mediaScannerFactory: com.sza.fastmediasorter.domain.usecase.MediaScannerFactory,
+    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
     savedStateHandle: SavedStateHandle,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<EditResourceState, EditResourceEvent>() {
@@ -84,6 +85,14 @@ class EditResourceViewModel @Inject constructor(
                 sendEvent(EditResourceEvent.ShowError("Resource not found"))
                 setLoading(false)
                 return@launch
+            }
+            
+            Timber.d("EditResourceViewModel.loadResource: id=${resource.id}, name=${resource.name}, lastBrowseDate=${resource.lastBrowseDate}")
+            
+            // Reset SMB client before loading SMB resource to ensure fresh connection
+            if (resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
+                Timber.d("Resetting SMB client before editing resource: ${resource.name}")
+                smbClient.resetClients()
             }
             
             updateState { 
@@ -269,6 +278,12 @@ class EditResourceViewModel @Inject constructor(
     fun updateScanSubdirectories(enabled: Boolean) {
         val current = state.value.currentResource ?: return
         val updated = current.copy(scanSubdirectories = enabled)
+        updateCurrentResource(updated)
+    }
+    
+    fun updateDisableThumbnails(enabled: Boolean) {
+        val current = state.value.currentResource ?: return
+        val updated = current.copy(disableThumbnails = enabled)
         updateCurrentResource(updated)
     }
     
