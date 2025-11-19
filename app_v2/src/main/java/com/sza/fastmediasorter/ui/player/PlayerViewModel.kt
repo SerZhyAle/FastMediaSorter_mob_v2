@@ -226,6 +226,20 @@ class PlayerViewModel @Inject constructor(
             currentState.currentIndex + 1
         }
         updateState { it.copy(currentIndex = nextIndex) }
+        
+        // Save last viewed file for scroll restoration in Browse
+        val resource = currentState.resource
+        if (resource != null && nextIndex < currentState.files.size) {
+            val nextFile = currentState.files[nextIndex]
+            viewModelScope.launch {
+                try {
+                    resourceRepository.updateResource(resource.copy(lastViewedFile = nextFile.path))
+                    Timber.d("Updated lastViewedFile to: ${nextFile.name}")
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to update lastViewedFile")
+                }
+            }
+        }
     }
 
     fun previousFile() {
@@ -238,6 +252,20 @@ class PlayerViewModel @Inject constructor(
             currentState.currentIndex - 1
         }
         updateState { it.copy(currentIndex = prevIndex) }
+        
+        // Save last viewed file for scroll restoration in Browse
+        val resource = currentState.resource
+        if (resource != null && prevIndex < currentState.files.size) {
+            val prevFile = currentState.files[prevIndex]
+            viewModelScope.launch {
+                try {
+                    resourceRepository.updateResource(resource.copy(lastViewedFile = prevFile.path))
+                    Timber.d("Updated lastViewedFile to: ${prevFile.name}")
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to update lastViewedFile")
+                }
+            }
+        }
     }
     
     fun cancelLoading() {

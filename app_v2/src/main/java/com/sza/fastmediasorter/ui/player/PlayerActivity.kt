@@ -149,6 +149,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
         }
     }
+    
+    override fun onGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        // Handle mouse wheel scroll for previous/next file navigation
+        if (event.action == android.view.MotionEvent.ACTION_SCROLL) {
+            val verticalScroll = event.getAxisValue(android.view.MotionEvent.AXIS_VSCROLL)
+            if (verticalScroll != 0f) {
+                if (verticalScroll > 0) {
+                    // Scroll up = previous file
+                    viewModel.previousFile()
+                } else {
+                    // Scroll down = next file
+                    viewModel.nextFile()
+                }
+                return true
+            }
+        }
+        return super.onGenericMotionEvent(event)
+    }
 
     /**
      * ExoPlayer listener for video/audio playback events
