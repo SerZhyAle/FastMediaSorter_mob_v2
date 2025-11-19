@@ -162,10 +162,6 @@ class PagingMediaFileAdapter(
                     onFileLongClick(file)
                     true
                 }
-
-                btnPlay.setOnClickListener {
-                    onPlayClick(file)
-                }
             }
         }
 

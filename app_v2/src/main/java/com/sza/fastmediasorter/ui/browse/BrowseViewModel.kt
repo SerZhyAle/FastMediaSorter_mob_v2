@@ -76,6 +76,7 @@ class BrowseViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
+    private val cleanupTrashFoldersUseCase: com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -132,6 +133,103 @@ class BrowseViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         stopFileObserver()
+        
+        // Cleanup trash folders when leaving resource (background, maxAge=0 = delete all)
+        val resource = state.value.resource
+        if (resource != null) {
+            viewModelScope.launch(ioDispatcher) {
+                cleanupTrashOnBackground(resource, maxAgeMs = 0L)
+            }
+        }
+    }
+
+    /**
+     * Remove specific files from the current list without full reload.
+     * Used after Move and Delete operations to avoid unnecessary scanning.
+     * 
+     * @param filePaths Paths of files to remove from the list
+     */
+    fun removeFiles(filePaths: List<String>) {
+        if (filePaths.isEmpty()) return
+        
+        updateState { state ->
+            val updatedFiles = state.mediaFiles.filterNot { it.path in filePaths }
+            Timber.d("removeFiles: Removed ${filePaths.size} files, ${updatedFiles.size} remaining")
+            
+            // Update cache with new list
+            MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
+            
+            state.copy(
+                mediaFiles = updatedFiles,
+                selectedFiles = state.selectedFiles - filePaths.toSet()
+            )
+        }
+    }
+    
+    /**
+     * Add files to the list (e.g., after undo move/delete).
+     * Files are added and list is re-sorted according to current sort mode.
+     * 
+     * @param newFiles List of MediaFile objects to add
+     */
+    fun addFiles(newFiles: List<MediaFile>) {
+        if (newFiles.isEmpty()) return
+        
+        updateState { state ->
+            val updatedFiles = (state.mediaFiles + newFiles).distinctBy { it.path }
+            
+            // Re-sort according to current sort mode
+            val sortedFiles = when (state.sortMode) {
+                SortMode.MANUAL -> updatedFiles // Keep insertion order
+                SortMode.NAME_ASC -> updatedFiles.sortedBy { it.name.lowercase() }
+                SortMode.NAME_DESC -> updatedFiles.sortedByDescending { it.name.lowercase() }
+                SortMode.DATE_ASC -> updatedFiles.sortedBy { it.createdDate }
+                SortMode.DATE_DESC -> updatedFiles.sortedByDescending { it.createdDate }
+                SortMode.SIZE_ASC -> updatedFiles.sortedBy { it.size }
+                SortMode.SIZE_DESC -> updatedFiles.sortedByDescending { it.size }
+                SortMode.TYPE_ASC -> updatedFiles.sortedBy { it.type.ordinal }
+                SortMode.TYPE_DESC -> updatedFiles.sortedByDescending { it.type.ordinal }
+                SortMode.RANDOM -> updatedFiles.shuffled()
+            }
+            
+            Timber.d("addFiles: Added ${newFiles.size} files, ${sortedFiles.size} total after dedup and sort")
+            
+            // Update cache with new list
+            MediaFilesCacheManager.setCachedList(resourceId, sortedFiles)
+            
+            state.copy(mediaFiles = sortedFiles)
+        }
+    }
+    
+    /**
+     * Update specific file in the list (e.g., after rename).
+     * 
+     * @param oldPath Original file path
+     * @param newFile Updated MediaFile object
+     */
+    fun updateFile(oldPath: String, newFile: MediaFile) {
+        updateState { state ->
+            val updatedFiles = state.mediaFiles.map { file ->
+                if (file.path == oldPath) newFile else file
+            }
+            
+            Timber.d("updateFile: Updated file $oldPath -> ${newFile.path}")
+            
+            // Update cache with new list
+            MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
+            
+            // Re-sort if needed
+            val sortedFiles = sortFiles(updatedFiles, state.sortMode, forceSort = true)
+            
+            state.copy(
+                mediaFiles = sortedFiles,
+                selectedFiles = if (oldPath in state.selectedFiles) {
+                    state.selectedFiles - oldPath + newFile.path
+                } else {
+                    state.selectedFiles
+                }
+            )
+        }
     }
 
     fun reloadFiles() {
@@ -204,8 +302,13 @@ class BrowseViewModel @Inject constructor(
             
             // Check if we have cached data
             val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
-            if (cachedFiles != null && cachedFiles.isNotEmpty()) {
-                Timber.d("loadResource: Using cached list (${cachedFiles.size} files)")
+            
+            // Strategy: Use cache ONLY for large resources (1000+ files) to avoid showing stale data
+            // For small resources, always rescan to detect external changes (copy from other resources, etc.)
+            val shouldUseCache = cachedFiles != null && cachedFiles.size >= PAGINATION_THRESHOLD
+            
+            if (shouldUseCache && cachedFiles!!.isNotEmpty()) {
+                Timber.d("loadResource: Using cached list (${cachedFiles.size} files) - large resource")
                 updateState { it.copy(mediaFiles = cachedFiles, totalFileCount = cachedFiles.size) }
                 setLoading(false)
                 return@launch
@@ -214,7 +317,14 @@ class BrowseViewModel @Inject constructor(
                 // Clear it and rescan
                 Timber.w("loadResource: Found empty cache for resource $resourceId, clearing and rescanning")
                 MediaFilesCacheManager.clearCache(resourceId)
+            } else if (cachedFiles != null && cachedFiles.size < PAGINATION_THRESHOLD) {
+                // Small resource - always rescan to show fresh data
+                Timber.d("loadResource: Ignoring cache (${cachedFiles.size} files) - small resource, rescanning")
+                MediaFilesCacheManager.clearCache(resourceId)
             }
+            
+            // Cleanup old trash folders when opening resource (maxAge=0 = delete all trash)
+            cleanupTrashOnBackground(resource, maxAgeMs = 0L)
             
             loadMediaFiles()
         }
@@ -742,108 +852,69 @@ class BrowseViewModel @Inject constructor(
             
             setLoading(true)
             
-            val deletedFiles = mutableListOf<String>()
-            val failedFiles = mutableListOf<String>()
-            
-            // Separate local and network files
-            val localFiles = mutableListOf<java.io.File>()
-            val networkFiles = mutableListOf<java.io.File>()
-            
-            selectedPaths.forEach { path ->
-                val file = java.io.File(path)
+            // Convert all paths to File objects (works for both local and network)
+            val filesToDelete = selectedPaths.map { path ->
                 if (path.startsWith("smb://") || path.startsWith("sftp://")) {
                     // Network file - wrap in File object with original path
-                    networkFiles.add(object : java.io.File(path) {
+                    object : java.io.File(path) {
                         override fun getAbsolutePath(): String = path
                         override fun getPath(): String = path
-                    })
+                    }
                 } else {
                     // Local file
-                    localFiles.add(file)
+                    java.io.File(path)
                 }
             }
             
-            // Delete local files using java.io.File
-            localFiles.forEach { file ->
-                if (file.exists()) {
-                    try {
-                        if (file.delete()) {
-                            deletedFiles.add(file.absolutePath)
-                            Timber.d("Deleted local file: ${file.absolutePath}")
-                        } else {
-                            failedFiles.add(file.name)
-                            Timber.w("Failed to delete local file: ${file.absolutePath}")
-                        }
-                    } catch (e: Exception) {
-                        failedFiles.add(file.name)
-                        Timber.e(e, "Error deleting local file: ${file.absolutePath}")
-                    }
-                } else {
-                    failedFiles.add(file.name)
-                    Timber.w("Local file not found: ${file.absolutePath}")
+            // Use FileOperationUseCase for soft-delete (all files, local and network)
+            Timber.d("Deleting ${filesToDelete.size} files via FileOperationUseCase (soft-delete)")
+            
+            val deleteOperation = FileOperation.Delete(
+                files = filesToDelete,
+                softDelete = true // Move to .trash folder instead of permanent delete
+            )
+            
+            when (val result = fileOperationUseCase.execute(deleteOperation)) {
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success -> {
+                    val deletedCount = result.processedCount
+                    Timber.i("Successfully deleted $deletedCount files")
+                    
+                    // Save undo operation with trash info
+                    // result.copiedFilePaths format: [trashDirPath, originalPath1, originalPath2, ...]
+                    val undoOp = UndoOperation(
+                        type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
+                        sourceFiles = selectedPaths,
+                        destinationFolder = null,
+                        copiedFiles = result.copiedFilePaths, // Contains trash dir + original paths
+                        oldNames = null
+                    )
+                    saveUndoOperation(undoOp)
+                    
+                    // Clear selection and remove deleted files from list
+                    clearSelection()
+                    removeFiles(selectedPaths)
+                    
+                    sendEvent(BrowseEvent.ShowMessage("Deleted $deletedCount file(s)"))
+                }
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PartialSuccess -> {
+                    val message = "Deleted ${result.processedCount} of ${filesToDelete.size} files. Errors: ${result.errors.take(3).joinToString(", ")}"
+                    Timber.w(message)
+                    
+                    // PartialSuccess doesn't provide copiedFilePaths, can't create undo
+                    // Remove successfully deleted files (first N from selected list)
+                    clearSelection()
+                    removeFiles(selectedPaths.take(result.processedCount))
+                    
+                    sendEvent(BrowseEvent.ShowMessage(message))
+                }
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Failure -> {
+                    Timber.e("Failed to delete files: ${result.error}")
+                    sendEvent(BrowseEvent.ShowError(
+                        message = "Failed to delete files",
+                        details = result.error
+                    ))
                 }
             }
-            
-            // Delete network files using FileOperationUseCase
-            if (networkFiles.isNotEmpty()) {
-                Timber.d("Deleting ${networkFiles.size} network files via FileOperationUseCase")
-                
-                val deleteOperation = FileOperation.Delete(
-                    files = networkFiles
-                )
-                
-                when (val result = fileOperationUseCase.execute(deleteOperation)) {
-                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success -> {
-                        deletedFiles.addAll(networkFiles.map { it.path })
-                        Timber.i("Successfully deleted ${networkFiles.size} network files")
-                    }
-                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PartialSuccess -> {
-                        // Some files deleted, some failed
-                        deletedFiles.addAll(networkFiles.take(result.processedCount).map { it.path })
-                        failedFiles.addAll(networkFiles.drop(result.processedCount).map { it.name })
-                        Timber.w("Partially deleted network files: ${result.processedCount}/${networkFiles.size}, errors: ${result.errors}")
-                    }
-                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Failure -> {
-                        failedFiles.addAll(networkFiles.map { it.name })
-                        Timber.e("Failed to delete network files: ${result.error}")
-                    }
-                }
-            }
-            
-            // Save undo operation for deleted files
-            if (deletedFiles.isNotEmpty()) {
-                val undoOp = UndoOperation(
-                    type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
-                    sourceFiles = deletedFiles,
-                    destinationFolder = null,
-                    copiedFiles = null,
-                    oldNames = null
-                )
-                saveUndoOperation(undoOp)
-                
-                // Update cache: remove deleted files without rescanning
-                deletedFiles.forEach { path ->
-                    MediaFilesCacheManager.removeFile(resourceId, path)
-                }
-            }
-            
-            // Clear selection and reload files (will use updated cache if available)
-            clearSelection()
-            
-            // Preserve current display mode before reloading
-            val currentDisplayMode = state.value.displayMode
-            loadResource()
-            
-            // Restore display mode after reload (loadResource overwrites it from DB)
-            updateState { it.copy(displayMode = currentDisplayMode) }
-            
-            // Show result message
-            val message = when {
-                deletedFiles.isEmpty() -> "No files were deleted"
-                failedFiles.isEmpty() -> "Deleted ${deletedFiles.size} file(s)"
-                else -> "Deleted ${deletedFiles.size} file(s), failed: ${failedFiles.joinToString(", ")}"
-            }
-            sendEvent(BrowseEvent.ShowMessage(message))
             
             setLoading(false)
         }
@@ -876,8 +947,6 @@ class BrowseViewModel @Inject constructor(
         }
         
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            setLoading(true)
-            
             try {
                 when (operation.type) {
                     com.sza.fastmediasorter.domain.model.FileOperationType.COPY -> {
@@ -890,22 +959,31 @@ class BrowseViewModel @Inject constructor(
                             }
                         }
                         sendEvent(BrowseEvent.ShowMessage("Undo: copy operation cancelled"))
+                        // No need to reload - files were copied to destination, not this folder
                     }
                     
                     com.sza.fastmediasorter.domain.model.FileOperationType.MOVE -> {
                         // Move files back to original location
+                        val restoredFiles = mutableListOf<MediaFile>()
                         operation.copiedFiles?.forEachIndexed { index, destPath ->
                             val sourcePath = operation.sourceFiles.getOrNull(index)
                             if (sourcePath != null) {
                                 val destFile = java.io.File(destPath)
                                 val sourceFile = java.io.File(sourcePath)
-                                if (destFile.exists()) {
-                                    destFile.renameTo(sourceFile)
+                                if (destFile.exists() && destFile.renameTo(sourceFile)) {
                                     Timber.d("Undo move: $destPath -> $sourcePath")
+                                    // Create MediaFile object for restored file
+                                    restoredFiles.add(createMediaFileFromFile(sourceFile))
                                 }
                             }
                         }
-                        sendEvent(BrowseEvent.ShowMessage("Undo: move operation cancelled"))
+                        
+                        sendEvent(BrowseEvent.ShowMessage("Undo: restored ${restoredFiles.size} file(s)"))
+                        
+                        // Add restored files back to list without full reload
+                        if (restoredFiles.isNotEmpty()) {
+                            addFiles(restoredFiles)
+                        }
                     }
                     
                     com.sza.fastmediasorter.domain.model.FileOperationType.RENAME -> {
@@ -919,6 +997,9 @@ class BrowseViewModel @Inject constructor(
                             }
                         }
                         sendEvent(BrowseEvent.ShowMessage("Undo: rename operation cancelled"))
+                        
+                        // Reload needed for rename - file objects must be recreated with old names
+                        loadResource()
                     }
                     
                     com.sza.fastmediasorter.domain.model.FileOperationType.DELETE -> {
@@ -929,7 +1010,7 @@ class BrowseViewModel @Inject constructor(
                                 val trashDir = java.io.File(trashDirPath)
                                 
                                 if (trashDir.exists() && trashDir.isDirectory) {
-                                    var restoredCount = 0
+                                    val restoredFiles = mutableListOf<MediaFile>()
                                     val originalPaths = paths.drop(1) // Rest are original file paths
                                     
                                     trashDir.listFiles()?.forEach { trashedFile ->
@@ -938,8 +1019,8 @@ class BrowseViewModel @Inject constructor(
                                         if (originalPath != null) {
                                             val originalFile = java.io.File(originalPath)
                                             if (trashedFile.renameTo(originalFile)) {
-                                                restoredCount++
                                                 Timber.d("Undo delete: restored ${trashedFile.name}")
+                                                restoredFiles.add(createMediaFileFromFile(originalFile))
                                             }
                                         }
                                     }
@@ -949,7 +1030,12 @@ class BrowseViewModel @Inject constructor(
                                         trashDir.delete()
                                     }
                                     
-                                    sendEvent(BrowseEvent.ShowMessage("Undo: restored $restoredCount file(s)"))
+                                    sendEvent(BrowseEvent.ShowMessage("Undo: restored ${restoredFiles.size} file(s)"))
+                                    
+                                    // Add restored files back to list without full reload
+                                    if (restoredFiles.isNotEmpty()) {
+                                        addFiles(restoredFiles)
+                                    }
                                 } else {
                                     sendEvent(BrowseEvent.ShowMessage("Undo: trash folder not found"))
                                 }
@@ -962,9 +1048,6 @@ class BrowseViewModel @Inject constructor(
                 
                 // Clear undo operation after execution
                 updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
-                
-                // Reload files to reflect changes
-                loadResource()
                 
             } catch (e: Exception) {
                 Timber.e(e, "Undo operation failed")
@@ -1087,8 +1170,10 @@ class BrowseViewModel @Inject constructor(
                 listener = object : MediaFileObserver.FileChangeListener {
                     override fun onFileDeleted(fileName: String) {
                         Timber.i("External file deleted: $fileName")
-                        // Reload files to reflect deletion
-                        reloadFiles()
+                        // Use targeted removal instead of full reload
+                        val resource = state.value.resource ?: return
+                        val fullPath = java.io.File(resource.path, fileName).absolutePath
+                        removeFiles(listOf(fullPath))
                     }
 
                     override fun onFileCreated(fileName: String) {
@@ -1160,6 +1245,76 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             updateResourceUseCase(resource.copy(lastViewedFile = filePath))
             Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
+        }
+    }
+    
+    /**
+     * Create MediaFile object from java.io.File for undo operations
+     */
+    /**
+     * Create MediaFile from java.io.File for instant list updates (e.g., after rename).
+     * Used to avoid full resource reload when only single file metadata changes.
+     */
+    fun createMediaFileFromFile(file: java.io.File): MediaFile {
+        val extension = file.extension.lowercase()
+        val mediaType = when {
+            extension in listOf("jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "heif") -> 
+                com.sza.fastmediasorter.domain.model.MediaType.IMAGE
+            extension in listOf("mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "m4v", "3gp") -> 
+                com.sza.fastmediasorter.domain.model.MediaType.VIDEO
+            extension in listOf("mp3", "wav", "flac", "aac", "ogg", "m4a", "wma") -> 
+                com.sza.fastmediasorter.domain.model.MediaType.AUDIO
+            else -> com.sza.fastmediasorter.domain.model.MediaType.IMAGE // Default
+        }
+        
+        return MediaFile(
+            name = file.name,
+            path = file.absolutePath,
+            size = file.length(),
+            createdDate = file.lastModified(),
+            type = mediaType,
+            duration = null,
+            width = null,
+            height = null,
+            exifOrientation = null,
+            exifDateTime = null,
+            exifLatitude = null,
+            exifLongitude = null,
+            videoCodec = null,
+            videoBitrate = null,
+            videoFrameRate = null,
+            videoRotation = null
+        )
+    }
+    
+    /**
+     * Cleanup trash folders in resource directory on background.
+     * For LOCAL resources, cleans up .trash_* folders in resource path.
+     * For network resources (SMB/FTP/SFTP), skips cleanup (not supported yet).
+     * 
+     * @param resource Resource to cleanup
+     * @param maxAgeMs Maximum age of trash folders to keep (0 = delete all)
+     */
+    private fun cleanupTrashOnBackground(resource: MediaResource, maxAgeMs: Long) {
+        // Only for local resources - network cleanup requires different approach
+        if (resource.type != com.sza.fastmediasorter.domain.model.ResourceType.LOCAL) {
+            return
+        }
+        
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val rootDir = java.io.File(resource.path)
+                if (!rootDir.exists() || !rootDir.isDirectory) {
+                    return@launch
+                }
+                
+                val deletedCount = cleanupTrashFoldersUseCase.cleanup(rootDir, maxAgeMs)
+                if (deletedCount > 0) {
+                    Timber.i("Cleaned up $deletedCount trash folders in ${resource.name}")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to cleanup trash folders in ${resource.name}")
+            }
         }
     }
 }

@@ -574,7 +574,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             files = listOf(file),
             sourceFolderName = resource?.name ?: "Current folder",
             fileOperationUseCase = viewModel.fileOperationUseCase,
-            onComplete = {
+            onComplete = { oldPath, newFile ->
                 // Reload file in player after rename
                 viewModel.reloadAfterRename()
             }
@@ -1078,6 +1078,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             canRead = file.canRead()
         }
         
+        // Per V2 spec: Command panel displays Back, Previous, Next | Rename, Delete, Undo | Slideshow
+        // Additional buttons (Share, Info, Edit, Fullscreen) are available but hidden by default
+        
+        // Back, Previous, Next: always visible in command panel mode
+        binding.btnBack.isVisible = state.showCommandPanel
+        binding.btnPreviousCmd.isVisible = state.showCommandPanel
+        binding.btnNextCmd.isVisible = state.showCommandPanel
+        
         // Rename: requires write permission and allowRename setting
         binding.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
         binding.btnRenameCmd.isVisible = state.showCommandPanel
@@ -1086,18 +1094,32 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
         binding.btnDeleteCmd.isVisible = state.showCommandPanel
         
-        // Edit: visible only for images with write permission
-        binding.btnEditCmd.isVisible = state.showCommandPanel && 
-                                        currentFile.type == MediaType.IMAGE && 
-                                        canWrite && 
-                                        canRead
-        
         // Undo: visible only when there is a pending undo operation
         binding.btnUndoCmd.isVisible = state.showCommandPanel && state.lastOperation != null
         
-        // Back, Fullscreen, Slideshow: always enabled
+        // Slideshow: always visible in command panel mode
+        binding.btnSlideshowCmd.isVisible = state.showCommandPanel
+        
+        // Additional buttons - visible in command panel mode with appropriate conditions
+        val isImage = currentFile.type == MediaType.IMAGE
+        
+        // Share: visible for all file types in command panel
+        binding.btnShareCmd.isVisible = state.showCommandPanel
+        
+        // Info: visible for all file types in command panel
+        binding.btnInfoCmd.isVisible = state.showCommandPanel
+        
+        // Edit: visible only for images on writable resources
+        binding.btnEditCmd.isVisible = state.showCommandPanel && isImage && canWrite
+        
+        // Fullscreen: visible for images/videos in command panel
+        binding.btnFullscreenCmd.isVisible = state.showCommandPanel && 
+            (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.VIDEO)
+        
+        // Enable state for always-enabled buttons
         binding.btnBack.isEnabled = true
-        binding.btnFullscreenCmd.isEnabled = true
+        binding.btnPreviousCmd.isEnabled = true
+        binding.btnNextCmd.isEnabled = true
         binding.btnSlideshowCmd.isEnabled = true
         
         // Copy/Move panels visibility based on settings AND whether there are destination buttons

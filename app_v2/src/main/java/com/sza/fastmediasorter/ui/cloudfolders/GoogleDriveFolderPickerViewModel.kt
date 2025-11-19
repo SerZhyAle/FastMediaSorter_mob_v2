@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
-import com.sza.fastmediasorter.data.cloud.GoogleDriveClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.model.ResourceType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,7 +39,7 @@ sealed class GoogleDriveFolderPickerEvent {
 
 @HiltViewModel
 class GoogleDriveFolderPickerViewModel @Inject constructor(
-    private val googleDriveClient: GoogleDriveClient,
+    private val googleDriveClient: GoogleDriveRestClient,
     private val resourceRepository: ResourceRepository
 ) : ViewModel() {
 

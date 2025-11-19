@@ -21,7 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class CloudMediaScanner @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val googleDriveClient: GoogleDriveClient,
+    private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
     private val oneDriveRestClient: OneDriveRestClient,
     private val resourceRepository: ResourceRepository

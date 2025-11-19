@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.os.Bundle
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -15,6 +16,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityEditResourceBinding
+import com.sza.fastmediasorter.ui.common.IpAddressInputFilter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import dagger.hilt.android.AndroidEntryPoint
@@ -152,6 +154,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             }
         }
         binding.etSmbServerEdit.addTextChangedListener(smbServerWatcher)
+        binding.etSmbServerEdit.filters = arrayOf(IpAddressInputFilter())
         
         smbShareNameWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -218,6 +221,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             }
         }
         binding.etSftpHostEdit.addTextChangedListener(sftpHostWatcher)
+        binding.etSftpHostEdit.filters = arrayOf(IpAddressInputFilter())
         
         sftpPortWatcher = object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}

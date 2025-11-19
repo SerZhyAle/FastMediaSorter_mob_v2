@@ -59,9 +59,9 @@ data class TransferProgress(
 }
 
 /**
- * Unified interface for cloud storage providers
+ * Base interface for cloud storage providers
  * 
- * Implementations: GoogleDriveClient, OneDriveClient, DropboxClient
+ * Implementations: GoogleDriveRestClient, OneDriveRestClient, DropboxClient
  * 
  * Design principles:
  * - All methods are suspend functions for coroutine support

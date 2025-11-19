@@ -23,8 +23,11 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.common.api.ApiException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.data.cloud.GoogleDriveClient
+import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
+import com.sza.fastmediasorter.ui.common.IpAddressInputFilter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -39,7 +42,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private var copyResourceId: Long? = null
     
     @Inject
-    lateinit var googleDriveClient: GoogleDriveClient
+    lateinit var googleDriveClient: GoogleDriveRestClient
     
     private lateinit var resourceToAddAdapter: ResourceToAddAdapter
     private lateinit var smbResourceToAddAdapter: ResourceToAddAdapter
@@ -530,93 +533,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.etSmbServer.setSelection(subnet.length)
         }
 
-        // Relaxed input filter: allow digits, dots, comma→dot, letters, dash, underscore
-        // This allows IP addresses and hostnames
-        val serverFilter = InputFilter { source, start, end, _, _, _ ->
-            val filtered = StringBuilder()
-            
-            for (i in start until end) {
-                val c = source[i]
-                when {
-                    c.isDigit() || c.isLetter() || c == '.' || c == '-' || c == '_' -> {
-                        filtered.append(c)
-                    }
-                    c == ',' -> {
-                        // Replace comma with dot
-                        filtered.append('.')
-                    }
-                    // Skip all other characters
-                }
-            }
-            
-            if (filtered.toString() == source.subSequence(start, end).toString()) {
-                null // no changes needed
-            } else {
-                filtered.toString()
-            }
-        }
-        
-        binding.etSmbServer.filters = arrayOf(serverFilter)
-        
-        // Auto-replace comma, hyphen, space with dot for IP addresses
-        binding.etSmbServer.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                s?.let { text ->
-                    var cursorPosition = binding.etSmbServer.selectionStart
-                    val originalLength = text.length
-                    
-                    // Replace comma, hyphen, space with dot
-                    val modified = text.toString()
-                        .replace(',', '.')
-                        .replace('-', '.')
-                        .replace(' ', '.')
-                    
-                    if (modified != text.toString()) {
-                        binding.etSmbServer.removeTextChangedListener(this)
-                        text.replace(0, text.length, modified)
-                        binding.etSmbServer.addTextChangedListener(this)
-                        
-                        // Adjust cursor if text length changed
-                        if (cursorPosition > modified.length) {
-                            cursorPosition = modified.length
-                        }
-                        binding.etSmbServer.setSelection(cursorPosition)
-                    }
-                }
-            }
-        })
-        
-        // Same for SFTP host field
-        binding.etSftpHost.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                s?.let { text ->
-                    var cursorPosition = binding.etSftpHost.selectionStart
-                    val originalLength = text.length
-                    
-                    // Replace comma, hyphen, space with dot
-                    val modified = text.toString()
-                        .replace(',', '.')
-                        .replace('-', '.')
-                        .replace(' ', '.')
-                    
-                    if (modified != text.toString()) {
-                        binding.etSftpHost.removeTextChangedListener(this)
-                        text.replace(0, text.length, modified)
-                        binding.etSftpHost.addTextChangedListener(this)
-                        
-                        // Adjust cursor if text length changed
-                        if (cursorPosition > modified.length) {
-                            cursorPosition = modified.length
-                        }
-                        binding.etSftpHost.setSelection(cursorPosition)
-                    }
-                }
-            }
-        })
+        // Apply IP address input filter (allows digits, dots, letters, dash, underscore; replaces comma/space with dot)
+        binding.etSmbServer.filters = arrayOf(IpAddressInputFilter())
+        binding.etSftpHost.filters = arrayOf(IpAddressInputFilter())
     }
 
     /**

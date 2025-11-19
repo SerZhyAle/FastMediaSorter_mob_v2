@@ -49,6 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.zhanghai.android.fastscroll.FastScrollerBuilder
 import timber.log.Timber
 import java.io.File
@@ -102,8 +103,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     @Inject
     lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-    
-    private var showVideoThumbnails = false // Cached setting value
+
+    private var showVideoThumbnails = true // Cached setting value
     private var shouldScrollToLastViewed = false // Flag for scroll restoration after PlayerActivity return
 
     override fun getViewBinding(): ActivityBrowseBinding {
@@ -111,6 +112,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun setupViews() {
+        Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")
+        
         binding.btnBack.setOnClickListener {
             finish()
             @Suppress("DEPRECATION")
@@ -135,6 +138,22 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             },
             onPlayClick = { file ->
                 viewModel.openFile(file)
+            },
+            onCopyClick = { file ->
+                viewModel.selectFile(file.path)
+                showCopyDialog()
+            },
+            onMoveClick = { file ->
+                viewModel.selectFile(file.path)
+                showMoveDialog()
+            },
+            onRenameClick = { file ->
+                viewModel.selectFile(file.path)
+                showRenameDialog()
+            },
+            onDeleteClick = { file ->
+                viewModel.selectFile(file.path)
+                showDeleteConfirmation()
             },
             getShowVideoThumbnails = { showVideoThumbnails }
         )
@@ -308,20 +327,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 }
                             }
                             Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}")
-                            
-                            // Scroll to last viewed file after returning from PlayerActivity
-                            if (shouldScrollToLastViewed && state.mediaFiles.isNotEmpty()) {
-                                state.resource?.lastViewedFile?.let { lastViewedPath ->
-                                    val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
-                                    if (position >= 0) {
-                                        binding.rvMediaFiles.post {
-                                            binding.rvMediaFiles.scrollToPosition(position)
-                                            Timber.d("Scrolled to last viewed file at position $position")
-                                        }
-                                        shouldScrollToLastViewed = false // Clear flag after scroll
-                                    }
-                                }
-                            }
                         }
                     }
                     // No log for skipped submitList - reduces log spam during large folder loading
@@ -330,6 +335,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     state.resource?.let { resource ->
                         mediaFileAdapter.setCredentialsId(resource.credentialsId)
                         mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
+                        
+                        // Update item operation buttons visibility based on resource permissions
+                        lifecycleScope.launch {
+                            val hasDestinations = getDestinationsUseCase.getDestinationsExcluding(resource.id).isNotEmpty()
+                            mediaFileAdapter.setResourcePermissions(
+                                hasDestinations = hasDestinations,
+                                isWritable = resource.isWritable
+                            )
+                        }
                     }
 
                     state.resource?.let { _ ->
@@ -648,12 +662,22 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 // Calculate span count dynamically based on screen width and icon size
                 val displayMetrics = resources.displayMetrics
                 val screenWidthDp = displayMetrics.widthPixels / displayMetrics.density
-                val iconSizeDp = iconSize.toFloat()
                 val cardPaddingDp = 8f // 4dp padding on each side (from card layout)
-                val itemWidthDp = iconSizeDp + cardPaddingDp
-                val spanCount = (screenWidthDp / itemWidthDp).toInt().coerceAtLeast(2)
                 
-                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, iconSize=${iconSizeDp}dp, spanCount=$spanCount")
+                // Fixed cell width for both modes
+                val itemWidthDp = if (showVideoThumbnails) {
+                    // With thumbnails: use icon size from settings
+                    val iconSizeDp = iconSize.toFloat()
+                    iconSizeDp + cardPaddingDp
+                } else {
+                    // Without thumbnails: use icon size from settings (user selected size)
+                    val iconSizeDp = iconSize.toFloat()
+                    iconSizeDp + cardPaddingDp
+                }
+                
+                val spanCount = (screenWidthDp / itemWidthDp).toInt().coerceAtLeast(1)
+                
+                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, showThumbnails=$showVideoThumbnails, itemWidth=${itemWidthDp}dp, spanCount=$spanCount")
                 GridLayoutManager(this@BrowseActivity, spanCount)
             }
         }
@@ -839,8 +863,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             files = listOf(file),
             sourceFolderName = resource?.name ?: "",
             fileOperationUseCase = viewModel.fileOperationUseCase,
-            onComplete = {
-                viewModel.reloadFiles()
+            onComplete = { oldPath, newFile ->
+                // Instant update without full reload
+                val mediaFile = viewModel.createMediaFileFromFile(newFile)
+                viewModel.updateFile(oldPath, mediaFile)
             }
         ).show()
     }
@@ -1015,7 +1041,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             overwriteFiles = false,
             onComplete = { undoOp ->
                 undoOp?.let { viewModel.saveUndoOperation(it) }
-                viewModel.reloadFiles()
+                // Copy: no need to reload source folder (files are copied, not removed)
+                // Only clear selection
                 viewModel.clearSelection()
             }
         )
@@ -1057,7 +1084,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             overwriteFiles = false,
             onComplete = { undoOp ->
                 undoOp?.let { viewModel.saveUndoOperation(it) }
-                viewModel.reloadFiles()
+                // Move: remove moved files from list without full reload
+                viewModel.removeFiles(selectedPaths)
                 viewModel.clearSelection()
             }
         )
@@ -1085,6 +1113,23 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         // Clear expired undo operations (older than 5 minutes)
         viewModel.clearExpiredUndoOperation()
+        
+        // Scroll to last viewed file after returning from PlayerActivity
+        if (shouldScrollToLastViewed) {
+            val state = viewModel.state.value
+            if (state.mediaFiles.isNotEmpty()) {
+                state.resource?.lastViewedFile?.let { lastViewedPath ->
+                    val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
+                    if (position >= 0) {
+                        binding.rvMediaFiles.post {
+                            binding.rvMediaFiles.scrollToPosition(position)
+                            Timber.d("BrowseActivity.onResume: Scrolled to last viewed file at position $position")
+                        }
+                    }
+                }
+            }
+            shouldScrollToLastViewed = false // Clear flag after processing
+        }
         
         // Start MediaStore observer for local resources
         startMediaStoreObserver()

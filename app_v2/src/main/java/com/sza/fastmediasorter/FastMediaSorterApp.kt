@@ -42,17 +42,21 @@ class FastMediaSorterApp : Application(), ImageLoaderFactory, Configuration.Prov
         
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
         
+        // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
+        // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
+        // Left for potential future background tasks (e.g., network resource sync)
+        
         // Defer WorkManager scheduling to background with delay to avoid blocking app startup
         // WorkManager initialization is expensive (~100-200ms), defer until after UI is rendered
-        applicationScope.launch(Dispatchers.IO) {
-            try {
-                kotlinx.coroutines.delay(500) // Wait for UI to render first
-                workManagerScheduler.scheduleTrashCleanup()
-                Timber.d("Background initialization: WorkManager scheduled")
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to schedule WorkManager in background")
-            }
-        }
+        // applicationScope.launch(Dispatchers.IO) {
+        //     try {
+        //         kotlinx.coroutines.delay(500) // Wait for UI to render first
+        //         workManagerScheduler.scheduleTrashCleanup()
+        //         Timber.d("Background initialization: WorkManager scheduled")
+        //     } catch (e: Exception) {
+        //         Timber.e(e, "Failed to schedule WorkManager in background")
+        //     }
+        // }
     }
     
     /**

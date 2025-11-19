@@ -11,6 +11,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -42,6 +43,10 @@ class MediaFileAdapter(
     private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
     private val onSelectionRangeRequested: (MediaFile) -> Unit = {}, // Long click on checkbox
     private val onPlayClick: (MediaFile) -> Unit,
+    private val onCopyClick: (MediaFile) -> Unit = {},
+    private val onMoveClick: (MediaFile) -> Unit = {},
+    private val onRenameClick: (MediaFile) -> Unit = {},
+    private val onDeleteClick: (MediaFile) -> Unit = {},
     private var isGridMode: Boolean = false,
     private var thumbnailSize: Int = 96, // Default size in dp
     private val getShowVideoThumbnails: () -> Boolean = { false }, // Callback to get current setting
@@ -50,9 +55,19 @@ class MediaFileAdapter(
 
     private var selectedPaths = setOf<String>()
     private var credentialsId: String? = null // Credentials ID for network files
+    private var hasDestinations: Boolean = false
+    private var isWritable: Boolean = false
     
     fun setCredentialsId(id: String?) {
         credentialsId = id
+    }
+    
+    fun setResourcePermissions(hasDestinations: Boolean, isWritable: Boolean) {
+        if (this.hasDestinations != hasDestinations || this.isWritable != isWritable) {
+            this.hasDestinations = hasDestinations
+            this.isWritable = isWritable
+            notifyDataSetChanged() // Update button visibility across all items
+        }
     }
     
     fun setDisableThumbnails(disabled: Boolean) {
@@ -203,8 +218,25 @@ class MediaFileAdapter(
                     true
                 }
                 
-                btnPlay.setOnClickListener {
-                    onPlayClick(file)
+                // Setup operation buttons with visibility
+                btnCopyItem.isVisible = hasDestinations
+                btnCopyItem.setOnClickListener {
+                    onCopyClick(file)
+                }
+                
+                btnMoveItem.isVisible = hasDestinations && isWritable
+                btnMoveItem.setOnClickListener {
+                    onMoveClick(file)
+                }
+                
+                btnRenameItem.isVisible = isWritable
+                btnRenameItem.setOnClickListener {
+                    onRenameClick(file)
+                }
+                
+                btnDeleteItem.isVisible = isWritable
+                btnDeleteItem.setOnClickListener {
+                    onDeleteClick(file)
                 }
             }
         }
@@ -527,6 +559,27 @@ class MediaFileAdapter(
                 root.setOnLongClickListener {
                     onFileLongClick(file)
                     true
+                }
+                
+                // Setup operation buttons with visibility
+                btnCopyItem.isVisible = hasDestinations
+                btnCopyItem.setOnClickListener {
+                    onCopyClick(file)
+                }
+                
+                btnMoveItem.isVisible = hasDestinations && isWritable
+                btnMoveItem.setOnClickListener {
+                    onMoveClick(file)
+                }
+                
+                btnRenameItem.isVisible = isWritable
+                btnRenameItem.setOnClickListener {
+                    onRenameClick(file)
+                }
+                
+                btnDeleteItem.isVisible = isWritable
+                btnDeleteItem.setOnClickListener {
+                    onDeleteClick(file)
                 }
             }
         }

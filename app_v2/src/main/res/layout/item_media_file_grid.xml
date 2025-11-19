@@ -30,13 +30,14 @@
 
             <TextView
                 android:id="@+id/tvFileName"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:textSize="12sp"
-                android:maxLines="2"
+                android:maxLines="3"
                 android:ellipsize="end"
                 android:gravity="center"
+                android:minWidth="80dp"
                 tools:text="IMG_20231106_123456.jpg" />
 
         </LinearLayout>
@@ -50,5 +51,66 @@
         android:layout_gravity="bottom|start"
         android:layout_margin="8dp"
         android:elevation="8dp" />
+
+    <!-- Operation buttons overlay (bottom-right) -->
+    <LinearLayout
+        android:id="@+id/llOperations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="4dp"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:background="@android:color/transparent">
+
+        <ImageButton
+            android:id="@+id/btnCopyItem"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Copy"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_save"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/btnMoveItem"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Move"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_revert"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/btnRenameItem"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Rename"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_edit"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/btnDeleteItem"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_margin="2dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Delete"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_delete"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </LinearLayout>
 
 </FrameLayout>

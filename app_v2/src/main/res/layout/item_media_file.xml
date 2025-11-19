@@ -43,7 +43,7 @@
             android:textStyle="bold"
             android:maxLines="2"
             android:ellipsize="end"
-            app:layout_constraintEnd_toStartOf="@+id/btnPlay"
+            app:layout_constraintEnd_toStartOf="@+id/btnCopyItem"
             app:layout_constraintStart_toEndOf="@+id/ivThumbnail"
             app:layout_constraintTop_toTopOf="@+id/ivThumbnail"
             tools:text="IMG_20231106_123456.jpg" />
@@ -55,21 +55,71 @@
             android:layout_marginTop="4dp"
             android:textSize="12sp"
             android:textColor="?android:textColorSecondary"
-            app:layout_constraintEnd_toEndOf="@+id/tvFileName"
+            app:layout_constraintEnd_toStartOf="@+id/btnCopyItem"
             app:layout_constraintStart_toStartOf="@+id/tvFileName"
             app:layout_constraintTop_toBottomOf="@+id/tvFileName"
             tools:text="2.5 MB • 2023-11-06" />
 
+        <!-- Operation buttons row -->
         <ImageButton
-            android:id="@+id/btnPlay"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:id="@+id/btnCopyItem"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Play"
-            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="Copy"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_save"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/btnMoveItem"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/btnMoveItem"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Move"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_revert"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/btnRenameItem"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/btnRenameItem"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Rename"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_edit"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/btnDeleteItem"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:visibility="visible" />
+
+        <ImageButton
+            android:id="@+id/btnDeleteItem"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginEnd="4dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Delete"
+            android:scaleType="fitCenter"
+            android:src="@android:drawable/ic_menu_delete"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

@@ -26,7 +26,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CloudFileOperationHandler @Inject constructor(
-    private val googleDriveClient: GoogleDriveClient,
+    private val googleDriveClient: GoogleDriveRestClient,
     private val resourceDao: ResourceDao
 ) {
 

@@ -7,6 +7,7 @@
     android:background="@android:color/black">
 
     <!-- Command Panel Top (visible only in command panel mode) -->
+    <!-- Per V2 spec: Back, Previous, Next | Rename, Delete, Undo | Slideshow -->
     <LinearLayout
         android:id="@+id/topCommandPanel"
         android:layout_width="match_parent"
@@ -16,6 +17,7 @@
         android:background="#CC000000"
         android:visibility="gone">
 
+        <!-- Navigation Group: Back, Previous, Next -->
         <ImageButton
             android:id="@+id/btnBack"
             android:layout_width="40dp"
@@ -40,6 +42,12 @@
             android:contentDescription="Next"
             android:src="@android:drawable/ic_media_next" />
 
+        <!-- Small indent separator -->
+        <Space
+            android:layout_width="12dp"
+            android:layout_height="match_parent" />
+
+        <!-- File Operations Group: Rename, Delete, Undo -->
         <ImageButton
             android:id="@+id/btnRenameCmd"
             android:layout_width="40dp"
@@ -57,12 +65,37 @@
             android:src="@android:drawable/ic_menu_delete" />
 
         <ImageButton
+            android:id="@+id/btnUndoCmd"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Undo"
+            android:src="@android:drawable/ic_menu_revert"
+            android:visibility="gone" />
+
+        <!-- Small indent separator -->
+        <Space
+            android:layout_width="12dp"
+            android:layout_height="match_parent" />
+
+        <!-- Playback Group: Slideshow -->
+        <ImageButton
+            android:id="@+id/btnSlideshowCmd"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Slideshow"
+            android:src="@android:drawable/ic_media_play" />
+
+        <!-- Additional buttons (not in V2 spec, but useful) - hidden by default in spec-compliant mode -->
+        <ImageButton
             android:id="@+id/btnShareCmd"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share"
-            android:src="@drawable/ic_share" />
+            android:src="@drawable/ic_share"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/btnInfoCmd"
@@ -70,7 +103,8 @@
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/file_information"
-            android:src="@android:drawable/ic_menu_info_details" />
+            android:src="@android:drawable/ic_menu_info_details"
+            android:visibility="gone" />
 
         <ImageButton
             android:id="@+id/btnEditCmd"
@@ -82,29 +116,13 @@
             android:visibility="gone" />
 
         <ImageButton
-            android:id="@+id/btnUndoCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Undo"
-            android:src="@android:drawable/ic_menu_revert"
-            android:visibility="gone" />
-
-        <ImageButton
             android:id="@+id/btnFullscreenCmd"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/fullscreen_mode"
-            android:src="@drawable/ic_fullscreen" />
-
-        <ImageButton
-            android:id="@+id/btnSlideshowCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Slideshow"
-            android:src="@android:drawable/ic_media_play" />
+            android:src="@drawable/ic_fullscreen"
+            android:visibility="gone" />
     </LinearLayout>
 
     <!-- Media Content Area -->

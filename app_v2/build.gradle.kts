@@ -19,7 +19,7 @@ android {
         applicationId = "com.sza.fastmediasorter"
         minSdk = 28
         targetSdk = 34
-        versionCode = 11191124
+        versionCode = 11192030
         versionName = "2.${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yy.MMdd.HHmm"))}"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -27,6 +27,11 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+        
+        // APK Size Optimization: Keep only necessary locales and densities
+        // Keeps English, Russian, Ukrainian + high-density screens
+        resourceConfigurations += listOf("en", "ru", "uk")
+        // Note: density filtering handled by Play Store with App Bundle
     }
     
     testOptions {
@@ -113,6 +118,10 @@ android {
             excludes += "/META-INF/versions/*/OSGI-INF/MANIFEST.MF" // BC & JSch conflict
             // Исключаем дубликаты нативных библиотек BouncyCastle
             pickFirsts += "**/*.so"
+            
+            // APK Size Optimization: Exclude unused BouncyCastle algorithms (~2-3 MB)
+            excludes += "org/bouncycastle/pqc/**"  // Post-quantum crypto (not needed for SMB/SFTP)
+            excludes += "**/lowmcL5.bin.properties"  // Large PQC lookup table (0.72 MB)
         }
     }
 
@@ -175,8 +184,13 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     
-    // ExoPlayer
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
+    // ExoPlayer (optimized - exclude streaming modules, save ~1-2 MB)
+    implementation("androidx.media3:media3-exoplayer:1.2.1") {
+        // Exclude DASH/HLS/SmoothStreaming - only need local/network file playback
+        exclude(group = "androidx.media3", module = "media3-exoplayer-dash")
+        exclude(group = "androidx.media3", module = "media3-exoplayer-hls")
+        exclude(group = "androidx.media3", module = "media3-exoplayer-smoothstreaming")
+    }
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     
@@ -204,12 +218,9 @@ dependencies {
     // Network - FTP
     implementation("commons-net:commons-net:3.10.0")
     
-    // Cloud Storage - Google Drive
+    // Cloud Storage - Google Drive (REST API + Google Sign-In)
+    // Migrated from heavy Drive SDK (~10-12 MB) to lightweight REST approach
     implementation("com.google.android.gms:play-services-auth:21.0.0")
-    implementation("com.google.api-client:google-api-client-android:2.2.0")
-    implementation("com.google.apis:google-api-services-drive:v3-rev20220815-2.0.0")
-    implementation("com.google.http-client:google-http-client-gson:1.43.3")
-    implementation("com.google.http-client:google-http-client-android:1.43.3")
     
     // Cloud Storage - Dropbox
     implementation("com.dropbox.core:dropbox-core-sdk:5.4.5")

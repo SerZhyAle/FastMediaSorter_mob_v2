@@ -4,7 +4,9 @@ import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.CloudStorageClient
-import com.sza.fastmediasorter.data.cloud.GoogleDriveClient
+import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import timber.log.Timber
@@ -19,7 +21,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class CloudMediaScanner @Inject constructor(
-    private val googleDriveClient: GoogleDriveClient
+    private val googleDriveClient: GoogleDriveRestClient
 ) {
     
     companion object {

@@ -21,7 +21,7 @@ class RenameDialog(
     private val files: List<File>,
     private val sourceFolderName: String,
     private val fileOperationUseCase: FileOperationUseCase,
-    private val onComplete: () -> Unit
+    private val onComplete: (oldPath: String, newFile: File) -> Unit
 ) : Dialog(context) {
 
     private lateinit var binding: DialogRenameBinding
@@ -102,7 +102,12 @@ class RenameDialog(
                             context.getString(R.string.renamed_n_files, 1),
                             Toast.LENGTH_SHORT
                         ).show()
-                        onComplete()
+                        
+                        // Pass old path and new file to callback for instant update
+                        val oldPath = file.absolutePath
+                        val newFile = File(file.parent, newName)
+                        onComplete(oldPath, newFile)
+                        
                         dismiss()
                     }
                     is FileOperationResult.Failure -> {

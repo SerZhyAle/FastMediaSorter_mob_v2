@@ -141,7 +141,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
-                    showVideoThumbnails = preferences[KEY_SHOW_VIDEO_THUMBNAILS] ?: false,
+                    showVideoThumbnails = preferences[KEY_SHOW_VIDEO_THUMBNAILS] ?: true,
                     
                     // Destinations
                     enableCopying = preferences[KEY_ENABLE_COPYING] ?: true,

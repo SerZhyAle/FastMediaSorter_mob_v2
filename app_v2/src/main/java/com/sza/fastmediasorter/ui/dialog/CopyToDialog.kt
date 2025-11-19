@@ -197,14 +197,19 @@ class CopyToDialog(
                 )
                 
                 // Use executeWithProgress to get progress updates
+                var completed = false
                 withContext(Dispatchers.IO) {
                     fileOperationUseCase.executeWithProgress(operation).collect { progress ->
+                        if (completed) return@collect
+                        
                         // Update progress dialog on main thread
                         withContext(Dispatchers.Main) {
                             progressDialog.updateProgress(progress)
                             
                             // Handle completion
                             if (progress is com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Completed) {
+                                completed = true
+                                progressDialog.dismiss()
                                 handleCopyResult(progress.result, destinationFolder)
                             }
                         }
