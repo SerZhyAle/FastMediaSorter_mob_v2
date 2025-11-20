@@ -122,49 +122,13 @@
 
 ### High Priority
 
-- [x] ~~**Small Controls Mode in BrowseActivity**~~ **✅ COMPLETED** - Already implemented
-  - Implementation: `applySmallControlsIfNeeded()` method in BrowseActivity
-  - When `settings.showSmallControls=true`, all toolbar and bottom panel buttons reduce to 50% height (24dp)
-  - Affects all 14 command buttons: Back, Sort, Filter, Refresh, Toggle View, Select All, Deselect All, Copy, Move, Rename, Delete, Undo, Share, Play
-  - Automatic restore to 48dp when setting disabled
-  - Code location: BrowseActivity.kt lines 1335-1396
-  - Verified: Build 2.25.1119.xxxx
 
-- [x] ~~**Browse Screen - Filter Dialog**~~ **✅ COMPLETED** - Already implemented
-  - Complete implementation: `showFilterDialog()` method in BrowseActivity
-  - Full UI: dialog_filter.xml with name, date range (DatePicker), size range (MB)
-  - Filter logic in BrowseViewModel: applyFilter() with all criteria (name substring ignoreCase, minDate/maxDate timestamp comparison, minSizeMb/maxSizeMb)
-  - Active filter indicator: tvFilterWarning at bottom displays "⚠ Filter active: ..." via buildFilterDescription()
-  - Properly cleared on exit: filter stored in BrowseState (runtime only, not in Room)
-  - Buttons: Apply, Clear (setFilter(null)), Cancel
-  - Code locations: BrowseActivity.kt lines 674-744 (dialog), 586-609 (description), 340-345 (UI); BrowseViewModel.kt lines 1001-1067 (logic)
-  - Verified: Build 2.25.1119.xxxx
 
-- [x] ~~**Browse Screen - List View Item Operations**~~ **✅ COMPLETED** (Build 2.25.1119.xxxx)
-  - Complete implementation: Per-item operation buttons in both list and grid views
-  - List view: 4 buttons (Copy/Move/Rename/Delete) + Play button, 32dp each, horizontal row
-  - Grid view: Same 5 buttons as overlay (24dp each, bottom-right corner)
-  - Smart visibility: Copy/Move buttons check destinations availability via GetDestinationsUseCase
-  - Permission-based: Move/Rename/Delete require resource.isWritable
-  - Icons: Android system drawables (ic_menu_save, ic_menu_revert, ic_menu_edit, ic_menu_delete, ic_media_play)
-  - Auto-selection: Single-click on operation button selects file and executes action immediately
-  - Code locations: item_media_file.xml (lines 58-131), item_media_file_grid.xml (lines 58-121), MediaFileAdapter.kt (callbacks + visibility), BrowseActivity.kt (wiring lines 141-153, 347-355)
-  - Verified: Build successful with all constraints met
-  - Spec Reference: V2_p1_2.md lines 244-248
 
-- [x] ~~**Player Screen - Command Panel Mode**~~ **✅ COMPLETED** (Build 2.25.1119.xxxx)
-  - Implementation: Command panel as alternative to fullscreen mode
-  - Top panel layout: Back, Previous, Next | Rename, Delete, Undo | Slideshow (with visual spacing)
-  - Bottom panels: "Copy to..." and "Move to..." with dynamic destination buttons (1-10)
-  - Mode toggle: `showCommandPanel` setting (default: false = fullscreen)
-  - Touch zones in command panel mode:
-    - Image: Previous (left 50%), Next (right 50%)
-    - Video: Previous/Next only in top 50% (bottom 50% for video controls)
-  - Button visibility per spec: Core buttons always visible, additional buttons (Share, Info, Edit, Fullscreen) hidden by default
-  - Panel collapse/expand: Headers clickable, state persisted in settings
-  - Small controls mode: All command buttons half height (24dp) when setting enabled
-  - Code locations: activity_player_unified.xml (layout with Space separators), PlayerActivity.kt (updateCommandAvailability method)
-  - Spec Reference: V2_p1_2.md sections 1.2 and 3.2
+
+
+
+
 
 - [ ] **SMB Connection Blocking After Errors**
   - Issue: After certain SMB errors, connection becomes blocked until app restart
@@ -239,14 +203,7 @@
   - Show "Operation undone" toast on success
   - Spec Reference: V2_p1_2.md - rename/delete/copy/move sections mention undo
 
-- [x] ~~**Copy/Move Dialogs - Dynamic Destination Buttons**~~ **✅ COMPLETED** (Build 2.25.1120.xxxx)
-  - Display 1-10 destination buttons based on available destinations
-  - Show destination color (from destinationColor field)
-  - Buttons sized dynamically to fill available space (Grid layout with 2 columns)
-  - Fixed layout issue where buttons were too narrow (Dialog width set to 90% screen)
-  - Background: green for copy, blue for move
-  - Header: "copying/moving N files from [source]"
-  - Spec Reference: V2_p1_2.md - "copy to..." and "move to..." dialog screens
+
 
 - [ ] **Filter and Sort Resource List Dialog**
   - Implement main screen filter dialog with:
@@ -448,11 +405,11 @@
 
 ## 📋 Next Immediate Priorities
 
-1. ✅ ~~**Implement Small Controls Mode**~~ - Already implemented and verified
-2. ✅ ~~**Implement Browse Screen Filter Dialog**~~ - Already implemented and verified
-3. **Test Cloud Storage** - Google Drive/OneDrive/Dropbox OAuth setup and testing
-2. **Implement Browse Screen - Filter Dialog** (next active task)
-3. **Test Google Drive integration** (OAuth, file operations) - needs OAuth setup
-4. **Test pagination** (1000+ files on all resource types)
-5. **Test network undo/editing** (SMB/SFTP/FTP)
-6. **Monitor SMB connection recovery** (verify no blocking issues remain)
+1. **Test Cloud Storage** - Google Drive/OneDrive/Dropbox OAuth setup and testing
+2. **Test Google Drive integration** (OAuth, file operations) - needs OAuth setup
+3. **Test pagination** (1000+ files on all resource types)
+4. **Test network undo/editing** (SMB/SFTP/FTP)
+5. **Monitor SMB connection recovery** (verify no blocking issues remain)
+6. **Browse Screen - Multi-Select via Long Press** (High Priority UX)
+7. **Browse Screen - Selected Files Counter** (High Priority UX)
+8. **File Operations - Undo System Enhancement** (High Priority)
