@@ -1,10 +1,229 @@
 # TODO V2 - FastMediaSorter
 
-**Latest Build**: 2.25.1119.2013  
+**Latest Build**: 2.25.1119.2013
 **Version**: 2.25.1119.2013
 **Package**: com.sza.fastmediasorter
 
 ---
+
+## 🚨 Critical Architecture Errors (Must Fix Before Release)
+
+В коде обнаружены критические архитектурные ошибки, которые приведут к сбоям приложения (OOM, зависания, гонки потоков) при работе с реальными медиафайлами.
+
+### 1. Критическая ошибка: OutOfMemoryError (OOM) при операциях с файлами
+**Где**: FtpFileOperationHandler.kt, SftpFileOperationHandler.kt
+**Суть**: При скачивании (FTP/SFTP → Local) и копировании (FTP↔FTP, SFTP↔SFTP, SMB→SFTP) файлы целиком загружаются в оперативную память через ByteArrayOutputStream.
+**Последствия**: При попытке скопировать или открыть видеофайл размером >500MB, приложение гарантированно упадет с OutOfMemoryError.
+
+### 2. Потенциальная ошибка: Блокировка UI и операций (FTP)
+**Где**: FtpClient.kt
+**Суть**: Класс является @Singleton и использует mutex для синхронизации всех операций на одном экземпляре FTPClient.
+**Последствия**: Если пользователь запустит скачивание большого файла, любые другие операции будут заблокированы до завершения скачивания.
+
+### 3. Ошибка конкурентного доступа (Race Condition) в SFTP
+**Где**: SftpClient.kt
+**Суть**: Класс является @Singleton и хранит состояние сессии (session, channel) в полях класса без синхронизации.
+**Последствия**: Параллельные операции могут разорвать соединение друг друга, приводя к ошибкам.
+
+### 4. Проблема исчерпания пула потоков (SMB)
+**Где**: SmbClient.kt
+**Суть**: Фиксированный пул потоков (20) для блокирующих операций. При отмене корутины потоки не прерываются мгновенно.
+**Последствия**: При активной навигации все потоки могут зависнуть, новые операции перестанут выполняться.
+
+**Рекомендации по исправлению**:
+- OOM: Переписать хендлеры на потоковую передачу или временные файлы
+- FTP Blocking: Использовать пул соединений или новые экземпляры для длительных операций
+- SFTP Concurrency: Убрать состояние из синглтона или реализовать пул соединений
+- SMB Threads: Добавить таймауты и обработку InterruptedException
+
+---
+
+## 🎯 Current Development - Active Tasks
+
+### High Priority - Core Features
+
+- [ ] **Welcome Screen Implementation**
+  - Launch on first start and via settings button
+  - Multiple changing pages with instructions
+  - "Skip" button closes without completing all pages
+  - Spec: V2_p1_2.md - Welcome Screen
+
+- [ ] **Add and Scan Resources Screen - Full Implementation**
+  - Local folder: Auto-scan predefined folders + manual selection
+  - Network folder: IP input with auto-fill, scan open shares, manual subfolder entry
+  - Cloud folder: Google Drive/OneDrive/Dropbox authorization dialogs
+  - SFTP: Host/port/credentials input with test connection
+  - Dynamic "resources to add" list with checkboxes and short name editing
+  - "Add to resources" button with destination assignment
+  - Spec: V2_p1_2.md - Add and Scan Resources Screen
+
+- [ ] **Resource Profile Screen**
+  - Edit all resource fields (name, path, credentials, media types, slideshow interval)
+  - Test connection functionality
+  - Reset/Save/Cancel buttons
+  - Spec: V2_p1_2.md - Resource Profile Screen
+
+- [ ] **Browse Screen - Multi-Select via Long Press**
+  - First long press: Select single file (don't launch player)
+  - Second long press: Select all files between first and second
+  - Allow scrolling while selecting
+  - Show selection count in header
+  - Spec: V2_p1_2.md - Browse Screen
+
+- [ ] **Browse Screen - Selected Files Counter**
+  - Display "N files selected" in text header below toolbar
+  - Update dynamically as selection changes
+  - Spec: V2_p1_2.md - Browse Screen
+
+- [ ] **File Operations - Undo System Enhancement**
+  - Implement undo for all operations: Copy, Move, Rename, Delete
+  - Store operation details until next operation
+  - Undo button enabled only when operation exists
+  - Spec: V2_p1_2.md - all operation dialogs mention undo
+
+- [ ] **Filter and Sort Resource List Dialog**
+  - Sorting dropdown (by name)
+  - Resource type checkboxes filter
+  - Media type checkboxes filter
+  - "By part of name" text field (substring, case-insensitive)
+  - Show filter description at bottom when active
+  - Spec: V2_p1_2.md - "Filter and Sort Resource List Screen"
+
+### High Priority - UI/UX Polish
+
+- [ ] **Player Screen - Full Implementation**
+  - Fullscreen mode with 9 touch zones
+  - Command panel mode with top/bottom panels
+  - Dynamic destination buttons (1-10)
+  - Slideshow with countdown display
+  - Video/audio specific behavior
+  - Spec: V2_p1_2.md - Player Screen
+
+- [ ] **Settings Screen - Full Implementation**
+  - General tab: Language, keep-awake, small controls, default credentials, logs
+  - Media Files tab: Enable/disable types, size limits with sliders
+  - Playback and Sorting: Default sort, slideshow interval, file operations toggles
+  - Destinations tab: Manage recipient list, order, colors, copy/move behavior
+  - Spec: V2_p1_2.md - Settings Screen
+
+- [ ] **Copy/Move/Rename/Delete Dialogs - Full Implementation**
+  - Proper headers and button layouts
+  - Progress bars for long operations
+  - Error handling with detailed messages
+  - Spec: V2_p1_2.md - operation dialogs
+
+### Medium Priority - Testing & Validation
+
+- [ ] **Pagination Testing (1000+ files)**
+  - LOCAL: 1000+, 5000+ files (images/videos mix)
+  - SMB: Large network shares over slow connection
+  - SFTP/FTP: 1000+ files with thumbnails
+  - Verify no lag, smooth scrolling, memory efficient
+
+- [ ] **Network Undo Operations - Testing**
+  - SMB/SFTP/FTP: Delete → Undo → Verify restoration
+  - Check trash folder permissions
+  - Network timeout handling
+  - Trash cleanup after undo window
+
+- [ ] **Network Image Editing - Performance Testing**
+  - Large images (10MB+) over slow network
+  - Multiple edits in sequence
+  - Connection interruption handling
+  - Progress reporting, cancellation
+
+### Medium Priority - Cloud Integration
+
+- [ ] **Google Drive Testing**
+  - OAuth2 client configuration in Google Cloud Console
+  - Add folder → Browse → File operations
+  - Requires package name + SHA-1 fingerprint
+
+- [ ] **OneDrive Integration - Phase 4 (UI Integration)**
+  - OAuth configuration in Azure AD
+  - FolderPickerActivity, AddResourceActivity UI
+  - Requires Azure AD application registration
+
+- [ ] **Dropbox Integration - Phase 4 (UI Integration)**
+  - APP_KEY configuration
+  - FolderPickerActivity, AddResourceActivity UI
+  - AndroidManifest auth_callback
+  - Requires Dropbox App Console registration
+
+### Low Priority - Performance & Polish
+
+- [ ] **SMB Connection Blocking After Errors**
+  - Monitor for remaining edge cases after partial fix
+
+- [ ] **Edge Cases Handling**
+  - Empty folders: Empty state indicators
+  - Long filenames: Ellipsize and text overflow
+  - Special characters: Verify display in all UI
+  - Large file counts: Test >10000 files
+
+- [ ] **Animations and Transitions**
+  - Screen transitions (slide, fade, shared element)
+  - RecyclerView item animations
+  - Ripple effects for missing buttons
+  - Smooth progress indicators
+
+---
+
+## 📋 Known Issues (Non-Critical)
+
+- [ ] копирование ресурса это операция при которой нужно открыть диалог создания нового ресурса такого же типа как исходный ресурс, заполнить её всеми значениями и исходного ресурса, чтобы пользователь мог изменить одно или несколько значений и сохранить как новый ресурс
+
+- [ ] при редактировании ресурса в поле Share символы вводятся задом наперед. Там какой то обработчик текста?
+
+- [ ] мне нужно вводить в поле нового сетевого ресурса или ресурса sftp/ftp не только имя открытой сетевой папки, но и необходимой подпапки. Например "photos/2025/11", где "photos" - это открытая папка на данном сервере, а "2025/11" - интересующие меня подпапки внутри неё. Сейчас если я ввожу такой текст, при соединении используется только имя основной подпапки, подпапки куда то отрезаются и отредактировать не удаётся.
+
+- [ ] я выставляю в настройках GRID и "полный экран", но по-умолчанию для новых ресурсов открывается режим "список" и режим "с командной панелью"
+
+- [ ] Строки таблицы ресурсов в основном окне, когда экран устройства очень большой, очень малоинформативны. Только текст скраю слева и где то очень далеко справа - кнопки. Нужно расцветить каждую строку списка ресурсов немного разным цветом фона, чтобы пользователь не следил взглядом слева напрааво к кнопкам. Можно ли демонстрировать список ресурсов "как GRID из двух колонок", если размер экрана в ширину больше 600 пикселей?
+
+---
+
+## 📦 Release Preparation
+
+### Build & Quality
+- [ ] **Static Analysis Integration** (detekt to build.gradle.kts, baseline rules, CI/CD)
+- [ ] **ProGuard/R8 Rules** (test obfuscated APK)
+- [ ] **APK Signing** (keystore setup, test signed APK)
+- [ ] **Size Optimization** (resource/code shrinking, AAB < 50MB target)
+- [ ] **Dependencies Update** (latest stable versions)
+- [ ] **Versioning** (versionCode/Name, Git tag v2.0.0)
+
+### Testing
+- [ ] **Unit Tests** (domain layer, >80% coverage)
+- [ ] **Instrumented Tests** (Room, Espresso UI flows)
+- [ ] **Manual Testing** (Android 8-14, tablets, all file types, edge cases)
+- [ ] **Security Audit** (credentials, input validation, permissions)
+
+### Documentation
+- [ ] **README Update** (v2 features, screenshots, en/ru/uk)
+- [ ] **CHANGELOG Creation** (Added/Changed/Fixed/Removed format)
+- [ ] **User Guide** (features, FAQ, troubleshooting, localized)
+
+### Store Materials
+- [ ] **Google Play Listing** (title, descriptions en/ru/uk)
+- [ ] **Screenshots** (4-8 per device type, localized)
+- [ ] **Feature Graphic** (1024x500px)
+- [ ] **App Icon** (adaptive, test on launchers)
+- [ ] **Privacy Policy** (v2 data usage, host online)
+- [ ] **Content Rating** (IARC questionnaire)
+
+### Release Process
+- [ ] **Internal Testing** (APK/AAB upload, ProGuard mapping)
+- [ ] **Closed Beta** (5-20 testers, crash monitoring)
+- [ ] **Production Release** (staged rollout 10→100%)
+- [ ] **Post-Release Monitoring** (metrics, reviews, analytics)
+
+Рекомендации по исправлению:
+OOM: Переписать хендлеры на использование потоковой передачи (Streams/Pipes) или временных файлов. Никогда не буферизовать файлы целиком в памяти.
+FTP Blocking: Использовать пул соединений или создавать новый экземпляр FTPClient для каждой длительной операции (как это сделано в downloadFileWithNewConnection, но не используется в хендлерах).
+SFTP Concurrency: Убрать состояние из синглтона SftpClient (передавать сессию в методы) или реализовать пул соединений, аналогичный SmbClient.
+SMB Threads: Рассмотреть использование таймаутов на уровне сокетов или механизма прерывания потоков, а также корректную
+обработку InterruptedException при закрытии.
 
 ## 📌 Recent Fixes
 

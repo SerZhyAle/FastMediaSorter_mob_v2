@@ -105,46 +105,42 @@ class CopyToDialog(
     }
 
     /**
-     * Create colored destination buttons dynamically in a grid-like layout
-     * Buttons are arranged in rows of 2 columns to fill available space efficiently
+     * Create colored destination buttons in a single horizontal row
+     * Each button takes equal width (1/N of container width)
      */
     private fun createDestinationButtons(destinations: List<MediaResource>) {
         Log.d(TAG, "createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
         
-        // Create rows with 2 buttons each (or 1 if only 1 or last odd button)
-        val columnCount = 2
-        var currentRow: LinearLayout? = null
+        // Create single horizontal row for all buttons
+        val buttonRow = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        }
+        container.addView(buttonRow)
+        
+        // Small margins for spacing (4dp on each side = 8dp total between buttons)
+        val marginSize = (4 * context.resources.displayMetrics.density).toInt()
         
         destinations.forEachIndexed { index, destination ->
-            // Create new row for every 2 buttons
-            if (index % columnCount == 0) {
-                currentRow = LinearLayout(context).apply {
-                    orientation = LinearLayout.HORIZONTAL
-                    layoutParams = LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.WRAP_CONTENT
-                    )
-                }
-                container.addView(currentRow)
-            }
-            
             val button = androidx.appcompat.widget.AppCompatButton(context).apply {
                 text = destination.name
                 setTextColor(Color.WHITE)
-                textSize = 18f
+                textSize = 16f
                 isAllCaps = false
-                setPadding(24, 40, 24, 40)
+                setPadding(8, 32, 8, 32)
                 
-                // Calculate weight: 1.0 for each button to share space equally
-                val weight = 1f
+                // Equal weight for all buttons to distribute width evenly
                 layoutParams = LinearLayout.LayoutParams(
-                    0, // width 0 with weight
+                    0, // width 0 with weight for equal distribution
                     ViewGroup.LayoutParams.WRAP_CONTENT,
-                    weight
+                    1f // each button gets equal weight
                 ).apply {
-                    setMargins(8, 8, 8, 8)
+                    setMargins(marginSize, 8, marginSize, 8)
                 }
                 
                 minimumWidth = 0
@@ -162,11 +158,11 @@ class CopyToDialog(
                 }
             }
             
-            currentRow?.addView(button)
+            buttonRow.addView(button)
             Log.d(TAG, "Added button for ${destination.name} at position $index with color ${destination.destinationColor}")
         }
         
-        Log.d(TAG, "Finished creating ${destinations.size} destination buttons in grid layout")
+        Log.d(TAG, "Finished creating ${destinations.size} destination buttons in single row")
     }
 
     private fun copyToDestination(destination: MediaResource) {
