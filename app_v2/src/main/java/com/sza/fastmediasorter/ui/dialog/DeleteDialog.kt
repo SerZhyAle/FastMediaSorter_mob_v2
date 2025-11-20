@@ -60,7 +60,21 @@ class DeleteDialog(
         // Create cancellable job for delete operation
         (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch {
             try {
-                val operation = FileOperation.Delete(files)
+                // Convert all paths to File objects with network path preservation
+                val filesWithPreservedPaths = files.map { file ->
+                    val path = file.absolutePath
+                    if (path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")) {
+                        // Network file - wrap in File object with original path
+                        object : java.io.File(path) {
+                            override fun getAbsolutePath(): String = path
+                            override fun getPath(): String = path
+                        }
+                    } else {
+                        file
+                    }
+                }
+                
+                val operation = FileOperation.Delete(filesWithPreservedPaths)
                 
                 // Show FileOperationProgressDialog with cancel support
                 val progressDialog = FileOperationProgressDialog.show(

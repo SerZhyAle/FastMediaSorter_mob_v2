@@ -38,7 +38,16 @@ class ImportSettingsUseCase @Inject constructor(
             // Parse XML
             val factory = XmlPullParserFactory.newInstance()
             val parser = factory.newPullParser()
-            parser.setInput(FileInputStream(importFile), "UTF-8")
+            
+            // Use try-catch to handle potential close errors on deleted files
+            try {
+                FileInputStream(importFile).use { inputStream ->
+                    parser.setInput(inputStream, "UTF-8")
+                }
+            } catch (e: java.io.IOException) {
+                Timber.w(e, "IOException while reading import file (file may have been deleted)")
+                return Result.failure(e)
+            }
             
             var settings: AppSettings? = null
             val resources = mutableListOf<MediaResource>()
@@ -149,7 +158,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         displayMode = DisplayMode.valueOf(data["displayMode"] ?: "LIST"),
                                         credentialsId = data["credentialsId"], // Already String?
                                         cloudProvider = data["cloudProvider"]?.let { CloudProvider.valueOf(it) },
-                                        cloudFolderId = data["cloudFolderId"] // Already String?
+                                        cloudFolderId = data["cloudFolderId"], // Already String?
+                                        comment = data["comment"]
                                     )
                                     resources.add(resource)
                                 }

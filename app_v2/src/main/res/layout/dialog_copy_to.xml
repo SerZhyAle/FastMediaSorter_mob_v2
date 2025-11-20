@@ -33,7 +33,7 @@
         android:visibility="gone"
         app:indicatorColor="?attr/colorPrimary" />
 
-    <!-- Container for destination buttons (dynamically populated) -->
+    <!-- Container for destination buttons (dynamically populated as grid) -->
     <LinearLayout
         android:id="@+id/layoutDestinations"
         android:layout_width="match_parent"

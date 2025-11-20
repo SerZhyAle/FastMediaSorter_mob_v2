@@ -95,10 +95,15 @@ class SettingsViewModel @Inject constructor(
                 val currentOrder = resource.destinationOrder ?: return@launch
                 val targetOrder = targetResource.destinationOrder ?: return@launch
                 
-                updateResourceUseCase(resource.copy(destinationOrder = targetOrder))
-                updateResourceUseCase(targetResource.copy(destinationOrder = currentOrder))
+                // Wait for both updates to complete before continuing
+                val result1 = updateResourceUseCase(resource.copy(destinationOrder = targetOrder))
+                val result2 = updateResourceUseCase(targetResource.copy(destinationOrder = currentOrder))
                 
-                Timber.d("Destination moved successfully")
+                if (result1.isSuccess && result2.isSuccess) {
+                    Timber.d("Destination moved successfully: ${resource.name} order $currentOrder→$targetOrder, ${targetResource.name} order $targetOrder→$currentOrder")
+                } else {
+                    Timber.e("Error moving destination: result1=${result1.exceptionOrNull()}, result2=${result2.exceptionOrNull()}")
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Error moving destination")
             }

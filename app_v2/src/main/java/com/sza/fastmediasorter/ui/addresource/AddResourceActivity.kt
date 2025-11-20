@@ -503,6 +503,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val domain = binding.etSmbDomain.text.toString().trim()
         val portStr = binding.etSmbPort.text.toString().trim()
         val port = portStr.toIntOrNull() ?: 445
+        val comment = binding.etSmbComment.text.toString().trim()
         val addToDestinations = binding.cbSmbAddToDestinations.isChecked
 
         if (server.isEmpty()) {
@@ -515,7 +516,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             return
         }
 
-        viewModel.addSmbResourceManually(server, shareName, username, password, domain, port, addToDestinations)
+        viewModel.addSmbResourceManually(server, shareName, username, password, domain, port, comment, addToDestinations)
     }
 
     /**
@@ -637,6 +638,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val port = portStr.toIntOrNull() ?: defaultPort
         val username = binding.etSftpUsername.text.toString().trim()
         val remotePath = binding.etSftpPath.text.toString().trim().ifEmpty { "/" }
+        val comment = binding.etSftpComment.text.toString().trim()
         
         if (host.isEmpty()) {
             Toast.makeText(this, "Host is required", Toast.LENGTH_SHORT).show()
@@ -656,16 +658,16 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 }
                 
                 // Add with SSH key
-                viewModel.addSftpResourceWithKey(host, port, username, privateKey, keyPassphrase, remotePath)
+                viewModel.addSftpResourceWithKey(host, port, username, privateKey, keyPassphrase, remotePath, comment)
             } else {
                 // Add with password
                 val password = binding.etSftpPassword.text.toString().trim()
-                viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath)
+                viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath, comment)
             }
         } else {
             // FTP always uses password
             val password = binding.etSftpPassword.text.toString().trim()
-            viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath)
+            viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath, comment)
         }
     }
     
@@ -719,6 +721,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 // Note: credentials loaded separately via viewModel
                 binding.etSmbPort.setText("445")
                 
+                // Pre-fill comment
+                binding.etSmbComment.setText(resource.comment ?: "")
+                
                 Toast.makeText(
                     this,
                     "Review and modify SMB connection details",
@@ -750,6 +755,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 
                 binding.rbSftp.isChecked = true
                 
+                // Pre-fill comment
+                binding.etSftpComment.setText(resource.comment ?: "")
+                
                 Toast.makeText(
                     this,
                     "Review and modify SFTP connection details",
@@ -780,6 +788,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 }
                 
                 binding.rbFtp.isChecked = true
+                
+                // Pre-fill comment
+                binding.etSftpComment.setText(resource.comment ?: "")
                 
                 Toast.makeText(
                     this,

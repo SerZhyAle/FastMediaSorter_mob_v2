@@ -96,6 +96,21 @@
             android:src="@drawable/ic_deselect_all"
             android:tint="?attr/colorControlNormal" />
 
+        <!-- Small space -->
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="1dp" />
+
+        <!-- Play/Slideshow -->
+        <ImageButton
+            android:id="@+id/btnPlay"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/play"
+            android:src="@android:drawable/ic_media_play"
+            android:tint="?attr/colorControlNormal" />
+
     </LinearLayout>
 
     <TextView
@@ -202,22 +217,6 @@
             android:src="@drawable/ic_share"
             android:tint="?attr/colorControlNormal"
             android:visibility="gone" />
-
-        <!-- Small space -->
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <!-- Play -->
-        <ImageButton
-            android:id="@+id/btnPlay"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/play"
-            android:src="@android:drawable/ic_media_play"
-            android:tint="?attr/colorControlNormal" />
 
     </LinearLayout>
 

@@ -830,10 +830,15 @@ class SftpFileOperationHandler @Inject constructor(
                 
                 Timber.d("parseSftpPath: Extracted host=$host, port=$port, remotePath=$pathPart")
                 
-                // Get credentials from database - assume credentialsId is encoded in host or use default
-                // For now, we need to retrieve credentials by resource
-                // This is a simplified version - in production, credentials should be passed or retrieved properly
-                val credentials = credentialsDao.getCredentialsByHost(host)
+                // Get credentials from database
+                // Try to get specific SFTP credentials first
+                var credentials = credentialsDao.getByTypeServerAndPort("SFTP", host, port)
+                
+                // Fallback to host-based lookup if not found
+                if (credentials == null) {
+                    credentials = credentialsDao.getCredentialsByHost(host)
+                }
+
                 if (credentials == null) {
                     Timber.e("parseSftpPath: No credentials found for host: $host")
                     return null

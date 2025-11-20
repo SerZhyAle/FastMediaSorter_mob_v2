@@ -58,6 +58,14 @@ class ResourceAdapter(
             binding.apply {
                 tvResourceName.text = resource.name
                 tvResourcePath.text = resource.path
+                
+                if (!resource.comment.isNullOrBlank()) {
+                    tvResourceComment.text = resource.comment
+                    tvResourceComment.visibility = android.view.View.VISIBLE
+                } else {
+                    tvResourceComment.visibility = android.view.View.GONE
+                }
+
                 tvResourceType.text = resource.type.name
                 
                 // Format file count with ">1000" for resources with 1000+ files

@@ -56,5 +56,7 @@ data class ResourceEntity(
     
     val disableThumbnails: Boolean = false, // Disable thumbnail loading (use extension icons only). Auto-enabled for >10000 files.
     
-    val displayOrder: Int = 0 // Order for display in resource list
+    val displayOrder: Int = 0, // Order for display in resource list
+    
+    val comment: String? = null // User comment for the resource
 )

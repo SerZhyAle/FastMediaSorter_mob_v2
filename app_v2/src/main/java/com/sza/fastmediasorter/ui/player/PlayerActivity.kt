@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import coil.imageLoader
 import coil.load
+import coil.memory.MemoryCache
 import coil.request.ImageRequest
 import coil.size.Size
 import com.github.chrisbanes.photoview.PhotoView
@@ -254,6 +255,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             } else {
                 Timber.d("PlayerActivity.exoPlayerListener: Suppressing MediaCodec error toast (ExoPlayer will retry)")
             }
+
+            // If slideshow is active, auto-advance to next file after error
+            if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
+                Timber.w("PlayerActivity.exoPlayerListener: Error during slideshow - advancing to next file in 2s")
+                slideShowHandler.postDelayed({
+                    if (viewModel.state.value.isSlideShowActive && !isDestroyed && !isFinishing) {
+                        viewModel.nextFile()
+                        updateSlideShow()
+                    }
+                }, 2000)
+            }
         }
     }
 
@@ -482,8 +494,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resourceId = intent.getLongExtra("resourceId", -1)
         
-        // For network paths (SMB/SFTP), create File with URI-compatible scheme
-        val sourceFile = if (currentFile.path.startsWith("smb://") || currentFile.path.startsWith("sftp://")) {
+        // For network paths (SMB/SFTP/FTP), create File with URI-compatible scheme
+        val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                             currentFile.path.startsWith("sftp://") || 
+                             currentFile.path.startsWith("ftp://")) {
             // Use custom File with network path that preserves the scheme
             object : File(currentFile.path) {
                 override fun getAbsolutePath(): String = currentFile.path
@@ -527,8 +541,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resourceId = intent.getLongExtra("resourceId", -1)
         
-        // For network paths (SMB/SFTP), create File with URI-compatible scheme
-        val sourceFile = if (currentFile.path.startsWith("smb://") || currentFile.path.startsWith("sftp://")) {
+        // For network paths (SMB/SFTP/FTP), create File with URI-compatible scheme
+        val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                             currentFile.path.startsWith("sftp://") || 
+                             currentFile.path.startsWith("ftp://")) {
             object : File(currentFile.path) {
                 override fun getAbsolutePath(): String = currentFile.path
                 override fun getPath(): String = currentFile.path
@@ -565,8 +581,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val currentFile = viewModel.state.value.currentFile ?: return
         val resource = viewModel.state.value.resource
         
-        // Create File object - for network paths, this is just a path holder
-        val file = File(currentFile.path)
+        // Create File object - for network paths, preserve the scheme
+        val file = if (currentFile.path.startsWith("smb://") || 
+                       currentFile.path.startsWith("sftp://") || 
+                       currentFile.path.startsWith("ftp://")) {
+            object : File(currentFile.path) {
+                override fun getAbsolutePath(): String = currentFile.path
+                override fun getPath(): String = currentFile.path
+            }
+        } else {
+            File(currentFile.path)
+        }
         
         RenameDialog(
             context = this,
@@ -1698,11 +1723,31 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             flipImageUseCase = flipImageUseCase,
             networkImageEditUseCase = networkImageEditUseCase,
             onEditComplete = {
-                // TODO: Reload current file after edit is implemented
+                // Reload image after edit to show changes
+                reloadCurrentImage()
                 Toast.makeText(this, "Image edit completed", Toast.LENGTH_SHORT).show()
             }
         )
         dialog.show()
+    }
+    
+    /**
+     * Reload current image after edit operation (rotation/flip).
+     * Clears Coil cache and reloads the image from source.
+     */
+    private fun reloadCurrentImage() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        // Clear both memory and disk cache for this image to force reload from source
+        lifecycleScope.launch {
+            imageLoader.memoryCache?.remove(MemoryCache.Key(currentFile.path))
+            imageLoader.diskCache?.remove(currentFile.path)
+            
+            // Reload image
+            displayImage(currentFile.path)
+            
+            Timber.d("PlayerActivity: Reloaded image after edit: ${currentFile.name}")
+        }
     }
 
     private fun deleteCurrentFile() {
@@ -1754,7 +1799,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
-            if (settings.showDetailedErrors) {
+            // Don't show blocking dialogs if slideshow is active
+            val isSlideshowActive = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
+            
+            if (settings.showDetailedErrors && !isSlideshowActive) {
                 // Double-check before showing dialog
                 if (isFinishing || isDestroyed) {
                     Timber.w("showError: Activity finished during settings load, skipping dialog")
@@ -1899,9 +1947,32 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             val settings = settingsRepository.getSettings().first()
             
             try {
+                // Create File objects that preserve network paths
+                val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                                     currentFile.path.startsWith("sftp://") || 
+                                     currentFile.path.startsWith("ftp://")) {
+                    object : File(currentFile.path) {
+                        override fun getAbsolutePath(): String = currentFile.path
+                        override fun getPath(): String = currentFile.path
+                    }
+                } else {
+                    File(currentFile.path)
+                }
+                
+                val destFile = if (destination.path.startsWith("smb://") || 
+                                   destination.path.startsWith("sftp://") || 
+                                   destination.path.startsWith("ftp://")) {
+                    object : File(destination.path) {
+                        override fun getAbsolutePath(): String = destination.path
+                        override fun getPath(): String = destination.path
+                    }
+                } else {
+                    File(destination.path)
+                }
+                
                 val operation = com.sza.fastmediasorter.domain.usecase.FileOperation.Copy(
-                    sources = listOf(File(currentFile.path)),
-                    destination = File(destination.path),
+                    sources = listOf(sourceFile),
+                    destination = destFile,
                     overwrite = settings.overwriteOnCopy
                 )
                 val result = viewModel.fileOperationUseCase.execute(operation)
@@ -1941,9 +2012,32 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             val settings = settingsRepository.getSettings().first()
             
             try {
+                // Create File objects that preserve network paths
+                val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                                     currentFile.path.startsWith("sftp://") || 
+                                     currentFile.path.startsWith("ftp://")) {
+                    object : File(currentFile.path) {
+                        override fun getAbsolutePath(): String = currentFile.path
+                        override fun getPath(): String = currentFile.path
+                    }
+                } else {
+                    File(currentFile.path)
+                }
+                
+                val destFile = if (destination.path.startsWith("smb://") || 
+                                   destination.path.startsWith("sftp://") || 
+                                   destination.path.startsWith("ftp://")) {
+                    object : File(destination.path) {
+                        override fun getAbsolutePath(): String = destination.path
+                        override fun getPath(): String = destination.path
+                    }
+                } else {
+                    File(destination.path)
+                }
+                
                 val operation = com.sza.fastmediasorter.domain.usecase.FileOperation.Move(
-                    sources = listOf(File(currentFile.path)),
-                    destination = File(destination.path),
+                    sources = listOf(sourceFile),
+                    destination = destFile,
                     overwrite = settings.overwriteOnMove
                 )
                 val result = viewModel.fileOperationUseCase.execute(operation)

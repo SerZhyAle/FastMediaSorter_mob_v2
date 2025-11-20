@@ -5,10 +5,13 @@ import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
 import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -67,7 +70,7 @@ class FileOperationUseCase @Inject constructor(
      * Use this method when you need to show progress UI during long operations
      * Supports cancellation via coroutine job cancellation
      */
-    fun executeWithProgress(operation: FileOperation): Flow<FileOperationProgress> = flow {
+    fun executeWithProgress(operation: FileOperation): Flow<FileOperationProgress> = channelFlow {
         Timber.d("FileOperation.executeWithProgress: Starting ${operation.javaClass.simpleName}")
         
         val totalFiles = when (operation) {
@@ -77,17 +80,22 @@ class FileOperationUseCase @Inject constructor(
             is FileOperation.Rename -> 1
         }
         
-        emit(FileOperationProgress.Starting(operation, totalFiles))
+        send(FileOperationProgress.Starting(operation, totalFiles))
         
-        // Check for cancellation before executing
-        currentCoroutineContext().ensureActive()
+        // Update current file tracking based on operation type
+        var currentFileIndex = 1
+        var currentFileName = when (operation) {
+            is FileOperation.Copy -> operation.sources.firstOrNull()?.name ?: ""
+            is FileOperation.Move -> operation.sources.firstOrNull()?.name ?: ""
+            is FileOperation.Delete -> operation.files.firstOrNull()?.name ?: ""
+            is FileOperation.Rename -> operation.file.name
+        }
         
-        // Create progress callback for byte-level tracking
-        var currentFileIndex = 0
-        var currentFileName = ""
+        // Create progress callback that sends to channel (thread-safe)
         val progressCallback = object : ByteProgressCallback {
             override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
-                emit(FileOperationProgress.Processing(
+                // Use trySend to avoid blocking if channel is full
+                trySend(FileOperationProgress.Processing(
                     currentFile = currentFileName,
                     currentIndex = currentFileIndex,
                     totalFiles = totalFiles,
@@ -98,41 +106,23 @@ class FileOperationUseCase @Inject constructor(
             }
         }
         
-        // Update current file tracking based on operation type
-        // This will be used by progressCallback during execution
-        when (operation) {
-            is FileOperation.Copy -> {
-                // File tracking handled by progressCallback during actual copy
-                currentFileIndex = 1
-                currentFileName = operation.sources.firstOrNull()?.name ?: ""
-            }
-            is FileOperation.Move -> {
-                currentFileIndex = 1
-                currentFileName = operation.sources.firstOrNull()?.name ?: ""
-            }
-            is FileOperation.Delete -> {
-                currentFileIndex = 1
-                currentFileName = operation.files.firstOrNull()?.name ?: ""
-            }
-            is FileOperation.Rename -> {
-                currentFileIndex = 1
-                currentFileName = operation.file.name
-            }
+        // Execute operation in separate coroutine to allow progress updates
+        val resultDeferred = launch(Dispatchers.IO) {
+            val result = executeInternal(operation, progressCallback)
+            send(FileOperationProgress.Completed(result))
         }
         
-        // Execute operation with byte-level progress tracking
-        val result = execute(operation, progressCallback)
-        
-        // Check for cancellation before emitting result
-        currentCoroutineContext().ensureActive()
-        
-        emit(FileOperationProgress.Completed(result))
+        // Wait for completion
+        resultDeferred.join()
     }
     
-    suspend fun execute(
+    /**
+     * Internal execution without withContext (called from flow with flowOn)
+     */
+    private suspend fun executeInternal(
         operation: FileOperation,
         progressCallback: ByteProgressCallback? = null
-    ): FileOperationResult = withContext(Dispatchers.IO) {
+    ): FileOperationResult {
         Timber.d("FileOperation: Starting operation: ${operation.javaClass.simpleName}")
         
         try {
@@ -285,9 +275,29 @@ class FileOperationUseCase @Inject constructor(
                         }
                     }
                 }
+                hasSmbPath && hasFtpPath -> {
+                    // Mixed operation SMB↔FTP: FTP doesn't support cross-protocol, use SMB handler to download first
+                    Timber.d("FileOperation: Mixed SMB↔FTP - using SMB handler (FTP can't handle cross-protocol)")
+                    when (operation) {
+                        is FileOperation.Copy -> smbFileOperationHandler.executeCopy(operation, progressCallback)
+                        is FileOperation.Move -> smbFileOperationHandler.executeMove(operation, progressCallback)
+                        is FileOperation.Delete -> smbFileOperationHandler.executeDelete(operation)
+                        is FileOperation.Rename -> smbFileOperationHandler.executeRename(operation)
+                    }
+                }
+                hasSftpPath && hasFtpPath -> {
+                    // Mixed operation SFTP↔FTP: FTP doesn't support cross-protocol, use SFTP handler to download first
+                    Timber.d("FileOperation: Mixed SFTP↔FTP - using SFTP handler (FTP can't handle cross-protocol)")
+                    when (operation) {
+                        is FileOperation.Copy -> sftpFileOperationHandler.executeCopy(operation, progressCallback)
+                        is FileOperation.Move -> sftpFileOperationHandler.executeMove(operation, progressCallback)
+                        is FileOperation.Delete -> sftpFileOperationHandler.executeDelete(operation)
+                        is FileOperation.Rename -> sftpFileOperationHandler.executeRename(operation)
+                    }
+                }
                 hasFtpPath -> {
                     Timber.d("FileOperation: Using FTP handler")
-                    // Use FTP handler for operations involving FTP paths
+                    // Use FTP handler for operations involving FTP paths (local↔FTP or FTP↔FTP)
                     when (operation) {
                         is FileOperation.Copy -> ftpFileOperationHandler.executeCopy(operation, progressCallback)
                         is FileOperation.Move -> ftpFileOperationHandler.executeMove(operation, progressCallback)
@@ -334,12 +344,19 @@ class FileOperationUseCase @Inject constructor(
             }
             
             lastOperation = OperationHistory(operation, result)
-            result
+            return result
             
         } catch (e: Exception) {
-            Timber.e(e, "FileOperation: EXCEPTION in execute()")
-            FileOperationResult.Failure("${e.javaClass.simpleName}: ${e.message}")
+            Timber.e(e, "FileOperation: EXCEPTION in executeInternal()")
+            return FileOperationResult.Failure("${e.javaClass.simpleName}: ${e.message}")
         }
+    }
+    
+    suspend fun execute(
+        operation: FileOperation,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult = withContext(Dispatchers.IO) {
+        executeInternal(operation, progressCallback)
     }
     
     private fun executeCopy(operation: FileOperation.Copy): FileOperationResult {

@@ -22,6 +22,7 @@ import javax.inject.Singleton
 class SmbFileOperationHandler @Inject constructor(
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
+    private val ftpClient: com.sza.fastmediasorter.data.remote.ftp.FtpClient,
     private val credentialsDao: NetworkCredentialsDao
 ) {
 
@@ -46,19 +47,21 @@ class SmbFileOperationHandler @Inject constructor(
                 val sourcePath = normalizeSmbPath(source.path)
                 val destPath = "$destinationPath/${source.name}"
                 
-                // Determine if source or destination is SMB/SFTP
+                // Determine if source or destination is SMB/SFTP/FTP
                 val isSourceSmb = sourcePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
                 val isSourceSftp = sourcePath.startsWith("sftp://")
                 val isDestSftp = destPath.startsWith("sftp://")
+                val isDestFtp = destPath.startsWith("ftp://")
+                val isSourceFtp = sourcePath.startsWith("ftp://")
                 
-                Timber.d("SMB executeCopy: Source=${if (isSourceSmb) "SMB" else if (isSourceSftp) "SFTP" else "Local"}, Dest=${if (isDestSmb) "SMB" else if (isDestSftp) "SFTP" else "Local"}")
+                Timber.d("SMB executeCopy: Source=${if (isSourceSmb) "SMB" else if (isSourceSftp) "SFTP" else if (isSourceFtp) "FTP" else "Local"}, Dest=${if (isDestSmb) "SMB" else if (isDestSftp) "SFTP" else if (isDestFtp) "FTP" else "Local"}")
                 Timber.d("SMB executeCopy: sourcePath='$sourcePath', destPath='$destPath'")
 
                 val startTime = System.currentTimeMillis()
                 
                 when {
-                    isSourceSmb && !isDestSmb && !isDestSftp -> {
+                    isSourceSmb && !isDestSmb && !isDestSftp && !isDestFtp -> {
                         Timber.d("SMB executeCopy: SMB→Local - downloading ${source.name}")
                         // SMB to Local
                         downloadFromSmb(sourcePath, File(destPath), progressCallback)?.let {
@@ -77,7 +80,7 @@ class SmbFileOperationHandler @Inject constructor(
                             errors.add(error)
                         }
                     }
-                    !isSourceSmb && !isSourceSftp && isDestSmb -> {
+                    !isSourceSmb && !isSourceSftp && !isSourceFtp && isDestSmb -> {
                         Timber.d("SMB executeCopy: Local→SMB - uploading ${source.name}")
                         // Local to SMB
                         uploadToSmb(source, destPath, progressCallback)?.let {
@@ -110,6 +113,44 @@ class SmbFileOperationHandler @Inject constructor(
                                 append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to copy from SFTP to SMB")
+                            }
+                            Timber.e("SMB executeCopy: $error")
+                            errors.add(error)
+                        }
+                    }
+                    isSourceFtp && isDestSmb -> {
+                        Timber.d("SMB executeCopy: FTP→SMB - copying ${source.name} via buffer")
+                        // FTP to SMB: download to buffer → upload to SMB
+                        copyFtpToSmb(sourcePath, destPath, progressCallback)?.let {
+                            val duration = System.currentTimeMillis() - startTime
+                            copiedPaths.add(destPath)
+                            successCount++
+                            Timber.i("SMB executeCopy: SUCCESS - copied ${source.name} from FTP to SMB in ${duration}ms")
+                        } ?: run {
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: $sourcePath")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy from FTP to SMB")
+                            }
+                            Timber.e("SMB executeCopy: $error")
+                            errors.add(error)
+                        }
+                    }
+                    isSourceSmb && isDestFtp -> {
+                        Timber.d("SMB executeCopy: SMB→FTP - copying ${source.name} via buffer")
+                        // SMB to FTP: download to buffer → upload to FTP
+                        copySmbToFtp(sourcePath, destPath, progressCallback)?.let {
+                            val duration = System.currentTimeMillis() - startTime
+                            copiedPaths.add(destPath)
+                            successCount++
+                            Timber.i("SMB executeCopy: SUCCESS - copied ${source.name} from SMB to FTP in ${duration}ms")
+                        } ?: run {
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: $sourcePath")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy from SMB to FTP")
                             }
                             Timber.e("SMB executeCopy: $error")
                             errors.add(error)
@@ -193,14 +234,51 @@ class SmbFileOperationHandler @Inject constructor(
                 
                 val isSourceSmb = sourcePath.startsWith("smb://")
                 val isDestSmb = destPath.startsWith("smb://")
+                val isDestFtp = destPath.startsWith("ftp://")
+                val isSourceFtp = sourcePath.startsWith("ftp://")
+                val isSourceSftp = sourcePath.startsWith("sftp://")
                 
-                Timber.d("SMB executeMove: Source=${if (isSourceSmb) "SMB" else "Local"}, Dest=${if (isDestSmb) "SMB" else "Local"}")
+                Timber.d("SMB executeMove: Source=${if (isSourceSmb) "SMB" else if (isSourceFtp) "FTP" else if (isSourceSftp) "SFTP" else "Local"}, Dest=${if (isDestSmb) "SMB" else if (isDestFtp) "FTP" else "Local"}")
                 Timber.d("SMB executeMove: sourcePath='$sourcePath', destPath='$destPath'")
 
                 val startTime = System.currentTimeMillis()
 
                 when {
-                    isSourceSmb && !isDestSmb -> {
+                    isSourceSmb && isDestFtp -> {
+                        Timber.d("SMB executeMove: SMB→FTP - copy via buffer then delete ${source.name}")
+                        // SMB to FTP (buffer copy + delete)
+                        val ftpPath = copySmbToFtp(sourcePath, destPath, progressCallback)
+                        if (ftpPath != null) {
+                            val copyDuration = System.currentTimeMillis() - startTime
+                            Timber.d("SMB executeMove: Copied to FTP in ${copyDuration}ms, attempting delete from SMB")
+                            
+                            if (deleteFromSmb(sourcePath)) {
+                                val totalDuration = System.currentTimeMillis() - startTime
+                                movedPaths.add(ftpPath)
+                                successCount++
+                                Timber.i("SMB executeMove: SUCCESS - moved ${source.name} to FTP in ${totalDuration}ms")
+                            } else {
+                                val error = buildString {
+                                    append("${source.name}")
+                                    append("\n  From: $sourcePath")
+                                    append("\n  To: $destPath")
+                                    append("\n  Error: Copied to FTP but failed to delete from SMB")
+                                }
+                                Timber.e("SMB executeMove: $error")
+                                errors.add(error)
+                            }
+                        } else {
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: $sourcePath")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy to FTP")
+                            }
+                            Timber.e("SMB executeMove: $error")
+                            errors.add(error)
+                        }
+                    }
+                    isSourceSmb && !isDestSmb && !isDestFtp -> {
                         Timber.d("SMB executeMove: SMB→Local - download+delete ${source.name}")
                         // SMB to Local (download + delete)
                         if (downloadFromSmb(sourcePath, File(destPath), progressCallback) != null) {
@@ -235,7 +313,7 @@ class SmbFileOperationHandler @Inject constructor(
                             errors.add(error)
                         }
                     }
-                    !isSourceSmb && isDestSmb -> {
+                    !isSourceSmb && !isSourceFtp && !isSourceSftp && isDestSmb && !isDestFtp -> {
                         Timber.d("SMB executeMove: Local→SMB - upload+delete ${source.name}")
                         // Local to SMB (upload + delete)
                         if (uploadToSmb(source, destPath, progressCallback) != null) {
@@ -268,7 +346,7 @@ class SmbFileOperationHandler @Inject constructor(
                             errors.add(error)
                         }
                     }
-                    isSourceSmb && isDestSmb -> {
+                    isSourceSmb && isDestSmb && !isDestFtp -> {
                         Timber.d("SMB executeMove: SMB→SMB - copy+delete ${source.name}")
                         // SMB to SMB (copy + delete)
                         if (copySmbToSmb(sourcePath, destPath) != null) {
@@ -296,6 +374,133 @@ class SmbFileOperationHandler @Inject constructor(
                                 append("\n  From: $sourcePath")
                                 append("\n  To: $destPath")
                                 append("\n  Error: Failed to copy between SMB shares")
+                            }
+                            Timber.e("SMB executeMove: $error")
+                            errors.add(error)
+                        }
+                    }
+                    isSourceSftp && isDestSmb -> {
+                        Timber.d("SMB executeMove: SFTP→SMB - copy via buffer then delete ${source.name}")
+                        // SFTP to SMB (buffer copy + delete)
+                        val smbPath = copySftpToSmb(sourcePath, destPath)
+                        if (smbPath != null) {
+                            val copyDuration = System.currentTimeMillis() - startTime
+                            Timber.d("SMB executeMove: Copied to SMB in ${copyDuration}ms, attempting delete from SFTP")
+                            
+                            // Delete from SFTP
+                            val sftpPath = sourcePath
+                            val sftpParts = sftpPath.removePrefix("sftp://").split("/", limit = 2)
+                            if (sftpParts.isNotEmpty()) {
+                                val hostPort = sftpParts[0].split(":", limit = 2)
+                                val host = hostPort[0]
+                                val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 22 else 22
+                                val remotePath = if (sftpParts.size > 1) "/" + sftpParts[1] else "/"
+                                
+                                val sftpCredentials = credentialsDao.getByTypeServerAndPort("SFTP", host, port)
+                                if (sftpCredentials != null) {
+                                    if (sftpClient.connect(host, port, sftpCredentials.username, sftpCredentials.password).isSuccess) {
+                                        if (sftpClient.deleteFile(remotePath).isSuccess) {
+                                            val totalDuration = System.currentTimeMillis() - startTime
+                                            movedPaths.add(smbPath)
+                                            successCount++
+                                            Timber.i("SMB executeMove: SUCCESS - moved ${source.name} from SFTP to SMB in ${totalDuration}ms")
+                                        } else {
+                                            val error = buildString {
+                                                append("${source.name}")
+                                                append("\n  From: $sourcePath")
+                                                append("\n  To: $destPath")
+                                                append("\n  Error: Copied to SMB but failed to delete from SFTP")
+                                            }
+                                            Timber.e("SMB executeMove: $error")
+                                            errors.add(error)
+                                        }
+                                        sftpClient.disconnect()
+                                    } else {
+                                        val error = "Failed to connect to SFTP to delete source file"
+                                        Timber.e("SMB executeMove: $error")
+                                        errors.add(error)
+                                    }
+                                } else {
+                                    val error = "No SFTP credentials found for deletion"
+                                    Timber.e("SMB executeMove: $error")
+                                    errors.add(error)
+                                }
+                            } else {
+                                val error = "Failed to parse SFTP path for deletion"
+                                Timber.e("SMB executeMove: $error")
+                                errors.add(error)
+                            }
+                        } else {
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: $sourcePath")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy from SFTP to SMB")
+                            }
+                            Timber.e("SMB executeMove: $error")
+                            errors.add(error)
+                        }
+                    }
+                    isSourceFtp && isDestSmb -> {
+                        Timber.d("SMB executeMove: FTP→SMB - copy via buffer then delete ${source.name}")
+                        // FTP to SMB (buffer copy + delete)
+                        val smbPath = copyFtpToSmb(sourcePath, destPath, progressCallback)
+                        if (smbPath != null) {
+                            val copyDuration = System.currentTimeMillis() - startTime
+                            Timber.d("SMB executeMove: Copied to SMB in ${copyDuration}ms, attempting delete from FTP")
+                            
+                            // Delete from FTP
+                            // Need to parse FTP path to delete
+                            val ftpPath = sourcePath
+                            val withoutProtocol = ftpPath.removePrefix("ftp://")
+                            val parts = withoutProtocol.split("/", limit = 2)
+                            if (parts.isNotEmpty()) {
+                                val hostPortPart = parts[0]
+                                val remotePath = if (parts.size > 1) "/${parts[1]}" else "/"
+                                val hostPort = hostPortPart.split(":", limit = 2)
+                                val host = hostPort[0]
+                                val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 21 else 21
+                                
+                                // Re-connect to delete (or reuse connection if possible, but copyFtpToSmb disconnects)
+                                // We need to connect again to delete
+                                var credentials = credentialsDao.getByTypeServerAndPort("FTP", host, port)
+                                if (credentials == null) {
+                                    credentials = credentialsDao.getCredentialsByHost(host)
+                                }
+                                
+                                if (credentials != null && ftpClient.connect(host, port, credentials.username, credentials.password).isSuccess) {
+                                    if (ftpClient.deleteFile(remotePath).isSuccess) {
+                                        val totalDuration = System.currentTimeMillis() - startTime
+                                        movedPaths.add(smbPath)
+                                        successCount++
+                                        Timber.i("SMB executeMove: SUCCESS - moved ${source.name} from FTP to SMB in ${totalDuration}ms")
+                                    } else {
+                                        val error = buildString {
+                                            append("${source.name}")
+                                            append("\n  From: $sourcePath")
+                                            append("\n  To: $destPath")
+                                            append("\n  Error: Copied to SMB but failed to delete from FTP")
+                                        }
+                                        Timber.e("SMB executeMove: $error")
+                                        errors.add(error)
+                                    }
+                                    ftpClient.disconnect()
+                                } else {
+                                    val error = "Failed to connect to FTP to delete source file"
+                                    Timber.e("SMB executeMove: $error")
+                                    errors.add(error)
+                                }
+                            } else {
+                                val error = "Failed to parse FTP path for deletion"
+                                Timber.e("SMB executeMove: $error")
+                                errors.add(error)
+                            }
+                        } else {
+                            val error = buildString {
+                                append("${source.name}")
+                                append("\n  From: $sourcePath")
+                                append("\n  To: $destPath")
+                                append("\n  Error: Failed to copy from FTP to SMB")
                             }
                             Timber.e("SMB executeMove: $error")
                             errors.add(error)
@@ -829,6 +1034,189 @@ class SmbFileOperationHandler @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.e(e, "copySftpToSmb: Exception during copy")
+            return null
+        }
+    }
+
+    private suspend fun copyFtpToSmb(ftpPath: String, smbPath: String, progressCallback: ByteProgressCallback? = null): String? {
+        Timber.d("copyFtpToSmb: $ftpPath → $smbPath")
+        
+        try {
+            // Parse FTP path
+            if (!ftpPath.startsWith("ftp://")) {
+                Timber.e("copyFtpToSmb: Invalid FTP path format: $ftpPath")
+                return null
+            }
+            
+            val withoutProtocol = ftpPath.removePrefix("ftp://")
+            val parts = withoutProtocol.split("/", limit = 2)
+            if (parts.isEmpty()) {
+                Timber.e("copyFtpToSmb: Failed to parse FTP host from path")
+                return null
+            }
+            
+            val hostPortPart = parts[0]
+            val remotePath = if (parts.size > 1) "/${parts[1]}" else "/"
+            
+            val hostPort = hostPortPart.split(":", limit = 2)
+            val host = hostPort[0]
+            val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 21 else 21
+            
+            Timber.d("copyFtpToSmb: FTP parsed - host=$host, port=$port, path=$remotePath")
+            
+            // Get FTP credentials
+            var credentials = credentialsDao.getByTypeServerAndPort("FTP", host, port)
+            if (credentials == null) {
+                credentials = credentialsDao.getCredentialsByHost(host)
+            }
+
+            if (credentials == null) {
+                Timber.e("copyFtpToSmb: No FTP credentials found for $host:$port")
+                return null
+            }
+            
+            // Connect to FTP
+            val connectResult = ftpClient.connect(host, port, credentials.username, credentials.password)
+            if (connectResult.isFailure) {
+                Timber.e("copyFtpToSmb: FTP connection failed: ${connectResult.exceptionOrNull()?.message}")
+                return null
+            }
+            
+            // Download from FTP
+            Timber.d("copyFtpToSmb: Downloading from FTP...")
+            val downloadResult = ftpClient.readFileBytes(remotePath)
+            ftpClient.disconnect()
+            
+            if (downloadResult.isFailure) {
+                Timber.e("copyFtpToSmb: FTP download failed: ${downloadResult.exceptionOrNull()?.message}")
+                return null
+            }
+            
+            val fileBytes = downloadResult.getOrNull()
+            if (fileBytes == null || fileBytes.isEmpty()) {
+                Timber.e("copyFtpToSmb: Downloaded file is empty")
+                return null
+            }
+            
+            Timber.d("copyFtpToSmb: Downloaded ${fileBytes.size} bytes from FTP, uploading to SMB...")
+            
+            // Upload to SMB
+            val smbConnectionInfo = parseSmbPath(smbPath)
+            if (smbConnectionInfo == null) {
+                Timber.e("copyFtpToSmb: Failed to parse SMB path: $smbPath")
+                return null
+            }
+            
+            val inputStream = ByteArrayInputStream(fileBytes)
+            val uploadResult = smbClient.uploadFile(smbConnectionInfo.connectionInfo, smbConnectionInfo.remotePath, inputStream, fileBytes.size.toLong(), progressCallback)
+            
+            return when (uploadResult) {
+                is SmbClient.SmbResult.Success -> {
+                    Timber.i("copyFtpToSmb: SUCCESS - ${fileBytes.size} bytes copied from FTP to SMB")
+                    smbPath
+                }
+                is SmbClient.SmbResult.Error -> {
+                    Timber.e("copyFtpToSmb: SMB upload failed: ${uploadResult.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "copyFtpToSmb: Exception during copy")
+            return null
+        }
+    }
+
+    private suspend fun copySmbToFtp(smbPath: String, ftpPath: String, progressCallback: ByteProgressCallback? = null): String? {
+        Timber.d("copySmbToFtp: $smbPath → $ftpPath")
+        
+        try {
+            // Download from SMB
+            val smbConnectionInfo = parseSmbPath(smbPath)
+            if (smbConnectionInfo == null) {
+                Timber.e("copySmbToFtp: Failed to parse SMB path: $smbPath")
+                return null
+            }
+            
+            Timber.d("copySmbToFtp: Downloading from SMB...")
+            val outputStream = ByteArrayOutputStream()
+            val downloadResult = smbClient.downloadFile(smbConnectionInfo.connectionInfo, smbConnectionInfo.remotePath, outputStream)
+            
+            when (downloadResult) {
+                is SmbClient.SmbResult.Error -> {
+                    Timber.e("copySmbToFtp: SMB download failed: ${downloadResult.message}")
+                    return null
+                }
+                is SmbClient.SmbResult.Success -> {
+                    val fileBytes = outputStream.toByteArray()
+                    if (fileBytes.isEmpty()) {
+                        Timber.e("copySmbToFtp: Downloaded file is empty")
+                        return null
+                    }
+                    
+                    Timber.d("copySmbToFtp: Downloaded ${fileBytes.size} bytes from SMB, uploading to FTP...")
+                    
+                    // Parse FTP path
+                    if (!ftpPath.startsWith("ftp://")) {
+                        Timber.e("copySmbToFtp: Invalid FTP path format: $ftpPath")
+                        return null
+                    }
+                    
+                    val withoutProtocol = ftpPath.removePrefix("ftp://")
+                    val parts = withoutProtocol.split("/", limit = 2)
+                    if (parts.isEmpty()) {
+                        Timber.e("copySmbToFtp: Failed to parse FTP host from path")
+                        return null
+                    }
+                    
+                    val hostPortPart = parts[0]
+                    val remotePath = if (parts.size > 1) "/${parts[1]}" else "/"
+                    
+                    val hostPort = hostPortPart.split(":", limit = 2)
+                    val host = hostPort[0]
+                    val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 21 else 21
+                    
+                    Timber.d("copySmbToFtp: FTP parsed - host=$host, port=$port, path=$remotePath")
+                    
+                    // Get FTP credentials
+                    // Try to get specific FTP credentials first
+                    var credentials = credentialsDao.getByTypeServerAndPort("FTP", host, port)
+                    
+                    // Fallback to host-based lookup if not found (legacy behavior)
+                    if (credentials == null) {
+                        credentials = credentialsDao.getCredentialsByHost(host)
+                    }
+
+                    if (credentials == null) {
+                        Timber.e("copySmbToFtp: No FTP credentials found for $host:$port")
+                        return null
+                    }
+                    
+                    // Connect to FTP
+                    val connectResult = ftpClient.connect(host, port, credentials.username, credentials.password)
+                    if (connectResult.isFailure) {
+                        Timber.e("copySmbToFtp: FTP connection failed: ${connectResult.exceptionOrNull()?.message}")
+                        return null
+                    }
+                    
+                    // Upload to FTP
+                    val inputStream = ByteArrayInputStream(fileBytes)
+                    val uploadResult = ftpClient.uploadFile(remotePath, inputStream, fileBytes.size.toLong(), progressCallback)
+                    ftpClient.disconnect()
+                    
+                    return when {
+                        uploadResult.isSuccess -> {
+                            Timber.i("copySmbToFtp: SUCCESS - ${fileBytes.size} bytes copied from SMB to FTP")
+                            ftpPath
+                        }
+                        else -> {
+                            Timber.e("copySmbToFtp: FTP upload failed: ${uploadResult.exceptionOrNull()?.message}")
+                            null
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "copySmbToFtp: Exception during copy")
             return null
         }
     }

@@ -305,7 +305,8 @@ class ResourceRepositoryImpl @Inject constructor(
             lastSyncDate = lastSyncDate,
             displayOrder = displayOrder,
             scanSubdirectories = scanSubdirectories,
-            disableThumbnails = disableThumbnails
+            disableThumbnails = disableThumbnails,
+            comment = comment
         )
     }
     
@@ -342,7 +343,8 @@ class ResourceRepositoryImpl @Inject constructor(
             lastSyncDate = lastSyncDate,
             displayOrder = displayOrder,
             scanSubdirectories = scanSubdirectories,
-            disableThumbnails = disableThumbnails
+            disableThumbnails = disableThumbnails,
+            comment = comment
         )
     }
 }

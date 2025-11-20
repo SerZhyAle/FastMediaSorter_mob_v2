@@ -53,6 +53,10 @@ class MoveToDialog(
         binding = DialogMoveToBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
+        // Set dialog width to 90% of screen width to accommodate buttons
+        val width = (context.resources.displayMetrics.widthPixels * 0.90).toInt()
+        window?.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
+        
         setupUI()
         loadDestinations()
     }
@@ -104,59 +108,57 @@ class MoveToDialog(
      * Create colored destination buttons dynamically based on count
      * Per spec: 1-2 buttons take full width, 3+ arranged in rows
      */
+    /**
+     * Create colored destination buttons dynamically in a grid-like layout
+     * Buttons are arranged in rows of 2 columns to fill available space efficiently
+     */
     private fun createDestinationButtons(destinations: List<MediaResource>) {
         Log.d(TAG, "createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
         
-        // Buttons per row: stretch to fill width (1-5 buttons max per row)
-        val buttonsPerRow = when {
-            destinations.size == 1 -> 1  // 1 button = 100% width
-            destinations.size == 2 -> 2  // 2 buttons = 50% each
-            destinations.size == 3 -> 3  // 3 buttons = 33% each
-            destinations.size == 4 -> 2  // 2x2 grid (50% each)
-            destinations.size <= 10 -> 5 // 5 buttons = 20% each
-            else -> 5
-        }
-        
-        Log.d(TAG, "buttonsPerRow = $buttonsPerRow")
-        
+        // Create rows with 2 buttons each (or 1 if only 1 or last odd button)
+        val columnCount = 2
         var currentRow: LinearLayout? = null
         
         destinations.forEachIndexed { index, destination ->
-            // Create new row if needed
-            if (index % buttonsPerRow == 0) {
-                Log.d(TAG, "Creating new row for index $index")
+            // Create new row for every 2 buttons
+            if (index % columnCount == 0) {
                 currentRow = LinearLayout(context).apply {
                     orientation = LinearLayout.HORIZONTAL
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.WRAP_CONTENT
-                    ).apply {
-                        if (index > 0) topMargin = 12
-                    }
-                    gravity = Gravity.CENTER
+                    )
                 }
                 container.addView(currentRow)
             }
             
-            // Create button with better styling
-            val button = MaterialButton(context).apply {
+            val button = androidx.appcompat.widget.AppCompatButton(context).apply {
                 text = destination.name
-                setBackgroundColor(destination.destinationColor)
                 setTextColor(Color.WHITE)
-                textSize = 16f
-                minHeight = resources.getDimensionPixelSize(android.R.dimen.app_icon_size) // ~48dp
-                setPadding(16, 16, 16, 16)
+                textSize = 18f
+                isAllCaps = false
+                setPadding(24, 40, 24, 40)
                 
+                // Calculate weight: 1.0 for each button to share space equally
+                val weight = 1f
                 layoutParams = LinearLayout.LayoutParams(
-                    0,
+                    0, // width 0 with weight
                     ViewGroup.LayoutParams.WRAP_CONTENT,
-                    1f
+                    weight
                 ).apply {
-                    if (index % buttonsPerRow > 0) leftMargin = 12
-                    topMargin = 4
-                    bottomMargin = 4
+                    setMargins(8, 8, 8, 8)
+                }
+                
+                minimumWidth = 0
+                minimumHeight = resources.getDimensionPixelSize(R.dimen.destination_button_min_height)
+                elevation = 6f
+                
+                // Rounded corners background
+                background = android.graphics.drawable.GradientDrawable().apply {
+                    setColor(destination.destinationColor)
+                    cornerRadius = 12f
                 }
                 
                 setOnClickListener {
@@ -164,11 +166,11 @@ class MoveToDialog(
                 }
             }
             
-            Log.d(TAG, "Added button for ${destination.name} with color ${destination.destinationColor}")
             currentRow?.addView(button)
+            Log.d(TAG, "Added button for ${destination.name} at position $index with color ${destination.destinationColor}")
         }
         
-        Log.d(TAG, "Finished creating ${destinations.size} destination buttons")
+        Log.d(TAG, "Finished creating ${destinations.size} destination buttons in grid layout")
     }
 
     private fun moveToDestination(destination: MediaResource) {
@@ -178,7 +180,17 @@ class MoveToDialog(
         // Create cancellable job for move operation
         scope.launch {
             try {
-                val destinationFolder = File(destination.path)
+                // Create File object that preserves network paths
+                val destinationFolder = if (destination.path.startsWith("smb://") || 
+                                            destination.path.startsWith("sftp://") || 
+                                            destination.path.startsWith("ftp://")) {
+                    object : File(destination.path) {
+                        override fun getAbsolutePath(): String = destination.path
+                        override fun getPath(): String = destination.path
+                    }
+                } else {
+                    File(destination.path)
+                }
                 
                 val operation = FileOperation.Move(
                     sources = sourceFiles,

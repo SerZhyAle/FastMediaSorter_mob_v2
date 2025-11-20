@@ -93,6 +93,25 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Resource Comment -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilResourceComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="@string/comment"
+                app:boxBackgroundMode="outline">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etResourceComment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:minLines="1"
+                    android:maxLines="3" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Resource Path (read-only) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilResourcePath"

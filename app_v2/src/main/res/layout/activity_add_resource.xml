@@ -394,6 +394,23 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Comment -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSmbComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/resource_comment"
+                android:layout_marginBottom="8dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSmbComment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Add to Destinations checkbox -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -762,6 +779,23 @@
                     android:layout_height="wrap_content"
                     android:inputType="text"
                     android:text="/"
+                    android:maxLines="1" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Comment -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilSftpComment"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/resource_comment"
+                android:layout_marginBottom="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etSftpComment"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
                     android:maxLines="1" />
 
             </com.google.android.material.textfield.TextInputLayout>

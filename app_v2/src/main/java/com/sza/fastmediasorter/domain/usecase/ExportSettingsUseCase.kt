@@ -109,6 +109,9 @@ class ExportSettingsUseCase @Inject constructor(
                     if (resource.cloudFolderId != null) {
                         appendLine("      <cloudFolderId>${resource.cloudFolderId.escapeXml()}</cloudFolderId>")
                     }
+                    if (resource.comment != null) {
+                        appendLine("      <comment>${resource.comment.escapeXml()}</comment>")
+                    }
                     appendLine("    </Resource>")
                 }
                 appendLine("  </Resources>")

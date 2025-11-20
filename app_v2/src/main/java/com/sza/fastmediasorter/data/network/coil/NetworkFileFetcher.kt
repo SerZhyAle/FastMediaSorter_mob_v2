@@ -39,6 +39,7 @@ class NetworkFileFetcher(
 
     companion object {
         private const val THUMBNAIL_TIMEOUT_MS = 2_000L
+        private const val FTP_THUMBNAIL_TIMEOUT_MS = 5_000L // Increased timeout for FTP thumbnails
         private const val FULL_IMAGE_TIMEOUT_MS = 60_000L  // 60 seconds for full image (PlayerActivity may compete with thumbnail requests)
     }
 
@@ -338,7 +339,7 @@ class NetworkFileFetcher(
 
         // Use temporary connection for parallel downloads (avoid singleton FTPClient race condition)
         val outputStream = java.io.ByteArrayOutputStream()
-        val timeoutMs = if (data.loadFullImage) FULL_IMAGE_TIMEOUT_MS else THUMBNAIL_TIMEOUT_MS
+        val timeoutMs = if (data.loadFullImage) FULL_IMAGE_TIMEOUT_MS else FTP_THUMBNAIL_TIMEOUT_MS
         try {
             kotlinx.coroutines.withTimeout(timeoutMs) {
                 val downloadResult = ftpClient.downloadFileWithNewConnection(

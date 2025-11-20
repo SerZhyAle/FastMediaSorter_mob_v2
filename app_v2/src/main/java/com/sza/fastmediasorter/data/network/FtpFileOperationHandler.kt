@@ -736,7 +736,14 @@ class FtpFileOperationHandler @Inject constructor(
                 Timber.d("parseFtpPath: Extracted host=$host, port=$port, remotePath=$pathPart")
                 
                 // Get credentials from database
-                val credentials = credentialsDao.getCredentialsByHost(host)
+                // Try to get specific FTP credentials first
+                var credentials = credentialsDao.getByTypeServerAndPort("FTP", host, port)
+                
+                // Fallback to host-based lookup if not found
+                if (credentials == null) {
+                    credentials = credentialsDao.getCredentialsByHost(host)
+                }
+
                 if (credentials == null) {
                     Timber.e("parseFtpPath: No credentials found for host: $host")
                     return null

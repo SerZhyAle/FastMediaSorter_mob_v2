@@ -510,6 +510,7 @@ class AddResourceViewModel @Inject constructor(
         password: String,
         domain: String,
         port: Int,
+        comment: String? = null,
         addToDestinations: Boolean = false
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
@@ -555,7 +556,8 @@ class AddResourceViewModel @Inject constructor(
                     isDestination = isDestination,
                     destinationOrder = destinationOrder,
                     destinationColor = destinationColor,
-                    credentialsId = credentialsId
+                    credentialsId = credentialsId,
+                    comment = comment
                 )
                 
                 // Add resource to database
@@ -732,7 +734,8 @@ class AddResourceViewModel @Inject constructor(
         port: Int,
         username: String,
         password: String,
-        remotePath: String
+        remotePath: String,
+        comment: String? = null
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -779,7 +782,8 @@ class AddResourceViewModel @Inject constructor(
                     path = path,
                     type = protocolType,
                     isDestination = false,
-                    credentialsId = credentialsId
+                    credentialsId = credentialsId,
+                    comment = comment
                 )
                 
                 // Add resource to database
@@ -1007,7 +1011,8 @@ class AddResourceViewModel @Inject constructor(
         username: String,
         privateKey: String,
         keyPassphrase: String?,
-        remotePath: String
+        remotePath: String,
+        comment: String? = null
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1046,7 +1051,8 @@ class AddResourceViewModel @Inject constructor(
                     path = path,
                     type = ResourceType.SFTP,
                     isDestination = false,
-                    credentialsId = credentialsId
+                    credentialsId = credentialsId,
+                    comment = comment
                 )
                 
                 // Add resource to database

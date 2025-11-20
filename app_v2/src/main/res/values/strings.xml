@@ -179,6 +179,8 @@
     <string name="resource_type_ftp">FTP</string>
     <string name="resource_type_cloud">Cloud</string>
     <string name="resource_name">Resource Name</string>
+    <string name="resource_comment">Comment</string>
+    <string name="comment">Comment</string>
     <string name="resource_path">Resource Path</string>
     <string name="resource_type">Resource Type</string>
     <string name="created_date">Created Date</string>

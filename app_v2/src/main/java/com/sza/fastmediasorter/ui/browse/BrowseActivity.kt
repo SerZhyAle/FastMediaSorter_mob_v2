@@ -361,6 +361,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val hasSelection = state.selectedFiles.isNotEmpty()
                     val isWritable = state.resource?.isWritable ?: false
                     
+                    // Show operations panel only when there are selected files or undo available
+                    binding.layoutOperations.isVisible = hasSelection || state.lastOperation != null
+                    
                     binding.btnCopy.isVisible = hasSelection
                     binding.btnMove.isVisible = hasSelection && isWritable
                     binding.btnRename.isVisible = hasSelection && isWritable
@@ -854,7 +857,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
     
     private fun showRenameSingleDialog(filePath: String) {
-        val file = java.io.File(filePath)
+        // Create File object that preserves network paths
+        val file = if (filePath.startsWith("smb://") || 
+                       filePath.startsWith("sftp://") || 
+                       filePath.startsWith("ftp://")) {
+            object : java.io.File(filePath) {
+                override fun getAbsolutePath(): String = filePath
+                override fun getPath(): String = filePath
+            }
+        } else {
+            java.io.File(filePath)
+        }
         val resource = viewModel.state.value.resource
         
         RenameDialog(
@@ -872,7 +885,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
     
     private fun showRenameMultipleDialog(filePaths: List<String>) {
-        val files = filePaths.map { java.io.File(it) }
+        // Create File objects that preserve network paths
+        val files = filePaths.map { path ->
+            if (path.startsWith("smb://") || 
+                path.startsWith("sftp://") || 
+                path.startsWith("ftp://")) {
+                object : java.io.File(path) {
+                    override fun getAbsolutePath(): String = path
+                    override fun getPath(): String = path
+                }
+            } else {
+                java.io.File(path)
+            }
+        }
         val fileNames = files.map { it.name }.toMutableList()
         
         val dialogBinding = DialogRenameMultipleBinding.inflate(LayoutInflater.from(this))
@@ -1019,9 +1044,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             return
         }
         
-        // For network paths (SMB/SFTP), create File with URI-compatible scheme
+        // For network paths (SMB/SFTP/FTP), create File with URI-compatible scheme
         val selectedFiles = selectedPaths.map { path ->
-            if (path.startsWith("smb://") || path.startsWith("sftp://")) {
+            if (path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")) {
                 object : File(path) {
                     override fun getAbsolutePath(): String = path
                     override fun getPath(): String = path
@@ -1062,9 +1087,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             return
         }
         
-        // For network paths (SMB/SFTP), create File with URI-compatible scheme
+        // For network paths (SMB/SFTP/FTP), create File with URI-compatible scheme
         val selectedFiles = selectedPaths.map { path ->
-            if (path.startsWith("smb://") || path.startsWith("sftp://")) {
+            if (path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")) {
                 object : File(path) {
                     override fun getAbsolutePath(): String = path
                     override fun getPath(): String = path
@@ -1117,18 +1142,81 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Scroll to last viewed file after returning from PlayerActivity
         if (shouldScrollToLastViewed) {
             val state = viewModel.state.value
+            Timber.d("BrowseActivity.onResume: Attempting scroll restoration - files count: ${state.mediaFiles.size}")
+            
             if (state.mediaFiles.isNotEmpty()) {
                 state.resource?.lastViewedFile?.let { lastViewedPath ->
+                    Timber.d("BrowseActivity.onResume: Looking for lastViewedFile: $lastViewedPath")
+                    
                     val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
+                    Timber.d("BrowseActivity.onResume: Found position=$position for file: ${lastViewedPath.substringAfterLast('/')}")
+                    
                     if (position >= 0) {
-                        binding.rvMediaFiles.post {
-                            binding.rvMediaFiles.scrollToPosition(position)
-                            Timber.d("BrowseActivity.onResume: Scrolled to last viewed file at position $position")
+                        // Log files around the target position for verification
+                        val startIdx = maxOf(0, position - 2)
+                        val endIdx = minOf(state.mediaFiles.size - 1, position + 2)
+                        Timber.d("BrowseActivity.onResume: Files around position $position:")
+                        for (i in startIdx..endIdx) {
+                            val marker = if (i == position) " >>> " else "     "
+                            Timber.d("  $marker[$i] ${state.mediaFiles[i].name}")
                         }
+                        
+                        binding.rvMediaFiles.post {
+                            // Use scrollToPositionWithOffset to restore exact scroll position
+                            val layoutManager = binding.rvMediaFiles.layoutManager
+                            when (layoutManager) {
+                                is LinearLayoutManager -> {
+                                    // Get current visible position before scroll
+                                    val firstVisiblePos = layoutManager.findFirstVisibleItemPosition()
+                                    val lastVisiblePos = layoutManager.findLastVisibleItemPosition()
+                                    Timber.d("BrowseActivity.onResume: BEFORE scroll - visible range: $firstVisiblePos..$lastVisiblePos")
+                                    
+                                    // Scroll with offset 0 to position item at the top of visible area
+                                    layoutManager.scrollToPositionWithOffset(position, 0)
+                                    
+                                    // Log after scroll
+                                    binding.rvMediaFiles.post {
+                                        val newFirstPos = layoutManager.findFirstVisibleItemPosition()
+                                        val newLastPos = layoutManager.findLastVisibleItemPosition()
+                                        Timber.d("BrowseActivity.onResume: AFTER scroll - visible range: $newFirstPos..$newLastPos")
+                                        Timber.d("BrowseActivity.onResume: Target position $position is now ${if (position in newFirstPos..newLastPos) "VISIBLE" else "NOT VISIBLE"}")
+                                    }
+                                    
+                                    Timber.i("BrowseActivity.onResume: ✓ Scrolled to last viewed file '${state.mediaFiles[position].name}' at position $position (LinearLayoutManager)")
+                                }
+                                is GridLayoutManager -> {
+                                    val firstVisiblePos = layoutManager.findFirstVisibleItemPosition()
+                                    val lastVisiblePos = layoutManager.findLastVisibleItemPosition()
+                                    Timber.d("BrowseActivity.onResume: BEFORE scroll - visible range: $firstVisiblePos..$lastVisiblePos")
+                                    
+                                    layoutManager.scrollToPositionWithOffset(position, 0)
+                                    
+                                    binding.rvMediaFiles.post {
+                                        val newFirstPos = layoutManager.findFirstVisibleItemPosition()
+                                        val newLastPos = layoutManager.findLastVisibleItemPosition()
+                                        Timber.d("BrowseActivity.onResume: AFTER scroll - visible range: $newFirstPos..$newLastPos")
+                                        Timber.d("BrowseActivity.onResume: Target position $position is now ${if (position in newFirstPos..newLastPos) "VISIBLE" else "NOT VISIBLE"}")
+                                    }
+                                    
+                                    Timber.i("BrowseActivity.onResume: ✓ Scrolled to last viewed file '${state.mediaFiles[position].name}' at position $position (GridLayoutManager)")
+                                }
+                                else -> {
+                                    // Fallback for other layout managers
+                                    binding.rvMediaFiles.scrollToPosition(position)
+                                    Timber.w("BrowseActivity.onResume: Scrolled to last viewed file at position $position (fallback - unknown LayoutManager)")
+                                }
+                            }
+                        }
+                    } else {
+                        Timber.w("BrowseActivity.onResume: File not found in current list: $lastViewedPath")
                     }
-                }
+                } ?: Timber.w("BrowseActivity.onResume: lastViewedFile is null in resource")
+            } else {
+                Timber.w("BrowseActivity.onResume: mediaFiles list is empty, cannot restore scroll")
             }
             shouldScrollToLastViewed = false // Clear flag after processing
+        } else {
+            Timber.d("BrowseActivity.onResume: shouldScrollToLastViewed=false, skipping scroll restoration")
         }
         
         // Start MediaStore observer for local resources

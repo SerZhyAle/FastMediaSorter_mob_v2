@@ -38,16 +38,23 @@ class SmbOperationsUseCase @Inject constructor(
         port: Int = 445
     ): Result<String> = withContext(ioDispatcher) {
         try {
+            // Parse share name and path (e.g. "share\folder\subfolder" -> share="share", path="folder\subfolder")
+            // This allows users to enter "share\subfolder" in the Share Name field
+            val normalizedShareName = shareName.replace('\\', '/')
+            val parts = normalizedShareName.split('/', limit = 2)
+            val actualShareName = parts.getOrElse(0) { "" }
+            val subPath = parts.getOrElse(1) { "" }
+
             val connectionInfo = SmbClient.SmbConnectionInfo(
                 server = server,
-                shareName = shareName,
+                shareName = actualShareName,
                 username = username,
                 password = password,
                 domain = domain,
                 port = port
             )
             
-            when (val result = smbClient.testConnection(connectionInfo)) {
+            when (val result = smbClient.testConnection(connectionInfo, subPath)) {
                 is SmbClient.SmbResult.Success -> Result.success(result.data)
                 is SmbClient.SmbResult.Error -> Result.failure(
                     Exception(result.message, result.exception)
@@ -139,6 +146,13 @@ class SmbOperationsUseCase @Inject constructor(
         port: Int = 445
     ): Result<String> = withContext(ioDispatcher) {
         try {
+            // Parse share name and path - only save the actual share name in credentials
+            // The full path (including subfolder) will be stored in MediaResource.path
+            // This allows users to enter "share\subfolder" in the Share Name field
+            val normalizedShareName = shareName.replace('\\', '/')
+            val parts = normalizedShareName.split('/', limit = 2)
+            val actualShareName = parts.getOrElse(0) { "" }
+
             val credentialId = UUID.randomUUID().toString()
             val entity = NetworkCredentialsEntity.create(
                 credentialId = credentialId,
@@ -148,7 +162,7 @@ class SmbOperationsUseCase @Inject constructor(
                 username = username,
                 plaintextPassword = password,
                 domain = domain,
-                shareName = shareName
+                shareName = actualShareName
             )
             
             credentialsDao.insert(entity)

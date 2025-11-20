@@ -2,4 +2,7 @@
 <resources>
     <dimen name="indicator_size">8dp</dimen>
     <dimen name="indicator_margin">4dp</dimen>
+    
+    <!-- Destination buttons in Copy/Move dialogs -->
+    <dimen name="destination_button_min_height">64dp</dimen>
 </resources>

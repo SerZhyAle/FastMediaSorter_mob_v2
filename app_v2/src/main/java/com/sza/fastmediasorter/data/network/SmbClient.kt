@@ -171,8 +171,9 @@ class SmbClient @Inject constructor() {
      * Test connection to SMB server
      * - If shareName is empty: tests server accessibility and lists available shares
      * - If shareName is provided: tests share accessibility and provides folder/file statistics
+     * - If path is provided: tests specific folder within the share
      */
-    suspend fun testConnection(connectionInfo: SmbConnectionInfo): SmbResult<String> {
+    suspend fun testConnection(connectionInfo: SmbConnectionInfo, path: String = ""): SmbResult<String> {
         return try {
             if (connectionInfo.shareName.isEmpty()) {
                 // Test server only - list available shares
@@ -200,8 +201,26 @@ class SmbClient @Inject constructor() {
             } else {
                 // Test specific share - provide detailed statistics
                 withConnection(connectionInfo) { share ->
-                    // Count folders and media files in root
-                    val files = share.list("").filter { !it.fileName.startsWith(".") }
+                    val targetPath = path.trim('/', '\\')
+                    val fullPathDisplay = if (targetPath.isEmpty()) {
+                        "${connectionInfo.server}\\${connectionInfo.shareName}"
+                    } else {
+                        "${connectionInfo.server}\\${connectionInfo.shareName}\\$targetPath"
+                    }
+
+                    // Check if path exists (if specified)
+                    if (targetPath.isNotEmpty()) {
+                        try {
+                            if (!share.fileExists(targetPath)) {
+                                return@withConnection SmbResult.Error("Path not found: $targetPath")
+                            }
+                        } catch (e: Exception) {
+                            return@withConnection SmbResult.Error("Failed to access path: $targetPath (${e.message})")
+                        }
+                    }
+
+                    // Count folders and media files in target path
+                    val files = share.list(targetPath).filter { !it.fileName.startsWith(".") }
                     val folders = files.count { (it.fileAttributes and 0x10L) != 0L }
                     val mediaFiles = files.filter { file ->
                         val ext = file.fileName.substringAfterLast('.', "").lowercase()
@@ -211,11 +230,11 @@ class SmbClient @Inject constructor() {
                     }
                     
                     val message = """
-                        |✓ Share accessible: ${connectionInfo.server}\${connectionInfo.shareName}
+                        |✓ Resource accessible: $fullPathDisplay
                         |
-                        |Share statistics:
+                        |Statistics:
                         |• Subfolders: $folders
-                        |• Media files in root: ${mediaFiles.size}
+                        |• Media files: ${mediaFiles.size}
                         |• Total items: ${files.size}
                     """.trimMargin()
                     
@@ -1469,9 +1488,6 @@ class SmbClient @Inject constructor() {
             domain = connectionInfo.domain
         )
         
-        // Note: cleanupIdleConnections() removed from here to avoid blocking
-        // Idle cleanup now happens lazily when connection pool is full or on explicit call
-        
         // Reset timeout counter if enough time passed since last failure (1 minute idle = recovery)
         val timeSinceLastSuccess = System.currentTimeMillis() - lastSuccessfulOperation
         if (consecutiveTimeouts > 0 && timeSinceLastSuccess > 60000) {
@@ -1487,59 +1503,34 @@ class SmbClient @Inject constructor() {
             consecutiveTimeouts = 0
         }
         
-        try {
-            // Try to reuse existing connection
-            val pooled = connectionPool[key]
-            
-            if (pooled != null && isConnectionValid(pooled)) {
-                pooled.lastUsed = System.currentTimeMillis()
-                try {
-                    val result = block(pooled.share)
-                    // Success - reset timeout counter and update last success time
-                    consecutiveTimeouts = 0
-                    lastSuccessfulOperation = System.currentTimeMillis()
-                    return@withPermit result
-                } catch (e: CancellationException) {
-                    // Operation cancelled (RecyclerView scroll) - keep connection alive
-                    Timber.d("Pooled connection operation cancelled: ${e::class.simpleName}")
-                    throw e
-                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
-                    // Timeout doesn't mean connection is dead - just operation took too long
-                    // BUT: after multiple timeouts, remove connection to force fresh reconnect
-                    consecutiveTimeouts++
-                    Timber.d("Pooled connection timeout (#$consecutiveTimeouts), ${if (consecutiveTimeouts >= 3) "removing" else "keeping"}: ${e.message}")
-                    
-                    if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                        Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
-                    }
-                    
-                    // After 3 timeouts on same pooled connection, remove it to force fresh connection
-                    if (consecutiveTimeouts >= 3) {
-                        connectionPool.remove(key)
-                        CoroutineScope(Dispatchers.IO).launch {
-                            try {
-                                pooled.share.close()
-                                pooled.session.close()
-                                pooled.connection.close()
-                            } catch (closeError: Exception) {
-                                Timber.w("Error closing timed-out connection: ${closeError.message}")
-                            }
-                        }
-                    }
-                    throw e
-                } catch (e: Exception) {
-                    // Real connection error - close and remove from pool
-                    Timber.w(e, "Pooled connection failed with error, removing from pool")
-                    
-                    // Track failures
-                    if (e is com.hierynomus.smbj.common.SMBRuntimeException) {
-                        consecutiveTimeouts++
-                        if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                            Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
-                        }
-                    }
-                    
-                    // Async removal: don't wait for TreeConnect.close() to finish
+        // Retry logic: try pooled connection first, then fresh connection on failure
+        var lastError: Exception? = null
+        
+        // Attempt 1: Try pooled connection if exists
+        val pooled = connectionPool[key]
+        if (pooled != null && isConnectionValid(pooled)) {
+            pooled.lastUsed = System.currentTimeMillis()
+            try {
+                val result = block(pooled.share)
+                // Success - reset timeout counter and update last success time
+                consecutiveTimeouts = 0
+                lastSuccessfulOperation = System.currentTimeMillis()
+                return@withPermit result
+            } catch (e: CancellationException) {
+                // Operation cancelled (RecyclerView scroll) - keep connection alive
+                Timber.d("Pooled connection operation cancelled: ${e::class.simpleName}")
+                throw e
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                // Timeout doesn't mean connection is dead - just operation took too long
+                consecutiveTimeouts++
+                Timber.d("Pooled connection timeout (#$consecutiveTimeouts): ${e.message}")
+                
+                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+                }
+                
+                // After 3 timeouts, remove pooled connection to force fresh reconnect
+                if (consecutiveTimeouts >= 3) {
                     connectionPool.remove(key)
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
@@ -1547,19 +1538,41 @@ class SmbClient @Inject constructor() {
                             pooled.session.close()
                             pooled.connection.close()
                         } catch (closeError: Exception) {
-                            // Ignore errors during forced cleanup
+                            Timber.w("Error closing timed-out connection: ${closeError.message}")
                         }
                     }
-                    throw e
                 }
+                throw e
+            } catch (e: Exception) {
+                // Pooled connection failed - remove and retry with fresh connection
+                Timber.w(e, "Pooled connection failed, will retry with fresh connection")
+                lastError = e
+                
+                // Track failures
+                if (e is com.hierynomus.smbj.common.SMBRuntimeException) {
+                    consecutiveTimeouts++
+                    if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                        Timber.w("SMB connection degradation detected: $consecutiveTimeouts consecutive timeouts/failures")
+                    }
+                }
+                
+                // Async removal: don't wait for close() to finish
+                connectionPool.remove(key)
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        pooled.share.close()
+                        pooled.session.close()
+                        pooled.connection.close()
+                    } catch (closeError: Exception) {
+                        // Ignore errors during forced cleanup
+                    }
+                }
+                // Continue to create fresh connection below
             }
-            
-            // Before creating new connection, check if pool is too large
-            if (connectionPool.size >= MAX_CONCURRENT_CONNECTIONS) {
-                cleanupIdleConnectionsQuick()
-            }
-            
-            // Create new connection with appropriate timeout settings
+        }
+        
+        // Attempt 2: Create fresh connection (either no pooled connection, or pooled failed)
+        try {
             val client = getClient(connectionInfo.server, connectionInfo.port)
             val connection = client.connect(connectionInfo.server, connectionInfo.port)
             

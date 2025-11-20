@@ -767,10 +767,14 @@ class BrowseViewModel @Inject constructor(
             foundIndex
         }
         
-        // Save last viewed file to resource
+        // Update state immediately for instant UI response
+        val updatedResource = resource.copy(lastViewedFile = file.path)
+        updateState { it.copy(resource = updatedResource) }
+        
+        // Save to database asynchronously
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            updateResourceUseCase(resource.copy(lastViewedFile = file.path))
-            Timber.d("Saved lastViewedFile=${file.name} for resource: ${resource.name}")
+            updateResourceUseCase(updatedResource)
+            Timber.d("Saved lastViewedFile=${file.path} for resource: ${resource.name}")
         }
         
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))
@@ -854,7 +858,7 @@ class BrowseViewModel @Inject constructor(
             
             // Convert all paths to File objects (works for both local and network)
             val filesToDelete = selectedPaths.map { path ->
-                if (path.startsWith("smb://") || path.startsWith("sftp://")) {
+                if (path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")) {
                     // Network file - wrap in File object with original path
                     object : java.io.File(path) {
                         override fun getAbsolutePath(): String = path
@@ -1242,8 +1246,13 @@ class BrowseViewModel @Inject constructor(
     fun saveLastViewedFile(filePath: String) {
         val resource = state.value.resource ?: return
         
+        // Update state immediately for instant UI response
+        val updatedResource = resource.copy(lastViewedFile = filePath)
+        updateState { it.copy(resource = updatedResource) }
+        
+        // Save to database asynchronously
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            updateResourceUseCase(resource.copy(lastViewedFile = filePath))
+            updateResourceUseCase(updatedResource)
             Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
         }
     }

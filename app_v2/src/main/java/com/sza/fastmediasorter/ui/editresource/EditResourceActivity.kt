@@ -110,6 +110,15 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             }
         })
 
+        // Resource comment
+        binding.etResourceComment.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                viewModel.updateComment(s?.toString() ?: "")
+            }
+        })
+
         // Is destination switch
         binding.switchIsDestination.setOnCheckedChangeListener { _, isChecked ->
             Timber.d("Switch isDestination clicked: $isChecked")
@@ -286,6 +295,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         
                         // Update UI with resource data
                         binding.etResourceName.setText(resource.name)
+                        binding.etResourceComment.setText(resource.comment)
                         binding.etResourcePath.setText(resource.path)
                         binding.tvCreatedDate.text = dateFormat.format(Date(resource.createdDate))
                         binding.tvFileCount.text = when {

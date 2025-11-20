@@ -160,6 +160,12 @@ class EditResourceViewModel @Inject constructor(
         updateCurrentResource(updated)
     }
 
+    fun updateComment(comment: String) {
+        val current = state.value.currentResource ?: return
+        val updated = current.copy(comment = comment)
+        updateCurrentResource(updated)
+    }
+
     fun updateSlideshowInterval(interval: Int) {
         val current = state.value.currentResource ?: return
         val updated = current.copy(slideshowInterval = interval)

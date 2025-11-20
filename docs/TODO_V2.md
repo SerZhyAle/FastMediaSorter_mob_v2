@@ -8,6 +8,30 @@
 
 ## 📌 Recent Fixes
 
+### Build 2.25.1120.xxxx - SMB Subfolder Support in Share Name
+**Problem**: User could not add a specific subfolder of an SMB share (e.g., `_i\output\1`) because "Share Name" field validation rejected backslashes.
+**Root Cause**: `SmbClient` and `SmbOperationsUseCase` treated "Share Name" strictly as the share name, without supporting path components.
+**Solution**: 
+- **SmbClient**: Updated `testConnection` to accept an optional `path` parameter.
+- **SmbOperationsUseCase**: 
+    - `testConnection`: Parses `shareName` input. If it contains separators (`\` or `/`), splits it into `actualShareName` and `subPath`. Passes `subPath` to `SmbClient`.
+    - `saveCredentials`: Parses `shareName` input. Saves only `actualShareName` in credentials. The full path is preserved in `MediaResource.path` by `AddResourceViewModel`.
+**Impact**: Users can now enter `Share\Subfolder` in the "Share Name" field. The app correctly connects to `Share` and navigates to `Subfolder`.
+**Files Changed**:
+- `SmbClient.kt`: Updated `testConnection` signature and logic.
+- `SmbOperationsUseCase.kt`: Updated `testConnection` and `saveCredentials` to parse share name.
+**Verified**: Compilation successful.
+
+### Build 2.25.1120.xxxx - Fixed Copy/Move Dialog Width
+**Problem**: Destination buttons in Copy/Move dialogs were squeezed and text appeared vertical because the dialog width was too narrow (wrapping content).
+**Root Cause**: Standard Android Dialog wraps content width by default. Dynamic buttons with `layout_weight` need more horizontal space.
+**Solution**: Explicitly set dialog window width to 90% of screen width in `onCreate`.
+**Impact**: Destination buttons now have enough space to display text correctly.
+**Files Changed**:
+- `CopyToDialog.kt`: Added `window?.setLayout` in `onCreate`.
+- `MoveToDialog.kt`: Added `window?.setLayout` in `onCreate`.
+**Verified**: Compilation successful.
+
 ### Build 2.25.1119.2013 - Synchronous Trash Cleanup (Instant, No WorkManager Delay)
 **Problem**: WorkManager cleaned trash every 15min - user deleted files, closed app, trash remained for up to 15min
 **Root Cause**: Asynchronous periodic cleanup inappropriate for user-visible temp folders created during session
@@ -215,10 +239,11 @@
   - Show "Operation undone" toast on success
   - Spec Reference: V2_p1_2.md - rename/delete/copy/move sections mention undo
 
-- [ ] **Copy/Move Dialogs - Dynamic Destination Buttons**
+- [x] ~~**Copy/Move Dialogs - Dynamic Destination Buttons**~~ **✅ COMPLETED** (Build 2.25.1120.xxxx)
   - Display 1-10 destination buttons based on available destinations
   - Show destination color (from destinationColor field)
-  - Buttons sized dynamically to fill available space
+  - Buttons sized dynamically to fill available space (Grid layout with 2 columns)
+  - Fixed layout issue where buttons were too narrow (Dialog width set to 90% screen)
   - Background: green for copy, blue for move
   - Header: "copying/moving N files from [source]"
   - Spec Reference: V2_p1_2.md - "copy to..." and "move to..." dialog screens
