@@ -219,3 +219,4 @@ google*.html
 # ✅ Policies: PRIVACY_POLICY.*, TERMS_OF_SERVICE.*
 # ✅ ProGuard rules: proguard-rules.pro
 # ============================================================================
+servers/
