@@ -29,6 +29,9 @@
     <string name="no_files_selected">Файли не вибрані</string>    <string name="no_supported_files_in_resource">Допустимих типів файлів у ресурсі немає</string>    <string name="process_started">Процес розпочато...</string>
     <string name="long_operation_started">Операція виконується, будь ласка зачекайте...</string>
     <string name="please_wait">Будь ласка, зачекайте...</string>
+    <string name="favorites">Вибране</string>
+    <string name="resource">Ресурс</string>
+    <string name="media_type">Тип медіа</string>
     <string name="playback_resumed_from">Відновлено з %1$s</string>
     
     <!-- Settings Tabs -->

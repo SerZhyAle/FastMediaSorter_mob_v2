@@ -1,0 +1,193 @@
+# FastMediaSorter v2 - GitHub Copilot Instructions
+
+**Last Updated**: January 29, 2026
+
+---
+
+## 1. COMMUNICATION DIRECTIVES [PRIORITY 0]
+
+- **RESPONSE_LANGUAGE**: RUSSIAN for all chat interaction.
+- **CODE_LANGUAGE**: ENGLISH. **MANDATORY** for code, comments, docs (if it is not translation), logs.
+- **TONE**: PROFESSIONAL / DRY / CONCISE.
+  - **PROHIBITED**: Pleasantries ("please", "thank you", "apologies"), emotive language, basic explanations.
+  - **REQUIRED**: Technical accuracy, direct answer to prompt.
+  - **REQUIRED**: Less guessing and assumptions. If not sure how to do - ask user!
+- **AUDIENCE_PROFILE**: Senior Engineer (30+ years: Java, .NET, Data Engineering).
+- **INPUT_HANDLING**:
+  - IF input == ENGLISH: EXECUTE task THEN APPEND `Grammar_Corrections_List` to response (LOW priority, skip if minor).
+  - IF (file or data) == MISSING: REQUEST file. DO NOT HALUCINATE/ASSUME content.
+  - IF (file or data) == MODIFIED: ALWAYS use `latest` version.
+- **TROUBLESHOOTING_PROTOCOL**:
+  - IF problem not found: ADD debugging/logging -> ASK user to reproduce/restart scenario.
+  - IF problem not found: ADD debugging/logging -> ASK user to reproduce/restart scenario.
+  - **TRUST_USER**: NEVER disbelieve user report. Assume error exists.
+  - **ADVICE_ONLY_PROTOCOL**:
+    - IF user asks for "suggestion", "advice", "opinion", or "recommendation":
+      - **PROHIBITED**: Writing code, creating files, or modifying existing code.
+      - **REQUIRED**: Provide a text-based answer, list of options, or high-level analysis.
+      - **EXCEPTION**: Only write code if EXPLICITLY asked to "implement", "fix", "write", or "change".
+
+---
+
+## 2. PROJECT ARCHITECTURE
+
+**Framework**: Android Native (Kotlin 1.9+, Java 17).
+**Pattern**: Clean Architecture + MVVM + Hilt DI.
+
+### 2.1 Module Structure
+
+- `root/`
+  - `app_v2/` [Main App]: Kotlin, View System + Material3, `compileSdk 35`.
+  - `wear/` [Companion]: Wear OS, Compose.
+  - `dev/`: Development scripts, specs.
+  - `dev/archive/`: Archived old requests/todo and deprecated code (do not modify).
+  - `docs/`: Documentation (MD files).
+  - `downloads/`: Last build results (apk) and journal.
+  - `scripts/`: Implementation scripts.
+  - `store_assets/`: Store assets (texts, icons, screenshots).
+  - `temp/`: **SCRATCHPAD**. All logs/debug outputs GO HERE. (`.gitignore` active).
+  - `web/`: HTML Documentation.
+  - `test_media/`: Test assets.
+  - `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/` - **CRITICAL**: All Player logic extracted from Activity.
+
+### 2.2 Data Flow Blueprint
+
+`UI` → `ViewModel` → `UseCase` → `Repository` → `DataSource` (Local/Network)
+
+### 2.3 Three-Layer Structure
+
+- **UI (`ui/`)**: Activities/Fragments observe `StateFlow`/`SharedFlow` from ViewModels. Zero business logic.
+- **Domain (`domain/`)**: UseCases encapsulate single operations. Only depends on repository interfaces.
+- **Data (`data/`)**: Repository implementations, Room entities, network clients (SMB/SFTP/FTP/Cloud).
+
+**Dependency Rule**: `UI` → `Domain` (via UseCases) → `Data` (via Repository interfaces).
+
+### 2.4 Key Patterns
+
+1. **ViewModels**: `@HiltViewModel`. Expose `StateFlow` for state, `SharedFlow` for one-time events.
+2. **UseCases**: Single-responsibility `VerbNounUseCase` (e.g., `GetMediaFilesUseCase`).
+3. **Manager Pattern (UI)**: Delegate complex Activity logic to "Managers". **Mandatory for massive Activities.**
+4. **Strategy Pattern**: File operations use `FileOperationStrategy` (e.g., `SmbOperationStrategy`).
+5. **Connection Pooling**: Network clients must use pooling managers (e.g., `SmbConnectionManager`).
+
+---
+
+## 3. DEVELOPMENT OPERATIONS
+
+### 3.1 Build Commands (PowerShell)
+
+```powershell
+# PRIMARY DEBUG BUILD (Auto-versioning)
+.\dev\build-with-version.ps1
+
+# FAST DEBUG (No version bump)
+.\build-debug.PS1
+
+# FLAVOR BUILDS
+.\gradlew.bat assembleStandardDebug
+.\gradlew.bat assembleLiteDebug
+.\gradlew.bat assemblePhotosDebug
+.\gradlew.bat assembleLegacyDebug
+
+# WEAR OS
+.\gradlew.bat :wear:assembleDebug
+
+# RELEASE
+.\gradlew.bat assembleStandardRelease
+```
+
+### 3.2 Test & Verify
+
+```powershell
+# UNIT TESTS
+.\gradlew.bat testStandardDebugUnitTest
+
+# LINT
+.\gradlew.bat lintStandardDebug
+```
+
+### 3.3 Database Migrations
+
+Room DB version 6. Migrations in `AppDatabase.kt`. Always increment version on schema change.
+
+---
+
+## 4. CODING STANDARDS [STRICT]
+
+### 4.1 Constraints
+
+- **ROOT_CLEANLINESS**: **MANDATORY**. Keep root folder clean.
+  - **ACTION**: ALL temporary files, logs, debug outputs MUST be created in `temp/`.
+- **FILE_SIZE**: Max 1000 lines (soft limit).
+  - **ACTION**: Use `helpers/*.kt` classes to split logic during development.
+  - **AIM**: Keep files concise and readable.
+- **ACTIVITY_LOGIC**: **PROHIBITED**. Complex logic MUST reside in `helpers/*Manager`.
+  - _Example_: `PlayerActivity.kt` delegates to `VideoPlayerManager.kt`.
+- **NAMING**:
+  - UseCase: `VerbNounUseCase` (`GetFileUseCase`)
+  - Repository: `NounRepository` (`MediaRepository`)
+  - ViewModel: `NounViewModel` (`PlayerViewModel`)
+  - Manager: `NounVerbManager` (`PlayerGestureSetupManager`, `VideoPlayerManager`)
+
+### 4.2 Logging Protocol
+
+- **LIBRARY**: `Timber`.
+- **DIRECT_LOG**: `Log.d()` is **PROHIBITED**.
+- **OUTPUT**: Write extensive logs to `temp/*.log` for debugging.
+
+### 4.3 Coroutines
+
+- **IO**: File/Network operations.
+- **Main**: UI interactions.
+- **Scope**: `viewModelScope` preferred. Check `Job.isActive` for cancellation.
+
+---
+
+## 5. FEATURE FLAGS (BuildConfig)
+
+| FLAVOR       | VIDEO | AUDIO | IMAGES | CLOUD | DOCS | ANIM |
+| :----------- | :---: | :---: | :----: | :---: | :--: | :--: |
+| **standard** |  [+]  |  [+]  |  [+]   |  [+]  | [+]  | [+]  |
+| **lite**     |  [+]  |  [-]  |  [+]   |  [-]  | [-]  | [-]  |
+| **photos**   |  [-]  |  [-]  |  [+]   |  [-]  | [-]  | [+]  |
+| **legacy**   |  [+]  |  [+]  |  [+]   |  [-]  | [-]  | [+]  |
+
+---
+
+## 6. DEPENDENCY STACK
+
+_See `gradle/libs.versions.toml` for exact versions._
+
+- **Core**: Hilt, Room
+- **Media**: ExoPlayer (Media3)
+- **Image**: Glide (App), Coil (Wear)
+- **Network**: SMBJ (SMB), SSHJ (SFTP), Commons Net (FTP), OkHttp/Retrofit
+- **Cloud**: Google Drive, OneDrive (MSAL), Dropbox
+- **OCR/AI**: ML Kit + Tesseract4Android
+
+### 6.1 Network Protocol Notes
+
+- **SMB**: Use `SmbConnectionManager` for connection pooling.
+- **FTP**: Apache Commons Net. Use active mode fallback for PASV timeouts.
+- **SFTP**: SSHJ + EdDSA. Check `Job.isActive` for cancellation.
+
+---
+
+## 7. CRITICAL BLACKZONES [NO-WRITE AREAS]
+
+- `V1/` - Legacy version 1 (reference only)
+- `v2_6/` - Unsuccessful version attempt (reference only)
+- `spec_v2/` - v2.x specification documents (reference only)
+- `dev/archive/` - Archived deprecated code
+
+**ACTION**: READ-ONLY. DO NOT modify.
+
+---
+
+## 8. COMMON PITFALLS
+
+1. **Player Logic**: Do NOT add code to `PlayerActivity.kt`. Add to relevant Manager in `ui/player/helpers/`.
+2. **Coroutines**: Use `Dispatchers.IO` for file/network ops. Check `Job.isActive`.
+3. **FTP**: Handle timeouts diligently; do not rely on `completePendingCommand` after error.
+4. **Images**: Network editing requires download/edit/upload cycle (`NetworkImageEditUseCase`).
+5. **File Storage**: Do not save anything in the root folder. Use `temp/` for logs and temporary files.

@@ -31,6 +31,9 @@
     <string name="process_started">Процесс запущен...</string>
     <string name="long_operation_started">Операция выполняется, пожалуйста подождите...</string>
     <string name="please_wait">Пожалуйста, подождите...</string>
+    <string name="favorites">Избранное</string>
+    <string name="resource">Ресурс</string>
+    <string name="media_type">Тип медиа</string>
     <string name="playback_resumed_from">Возобновлено с %1$s</string>
     
     <!-- Settings Tabs -->
