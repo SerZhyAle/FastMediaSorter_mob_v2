@@ -11,6 +11,10 @@ class UpdateResourceUseCase @Inject constructor(
     suspend operator fun invoke(resource: MediaResource): Result<Unit> {
         return try {
             Timber.d("UpdateResourceUseCase: Updating resource '${resource.name}', scanSubdirectories=${resource.scanSubdirectories}, showSubfoldersAsItems=${resource.showSubfoldersAsItems}, allFiles=${resource.allFiles}, type=${resource.type}")
+            Timber.i("╔═══ UPDATE RESOURCE usecase ═══")
+            Timber.i("║ supportedMediaTypes: ${resource.supportedMediaTypes.map { it.name }}")
+            Timber.i("║ Size: ${resource.supportedMediaTypes.size}/7")
+            Timber.i("╚═══════════════════════════════")
             repository.updateResource(resource)
             Timber.d("UpdateResourceUseCase: Successfully updated resource '${resource.name}'")
             Result.success(Unit)

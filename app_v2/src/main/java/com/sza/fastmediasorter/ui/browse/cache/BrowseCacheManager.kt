@@ -85,7 +85,17 @@ class BrowseCacheManager(
             cachedFiles.size >= paginationThreshold -> {
                 Timber.d("BrowseCacheManager: Using cached list (${cachedFiles.size} files) - large resource, skipping scan")
                 val filteredFiles = if (filter != null) {
-                    applyFilter(cachedFiles, filter)
+                    Timber.i("╔═══ APPLYING CACHE FILTER ═══")
+                    Timber.i("║ Filter mediaTypes: ${filter.mediaTypes?.map { it.name } ?: "ALL"}")
+                    Timber.i("║ Files BEFORE filter: ${cachedFiles.size}")
+                    val result = applyFilter(cachedFiles, filter)
+                    Timber.i("║ Files AFTER filter: ${result.size}")
+                    if (result.size < cachedFiles.size) {
+                        val removed = cachedFiles.size - result.size
+                        Timber.i("║ Filtered OUT: $removed files")
+                    }
+                    Timber.i("╚══════════════════════════════")
+                    result
                 } else {
                     cachedFiles
                 }

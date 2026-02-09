@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
@@ -100,9 +101,21 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            // Resource was updated, reload everything
-            Timber.i("Resource updated, reloading files")
-            viewModel.reloadFiles()
+            val requiresRescan = result.data?.getBooleanExtra(
+                com.sza.fastmediasorter.ui.editresource.EditResourceActivity.EXTRA_REQUIRES_RESCAN,
+                false
+            ) ?: false
+            
+            if (requiresRescan) {
+                // Settings affecting file list changed - full reload with list clear
+                // Cache is automatically cleared inside reloadFiles()
+                Timber.i("Resource updated with file list changes, reloading files")
+                viewModel.reloadFiles(clearList = true)
+            } else {
+                // Only metadata changed - reload resource but keep file list
+                Timber.i("Resource metadata updated, refreshing without rescan")
+                viewModel.refreshResourceMetadata()
+            }
         }
     }
     
@@ -780,6 +793,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         mediaFileAdapter.setSkipInitialThumbnailLoad(true)
                         
                         mediaFileAdapter.submitList(state.mediaFiles) {
+                            // CRITICAL: Check if Activity is still alive before accessing binding
+                            // submitList callback can be called AFTER onDestroy (race condition)
+                            if (isDestroyed || isFinishing) {
+                                Timber.w("submitList callback: Activity destroyed/finishing, skipping")
+                                return@submitList
+                            }
+                            
                             Timber.d("=== submitList CALLBACK START ===")
                             Timber.d("Adapter list submitted successfully, current itemCount=${mediaFileAdapter.itemCount}")
                             Timber.d("skipInitialThumbnailLoad flag BEFORE check: ${mediaFileAdapter.getSkipInitialThumbnailLoad()}")
@@ -825,6 +845,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                     // Layout ready but no children yet OR not laid out - use post {} to trigger after children are bound
                                     Timber.d("=== RecyclerView laid out but childCount=${binding.rvMediaFiles.childCount} - using post {} ===")
                                     binding.rvMediaFiles.post {
+                                        // Check if Activity still alive in post {} callback
+                                        if (isDestroyed || isFinishing) {
+                                            Timber.w("post callback: Activity destroyed/finishing, skipping")
+                                            return@post
+                                        }
+                                        
                                         Timber.d("=== POST EXECUTED - checking for visible items ===")
                                         val layoutManager = binding.rvMediaFiles.layoutManager
                                         Timber.d("LayoutManager type: ${layoutManager?.javaClass?.simpleName}, childCount=${binding.rvMediaFiles.childCount}")
@@ -899,6 +925,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                         
                                         if (position >= 0) {
                                             binding.rvMediaFiles.post {
+                                                // Check if Activity still alive in post {} callback
+                                                if (isDestroyed || isFinishing) {
+                                                    Timber.w("post callback (scroll restore): Activity destroyed/finishing, skipping")
+                                                    return@post
+                                                }
+                                                
                                                 val layoutManager = binding.rvMediaFiles.layoutManager
                                                 when (layoutManager) {
                                                     is LinearLayoutManager -> {
@@ -927,6 +959,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                     // Validate position is within bounds
                                     if (position < itemCount) {
                                         binding.rvMediaFiles.post {
+                                            // Check if Activity still alive in post {} callback
+                                            if (isDestroyed || isFinishing) {
+                                                Timber.w("post callback (restore scroll position): Activity destroyed/finishing, skipping")
+                                                return@post
+                                            }
+                                            
                                             val layoutManager = binding.rvMediaFiles.layoutManager
                                             when (layoutManager) {
                                                 is LinearLayoutManager -> {

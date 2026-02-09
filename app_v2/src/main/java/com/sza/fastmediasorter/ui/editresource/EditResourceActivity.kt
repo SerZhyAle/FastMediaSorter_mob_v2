@@ -5,6 +5,7 @@ package com.sza.fastmediasorter.ui.editresource
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,6 +43,10 @@ import java.util.Locale
 
 @AndroidEntryPoint
 class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
+
+    companion object {
+        const val EXTRA_REQUIRES_RESCAN = "extra_requires_rescan"
+    }
 
     private val viewModel: EditResourceViewModel by viewModels()
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
@@ -675,7 +680,10 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         }
                         is EditResourceEvent.ResourceUpdated -> {
                             Toast.makeText(this@EditResourceActivity, getString(R.string.resource_updated), Toast.LENGTH_SHORT).show()
-                            setResult(RESULT_OK)
+                            val resultIntent = Intent().apply {
+                                putExtra(EXTRA_REQUIRES_RESCAN, event.requiresRescan)
+                            }
+                            setResult(RESULT_OK, resultIntent)
                             finish()
                         }
                         is EditResourceEvent.TestResult -> {

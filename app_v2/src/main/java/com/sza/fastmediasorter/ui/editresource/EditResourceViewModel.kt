@@ -70,7 +70,7 @@ sealed class EditResourceEvent {
     data class ShowError(val message: String) : EditResourceEvent()
     data class ShowMessage(val message: String) : EditResourceEvent()
     data class ShowMessageRes(val messageResId: Int, val args: List<Any> = emptyList()) : EditResourceEvent()
-    object ResourceUpdated : EditResourceEvent()
+    data class ResourceUpdated(val requiresRescan: Boolean) : EditResourceEvent() // requiresRescan=true if file list needs reload
     data class TestResult(val success: Boolean, val message: String) : EditResourceEvent()
     data class ConfirmClearTrash(val count: Int) : EditResourceEvent()
     data class TrashCleared(val count: Int) : EditResourceEvent()
@@ -555,6 +555,25 @@ class EditResourceViewModel @Inject constructor(
             ) 
         }
     }
+    
+    /**
+     * Determines if changes require file list rescan.
+     * Returns true only if properties affecting file visibility changed:
+     * - supportedMediaTypes (VIDEO, IMAGE, etc)
+     * - scanSubdirectories
+     * - showSubfoldersAsItems
+     * - allFiles
+     * - showHiddenFiles
+     * 
+     * Returns false for metadata changes (name, comment, pin, displayMode, etc)
+     */
+    private fun requiresFileListRescan(original: MediaResource, updated: MediaResource): Boolean {
+        return original.supportedMediaTypes != updated.supportedMediaTypes ||
+               original.scanSubdirectories != updated.scanSubdirectories ||
+               original.showSubfoldersAsItems != updated.showSubfoldersAsItems ||
+               original.allFiles != updated.allFiles ||
+               original.showHiddenFiles != updated.showHiddenFiles
+    }
 
     fun resetToOriginal() {
         val original = state.value.originalResource ?: return
@@ -573,6 +592,12 @@ class EditResourceViewModel @Inject constructor(
         val currentState = state.value
         
         Timber.d("EditResourceVM.saveChanges: scanSubdirectories=${current.scanSubdirectories}, showSubfoldersAsItems=${current.showSubfoldersAsItems}, name=${current.name}")
+        Timber.i("╔═══ SAVING RESOURCE ═══")
+        Timber.i("║ Name: ${current.name}")
+        Timber.i("║ supportedMediaTypes: ${current.supportedMediaTypes.map { it.name }}")
+        Timber.i("║ Size: ${current.supportedMediaTypes.size}/7")
+        Timber.i("║ Contains VIDEO: ${current.supportedMediaTypes.contains(MediaType.VIDEO)}")
+        Timber.i("╚════════════════════════")
         
         if (current.name.isBlank()) {
             sendEvent(EditResourceEvent.ShowError("Resource name cannot be empty"))
@@ -722,7 +747,15 @@ class EditResourceViewModel @Inject constructor(
             
             updateResourceUseCase(updatedResource).onSuccess {
                 Timber.d("Resource updated: ${updatedResource.name}")
-                sendEvent(EditResourceEvent.ResourceUpdated)
+                
+                // Determine if changes require rescan (file list reload)
+                val requiresRescan = requiresFileListRescan(
+                    original = state.value.originalResource!!,
+                    updated = updatedResource
+                )
+                Timber.d("Resource update - requiresRescan=$requiresRescan")
+                
+                sendEvent(EditResourceEvent.ResourceUpdated(requiresRescan = requiresRescan))
                 
                 // Update original to prevent hasChanges flag after save
                 updateState { 

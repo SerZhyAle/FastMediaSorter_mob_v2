@@ -474,11 +474,25 @@ class BrowseViewModel @Inject constructor(
         invalidateDirectoryCache()
     }
 
-    fun reloadFiles() {
+    fun reloadFiles(clearList: Boolean = true) {
         // Cancel previous reload if still running to prevent parallel reloads
         reloadFilesJob?.cancel()
         reloadFilesJob = viewModelScope.launch(ioDispatcher) {
             val currentResource = state.value.resource
+            
+            // Step 0: CONDITIONAL - Clear current file list only if file visibility settings changed
+            // clearList=true: user changed supportedMediaTypes, scanSubdirectories, etc - old files must disappear
+            // clearList=false: user changed only metadata (name, comment, pin) - keep showing current files
+            if (clearList) {
+                withContext(Dispatchers.Main) {
+                    Timber.i("BrowseViewModel.reloadFiles: Clearing current file list to force UI refresh (file settings changed)")
+                    updateState { it.copy(mediaFiles = emptyList(), loadingProgress = 0) }
+                    // Reset lastEmittedMediaFiles to force adapter submit on next update
+                    lastEmittedMediaFiles = null
+                }
+            } else {
+                Timber.i("BrowseViewModel.reloadFiles: Keeping current file list (only metadata changed)")
+            }
             
             // Step 1: Clean up ALL .trash folders in the resource directory
             if (currentResource?.type == ResourceType.LOCAL) {
@@ -524,9 +538,30 @@ class BrowseViewModel @Inject constructor(
     }
     
     /**
-     * Cancel currently running scan operation.
-     * Saves partial file list to cache for user to work with.
+     * Refreshes resource metadata from database without reloading file list.
+     * Used when only metadata changed (name, comment, pin, displayMode, etc).
      */
+    fun refreshResourceMetadata() {
+        viewModelScope.launch(ioDispatcher) {
+            Timber.i("BrowseViewModel.refreshResourceMetadata: START - loading updated resource from database")
+            val updatedResource = getResourcesUseCase.getById(resourceId)
+            if (updatedResource != null) {
+                withContext(Dispatchers.Main) {
+                    Timber.i("BrowseViewModel.refreshResourceMetadata: Resource loaded - name='${updatedResource.name}', sortMode=${updatedResource.sortMode}, displayMode=${updatedResource.displayMode}")
+                    updateState { 
+                        it.copy(
+                            resource = updatedResource,
+                            sortMode = updatedResource.sortMode,
+                            displayMode = updatedResource.displayMode
+                        ) 
+                    }
+                }
+            } else {
+                Timber.e("BrowseViewModel.refreshResourceMetadata: Resource not found for id=$resourceId")
+            }
+        }
+    }
+
     fun cancelScan() {
         // Setting graceful stop flag
         // Set flag to signal scanner to stop gracefully and return partial results
@@ -853,6 +888,11 @@ class BrowseViewModel @Inject constructor(
             
             Timber.d("BrowseViewModel.loadResource: Resource found - name='${resource.name}', type=${resource.type}, path='${resource.path}'")
             Timber.d("BrowseViewModel.loadResource: fileCount=${resource.fileCount}, isWritable=${resource.isWritable}, lastBrowse=${resource.lastBrowseDate}")
+            Timber.i("╔═══ RESOURCE MEDIA TYPES ═══")
+            Timber.i("║ supportedMediaTypes: ${resource.supportedMediaTypes.map { it.name }}")
+            Timber.i("║ Size: ${resource.supportedMediaTypes.size}/7")
+            Timber.i("║ Contains VIDEO: ${resource.supportedMediaTypes.contains(com.sza.fastmediasorter.domain.model.MediaType.VIDEO)}")
+            Timber.i("╚═══════════════════════════")
             
             // Note: Previously we called smbClient.resetClients() here, but that kills 
             // active background operations (copy/move) which share the singleton client.
@@ -898,6 +938,10 @@ class BrowseViewModel @Inject constructor(
             }
             
             Timber.d("BrowseViewModel.loadResource: restoredFilter=$restoredFilter (supportedTypes=${resource.supportedMediaTypes.size})")
+            Timber.i("╔═══ FILTER RESTORED ═══")
+            Timber.i("║ Will filter: ${restoredFilter != null}")
+            Timber.i("║ Filter types: ${restoredFilter?.mediaTypes?.map { it.name } ?: "ALL"}")
+            Timber.i("╚════════════════════════")
             Timber.d("BrowseViewModel.loadResource: RESTORING sortMode=${resource.sortMode} from database for resource '${resource.name}' (id=${resource.id})")
             
             // Determine initial subfolder mode based on resource settings
