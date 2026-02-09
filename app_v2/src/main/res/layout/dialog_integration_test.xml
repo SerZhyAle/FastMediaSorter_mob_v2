@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_large"
+    android:background="?attr/colorSurface">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Integration Tests"
+        android:textSize="@dimen/text_size_huge"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Automated testing of file operations across all resource types"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <!-- Test Group Buttons - Row 1 -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="@dimen/margin_tiny">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAll"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="All Tests"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFailedOnly"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Failed Only"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipLocal"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Local"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNetwork"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Network"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipImage"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Image"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipGif"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="GIF"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Test Group Buttons - Row 2 -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="@dimen/margin_normal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMatrixCopy"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Matrix Copy"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMatrixMove"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Matrix Move"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMatrixOther"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Matrix Other"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipSettings"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Settings"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFavorites"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Favorites"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipMetadata"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Metadata"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Test Group Buttons - Row 3 (New Features) -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:layout_marginBottom="@dimen/margin_normal">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipAudio"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Audio"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipNetworkUtils"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Network Utils"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCache"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cache"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipScanning"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Scanning"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipCloudProviders"
+                style="@style/Widget.Material3.Chip.Filter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cloud Providers"
+                android:layout_marginEnd="@dimen/margin_tiny" />
+
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Progress Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/padding_normal"
+        android:background="?attr/colorSurfaceVariant"
+        android:layout_marginBottom="@dimen/margin_large">
+
+        <TextView
+            android:id="@+id/tvProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ready to run tests"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:textColor="?attr/colorOnSurface"
+            android:layout_marginBottom="@dimen/margin_tiny" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Click 'Run Tests' to start"
+            android:textSize="@dimen/resource_card_desc_text_size"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:max="100"
+            android:progress="0" />
+    </LinearLayout>
+
+    <!-- Log Output -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Test Log:"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:textStyle="bold"
+        android:textColor="?attr/colorOnSurface"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <ScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@android:color/black"
+        android:padding="@dimen/padding_small">
+
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="No tests run yet"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="@android:color/white"
+            android:fontFamily="monospace"
+            android:textIsSelectable="true" />
+    </ScrollView>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/margin_large"
+        android:gravity="end">
+
+        <Button
+            android:id="@+id/btnImportLog"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Import Log"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <Button
+            android:id="@+id/btnCopyLog"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Copy Log"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <Button
+            android:id="@+id/btnSaveLog"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Save Log"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <Button
+            android:id="@+id/btnClose"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Close" />
+    </LinearLayout>
+
+</LinearLayout>

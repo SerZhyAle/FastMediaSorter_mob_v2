@@ -1,0 +1,27 @@
+Список всех найденных таймаутов в приложении:
+
+SMB (Windows Shares) - SmbClient.kt
+Connection Timeout: 10 секунд (обычный режим), 20 секунд (при плохой сети)
+Read Timeout: 20 секунд (обычный), 30 секунд (при плохой сети)
+Write Timeout: 30 секунд
+Idle Timeout: 20 секунд (время жизни неактивного соединения)
+
+SFTP (SSH) - SftpClient.kt
+Connection Timeout: 15 секунд
+Socket Timeout: 15 секунд
+Idle Timeout: 20 секунд
+
+FTP - FtpClient.kt
+Connection Timeout: 15 секунд
+Socket Timeout: 30 секунд
+KeepAlive Timeout: 15 секунд
+
+Lyrics Search - SearchLyricsUseCase.kt
+Connect/Read Timeout: 10 секунд
+
+General Network (OkHttp / Retrofit) - AppModule.kt
+Connect/Read/Write Timeout: 10 секунд (используется для загрузки обложек и прочих запросов)
+
+
+UI / Player
+Player Controls Hide: 15 секунд (для видео)

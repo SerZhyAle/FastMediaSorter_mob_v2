@@ -1,0 +1,127 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: File Operations
+# Description: Verify file copy and move operations using prepared test folders
+# Duration: ~60 seconds
+# Prerequisites: Run scripts/setup_test_media.ps1
+
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Open Downloads resource
+- scrollUntilVisible:
+    element:
+      text: "Downloads"
+    timeout: 10000
+
+- tapOn:
+    text: "Downloads"
+
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+
+# Navigate to test folder
+- scrollUntilVisible:
+    element:
+      text: "FastMediaSorter_Test"
+    timeout: 10000
+
+- tapOn:
+    text: "FastMediaSorter_Test"
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "_ops_src"
+    timeout: 10000
+
+- tapOn:
+    text: "_ops_src"
+- waitForAnimationToEnd
+
+# Copy flow
+- scrollUntilVisible:
+    element:
+      text: "ops_copy_1.jpg"
+    timeout: 10000
+
+- longPressOn:
+    text: "ops_copy_1.jpg"
+
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "(Copy|Копировать)"
+
+- waitForAnimationToEnd
+
+- back
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "_ops_dst"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "(Paste|Вставить)"
+
+- waitForAnimationToEnd
+
+- assertVisible:
+    text: "ops_copy_1.jpg"
+
+# Move flow
+- back
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "_ops_src"
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "ops_move_1.jpg"
+    timeout: 10000
+
+- longPressOn:
+    text: "ops_move_1.jpg"
+
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "(Move|Переместить)"
+
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "_ops_dst"
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "(Paste|Вставить)"
+    optional: true
+
+- tapOn:
+    text: "(OK|ОК|Confirm|Подтвердить)"
+    optional: true
+
+- waitForAnimationToEnd
+
+- assertVisible:
+    text: "ops_move_1.jpg"
+
+# Verify moved file is no longer in source folder
+- back
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "_ops_src"
+- waitForAnimationToEnd
+
+- assertNotVisible:
+    text: "ops_move_1.jpg"

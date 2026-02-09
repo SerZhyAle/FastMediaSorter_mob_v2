@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== 480x480 SCREEN CONFIGURATION ===== -->
+    <!-- Integer values optimized for 480x480 compact screens -->
+    
+    <!-- Grid column counts for 480x480 -->
+    <integer name="grid_column_count">3</integer>
+    <integer name="grid_column_count_landscape">2</integer>
+    <integer name="resource_grid_column_count">1</integer>
+    <integer name="grid_columns_main">2</integer>
+    <integer name="grid_columns_gallery">2</integer>
+    <integer name="grid_columns_images">1</integer>
+    <integer name="max_visible_items">6</integer>
+    
+    <!-- Animation durations (in milliseconds) - fast animations for responsive feel -->
+    <integer name="animation_duration_short">100</integer>
+    <integer name="animation_duration_normal">200</integer>
+    <integer name="animation_duration_long">300</integer>
+    
+    <!-- Scroll/Swipe sensitivity -->
+    <integer name="scroll_threshold_dp">10</integer>
+    
+    <!-- Video player quality settings for 480x480 - optimized for small screens -->
+    <integer name="default_player_quality">720</integer>
+    <integer name="min_player_quality">480</integer>
+</resources>

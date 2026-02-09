@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google OAuth 2.0 Web Client ID for Google Drive API (DEBUG) -->
+    <!-- This is the debug Web Client ID from Google Cloud Console -->
+    <string name="google_web_client_id" translatable="false">764216752430-ntmkpgknsiu7bi7ql7bbjfni9kcj83b0.apps.googleusercontent.com</string>
+</resources>

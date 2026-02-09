@@ -1,0 +1,146 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/item_focus_selector"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:paddingStart="@dimen/padding_small"
+    android:paddingEnd="@dimen/padding_small"
+    android:paddingTop="@dimen/item_divider_height"
+    android:paddingBottom="@dimen/item_divider_height">
+
+    <CheckBox
+        android:id="@+id/cbSelect"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <ImageView
+        android:id="@+id/ivThumbnail"
+        android:layout_width="@dimen/item_icon_size_medium"
+        android:layout_height="@dimen/item_icon_size_medium"
+        android:layout_marginStart="@dimen/margin_small"
+        android:scaleType="centerCrop"
+        android:contentDescription="Thumbnail"
+        android:background="?android:selectableItemBackground"
+        app:layout_constraintStart_toEndOf="@id/cbSelect"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:src="@android:drawable/ic_menu_gallery" />
+
+    <TextView
+        android:id="@+id/tvFileName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/dialog_button_spacing"
+        android:textSize="@dimen/item_subtitle_text_size"
+        android:textStyle="bold"
+        android:includeFontPadding="false"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginTop="0dp"
+        app:layout_constraintEnd_toStartOf="@+id/btnCopyItem"
+        app:layout_constraintStart_toEndOf="@+id/ivThumbnail"
+        app:layout_constraintTop_toTopOf="@+id/ivThumbnail"
+        app:layout_constraintBottom_toTopOf="@+id/tvFileInfo"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:text="IMG_20231106_123456.jpg" />
+
+    <TextView
+        android:id="@+id/tvFileInfo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="0dp"
+        android:textSize="@dimen/item_detail_text_size"
+        android:includeFontPadding="false"
+        android:textColor="?android:textColorSecondary"
+        app:layout_constraintEnd_toStartOf="@+id/btnFavorite"
+        app:layout_constraintStart_toStartOf="@+id/tvFileName"
+        app:layout_constraintTop_toBottomOf="@+id/tvFileName"
+        app:layout_constraintBottom_toBottomOf="@+id/ivThumbnail"
+        tools:text="2.5 MB • 2023-11-06" />
+
+    <ImageButton
+        android:id="@+id/btnFavorite"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:layout_marginEnd="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Favorite"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/item_padding_small"
+        android:src="@drawable/ic_star_outline"
+        app:layout_constraintEnd_toStartOf="@+id/btnCopyItem"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Operation buttons row -->
+    <ImageButton
+        android:id="@+id/btnCopyItem"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:layout_marginEnd="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Copy"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/item_padding_small"
+        android:src="@android:drawable/ic_menu_save"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/btnMoveItem"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/btnMoveItem"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:layout_marginEnd="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Move"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/item_padding_small"
+        android:src="@android:drawable/ic_menu_revert"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/btnRenameItem"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/btnRenameItem"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:layout_marginEnd="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Rename"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/item_padding_small"
+        android:src="@android:drawable/ic_menu_edit"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/btnDeleteItem"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
+
+    <ImageButton
+        android:id="@+id/btnDeleteItem"
+        android:layout_width="@dimen/item_icon_size_small"
+        android:layout_height="@dimen/item_icon_size_small"
+        android:layout_marginEnd="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Delete"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/item_padding_small"
+        android:src="@android:drawable/ic_menu_delete"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/settings_padding">
+
+        <!-- Network Sync Section Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/network_sync_settings"
+            android:textSize="@dimen/settings_text_size_header"
+            android:textStyle="bold"
+            android:textColor="?android:textColorPrimary"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <!-- Enable/Disable Background Sync -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnableBackgroundSync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/enable_background_sync"
+                android:textSize="@dimen/resource_card_title_text_size" />
+
+        </LinearLayout>
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/background_sync_description"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <!-- Sync Interval Slider -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_interval"
+            android:textSize="@dimen/resource_card_desc_text_size"
+            android:textColor="?android:textColorPrimary"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <TextView
+            android:id="@+id/tvSyncIntervalValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="4 hours"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/sliderSyncInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:valueFrom="1"
+            android:valueTo="24"
+            android:value="4"
+            android:stepSize="1"
+            android:layout_marginBottom="@dimen/settings_margin_large" />
+
+        <!-- Manual Sync Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSyncNow"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_now"
+            android:layout_marginBottom="@dimen/margin_small"
+            app:icon="@android:drawable/ic_popup_sync" />
+
+        <!-- Sync Status -->
+        <TextView
+            android:id="@+id/tvSyncStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sync_status_idle"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?android:textColorSecondary"
+            android:textStyle="italic"
+            android:layout_marginTop="@dimen/margin_small" />
+
+    </LinearLayout>
+
+</ScrollView>

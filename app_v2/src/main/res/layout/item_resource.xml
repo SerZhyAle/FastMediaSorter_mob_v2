@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/item_margin_tiny"
+    android:background="@drawable/item_focus_selector"
+    android:focusable="true"
+    android:focusableInTouchMode="false">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="@dimen/card_corner_radius"
+        app:cardElevation="@dimen/card_elevation">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/rootLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="@dimen/item_padding_vertical">
+
+        <TextView
+            android:id="@+id/tvResourceName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/item_title_text_size"
+            android:textStyle="bold"
+            android:textColor="?android:textColorPrimary"
+            app:layout_constraintEnd_toStartOf="@+id/tvDestinationBadge"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Downloads" />
+        
+        <TextView
+            android:id="@+id/tvDestinationBadge"
+            android:layout_width="@dimen/item_status_badge_size"
+            android:layout_height="@dimen/item_status_badge_size"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:background="@drawable/badge_destination_background"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/tvDestinationMark"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:text="5"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvDestinationMark"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/item_title_text_size"
+            android:textStyle="bold"
+            android:textColor="?android:textColorPrimary"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            app:layout_constraintEnd_toStartOf="@+id/tvWritableIndicator"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:text="→" />
+
+        <TextView
+            android:id="@+id/tvWritableIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/item_subtitle_text_size"
+            android:text="🔒"
+            android:visibility="gone"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            app:layout_constraintEnd_toStartOf="@+id/tvAvailabilityIndicator"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvAvailabilityIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/item_detail_text_size"
+            android:text="N/A"
+            android:textColor="?android:textColorSecondary"
+            android:textStyle="bold"
+            android:visibility="gone"
+            android:layout_marginEnd="@dimen/margin_small"
+            app:layout_constraintEnd_toStartOf="@+id/btnMoreActions"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceName"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvResourcePath"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:textSize="@dimen/item_detail_text_size_small"
+            android:textColor="?android:textColorSecondary"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintEnd_toEndOf="@+id/tvResourceName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourceName"
+            tools:text="/storage/emulated/0/Download" />
+
+        <TextView
+            android:id="@+id/tvResourceComment"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:textSize="@dimen/text_size_tiny"
+            android:textStyle="italic"
+            android:textColor="?android:textColorSecondary"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/tvResourceName"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourcePath"
+            tools:text="My backup folder"
+            tools:visibility="visible" />
+
+        <ImageView
+            android:id="@+id/ivResourceTypeIcon"
+            android:layout_width="@dimen/item_icon_size_tiny"
+            android:layout_height="@dimen/item_icon_size_tiny"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:contentDescription="Resource type icon"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourceComment"
+            tools:src="@android:drawable/ic_menu_view" />
+
+        <TextView
+            android:id="@+id/tvResourceType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textColor="?android:textColorSecondary"
+            app:layout_constraintStart_toEndOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toTopOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintBottom_toBottomOf="@+id/ivResourceTypeIcon"
+            tools:text="LOCAL" />
+
+        <TextView
+            android:id="@+id/tvFileCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_button_spacing"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textColor="?android:textColorSecondary"
+            app:layout_constraintStart_toEndOf="@+id/tvResourceType"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceType"
+            tools:text="25 files" />
+
+        <TextView
+            android:id="@+id/tvMediaTypes"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_button_spacing"
+            android:textSize="@dimen/item_detail_text_size"
+            android:textColor="?android:textColorSecondary"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/tvFileCount"
+            app:layout_constraintTop_toTopOf="@+id/tvResourceType"
+            tools:text="IVAGTP" />
+
+        <TextView
+            android:id="@+id/tvLastSync"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:textSize="@dimen/item_detail_text_size_small"
+            android:textColor="?android:textColorTertiary"
+            android:textStyle="italic"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/tvResourceName"
+            app:layout_constraintStart_toStartOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toBottomOf="@+id/tvResourceType"
+            tools:text="Last sync: 2 hours ago"
+            tools:visibility="visible" />
+
+        <TextView
+            android:id="@+id/tvSpeedTestResults"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:textSize="@dimen/item_detail_text_size_small"
+            android:textColor="?android:textColorSecondary"
+            android:textStyle="italic"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="@+id/tvResourceName"
+            app:layout_constraintStart_toStartOf="@+id/ivResourceTypeIcon"
+            app:layout_constraintTop_toBottomOf="@+id/tvLastSync"
+            tools:text="Speed: R:50 W:30 Mbps T:2"
+            tools:visibility="visible" />
+
+        <!-- Inline Action Buttons (Visible on tablet/landscape) -->
+        <LinearLayout
+            android:id="@+id/layoutInlineActions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.0">
+
+            <ImageButton
+                android:id="@+id/btnEdit"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/edit"
+                android:src="@android:drawable/ic_menu_edit"
+                android:tint="?attr/colorControlNormal"
+                android:padding="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnCopy"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/copy_resource"
+                android:src="@android:drawable/ic_menu_save"
+                android:tint="?attr/colorControlNormal"
+                android:padding="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnMoveUp"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/move_up"
+                android:src="@android:drawable/arrow_up_float"
+                android:tint="?attr/colorControlNormal"
+                android:padding="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnMoveDown"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/move_down"
+                android:src="@android:drawable/arrow_down_float"
+                android:tint="?attr/colorControlNormal"
+                android:padding="8dp" />
+
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="@dimen/item_icon_size_small"
+                android:layout_height="@dimen/item_icon_size_small"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/delete"
+                android:src="@android:drawable/ic_menu_delete"
+                android:tint="?attr/colorControlNormal"
+                android:padding="8dp" />
+        </LinearLayout>
+
+        <!-- Menu Action Button (replaces individual buttons in portrait) -->
+        <ImageButton
+            android:id="@+id/btnMoreActions"
+            android:layout_width="@dimen/item_icon_size_small"
+            android:layout_height="@dimen/item_icon_size_small"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/more_options"
+            android:src="@drawable/ic_more_vert"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Destination border (colored stroke) - placed after CardView to draw on top -->
+    <View
+        android:id="@+id/viewDestinationBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/destination_border"
+        android:elevation="@dimen/toolbar_elevation"
+        android:visibility="gone" />
+
+</FrameLayout>

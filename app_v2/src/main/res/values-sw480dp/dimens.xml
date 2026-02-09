@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== 480x480 OPTIMIZED DIMENSIONS ===== -->
+    <!-- For compact screens like smartwatches, small phones, and tablets with 480x480 resolution -->
+    
+    <!-- Text sizes - optimized for 480x480 -->
+    <dimen name="text_size_huge">18sp</dimen>
+    <dimen name="text_size_large">16sp</dimen>
+    <dimen name="text_size_normal">13sp</dimen>
+    <dimen name="text_size_small">11sp</dimen>
+    <dimen name="text_size_11sp">11sp</dimen>
+    <dimen name="text_size_tiny">10sp</dimen>
+    <dimen name="text_size_title_dialog">16sp</dimen>
+    <dimen name="text_line_spacing_extra">3dp</dimen>
+    
+    <!-- Padding and margins - compact for 480x480 -->
+    <dimen name="padding_huge">14dp</dimen>
+    <dimen name="padding_xxlarge">18dp</dimen>
+    <dimen name="padding_large">12dp</dimen>
+    <dimen name="padding_normal">9dp</dimen>
+    <dimen name="padding_small">6dp</dimen>
+    <dimen name="padding_tiny">3dp</dimen>
+    
+    <dimen name="margin_normal">6dp</dimen>
+    <dimen name="margin_large">12dp</dimen>
+    <dimen name="margin_xlarge">14dp</dimen>
+    <dimen name="margin_xxlarge">18dp</dimen>
+    <dimen name="margin_huge">14dp</dimen>
+    <dimen name="margin_small">6dp</dimen>
+    <dimen name="margin_tiny">3dp</dimen>
+    <dimen name="margin_minimal">1dp</dimen>
+    <dimen name="stroke_width_normal">2dp</dimen>
+    <dimen name="margin_medium">8dp</dimen>
+    
+    <!-- UI Elements - compact for 480x480 -->
+    <dimen name="button_height">40dp</dimen>
+    <dimen name="button_height_small">36dp</dimen>
+    <dimen name="list_item_height">52dp</dimen>
+    <dimen name="icon_size_large">36dp</dimen>
+    <dimen name="icon_size_normal">28dp</dimen>
+    <dimen name="icon_size_small">22dp</dimen>
+    <dimen name="icon_size_button">18dp</dimen>
+    <dimen name="icon_size_menu">16sp</dimen>
+    <dimen name="icon_size_tiny">14dp</dimen>
+    <dimen name="toolbar_height">48dp</dimen>
+    <dimen name="card_corner_radius">6dp</dimen>
+    <dimen name="card_elevation">1dp</dimen>
+    
+    <!-- ===== SPECIFIC COMPONENTS - 480x480 ===== -->
+    
+    <!-- Page indicators -->
+    <dimen name="indicator_size">7dp</dimen>
+    <dimen name="indicator_margin">4dp</dimen>
+    
+    <!-- Destination buttons in Copy/Move dialogs -->
+    <dimen name="destination_button_min_height">48dp</dimen>
+    <dimen name="destination_border_width">2dp</dimen>
+    
+    <!-- Welcome screen - optimized for 480x480 -->
+    <dimen name="welcome_button_text_size">12sp</dimen>
+    <dimen name="welcome_button_padding">6dp</dimen>
+    <dimen name="welcome_top_nav_padding">6dp</dimen>
+    <dimen name="welcome_indicator_margin_bottom">14dp</dimen>
+    <dimen name="welcome_page_padding">14dp</dimen>
+    <dimen name="welcome_icon_size">72dp</dimen>
+    <dimen name="welcome_icon_margin_top">12dp</dimen>
+    <dimen name="welcome_title_margin_top">10dp</dimen>
+    <dimen name="welcome_title_text_size">16sp</dimen>
+    <dimen name="welcome_description_margin_top">8dp</dimen>
+    <dimen name="welcome_description_text_size">12sp</dimen>
+    
+    <!-- Resource list items -->
+    <dimen name="resource_item_padding">9dp</dimen>
+    <dimen name="resource_item_margin">2dp</dimen>
+    <dimen name="resource_name_text_size">13sp</dimen>
+    <dimen name="resource_path_text_size">11sp</dimen>
+    <dimen name="resource_badge_size">20dp</dimen>
+    <dimen name="resource_indicator_text_size">11sp</dimen>
+    
+    <!-- Main Activity -->
+    <dimen name="main_recycler_margin">6dp</dimen>
+    <dimen name="empty_state_padding">20dp</dimen>
+    <dimen name="empty_state_icon_size">56dp</dimen>
+    <dimen name="control_bar_padding">3dp</dimen>
+    <dimen name="control_button_spacing_small">6dp</dimen>
+    <dimen name="control_button_spacing_large">12dp</dimen>
+    <dimen name="control_button_play_width">72dp</dimen>
+    
+    <!-- Player controls -->
+    <dimen name="player_small_button_size">32dp</dimen>
+    <dimen name="player_medium_button_size">40dp</dimen>
+    <dimen name="player_large_button_size">48dp</dimen>
+    <dimen name="player_controls_padding">4dp</dimen>
+    
+    <!-- Items - compact for 480x480 -->
+    <dimen name="item_padding">10dp</dimen>
+    <dimen name="item_padding_vertical">8dp</dimen>
+    <dimen name="item_icon_size">40dp</dimen>
+    <dimen name="item_thumbnail_size">88dp</dimen>
+    <dimen name="item_grid_thumbnail_size">110dp</dimen>
+    
+    <!-- Dialogs - optimized for small screens -->
+    <dimen name="dialog_min_width">280dp</dimen>
+    <dimen name="dialog_padding_large">14dp</dimen>
+    
+    <!-- Touch targets - maintain 48dp minimum for accessibility -->
+    <dimen name="control_button_size">48dp</dimen>
+    
+    <!-- Text sizes for items -->
+    <dimen name="item_title_text_size">13sp</dimen>
+    <dimen name="item_subtitle_text_size">11sp</dimen>
+    <dimen name="item_detail_text_size">10sp</dimen>
+</resources>

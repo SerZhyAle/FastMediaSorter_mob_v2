@@ -1,0 +1,308 @@
+package com.sza.fastmediasorter.core.util
+
+import android.content.Context
+import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.data.network.model.SmbResult
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import timber.log.Timber
+import java.io.File
+
+/**
+ * Helper class for downloading network files to temporary cache for metadata extraction.
+ * Supports partial downloads based on file type to minimize bandwidth usage.
+ * 
+ * Download sizes:
+ * - IMAGE: 64 KB (EXIF data)
+ * - GIF: 2 MB (frame info - increased from 512KB to accurately count frames)
+ * - VIDEO/AUDIO: 1 MB initial, then 5 MB if metadata not found
+ */
+class NetworkFileDownloader(
+    private val context: Context,
+    private val smbClient: SmbClient?,
+    private val sftpClient: SftpClient?,
+    private val ftpClient: FtpClient?,
+    private val credentialsRepository: NetworkCredentialsRepository?,
+    private val unifiedCache: UnifiedFileCache
+) {
+    companion object {
+        // Download sizes for different file types
+        private const val EXIF_PARTIAL_SIZE = 64 * 1024L // 64 KB for EXIF data
+        private const val GIF_PARTIAL_SIZE = 2 * 1024 * 1024L // 2 MB for GIF info (frame counting)
+        private const val VIDEO_INITIAL_SIZE = 1 * 1024 * 1024L // 1 MB initial download for video
+        private const val VIDEO_EXTENDED_SIZE = 5 * 1024 * 1024L // 5 MB total if initial insufficient
+    }
+    
+    /**
+     * Download network file to temporary location for metadata extraction.
+     * Uses partial download based on file type.
+     * 
+     * Note: If metadata is not available in partial file, returns empty values.
+     * Full download is not used to avoid bandwidth waste on large video files.
+     * 
+     * @param networkPath Full network path (smb://, sftp://, ftp://)
+     * @param fileType Type of file (determines download size)
+     * @param fileSize Full file size for cache key (0 if unknown)
+     * @param useExtendedSize For video/audio: use extended 5MB download instead of 1MB
+     * @return Downloaded temporary file, or null if download failed
+     */
+    suspend fun downloadToTemp(
+        networkPath: String, 
+        fileType: MediaType, 
+        fileSize: Long = 0L,
+        useExtendedSize: Boolean = false
+    ): File? {
+        // Check unified cache first (reuses files downloaded by player/viewer)
+        if (fileSize > 0) {
+            val cached = unifiedCache.getCachedFile(networkPath, fileSize)
+            if (cached != null) {
+                Timber.d("NetworkFileDownloader: Reusing cached file for metadata extraction: $networkPath")
+                return cached
+            }
+        }
+        
+        // No need for legacy metadata_temp - all files now go to UnifiedFileCache
+        // Get cache destination path
+        val cacheFile = unifiedCache.getCacheFile(networkPath, fileSize)
+        
+        return try {
+            when {
+                networkPath.startsWith("smb://") && smbClient != null -> downloadFromSmb(networkPath, cacheFile, fileType, fileSize, useExtendedSize)
+                networkPath.startsWith("sftp://") && sftpClient != null -> downloadFromSftp(networkPath, cacheFile, fileType, fileSize, useExtendedSize)
+                networkPath.startsWith("ftp://") && ftpClient != null -> downloadFromFtp(networkPath, cacheFile, fileType, fileSize, useExtendedSize)
+                else -> {
+                    Timber.e("No client available for $networkPath")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Exception downloading network file: $networkPath")
+            null
+        }
+    }
+    
+    private suspend fun downloadFromSmb(
+        path: String, 
+        destFile: File, 
+        fileType: MediaType, 
+        fileSize: Long,
+        useExtendedSize: Boolean
+    ): File? {
+        // Parse smb://server:port/share/path
+        // Normalize path: replace backslashes with forward slashes
+        val normalizedPath = path.replace('\\', '/')
+        val withoutProtocol = normalizedPath.substringAfter("smb://")
+        val parts = withoutProtocol.split("/", limit = 3)
+        if (parts.size < 3) {
+            Timber.e("Invalid SMB path: $path")
+            return null
+        }
+        
+        // Extract server and port from server:port
+        val serverWithPort = parts[0]
+        val server = if (serverWithPort.contains(':')) {
+            serverWithPort.substringBefore(':')
+        } else {
+            serverWithPort
+        }
+        val port = if (serverWithPort.contains(':')) {
+            serverWithPort.substringAfter(':').toIntOrNull() ?: 445
+        } else {
+            445
+        }
+        
+        val shareName = parts[1]
+        val remotePath = parts[2]
+        
+        // Get credentials by server (without port) and share
+        // Try exact match first, then try without subfolders
+        var credentials = credentialsRepository?.getByServerAndShare(server, shareName)
+        
+        // If not found and remotePath contains subfolder, try searching with subfolder included
+        if (credentials == null && remotePath.isNotEmpty()) {
+            // Extract first subfolder (handle leading slash)
+            val firstSubfolder = remotePath.trimStart('/').substringBefore('/')
+            if (firstSubfolder.isNotEmpty()) {
+                val shareWithSubfolder = "$shareName/$firstSubfolder"
+                credentials = credentialsRepository?.getByServerAndShare(server, shareWithSubfolder)
+                Timber.d("Trying credentials with subfolder: $shareWithSubfolder (from remotePath: $remotePath)")
+            }
+        }
+        
+        if (credentials == null) {
+            Timber.e("No credentials for SMB: $server/$shareName (tried with subfolders too)")
+            return null
+        }
+        
+        return try {
+            val connectionInfo = SmbConnectionInfo(
+                server = server,
+                shareName = shareName,
+                username = credentials.username,
+                password = credentials.password,
+                domain = credentials.domain,
+                port = port
+            )
+            
+            // Determine partial download size based on file type
+            val partialSize = when (fileType) {
+                MediaType.IMAGE -> EXIF_PARTIAL_SIZE
+                MediaType.GIF -> GIF_PARTIAL_SIZE
+                MediaType.VIDEO, MediaType.AUDIO -> if (useExtendedSize) VIDEO_EXTENDED_SIZE else VIDEO_INITIAL_SIZE
+                else -> null // Full download for unknown types
+            }
+            
+            if (partialSize != null) {
+                // Partial download for metadata/thumbnail
+                when (val result = smbClient?.readFileBytes(connectionInfo, remotePath, partialSize)) {
+                    is SmbResult.Success -> {
+                        destFile.writeBytes(result.data)
+                        Timber.d("SMB partial download: ${result.data.size} bytes (${fileType}) for metadata")
+                        destFile
+                    }
+                    else -> {
+                        Timber.e("SMB partial download failed: $result")
+                        null
+                    }
+                }
+            } else {
+                // Full download for unknown types
+                destFile.outputStream().use { output ->
+                    when (val result = smbClient?.downloadFile(connectionInfo, remotePath, output)) {
+                        is SmbResult.Success -> destFile
+                        else -> {
+                            Timber.e("SMB download failed: $result")
+                            null
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to download SMB file: $path")
+            null
+        }
+    }
+    
+    private suspend fun downloadFromSftp(
+        path: String, 
+        destFile: File, 
+        fileType: MediaType, 
+        fileSize: Long,
+        useExtendedSize: Boolean
+    ): File? {
+        // Parse sftp://host:port/path
+        val withoutProtocol = path.substringAfter("sftp://")
+        val pathStart = withoutProtocol.indexOf('/')
+        if (pathStart == -1) {
+            Timber.e("Invalid SFTP path: $path")
+            return null
+        }
+        
+        val hostPort = withoutProtocol.substring(0, pathStart)
+        val remotePath = withoutProtocol.substring(pathStart)
+        
+        val host: String
+        val port: Int
+        if (hostPort.contains(':')) {
+            val parts = hostPort.split(':')
+            host = parts[0]
+            port = parts[1].toIntOrNull() ?: 22
+        } else {
+            host = hostPort
+            port = 22
+        }
+        
+        // Get credentials with exact type+server+port match (prevents FTP credentials from being used for SFTP)
+        var credentials = credentialsRepository?.getByTypeServerAndPort("SFTP", host, port)
+        // Fallback to host-only search if exact match not found (for legacy configs)
+        if (credentials == null) {
+            credentials = credentialsRepository?.getCredentialsByHost(host)
+            if (credentials?.type != "SFTP") {
+                Timber.e("No SFTP credentials for: $host:$port (found ${credentials?.type} instead)")
+                return null
+            }
+        }
+        if (credentials == null) {
+            Timber.e("No SFTP credentials for: $host:$port")
+            return null
+        }
+        
+        return try {
+            val connectionInfo = SftpClient.SftpConnectionInfo(
+                host = host,
+                port = port,
+                username = credentials.username,
+                password = credentials.password
+            )
+            
+            destFile.outputStream().use { output ->
+                val result = sftpClient?.downloadFile(connectionInfo, remotePath, output)
+                if (result?.isSuccess == true) destFile else null
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to download SFTP file: $path")
+            null
+        }
+    }
+    
+    private suspend fun downloadFromFtp(
+        path: String, 
+        destFile: File, 
+        fileType: MediaType, 
+        fileSize: Long,
+        useExtendedSize: Boolean
+    ): File? {
+        // Parse ftp://host:port/path
+        val withoutProtocol = path.substringAfter("ftp://")
+        val pathStart = withoutProtocol.indexOf('/')
+        if (pathStart == -1) {
+            Timber.e("Invalid FTP path: $path")
+            return null
+        }
+        
+        val hostPort = withoutProtocol.substring(0, pathStart)
+        val remotePath = withoutProtocol.substring(pathStart)
+        
+        val host: String
+        val port: Int
+        if (hostPort.contains(':')) {
+            val parts = hostPort.split(':')
+            host = parts[0]
+            port = parts[1].toIntOrNull() ?: 21
+        } else {
+            host = hostPort
+            port = 21
+        }
+        
+        // Get credentials with exact type+server+port match (prevents SFTP credentials from being used for FTP)
+        var credentials = credentialsRepository?.getByTypeServerAndPort("FTP", host, port)
+        // Fallback to host-only search if exact match not found (for legacy configs)
+        if (credentials == null) {
+            credentials = credentialsRepository?.getCredentialsByHost(host)
+            if (credentials?.type != "FTP") {
+                Timber.e("No FTP credentials for: $host:$port (found ${credentials?.type} instead)")
+                return null
+            }
+        }
+        if (credentials == null) {
+            Timber.e("No FTP credentials for: $host:$port")
+            return null
+        }
+        
+        return try {
+            ftpClient?.connect(host, port, credentials.username, credentials.password)
+            
+            destFile.outputStream().use { output ->
+                val result = ftpClient?.downloadFile(remotePath, output)
+                if (result?.isSuccess == true) destFile else null
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to download FTP file: $path")
+            null
+        }
+    }
+}

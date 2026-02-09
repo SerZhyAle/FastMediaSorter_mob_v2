@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Grid column counts for default (phones in portrait) -->
+    <integer name="grid_column_count">3</integer>
+    <integer name="grid_column_count_landscape">3</integer>
+    <integer name="grid_column_count_list">2</integer>
+    <integer name="resource_grid_column_count">2</integer>
+    <integer name="destinations_column_count">1</integer>
+</resources>

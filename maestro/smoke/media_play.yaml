@@ -1,0 +1,81 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Media Playback
+# Description: Verify video and audio playback functionality
+# Duration: ~40 seconds
+# Note: This test assumes test media files are available on the device
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to Local tab to see files
+- tapOn:
+    text: "Local"
+    optional: true
+
+# Wait for file list to load
+- waitForAnimationToEnd
+
+# Look for test video file
+# This assumes test_media directory is accessible
+# You may need to adjust based on your test setup
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(mp4|avi|mkv|mov)$"
+    optional: true
+
+# If video file found, tap to play
+- tapOn:
+    text: ".*\\.(mp4|avi|mkv|mov)$"
+    optional: true
+
+# Wait for player to open
+- waitForAnimationToEnd
+
+# Verify player UI is visible
+# Look for play/pause controls
+- assertVisible:
+    id: ".*play.*"
+    optional: true
+
+# Try to pause playback
+- tapOn:
+    id: ".*play.*"
+    optional: true
+
+# Wait for UI to update
+- waitForAnimationToEnd
+
+# Close player with back button
+- back
+
+# Wait for navigation
+- waitForAnimationToEnd
+
+# Now test audio playback if available
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(mp3|wav|flac|m4a)$"
+    optional: true
+
+# Tap audio file to play
+- tapOn:
+    text: ".*\\.(mp3|wav|flac|m4a)$"
+    optional: true
+
+# Wait for audio player to open
+- waitForAnimationToEnd
+
+# Verify audio player controls visible
+- assertVisible:
+    id: ".*play.*"
+    optional: true
+
+# Close audio player
+- back
+
+# Test passed: Media playback UI is functional

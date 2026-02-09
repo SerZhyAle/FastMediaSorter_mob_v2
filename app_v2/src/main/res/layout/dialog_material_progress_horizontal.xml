@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <TextView
+        android:id="@+id/tvProgressTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Loading..."
+        android:textSize="@dimen/text_size_large"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <TextView
+        android:id="@+id/tvProgressMessage"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please wait..."
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:layout_marginBottom="@dimen/margin_large" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <TextView
+        android:id="@+id/tvProgress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0%"
+        android:textSize="@dimen/text_size_small"
+        android:gravity="center" />
+
+</LinearLayout>

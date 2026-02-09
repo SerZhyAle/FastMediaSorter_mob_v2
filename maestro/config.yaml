@@ -1,0 +1,27 @@
+# Maestro Global Configuration
+# FastMediaSorter v2 E2E Tests
+
+# Target app package
+appId: com.sza.fastmediasorter.debug
+
+# Default timeouts (ms)
+env:
+  DEFAULT_TIMEOUT: "30000"
+  SHORT_TIMEOUT: "5000"
+  LONG_TIMEOUT: "60000"
+  
+# Test data locations (optional, for local testing)
+# These can be overridden by environment variables
+  TEST_IMAGE_PATH: "/sdcard/Pictures"
+  TEST_VIDEO_PATH: "/sdcard/Movies"
+  TEST_AUDIO_PATH: "/sdcard/Music"
+  
+# SMB test credentials (optional)
+# These should be set as environment variables for security
+# TEST_SMB_HOST: "192.168.1.100"
+# TEST_SMB_USER: "testuser"
+# TEST_SMB_PASSWORD: "testpass"
+# TEST_SMB_SHARE: "media"
+
+# Screen resolution (standard Android)
+# Keep animations and transitions enabled for realistic testing

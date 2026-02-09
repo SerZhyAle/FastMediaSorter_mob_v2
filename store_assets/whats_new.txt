@@ -1,0 +1,16 @@
+🎉 January 2026 Update - Enhanced Reliability!
+
+✅ Critical Bug Fixes:
+• Fixed file visibility after copy/move operations - files now appear immediately in destination folders
+• Resolved empty folder scanning issue for standard Android directories (Pictures, DCIM, Downloads)
+• Fixed file deletion permission dialogs on Android 10-14
+• Corrected duplicate file removal when using FileObserver
+
+🔧 Improvements:
+• Enhanced resource scanning with automatic media type detection from app settings
+• Improved file operation stability across all protocols (SMB, SFTP, FTP, Cloud)
+• Better handling of scoped storage restrictions on Android 10+
+
+🌍 Stability:
+• General performance optimizations
+• Enhanced error handling for network operations

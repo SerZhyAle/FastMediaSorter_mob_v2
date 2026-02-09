@@ -1,0 +1,3388 @@
+package com.sza.fastmediasorter.ui.player
+
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.view.GestureDetector
+import android.view.KeyEvent
+import android.view.MotionEvent
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
+import androidx.core.content.FileProvider
+import androidx.core.view.isVisible
+import com.google.android.material.snackbar.Snackbar
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
+import com.bumptech.glide.Glide
+import com.bumptech.glide.Priority
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.signature.ObjectKey
+import com.github.chrisbanes.photoview.PhotoView
+import android.graphics.pdf.PdfRenderer
+import android.os.ParcelFileDescriptor
+import java.io.FileOutputStream
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.cloud.datasource.CloudDataSourceFactory
+import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.data.network.datasource.SmbDataSourceFactory
+import com.sza.fastmediasorter.data.network.datasource.SftpDataSourceFactory
+import com.sza.fastmediasorter.data.network.datasource.FtpDataSourceFactory
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.dialog.CopyToDialog
+import com.sza.fastmediasorter.ui.dialog.MoveToDialog
+import com.sza.fastmediasorter.ui.dialog.RenameDialog
+import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import java.io.File
+import javax.inject.Inject
+import kotlin.math.roundToInt
+
+@AndroidEntryPoint
+class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
+    override fun getViewBinding(): ActivityPlayerUnifiedBinding {
+        return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
+    }
+
+    private val viewModel: PlayerViewModel by viewModels()
+    
+    // Helper controllers
+    private lateinit var slideshowController: SlideshowController
+    private lateinit var gestureHelper: PlayerGestureHelper
+    private lateinit var dialogHelper: PlayerDialogHelper
+    private lateinit var videoPlayerManager: VideoPlayerManager
+    private lateinit var fileOperationsHandler: FileOperationsHandler
+    private lateinit var destinationButtonsManager: DestinationButtonsManager
+    private var updateUIJob: Job? = null
+    private var translationJob: Job? = null
+    private lateinit var commandPanelController: CommandPanelController
+    private lateinit var imageLoadingManager: ImageLoadingManager
+    private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
+    private lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
+    private lateinit var pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager
+    private lateinit var epubViewerManager: com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager
+    private lateinit var textViewerManager: com.sza.fastmediasorter.ui.player.helpers.TextViewerManager
+    private lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
+    private lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
+    private lateinit var playerSettingsManager: com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
+    private lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
+    private lateinit var translationManager: com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+    private lateinit var touchZoneGestureManager: com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager
+    private lateinit var translationButtonManager: com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
+    private lateinit var exoPlayerControlsManager: com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
+    private lateinit var searchControlsManager: com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
+
+    private val googleSignInLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (::cloudAuthManager.isInitialized) {
+            cloudAuthManager.handleGoogleSignInResult(result.data)
+        }
+    }
+    
+    private val hideControlsHandler = Handler(Looper.getMainLooper())
+    private val loadingIndicatorHandler = Handler(Looper.getMainLooper())
+    
+    // Track preload jobs to cancel on destroy
+    private val preloadJobs = mutableListOf<Job>()
+    private lateinit var gestureDetector: GestureDetector
+    private val touchZoneDetector = TouchZoneDetector()
+    private var useTouchZones = true // Use touch zones for images, gestures for video
+    private var loadFullSizeImages = false // Load full-size images with PhotoView (3-zone mode)
+    private var isFirstResume = true // Track first onResume to avoid duplicate load
+    private var hasShownFirstRunHint = false // Track if first-run hint has been shown in this session
+    private var slideshowModeRequested = false // Auto-start slideshow when files are loaded
+    
+    // Retry logic for network stream errors
+    private var playbackRetryCount = 0
+    private val maxPlaybackRetries = 3
+    private var lastPlaybackPosition = 0L
+    private val retryHandler = Handler(Looper.getMainLooper())
+    private var retryRunnable: Runnable? = null
+    
+    // Track active resource key for connection throttling
+    private var activeResourceKey: String? = null
+    
+    // Track deleted/moved files to notify BrowseActivity
+    private val modifiedFiles = mutableSetOf<String>()
+    
+    // Track current file path to avoid reloading when only metadata changes (e.g., isFavorite)
+    private var currentFilePath: String? = null
+
+    // Injected dependencies for network playback
+    @Inject
+    lateinit var smbClient: SmbClient
+    
+    @Inject
+    lateinit var sftpClient: SftpClient
+    
+    @Inject
+    lateinit var ftpClient: FtpClient
+    
+    @Inject
+    lateinit var googleDriveClient: GoogleDriveRestClient
+    
+    @Inject
+    lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
+    
+    @Inject
+    lateinit var oneDriveClient: com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+    
+    @Inject
+    lateinit var credentialsRepository: NetworkCredentialsRepository
+    
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+    
+    @Inject
+    lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    
+    // Current settings cached for overlay visibility
+    private var currentSettings: AppSettings? = null
+    
+    // Session-scoped translation settings (reset when exiting Browse/Resource)
+    // Will be initialized from AppSettings defaults in setupTranslationDefaults()
+    private var translationSessionSettings = com.sza.fastmediasorter.domain.models.TranslationSessionSettings()
+    
+
+    
+    @Inject
+    lateinit var rotateImageUseCase: com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
+    
+    @Inject
+    lateinit var searchAudioCoverUseCase: com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
+    
+    @Inject
+    lateinit var flipImageUseCase: com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
+    
+    @Inject
+    lateinit var networkImageEditUseCase: com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
+    
+    @Inject
+    lateinit var applyImageFilterUseCase: com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
+    
+    @Inject
+    lateinit var adjustImageUseCase: com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
+    
+    @Inject
+    lateinit var extractGifFramesUseCase: com.sza.fastmediasorter.domain.usecase.ExtractGifFramesUseCase
+    
+    @Inject
+    lateinit var saveGifFirstFrameUseCase: com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
+    
+    @Inject
+    lateinit var changeGifSpeedUseCase: com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
+    
+    @Inject
+    lateinit var downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase
+    
+    @Inject
+    lateinit var searchLyricsUseCase: com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase
+    
+    @Inject
+    lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+    
+    @Inject
+    lateinit var mediaFilesCacheManager: MediaFilesCacheManager
+    
+    @Inject
+    lateinit var smbFileOperationHandler: com.sza.fastmediasorter.data.network.SmbFileOperationHandler
+    
+    @Inject
+    lateinit var sftpFileOperationHandler: com.sza.fastmediasorter.data.network.SftpFileOperationHandler
+    
+    @Inject
+    lateinit var ftpFileOperationHandler: com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+    
+    @Inject
+    lateinit var cloudFileOperationHandler: com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+
+    private val hideControlsRunnable = Runnable {
+        if (!viewModel.state.value.isPaused) {
+            viewModel.toggleControls()
+        }
+    }
+
+    private val showLoadingIndicatorRunnable = Runnable {
+        binding.progressBar.isVisible = true
+    }
+    
+    override fun onGenericMotionEvent(event: android.view.MotionEvent): Boolean {
+        // Handle mouse wheel scroll for previous/next file navigation
+        if (event.action == android.view.MotionEvent.ACTION_SCROLL) {
+            val verticalScroll = event.getAxisValue(android.view.MotionEvent.AXIS_VSCROLL)
+            if (verticalScroll != 0f) {
+                if (verticalScroll > 0) {
+                    // Scroll up = previous file
+                    Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Mouse scroll UP")
+                    viewModel.previousFile()
+                } else {
+                    // Scroll down = next file
+                    Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Mouse scroll DOWN")
+                    viewModel.nextFile()
+                }
+                return true
+            }
+        }
+        return super.onGenericMotionEvent(event)
+    }
+
+    /**
+     * ExoPlayer listener for video/audio playback events
+     * Handles: STATE_READY (hide loading indicator), STATE_ENDED (auto-advance in slideshow)
+     * 
+     * NOTE: ExoPlayer may log non-critical warnings internally (e.g., AudioSink discontinuity, 
+     * ExoPlayer initialization timing). These are handled internally by ExoPlayer and don't 
+     * affect playback. They appear as ERROR in logcat but are actually recoverable warnings.
+     * Example: "Audio sink error... UnexpectedDiscontinuityException" - playback continues normally.
+     */
+
+    // Touch zone gesture detector managed by TouchZoneGestureManager
+    private lateinit var imageTouchGestureDetector: GestureDetector
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // Check if slideshow mode was requested (from main screen slideshow button)
+        slideshowModeRequested = intent.getBooleanExtra("slideshow_mode", false)
+        
+        initializeManagers()
+        setupToolbar()
+        setupControls()
+        translationButtonManager.setupTranslationDefaults()
+        translationButtonManager.setupTranslationButtonIcons()
+        setupGoogleLensButtons()
+        setupCommandPanelControls()
+        setupTouchZones()
+        observeViewModel()
+    }
+    
+    /**
+     * Initialize all helper managers and controllers.
+     * Centralized initialization to keep onCreate clean and organized.
+     */
+    private fun initializeManagers() {
+        cloudAuthManager = com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager(
+            context = this,
+            coroutineScope = lifecycleScope,
+            googleDriveClient = googleDriveClient,
+            dropboxClient = dropboxClient,
+            googleSignInLauncher = googleSignInLauncher,
+            callbacks = object : com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager.CloudAuthCallbacks {
+                override fun onAuthenticationSuccess() {
+                    // Authentication successful
+                }
+                override fun onAuthenticationFailure() {
+                    // Handled by manager
+                }
+            }
+        )
+        
+        // Initialize SlideshowController
+        slideshowController = SlideshowController(
+            lifecycle = lifecycle,
+            slideshowCallback = object : SlideshowController.SlideshowCallback {
+                override fun onSlideAdvance() {
+                    val currentFile = viewModel.state.value.currentFile
+                    val isMediaPlaying = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+                    
+                    // If playToEndInSlideshow is enabled and media is playing, don't auto-advance
+                    if (viewModel.state.value.playToEndInSlideshow && isMediaPlaying) {
+                        // Will be handled by exoPlayerListener.STATE_ENDED
+                        slideshowController.restartTimer()
+                    } else {
+                        // For images or when playToEnd is disabled - normal auto-advance
+                        // Skip documents (PDF, TXT, EPUB) in slideshow
+                        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Slideshow auto-advance")
+                        viewModel.nextFile(skipDocuments = true)
+                    }
+                }
+                
+                override fun onSlideshowStateChanged(isActive: Boolean, isPaused: Boolean) {
+                    // Synchronize ViewModel state with controller state directly (no toggle to avoid loops)
+                    viewModel.setSlideShowActive(isActive)
+                    viewModel.setPaused(isPaused)
+                    updateSlideShowButton()
+                    updatePlayPauseButton()
+                }
+                
+                override fun onCountdownTick(seconds: Int) {
+                    binding.tvCountdown.text = "$seconds.."
+                    binding.tvCountdown.isVisible = true
+                    if (seconds == 0) {
+                        binding.tvCountdown.isVisible = false
+                    }
+                }
+            }
+        )
+        
+        // Initialize PlayerGestureHelper
+        gestureHelper = PlayerGestureHelper(
+            context = this,
+            gestureCallback = object : PlayerGestureHelper.GestureCallback {
+                override fun onSwipeLeft() {
+                    val currentFile = viewModel.state.value.currentFile
+                    when (currentFile?.type) {
+                        MediaType.PDF -> {
+                            // PDF: Swipe left = next page
+                            pdfViewerManager.showNextPage()
+                        }
+                        MediaType.EPUB -> {
+                            // EPUB: Swipe left = next chapter
+                            epubViewerManager.showNextChapter()
+                        }
+                        else -> {
+                            // Other files: Swipe left = next file
+                            Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Swipe LEFT (GestureHelper)")
+                            viewModel.nextFile()
+                        }
+                    }
+                }
+                
+                override fun onSwipeRight() {
+                    val currentFile = viewModel.state.value.currentFile
+                    when (currentFile?.type) {
+                        MediaType.PDF -> {
+                            // PDF: Swipe right = previous page
+                            pdfViewerManager.showPreviousPage()
+                        }
+                        MediaType.EPUB -> {
+                            // EPUB: Swipe right = previous chapter
+                            epubViewerManager.showPreviousChapter()
+                        }
+                        else -> {
+                            // Other files: Swipe right = previous file
+                            Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Swipe RIGHT (GestureHelper)")
+                            viewModel.previousFile()
+                        }
+                    }
+                }
+                
+                override fun onSwipeUp() {
+                    val currentFile = viewModel.state.value.currentFile
+                    if (currentFile?.type == MediaType.PDF) {
+                        // PDF: Swipe up = zoom out (decrease scale)
+                        val currentScale = binding.photoView.scale
+                        if (currentScale > binding.photoView.minimumScale) {
+                            binding.photoView.setScale(currentScale - 0.5f, true)
+                        }
+                    } else {
+                        if (!viewModel.state.value.showCommandPanel) {
+                            // Already in fullscreen, do nothing
+                        } else {
+                            viewModel.enterFullscreenMode()
+                        }
+                    }
+                }
+                
+                override fun onSwipeDown() {
+                    val currentFile = viewModel.state.value.currentFile
+                    if (currentFile?.type == MediaType.PDF) {
+                        // PDF: Swipe down = zoom in (increase scale)
+                        val currentScale = binding.photoView.scale
+                        if (currentScale < binding.photoView.maximumScale) {
+                            binding.photoView.setScale(currentScale + 0.5f, true)
+                        }
+                    } else {
+                        if (viewModel.state.value.showCommandPanel) {
+                            // Already in command panel mode, do nothing
+                        } else {
+                            viewModel.enterCommandPanelMode()
+                        }
+                    }
+                }
+                
+                override fun onDoubleTap() {
+                    viewModel.togglePause()
+                    if (viewModel.state.value.currentFile?.type == MediaType.IMAGE) {
+                        updateSlideShow()
+                    }
+                }
+                
+                override fun onLongPress() {
+                    // Long press could show quick actions menu
+                    showFileInfo()
+                }
+                
+                override fun onTouchZone(zone: PlayerGestureHelper.TouchZone) {
+                    when (zone) {
+                        PlayerGestureHelper.TouchZone.LEFT -> {
+                            Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: 2-zone LEFT touch (GestureHelper)")
+                            viewModel.previousFile()
+                        }
+                        PlayerGestureHelper.TouchZone.RIGHT -> {
+                            Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: 2-zone RIGHT touch (GestureHelper)")
+                            viewModel.nextFile()
+                        }
+                        PlayerGestureHelper.TouchZone.CENTER -> {
+                            viewModel.togglePause()
+                            if (viewModel.state.value.currentFile?.type == MediaType.IMAGE) {
+                                updateSlideShow()
+                            }
+                        }
+                        PlayerGestureHelper.TouchZone.COPY_PANEL -> showCopyDialog()
+                        PlayerGestureHelper.TouchZone.MOVE_PANEL -> showMoveDialog()
+                        PlayerGestureHelper.TouchZone.DELETE -> deleteCurrentFile()
+                    }
+                }
+            }
+        )
+        
+        // Initialize PlayerDialogHelper
+        dialogHelper = PlayerDialogHelper(
+            activity = this,
+            viewModel = viewModel,
+            settingsRepository = settingsRepository,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            credentialsRepository = credentialsRepository,
+            unifiedCache = unifiedCache,
+            rotateImageUseCase = rotateImageUseCase,
+            flipImageUseCase = flipImageUseCase,
+            networkImageEditUseCase = networkImageEditUseCase,
+            applyImageFilterUseCase = applyImageFilterUseCase,
+            adjustImageUseCase = adjustImageUseCase,
+            extractGifFramesUseCase = extractGifFramesUseCase,
+            saveGifFirstFrameUseCase = saveGifFirstFrameUseCase,
+            changeGifSpeedUseCase = changeGifSpeedUseCase,
+            downloadNetworkFileUseCase = downloadNetworkFileUseCase,
+            dialogCallback = object : PlayerDialogHelper.DialogCallback {
+                override fun onImageEditComplete() {
+                    // Update file size in ViewModel (triggers cache invalidation due to size change)
+                    viewModel.refreshCurrentFileInfo()
+                    
+                    // Reload image after edit to show changes
+                    reloadCurrentImage()
+                    Toast.makeText(this@PlayerActivity, getString(R.string.msg_image_edit_completed), Toast.LENGTH_SHORT).show()
+                }
+                
+                override fun onGifEditComplete() {
+                    // Update file size in ViewModel (GIF speed change modifies file)
+                    viewModel.refreshCurrentFileInfo()
+                    
+                    // Reload GIF after speed change
+                    reloadCurrentImage()
+                    Toast.makeText(this@PlayerActivity, R.string.gif_edit_completed, Toast.LENGTH_SHORT).show()
+                }
+                
+                override fun onRenameComplete() {
+                    // Reload file in player after rename
+                    viewModel.reloadAfterRename()
+                }
+            }
+        )
+        
+        dialogHelper.setAuthCallback { provider ->
+            when (provider.lowercase()) {
+                "dropbox" -> cloudAuthManager.launchDropboxSignIn()
+                "google drive", "google_drive" -> cloudAuthManager.launchGoogleSignIn()
+                else -> Timber.w("Unknown provider for auth request: $provider")
+            }
+        }
+        
+        // Initialize VideoPlayerManager for ExoPlayer management
+        videoPlayerManager = VideoPlayerManager(
+            context = this,
+            lifecycle = lifecycle,
+            playerCallback = object : VideoPlayerManager.PlayerCallback {
+                override fun onPlaybackReady() {
+                    loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                    binding.progressBar.isVisible = false
+                    
+                    // Apply player settings when ready
+                    playerSettingsManager.applyPlayerSettings()
+                    
+                    // Update audio info and load cover art for audio files
+                    val currentFile = viewModel.state.value.currentFile
+                    if (currentFile?.type == MediaType.AUDIO) {
+                        updateAudioFormatInfo()
+                        imageLoadingManager.loadAudioCoverArt(currentFile)
+                    }
+                }
+                
+                override fun onPlaybackError(error: Throwable) {
+                    // Error handling already done in manager
+                }
+                
+                override fun onBuffering(isBuffering: Boolean) {
+                    if (isBuffering) {
+                        binding.progressBar.isVisible = true
+                    } else {
+                        binding.progressBar.isVisible = false
+                    }
+                }
+                
+                override fun onPlaybackStateChanged(isPlaying: Boolean) {
+                    // Handled by ViewModel state
+                }
+                
+                override fun onPlaybackEnded() {
+                    if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
+                        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Playback ended (slideshow)")
+                        viewModel.nextFile(skipDocuments = true)
+                        slideshowController.restartTimer()
+                    }
+                }
+                
+                override fun onAudioFormatChanged(format: VideoPlayerManager.AudioFormat?) {
+                    // Not used currently
+                }
+                
+                override fun showError(message: String) {
+                    this@PlayerActivity.showError(message)
+                }
+                
+                override fun isActivityDestroyed(): Boolean {
+                    return isDestroyed || isFinishing
+                }
+                
+                override fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) {
+                    this@PlayerActivity.showUnsupportedFormatError(message, filePath, isLocalFile)
+                }
+            },
+            credentialsRepository = credentialsRepository,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            googleDriveClient = googleDriveClient,
+            playbackPositionRepository = playbackPositionRepository
+        )
+        
+        // Initialize FileOperationsHandler for file operations
+        fileOperationsHandler = FileOperationsHandler(
+            context = this,
+            lifecycleScope = lifecycleScope,
+            settingsRepository = settingsRepository,
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            callback = object : FileOperationsHandler.FileOperationCallback {
+                override fun onCopySuccess(destination: MediaResource, goToNext: Boolean) {
+                    if (goToNext) {
+                        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Copy success with goToNext=true")
+                        viewModel.nextFile()
+                    }
+                }
+                
+                override fun onMoveSuccess(destination: MediaResource, goToNext: Boolean) {
+                    if (goToNext) {
+                        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Move success with goToNext=true")
+                        viewModel.nextFile()
+                    }
+                }
+                
+                override fun onDeleteSuccess(deletedFilePath: String) {
+                    // Track deleted file
+                    modifiedFiles.add(deletedFilePath)
+                    
+                    // Remove from cache
+                    viewModel.state.value.resource?.let { resource ->
+                        MediaFilesCacheManager.removeFile(resource.id, deletedFilePath)
+                    }
+                    
+                    // Remove from ViewModel list and navigate
+                    val hasRemainingFiles = viewModel.removeDeletedFile(deletedFilePath)
+                    if (!hasRemainingFiles) {
+                        finish()
+                    }
+                }
+                
+                override fun onOperationError(message: String, throwable: Throwable?) {
+                    showError(message, throwable)
+                }
+                
+                override fun onAuthenticationRequired(provider: String, message: String) {
+                    showCloudAuthenticationError(provider)
+                }
+                
+                override fun getCurrentFile(): MediaFile? {
+                    return viewModel.state.value.currentFile
+                }
+                
+                override fun getCurrentResource(): MediaResource? {
+                    return viewModel.state.value.resource
+                }
+            }
+        )
+        
+        // Initialize DestinationButtonsManager
+        destinationButtonsManager = DestinationButtonsManager(
+            binding = binding,
+            settingsRepository = settingsRepository,
+            getDestinationsUseCase = viewModel.getDestinationsUseCase,
+            lifecycleScope = lifecycleScope,
+            callback = object : DestinationButtonsManager.DestinationButtonsCallback {
+                override fun onCopyClicked(destination: MediaResource) {
+                    fileOperationsHandler.performCopy(destination)
+                }
+                
+                override fun onMoveClicked(destination: MediaResource) {
+                    Timber.d("PlayerActivity: onMoveClicked - destination=${destination.name}")
+                    performMoveOperation(destination)
+                }
+                
+                override fun getCurrentResourceId(): Long {
+                    return intent.getLongExtra("resourceId", -1)
+                }
+                
+                override fun onUpdateCommandAvailability() {
+                    updateCommandAvailability(viewModel.state.value)
+                }
+            }
+        )
+        
+        // Initialize CommandPanelController
+        commandPanelController = CommandPanelController(
+            binding = binding,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            callback = object : CommandPanelController.CommandPanelCallback {
+                override fun onBackClicked() {
+                    finish()
+                }
+                
+                override fun onPreviousClicked() {
+                    Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: UI Manager PREVIOUS button clicked")
+                    viewModel.previousFile()
+                }
+                
+                override fun onNextClicked() {
+                    Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: UI Manager NEXT button clicked")
+                    viewModel.nextFile()
+                }
+                
+                override fun onRenameClicked() {
+                    showRenameDialog()
+                }
+                
+                override fun onDeleteClicked() {
+                    deleteCurrentFile()
+                }
+                
+                override fun onShareClicked() {
+                    shareCurrentFile()
+                }
+                
+                override fun onEditClicked() {
+                    val currentFile = viewModel.state.value.currentFile
+                    when (currentFile?.type) {
+                        MediaType.VIDEO, MediaType.AUDIO -> playerSettingsManager.showPlayerSettingsDialog()
+                        MediaType.IMAGE -> showImageEditDialog()
+                        MediaType.GIF -> showGifEditDialog()
+                        else -> {}
+                    }
+                }
+                
+                override fun onUndoClicked() {
+                    viewModel.undoLastOperation()
+                }
+                
+                override fun onFullscreenClicked() {
+                    if (viewModel.state.value.showCommandPanel) {
+                        viewModel.toggleCommandPanel()
+                    }
+                }
+                
+                override fun onSlideshowClicked() {
+                    val wasActive = viewModel.state.value.isSlideShowActive
+                    viewModel.toggleSlideShow()
+                    
+                    if (!wasActive && viewModel.state.value.isSlideShowActive) {
+                        showSlideshowEnabledMessage()
+                    }
+                    
+                    updateSlideShowButton()
+                    updateSlideShow()
+                }
+                
+                override fun onCopyPanelHeaderClicked() {
+                    toggleCopyPanel()
+                }
+                
+                override fun onMovePanelHeaderClicked() {
+                    toggleMovePanel()
+                }
+                
+                override fun onInfoClicked() {
+                    showFileInfo()
+                }
+                
+                override fun onLyricsClicked() {
+                    searchAndShowLyrics()
+                }
+                
+                override fun onFavoriteClicked() {
+                    viewModel.toggleFavorite()
+                }
+                
+                override fun onSearchClicked() {
+                    searchControlsManager.showSearchPanel()
+                }
+                
+                override fun onTranslateClicked() {
+                    val currentFile = viewModel.state.value.currentFile ?: return
+                    when (currentFile.type) {
+                        MediaType.PDF -> pdfViewerManager.toggleTranslation()
+                        MediaType.TEXT -> binding.btnTranslateTextCmd.performClick()
+                        MediaType.EPUB -> {
+                            epubViewerManager.toggleTranslation()
+                        }
+                        MediaType.IMAGE, MediaType.GIF -> binding.btnTranslateImageCmd.performClick()
+                        else -> {}
+                    }
+                }
+                
+                override fun onOcrClicked() {
+                    val currentFile = viewModel.state.value.currentFile ?: return
+                    when (currentFile.type) {
+                        MediaType.PDF -> pdfViewerManager.extractTextFromCurrentPage()
+                        MediaType.EPUB -> {
+                            epubViewerManager.extractTextFromCurrentChapter()
+                        }
+                        MediaType.IMAGE, MediaType.GIF -> extractTextFromCurrentImage()
+                        else -> {}
+                    }
+                }
+                
+                override fun onGoogleLensClicked() {
+                    val currentFile = viewModel.state.value.currentFile ?: return
+                    when (currentFile.type) {
+                        MediaType.PDF -> pdfViewerManager.shareCurrentPageToGoogleLens()
+                        MediaType.IMAGE, MediaType.GIF -> shareCurrentFileToGoogleLens()
+                        else -> {}
+                    }
+                }
+                
+                override fun onCopyTextClicked() {
+                    binding.btnCopyTextCmd.performClick()
+                }
+                
+                override fun onEditTextClicked() {
+                    binding.btnEditTextCmd.performClick()
+                }
+                
+                override fun onOcrSettingsClicked() {
+                    // Long-press on OCR shows translation settings (same as translate button)
+                    Timber.d("OCR settings requested - showing translation settings dialog")
+                    translationButtonManager.showTranslationSettingsDialog()
+                }
+                
+                override fun onTranslationSettingsClicked() {
+                    translationButtonManager.showTranslationSettingsDialog()
+                }
+            }
+        )
+        
+        // Initialize orientation on startup
+        commandPanelController.updateOrientation(resources.configuration)
+        
+        // Initialize ImageLoadingManager
+        imageLoadingManager = ImageLoadingManager(
+            binding = binding,
+            settingsRepository = settingsRepository,
+            searchAudioCoverUseCase = searchAudioCoverUseCase,
+            lifecycleScope = lifecycleScope,
+            loadingIndicatorHandler = loadingIndicatorHandler,
+            showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
+            preloadJobs = preloadJobs,
+            callback = object : ImageLoadingManager.ImageLoadingCallback {
+                override fun isFinishing(): Boolean = this@PlayerActivity.isFinishing
+                
+                override fun isDestroyed(): Boolean = this@PlayerActivity.isDestroyed
+                
+                override fun releasePlayer() {
+                    this@PlayerActivity.releasePlayer()
+                }
+                
+                override fun showError(message: String, exception: Throwable?) {
+                    this@PlayerActivity.showError(message, exception)
+                }
+                
+                override fun showToast(message: String) {
+                    Toast.makeText(this@PlayerActivity, message, Toast.LENGTH_SHORT).show()
+                }
+                
+                override fun getWindowManager(): android.view.WindowManager {
+                    return this@PlayerActivity.windowManager
+                }
+                
+                override fun updateSlideShow() {
+                    this@PlayerActivity.updateSlideShow()
+                }
+                
+                override fun getAdjacentFiles(): List<MediaFile> = viewModel.getAdjacentFiles()
+                
+                override fun getCurrentFile(): MediaFile? = viewModel.state.value.currentFile
+                
+                override fun getCurrentResource(): MediaResource? = viewModel.state.value.resource
+                
+                override fun getExoPlayer(): ExoPlayer? = videoPlayerManager.getPlayer()
+                
+                override fun getString(resId: Int): String = this@PlayerActivity.getString(resId)
+                
+                override fun isShowingCommandPanel(): Boolean = viewModel.state.value.showCommandPanel
+            }
+        )
+        
+        // Initialize PlayerKeyboardHandler
+        keyboardHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler(
+            viewModel = viewModel,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler.PlayerKeyboardCallback {
+                override fun onDeleteFile() {
+                    deleteCurrentFile()
+                }
+                
+                override fun onExitPlayer() {
+                    finish()
+                }
+                
+                override fun onToggleSlideshow() {
+                    val wasActive = viewModel.state.value.isSlideShowActive
+                    viewModel.toggleSlideShow()
+                    
+                    if (!wasActive && viewModel.state.value.isSlideShowActive) {
+                        showSlideshowEnabledMessage()
+                    }
+                    
+                    updateSlideShowButton()
+                    updateSlideShow()
+                }
+                
+                override fun onShowRenameDialog() {
+                    showRenameDialog()
+                }
+                
+                override fun onShowFileInfo() {
+                    showFileInfo()
+                }
+                
+                override fun onToggleCommandPanel() {
+                    viewModel.toggleCommandPanel()
+                }
+                
+                override fun onToggleCopyPanel() {
+                    toggleCopyPanel()
+                }
+                
+                override fun onToggleMovePanel() {
+                    toggleMovePanel()
+                }
+                
+                override fun onShowEditDialog() {
+                    val currentFile = viewModel.state.value.currentFile
+                    when (currentFile?.type) {
+                        MediaType.IMAGE, MediaType.GIF -> showImageEditDialog()
+                        MediaType.VIDEO, MediaType.AUDIO -> playerSettingsManager.showPlayerSettingsDialog()
+                        else -> {}
+                    }
+                }
+                
+                override fun getExoPlayer(): ExoPlayer? = videoPlayerManager.getPlayer()
+                
+                override fun getCurrentMediaType(): MediaType? = viewModel.state.value.currentFile?.type
+                
+                override fun onPdfNextPage() {
+                    pdfViewerManager.showNextPage()
+                }
+                
+                override fun onPdfPreviousPage() {
+                    pdfViewerManager.showPreviousPage()
+                }
+                
+                override fun onTextScrollDown() {
+                    textViewerManager.scrollDown()
+                }
+                
+                override fun onTextScrollUp() {
+                    textViewerManager.scrollUp()
+                }
+            }
+        )
+        
+        // Initialize NetworkFileManager
+        networkFileManager = com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager(
+            context = this,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            googleDriveClient = googleDriveClient,
+            dropboxClient = dropboxClient,
+            oneDriveClient = oneDriveClient,
+            credentialsRepository = credentialsRepository,
+            smbFileOperationHandler = smbFileOperationHandler,
+            sftpFileOperationHandler = sftpFileOperationHandler,
+            ftpFileOperationHandler = ftpFileOperationHandler,
+            cloudFileOperationHandler = cloudFileOperationHandler,
+            unifiedCache = unifiedCache,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager.NetworkFileCallback {
+                override fun getCurrentResource(): MediaResource? = viewModel.state.value.resource
+                
+                override fun showError(message: String) {
+                    this@PlayerActivity.showError(message)
+                }
+            }
+        )
+        
+        // Initialize TranslationManager
+        translationManager = com.sza.fastmediasorter.ui.player.helpers.TranslationManager(
+            context = this,
+            settingsRepository = settingsRepository,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationManager.TranslationCallback {
+                override fun showError(message: String) {
+                    this@PlayerActivity.showError(message)
+                }
+                
+                override fun showModelDownloadPrompt(
+                    languageName: String,
+                    onConfirm: () -> Unit,
+                    onCancel: () -> Unit
+                ) {
+                    runOnUiThread {
+                        AlertDialog.Builder(this@PlayerActivity)
+                            .setTitle("Download Translation Model")
+                            .setMessage("Translation to $languageName requires downloading ~30MB model. Download now?")
+                            .setPositiveButton("Download") { _, _ -> onConfirm() }
+                            .setNegativeButton("Cancel") { _, _ -> onCancel() }
+                            .setCancelable(false)
+                            .show()
+                    }
+                }
+            }
+        )
+        
+        // Initialize PdfViewerManager
+        pdfViewerManager = com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager(
+            binding = binding,
+            networkFileManager = networkFileManager,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager.PdfViewerCallback {
+                override fun showError(message: String) {
+                    this@PlayerActivity.showError(message)
+                }
+                
+                override fun displayOcrText(text: String) {
+                    textViewerManager.displayOcrText(text)
+                }
+                
+                override fun shareFileToGoogleLens(file: File) {
+                    this@PlayerActivity.shareFileToGoogleLens(file)
+                }
+                
+                override fun isLandscapeMode(): Boolean {
+                    return resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                }
+                
+                override fun onEnterFullscreenMode() {
+                    // Hide all UI for immersive PDF page viewing
+                    binding.toolbar.isVisible = false
+                    binding.copyToPanel.isVisible = false
+                    binding.moveToPanel.isVisible = false
+                    binding.pdfControlsLayout.isVisible = false
+                    binding.translationOverlay.isVisible = false
+                    binding.translationLensOverlay.isVisible = false
+                }
+                
+                override fun onExitFullscreenMode() {
+                    // Restore UI elements
+                    binding.toolbar.isVisible = true
+                    binding.pdfControlsLayout.isVisible = true
+                    // copyToPanel and moveToPanel remain hidden until user opens them
+                }
+            },
+            translationManager = translationManager,
+            playbackPositionRepository = playbackPositionRepository
+        )
+
+        // Initialize EpubViewerManager
+        epubViewerManager = com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager(
+            binding = binding,
+            networkFileManager = networkFileManager,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager.EpubViewerCallback {
+                override fun showError(message: String) {
+                    this@PlayerActivity.showError(message)
+                }
+            },
+            playbackPositionRepository = playbackPositionRepository,
+            translationManager = translationManager
+        )
+
+        // Initialize TextViewerManager
+        textViewerManager = com.sza.fastmediasorter.ui.player.helpers.TextViewerManager(
+            context = this,
+            binding = binding,
+            networkFileManager = networkFileManager,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.TextViewerManager.TextViewerCallback {
+                override fun showError(message: String) {
+                    this@PlayerActivity.showError(message)
+                }
+                
+                override fun showTranslationSettingsDialog() {
+                    translationButtonManager.showTranslationSettingsDialog()
+                }
+                
+                override fun exitFullscreenMode() {
+                    viewModel.toggleCommandPanel()
+                }
+            },
+            translationManager = translationManager
+        )
+
+        // Initialize PlayerUiStateCoordinator
+        uiStateCoordinator = com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator(
+            binding = binding,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator.Callback {
+                override fun isActivityAlive(): Boolean = !(isFinishing || isDestroyed)
+
+                override fun getCurrentSettings(): AppSettings? = currentSettings
+                override fun setCurrentSettings(settings: AppSettings?) {
+                    currentSettings = settings
+                }
+
+                override fun getCurrentFilePath(): String? = currentFilePath
+                override fun setCurrentFilePath(path: String?) {
+                    currentFilePath = path
+                }
+
+                override fun isSlideshowModeRequested(): Boolean = slideshowModeRequested
+                override fun clearSlideshowModeRequested() {
+                    slideshowModeRequested = false
+                }
+
+                override fun hasShownFirstRunHint(): Boolean = hasShownFirstRunHint
+                override fun markFirstRunHintShown() {
+                    hasShownFirstRunHint = true
+                }
+
+                override fun getUseTouchZones(): Boolean = useTouchZones
+
+                override fun displayImage(path: String) = this@PlayerActivity.displayImage(path)
+                override fun playVideo(path: String) = this@PlayerActivity.playVideo(path)
+                override fun displayText(file: MediaFile) = this@PlayerActivity.displayText(file)
+                override fun displayPdf(file: MediaFile) = pdfViewerManager.displayPdf(file)
+                override fun displayEpub(file: MediaFile) = epubViewerManager.displayEpub(file)
+
+                override fun adjustTouchZonesForVideo(isVideo: Boolean) =
+                    this@PlayerActivity.adjustTouchZonesForVideo(isVideo)
+
+                override fun updatePanelVisibility(showCommandPanel: Boolean) =
+                    this@PlayerActivity.updatePanelVisibility(showCommandPanel)
+
+                override fun updateCommandAvailability(state: PlayerViewModel.PlayerState) =
+                    this@PlayerActivity.updateCommandAvailability(state)
+
+                override fun updatePlayPauseButton() = this@PlayerActivity.updatePlayPauseButton()
+                override fun updateSlideShowButton() = this@PlayerActivity.updateSlideShowButton()
+                override fun updateVolumeButtonsVisibility() = this@PlayerActivity.updateVolumeButtonsVisibility()
+
+                override fun showFirstRunHintOverlay() = this@PlayerActivity.showFirstRunHintOverlay()
+                override fun showSlideshowEnabledMessage() = this@PlayerActivity.showSlideshowEnabledMessage()
+
+                override fun toggleSlideShow() = viewModel.toggleSlideShow()
+                override fun startSlideshow(intervalSeconds: Int) = slideshowController.startSlideshow(intervalSeconds)
+                override fun getLatestState(): PlayerViewModel.PlayerState = viewModel.state.value
+            }
+        )
+
+        // Initialize UndoOperationManager
+        undoOperationManager = com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager(
+            rootView = binding.root,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager.Callback {
+                override fun isActivityAlive(): Boolean = !(isFinishing || isDestroyed)
+
+                override fun getUndoActionText(): String =
+                    com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager.defaultUndoActionText(binding.root)
+
+                override fun onUndoRequested() {
+                    viewModel.undoLastOperation()
+                }
+            }
+        )
+
+        // Initialize PlayerSettingsManager
+        playerSettingsManager = com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager(
+            activity = this,
+            dialogHelper = dialogHelper,
+            videoPlayerManager = videoPlayerManager,
+            settingsRepository = settingsRepository,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager.Callback {
+                // Currently no callbacks needed
+            }
+        )
+        
+        // Initialize TouchZoneGestureManager
+        touchZoneGestureManager = com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager(
+            binding = binding,
+            viewModel = viewModel,
+            touchZoneDetector = touchZoneDetector,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.TouchZoneGestureManager.TouchZoneCallback {
+                override fun isOverlayBlocking(): Boolean = this@PlayerActivity.isOverlayBlocking()
+                override fun getTouchZonesEnabled(): Boolean = useTouchZones
+                override fun getLoadFullSizeImages(): Boolean = loadFullSizeImages
+                override fun onBack() {
+                    finish()
+                    @Suppress("DEPRECATION")
+                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+                }
+                override fun onCopy() = showCopyDialog()
+                override fun onRename() = showRenameDialog()
+                override fun onPrevious() = viewModel.previousFile()
+                override fun onMove() = showMoveDialog()
+                override fun onNext() = viewModel.nextFile()
+                override fun onCommandPanelToggle() = viewModel.toggleCommandPanel()
+                override fun onDelete() = deleteCurrentFile()
+                override fun onSlideshowToggle() = viewModel.toggleSlideShow()
+                override fun showSlideshowEnabledMessage() = this@PlayerActivity.showSlideshowEnabledMessage()
+                override fun updateSlideShowButton() = this@PlayerActivity.updateSlideShowButton()
+                override fun updateSlideShow() = this@PlayerActivity.updateSlideShow()
+            }
+        )
+        
+        // Initialize touch gesture detectors using manager
+        imageTouchGestureDetector = touchZoneGestureManager.createImageTouchGestureDetector(this)
+        
+        // Initialize TranslationButtonManager
+        translationButtonManager = com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager(
+            context = this,
+            lifecycleOwner = this,
+            binding = binding,
+            settingsRepository = settingsRepository,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager.TranslationButtonCallback {
+                override fun getTranslationSessionSettings() = translationSessionSettings
+                override fun setTranslationSessionSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
+                    translationSessionSettings = settings
+                }
+                override fun getCurrentFileType() = viewModel.state.value.currentFile?.type
+                override fun translateCurrentImage() = this@PlayerActivity.translateCurrentImage()
+                override fun updateTextViewerTranslationButtonIcon(sourceLang: String, targetLang: String) {
+                    textViewerManager.updateTranslationButtonIcon(sourceLang, targetLang)
+                }
+                override fun applyTextViewerFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
+                    if (::textViewerManager.isInitialized) {
+                        textViewerManager.applyFontSettings(settings)
+                    }
+                }
+                override fun applyTranslationManagerFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
+                    if (::translationManager.isInitialized) {
+                        translationManager.applyFontSettings(settings)
+                    }
+                }
+                override fun applyEpubFontSettings(settings: com.sza.fastmediasorter.domain.models.TranslationSessionSettings) {
+                    if (::epubViewerManager.isInitialized) {
+                        epubViewerManager.applyFontSettings(settings)
+                    }
+                }
+                override fun forceTranslatePdf() = pdfViewerManager.forceTranslate()
+                override fun forceTranslateText() = textViewerManager.forceTranslate()
+                override fun forceTranslateEpub() = epubViewerManager.forceTranslate()
+            }
+        )
+        
+        // Initialize ExoPlayerControlsManager
+        exoPlayerControlsManager = com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager(
+            binding = binding,
+            videoPlayerManager = videoPlayerManager,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager.ExoPlayerControlsCallback {
+                override fun onPreviousFile() = viewModel.previousFile()
+                override fun onNextFile() = viewModel.nextFile()
+                override fun showPlaybackSpeedDialog() = playerSettingsManager.showPlaybackSpeedDialog()
+            }
+        )
+        
+        // Initialize SearchControlsManager
+        searchControlsManager = com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager(
+            binding = binding,
+            textViewerManager = textViewerManager,
+            pdfViewerManager = pdfViewerManager,
+            epubViewerManager = epubViewerManager,
+            lifecycleScope = lifecycleScope,
+            inputMethodManager = getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager.SearchControlsCallback {
+                override fun getCurrentMediaFile() = viewModel.state.value.currentFile
+                override fun scheduleHideControls() = this@PlayerActivity.scheduleHideControls()
+                override fun onEpubTranslate() = epubViewerManager.toggleTranslation()
+                override fun showTranslationSettingsDialog() = translationButtonManager.showTranslationSettingsDialog()
+            }
+        )
+    }
+
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        
+        // Update command panel orientation (adaptive layout)
+        commandPanelController.updateOrientation(newConfig)
+        
+        // Wait for layout to settle with new dimensions, then update touch zones
+        binding.root.post {
+            // Touch zones depend on screen dimensions - recalculate after rotation
+            val currentFile = viewModel.state.value.currentFile
+            
+            // For images, reload with new dimensions (in coroutine to avoid blocking main thread)
+            if (currentFile != null && (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)) {
+                // Clear current image from ImageViews to free memory before reloading
+                binding.imageView.setImageDrawable(null)
+                binding.photoView.setImageDrawable(null)
+                
+                // Load image asynchronously to prevent frame drops (was causing 128+ skipped frames)
+                lifecycleScope.launch(Dispatchers.Main) {
+                    displayImage(currentFile.path)
+                }
+            }
+            // Video player handles rotation automatically, no need to reload
+            // Touch zones will be recalculated automatically on next touch (using new binding.root.width/height)
+        }
+    }
+
+    override fun setupViews() {
+        setupGestureDetector()
+        setupToolbar()
+        setupControls()
+        setupCommandPanelControls()
+        setupTouchZones()
+        setupBackPressHandler()
+    }
+    
+    /**
+     * Setup back press handler for PDF fullscreen mode
+     */
+    private fun setupBackPressHandler() {
+        onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // Check if PDF fullscreen mode is active
+                if (pdfViewerManager.isInFullscreenMode()) {
+                    pdfViewerManager.exitFullscreenMode()
+                    return
+                }
+                // Check if EPUB fullscreen mode is active
+                if (epubViewerManager.isInFullscreenMode()) {
+                    epubViewerManager.onExitFullscreenRequest()
+                    return
+                }
+                
+                // Check if overlays are blocking (Translation, OCR, Lyrics)
+                if (isOverlayBlocking()) {
+                    if (binding.translationOverlay.isVisible || binding.translationLensOverlay.isVisible) {
+                        stopTranslation()
+                        return
+                    }
+                    if (binding.textViewerContainer.isVisible) {
+                        binding.textViewerContainer.isVisible = false
+                        return
+                    }
+                    if (binding.lyricsViewerContainer.isVisible) {
+                        hideLyricsViewer()
+                        return
+                    }
+                }
+
+                // Default back behavior
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
+        })
+    }
+
+    override fun observeData() {
+        observeViewModel()
+    }
+
+    private fun setupGestureDetector() {
+        gestureDetector = touchZoneGestureManager.createGestureDetector(this)
+
+        binding.root.setOnTouchListener { _, event ->
+            val currentFile = viewModel.state.value.currentFile
+            val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+            val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+            val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
+            val isPdfOrEpub = currentFile?.type == MediaType.PDF || currentFile?.type == MediaType.EPUB
+            
+            Timber.d("PlayerActivity.root.onTouch: action=${event.action}, type=${currentFile?.type}, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
+            
+            // For PDF/EPUB in non-fullscreen mode: intercept touches for navigation zones
+            // But only when overlays are NOT blocking (translation/OCR/Lens)
+            if (isPdfOrEpub && !isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
+                // Check if touch is in PDF/EPUB controls area (bottom panel)
+                val pdfControlsVisible = binding.pdfControlsLayout.isVisible
+                val epubControlsVisible = binding.epubControlsLayout.isVisible
+                
+                if (pdfControlsVisible && event.y >= binding.pdfControlsLayout.top) {
+                    // Touch is in PDF controls area - let buttons handle it
+                    return@setOnTouchListener false
+                }
+                
+                if (epubControlsVisible && event.y >= binding.epubControlsLayout.top) {
+                    // Touch is in EPUB controls area - let buttons handle it
+                    return@setOnTouchListener false
+                }
+                
+                if (!isOverlayBlocking()) {
+                    // Let gesture detector handle for document touch zones
+                    gestureDetector.onTouchEvent(event)
+                    return@setOnTouchListener false // Don't consume - allow PhotoView/WebView zoom/pan
+                }
+                // Overlays visible - don't use touch zones, let views handle normally
+                return@setOnTouchListener false
+            }
+            
+            // For video/audio in fullscreen mode, reserve bottom area for PlayerView controls
+            if (isVideo && isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
+                val screenHeight = binding.root.height
+                val effectiveHeight = when (currentFile?.type) {
+                    MediaType.AUDIO -> (screenHeight * 0.66f).toInt() // Upper 66% (2/3) for audio
+                    MediaType.VIDEO -> (screenHeight * 0.75f).toInt() // Upper 75% for video
+                    else -> screenHeight
+                }
+                
+                // If touch is in bottom reserved area, don't consume the event - let it pass to PlayerView
+                if (event.y > effectiveHeight) {
+                    return@setOnTouchListener false
+                }
+            }
+            
+            // For video/audio in command panel mode, reserve bottom 30% for player controls
+            if (isVideo && !isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
+                val screenHeight = binding.root.height
+                val effectiveHeight = (screenHeight * 0.7f).toInt() // Upper 70% for navigation
+                
+                // If touch is in bottom 30%, don't consume the event - let it pass to PlayerView
+                if (event.y > effectiveHeight) {
+                    return@setOnTouchListener false
+                }
+            }
+            
+            // In command panel mode: don't intercept touches on toolbar/top command panel
+            // Let buttons (Google Lens, OCR, etc.) receive their clicks
+            if (!isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
+                val toolbarBottom = binding.toolbar.bottom
+                val topCommandPanelBottom = if (binding.topCommandPanel.isVisible) binding.topCommandPanel.bottom else 0
+                val topAreaBottom = maxOf(toolbarBottom, topCommandPanelBottom)
+                
+                if (event.y < topAreaBottom) {
+                    return@setOnTouchListener false // Let toolbar/command panel buttons handle it
+                }
+            }
+            
+            // For images: use imageTouchGestureDetector for touch zone navigation
+            // - Fullscreen mode: 9-zone grid
+            // - Command panel mode: 2/3-zone navigation (handleCommandPanelTouchZones)
+            // BUT: If OCR/translation overlay is blocking, don't use touch zones
+            if (isImage && useTouchZones && !isOverlayBlocking()) {
+                imageTouchGestureDetector.onTouchEvent(event)
+                return@setOnTouchListener true // Consume event for touch zone handling
+            }
+            
+            // Let gesture detector handle the event for video/audio
+            // For images and upper area of video, consume the event (return true)
+            gestureDetector.onTouchEvent(event)
+            true
+        }
+        
+        // Set touch listener on PlayerView to intercept touches before PlayerView handles them
+        binding.playerView.setOnTouchListener { _, event ->
+            val currentFile = viewModel.state.value.currentFile
+            val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+            val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+            
+            // In fullscreen mode with touch zones enabled, let our gesture detector handle it
+            // BUT: allow bottom area to pass through for player controls
+            if (isInFullscreenMode && useTouchZones) {
+                val screenHeight = binding.root.height
+                val effectiveHeight = when (currentFile?.type) {
+                    MediaType.AUDIO -> (screenHeight * 0.66f).toInt() // Upper 66% (2/3) for audio
+                    MediaType.VIDEO -> (screenHeight * 0.75f).toInt() // Upper 75% for video
+                    else -> screenHeight
+                }
+                
+                // If touch is in bottom reserved area, let PlayerView handle it (show controls)
+                if (event.y > effectiveHeight) {
+                    return@setOnTouchListener false // Don't consume - let PlayerView handle controls
+                }
+                
+                // Otherwise, use our gesture detector for touch zones
+                gestureDetector.onTouchEvent(event)
+                return@setOnTouchListener true // Consume event to prevent PlayerView from handling it
+            }
+            
+            // In command panel mode for video/audio, also use touch zones for navigation
+            // Reserve bottom 30% for player controls
+            if (!isInFullscreenMode && isVideo) {
+                val screenHeight = binding.root.height
+                val effectiveHeight = (screenHeight * 0.7f).toInt() // Upper 70% for navigation
+                
+                // If touch is in bottom 30%, let PlayerView handle it (show controls)
+                if (event.y > effectiveHeight) {
+                    return@setOnTouchListener false // Don't consume - let PlayerView handle controls
+                }
+                
+                // Otherwise, use our gesture detector for simplified touch zones
+                gestureDetector.onTouchEvent(event)
+                return@setOnTouchListener true // Consume event to prevent PlayerView from handling it
+            }
+            
+            // Otherwise, let PlayerView handle its own touches (controls)
+            false
+        }
+        
+        // Setup touch zones for images via photoView and imageView listeners
+        // These have low priority - other UI elements (overlays) will intercept touches first
+        binding.photoView.setOnTouchListener { _, event ->
+            val currentFile = viewModel.state.value.currentFile
+            val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
+            
+            // Don't handle touch zones when overlays (translation/OCR) are visible
+            if (isOverlayBlocking()) {
+                return@setOnTouchListener false // Let overlays handle their touches
+            }
+            
+            // For images: always pass events to imageTouchGestureDetector (handles both fullscreen and command panel modes)
+            if (isImage && binding.photoView.isVisible) {
+                imageTouchGestureDetector.onTouchEvent(event)
+                // Return false to allow PhotoView to handle zoom/pan gestures as well
+                // GestureDetector will consume single taps via onSingleTapConfirmed
+                false
+            } else {
+                false // Not an image or not visible - let PhotoView handle
+            }
+        }
+        
+        binding.imageView.setOnTouchListener { _, event ->
+            val currentFile = viewModel.state.value.currentFile
+            val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
+            
+            // Don't handle touch zones when overlays (translation/OCR) are visible
+            if (isOverlayBlocking()) {
+                return@setOnTouchListener false // Let overlays handle their touches
+            }
+            
+            // For images: always pass events to imageTouchGestureDetector (handles both fullscreen and command panel modes)
+            if (isImage && binding.imageView.isVisible) {
+                imageTouchGestureDetector.onTouchEvent(event)
+                // Return false to allow normal ImageView gestures if needed
+                // GestureDetector will consume single taps via onSingleTapConfirmed
+                false
+            } else {
+                false // Not an image or not visible
+            }
+        }
+    }
+    
+    /**
+     * Handle touch zones for static images (3x3 grid)
+     * For video: only upper 75% of screen is touch-sensitive (lower 25% reserved for ExoPlayer controls)
+     * For audio: only upper 66% of screen is touch-sensitive (lower 34% reserved for ExoPlayer controls)
+     */
+    private fun showCopyDialog() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        val resourceId = intent.getLongExtra("resourceId", -1)
+        dialogHelper.showCopyDialog(currentFile, resourceId)
+    }
+    
+    private fun showMoveDialog() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        val resourceId = intent.getLongExtra("resourceId", -1)
+        dialogHelper.showMoveDialog(currentFile, resourceId)
+    }
+    
+    private fun showRenameDialog() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        dialogHelper.showRenameDialog(currentFile)
+    }
+
+    private fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            Timber.d("PlayerActivity: toolbar navigation (back) clicked")
+            finish()
+        }
+    }
+
+    private fun setupControls() {
+        binding.btnPrevious.setOnClickListener {
+            Timber.d("PlayerActivity: btnPrevious clicked")
+            viewModel.previousFile()
+            scheduleHideControls()
+        }
+
+        binding.btnNext.setOnClickListener {
+            Timber.d("PlayerActivity: btnNext clicked")
+            viewModel.nextFile()
+            scheduleHideControls()
+        }
+
+        binding.btnPlayPause.setOnClickListener {
+            Timber.d("PlayerActivity: btnPlayPause clicked")
+            viewModel.togglePause()
+            
+            // Update slideshow controller
+            if (viewModel.state.value.isPaused) {
+                slideshowController.pauseSlideshow()
+            } else {
+                slideshowController.resumeSlideshow()
+            }
+            
+            updatePlayPauseButton()
+            scheduleHideControls()
+        }
+
+        // Volume controls for audio files
+        binding.btnVolumeDown.setOnClickListener {
+            Timber.d("PlayerActivity: btnVolumeDown clicked")
+            adjustVolume(-0.2f)
+            scheduleHideControls()
+        }
+
+        binding.btnVolumeUp.setOnClickListener {
+            Timber.d("PlayerActivity: btnVolumeUp clicked")
+            adjustVolume(0.2f)
+            scheduleHideControls()
+        }
+
+        binding.btnSlideShow.setOnClickListener {
+            Timber.d("PlayerActivity: btnSlideShow clicked")
+            val wasActive = viewModel.state.value.isSlideShowActive
+            viewModel.toggleSlideShow()
+            
+            // Show popup when enabling slideshow
+            if (!wasActive && viewModel.state.value.isSlideShowActive) {
+                val intervalSeconds = (viewModel.state.value.slideShowInterval / 1000).toInt()
+                slideshowController.startSlideshow(intervalSeconds)
+                showSlideshowEnabledMessage()
+            } else if (wasActive && !viewModel.state.value.isSlideShowActive) {
+                slideshowController.stopSlideshow()
+            }
+            
+            updateSlideShowButton()
+            scheduleHideControls()
+        }
+
+        binding.btnInfoCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnInfoCmd clicked")
+            showFileInfo()
+            scheduleHideControls()
+        }
+
+        binding.btnLyricsCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnLyricsCmd clicked")
+            searchAndShowLyrics()
+            scheduleHideControls()
+        }
+
+        binding.btnFavorite.setOnClickListener {
+            Timber.d("PlayerActivity: btnFavorite clicked")
+            viewModel.toggleFavorite()
+            scheduleHideControls()
+        }
+
+        binding.btnDelete.setOnClickListener {
+            Timber.d("PlayerActivity: btnDelete clicked")
+            deleteCurrentFile()
+            scheduleHideControls()
+        }
+        
+        // Setup ExoPlayer custom navigation buttons (in custom_player_controls.xml)
+        // These replace the default rewind/fast-forward with previous/next file
+        exoPlayerControlsManager.setupExoPlayerNavigationButtons()
+        
+        // PDF Page Navigation
+        binding.btnPdfPrevPage.setOnClickListener {
+            Timber.d("PlayerActivity: btnPdfPrevPage clicked")
+            pdfViewerManager.showPreviousPage()
+            scheduleHideControls()
+        }
+        
+        binding.btnPdfNextPage.setOnClickListener {
+            Timber.d("PlayerActivity: btnPdfNextPage clicked")
+            pdfViewerManager.showNextPage()
+            scheduleHideControls()
+        }
+
+        binding.btnPdfZoomIn.setOnClickListener {
+            Timber.d("PlayerActivity: btnPdfZoomIn clicked")
+            val currentScale = binding.photoView.scale
+            val maxScale = binding.photoView.maximumScale
+            val newScale = (currentScale + 0.5f).coerceAtMost(maxScale)
+            if (newScale > currentScale) {
+                binding.photoView.setScale(newScale, true)
+            }
+        }
+        
+        binding.btnPdfZoomOut.setOnClickListener {
+            Timber.d("PlayerActivity: btnPdfZoomOut clicked (first instance)")
+            val currentScale = binding.photoView.scale
+            val minScale = binding.photoView.minimumScale
+            val newScale = (currentScale - 0.5f).coerceAtLeast(minScale)
+            if (newScale < currentScale) {
+                binding.photoView.setScale(newScale, true)
+            }
+        }
+        
+        // EPUB Chapter Navigation
+        binding.btnEpubPrevChapter.setOnClickListener {
+            Timber.d("PlayerActivity: btnEpubPrevChapter clicked")
+            epubViewerManager.showPreviousChapter()
+            scheduleHideControls()
+        }
+        
+        binding.btnEpubNextChapter.setOnClickListener {
+            Timber.d("PlayerActivity: btnEpubNextChapter clicked")
+            epubViewerManager.showNextChapter()
+            scheduleHideControls()
+        }
+        
+        binding.btnEpubToc.setOnClickListener {
+            Timber.d("PlayerActivity: btnEpubToc clicked")
+            epubViewerManager.showTableOfContents()
+            scheduleHideControls()
+        }
+        
+        binding.btnEpubFontSizeDecrease.setOnClickListener {
+            Timber.d("PlayerActivity: btnEpubFontSizeDecrease clicked")
+            epubViewerManager.decreaseFontSize()
+            scheduleHideControls()
+        }
+        
+        binding.btnEpubFontSizeIncrease.setOnClickListener {
+            Timber.d("PlayerActivity: btnEpubFontSizeIncrease clicked")
+            epubViewerManager.increaseFontSize()
+            scheduleHideControls()
+        }
+        
+        // EPUB Exit Fullscreen Button
+        binding.btnExitEpubFullscreen.setOnClickListener {
+            Timber.d("PlayerActivity: btnExitEpubFullscreen clicked")
+            epubViewerManager.exitFullscreenMode()
+        }
+        
+        // PDF Translation Button (in command panel)
+        binding.btnTranslatePdfCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnTranslatePdfCmd clicked")
+            pdfViewerManager.toggleTranslation()
+            scheduleHideControls()
+        }
+        binding.btnTranslatePdfCmd.setOnLongClickListener {
+            Timber.d("PlayerActivity: btnTranslatePdfCmd long-clicked")
+            translationButtonManager.showTranslationSettingsDialog()
+            true
+        }
+        
+        // Image Translation Button (deprecated - kept for compatibility)
+        binding.btnTranslateImage.setOnClickListener {
+            Timber.d("PlayerActivity: btnTranslateImage clicked (deprecated)")
+            translateCurrentImage()
+            scheduleHideControls()
+        }
+        binding.btnTranslateImage.setOnLongClickListener {
+            Timber.d("PlayerActivity: btnTranslateImage long-clicked (deprecated)")
+            translationButtonManager.showTranslationSettingsDialog()
+            true
+        }
+        
+        // Image Translation Button (command panel)
+        binding.btnTranslateImageCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnTranslateImageCmd clicked")
+            translateCurrentImage()
+            scheduleHideControls()
+        }
+        binding.btnTranslateImageCmd.setOnLongClickListener {
+            Timber.d("PlayerActivity: btnTranslateImageCmd long-clicked")
+            translationButtonManager.showTranslationSettingsDialog()
+            true
+        }
+        
+        // Text Settings Buttons (all types) - show translation/OCR settings dialog
+        binding.btnTextSettingsCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnTextSettingsCmd clicked")
+            translationButtonManager.showTranslationSettingsDialog()
+        }
+        binding.btnPdfTextSettingsCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnPdfTextSettingsCmd clicked")
+            translationButtonManager.showTranslationSettingsDialog()
+        }
+        binding.btnEpubTextSettingsCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnEpubTextSettingsCmd clicked")
+            translationButtonManager.showTranslationSettingsDialog()
+        }
+        binding.btnImageTextSettingsCmd.setOnClickListener {
+            Timber.d("PlayerActivity: btnImageTextSettingsCmd clicked")
+            translationButtonManager.showTranslationSettingsDialog()
+        }
+        
+        // Translation Font Size Controls
+        binding.btnTranslationFontDecrease.setOnClickListener {
+            Timber.d("PlayerActivity: btnTranslationFontDecrease clicked")
+            binding.translationLensOverlay.decreaseFontSize()
+            scheduleHideControls()
+        }
+        
+        binding.btnTranslationFontIncrease.setOnClickListener {
+            Timber.d("PlayerActivity: btnTranslationFontIncrease clicked")
+            binding.translationLensOverlay.increaseFontSize()
+            scheduleHideControls()
+        }
+        
+        // Note: btnPdfZoomOut already set up in PDF controls section above
+        
+        // Text Viewer Controls
+        textViewerManager.setupControls()
+        
+        // Lyrics Viewer Controls
+        binding.btnCloseLyricsViewer.setOnClickListener {
+            Timber.d("PlayerActivity: btnCloseLyricsViewer clicked")
+            hideLyricsViewer()
+            scheduleHideControls()
+        }
+
+        binding.btnTranslateLyrics.setOnClickListener {
+            Timber.d("PlayerActivity: btnTranslateLyrics clicked")
+            val currentText = binding.tvLyricsContent.text.toString()
+            if (currentText.isBlank()) return@setOnClickListener
+            
+            // Show loading state
+            Toast.makeText(this, R.string.translation_started, Toast.LENGTH_SHORT).show()
+            
+            // Execute translation
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    // Translate to default target language (user's preferred language or Russian)
+                    // Using getTargetLanguageCode() which usually returns the user's preferred target language
+                    val targetLang = translationManager.getTargetLanguageCode() ?: com.google.mlkit.nl.translate.TranslateLanguage.RUSSIAN
+                    
+                    val translatedText = translationManager.translate(currentText, targetLang = targetLang)
+                    
+                    withContext(Dispatchers.Main) {
+                        if (translatedText != null) {
+                            binding.tvLyricsContent.text = translatedText
+                        } else {
+                            Toast.makeText(this@PlayerActivity, R.string.translation_error, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "Lyrics translation failed")
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@PlayerActivity, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        
+        // Search Controls
+        searchControlsManager.setupSearchControls()
+    }
+    
+    private fun setupCommandPanelControls() {
+        commandPanelController.setupCommandPanelControls()
+    }
+
+    private fun setupTouchZones() {
+        // 2-zone mode (legacy): left=Previous, right=Next
+        binding.touchZonePrevious.setOnClickListener {
+            viewModel.previousFile()
+        }
+
+        binding.touchZoneNext.setOnClickListener {
+            viewModel.nextFile()
+        }
+        
+        // 3-zone mode (for full-size images): 25% left=Previous, 50% center=Gestures, 25% right=Next
+        binding.touchZone3Previous.setOnClickListener {
+            viewModel.previousFile()
+        }
+        
+        binding.touchZone3Next.setOnClickListener {
+            viewModel.nextFile()
+        }
+        
+        // Center gesture zone - no click handler (PhotoView handles pinch/rotate)
+        
+        // First-run hint overlay removed (migrated to new settings system)
+    }
+    
+    /**
+     * Show first-run hint overlay with touch zones guide
+     * Dismisses on first tap (removed auto-dismiss timeout)
+     */
+    private fun showFirstRunHintOverlay() {
+        // Make overlay visible with solid background (increased from 0.9f)
+        binding.audioTouchZonesOverlay.isVisible = true
+        binding.audioTouchZonesOverlay.alpha = 1.0f
+        
+        // Dismiss on any tap
+        binding.audioTouchZonesOverlay.setOnClickListener {
+            dismissFirstRunHintOverlay()
+        }
+        
+        // No auto-dismiss timeout - only dismisses on tap
+    }
+    
+    /**
+     * Dismiss first-run hint overlay (deprecated)
+     */
+    private fun dismissFirstRunHintOverlay() {
+        binding.audioTouchZonesOverlay.isVisible = false
+        binding.audioTouchZonesOverlay.setOnClickListener(null)
+    }
+    
+    /**
+     * Adjust touch zones visibility based on media type
+     * For video/audio in command panel mode: touch zones DISABLED (ExoPlayer controls used)
+     * For images: touch zones ENABLED for Previous/Next navigation
+     */
+    private fun adjustTouchZonesForVideo(isVideo: Boolean) {
+        val currentFile = viewModel.state.value.currentFile
+        val isEpubOrPdf = currentFile?.type == MediaType.EPUB || currentFile?.type == MediaType.PDF
+        
+        if (!viewModel.state.value.showCommandPanel) {
+            // In fullscreen mode, touch zones are handled differently (via handleTouchZone)
+            return
+        }
+        
+        // In command panel mode: disable touch zones for video/audio/EPUB/PDF completely
+        val overlay = binding.touchZonesOverlay
+        
+        if (isVideo) {
+            // For video/audio: HIDE touch zones - use ExoPlayer controls for navigation
+            overlay.isVisible = false
+            Timber.d("PlayerActivity.adjustTouchZonesForVideo: Touch zones DISABLED for video/audio")
+        } else if (isEpubOrPdf) {
+            // For EPUB/PDF: HIDE touch zones - use document-specific controls for navigation
+            overlay.isVisible = false
+            Timber.d("PlayerActivity.adjustTouchZonesForVideo: Touch zones DISABLED for EPUB/PDF (using document controls)")
+        } else {
+            // For images: SHOW touch zones if enabled in settings
+            overlay.isVisible = useTouchZones
+            Timber.d("PlayerActivity.adjustTouchZonesForVideo: Touch zones ${if (useTouchZones) "ENABLED" else "DISABLED"} for images")
+        }
+    }
+
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.state.collect { state ->
+                        updateUI(state)
+                    }
+                }
+
+                launch {
+                    viewModel.loading.collect { isLoading ->
+                        // Don't override progressBar for PDF/EPUB - they manage it themselves
+                        val currentType = viewModel.state.value.currentFile?.type
+                        if (currentType != MediaType.PDF && currentType != MediaType.EPUB) {
+                            binding.progressBar.isVisible = isLoading
+                        }
+                    }
+                }
+
+                launch {
+                    viewModel.events.collect { event ->
+                        handleEvent(event)
+                    }
+                }
+                
+                // Observe settings to show/hide favorite button and update touch zones mode
+                launch {
+                    combine(
+                        settingsRepository.getSettings(),
+                        viewModel.state
+                    ) { settings, state ->
+                        // Cache settings for overlay visibility and touch zones
+                        currentSettings = settings
+                        loadFullSizeImages = settings.loadFullSizeImages
+                        // Show favorite button if:
+                        // 1. enableFavorites setting is on, OR
+                        // 2. Currently viewing Favorites resource (id = -100)
+                        settings.enableFavorites || state.resource?.id == -100L
+                    }.collect { shouldShow ->
+                        binding.btnFavorite.isVisible = shouldShow
+                        // Debounce updateUI to avoid excessive calls
+                        updateUIJob?.cancel()
+                        updateUIJob = launch {
+                            kotlinx.coroutines.delay(100) // 100ms debounce
+                            updateUI(viewModel.state.value)
+                        }
+                    }
+                }
+
+                // Removed: loading dialog during file list load (not needed - single file loads fast)
+                // Image loading progress handled by showLoadingIndicatorRunnable with 2s delay
+            }
+        }
+    }
+
+    private fun updateUI(state: PlayerViewModel.PlayerState) {
+        uiStateCoordinator.updateUI(state)
+    }
+
+    /**
+     * Update panel visibility based on mode
+     */
+    private fun updatePanelVisibility(showCommandPanel: Boolean) {
+        val state = viewModel.state.value
+        if (showCommandPanel) {
+            // Command panel mode
+            binding.topCommandPanel.isVisible = true
+            binding.tvFileNameOverlay.isVisible = true
+            // Touch zones visibility will be managed by displayImage() based on loadFullSizeImages setting
+            // (standard 2-zone overlay vs 3-zone overlay with gesture area)
+            // Copy/Move panel visibility is controlled by updateCommandAvailability()
+            binding.controlsOverlay.isVisible = false
+            
+            // Populate destination buttons (handles state restoration internally)
+            populateDestinationButtons()
+
+            // Apply small controls setting if enabled
+            if (state.showSmallControls) {
+                applySmallControlsIfNeeded()
+            } else {
+                restoreCommandButtonHeightsIfNeeded()
+            }
+        } else {
+            // Fullscreen mode
+            binding.topCommandPanel.isVisible = false
+            binding.tvFileNameOverlay.isVisible = false
+            binding.touchZones3Overlay.isVisible = false
+            binding.copyToPanel.isVisible = false
+            binding.moveToPanel.isVisible = false
+            // controlsOverlay visibility is controlled in updateUI based on showControls
+            // touchZonesOverlay (new setting-based) visibility is also controlled in updateUI
+
+            if (!state.showSmallControls) {
+                restoreCommandButtonHeightsIfNeeded()
+            }
+        }
+        
+        // Update audio touch zones overlay whenever panel visibility changes
+        updateAudioTouchZonesVisibility()
+    }
+
+    private fun applySmallControlsIfNeeded() {
+        commandPanelController.applySmallControlsIfNeeded()
+    }
+
+    private fun restoreCommandButtonHeightsIfNeeded() {
+        commandPanelController.restoreCommandButtonHeightsIfNeeded()
+    }
+
+
+    /**
+     * Toggle Copy to panel collapsed/expanded state
+     */
+    private fun toggleCopyPanel() {
+        destinationButtonsManager.toggleCopyPanel()
+    }
+    
+    /**
+     * Toggle Move to panel collapsed/expanded state
+     */
+    private fun toggleMovePanel() {
+        destinationButtonsManager.toggleMovePanel()
+    }
+    
+
+
+    /**
+     * Update command availability based on settings and file permissions
+     */
+    private fun updateCommandAvailability(state: PlayerViewModel.PlayerState) {
+        commandPanelController.updateCommandAvailability(state)
+    }
+
+    private fun displayText(mediaFile: MediaFile) {
+        val resource = viewModel.state.value.resource
+        textViewerManager.displayText(mediaFile, isWritable = resource?.isWritable == true)
+    }
+    
+    private fun displayImage(path: String) {
+        imageLoadingManager.displayImage(path)
+    }
+
+    /**
+     * Preload adjacent images (previous + next) in background for faster navigation.
+     * Only preloads IMAGE and GIF files.
+     * Supports circular navigation.
+     */
+    private fun preloadNextImageIfNeeded() {
+        imageLoadingManager.preloadNextImageIfNeeded()
+    }
+
+    private fun playVideo(path: String) {
+        Timber.i("PlayerActivity.playVideo: START - path=$path")
+        
+        // Skip if activity is being destroyed
+        if (isFinishing || isDestroyed) {
+            Timber.d("PlayerActivity.playVideo: Activity is finishing/destroyed, skipping video playback")
+            return
+        }
+        
+        // Double-check: never try to play image files with ExoPlayer
+        val lowerPath = path.lowercase()
+        val imageExtensions = listOf(".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".heif", ".heic", ".avif")
+        if (imageExtensions.any { lowerPath.endsWith(it) }) {
+            Timber.w("PlayerActivity.playVideo: Detected image file (${lowerPath.substringAfterLast('.')}), redirecting to displayImage()")
+            displayImage(path)
+            return
+        }
+        
+        Timber.d("PlayerActivity.playVideo: Hiding image views and btnTranslateImage")
+        
+        // Hide both image views (regular ImageView and zoomable PhotoView)
+        binding.imageView.isVisible = false
+        binding.photoView.isVisible = false
+        binding.audioCoverArtView.isVisible = false
+        binding.pdfControlsLayout.isVisible = false
+        binding.textViewerContainer.isVisible = false
+        binding.btnTranslateImage.isVisible = false
+        binding.playerView.isVisible = true
+        
+        // Hide text action buttons (they are for TXT files only)
+        binding.btnCopyTextCmd.isVisible = false
+        binding.btnEditTextCmd.isVisible = false
+        binding.btnTranslateTextCmd.isVisible = false
+        binding.btnSearchTextCmd.isVisible = false
+        
+        // Hide PDF action buttons (they are for PDF files only)
+        binding.btnGoogleLensPdfCmd.isVisible = false
+        binding.btnOcrPdfCmd.isVisible = false
+        binding.btnTranslatePdfCmd.isVisible = false
+        binding.btnSearchPdfCmd.isVisible = false
+        
+        // Hide EPUB action buttons (they are for EPUB files only)
+        binding.btnSearchEpubCmd.isVisible = false
+        binding.btnTranslateEpubCmd.isVisible = false
+        binding.btnOcrEpubCmd.isVisible = false
+        
+        // Hide EPUB viewer (WebView and controls)
+        binding.epubWebView.isVisible = false
+        binding.epubControlsLayout.isVisible = false
+        binding.btnExitEpubFullscreen.isVisible = false
+
+        val currentFile = viewModel.state.value.currentFile
+        val resource = viewModel.state.value.resource
+        
+        // Configure PlayerView based on media type
+        val isAudioFile = currentFile?.type == MediaType.AUDIO
+        if (isAudioFile) {
+            // For audio: always show controls, never hide
+            binding.playerView.controllerShowTimeoutMs = 0 // 0 means never hide
+            
+            // Show touch zones overlay for audio in fullscreen mode
+            updateAudioTouchZonesVisibility()
+            
+            // Show audio file info
+            showAudioFileInfo(currentFile)
+        } else {
+            // For video: auto-hide controls after 15 seconds
+            binding.playerView.controllerShowTimeoutMs = VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS.toInt()
+            
+            // Hide touch zones overlay for video
+            binding.audioTouchZonesOverlay.isVisible = false
+            
+            // Hide audio info overlay for video
+            binding.audioInfoOverlay.isVisible = false
+        }
+
+        // Schedule loading indicator to show after 1 second
+        loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
+        
+        // Determine resource type from path prefix (for Favorites with mixed sources)
+        val actualResourceType = when {
+            path.startsWith("cloud://") -> ResourceType.CLOUD
+            path.startsWith("smb://") -> ResourceType.SMB
+            path.startsWith("sftp://") -> ResourceType.SFTP
+            path.startsWith("ftp://") -> ResourceType.FTP
+            else -> resource?.type ?: ResourceType.LOCAL
+        }
+        
+        // Delegate to VideoPlayerManager
+        if (currentFile != null && 
+            (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || 
+             actualResourceType == ResourceType.FTP || actualResourceType == ResourceType.CLOUD)) {
+            
+            // For Favorites, get credentialsId from the file's original resource
+            if (resource?.id == -100L && currentFile.resourceId != null) {
+                // Launch coroutine to get credentials from original resource
+                lifecycleScope.launch {
+                    val resourceId = currentFile.resourceId ?: run {
+                        Timber.e("resourceId is null after null-check in Favorites block")
+                        return@launch
+                    }
+                    val credId = viewModel.getCredentialsIdForResource(resourceId)
+                    Timber.d("PlayerActivity.playVideo: Favorites file, resolved credentialsId=$credId from resourceId=${currentFile.resourceId}")
+                    
+                    // Network or cloud playback via manager
+                    videoPlayerManager.playVideo(
+                        path = path,
+                        resourceType = actualResourceType,
+                        credentialsId = credId,
+                        playWhenReady = !viewModel.state.value.isPaused,
+                        onComplete = {
+                            // Update repeat button after player is created
+                            exoPlayerControlsManager.updateRepeatButtonIcon()
+                        }
+                    )
+                }
+            } else {
+                // Network or cloud playback via manager (non-Favorites)
+                videoPlayerManager.playVideo(
+                    path = path,
+                    resourceType = actualResourceType,
+                    credentialsId = resource?.credentialsId,
+                    playWhenReady = !viewModel.state.value.isPaused,
+                    onComplete = {
+                        // Update repeat button after player is created
+                        exoPlayerControlsManager.updateRepeatButtonIcon()
+                    }
+                )
+            }
+        } else {
+            // Local file - use playVideo() to enable position restore
+            videoPlayerManager.playVideo(
+                path = path,
+                resourceType = ResourceType.LOCAL,
+                credentialsId = null,
+                playWhenReady = !viewModel.state.value.isPaused,
+                onComplete = {
+                    exoPlayerControlsManager.updateRepeatButtonIcon()
+                }
+            )
+        }
+
+        Timber.d("PlayerActivity.playVideo: END")
+    }
+    
+    private fun playLocalVideo(path: String) {
+        // Deprecated: delegated to VideoPlayerManager
+        videoPlayerManager.playLocalVideo(path, !viewModel.state.value.isPaused)
+        exoPlayerControlsManager.updateRepeatButtonIcon()
+    }
+
+    private fun updateSlideShow() {
+        if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
+            val intervalSeconds = (viewModel.state.value.slideShowInterval / 1000).toInt()
+            slideshowController.updateInterval(intervalSeconds)
+            slideshowController.restartTimer()
+        } else {
+            slideshowController.stopSlideshow()
+        }
+    }
+
+    private fun updatePlayPauseButton() {
+        binding.btnPlayPause.text = if (viewModel.state.value.isPaused) "▶" else "⏸"
+        videoPlayerManager.getPlayer()?.playWhenReady = !viewModel.state.value.isPaused
+    }
+
+    private fun updateSlideShowButton() {
+        val isActive = viewModel.state.value.isSlideShowActive
+        binding.btnSlideShow.alpha = if (isActive) 1.0f else 0.5f
+        // Bright red when slideshow is active, default white when inactive
+        // Use ColorStateList for MaterialButton compatibility
+        if (isActive) {
+            binding.btnSlideShow.setTextColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.RED))
+            binding.btnSlideShow.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#33FF0000"))
+        } else {
+            binding.btnSlideShow.setTextColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE))
+            binding.btnSlideShow.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+        }
+        // Also update command panel button if initialized
+        if (::commandPanelController.isInitialized) {
+            commandPanelController.updateSlideshowButtonColor(isActive)
+        }
+        Timber.d("updateSlideShowButton: isActive=$isActive")
+    }
+
+    /**
+     * Adjust player volume by delta (e.g., +0.2 or -0.2)
+     * Volume is clamped between 0.0 and 1.0
+     */
+    private fun adjustVolume(delta: Float) {
+        val player = videoPlayerManager.getPlayer() ?: return
+        val currentVolume = player.volume
+        val newVolume = (currentVolume + delta).coerceIn(0f, 1f)
+        player.volume = newVolume
+        
+        val percentage = (newVolume * 100).toInt()
+        Timber.d("Volume adjusted: ${(currentVolume * 100).toInt()}% -> $percentage%")
+        Toast.makeText(this, getString(R.string.volume_level, percentage), Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Update volume buttons visibility - show for audio and video files
+     */
+    private fun updateVolumeButtonsVisibility() {
+        val fileType = viewModel.state.value.currentFile?.type
+        val isMediaWithSound = fileType == MediaType.AUDIO || fileType == MediaType.VIDEO
+        binding.btnVolumeDown.isVisible = isMediaWithSound
+        binding.btnVolumeUp.isVisible = isMediaWithSound
+    }
+
+    private fun scheduleHideControls() {
+        hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        // Don't auto-hide controls for audio files
+        val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
+        if (viewModel.state.value.showControls && !viewModel.state.value.isPaused && !isAudioFile) {
+            hideControlsHandler.postDelayed(hideControlsRunnable, VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS)
+        }
+    }
+
+    /**
+     * Update audio touch zones overlay visibility based on:
+     * - Current file is audio
+     * - Fullscreen mode (not showing command panel or controls overlay)
+     * - Touch zones are enabled
+     */
+    private fun updateAudioTouchZonesVisibility() {
+        val state = viewModel.state.value
+        val isAudioFile = state.currentFile?.type == MediaType.AUDIO
+        val isInFullscreenMode = !state.showCommandPanel && !state.showControls
+        
+        // NEVER show overlay for audio - audio uses ExoPlayer UI, not touch zones
+        binding.audioTouchZonesOverlay.isVisible = false
+        Timber.d("PlayerActivity.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
+    }
+
+    /**
+     * Show quick translation settings dialog on long press of translate button
+     */
+    
+    /**
+     * Apply font settings to translation overlay view (Google Lens style)
+     */
+
+    private fun showFileInfo() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, getString(R.string.file_info_unavailable), Toast.LENGTH_SHORT).show()
+            return
+        }
+        dialogHelper.showFileInfo(currentFile)
+    }
+    
+    private fun showImageEditDialog() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, getString(R.string.msg_no_file_to_edit), Toast.LENGTH_SHORT).show()
+            return
+        }
+        dialogHelper.showImageEditDialog(currentFile)
+    }
+    
+    private fun showGifEditDialog() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, getString(R.string.msg_no_file_to_edit), Toast.LENGTH_SHORT).show()
+            return
+        }
+        dialogHelper.showGifEditDialog(currentFile)
+    }
+    
+    /**
+     * Search and display song lyrics for audio files.
+     */
+    private fun searchAndShowLyrics() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null || currentFile.type != MediaType.AUDIO) {
+            return
+        }
+        
+        Timber.d("PlayerActivity: Searching lyrics for ${currentFile.name}")
+        Toast.makeText(this, getString(R.string.searching_lyrics), Toast.LENGTH_SHORT).show()
+        
+        lifecycleScope.launch {
+            try {
+                val result = searchLyricsUseCase.execute(currentFile)
+                
+                result.onSuccess { lyrics ->
+                    Timber.d("PlayerActivity: Lyrics found, showing viewer")
+                    showLyricsViewer(lyrics)
+                }.onFailure { error ->
+                    if (error is java.net.SocketTimeoutException) {
+                        Timber.w("PlayerActivity: Lyrics search timeout: ${error.message}")
+                    } else {
+                        Timber.e(error, "PlayerActivity: Lyrics search failed")
+                    }
+                    
+                    val errorMessage = if (error.message == "Lyrics not found") {
+                        getString(R.string.lyrics_not_found)
+                    } else {
+                        // Network error or other
+                        "Error: ${error.localizedMessage ?: "Unknown error"}"
+                    }
+                    
+                    Timber.d("PlayerActivity: Showing toast: $errorMessage")
+                    Toast.makeText(
+                        this@PlayerActivity, 
+                        errorMessage, 
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                // This catch block might not be needed if execute() catches everything, 
+                // but good for safety against unexpected crashes
+                Timber.e(e, "Failed to search lyrics (unexpected)")
+                Toast.makeText(
+                    this@PlayerActivity, 
+                    getString(R.string.error), 
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+    
+    /**
+     * Display lyrics in overlay viewer.
+     */
+    private fun showLyricsViewer(lyrics: String) {
+        Timber.d("PlayerActivity: Showing lyrics viewer")
+        
+        // Filter out empty lines from lyrics
+        val filteredLyrics = lyrics.lines()
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
+        
+        // Apply font settings from translation session
+        val fontSize = when (translationSessionSettings.fontSize) {
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.MINIMUM -> 10f
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.SMALL -> 14f
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.MEDIUM -> 16f
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.LARGE -> 18f
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.HUGE -> 22f
+            com.sza.fastmediasorter.domain.models.TranslationFontSize.AUTO -> 16f
+        }
+        
+        val fontFamily = when (translationSessionSettings.fontFamily) {
+            com.sza.fastmediasorter.domain.models.TranslationFontFamily.SERIF -> android.graphics.Typeface.SERIF
+            com.sza.fastmediasorter.domain.models.TranslationFontFamily.MONOSPACE -> android.graphics.Typeface.MONOSPACE
+            com.sza.fastmediasorter.domain.models.TranslationFontFamily.DEFAULT -> android.graphics.Typeface.SANS_SERIF
+        }
+        
+        binding.tvLyricsContent.apply {
+            text = filteredLyrics
+            textSize = fontSize
+            typeface = fontFamily
+        }
+        
+        binding.lyricsViewerContainer.visibility = View.VISIBLE
+        // Hide top command panel when showing lyrics
+        binding.topCommandPanel.visibility = View.GONE
+    }
+    
+    /**
+     * Hide lyrics viewer overlay.
+     */
+    private fun hideLyricsViewer() {
+        Timber.d("PlayerActivity: Hiding lyrics viewer")
+        binding.lyricsViewerContainer.visibility = View.GONE
+        // Restore top command panel visibility
+        binding.topCommandPanel.visibility = View.VISIBLE
+    }
+    
+    /**
+     * Reload current image after edit operation (rotation/flip/filter/adjustments).
+     * Clears both memory and disk cache, updates MediaFilesCache, and reloads.
+     */
+    private fun reloadCurrentImage() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        val resource = viewModel.state.value.resource
+        
+        lifecycleScope.launch(Dispatchers.Main) {
+            try {
+                // Cancel any pending loading indicator
+                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                if (!isDestroyed) {
+                    binding.progressBar.isVisible = false
+                }
+                
+                // Clear memory cache for both views (immediate effect)
+                val requestManager = Glide.get(this@PlayerActivity)
+                    .requestManagerRetriever
+                    .get(this@PlayerActivity)
+                
+                requestManager.clear(binding.imageView)
+                requestManager.clear(binding.photoView)
+                
+                // Clear Glide disk cache for this specific file (in background)
+                withContext(Dispatchers.IO) {
+                    try {
+                        // Clear all disk cache since we can't target specific key easily
+                        // This ensures the edited file is reloaded fresh from network
+                        Glide.get(this@PlayerActivity).clearDiskCache()
+                        Timber.d("PlayerActivity: Cleared Glide disk cache after image edit")
+                    } catch (e: Exception) {
+                        Timber.w(e, "Failed to clear Glide disk cache")
+                    }
+                }
+                
+                // Get updated file info from ViewModel state (should have new size after refreshCurrentFileInfo)
+                val updatedFile = viewModel.state.value.currentFile
+                
+                // Update MediaFilesCache with new file info (for BrowseActivity thumbnails)
+                if (resource != null && updatedFile != null) {
+                    mediaFilesCacheManager.updateFile(resource.id, currentFile.path, updatedFile)
+                    Timber.d("PlayerActivity: Updated MediaFilesCache for edited file: ${currentFile.name}")
+                }
+                
+                Timber.d("PlayerActivity: Reloading image after edit: ${currentFile.name}")
+                
+                // Reload image fresh from network
+                displayImage(currentFile.path)
+                
+            } catch (e: Exception) {
+                Timber.e(e, "PlayerActivity: Error reloading image after edit")
+                Toast.makeText(this@PlayerActivity, getString(R.string.msg_failed_reload_image, e.message), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    
+    /**
+     * Show player settings dialog for video/audio files.
+     * Allows configuring playback speed, repeat, subtitles and audio track.
+     */
+    private fun deleteCurrentFile() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile == null) {
+            Toast.makeText(this, getString(R.string.msg_no_file_to_delete), Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Check Safe Mode settings
+        lifecycleScope.launch {
+            val settings = viewModel.getSettings()
+            val shouldConfirm = settings.enableSafeMode || settings.confirmDelete
+            
+            Timber.d("deleteCurrentFile: shouldConfirm=$shouldConfirm (safeMode=${settings.enableSafeMode}, confirmDelete=${settings.confirmDelete})")
+            
+            if (shouldConfirm) {
+                // Check if activity is still alive before showing dialog
+                if (isFinishing || isDestroyed) {
+                    Timber.w("deleteCurrentFile: Activity is finishing/destroyed, skipping confirm dialog")
+                    return@launch
+                }
+                
+                // Show confirmation dialog
+                AlertDialog.Builder(this@PlayerActivity)
+                    .setTitle(R.string.confirm_delete_title)
+                    .setMessage(getString(R.string.confirm_delete_message, 1))
+                    .setPositiveButton(R.string.delete) { _, _ ->
+                        fileOperationsHandler.performDelete()
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            } else {
+                // Skip confirmation - execute immediately
+                fileOperationsHandler.performDelete()
+            }
+        }
+    }
+
+    private fun handleEvent(event: PlayerViewModel.PlayerEvent) {
+        when (event) {
+            is PlayerViewModel.PlayerEvent.ShowError -> {
+                showError(event.message)
+            }
+            is PlayerViewModel.PlayerEvent.ShowMessage -> {
+                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
+            }
+            is PlayerViewModel.PlayerEvent.FileModified -> {
+                // Track deleted/moved file
+                modifiedFiles.add(event.filePath)
+            }
+            is PlayerViewModel.PlayerEvent.ShowUndoSnackbar -> {
+                undoOperationManager.showUndoSnackbar(event.operation)
+            }
+            is PlayerViewModel.PlayerEvent.CloudAuthRequired -> {
+                showCloudAuthenticationError(event.provider)
+            }
+            // Removed: LoadingProgress event handler (dialog not needed)
+            PlayerViewModel.PlayerEvent.FinishActivity -> {
+                finish()
+            }
+        }
+    }
+    
+    /**
+     * Show error message respecting showDetailedErrors setting
+     * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
+     * If showDetailedErrors=false: shows Toast (short notification)
+     */
+    private fun showError(message: String, throwable: Throwable? = null) {
+        // Check if activity is finishing to prevent WindowLeaked exception
+        if (isFinishing || isDestroyed) {
+            Timber.w("showError: Activity is finishing/destroyed, skipping error dialog")
+            return
+        }
+        
+        lifecycleScope.launch {
+            val settings = viewModel.getSettings()
+            // Don't show blocking dialogs if slideshow is active
+            val isSlideshowActive = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
+            
+            if (settings.showDetailedErrors && !isSlideshowActive) {
+                // Double-check before showing dialog
+                if (isFinishing || isDestroyed) {
+                    Timber.w("showError: Activity finished during settings load, skipping dialog")
+                    return@launch
+                }
+                
+                if (throwable != null) {
+                    // Use ErrorDialog with full stack trace
+                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                        context = this@PlayerActivity,
+                        title = getString(R.string.error),
+                        message = message,
+                        details = throwable.stackTraceToString()
+                    )
+                } else {
+                    // Use ErrorDialog without details
+                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                        context = this@PlayerActivity,
+                        title = getString(R.string.error),
+                        message = message
+                    )
+                }
+            } else {
+                Toast.makeText(this@PlayerActivity, message, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    /**
+     * Show specialized dialog for Cloud authentication errors
+     */
+    private fun showCloudAuthenticationError(providerName: String? = null) {
+        dialogHelper.showCloudAuthError(providerName) {
+            // Trigger authentication based on provider
+            when (providerName?.lowercase()) {
+                "dropbox" -> cloudAuthManager.launchDropboxSignIn()
+                "google drive", "google_drive" -> cloudAuthManager.launchGoogleSignIn()
+                else -> {
+                    // If provider is unknown, maybe show a chooser or default to something?
+                    // For now, just log warning
+                    Timber.w("Unknown provider for auth request: $providerName")
+                }
+            }
+        }
+    }
+    
+    /**
+     * Show error dialog for unsupported format with option to open in external player
+     */
+    private fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) {
+        if (isFinishing || isDestroyed) {
+            Timber.w("showUnsupportedFormatError: Activity is finishing/destroyed, skipping dialog")
+            return
+        }
+        
+        lifecycleScope.launch {
+            val settings = viewModel.getSettings()
+            val isSlideshowActive = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
+            
+            if (settings.showDetailedErrors && !isSlideshowActive) {
+                if (isFinishing || isDestroyed) {
+                    Timber.w("showUnsupportedFormatError: Activity finished during settings load, skipping dialog")
+                    return@launch
+                }
+                
+                if (isLocalFile) {
+                    // Local file - offer to open in external player
+                    com.sza.fastmediasorter.ui.dialog.ErrorDialogWithAction.show(
+                        context = this@PlayerActivity,
+                        title = getString(R.string.error),
+                        message = message,
+                        actionButtonText = getString(R.string.open_in_external_player),
+                        onActionClick = { openInExternalPlayer(filePath) }
+                    )
+                } else {
+                    // Network file - suggest copying to local resource
+                    val networkMessage = "$message\n\n" +
+                        getString(R.string.unsupported_format_network_hint)
+                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                        context = this@PlayerActivity,
+                        title = getString(R.string.error),
+                        message = networkMessage
+                    )
+                }
+            } else {
+                // Show toast
+                val toastMessage = if (isLocalFile) {
+                    getString(R.string.unsupported_format_use_external_player)
+                } else {
+                    getString(R.string.unsupported_format_copy_to_local)
+                }
+                Toast.makeText(this@PlayerActivity, toastMessage, Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+    
+    /**
+     * Open file in external player using ACTION_VIEW intent
+     */
+    private fun openInExternalPlayer(filePath: String) {
+        try {
+            val file = File(filePath)
+            if (!file.exists()) {
+                Toast.makeText(this, R.string.file_not_found, Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            // Use FileProvider for secure file access
+            val uri = androidx.core.content.FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            // Determine MIME type
+            val mimeType = when (file.extension.lowercase()) {
+                "flv" -> "video/x-flv"
+                "avi" -> "video/x-msvideo"
+                "mid", "midi" -> "audio/midi"
+                "wmv" -> "video/x-ms-wmv"
+                "rm", "rmvb" -> "video/vnd.rn-realvideo"
+                "vob" -> "video/dvd"
+                "ogv" -> "video/ogg"
+                "mp4" -> "video/mp4"
+                "mkv" -> "video/x-matroska"
+                "mp3" -> "audio/mpeg"
+                "aac" -> "audio/aac"
+                else -> "*/*"
+            }
+            
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, mimeType)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            
+            // Check if any app can handle this intent
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(Intent.createChooser(intent, getString(R.string.open_with)))
+            } else {
+                Toast.makeText(
+                    this,
+                    getString(R.string.no_app_to_handle_format),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to open file in external player")
+            Toast.makeText(
+                this,
+                getString(R.string.error_opening_external_player, e.message),
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    /**
+     * Show popup message when slideshow is enabled
+     */
+    private fun showSlideshowEnabledMessage() {
+        val intervalSeconds = viewModel.state.value.slideShowInterval / 1000
+        val message = getString(R.string.slideshow_enabled_message, intervalSeconds)
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Populate destination buttons dynamically based on destinations from DB
+     */
+    private fun populateDestinationButtons() {
+        destinationButtonsManager.populateDestinationButtons()
+    }
+
+    private fun performCopyOperation(destination: com.sza.fastmediasorter.domain.model.MediaResource) {
+        // Delegate to FileOperationsHandler
+        fileOperationsHandler.performCopy(destination)
+    }
+
+    private fun performMoveOperation(destination: com.sza.fastmediasorter.domain.model.MediaResource) {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        Timber.d("PlayerActivity.performMoveOperation: START - file=${currentFile.name}, destination=${destination.name}")
+        
+        lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            
+            try {
+                // Create File objects that preserve network paths
+                val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                                     currentFile.path.startsWith("sftp://") || 
+                                     currentFile.path.startsWith("ftp://") ||
+                                     currentFile.path.startsWith("cloud://")) {
+                    object : File(currentFile.path) {
+                        override fun getAbsolutePath(): String = currentFile.path
+                        override fun getPath(): String = currentFile.path
+                        override fun getName(): String = currentFile.name
+                    }
+                } else {
+                    File(currentFile.path)
+                }
+                
+                val destFile = if (destination.path.startsWith("smb://") || 
+                                   destination.path.startsWith("sftp://") || 
+                                   destination.path.startsWith("ftp://") ||
+                                   destination.path.startsWith("cloud://")) {
+                    object : File(destination.path) {
+                        override fun getAbsolutePath(): String = destination.path
+                        override fun getPath(): String = destination.path
+                    }
+                } else {
+                    File(destination.path)
+                }
+                
+                val operation = com.sza.fastmediasorter.domain.usecase.FileOperation.Move(
+                    sources = listOf(sourceFile),
+                    destination = destFile,
+                    overwrite = settings.overwriteOnMove,
+                    sourceCredentialsId = viewModel.state.value.resource?.credentialsId
+                )
+                val result = viewModel.fileOperationUseCase.execute(operation)
+                
+                when (result) {
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success -> {
+                        Toast.makeText(this@PlayerActivity, getString(R.string.msg_move_success, destination.name), Toast.LENGTH_SHORT).show()
+                        
+                        // Track moved file
+                        modifiedFiles.add(currentFile.path)
+                        
+                        // Remove moved file from the list
+                        val resource = viewModel.state.value.resource ?: return@launch
+                        
+                        // Update cache to reflect move (remove from source resource)
+                        MediaFilesCacheManager.removeFile(resource.id, currentFile.path)
+                        
+                        // Remove from ViewModel and navigate
+                        val hasRemainingFiles = viewModel.removeMovedFile(currentFile.path)
+                        if (!hasRemainingFiles) {
+                            // No files left or moved last file, close activity
+                            finish()
+                        }
+                    }
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PartialSuccess -> {
+                        val message = buildString {
+                            append("Moved ${result.processedCount} files, but ${result.failedCount} failed.")
+                            if (result.errors.isNotEmpty()) {
+                                append("\n\nFirst error:\n${result.errors.first()}")
+                            }
+                        }
+                        showError(message)
+                    }
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Failure -> {
+                        // Check if error is Cloud authentication required
+                        if (result.error.contains("Google Drive authentication required", ignoreCase = true) ||
+                            result.error.contains("Not authenticated", ignoreCase = true)) {
+                            showCloudAuthenticationError()
+                        } else {
+                            if (result.errorRes != null) {
+                                showError(getString(result.errorRes, *result.formatArgs.toTypedArray()))
+                            } else {
+                                showError(getString(R.string.move_failed, result.error))
+                            }
+                        }
+                    }
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.AuthenticationRequired -> {
+                        // Cloud provider requires re-authentication
+                        showCloudAuthenticationError(result.provider)
+                    }
+                }
+            } catch (e: Exception) {
+                showError(getString(R.string.move_failed, e.message ?: "Unknown error"), e)
+            }
+        }
+    }
+
+    private fun showAudioFileInfo(file: MediaFile?) {
+        imageLoadingManager.showAudioFileInfo(file)
+    }
+    
+    private fun formatDuration(millis: Long?): String {
+        if (millis == null || millis <= 0) return "N/A"
+        val seconds = millis / 1000
+        val minutes = seconds / 60
+        val hours = minutes / 60
+        return if (hours > 0) {
+            "%d:%02d:%02d".format(hours, minutes % 60, seconds % 60)
+        } else {
+            "%d:%02d".format(minutes, seconds % 60)
+        }
+    }
+    
+    private fun updateAudioFormatInfo() {
+        imageLoadingManager.updateAudioFormatInfo()
+    }
+
+    private fun releasePlayer() {
+        // Deprecated: delegated to VideoPlayerManager
+        videoPlayerManager.releasePlayer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.togglePause()
+        
+        // Save playback position for video/audio
+        saveCurrentPlaybackPosition()
+    }
+    
+    // Removed: showLoadingDialog/dismissLoadingDialog/updateLoadingProgress
+    // File list loading is fast (cached), no dialog needed
+    // Image loading uses ProgressBar (showLoadingIndicatorRunnable with 2s delay)
+    
+    private fun shareCurrentFile() {
+        // Delegate to FileOperationsHandler
+        fileOperationsHandler.performShare()
+    }
+    
+    /**
+     * Stop active translation and hide overlays.
+     * Cancels any running translation job.
+     */
+    private fun stopTranslation() {
+        translationJob?.cancel()
+        binding.translationOverlay.isVisible = false
+        binding.translationLensOverlay.isVisible = false
+        binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+        binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+        binding.btnTranslationFontDecrease.visibility = android.view.View.GONE
+        binding.btnTranslationFontIncrease.visibility = android.view.View.GONE
+        Timber.d("Translation stopped and overlays hidden")
+    }
+    
+    /**
+     * Translate current image using OCR + Translation
+     */
+    private fun translateCurrentImage() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile?.type != MediaType.IMAGE && currentFile?.type != MediaType.GIF) {
+            showError("Translation is only available for images")
+            return
+        }
+        
+        // Toggle translation state - check both overlay types
+        val isCurrentlyVisible = binding.translationOverlay.isVisible || binding.translationLensOverlay.isVisible
+        
+        if (isCurrentlyVisible) {
+            stopTranslation()
+            return
+        }
+        
+        // Cancel any existing job just in case
+        translationJob?.cancel()
+        
+        // Get bitmap from current image view (including GIF first frame)
+        val bitmap = when {
+            binding.photoView.isVisible -> {
+                // PhotoView for zoomable images
+                binding.photoView.drawable?.let { drawable ->
+                    when (drawable) {
+                        is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
+                        is com.bumptech.glide.load.resource.gif.GifDrawable -> {
+                            // Extract current frame from GIF by drawing to bitmap
+                            Timber.d("translateCurrentImage: Extracting current frame from GIF")
+                            val width = drawable.intrinsicWidth
+                            val height = drawable.intrinsicHeight
+                            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                            val canvas = android.graphics.Canvas(bitmap)
+                            drawable.setBounds(0, 0, width, height)
+                            drawable.draw(canvas)
+                            bitmap
+                        }
+                        else -> null
+                    }
+                }
+            }
+            binding.imageView.isVisible -> {
+                // Regular ImageView
+                binding.imageView.drawable?.let { drawable ->
+                    when (drawable) {
+                        is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
+                        is com.bumptech.glide.load.resource.gif.GifDrawable -> {
+                            // Extract current frame from GIF by drawing to bitmap
+                            Timber.d("translateCurrentImage: Extracting current frame from GIF (imageView)")
+                            val width = drawable.intrinsicWidth
+                            val height = drawable.intrinsicHeight
+                            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                            val canvas = android.graphics.Canvas(bitmap)
+                            drawable.setBounds(0, 0, width, height)
+                            drawable.draw(canvas)
+                            bitmap
+                        }
+                        else -> null
+                    }
+                }
+            }
+            else -> null
+        }
+        
+        if (bitmap == null) {
+            showError("Could not extract image from file")
+            return
+        }
+        
+        // Turn on translation - set button to red
+        binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
+        binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
+        
+        // Get view dimensions for overlay scaling
+        val viewWidth = if (binding.photoView.isVisible) binding.photoView.width else binding.imageView.width
+        val viewHeight = if (binding.photoView.isVisible) binding.photoView.height else binding.imageView.height
+        
+        translationJob = lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val settings = settingsRepository.getSettings().first()
+                val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+                val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
+                
+                // Use Google Lens style translation with block positions
+                val lensHelper = com.sza.fastmediasorter.ui.player.helpers.GoogleLensTranslationHelper(
+                    binding.translationLensOverlay,
+                    translationManager
+                )
+                
+                lensHelper.translateBitmap(
+                    bitmap = bitmap,
+                    sourceLang = sourceLang,
+                    targetLang = targetLang,
+                    viewWidth = viewWidth,
+                    viewHeight = viewHeight,
+                    onSuccess = { blockCount ->
+                        // Hide the old-style overlay
+                        binding.translationOverlay.isVisible = false
+                        // Show font size controls when translation is active
+                        binding.btnTranslationFontDecrease.visibility = android.view.View.VISIBLE
+                        binding.btnTranslationFontIncrease.visibility = android.view.View.VISIBLE
+                    },
+                    onEmpty = {
+                        // No text detected - reset button
+                        binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                        binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                        binding.btnTranslationFontDecrease.visibility = android.view.View.GONE
+                        binding.btnTranslationFontIncrease.visibility = android.view.View.GONE
+                    },
+                    onError = { message ->
+                        binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                        binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                        showError("Translation failed: $message")
+                    }
+                )
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) throw e
+                
+                withContext(Dispatchers.Main) {
+                    stopTranslation()
+                    showError("Translation failed: ${e.message}")
+                }
+            }
+        }
+    }
+    
+    /**
+     * Extract text from current image using OCR (no translation)
+     */
+    private fun extractTextFromCurrentImage() {
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile?.type != MediaType.IMAGE && currentFile?.type != MediaType.GIF) {
+            showError("OCR is only available for images")
+            return
+        }
+        
+        // Get bitmap from current image view (including GIF first frame)
+        val bitmap = when {
+            binding.photoView.isVisible -> {
+                binding.photoView.drawable?.let { drawable ->
+                    when (drawable) {
+                        is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
+                        is com.bumptech.glide.load.resource.gif.GifDrawable -> {
+                            // Extract current frame from GIF by drawing to bitmap
+                            Timber.d("extractTextFromCurrentImage: Extracting current frame from GIF")
+                            val width = drawable.intrinsicWidth
+                            val height = drawable.intrinsicHeight
+                            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                            val canvas = android.graphics.Canvas(bitmap)
+                            drawable.setBounds(0, 0, width, height)
+                            drawable.draw(canvas)
+                            bitmap
+                        }
+                        else -> null
+                    }
+                }
+            }
+            binding.imageView.isVisible -> {
+                binding.imageView.drawable?.let { drawable ->
+                    when (drawable) {
+                        is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
+                        is com.bumptech.glide.load.resource.gif.GifDrawable -> {
+                            // Extract current frame from GIF by drawing to bitmap
+                            Timber.d("extractTextFromCurrentImage: Extracting current frame from GIF (imageView)")
+                            val width = drawable.intrinsicWidth
+                            val height = drawable.intrinsicHeight
+                            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                            val canvas = android.graphics.Canvas(bitmap)
+                            drawable.setBounds(0, 0, width, height)
+                            drawable.draw(canvas)
+                            bitmap
+                        }
+                        else -> null
+                    }
+                }
+            }
+            else -> null
+        }
+        
+        if (bitmap == null) {
+            showError("Could not extract image from file")
+            return
+        }
+        
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val settings = settingsRepository.getSettings().first()
+                val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
+                
+                // Extract text using OCR
+                val recognizedText = translationManager.extractTextOnly(bitmap, sourceLang)
+                
+                withContext(Dispatchers.Main) {
+                    if (recognizedText != null && recognizedText.isNotBlank()) {
+                        textViewerManager.displayOcrText(recognizedText)
+                    } else {
+                        showError(getString(R.string.ocr_no_text_found))
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    showError(getString(R.string.ocr_error, e.message ?: "Unknown error"))
+                }
+            }
+        }
+    }
+    
+
+    
+    override fun onResume() {
+        super.onResume()
+        
+        // Handle any pending cloud authentication results
+        if (::cloudAuthManager.isInitialized) {
+            cloudAuthManager.onResume()
+        }
+        
+        if (isFirstResume) {
+            Timber.d("PlayerActivity.onResume: First resume, skipping reload (files already loaded in ViewModel.init{})")
+            isFirstResume = false
+        } else {
+            // Reload files when returning from background
+            // This ensures deleted/renamed files from external apps are reflected
+            Timber.d("PlayerActivity.onResume: Reloading files")
+            viewModel.reloadFiles()
+            
+            // Force update button visibility (settings might have changed)
+            if (::pdfViewerManager.isInitialized) {
+                pdfViewerManager.updateButtonVisibility()
+            }
+            if (::imageLoadingManager.isInitialized) {
+                imageLoadingManager.updateButtonVisibility()
+            }
+        }
+        
+        // Clear expired undo operations (5 minutes timeout)
+        viewModel.clearExpiredUndoOperation()
+    }
+    
+    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
+        // Handle Back/Escape for PDF fullscreen mode first
+        if ((keyCode == KeyEvent.KEYCODE_BACK || keyCode == KeyEvent.KEYCODE_ESCAPE) 
+            && pdfViewerManager.isInFullscreenMode()) {
+            pdfViewerManager.exitFullscreenMode()
+            return true
+        }
+        // Delegate keyboard handling to PlayerKeyboardHandler
+        return keyboardHandler.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    }
+    
+    override fun dispatchGenericMotionEvent(event: MotionEvent?): Boolean {
+        // Delegate mouse scroll handling to PlayerKeyboardHandler for PDF/TXT
+        return keyboardHandler.handleGenericMotionEvent(event) || super.dispatchGenericMotionEvent(event)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        releaseResources()
+    }
+    
+    /**
+     * Release all resources and cleanup handlers.
+     * Centralized cleanup to prevent memory leaks and ensure proper resource disposal.
+     */
+    private fun releaseResources() {
+        // Cancel all active network operations for current resource
+        activeResourceKey?.let { resourceKey ->
+            ConnectionThrottleManager.cancelAllForResource(resourceKey)
+            ConnectionThrottleManager.deactivateVideoPlayerMode(resourceKey)
+            Timber.d("PlayerActivity.onDestroy: Cancelled all operations and deactivated video player for $resourceKey")
+        }
+        
+        // Return modified files list to BrowseActivity
+        if (modifiedFiles.isNotEmpty()) {
+            val resultIntent = Intent().apply {
+                putStringArrayListExtra(EXTRA_MODIFIED_FILES, ArrayList(modifiedFiles))
+            }
+            setResult(RESULT_OK, resultIntent)
+        }
+
+        // Cancel any pending retry
+        retryRunnable?.let { retryHandler.removeCallbacks(it) }
+        retryRunnable = null
+
+        // Save current file position before destroying
+        viewModel.state.value.currentFile?.let { currentFile ->
+            viewModel.saveLastViewedFile(currentFile.path)
+        }
+        
+        hideControlsHandler.removeCallbacks(hideControlsRunnable)
+        
+        // SlideshowController handles its own cleanup via LifecycleObserver.onDestroy()
+        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+
+        // Cancel all preload jobs to prevent memory leaks
+        preloadJobs.forEach { it.cancel() }
+        preloadJobs.clear()
+        
+        // Note: Translation cache is NOT cleared here - it's global and managed by TranslationCacheManager
+        // Cache is cleared only on app startup and when user clicks "Clear cache" in settings
+        
+        // Release EpubViewerManager resources
+        if (::epubViewerManager.isInitialized) {
+            epubViewerManager.release()
+        }
+        
+        // Release TranslationManager resources
+        if (::translationManager.isInitialized) {
+            translationManager.release()
+        }
+    }
+    
+    /**
+     * Save current playback position for video/audio files.
+     */
+    private fun saveCurrentPlaybackPosition() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        // Only save for video/audio files
+        if (currentFile.type != MediaType.VIDEO && currentFile.type != MediaType.AUDIO) {
+            return
+        }
+        
+        val player = videoPlayerManager.getPlayer() ?: return
+        val position = player.currentPosition
+        val duration = player.duration
+        
+        // Don't save if duration is unknown or position is invalid
+        if (duration <= 0 || position < 0) {
+            return
+        }
+        
+        // Save position asynchronously
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                playbackPositionRepository.savePosition(currentFile.path, position, duration)
+                Timber.d("PlayerActivity: Saved playback position $position/$duration for ${currentFile.name}")
+            } catch (e: Exception) {
+                Timber.e(e, "PlayerActivity: Failed to save playback position for ${currentFile.name}")
+            }
+        }
+    }
+    
+    private fun setupGoogleLensButtons() {
+        // Deprecated overlay button (kept for compatibility)
+        binding.btnGoogleLensImage.setOnClickListener {
+            Timber.d("BUTTON: btnGoogleLensImage clicked (deprecated)")
+            shareCurrentFileToGoogleLens()
+        }
+        
+        // New command panel button for images
+        binding.btnGoogleLensImageCmd.setOnClickListener {
+            Timber.d("BUTTON: btnGoogleLensImageCmd clicked")
+            shareCurrentFileToGoogleLens()
+        }
+        
+        // PDF buttons in command panel
+        binding.btnGoogleLensPdfCmd.setOnClickListener {
+            pdfViewerManager.shareCurrentPageToGoogleLens()
+        }
+        
+        // Deprecated overlay OCR button (kept for compatibility)
+        binding.btnOcrImage.setOnClickListener {
+            Timber.d("BUTTON: btnOcrImage clicked (deprecated)")
+            extractTextFromCurrentImage()
+        }
+        
+        // New command panel OCR button for images
+        binding.btnOcrImageCmd.setOnClickListener {
+            Timber.d("BUTTON: btnOcrImageCmd clicked")
+            extractTextFromCurrentImage()
+        }
+        binding.btnOcrImageCmd.setOnLongClickListener {
+            Timber.d("BUTTON: btnOcrImageCmd long clicked - showing translation settings")
+            translationButtonManager.showTranslationSettingsDialog()
+            true
+        }
+        
+        binding.btnOcrPdfCmd.setOnClickListener {
+            Timber.d("BUTTON: btnOcrPdfCmd clicked")
+            pdfViewerManager.extractTextFromCurrentPage()
+        }
+        binding.btnOcrPdfCmd.setOnLongClickListener {
+            Timber.d("BUTTON: btnOcrPdfCmd long clicked - showing translation settings")
+            translationButtonManager.showTranslationSettingsDialog()
+            true
+        }
+        
+        // EPUB OCR button
+        binding.btnOcrEpubCmd.setOnClickListener {
+            Timber.d("BUTTON: btnOcrEpubCmd clicked - extracting text from EPUB")
+            epubViewerManager.extractTextFromCurrentChapter()
+        }
+        binding.btnOcrEpubCmd.setOnLongClickListener {
+            Timber.d("BUTTON: btnOcrEpubCmd long clicked - showing translation settings")
+            translationButtonManager.showTranslationSettingsDialog()
+            true
+        }
+    }
+    
+    private fun shareCurrentFileToGoogleLens() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+        
+        // If it's a local file, we can share it directly
+        if (!currentFile.path.contains("://")) {
+            shareFileToGoogleLens(File(currentFile.path))
+        } else {
+            // For network files, we need to download/cache it first
+            lifecycleScope.launch {
+                try {
+                    val file = networkFileManager.prepareFileForRead(currentFile)
+                    shareFileToGoogleLens(file)
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to prepare file for Google Lens")
+                    Toast.makeText(this@PlayerActivity, R.string.toast_failed_to_prepare_file, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+    
+    private fun shareFileToGoogleLens(file: File) {
+        try {
+            val uri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                file
+            )
+            
+            val intent = Intent(Intent.ACTION_SEND)
+            intent.type = "image/*"
+            intent.putExtra(Intent.EXTRA_STREAM, uri)
+            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // Add ClipData for better permission propagation (fixes SecurityException on some devices)
+            intent.clipData = android.content.ClipData.newRawUri(null, uri)
+            
+            // Try to find Google Lens package
+            val lensPackage = "com.google.ar.lens"
+            val googlePackage = "com.google.android.googlequicksearchbox"
+            val packageManager = packageManager
+            
+            // 1. Try standalone Lens app
+            intent.setPackage(lensPackage)
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                return
+            } 
+            
+            // 2. Try Google App (often handles Lens)
+            intent.setPackage(googlePackage)
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivity(intent)
+                return
+            }
+            
+            // 3. Fallback to generic chooser
+            intent.setPackage(null)
+            startActivity(Intent.createChooser(intent, getString(R.string.enable_google_lens)))
+            
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to share to Google Lens")
+            Toast.makeText(this, R.string.toast_error_google_lens, Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
+     * Check if translation/OCR overlays are blocking PDF/EPUB touch zones
+     */
+    private fun isOverlayBlocking(): Boolean {
+        return binding.translationOverlay.isVisible ||
+               binding.translationLensOverlay.isVisible ||
+               binding.textViewerContainer.isVisible ||  // OCR result window
+               binding.lyricsViewerContainer.isVisible   // Lyrics viewer window
+    }
+
+    companion object {
+        private const val SMALL_CONTROLS_SCALE = 0.5f
+        private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L // 15 seconds
+        const val EXTRA_MODIFIED_FILES = "modified_files"
+
+        fun createIntent(
+            context: Context,
+            resourceId: Long,
+            initialIndex: Int = 0,
+            skipAvailabilityCheck: Boolean = false,
+            initialFilePath: String? = null
+        ): Intent {
+            return Intent(context, PlayerActivity::class.java).apply {
+                putExtra("resourceId", resourceId)
+                putExtra("initialIndex", initialIndex)
+                putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
+                initialFilePath?.let { putExtra("initialFilePath", it) }
+            }
+        }
+    }
+}
+

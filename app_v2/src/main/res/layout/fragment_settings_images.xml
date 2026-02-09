@@ -1,0 +1,261 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/settings_padding">
+
+        <!-- Images + GIF Row Container -->
+        <LinearLayout
+            android:id="@+id/containerImagesGif"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <!-- Support static images -->
+            <LinearLayout
+                android:id="@+id/layoutSupportImages"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/button_height"
+                android:layout_marginEnd="@dimen/resource_field_margin_end">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchSupportImages"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                    android:checked="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/support_images_description"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
+                <ImageButton
+                    android:id="@+id/iconHelpSupportImages"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/supported_image_formats"
+                    android:src="@android:drawable/ic_menu_help"
+                    android:tint="?android:attr/textColorSecondary" />
+
+            </LinearLayout>
+
+            <!-- Support GIF animation -->
+            <LinearLayout
+                android:id="@+id/layoutSupportGifs"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/button_height"
+                android:layout_marginStart="@dimen/settings_help_icon_margin">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchSupportGifs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/support_gif_description"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Load full size images -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:layout_marginStart="16dp"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchLoadFullSizeImages"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/load_full_size_images"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <ImageButton
+                android:id="@+id/iconHelpFullSizeImages"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/load_full_size_images_hint"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary" />
+
+        </LinearLayout>
+
+
+
+        <!-- Image size limit (for both static and GIF) -->
+        <TextView
+            android:id="@+id/tvImageSizeLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/image_and_animation_size_limit"
+            android:textSize="@dimen/resource_card_desc_text_size"
+            android:layout_marginStart="0dp"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/layoutImageSizeInputs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
+            android:layout_marginEnd="@dimen/settings_margin_standard"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilImageSizeMin"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Min (KB)"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_marginEnd="@dimen/margin_small"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/tilImageSizeMax"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etImageSizeMin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="7" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilImageSizeMax"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Max (KB)"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:layout_constraintStart_toEndOf="@+id/tilImageSizeMin"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etImageSizeMax"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:maxLength="7" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Slideshow Background Music -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSlideshowBackgroundMusic"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_slideshow_background_music"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <ImageButton
+                android:id="@+id/iconHelpSlideshowMusic"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/tooltip_slideshow_music_title"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary" />
+        </LinearLayout>
+
+        <!-- Select Music Source Resource -->
+        <LinearLayout
+            android:id="@+id/layoutMusicSourceSelector"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/settings_nested_margin_start"
+            android:visibility="gone"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/music_resource_label"
+                android:textSize="@dimen/resource_card_desc_text_size"
+                android:textColor="?android:textColorPrimary"
+                android:layout_marginBottom="@dimen/margin_small" />
+
+            <TextView
+                android:id="@+id/tvSelectedMusicSource"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_small"
+                android:text="@string/no_music_source_selected"
+                android:textSize="@dimen/resource_name_text_size"
+                android:gravity="center"
+                android:textColor="?android:textColorSecondary" />
+
+            <Button
+                android:id="@+id/btnSelectMusicSource"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/select_music_source"
+                android:textAllCaps="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

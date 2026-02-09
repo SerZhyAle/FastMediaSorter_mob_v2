@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="false">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/settings_fragment_padding">
+
+        <!-- Language -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/resource_field_margin_top"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/language"
+                android:textSize="@dimen/resource_card_title_text_size"
+                android:layout_marginEnd="@dimen/margin_small" />
+
+            <Spinner
+                android:id="@+id/spinnerLanguage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/settings_spinner_min_width"
+                android:entries="@array/languages" />
+
+        </LinearLayout>
+
+        <!-- All Files + Show Hidden Files Container -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <!-- All Files -->
+            <LinearLayout
+                android:id="@+id/layoutAllFiles"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchAllFiles"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/all_files"
+                    android:textSize="@dimen/resource_card_title_text_size" />
+                
+                <ImageButton
+                    android:id="@+id/iconHelpAllFiles"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/tooltip_all_files_title"
+                    android:src="@android:drawable/ic_menu_help"
+                    android:tint="?android:attr/textColorSecondary" />
+
+            </LinearLayout>
+
+            <!-- Show Hidden Files -->
+            <LinearLayout
+                android:id="@+id/layoutShowHiddenFiles"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchShowHiddenFiles"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/show_hidden_files"
+                    android:textSize="@dimen/resource_card_title_text_size" />
+                
+                <ImageButton
+                    android:id="@+id/iconHelpShowHiddenFiles"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/tooltip_show_hidden_files_title"
+                    android:src="@android:drawable/ic_menu_help"
+                    android:tint="?android:attr/textColorSecondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Show Subfolders as Items -->
+        <LinearLayout
+            android:id="@+id/layoutShowSubfoldersAsItems"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/settings_item_min_height"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchShowSubfoldersAsItems"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/show_subfolders_as_items"
+                android:textSize="@dimen/resource_card_title_text_size" />
+            
+            <ImageButton
+                android:id="@+id/iconHelpShowSubfolders"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/show_subfolders_as_items"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary" />
+
+        </LinearLayout>
+
+        <!-- Prevent Sleep + Enable Favorites Container - adapts to horizontal in landscape -->
+        <LinearLayout
+            android:id="@+id/containerSleepFavorites"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <!-- Enable Favorites -->
+            <LinearLayout
+                android:id="@+id/layoutEnableFavorites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height"
+                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchEnableFavorites"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enable_favorites"
+                    android:textSize="@dimen/resource_card_title_text_size" />
+                
+                <ImageButton
+                    android:id="@+id/iconHelpFavorites"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/tooltip_favorites_title"
+                    android:src="@android:drawable/ic_menu_help"
+                    android:tint="?android:attr/textColorSecondary" />
+
+            </LinearLayout>
+
+            <!-- Prevent Sleep -->
+            <LinearLayout
+                android:id="@+id/layoutPreventSleep"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height"
+                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchPreventSleep"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                    android:checked="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/prevent_sleep"
+                    android:textSize="@dimen/resource_card_title_text_size" />
+                
+                <ImageButton
+                    android:id="@+id/iconHelpPreventSleep"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/tooltip_prevent_sleep_title"
+                    android:src="@android:drawable/ic_menu_help"
+                    android:tint="?android:attr/textColorSecondary" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Small Controls (Compact Mode) - independent setting -->
+        <LinearLayout
+            android:id="@+id/layoutSmallControls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/settings_item_min_height"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSmallControls"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/small_controls"
+                android:textSize="@dimen/resource_card_title_text_size" />
+            
+            <ImageButton
+                android:id="@+id/iconHelpCompactControls"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/tooltip_compact_controls_title"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary" />
+
+        </LinearLayout>
+
+        <!-- Enable Safe Mode -->
+        <LinearLayout
+            android:id="@+id/layoutEnableSafeMode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/settings_item_min_height"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnableSafeMode"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="true" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/enable_safe_mode"
+                android:textSize="@dimen/resource_card_title_text_size" />
+
+        </LinearLayout>
+
+        <!-- Confirm Delete + Move Container - adapts to horizontal in landscape -->
+        <LinearLayout
+            android:id="@+id/containerConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="@dimen/settings_nested_margin_start"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <!-- Confirm Delete -->
+            <LinearLayout
+                android:id="@+id/layoutConfirmDelete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height"
+                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchConfirmDelete"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                    android:checked="true" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/confirm_delete_safe_mode"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+                
+                <ImageButton
+                    android:id="@+id/iconHelpSafeMode"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/tooltip_safe_mode_title"
+                    android:src="@android:drawable/ic_menu_help"
+                    android:tint="?android:attr/textColorSecondary" />
+
+            </LinearLayout>
+
+            <!-- Confirm Move -->
+            <LinearLayout
+                android:id="@+id/layoutConfirmMove"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height"
+                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchConfirmMove"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                    android:checked="true" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/confirm_move_safe_mode"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Network Parallelism -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/network_parallelism_summary"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?android:textColorSecondary"
+            android:layout_marginTop="@dimen/resource_field_margin_top"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilNetworkParallelism"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            android:layout_width="@dimen/settings_text_input_width"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom"
+            android:hint="@string/network_parallelism_title">
+
+            <AutoCompleteTextView
+                android:id="@+id/actvNetworkParallelism"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="2"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Network Sync Container -->
+        <LinearLayout
+            android:id="@+id/containerSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <!-- Enable Background Sync -->
+            <LinearLayout
+                android:id="@+id/layoutEnableSync"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/settings_item_min_height"
+                    android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchEnableBackgroundSync"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                        android:checked="true" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/enable_background_sync"
+                        android:textSize="@dimen/resource_card_title_text_size" />
+                    
+                    <ImageButton
+                        android:id="@+id/iconHelpBackgroundSync"
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/background_sync_description"
+                        android:tooltipText="@string/background_sync_description"
+                        android:src="@android:drawable/ic_menu_help"
+                        android:tint="?android:attr/textColorSecondary" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Sync Interval + Sync Now Button -->
+            <LinearLayout
+                android:id="@+id/layoutSyncControls"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:baselineAligned="false">
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/tilSyncInterval"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                    android:layout_width="@dimen/settings_text_input_width"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
+                    android:hint="@string/sync_interval">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/actvSyncInterval"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="number"
+                        android:text="240"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSyncNow"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sync_now"
+                    app:icon="@android:drawable/ic_popup_sync" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Default User and Password -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDefaultUser"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/default_user"
+                android:layout_marginEnd="@dimen/margin_small"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/tilDefaultPassword"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDefaultUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDefaultPassword"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/default_password"
+                app:endIconMode="password_toggle"
+                app:layout_constraintStart_toEndOf="@+id/tilDefaultUser"
+                app:layout_constraintEnd_toStartOf="@+id/iconHelpDefaultCredentials"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etDefaultPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+            
+            <ImageButton
+                android:id="@+id/iconHelpDefaultCredentials"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/tooltip_default_credentials_title"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary"
+                app:layout_constraintStart_toEndOf="@+id/tilDefaultPassword"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/tilDefaultPassword"
+                app:layout_constraintBottom_toBottomOf="@+id/tilDefaultPassword"
+                app:layout_constraintVertical_bias="0.5" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Export/Import Settings -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/resource_field_margin_top"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExportSettings"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:text="@string/export_settings"
+                app:icon="@android:drawable/ic_menu_upload"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btnImportSettings"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnImportSettings"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/import_settings"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:layout_constraintStart_toEndOf="@+id/btnExportSettings"
+                app:layout_constraintEnd_toStartOf="@+id/btnHelpExportImport"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+            <ImageButton
+                android:id="@+id/btnHelpExportImport"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/export_import_file_info"
+                android:tooltipText="@string/export_import_file_info"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary"
+                app:layout_constraintStart_toEndOf="@+id/btnImportSettings"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Permissions Container - adapts to horizontal in landscape -->
+        <LinearLayout
+            android:id="@+id/containerPermissions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/resource_field_margin_top"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <!-- First row: Local Files + Network -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLocalFilesPermission"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/resource_field_margin_end"
+                    android:text="@string/grant_local_files_permission" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnNetworkPermission"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:text="@string/grant_network_permission" />
+
+            </LinearLayout>
+
+            <!-- Second row: Manage Media (Android 12+) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnManageMediaPermission"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:text="@string/grant_manage_media_permission"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Logs -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowLog"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:text="@string/show_log"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btnShowSessionLog"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnShowSessionLog"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/show_current_session_log"
+                app:layout_constraintStart_toEndOf="@+id/btnShowLog"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Cache Management Container -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/containerCache"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCacheSizeLimit"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:hint="@string/cache_size_limit"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintWidth_max="200dp"
+                app:layout_constraintHorizontal_bias="0">
+
+                <AutoCompleteTextView
+                    android:id="@+id/actvCacheSizeLimit"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:text="2048"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAutoCalculateCache"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="80dp"
+                android:layout_marginEnd="@dimen/margin_small"
+                android:text="@string/auto_calculate_cache"
+                app:icon="@android:drawable/ic_menu_manage"
+                app:layout_constraintStart_toEndOf="@+id/tilCacheSizeLimit"
+                app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit"
+                app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClearCache"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:text="@string/clear_cache"
+                app:icon="@android:drawable/ic_menu_delete"
+                app:layout_constraintStart_toEndOf="@+id/btnAutoCalculateCache"
+                app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit"
+                app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+
+            <TextView
+                android:id="@+id/tvCacheSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:text="@string/cache_size_calculating"
+                android:textSize="@dimen/resource_card_desc_text_size"
+                android:textColor="?android:textColorSecondary"
+                app:layout_constraintStart_toEndOf="@+id/btnClearCache"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Documentation Links Container - horizontal layout -->
+        <LinearLayout
+            android:id="@+id/containerDocLinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="left"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUserGuide"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/user_guide"
+                android:layout_marginEnd="@dimen/settings_margin_standard"
+                app:icon="@android:drawable/ic_menu_help"
+                app:iconSize="@dimen/settings_icon_size" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPrivacyPolicy"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/privacy_policy"
+                app:icon="@android:drawable/ic_menu_info_details"
+                app:iconSize="@dimen/settings_icon_size" />
+
+        </LinearLayout>
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/containerIntegrationTests"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <!-- Integration Tests Button (DEBUG only) -->
+            <Button
+                android:id="@+id/btnIntegrationTests"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/run_integration_tests"
+                android:visibility="gone"
+                app:icon="@android:drawable/ic_menu_manage"
+                app:iconSize="@dimen/settings_icon_size"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+            <!-- Import Test Credentials Button (DEBUG only) -->
+            <Button
+                android:id="@+id/btnImportTestCredentials"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/import_test_credentials"
+                android:visibility="gone"
+                app:icon="@android:drawable/ic_menu_upload"
+                app:iconSize="@dimen/settings_icon_size"
+                app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests"
+                app:layout_constraintEnd_toStartOf="@+id/btnResetSettings"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+            <!-- Reset Settings Button -->
+            <Button
+                android:id="@+id/btnResetSettings"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="@string/reset_settings_to_defaults"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconSize="@dimen/settings_icon_size"
+                app:layout_constraintStart_toEndOf="@+id/btnImportTestCredentials"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintHorizontal_weight="1"
+                app:layout_constraintWidth_max="600dp" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Version Info -->
+        <TextView
+            android:id="@+id/tvVersionInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?android:attr/textColorLink"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?android:attr/selectableItemBackground"
+            android:padding="8dp"
+            android:layout_marginTop="@dimen/resource_field_margin_top" />
+
+    </LinearLayout>
+
+</ScrollView>

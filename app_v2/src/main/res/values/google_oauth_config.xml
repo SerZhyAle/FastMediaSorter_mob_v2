@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Google OAuth Web Client ID from Google Cloud Console -->
+    <!-- Project: FastMediaSorter -->
+    <!-- Note: This MUST be Web Client ID, not Android Client ID -->
+    <string name="google_web_client_id" translatable="false">764216752430-ntmkpgknsiu7bi7ql7bbjfni9kcj83b0.apps.googleusercontent.com</string>
+</resources>

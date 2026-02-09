@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Base policy: HTTPS only for all domains by default -->
+    <!-- This restricts HTTP traffic but does NOT affect SMB/FTP/SFTP protocols -->
+    <!-- SMB (port 445), FTP (port 21), SFTP (port 22) use their own ports, not HTTP -->
+    <base-config cleartextTrafficPermitted="false" />
+    
+    <!-- Allow cleartext (HTTP) traffic for local network only -->
+    <!-- This is needed for potential local HTTP APIs (if any) -->
+    <!-- External APIs (iTunes, Lyrics) already use HTTPS and are not affected -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Private network ranges (RFC 1918) -->
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">172.16.0.0</domain>
+        
+        <!-- Localhost -->
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

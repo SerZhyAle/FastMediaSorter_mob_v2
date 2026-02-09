@@ -1,0 +1,1193 @@
+package com.sza.fastmediasorter.ui.player
+
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
+import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import javax.inject.Inject
+
+@HiltViewModel
+class PlayerViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
+    private val getResourcesUseCase: GetResourcesUseCase,
+    private val getMediaFilesUseCase: GetMediaFilesUseCase,
+    val fileOperationUseCase: FileOperationUseCase,
+    val getDestinationsUseCase: GetDestinationsUseCase,
+    private val settingsRepository: SettingsRepository,
+    private val resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository,
+    private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
+    private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
+    private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
+    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient
+) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
+
+    data class PlayerState(
+        val files: List<MediaFile> = emptyList(),
+        val currentIndex: Int = 0,
+        val isSlideShowActive: Boolean = false,
+        val slideShowInterval: Long = 3000,
+        val slideshowMusicUri: String? = null,
+        val slideshowMusicResourceId: Long? = null,
+        val enableSlideshowBackgroundMusic: Boolean = false,
+        val playToEndInSlideshow: Boolean = false,
+        val enablePhotosDuringAudio: Boolean = false,
+        val audioBackgroundPhotosResourceId: String? = null,
+        val showControls: Boolean = false,
+        val isPaused: Boolean = false,
+        val showCommandPanel: Boolean = false,
+        val showSmallControls: Boolean = false,
+        val allowRename: Boolean = true,
+        val allowDelete: Boolean = true,
+        val enableCopying: Boolean = true,
+        val enableMoving: Boolean = true,
+        val enableTranslation: Boolean = false,
+        val enableOcr: Boolean = false,
+        val enableGoogleLens: Boolean = false,
+        val resource: MediaResource? = null,
+        val lastOperation: UndoOperation? = null,
+        val undoOperationTimestamp: Long? = null
+    ) {
+        val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
+        // Circular navigation: always allow prev/next if files.size > 1
+        val hasPrevious: Boolean get() = files.size > 1
+        val hasNext: Boolean get() = files.size > 1
+    }
+
+    sealed class PlayerEvent {
+        data class ShowError(val message: String) : PlayerEvent()
+        data class ShowMessage(val message: String) : PlayerEvent()
+        data class FileModified(val filePath: String) : PlayerEvent()
+        data class ShowUndoSnackbar(val operation: UndoOperation) : PlayerEvent()
+        data class CloudAuthRequired(val provider: String, val message: String) : PlayerEvent()
+        // Removed: LoadingProgress event (dialog not needed for single file loads)
+        object FinishActivity : PlayerEvent()
+    }
+
+    override fun getInitialState(): PlayerState {
+        return PlayerState(currentIndex = initialIndex)
+    }
+
+    private val resourceId = savedStateHandle.get<Long>("resourceId")
+        ?: savedStateHandle.get<String>("resourceId")?.toLongOrNull() ?: 0L
+    private val initialIndex = savedStateHandle.get<Int>("initialIndex")
+        ?: savedStateHandle.get<String>("initialIndex")?.toIntOrNull() ?: 0
+    private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
+    private val initialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
+    
+    private var loadingJob: Job? = null
+
+    init {
+        loadSettings()
+        loadMediaFiles()
+    }
+    
+    /**
+     * Reload media files list.
+     * Call when returning from background to reflect external changes.
+     */
+    fun reloadFiles() {
+        loadMediaFiles()
+    }
+
+    private fun loadSettings() {
+        viewModelScope.launch {
+            try {
+                settingsRepository.getSettings().collect { settings ->
+                    val resource = state.value.resource
+                    
+                    // Determine showCommandPanel: use resource-specific setting if available, otherwise use global default
+                    val showCommandPanel = resource?.showCommandPanel ?: settings.defaultShowCommandPanel
+                    
+                    Timber.d("TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=${resource?.showCommandPanel}, settings.defaultShowCommandPanel=${settings.defaultShowCommandPanel}, RESULT showCommandPanel=$showCommandPanel")
+                    
+                    Timber.d("PlayerViewModel.loadSettings: enableTranslation=${settings.enableTranslation}, enableOcr=${settings.enableOcr}, enableGoogleLens=${settings.enableGoogleLens}")
+                    
+                    updateState { 
+                        it.copy(
+                            showCommandPanel = showCommandPanel,
+                            showSmallControls = settings.showSmallControls,
+                            allowRename = settings.allowRename,
+                            allowDelete = settings.allowDelete,
+                            enableCopying = settings.enableCopying,
+                            enableMoving = settings.enableMoving,
+                            enableTranslation = settings.enableTranslation,
+                            enableOcr = settings.enableOcr,
+                            enableGoogleLens = settings.enableGoogleLens,
+                            // Set slideshow interval from global settings (will be overridden by resource-specific if available)
+                            slideShowInterval = settings.slideshowInterval * 1000L,
+                            slideshowMusicUri = settings.slideshowMusicUri,
+                            slideshowMusicResourceId = settings.slideshowMusicResourceId,
+                            enableSlideshowBackgroundMusic = settings.enableSlideshowBackgroundMusic,
+                            playToEndInSlideshow = settings.playToEndInSlideshow,
+                            enablePhotosDuringAudio = settings.enablePhotosDuringAudio,
+                            audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    Timber.d("PlayerViewModel.loadSettings: Cancelled (normal during destroy)")
+                    throw e
+                }
+                // Use default value (fullscreen mode)
+                Timber.e(e, "Error loading settings")
+            }
+        }
+    }
+
+    private fun loadMediaFiles() {
+        loadingJob = viewModelScope.launch {
+            setLoading(true)
+            try {
+                // Save current file path to restore position after reload
+                val currentFilePath = state.value.currentFile?.path
+                
+                val resource = if (resourceId == -100L) {
+                    MediaResource(
+                        id = -100L,
+                        name = "Favorites",
+                        path = "Favorites",
+                        type = ResourceType.LOCAL,
+                        isAvailable = true,
+                        fileCount = 0,
+                        isWritable = false,
+                        supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO, MediaType.GIF)
+                    )
+                } else {
+                    getResourcesUseCase.getById(resourceId)
+                }
+
+                if (resource == null) {
+                    sendEvent(PlayerEvent.ShowError("Resource not found"))
+                    sendEvent(PlayerEvent.FinishActivity)
+                    setLoading(false)
+                    return@launch
+                }
+
+                // Ensure Google Drive client is initialized with credentials if available
+                // Determine actual resource type from current file path
+                val actualResourceType = state.value.currentFile?.path?.let { path ->
+                    when {
+                        path.startsWith("cloud://") -> ResourceType.CLOUD
+                        path.startsWith("smb://") -> ResourceType.SMB
+                        path.startsWith("sftp://") -> ResourceType.SFTP
+                        path.startsWith("ftp://") -> ResourceType.FTP
+                        else -> resource.type
+                    }
+                } ?: resource.type
+                
+                if (actualResourceType == ResourceType.CLOUD && resource.cloudProvider == com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE) {
+                    if (!googleDriveClient.isAuthenticated()) {
+                        Timber.d("PlayerViewModel: Google Drive client not authenticated, will authenticate on first API call")
+                        // Authentication will be triggered automatically on first API call via googleDriveClient.authenticate()
+                    }
+                }
+
+                // Note: Do NOT reset SMB client here! It kills active connections and causes
+                // 2+ minute delays due to connection staleness checks. The connection pool
+                // already handles timeouts and dead connections automatically.
+
+                // Check if resource is available (skip if already validated)
+                if (!skipAvailabilityCheck && resource.fileCount == 0 && !resource.isWritable) {
+                    sendEvent(PlayerEvent.ShowError("Resource '${resource.name}' is unavailable. Check network connection or resource settings."))
+                    sendEvent(PlayerEvent.FinishActivity)
+                    setLoading(false)
+                    return@launch
+                }
+
+                // Get current settings for size filters
+                val settings = settingsRepository.getSettings().first()
+                val sizeFilter = SizeFilter(
+                    imageSizeMin = settings.imageSizeMin,
+                    imageSizeMax = settings.imageSizeMax,
+                    videoSizeMin = settings.videoSizeMin,
+                    videoSizeMax = settings.videoSizeMax,
+                    audioSizeMin = settings.audioSizeMin,
+                    audioSizeMax = settings.audioSizeMax
+                )
+
+            // Load from cache (instant) - BrowseActivity already loaded and cached the list
+            // Loading files from cache
+            val cachedFiles = MediaFilesCacheManager.getCachedList(resource.id)
+            
+            // Check if cached files are all directories (indicates we're in a subfolder but cache has parent folder data)
+            val cacheHasOnlyDirectories = cachedFiles != null && cachedFiles.isNotEmpty() && cachedFiles.all { it.isDirectory }
+            
+            val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories) {
+                // Using cached list (valid file data)
+                cachedFiles
+            } else {
+                // Fallback: cache miss OR cache has only directories - load via UseCase
+                if (cacheHasOnlyDirectories) {
+                    Timber.w("Cache contains only directories (${cachedFiles?.size} items), loading actual files from current path")
+                } else {
+                    Timber.w("Cache miss! Loading files via UseCase (slow path)")
+                }
+                
+                // Extract current folder path from currentFile if available
+                val currentFolderPath = state.value.currentFile?.path?.let { filePath ->
+                    // Extract parent directory path
+                    val lastSlash = filePath.lastIndexOf('/')
+                    if (lastSlash > 0) {
+                        filePath.substring(0, lastSlash)
+                    } else {
+                        null
+                    }
+                }
+                
+                Timber.d("PlayerViewModel: Loading files from currentFolderPath=$currentFolderPath")
+                
+                getMediaFilesUseCase(
+                    resource = resource,
+                    sizeFilter = sizeFilter,
+                    useChunkedLoading = false,
+                    maxFiles = Int.MAX_VALUE,
+                    onProgress = null,
+                    currentPath = currentFolderPath,
+                    isSubfolderMode = currentFolderPath != null
+                ).first()
+            }
+                
+                Timber.d("PlayerViewModel: resource.supportedMediaTypes = ${resource.supportedMediaTypes}")
+                Timber.d("PlayerViewModel: allFiles count = ${allFiles.size}")
+                
+                // Filter files by resource's supportedMediaTypes and ensure no directories are included
+                val files = if (resource.supportedMediaTypes.size < 7) { // Not all types selected (IVAGTPE = 7 types)
+                    val filtered = allFiles.filter { file ->
+                        !file.isDirectory && resource.supportedMediaTypes.contains(file.type)
+                    }
+                    Timber.d("Filtered files by supportedMediaTypes ${resource.supportedMediaTypes}: ${allFiles.size} → ${filtered.size}")
+                    filtered
+                } else {
+                    // Even if all types are supported, we must filter out directories
+                    val filtered = allFiles.filter { !it.isDirectory }
+                    Timber.d("All types supported (${resource.supportedMediaTypes.size}), filtered directories: ${allFiles.size} → ${filtered.size}")
+                    filtered
+                }
+                
+                if (files.isEmpty()) {
+                    sendEvent(PlayerEvent.ShowError("No media files found"))
+                    sendEvent(PlayerEvent.FinishActivity)
+                } else {
+                    // Priority order for determining index:
+                    // 1. Current file path (if reloading during playback - preserve position)
+                    // 2. Initial file path (if provided from BrowseActivity - pagination mode)
+                    // 3. Initial index (default fallback)
+                    val safeIndex = if (currentFilePath != null) {
+                        val foundIndex = files.indexOfFirst { it.path == currentFilePath }
+                        if (foundIndex >= 0) {
+                            Timber.d("Restored position to current file: $currentFilePath at index $foundIndex")
+                            foundIndex
+                        } else {
+                            Timber.w("Current file not found: $currentFilePath, trying initialFilePath")
+                            if (initialFilePath != null) {
+                                val initialFoundIndex = files.indexOfFirst { it.path == initialFilePath }
+                                if (initialFoundIndex >= 0) initialFoundIndex else 0
+                            } else {
+                                initialIndex.coerceIn(0, files.size - 1)
+                            }
+                        }
+                    } else if (initialFilePath != null) {
+                        val foundIndex = files.indexOfFirst { it.path == initialFilePath }
+                        if (foundIndex >= 0) {
+                            // Found file by path at index
+                            foundIndex
+                        } else {
+                            Timber.w("File not found by path: $initialFilePath, using index 0")
+                            0
+                        }
+                    } else {
+                        initialIndex.coerceIn(0, files.size - 1)
+                    }
+                    // Always use resource-specific slideshow interval (takes precedence over global settings)
+                    val intervalToUse = resource.slideshowInterval * 1000L
+                    
+                    // Update state with resource first
+                    updateState { 
+                        it.copy(
+                            files = files, 
+                            currentIndex = safeIndex, 
+                            resource = resource,
+                            slideShowInterval = intervalToUse
+                        ) 
+                    }
+                }
+                setLoading(false)
+            } catch (e: Exception) {
+                sendEvent(PlayerEvent.ShowError(e.message ?: "Failed to load media files"))
+                sendEvent(PlayerEvent.FinishActivity)
+                setLoading(false)
+            }
+        }
+    }
+    
+    /**
+     * Get credentialsId for a resource by its ID.
+     * Used for Favorites where currentFile.resourceId points to the original resource.
+     */
+    suspend fun getCredentialsIdForResource(resourceId: Long): String? {
+        return try {
+            if (resourceId == -100L) null // Favorites itself has no credentials
+            else getResourcesUseCase.getById(resourceId)?.credentialsId
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to get credentialsId for resource $resourceId")
+            null
+        }
+    }
+
+    fun nextFile(skipDocuments: Boolean = false) {
+        // Log the call with stack trace to identify caller
+        val stackTrace = Thread.currentThread().stackTrace
+        val caller = if (stackTrace.size > 3) stackTrace[3] else null
+        Timber.w("╔═══════════════════════════════════════════════════════════════╗")
+        Timber.w("║ PlayerViewModel.nextFile() CALLED                             ║")
+        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+        Timber.w("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
+        Timber.w("Thread: ${Thread.currentThread().name}")
+        Timber.w("skipDocuments: $skipDocuments")
+        
+        val currentState = state.value
+        if (currentState.files.isEmpty()) {
+            Timber.w("ABORT: No files to navigate, files list is empty")
+            Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+            return
+        }
+        
+        var nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
+            Timber.w("Action: Looping from last file (${currentState.currentIndex}) to first (0)")
+            0 // Loop to first file after last
+        } else {
+            Timber.w("Action: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex + 1}")
+            currentState.currentIndex + 1
+        }
+        
+        // Skip documents if requested (for slideshow auto-navigation)
+        if (skipDocuments) {
+            var attempts = 0
+            val maxAttempts = currentState.files.size
+            
+            while (attempts < maxAttempts) {
+                val file = currentState.files.getOrNull(nextIndex)
+                val isDocument = file?.type == MediaType.TEXT || 
+                                file?.type == MediaType.PDF || 
+                                file?.type == MediaType.EPUB
+                
+                if (!isDocument) {
+                    // Found a media file
+                    Timber.w("Found media file at index $nextIndex: ${file?.name}")
+                    break
+                }
+                
+                // Skip this document, try next
+                Timber.w("Skipping document at index $nextIndex: ${file?.name}")
+                nextIndex = if (nextIndex >= currentState.files.size - 1) 0 else nextIndex + 1
+                attempts++
+            }
+            
+            if (attempts >= maxAttempts) {
+                // All files are documents, stay on current
+                Timber.w("All files are documents, staying on current file")
+                Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+                return
+            }
+        }
+        
+        val currentFile = if (currentState.currentIndex < currentState.files.size) currentState.files[currentState.currentIndex] else null
+        val nextFile = if (nextIndex < currentState.files.size) currentState.files[nextIndex] else null
+        Timber.w("Current: ${currentFile?.name} (index ${currentState.currentIndex})")
+        Timber.w("Next: ${nextFile?.name} (index $nextIndex)")
+        Timber.w("Total files: ${currentState.files.size}")
+        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+        
+        updateState { it.copy(currentIndex = nextIndex) }
+        
+        // Save last viewed file for scroll restoration in Browse
+        val resource = currentState.resource
+        if (resource != null && nextIndex < currentState.files.size) {
+            val fileToSave = currentState.files[nextIndex]
+            viewModelScope.launch {
+                try {
+                    resourceRepository.updateResource(resource.copy(lastViewedFile = fileToSave.path))
+                    // Updated lastViewedFile to next file
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to update lastViewedFile")
+                }
+            }
+        }
+    }
+
+    fun previousFile(skipDocuments: Boolean = false) {
+        // Log the call with stack trace to identify caller
+        val stackTrace = Thread.currentThread().stackTrace
+        val caller = if (stackTrace.size > 3) stackTrace[3] else null
+        Timber.w("╔═══════════════════════════════════════════════════════════════╗")
+        Timber.w("║ PlayerViewModel.previousFile() CALLED                         ║")
+        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+        Timber.w("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
+        Timber.w("Thread: ${Thread.currentThread().name}")
+        Timber.w("skipDocuments: $skipDocuments")
+        
+        val currentState = state.value
+        if (currentState.files.isEmpty()) {
+            Timber.w("ABORT: No files to navigate, files list is empty")
+            Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+            return
+        }
+        
+        var prevIndex = if (currentState.currentIndex <= 0) {
+            Timber.w("Action: Looping from first file (${currentState.currentIndex}) to last (${currentState.files.size - 1})")
+            currentState.files.size - 1 // Loop to last file before first
+        } else {
+            Timber.w("Action: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex - 1}")
+            currentState.currentIndex - 1
+        }
+        
+        // Skip documents if requested (for slideshow auto-navigation)
+        if (skipDocuments) {
+            var attempts = 0
+            val maxAttempts = currentState.files.size
+            
+            while (attempts < maxAttempts) {
+                val file = currentState.files.getOrNull(prevIndex)
+                val isDocument = file?.type == MediaType.TEXT || 
+                                file?.type == MediaType.PDF || 
+                                file?.type == MediaType.EPUB
+                
+                if (!isDocument) {
+                    // Found a media file
+                    Timber.w("Found media file at index $prevIndex: ${file?.name}")
+                    break
+                }
+                
+                // Skip this document, try previous
+                Timber.w("Skipping document at index $prevIndex: ${file?.name}")
+                prevIndex = if (prevIndex <= 0) currentState.files.size - 1 else prevIndex - 1
+                attempts++
+            }
+            
+            if (attempts >= maxAttempts) {
+                // All files are documents, stay on current
+                Timber.w("All files are documents, staying on current file")
+                Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+                return
+            }
+        }
+        
+        val currentFile = if (currentState.currentIndex < currentState.files.size) currentState.files[currentState.currentIndex] else null
+        val prevFile = if (prevIndex < currentState.files.size) currentState.files[prevIndex] else null
+        Timber.w("Current: ${currentFile?.name} (index ${currentState.currentIndex})")
+        Timber.w("Previous: ${prevFile?.name} (index $prevIndex)")
+        Timber.w("Total files: ${currentState.files.size}")
+        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+        
+        updateState { it.copy(currentIndex = prevIndex) }
+        
+        // Save last viewed file for scroll restoration in Browse
+        val resource = currentState.resource
+        if (resource != null && prevIndex < currentState.files.size) {
+            val fileToSave = currentState.files[prevIndex]
+            viewModelScope.launch {
+                try {
+                    resourceRepository.updateResource(resource.copy(lastViewedFile = fileToSave.path))
+                    // Updated lastViewedFile to previous file
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to update lastViewedFile")
+                }
+            }
+        }
+    }
+    
+    fun cancelLoading() {
+        loadingJob?.cancel()
+        loadingJob = null
+    }
+
+    fun toggleSlideShow() {
+        updateState { it.copy(isSlideShowActive = !it.isSlideShowActive) }
+    }
+    
+    /**
+     * Force state re-emit to trigger observers (e.g., to check AudioBackgroundPhotos after slideshow starts).
+     */
+    fun forceStateUpdate() {
+        updateState { it.copy() } // Copy with no changes triggers emit
+    }
+
+    fun setSlideShowActive(isActive: Boolean) {
+        updateState { it.copy(isSlideShowActive = isActive) }
+    }
+
+    fun setSlideShowInterval(interval: Long) {
+        updateState { it.copy(slideShowInterval = interval) }
+        // Persist
+        saveSlideshowSettings(interval, state.value.playToEndInSlideshow, state.value.slideshowMusicUri)
+    }
+
+    fun setPlayToEndInSlideshow(playToEnd: Boolean) {
+        updateState { it.copy(playToEndInSlideshow = playToEnd) }
+        saveSlideshowSettings(state.value.slideShowInterval, playToEnd, state.value.slideshowMusicUri)
+    }
+
+    fun setSlideshowMusic(uri: String?) {
+        updateState { it.copy(slideshowMusicUri = uri) }
+        saveSlideshowSettings(state.value.slideShowInterval, state.value.playToEndInSlideshow, uri)
+    }
+
+    private fun saveSlideshowSettings(intervalMs: Long, playToEnd: Boolean, musicUri: String?) {
+        viewModelScope.launch {
+            try {
+                val settings = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(
+                    settings.copy(
+                        slideshowInterval = (intervalMs / 1000).toInt(),
+                        playToEndInSlideshow = playToEnd,
+                        slideshowMusicUri = musicUri
+                    )
+                )
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save slideshow settings")
+            }
+        }
+    }
+
+    fun toggleControls() {
+        updateState { it.copy(showControls = !it.showControls) }
+    }
+
+    fun togglePause() {
+        updateState { it.copy(isPaused = !it.isPaused) }
+    }
+
+    fun setPaused(isPaused: Boolean) {
+        updateState { it.copy(isPaused = isPaused) }
+    }
+
+    fun toggleCommandPanel() {
+        val newShowCommandPanel = !state.value.showCommandPanel
+        updateState { it.copy(showCommandPanel = newShowCommandPanel) }
+        
+        // Save user preference for this resource
+        val resource = state.value.resource
+        if (resource != null) {
+            viewModelScope.launch {
+                try {
+                    resourceRepository.updateResource(resource.copy(showCommandPanel = newShowCommandPanel))
+                } catch (e: Exception) {
+                    timber.log.Timber.e(e, "Failed to save command panel preference")
+                }
+            }
+        }
+    }
+    
+    /**
+     * Enter fullscreen mode (hide command panel)
+     */
+    fun enterFullscreenMode() {
+        if (state.value.showCommandPanel) {
+            toggleCommandPanel()
+        }
+    }
+    
+    /**
+     * Enter command panel mode (show command panel)
+     */
+    fun enterCommandPanelMode() {
+        if (!state.value.showCommandPanel) {
+            toggleCommandPanel()
+        }
+    }
+    
+    /**
+     * Delete the current file and navigate to next/previous file.
+     * @return true if file deleted successfully and navigation occurred, false if deletion failed, null if no files remain (should finish activity)
+     */
+    fun deleteCurrentFile(): Boolean? {
+        val currentFile = state.value.currentFile
+        val resource = state.value.resource
+        
+        if (currentFile == null) {
+            sendEvent(PlayerEvent.ShowError("No file to delete"))
+            return false
+        }
+        
+        if (resource == null) {
+            sendEvent(PlayerEvent.ShowError("Resource not loaded"))
+            return false
+        }
+        
+        viewModelScope.launch {
+            try {
+                // Deleting file
+                
+                // Check if path is a network resource
+                val isNetwork = currentFile.path.let { 
+                    it.startsWith("smb://") || 
+                    it.startsWith("sftp://") || 
+                    it.startsWith("ftp://") || 
+                    it.startsWith("cloud://") 
+                }
+                
+                // Wrap path in File object for FileOperationUseCase
+                val file = if (isNetwork) {
+                    // Network file - wrap with original path
+                    object : java.io.File(currentFile.path) {
+                        override fun getAbsolutePath(): String = currentFile.path
+                        override fun getPath(): String = currentFile.path
+                    }
+                } else {
+                    // Local file
+                    java.io.File(currentFile.path)
+                }
+                
+                // Use FileOperationUseCase for both local and network files
+                // Network files must use hard delete (softDelete = false) as trash is not supported
+                val deleteOperation = FileOperation.Delete(files = listOf(file), softDelete = !isNetwork)
+                
+                when (val result = fileOperationUseCase.execute(deleteOperation)) {
+                    is FileOperationResult.Success,
+                    is FileOperationResult.PartialSuccess -> {
+                        // Notify that file was deleted
+                        sendEvent(PlayerEvent.FileModified(currentFile.path))
+                        
+                        // Save undo operation if enabled in settings AND it was a soft delete (local file)
+                        val settings = settingsRepository.getSettings().first()
+                        if (settings.enableUndo && !isNetwork) {
+                            // Extract trash paths from result for undo restoration
+                            val trashPaths = when (result) {
+                                is FileOperationResult.Success -> result.copiedFilePaths
+                                is FileOperationResult.PartialSuccess -> emptyList() // Partial failures cannot be undone reliably
+                                is FileOperationResult.Failure -> emptyList()
+                                is FileOperationResult.AuthenticationRequired -> emptyList()
+                                is FileOperationResult.PermissionRequired -> emptyList()
+                            }
+                            
+                            val undoOp = UndoOperation(
+                                type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
+                                sourceFiles = listOf(currentFile.path),
+                                destinationFolder = null,
+                                copiedFiles = trashPaths.takeIf { it.isNotEmpty() },
+                                oldNames = null
+                            )
+                            saveUndoOperation(undoOp)
+                            
+                            // Send event to show Snackbar with Undo button
+                            sendEvent(PlayerEvent.ShowUndoSnackbar(undoOp))
+                        }
+                        
+                        // Remove deleted file from the list
+                        val updatedFiles = state.value.files.toMutableList()
+                        val deletedIndex = state.value.currentIndex
+                        updatedFiles.removeAt(deletedIndex)
+                        
+                        // Update cache to reflect deletion
+                        MediaFilesCacheManager.removeFile(resource.id, currentFile.path)
+                        
+                        if (updatedFiles.isEmpty()) {
+                            // No files left, close activity
+                            sendEvent(PlayerEvent.FinishActivity)
+                        } else {
+                            // Check if we deleted the last file
+                            if (deletedIndex >= updatedFiles.size) {
+                                // We deleted the last file. Loop back to first file.
+                                val newIndex = 0
+                                updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                                Timber.d("File deleted (was last), looping to first file. New list size: ${updatedFiles.size}")
+                            } else {
+                                // Navigate to next file (which is now at the same index)
+                                val newIndex = deletedIndex
+                                updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                                Timber.d("File deleted successfully, new list size: ${updatedFiles.size}")
+                            }
+                        }
+                    }
+                    is FileOperationResult.Failure -> {
+                        sendEvent(PlayerEvent.ShowError(result.error))
+                        Timber.e("Delete failed: ${result.error}")
+                    }
+                    is FileOperationResult.AuthenticationRequired -> {
+                        sendEvent(PlayerEvent.CloudAuthRequired(result.provider, result.message))
+                        Timber.w("Delete requires cloud authentication: ${result.provider}")
+                    }
+                    is FileOperationResult.PermissionRequired -> {
+                        // This is handled by FileOperationsHandler/PlayerActivity
+                        Timber.d("Delete requires permission (handled by Activity)")
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error deleting file: ${currentFile.path}")
+                sendEvent(PlayerEvent.ShowError("Error deleting file: ${e.message}"))
+            }
+        }
+        
+        return null // Async operation, result via events
+    }
+    
+    /**
+     * Reload files after rename operation to update current file path
+     */
+    fun reloadAfterRename() {
+        viewModelScope.launch {
+            try {
+                val resource = state.value.resource ?: return@launch
+                
+                // Reload files from resource
+                val files = getMediaFilesUseCase(
+                    resource = resource,
+                    sortMode = resource.sortMode,
+                    sizeFilter = null
+                ).first()
+                
+                // Find renamed file by name (may have changed)
+                // Try to locate file at same index
+                val currentIndex = state.value.currentIndex
+                val newIndex = if (currentIndex < files.size) {
+                    currentIndex
+                } else {
+                    0
+                }
+                
+                updateState { 
+                    it.copy(
+                        files = files,
+                        currentIndex = newIndex
+                    )
+                }
+                
+                Timber.d("Files reloaded after rename, total: ${files.size}")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to reload files after rename")
+                sendEvent(PlayerEvent.ShowError("Failed to reload files: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
+     * Save undo operation with timestamp
+     */
+    fun saveUndoOperation(operation: UndoOperation) {
+        updateState { 
+            it.copy(
+                lastOperation = operation,
+                undoOperationTimestamp = System.currentTimeMillis()
+            ) 
+        }
+        timber.log.Timber.d("Saved undo operation: ${operation.type}, file: ${operation.sourceFiles.firstOrNull()}")
+    }
+    
+    /**
+     * Undo last delete operation
+     * Supports both local and network resources (SMB/SFTP/FTP/Cloud)
+     */
+    fun undoLastOperation() {
+        val operation = state.value.lastOperation
+        if (operation == null) {
+            sendEvent(PlayerEvent.ShowMessage("No operation to undo"))
+            return
+        }
+        
+        if (operation.type != com.sza.fastmediasorter.domain.model.FileOperationType.DELETE) {
+            sendEvent(PlayerEvent.ShowMessage("Can only undo delete operations"))
+            return
+        }
+        
+        viewModelScope.launch {
+            try {
+                // copiedFiles structure: [0] = trashDirPath, [1..n] = originalFilePaths
+                operation.copiedFiles?.let { paths ->
+                    if (paths.size < 2) {
+                        sendEvent(PlayerEvent.ShowError("Invalid undo operation data"))
+                        return@launch
+                    }
+                    
+                    val trashDirPath = paths[0]
+                    val originalPath = paths[1]
+                    
+                    // Detect resource type from path
+                    val isLocal = !originalPath.startsWith("smb://") && 
+                                  !originalPath.startsWith("sftp://") && 
+                                  !originalPath.startsWith("ftp://") && 
+                                  !originalPath.startsWith("cloud:/")
+                    
+                    val restoreSuccess = if (isLocal) {
+                        restoreLocalFile(trashDirPath, originalPath)
+                    } else {
+                        restoreNetworkFile(trashDirPath, originalPath)
+                    }
+                    
+                    if (restoreSuccess) {
+                        // Clear undo operation
+                        updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
+                        
+                        sendEvent(PlayerEvent.ShowMessage("File restored successfully"))
+                        
+                        // Reload files to include restored file
+                        reloadFiles()
+                    } else {
+                        sendEvent(PlayerEvent.ShowError("Failed to restore file"))
+                    }
+                } ?: sendEvent(PlayerEvent.ShowError("No files to restore"))
+                
+            } catch (e: Exception) {
+                timber.log.Timber.e(e, "Undo operation failed")
+                sendEvent(PlayerEvent.ShowError("Undo failed: ${e.message}"))
+            }
+        }
+    }
+    
+    /**
+     * Restore local file from trash directory
+     */
+    private suspend fun restoreLocalFile(trashDirPath: String, originalPath: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val trashDir = java.io.File(trashDirPath)
+            val originalFile = java.io.File(originalPath)
+            
+            if (!trashDir.exists() || !trashDir.isDirectory) {
+                Timber.e("Undo: Trash folder not found: $trashDirPath")
+                return@withContext false
+            }
+            
+            // Find trashed file by name
+            val trashedFile = java.io.File(trashDir, originalFile.name)
+            
+            if (!trashedFile.exists()) {
+                Timber.e("Undo: Trashed file not found: ${trashedFile.absolutePath}")
+                return@withContext false
+            }
+            
+            // Restore file by renaming back to original location
+            val restored = trashedFile.renameTo(originalFile)
+            
+            if (restored) {
+                // Remove trash directory if empty
+                if (trashDir.listFiles()?.isEmpty() == true) {
+                    trashDir.delete()
+                    Timber.d("Undo: Cleaned up empty trash directory")
+                }
+                Timber.i("Undo: Successfully restored local file: $originalPath")
+            } else {
+                Timber.e("Undo: Failed to rename trashed file back to original location")
+            }
+            
+            return@withContext restored
+        } catch (e: Exception) {
+            Timber.e(e, "Undo: Exception restoring local file")
+            return@withContext false
+        }
+    }
+    
+    /**
+     * Restore network file from trash directory (SMB/S/FTP)
+     * Uses FileOperationUseCase.execute(Move) to move file from .trash back to original location
+     */
+    private suspend fun restoreNetworkFile(trashDirPath: String, originalPath: String): Boolean {
+        try {
+            val originalFile = java.io.File(originalPath)
+            val fileName = originalFile.name
+            val trashFilePath = "$trashDirPath/$fileName"
+            
+            Timber.d("Undo: Restoring network file from $trashFilePath to $originalPath")
+            
+            val parentDir = originalFile.parentFile ?: throw java.io.IOException("Cannot restore to root directory")
+            
+            // Use FileOperationUseCase to move file from trash back to original location
+            val moveOperation = FileOperation.Move(
+                sources = listOf(java.io.File(trashFilePath)),
+                destination = parentDir,
+                overwrite = true // Overwrite in case original path still exists
+            )
+            
+            return when (val result = fileOperationUseCase.execute(moveOperation)) {
+                is FileOperationResult.Success -> {
+                    Timber.i("Undo: Successfully restored network file: $originalPath")
+                    true
+                }
+                is FileOperationResult.PartialSuccess -> {
+                    Timber.w("Undo: Partial success restoring file (might be OK)")
+                    true
+                }
+                is FileOperationResult.Failure -> {
+                    Timber.e("Undo: Failed to restore network file: ${result.error}")
+                    false
+                }
+                is FileOperationResult.AuthenticationRequired -> {
+                    Timber.w("Undo: Cloud authentication required: ${result.provider}")
+                    false
+                }
+                is FileOperationResult.PermissionRequired -> {
+                    Timber.w("Undo: Permission required (unexpected)")
+                    false
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Undo: Exception restoring network file")
+            return false
+        }
+    }
+    
+    /**
+     * Clear expired undo operation (5 minutes)
+     */
+    fun clearExpiredUndoOperation() {
+        val currentState = state.value
+        val timestamp = currentState.undoOperationTimestamp
+        
+        if (timestamp != null && currentState.lastOperation != null) {
+            val elapsed = System.currentTimeMillis() - timestamp
+            val expiryTime = 5 * 60 * 1000L // 5 minutes
+            
+            if (elapsed > expiryTime) {
+                updateState { it.copy(lastOperation = null, undoOperationTimestamp = null) }
+                timber.log.Timber.d("Expired undo operation cleared")
+            }
+        }
+    }
+
+    suspend fun getSettings() = settingsRepository.getSettings().first()
+    
+    /**
+     * Get adjacent files for preloading (previous + next).
+     * Only returns IMAGE and GIF files for preloading.
+     * Supports circular navigation.
+     * 
+     * @return List of MediaFile to preload (previous, next)
+     */
+    fun getAdjacentFiles(): List<MediaFile> {
+        val currentState = state.value
+        if (currentState.files.size <= 1) return emptyList()
+        
+        val result = mutableListOf<MediaFile>()
+        
+        // Calculate previous index with circular wrap
+        val prevIndex = if (currentState.currentIndex <= 0) {
+            currentState.files.size - 1 // Loop to last
+        } else {
+            currentState.currentIndex - 1
+        }
+        val prevFile = currentState.files.getOrNull(prevIndex)
+        
+        // Calculate next index with circular wrap
+        val nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
+            0 // Loop to first
+        } else {
+            currentState.currentIndex + 1
+        }
+        val nextFile = currentState.files.getOrNull(nextIndex)
+        
+        // Add previous file if it's an image or GIF
+        if (prevFile != null && (prevFile.type == MediaType.IMAGE || prevFile.type == MediaType.GIF)) {
+            result.add(prevFile)
+        }
+        
+        // Add next file if it's an image or GIF AND it's different from previous (avoid duplicates in 2-file case)
+        if (nextFile != null && 
+            nextFile != prevFile &&
+            (nextFile.type == MediaType.IMAGE || nextFile.type == MediaType.GIF)) {
+            result.add(nextFile)
+        }
+        
+        return result
+    }
+    
+    /**
+     * Save last viewed file path to resource for position restoration
+     */
+    fun saveLastViewedFile(filePath: String) {
+        val resource = state.value.resource ?: return
+        
+        viewModelScope.launch {
+            try {
+                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
+                Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save lastViewedFile")
+            }
+        }
+    }
+    
+    /**
+     * Handle file moved event (from MoveToDialog).
+     * Removes file from list and updates cache.
+     */
+    fun onFileMoved(path: String) {
+        val resource = state.value.resource ?: return
+        val updatedFiles = state.value.files.toMutableList()
+        val index = updatedFiles.indexOfFirst { it.path == path }
+        
+        if (index != -1) {
+            updatedFiles.removeAt(index)
+            MediaFilesCacheManager.removeFile(resource.id, path)
+            
+            if (updatedFiles.isEmpty()) {
+                sendEvent(PlayerEvent.ShowMessage("File moved."))
+                sendEvent(PlayerEvent.FinishActivity)
+            } else {
+                // Check if we moved the last file
+                if (index >= updatedFiles.size) {
+                    // We moved the last file. Loop back to first file.
+                    val newIndex = 0
+                    updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                    sendEvent(PlayerEvent.ShowMessage("File moved."))
+                    Timber.d("File moved (was last), looping to first file. New list size: ${updatedFiles.size}")
+                } else {
+                    // Navigate to next file (which is now at the same index)
+                    val newIndex = index
+                    updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                    sendEvent(PlayerEvent.ShowMessage("File moved."))
+                }
+            }
+        }
+    }
+    
+    /**
+     * Refresh current file info (size, modification date) after edit operations.
+     * This triggers cache invalidation in Glide because size changes.
+     */
+    fun refreshCurrentFileInfo() {
+        viewModelScope.launch {
+            try {
+                val currentFile = state.value.currentFile ?: return@launch
+                
+                // Get updated file size
+                // For network files, increment size by 1 as workaround (actual size changed on server)
+                // The main cache invalidation now happens via NetworkFileData.equals() using path+size
+                val updatedSize = when {
+                    currentFile.path.startsWith("smb://") || 
+                    currentFile.path.startsWith("sftp://") || 
+                    currentFile.path.startsWith("ftp://") ||
+                    currentFile.path.startsWith("cloud://") -> {
+                        // Network/cloud files: increment size to force cache invalidation
+                        // Real size will be fetched on next BrowseActivity refresh
+                        currentFile.size + 1
+                    }
+                    currentFile.path.startsWith("content://") || currentFile.path.startsWith("file://") -> {
+                        currentFile.size // Keep existing for content URIs
+                    }
+                    else -> {
+                        // Local file - read size directly
+                        val file = java.io.File(currentFile.path)
+                        if (file.exists()) file.length() else currentFile.size
+                    }
+                }
+                
+                // Update file in list
+                val updatedFiles = state.value.files.toMutableList()
+                val currentIndex = state.value.currentIndex
+                if (currentIndex in updatedFiles.indices) {
+                    updatedFiles[currentIndex] = currentFile.copy(size = updatedSize)
+                    updateState { it.copy(files = updatedFiles) }
+                    
+                    Timber.d("PlayerViewModel: Refreshed file info - old size: ${currentFile.size}, new size: $updatedSize")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to refresh file info")
+            }
+        }
+    }
+    
+    /**
+     * Remove moved file from the list and update state
+     * @param movedFilePath Path of the file that was moved
+     * @return true if there are files remaining, false if list is empty
+     */
+    fun removeMovedFile(movedFilePath: String): Boolean {
+        return removeFileFromList(movedFilePath, "moved")
+    }
+    
+    /**
+     * Remove deleted file from the list and update state
+     * @param deletedFilePath Path of the file that was deleted
+     * @return true if there are files remaining, false if list is empty
+     */
+    fun removeDeletedFile(deletedFilePath: String): Boolean {
+        return removeFileFromList(deletedFilePath, "deleted")
+    }
+    
+    /**
+     * Common logic to remove a file from the list and update state
+     * @param filePath Path of the file to remove (used for logging context)
+     * @param operation Description of operation for logging
+     * @return true if there are files remaining, false if list is empty
+     */
+    @Suppress("UNUSED_PARAMETER")
+    private fun removeFileFromList(filePath: String, operation: String): Boolean {
+        val currentState = state.value
+        val updatedFiles = currentState.files.toMutableList()
+        val fileIndex = currentState.currentIndex
+        
+        if (fileIndex in updatedFiles.indices) {
+            updatedFiles.removeAt(fileIndex)
+            
+            if (updatedFiles.isEmpty()) {
+                return false // No files left
+            }
+            
+            // Check if we removed the last file
+            val newIndex = if (fileIndex >= updatedFiles.size) {
+                // Removed last file - loop back to first
+                Timber.d("File $operation (was last), looping to first file")
+                0
+            } else {
+                // Navigate to next file (which is now at the same index)
+                fileIndex
+            }
+            
+            updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+            Timber.d("File $operation successfully, new list size: ${updatedFiles.size}")
+            return true
+        }
+        
+        return false
+    }
+
+    fun toggleFavorite() {
+        val currentFile = state.value.currentFile ?: return
+        val resource = state.value.resource ?: return
+
+        // Optimistic UI update
+        val updatedFiles = state.value.files.map {
+            if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it
+        }
+        updateState { it.copy(files = updatedFiles) }
+
+        viewModelScope.launch {
+            try {
+                // Use resourceId from file (original source) or fallback to current resource
+                val targetResourceId = currentFile.resourceId ?: resource.id
+                favoritesUseCase.toggleFavorite(currentFile, targetResourceId)
+            } catch (e: Exception) {
+                Timber.e(e, "Error toggling favorite")
+                // Revert UI on error
+                val revertedFiles = state.value.files.map {
+                    if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it
+                }
+                updateState { it.copy(files = revertedFiles) }
+                sendEvent(PlayerEvent.ShowError("Failed to update favorite status"))
+            }
+        }
+    }
+
+
+}
+
+

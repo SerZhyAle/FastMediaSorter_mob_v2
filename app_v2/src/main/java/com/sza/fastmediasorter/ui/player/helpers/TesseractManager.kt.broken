@@ -1,0 +1,195 @@
+package com.sza.fastmediasorter.ui.player.helpers
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Rect
+import com.googlecode.tesseract.android.TessBaseAPI
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
+
+/**
+ * Manages Tesseract OCR engine for offline text recognition.
+ * Provides better support for Cyrillic than ML Kit's Latin recognizer.
+ * Automatically downloads traineddata files from GitHub (tessdata_fast) if missing.
+ */
+class TesseractManager(private val context: Context) {
+
+    private var tessApi: TessBaseAPI? = null
+    private var isInitialized = false
+    private var initializationFailed = false
+    private var currentLanguage: String = "" // Track current language to allow re-init
+
+    companion object {
+        private const val TESS_DATA_DIR = "tessdata"
+        private const val RUS_DATA_NAME = "rus"
+        private const val ENG_DATA_NAME = "eng"
+        // URL for fast models (smaller, faster, slightly less accurate)
+        private const val TESS_DATA_URL_BASE = "https://github.com/tesseract-ocr/tessdata_fast/raw/main/"
+    }
+
+    /**
+     * Initialize Tesseract engine for specific language.
+     * Downloads training data if missing.
+     * @param language Language code: "rus" for Russian, "eng" for English (no mixing!)
+     * @return true if initialization successful
+     */
+    suspend fun init(language: String = "rus"): Boolean {
+        // Re-initialize if language changed
+        if (isInitialized && currentLanguage != language) {
+            Timber.d("Language changed from $currentLanguage to $language, re-initializing")
+            release()
+        }
+        
+        if (isInitialized && currentLanguage == language) return true
+        if (initializationFailed) return false
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val dataPath = File(context.filesDir, "tesseract")
+                val tessDataPath = File(dataPath, TESS_DATA_DIR)
+                if (!tessDataPath.exists()) {
+                    tessDataPath.mkdirs()
+                }
+
+                // Download data for requested language
+                val dataDownloaded = checkAndDownloadData(tessDataPath, language)
+                if (!dataDownloaded) {
+                    Timber.e("Could not download Tesseract data for $language")
+                    initializationFailed = true
+                    return@withContext false
+                }
+
+                tessApi = TessBaseAPI()
+                
+                // Initialize for SINGLE language only (no mixing!)
+                Timber.d("Initializing Tesseract with language: $language")
+                val success = tessApi?.init(dataPath.absolutePath, language) ?: false
+                
+                if (success) {
+                    isInitialized = true
+                    Timber.d("Tesseract initialized successfully")
+                } else {
+                    Timber.e("Tesseract initialization failed")
+                    initializationFailed = true
+                }
+                success
+            } catch (e: Exception) {
+                Timber.e(e, "Error initializing Tesseract")
+                initializationFailed = true
+                false
+            }currentLanguage = language
+                    Timber.d("Tesseract initialized successfully for $language")
+                } else {
+                    Timber.e("Tesseract initialization failed for $language
+
+    private fun checkAndDownloadData(dir: File, lang: String): Boolean {
+        val file = File(dir, "$lang.traineddata")
+        if (file.exists() && file.length() > 0) return true
+
+        Timber.d("Downloading Tesseract data for $lang...")
+        return try {
+            URL("$TESS_DATA_URL_BASE$lang.traineddata").openStream().use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            Timber.d("Downloaded $lang.traineddata")
+            true
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to download $lang.traineddata")
+            // Clean up partial file
+            if (file.exists()) file.delete()
+            false
+        }
+    }
+
+    /**
+     * Recognize text from bitmap using Tesseract.
+     * @param language Language code: "rus", "eng", etc.
+     * @return Recognized text or null
+     */
+    suspend fun recognizeText(bitmap: Bitmap, language: String = "rus"): String? {
+        val success = init(language)
+        if (!success) return null   if (!success) return null
+        }
+
+        return withContext(Dispatchers.Default) {
+            try {
+                tessApi?.setImage(bitmap)
+                val text = tessApi?.utF8Text
+                tessApi?.clear()
+                text
+            } catch (e: Exception) {
+                Timber.e(e, "Tesseract recognition failed")
+                null
+            }
+        }
+    }
+
+    data class OcrBlock(
+        val text: String,
+        val boundingBox: Rect,
+        val confidence: Float
+    )
+
+    /**
+     * Recognize text blocks with coordinates.
+     * @param bitmap Image to process
+     * @param language Language code: "rus", "eng", etc.
+     */
+    suspend fun recognizeTextBlocks(bitmap: Bitmap, language: String = "rus"): List<OcrBlock>? {
+        val success = init(language)
+        if (!success) return null
+
+        return withContext(Dispatchers.Default) {
+            try {
+                tessApi?.setImage(bitmap)
+                // Force recognition to populate results
+                tessApi?.utF8Text 
+                
+                val iterator = tessApi?.resultIterator
+                if (iterator == null) {
+                    Timber.w("Tesseract resultIterator is null")
+                    return@withContext null
+                }
+                
+                val blocks = mutableListOf<OcrBlock>()
+                
+                iterator.begin()
+                do {
+                    // Use RIL_PARA (paragraph) level to get meaningful text blocks similar to ML Kit
+                    val text = iterator.getUTF8Text(TessBaseAPI.PageIteratorLevel.RIL_PARA)
+                    if (!text.isNullOrBlank()) {
+                        val box = iterator.getBoundingRect(TessBaseAPI.PageIteratorLevel.RIL_PARA)
+                        val confidence = iterator.confidence(TessBaseAPI.PageIteratorLevel.RIL_PARA)
+                        if (box != null) {
+                            blocks.add(OcrBlock(text, box, confidence))
+                        }
+                    }
+                } while (iterator.next(TessBaseAPI.PageIteratorLevel.RIL_PARA))
+                
+                tessApi?.clear()
+                blocks
+            } catch (e: Exception) {
+                Timber.e(e, "Tesseract block recognition failed")
+                null
+            }
+        }
+    }
+
+    fun release() {
+        try {
+            tessApi?.stop()
+            tessApi?.recycle()
+            tessApi = null
+            isInitialized = false
+        } catch (e: Exception) {
+            currentLanguage = ""
+            Timber.e(e, "Error releasing Tesseract")
+        }
+    }
+}

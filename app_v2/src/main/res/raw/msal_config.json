@@ -1,0 +1,16 @@
+{
+  "client_id": "2c1626b8-65b2-48bd-a1b6-64588f1344e3",
+  "authorization_user_agent": "DEFAULT",
+  "redirect_uri": "msauth://com.sza.fastmediasorter/WdRIvjP3wXJ5jte7TPUOqtT59es%3D",
+  "account_mode": "SINGLE",
+  "broker_redirect_uri_registered": true,
+  "authorities": [
+    {
+      "type": "AAD",
+      "audience": {
+        "type": "AzureADandPersonalMicrosoftAccount",
+        "tenant_id": "common"
+      }
+    }
+  ]
+}

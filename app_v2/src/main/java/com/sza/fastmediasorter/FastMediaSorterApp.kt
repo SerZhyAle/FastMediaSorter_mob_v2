@@ -1,0 +1,267 @@
+package com.sza.fastmediasorter
+
+import android.app.Application
+import android.content.Context
+import android.content.ComponentCallbacks2
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.work.Configuration
+import com.bumptech.glide.Glide
+import com.sza.fastmediasorter.core.init.AppStartupInitializer
+import com.sza.fastmediasorter.core.logging.LoggingHelper
+import com.sza.fastmediasorter.core.util.CacheStatusHelper
+import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.worker.WorkManagerScheduler
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import javax.inject.Inject
+
+@HiltAndroidApp
+class FastMediaSorterApp : Application(), Configuration.Provider {
+
+    companion object {
+        // Static context for Glide ModelLoader factory (needed for Hilt EntryPoint access)
+        lateinit var appContext: Context
+            private set
+    }
+    
+    @Inject
+    lateinit var workManagerScheduler: WorkManagerScheduler
+    
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+    
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+    
+    @Inject
+    lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+    
+    @Inject
+    lateinit var thumbnailCacheRepository: com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
+    
+    @Inject
+    lateinit var resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository
+    
+    @Inject
+    lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+    
+    @Inject
+    lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
+    
+    // Application-scoped coroutine for background initialization
+    private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    
+    // Track if app is in foreground
+    @Volatile
+    private var isInForeground = true
+
+    override fun onCreate() {
+        super.onCreate()
+        
+        // Initialize static context for Glide ModelLoader
+        appContext = applicationContext
+        
+        // Monitor app lifecycle to optimize background behavior
+        ProcessLifecycleOwner.get().lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onStop(owner: LifecycleOwner) {
+                // All activities stopped - app fully in background
+                isInForeground = false
+                Timber.d("App moved to BACKGROUND - optimizing resources")
+                onAppBackgrounded()
+            }
+            
+            override fun onStart(owner: LifecycleOwner) {
+                // At least one activity visible - app in foreground
+                isInForeground = true
+                Timber.d("App moved to FOREGROUND")
+                onAppForegrounded()
+            }
+        })
+        
+        // PDF Support: Using built-in Android PdfRenderer (API 21+)
+        // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
+        // PDFBox was removed to avoid BouncyCastle conflicts and reduce APK size
+        
+        // Apply saved locale (fast)
+        LocaleHelper.applyLocale(this)
+        // Note: logging initialized early in attachBaseContext to capture startup crashes
+        
+        // Clear failed video thumbnail cache on app start
+        NetworkFileDataFetcher.clearFailedVideoCache()
+        
+        // Clear translation cache on app start
+        com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()
+        
+        // Start network state monitoring for automatic connection recovery
+        networkStateMonitor.start()
+        
+        // Log Glide disk cache status at startup
+        CacheStatusHelper.logGlideDiskCacheStatus(this)
+        
+        Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
+        
+        // Log detailed app startup information
+        logAppStartupInfo()
+        
+        // Initialize all background tasks
+        val startupInitializer = AppStartupInitializer(
+            context = applicationContext,
+            settingsRepository = settingsRepository,
+            resourceRepository = resourceRepository,
+            playbackPositionRepository = playbackPositionRepository,
+            thumbnailCacheRepository = thumbnailCacheRepository,
+            applicationScope = applicationScope
+        )
+        startupInitializer.initialize()
+        
+        // Trash cleanup now handled synchronously in BrowseViewModel (on resource open/close)
+        // WorkManager periodic cleanup disabled - unnecessary with sync cleanup
+        // Left for potential future background tasks (e.g., network resource sync)
+        
+        // Defer WorkManager scheduling to background with delay to avoid blocking app startup
+        // WorkManager initialization is expensive (~100-200ms), defer until after UI is rendered
+        // applicationScope.launch(Dispatchers.IO) {
+        //     try {
+        //         kotlinx.coroutines.delay(500) // Wait for UI to render first
+        //         workManagerScheduler.scheduleTrashCleanup()
+        //         Timber.d("Background initialization: WorkManager scheduled")
+        //     } catch (e: Exception) {
+        //         Timber.e(e, "Failed to schedule WorkManager in background")
+        //     }
+        // }
+    }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
+    
+    /**
+     * Called when app moves to background (all activities stopped).
+     * Optimize resource usage to reduce battery drain and memory pressure.
+     */
+    private fun onAppBackgrounded() {
+        // Note: Don't stop NetworkStateMonitor - it's needed for automatic reconnection
+        // when network changes while app is in background
+        
+        // Suggest GC to clean up any temporary objects from UI
+        // This reduces memory pressure and frequency of system-initiated GC
+        System.gc()
+        
+        Timber.d("Background optimization complete")
+    }
+    
+    /**
+     * Called when app moves to foreground (at least one activity visible).
+     * Restore any services stopped during backgrounding.
+     */
+    private fun onAppForegrounded() {
+        // Currently no services need restarting
+        // NetworkStateMonitor remains active
+        Timber.d("Foreground restoration complete")
+    }
+
+    override fun attachBaseContext(base: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(base))
+        // Initialize logging as early as possible so file logging exists even if app
+        // crashes during or before onCreate(). Fail-safe: don't throw if logging fails.
+        try {
+            LoggingHelper.initialize(base)
+        } catch (e: Exception) {
+            android.util.Log.e("FastMediaSorterApp", "Early logging init failed", e)
+        }
+    }
+    
+    /**
+     * Handle system memory pressure events.
+     * Clear image cache ONLY on critical memory pressure to preserve thumbnails.
+     * Large cache is intentional for Browse workflow - don't clear on background.
+     */
+    @Suppress("DEPRECATION")
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        
+        val levelName = when(level) {
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> "RUNNING_CRITICAL"
+            ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> "COMPLETE"
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> "RUNNING_LOW"
+            ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN -> "UI_HIDDEN"
+            ComponentCallbacks2.TRIM_MEMORY_BACKGROUND -> "BACKGROUND"
+            ComponentCallbacks2.TRIM_MEMORY_MODERATE -> "MODERATE"
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE -> "RUNNING_MODERATE"
+            else -> "UNKNOWN"
+        }
+        val memInfo = "${Runtime.getRuntime().totalMemory()/1024/1024}MB / ${Runtime.getRuntime().maxMemory()/1024/1024}MB"
+        
+        when (level) {
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_CRITICAL -> {
+                // App is running but system is CRITICALLY low on memory - clear memory cache
+                Timber.w("CRITICAL memory: level=$level($levelName), mem=$memInfo, clearing Glide memory cache")
+                Glide.get(this).clearMemory()
+            }
+            ComponentCallbacks2.TRIM_MEMORY_COMPLETE -> {
+                // System is about to kill background processes
+                // Clear ONLY memory cache, preserve disk cache for next launch!
+                // Disk cache should persist for fast thumbnail loading on restart
+                Timber.w("System killing processes: level=$level($levelName), mem=$memInfo, clearing Glide MEMORY cache only (preserving disk)")
+                Glide.get(this).clearMemory()
+                // DO NOT clear disk cache here - it should persist between app launches
+                // Disk cache is cleared: manually in settings, on file delete/move/rename, or by FIFO eviction
+            }
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
+            ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
+            ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
+            ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
+                // Low priority memory pressure - DO NOT clear cache, let it persist
+                // Large cache is intentional for instant thumbnail reloading in Browse
+                if (isInForeground) {
+                    Timber.d("Low priority memory pressure (FOREGROUND): level=$level($levelName), mem=$memInfo, preserving cache")
+                } else {
+                    // In background - log less frequently to reduce logcat spam
+                    if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+                        Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, preserving cache")
+                    }
+                }
+            }
+        }
+    }
+
+    private fun logAppStartupInfo() {
+        val sb = StringBuilder()
+        sb.append("\n==========================================\n")
+        sb.append("   FAST MEDIA SORTER V2 - STARTUP INFO\n")
+        sb.append("==========================================\n")
+        
+        // App Info
+        sb.append(String.format("%-20s: %s\n", "Version Name", BuildConfig.VERSION_NAME))
+        sb.append(String.format("%-20s: %d\n", "Version Code", BuildConfig.VERSION_CODE))
+        sb.append(String.format("%-20s: %s\n", "App ID", BuildConfig.APPLICATION_ID))
+        sb.append(String.format("%-20s: %s\n", "Build Type", BuildConfig.BUILD_TYPE))
+        sb.append(String.format("%-20s: %s\n", "Flavor", BuildConfig.FLAVOR))
+        
+        // Build Details
+        
+        // Device Info
+        sb.append("------------------------------------------\n")
+        sb.append(String.format("%-20s: %s\n", "Manufacturer", android.os.Build.MANUFACTURER))
+        sb.append(String.format("%-20s: %s\n", "Model", android.os.Build.MODEL))
+        sb.append(String.format("%-20s: %d (%s)\n", "SDK Version", android.os.Build.VERSION.SDK_INT, android.os.Build.VERSION.RELEASE))
+        
+        sb.append("==========================================")
+        
+        Timber.i(sb.toString())
+    }
+}

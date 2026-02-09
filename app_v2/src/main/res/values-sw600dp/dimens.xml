@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tablet dimensions for screens >= 600dp width (7" tablets and larger) -->
+    
+    <!-- Base spacing and padding - scaled up 1.5x for tablets -->
+    <dimen name="padding_tiny">6dp</dimen>
+    <dimen name="padding_small">12dp</dimen>
+    <dimen name="padding_normal">18dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+    
+    <dimen name="margin_tiny">6dp</dimen>
+    <dimen name="margin_small">12dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+    
+    <!-- Text sizes - scaled up for better readability on tablets -->
+    <dimen name="text_size_small">14sp</dimen>
+    <dimen name="text_size_large">20sp</dimen>
+    
+    <!-- Touch targets - increased for tablets -->
+    <dimen name="button_height">56dp</dimen>
+    <dimen name="control_button_size">56dp</dimen>
+    
+    <!-- Main Activity -->
+    <dimen name="main_recycler_margin">12dp</dimen>
+    <dimen name="empty_state_padding">48dp</dimen>
+    <dimen name="empty_state_icon_size">96dp</dimen>
+    <dimen name="control_bar_padding">8dp</dimen>
+    <dimen name="control_button_spacing_large">32dp</dimen>
+    <dimen name="control_button_spacing_small">12dp</dimen>
+    <dimen name="control_button_play_width">140dp</dimen>
+    
+    <!-- Player Activity -->
+    <dimen name="player_cmd_button_size">48dp</dimen>
+    <dimen name="player_cmd_overflow_width">96dp</dimen>
+    <dimen name="player_controls_padding">12dp</dimen>
+    <dimen name="player_progress_height">32dp</dimen>
+    <dimen name="player_small_button_size">52dp</dimen>
+    <dimen name="player_medium_button_size">60dp</dimen>
+    <dimen name="player_large_button_size">72dp</dimen>
+    
+    <!-- Dialog dimensions -->
+    <dimen name="dialog_min_width">400dp</dimen>
+    <dimen name="dialog_max_width">720dp</dimen>
+    <dimen name="dialog_padding_large">32dp</dimen>
+    
+    <!-- Item layouts overrides -->
+    <dimen name="item_padding">24dp</dimen>
+    <dimen name="item_padding_vertical">16dp</dimen>
+    <dimen name="item_padding_horizontal">24dp</dimen>
+    <dimen name="item_padding_small">12dp</dimen>
+    <dimen name="item_padding_tiny">6dp</dimen>
+    <dimen name="item_margin_tiny">4dp</dimen>
+    
+    <dimen name="item_icon_size">72dp</dimen>
+    <dimen name="item_icon_size_medium">56dp</dimen>
+    <dimen name="item_icon_size_small">40dp</dimen>
+    <dimen name="item_icon_size_tiny">20dp</dimen>
+    <dimen name="item_network_icon_size">56dp</dimen>
+    <dimen name="item_thumbnail_size">160dp</dimen>
+    <dimen name="item_grid_thumbnail_size">200dp</dimen>
+    <dimen name="item_status_badge_size">32dp</dimen>
+    <dimen name="item_checkbox_size">32dp</dimen>
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    
+    <dimen name="item_title_text_size">18sp</dimen>
+    <dimen name="item_subtitle_text_size">16sp</dimen>
+    <dimen name="item_detail_text_size">14sp</dimen>
+    <dimen name="item_detail_text_size_small">12sp</dimen>
+    <dimen name="item_detail_text_size_tiny">11sp</dimen>
+    <dimen name="text_size_11sp">13sp</dimen>
+    <dimen name="text_size_tiny">13sp</dimen>
+    
+    <dimen name="item_cloud_folder_min_width">80dp</dimen>
+    <dimen name="item_cloud_folder_min_width_large">100dp</dimen>
+    <dimen name="item_grid_min_width">120dp</dimen>
+
+    <!-- Welcome Screen overrides -->
+    <dimen name="welcome_title_text_size">32sp</dimen>
+    <dimen name="welcome_description_text_size">20sp</dimen>
+    <dimen name="welcome_icon_size">180dp</dimen>
+    <dimen name="welcome_page_padding">48dp</dimen>
+
+    <!-- Grid columns for tablets (defined in integers.xml) -->
+</resources>

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <TextView
+        android:id="@+id/tvProgressTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Copying files..."
+        android:textSize="@dimen/text_size_large"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_large" />
+
+    <TextView
+        android:id="@+id/tvCurrentFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="file.jpg"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/operation_progress_indicator"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="0"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvProgressText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 / 10"
+            android:textSize="@dimen/text_size_small" />
+
+        <TextView
+            android:id="@+id/tvSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.5 MB/s"
+            android:textSize="@dimen/text_size_small" />
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnCancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/margin_large"
+        android:text="Cancel"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
+</LinearLayout>

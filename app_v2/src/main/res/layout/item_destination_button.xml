@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.button.MaterialButton
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btnDestination"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/item_icon_size"
+    android:layout_marginVertical="@dimen/margin_tiny"
+    android:textSize="@dimen/item_title_text_size"
+    android:textColor="@android:color/white"
+    app:cornerRadius="@dimen/card_corner_radius"
+    style="@style/Widget.Material3.Button" />

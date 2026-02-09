@@ -1,0 +1,242 @@
+package com.sza.fastmediasorter.data.local.db
+
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
+
+@Database(
+    entities = [
+        ResourceEntity::class,
+        NetworkCredentialsEntity::class,
+        ResourceFtsEntity::class,
+        FavoritesEntity::class,
+        PlaybackPositionEntity::class,
+        ThumbnailCacheEntity::class
+    ],
+    version = 7,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
+abstract class AppDatabase : RoomDatabase() {
+    abstract fun resourceDao(): ResourceDao
+    abstract fun networkCredentialsDao(): NetworkCredentialsDao
+    abstract fun favoritesDao(): FavoritesDao
+    abstract fun playbackPositionDao(): PlaybackPositionDao
+    abstract fun thumbnailCacheDao(): ThumbnailCacheDao
+    
+    companion object {
+        val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add allFiles column to resources table with default false
+                db.execSQL("ALTER TABLE resources ADD COLUMN allFiles INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add showHiddenFiles column to resources table with default false
+                db.execSQL("ALTER TABLE resources ADD COLUMN showHiddenFiles INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add showSubfoldersAsItems column to resources table (nullable, null = use global setting)
+                db.execSQL("ALTER TABLE resources ADD COLUMN showSubfoldersAsItems INTEGER DEFAULT NULL")
+            }
+        }
+        
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add subfolderCount column to resources table with default 0
+                db.execSQL("ALTER TABLE resources ADD COLUMN subfolderCount INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+        
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Convert showSubfoldersAsItems from nullable to non-nullable (null → false)
+                // Global settings are now only defaults for NEW resources, each resource has its own binary setting
+                
+                // Step 1: Update NULL values to 0
+                db.execSQL("UPDATE resources SET showSubfoldersAsItems = 0 WHERE showSubfoldersAsItems IS NULL")
+                
+                // Step 2: Create new table with NOT NULL constraint
+                db.execSQL("""
+                    CREATE TABLE resources_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        name TEXT NOT NULL,
+                        path TEXT NOT NULL,
+                        type TEXT NOT NULL,
+                        credentialsId TEXT,
+                        cloudProvider TEXT,
+                        cloudFolderId TEXT,
+                        supportedMediaTypesFlags INTEGER NOT NULL,
+                        sortMode TEXT NOT NULL,
+                        displayMode TEXT NOT NULL,
+                        lastViewedFile TEXT,
+                        lastScrollPosition INTEGER NOT NULL,
+                        fileCount INTEGER NOT NULL,
+                        lastAccessedDate INTEGER NOT NULL,
+                        slideshowInterval INTEGER NOT NULL,
+                        isDestination INTEGER NOT NULL,
+                        destinationOrder INTEGER NOT NULL,
+                        destinationColor INTEGER NOT NULL,
+                        isWritable INTEGER NOT NULL,
+                        isReadOnly INTEGER NOT NULL,
+                        isAvailable INTEGER NOT NULL,
+                        showCommandPanel INTEGER,
+                        createdDate INTEGER NOT NULL,
+                        lastBrowseDate INTEGER,
+                        lastSyncDate INTEGER,
+                        scanSubdirectories INTEGER NOT NULL,
+                        disableThumbnails INTEGER NOT NULL,
+                        allFiles INTEGER NOT NULL,
+                        showHiddenFiles INTEGER NOT NULL,
+                        displayOrder INTEGER NOT NULL,
+                        accessPin TEXT,
+                        comment TEXT,
+                        read_speed_mbps REAL,
+                        write_speed_mbps REAL,
+                        recommended_threads INTEGER,
+                        last_speed_test_date INTEGER,
+                        showSubfoldersAsItems INTEGER NOT NULL DEFAULT 0,
+                        subfolderCount INTEGER NOT NULL DEFAULT 0
+                    )
+                """)
+                
+                // Step 3: Copy data from old table to new table
+                db.execSQL("""
+                    INSERT INTO resources_new 
+                    SELECT 
+                        id, name, path, type, credentialsId, cloudProvider, cloudFolderId,
+                        supportedMediaTypesFlags, sortMode, displayMode, lastViewedFile,
+                        lastScrollPosition, fileCount, lastAccessedDate, slideshowInterval,
+                        isDestination, destinationOrder, destinationColor, isWritable,
+                        isReadOnly, isAvailable, showCommandPanel, createdDate, lastBrowseDate,
+                        lastSyncDate, scanSubdirectories, disableThumbnails, allFiles,
+                        showHiddenFiles, displayOrder, accessPin, comment, read_speed_mbps,
+                        write_speed_mbps, recommended_threads, last_speed_test_date,
+                        COALESCE(showSubfoldersAsItems, 0) as showSubfoldersAsItems,
+                        subfolderCount
+                    FROM resources
+                """)
+                
+                // Step 4: Drop old table
+                db.execSQL("DROP TABLE resources")
+                
+                // Step 5: Rename new table to original name
+                db.execSQL("ALTER TABLE resources_new RENAME TO resources")
+                
+                // Step 6: Recreate indices
+                db.execSQL("CREATE INDEX idx_resources_display_order_name ON resources (displayOrder, name)")
+                db.execSQL("CREATE INDEX idx_resources_type_display_order_name ON resources (type, displayOrder, name)")
+                db.execSQL("CREATE INDEX idx_resources_is_destination_order ON resources (isDestination, destinationOrder)")
+                db.execSQL("CREATE INDEX idx_resources_media_types ON resources (supportedMediaTypesFlags)")
+            }
+        }
+        
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Fix broken databases from incomplete MIGRATION_5_6
+                // Check if showSubfoldersAsItems is nullable and fix it
+                
+                // Query current schema to check if column is nullable
+                val cursor = db.query("PRAGMA table_info(resources)")
+                var isShowSubfoldersNullable = false
+                
+                while (cursor.moveToNext()) {
+                    val columnName = cursor.getString(cursor.getColumnIndex("name"))
+                    val notNull = cursor.getInt(cursor.getColumnIndex("notnull"))
+                    if (columnName == "showSubfoldersAsItems" && notNull == 0) {
+                        isShowSubfoldersNullable = true
+                        break
+                    }
+                }
+                cursor.close()
+                
+                // If column is nullable, we need to recreate the table
+                if (isShowSubfoldersNullable) {
+                    // Step 1: Update NULL values to 0
+                    db.execSQL("UPDATE resources SET showSubfoldersAsItems = 0 WHERE showSubfoldersAsItems IS NULL")
+                    
+                    // Step 2: Create new table with NOT NULL constraint
+                    db.execSQL("""
+                        CREATE TABLE resources_new (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            name TEXT NOT NULL,
+                            path TEXT NOT NULL,
+                            type TEXT NOT NULL,
+                            credentialsId TEXT,
+                            cloudProvider TEXT,
+                            cloudFolderId TEXT,
+                            supportedMediaTypesFlags INTEGER NOT NULL,
+                            sortMode TEXT NOT NULL,
+                            displayMode TEXT NOT NULL,
+                            lastViewedFile TEXT,
+                            lastScrollPosition INTEGER NOT NULL,
+                            fileCount INTEGER NOT NULL,
+                            lastAccessedDate INTEGER NOT NULL,
+                            slideshowInterval INTEGER NOT NULL,
+                            isDestination INTEGER NOT NULL,
+                            destinationOrder INTEGER NOT NULL,
+                            destinationColor INTEGER NOT NULL,
+                            isWritable INTEGER NOT NULL,
+                            isReadOnly INTEGER NOT NULL,
+                            isAvailable INTEGER NOT NULL,
+                            showCommandPanel INTEGER,
+                            createdDate INTEGER NOT NULL,
+                            lastBrowseDate INTEGER,
+                            lastSyncDate INTEGER,
+                            scanSubdirectories INTEGER NOT NULL,
+                            disableThumbnails INTEGER NOT NULL,
+                            allFiles INTEGER NOT NULL,
+                            showHiddenFiles INTEGER NOT NULL,
+                            displayOrder INTEGER NOT NULL,
+                            accessPin TEXT,
+                            comment TEXT,
+                            read_speed_mbps REAL,
+                            write_speed_mbps REAL,
+                            recommended_threads INTEGER,
+                            last_speed_test_date INTEGER,
+                            showSubfoldersAsItems INTEGER NOT NULL DEFAULT 0,
+                            subfolderCount INTEGER NOT NULL DEFAULT 0
+                        )
+                    """)
+                    
+                    // Step 3: Copy data from old table to new table
+                    db.execSQL("""
+                        INSERT INTO resources_new 
+                        SELECT 
+                            id, name, path, type, credentialsId, cloudProvider, cloudFolderId,
+                            supportedMediaTypesFlags, sortMode, displayMode, lastViewedFile,
+                            lastScrollPosition, fileCount, lastAccessedDate, slideshowInterval,
+                            isDestination, destinationOrder, destinationColor, isWritable,
+                            isReadOnly, isAvailable, showCommandPanel, createdDate, lastBrowseDate,
+                            lastSyncDate, scanSubdirectories, disableThumbnails, allFiles,
+                            showHiddenFiles, displayOrder, accessPin, comment, read_speed_mbps,
+                            write_speed_mbps, recommended_threads, last_speed_test_date,
+                            COALESCE(showSubfoldersAsItems, 0) as showSubfoldersAsItems,
+                            subfolderCount
+                        FROM resources
+                    """)
+                    
+                    // Step 4: Drop old table
+                    db.execSQL("DROP TABLE resources")
+                    
+                    // Step 5: Rename new table to original name
+                    db.execSQL("ALTER TABLE resources_new RENAME TO resources")
+                    
+                    // Step 6: Recreate indices
+                    db.execSQL("CREATE INDEX idx_resources_display_order_name ON resources (displayOrder, name)")
+                    db.execSQL("CREATE INDEX idx_resources_type_display_order_name ON resources (type, displayOrder, name)")
+                    db.execSQL("CREATE INDEX idx_resources_is_destination_order ON resources (isDestination, destinationOrder)")
+                    db.execSQL("CREATE INDEX idx_resources_media_types ON resources (supportedMediaTypesFlags)")
+                }
+                // If column is already NOT NULL, do nothing - database is already correct
+            }
+        }
+    }
+}

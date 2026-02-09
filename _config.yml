@@ -1,0 +1,6 @@
+# GitHub Pages configuration
+theme: jekyll-theme-cayman
+title: FastMediaSorter
+description: Privacy-focused media management for Android
+markdown: kramdown
+# Force rebuild for Google verification tag

@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/padding_large">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Quick Select Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/quick_select_common_folders"
+            android:textStyle="bold"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <!-- Root Folder -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRoot"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_small"
+            android:text="@string/folder_root"
+            android:textSize="@dimen/resource_text_13sp"
+            app:icon="@drawable/ic_resource_local"
+            app:iconSize="@dimen/icon_size_button" />
+
+        <!-- Row 1: Media Folders -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDCIM"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/margin_tiny"
+                android:text="@string/folder_dcim"
+                android:textSize="@dimen/text_size_small"
+                app:icon="@drawable/ic_resource_local"
+                app:iconSize="@dimen/icon_size_menu" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPictures"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_tiny"
+                android:text="@string/folder_pictures"
+                android:textSize="@dimen/text_size_small"
+                app:icon="@drawable/ic_resource_local"
+                app:iconSize="@dimen/icon_size_menu" />
+
+        </LinearLayout>
+
+        <!-- Row 2: Downloads & Documents -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDownload"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/margin_tiny"
+                android:text="@string/folder_download"
+                android:textSize="@dimen/text_size_small"
+                app:icon="@drawable/ic_resource_local"
+                app:iconSize="@dimen/icon_size_menu" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDocuments"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_tiny"
+                android:text="@string/folder_documents"
+                android:textSize="@dimen/text_size_small"
+                app:icon="@drawable/ic_resource_local"
+                app:iconSize="@dimen/icon_size_menu" />
+
+        </LinearLayout>
+
+        <!-- Row 3: Messaging Apps -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnWhatsApp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/margin_tiny"
+                android:text="@string/folder_whatsapp"
+                android:textSize="@dimen/text_size_small"
+                app:icon="@drawable/ic_resource_local"
+                app:iconSize="@dimen/icon_size_menu" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnTelegram"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/margin_tiny"
+                android:text="@string/folder_telegram"
+                android:textSize="@dimen/text_size_small"
+                app:icon="@drawable/ic_resource_local"
+                app:iconSize="@dimen/icon_size_menu" />
+
+        </LinearLayout>
+
+        <!-- Row 4: Instagram -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnInstagram"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/margin_medium"
+            android:text="@string/folder_instagram"
+            android:textSize="@dimen/text_size_small"
+            app:icon="@drawable/ic_resource_local"
+            app:iconSize="@dimen/icon_size_menu" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_divider_height"
+            android:background="?android:attr/listDivider"
+            android:layout_marginVertical="@dimen/margin_small" />
+
+        <!-- Manual Path Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/or_enter_path_manually"
+            android:textStyle="bold"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilManualPath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/folder_path"
+            app:helperText="@string/folder_path_hint"
+            app:helperTextEnabled="true">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etManualPath"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1"
+                android:text="/storage/emulated/0/" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnValidatePath"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/validate_and_select"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_medium"
+            app:icon="@android:drawable/ic_menu_search" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_divider_height"
+            android:background="?android:attr/listDivider"
+            android:layout_marginVertical="@dimen/margin_small" />
+
+        <!-- SAF Picker Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/or_use_system_picker"
+            android:textStyle="bold"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBrowseWithSAF"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/browse_with_system_picker"
+            app:icon="@android:drawable/ic_menu_search" />
+
+    </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material Design Purple colors (kept for compatibility, but replaced in theme) -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    
+    <!-- New primary colors - Blue for better contrast and readability -->
+    <color name="blue_500">#FF1976D2</color> <!-- Material Blue 700 -->
+    <color name="blue_700">#FF0D47A1</color> <!-- Material Blue 900 -->
+    <color name="blue_200">#FF64B5F6</color> <!-- Material Blue 300 -->
+    
+    <!-- Accent colors -->
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    
+    <!-- Basic colors -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    
+    <!-- App specific colors -->
+    <color name="ic_launcher_background">#FF1976D2</color>
+    <color name="delete_button">#FFD32F2F</color>
+    <color name="item_selected">#FFE3F2FD</color>
+    <color name="item_normal">#FFFFFFFF</color>
+    <color name="audio_icon_bg">#FF607D8B</color>
+    <color name="filter_warning_bg">#FFFFF9C4</color> <!-- Light yellow for warnings -->
+    <color name="filter_warning_text">#FF000000</color> <!-- Black text for contrast -->
+    <color name="folder_item_stroke">#00000000</color> <!-- Transparent by default -->
+    <color name="unavailable_resource_bg">#FFFFE0E6</color> <!-- Pale pink for unavailable resources -->
+    <color name="resource_item_bg_even">#FFFFFFFF</color> <!-- White -->
+    <color name="resource_item_bg_odd">#FFF5F5F5</color> <!-- Very light grey -->
+    
+    <!-- Focus and hover colors for keyboard/mouse navigation -->
+    <color name="item_focused">#FFBBDEFB</color> <!-- Blue 100 - visible focus highlight -->
+    <color name="item_hovered">#FFF5F5F5</color> <!-- Grey 100 - subtle hover -->
+    <color name="item_alternate">#FFF5F5F5</color> <!-- Same as hover for now, very light grey -->
+    <color name="item_pressed">#FFE1F5FE</color> <!-- Light Blue 50 -->
+    <color name="focus_indicator">#FF1976D2</color> <!-- Primary blue for focus rings -->
+    <color name="button_hover">#14000000</color> <!-- 8% black overlay for button hover -->
+    <color name="button_focused">#1F000000</color> <!-- 12% black overlay for button focus -->
+    
+    <!-- Thumbnail backgrounds -->
+    <color name="thumbnail_doc_bg">#B0BEC5</color> <!-- Blue Grey 200 -->
+    <color name="thumbnail_video_bg">#F48FB1</color> <!-- Pink 200 -->
+    <color name="thumbnail_audio_bg">#A5D6A7</color> <!-- Green 200 -->
+    <color name="thumbnail_image_bg">#90CAF9</color> <!-- Blue 200 -->
+    
+    <!-- Action button background (semitransparent for both themes) -->
+    <color name="action_button_bg">#20000000</color>
+</resources>
+

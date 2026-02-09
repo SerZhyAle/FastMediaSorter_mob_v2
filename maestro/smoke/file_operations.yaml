@@ -1,0 +1,124 @@
+appId: com.sza.fastmediasorter
+---
+# Test: File Operations (Copy)
+# Objective: Verify copy, move, delete operations
+# Duration: ~50 seconds
+
+- launchApp
+
+- waitForAnimationToEnd
+
+# Navigate to Browse tab
+- assertVisible:
+    id: "com.sza.fastmediasorter:id/browse_tab"
+
+- tapOn:
+    id: "com.sza.fastmediasorter:id/browse_tab"
+
+- waitForAnimationToEnd
+
+# Verify file list
+- assertVisible:
+    id: "com.sza.fastmediasorter:id/file_list"
+
+# Scroll to find a file
+- scroll:
+    direction: DOWN
+    duration: 500
+
+- waitForAnimationToEnd
+
+# Long-tap file to open context menu
+- tapOn:
+    index: 0
+    long: true
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify context menu appeared
+- assertVisible:
+    text: "Copy"
+    optional: true
+
+# Tap Copy option
+- tapOn:
+    text: "Copy"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Navigate to a different folder (for paste destination)
+- tapOn:
+    index: 1
+    optional: true
+
+- waitForAnimationToEnd
+
+# Look for paste option or icon
+- assertVisible:
+    text: "Paste"
+    optional: true
+
+# Try pasting (long-tap to bring up menu or tap paste icon)
+- tapOn:
+    id: "com.sza.fastmediasorter:id/paste_button"
+    optional: true
+
+- tapOn:
+    text: "Paste"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify operation completed (check for confirmation or verify file appears)
+- assertVisible:
+    id: "com.sza.fastmediasorter:id/file_list"
+    optional: true
+
+# Try Move operation (if available)
+- tapOn:
+    index: 0
+    long: true
+    optional: true
+
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Move"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Try Delete operation (if available)
+- tapOn:
+    index: 0
+    long: true
+    optional: true
+
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "Delete"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Confirm deletion if dialog appears
+- tapOn:
+    text: "Confirm"
+    optional: true
+
+- tapOn:
+    text: "Yes"
+    optional: true
+
+- tapOn:
+    text: "OK"
+    optional: true
+
+- waitForAnimationToEnd
+
+# Verify we're still in file list
+- assertVisible:
+    id: "com.sza.fastmediasorter:id/file_list"

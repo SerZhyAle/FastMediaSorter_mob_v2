@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Very small screens - 320dp wide -->
+    
+    <!-- Base spacing - reduced for constrained space -->
+    <dimen name="padding_tiny">2dp</dimen>
+    <dimen name="padding_small">4dp</dimen>
+    <dimen name="padding_normal">8dp</dimen>
+    <dimen name="padding_large">12dp</dimen>
+    
+    <dimen name="margin_tiny">2dp</dimen>
+    <dimen name="margin_small">4dp</dimen>
+    <dimen name="margin_large">12dp</dimen>
+    
+    <!-- Touch targets - minimum 40dp for accessibility -->
+    <dimen name="button_height">40dp</dimen>
+    <dimen name="control_button_size">40dp</dimen>
+    
+    <!-- Text sizes - slightly reduced but still readable -->
+    <dimen name="text_size_small">10sp</dimen>
+    <dimen name="item_title_text_size">14sp</dimen>
+    <dimen name="item_subtitle_text_size">12sp</dimen>
+    <dimen name="item_detail_text_size">10sp</dimen>
+    
+    <!-- Main Activity - compact controls -->
+    <dimen name="main_recycler_margin">4dp</dimen>
+    <dimen name="empty_state_padding">16dp</dimen>
+    <dimen name="empty_state_icon_size">48dp</dimen>
+    <dimen name="control_bar_padding">2dp</dimen>
+    <dimen name="control_button_spacing_small">4dp</dimen>
+    <dimen name="control_button_spacing_large">12dp</dimen>
+    <dimen name="control_button_play_width">64dp</dimen>
+    
+    <!-- Player controls - compact -->
+    <dimen name="player_small_button_size">32dp</dimen>
+    <dimen name="player_medium_button_size">40dp</dimen>
+    <dimen name="player_large_button_size">44dp</dimen>
+    <dimen name="player_controls_padding">4dp</dimen>
+    
+    <!-- Items - reduced padding/thumbnails -->
+    <dimen name="item_padding">12dp</dimen>
+    <dimen name="item_padding_vertical">8dp</dimen>
+    <dimen name="item_icon_size">40dp</dimen>
+    <dimen name="item_thumbnail_size">80dp</dimen>
+    <dimen name="item_grid_thumbnail_size">100dp</dimen>
+    
+    <!-- Dialogs - reduced but usable -->
+    <dimen name="dialog_min_width">260dp</dimen>
+    <dimen name="dialog_padding_large">16dp</dimen>
+    
+    <!-- Indicators and small elements -->
+    <dimen name="indicator_size">4dp</dimen>
+    <dimen name="indicator_margin">2dp</dimen>
+    
+    <!-- Destination buttons in Copy/Move dialogs -->
+    <dimen name="destination_button_min_height">40dp</dimen>
+    
+    <!-- Destination border width in resource list -->
+    <dimen name="destination_border_width">1dp</dimen>
+    
+    <!-- Welcome screen specific -->
+    <dimen name="welcome_button_text_size">10sp</dimen>
+    <dimen name="welcome_button_padding">2dp</dimen>
+    <dimen name="welcome_top_nav_padding">2dp</dimen>
+    <dimen name="welcome_indicator_margin_bottom">8dp</dimen>
+    
+    <!-- Welcome page content -->
+    <dimen name="welcome_page_padding">12dp</dimen>
+    <dimen name="welcome_icon_size">64dp</dimen>
+    <dimen name="welcome_icon_margin_top">12dp</dimen>
+    <dimen name="welcome_title_margin_top">8dp</dimen>
+    <dimen name="welcome_title_text_size">16sp</dimen>
+    <dimen name="welcome_description_margin_top">8dp</dimen>
+    <dimen name="welcome_description_text_size">11sp</dimen>
+</resources>

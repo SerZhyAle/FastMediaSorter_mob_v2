@@ -1,0 +1,90 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Rapid Navigation Stress
+# Description: Fast switching between screens/tabs to detect race conditions
+# Duration: ~2-3 minutes
+# Purpose: Memory leaks, fragment lifecycle bugs, race conditions
+
+# Launch
+- launchApp
+- waitForAnimationToEnd
+
+# Dismiss permissions
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "Allow"
+    optional: true
+- waitForAnimationToEnd
+
+# Phase 1: Rapid tab switching (20 cycles)
+- repeat:
+    times: 20
+    commands:
+      - tapOn:
+          text: "Local"
+          optional: true
+      - tapOn:
+          text: "Network"
+          optional: true
+      - tapOn:
+          text: "Cloud"
+          optional: true
+
+# Phase 2: Settings open/close cycles (15 cycles)
+- repeat:
+    times: 15
+    commands:
+      - tapOn:
+          id: ".*btnSettings.*"
+          optional: true
+      - waitForAnimationToEnd
+      - back
+      - waitForAnimationToEnd
+
+# Phase 3: Navigate into folders and back rapidly (10 cycles)
+- repeat:
+    times: 10
+    commands:
+      - tapOn:
+          text: "Local"
+          optional: true
+      - scroll
+      - tapOn:
+          text: ".*"
+          index: 0
+          optional: true
+      - waitForAnimationToEnd
+      - back
+      - waitForAnimationToEnd
+
+# Phase 4: Rapid launch/background (10 cycles)
+- repeat:
+    times: 10
+    commands:
+      - pressKey: Home
+      - launchApp
+      - waitForAnimationToEnd
+
+# Phase 5: Orientation changes if supported
+- repeat:
+    times: 5
+    commands:
+      - tapOn:
+          text: "Local"
+          optional: true
+      - scroll
+      - back
+      - tapOn:
+          id: ".*btnRefresh.*"
+          optional: true
+      - waitForAnimationToEnd
+
+# Verify app survived
+- launchApp
+- waitForAnimationToEnd
+# Tap center to confirm app responds
+- tapOn:
+    point: "50%,50%"
+- waitForAnimationToEnd

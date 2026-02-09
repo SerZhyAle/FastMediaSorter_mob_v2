@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Selector for list/grid items with focus, hover, selected, and pressed states -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Pressed state (highest priority) -->
+    <item android:state_pressed="true" android:drawable="@color/item_pressed" />
+    
+    <!-- Focused + Selected state -->
+    <item android:state_focused="true" android:state_activated="true">
+        <layer-list>
+            <item android:drawable="@color/item_selected" />
+            <item>
+                <shape android:shape="rectangle">
+                    <stroke android:width="2dp" android:color="@color/focus_indicator" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+    <!-- Focused state (keyboard navigation) -->
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:drawable="@color/item_focused" />
+            <item>
+                <shape android:shape="rectangle">
+                    <stroke android:width="2dp" android:color="@color/focus_indicator" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    
+    <!-- Hovered state (mouse) -->
+    <item android:state_hovered="true" android:drawable="@color/item_hovered" />
+    
+    <!-- Selected/activated state -->
+    <item android:state_activated="true" android:drawable="@color/item_selected" />
+    
+    <!-- Default state -->
+    <item android:drawable="@color/item_normal" />
+</selector>

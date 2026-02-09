@@ -1,0 +1,401 @@
+package com.sza.fastmediasorter.ui.player
+
+import android.app.AlertDialog
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.AdjustImageUseCase
+import com.sza.fastmediasorter.domain.usecase.ApplyImageFilterUseCase
+import com.sza.fastmediasorter.domain.usecase.ChangeGifSpeedUseCase
+import com.sza.fastmediasorter.domain.usecase.ExtractGifFramesUseCase
+import com.sza.fastmediasorter.domain.usecase.FlipImageUseCase
+import com.sza.fastmediasorter.domain.usecase.NetworkImageEditUseCase
+import com.sza.fastmediasorter.domain.usecase.RotateImageUseCase
+import com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
+import com.sza.fastmediasorter.domain.model.FileOperationType
+import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
+import com.sza.fastmediasorter.ui.dialog.RenameDialog
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import timber.log.Timber
+import java.io.File
+
+/**
+ * Helper class for managing dialog displays in PlayerActivity.
+ * Handles copy/move/rename dialogs, file info, image editing, and settings.
+ * 
+ * Responsibilities:
+ * - Copy/Move/Rename dialogs with destination selection
+ * - File info display dialog
+ * - Image editing dialog
+ * - Player settings dialog
+ * - Error dialogs (cloud auth, network issues)
+ */
+class PlayerDialogHelper(
+    private val activity: AppCompatActivity,
+    private val viewModel: PlayerViewModel,
+    private val settingsRepository: SettingsRepository,
+    private val smbClient: SmbClient,
+    private val sftpClient: SftpClient,
+    private val ftpClient: FtpClient,
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val unifiedCache: UnifiedFileCache,
+    private val rotateImageUseCase: RotateImageUseCase,
+    private val flipImageUseCase: FlipImageUseCase,
+    private val networkImageEditUseCase: NetworkImageEditUseCase,
+    private val applyImageFilterUseCase: ApplyImageFilterUseCase,
+    private val adjustImageUseCase: AdjustImageUseCase,
+    private val extractGifFramesUseCase: ExtractGifFramesUseCase,
+    private val saveGifFirstFrameUseCase: SaveGifFirstFrameUseCase,
+    private val changeGifSpeedUseCase: ChangeGifSpeedUseCase,
+    private val downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase,
+    private val dialogCallback: DialogCallback
+) {
+    
+    private var onAuthRequestCallback: ((String) -> Unit)? = null
+
+    fun setAuthCallback(callback: (String) -> Unit) {
+        onAuthRequestCallback = callback
+    }
+    
+    /**
+     * Callback interface for dialog actions
+     */
+    interface DialogCallback {
+        fun onImageEditComplete()
+        fun onGifEditComplete()
+        fun onRenameComplete()
+    }
+    
+    /**
+     * Show copy dialog with destination selection
+     */
+    fun showCopyDialog(currentFile: MediaFile, resourceId: Long) {
+        // For network paths (SMB/S/FTP), create File with URI-compatible scheme
+        val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                             currentFile.path.startsWith("sftp://") || 
+                             currentFile.path.startsWith("ftp://") ||
+                             currentFile.path.startsWith("cloud://")) {
+            // Use custom File with network path that preserves the scheme
+            object : File(currentFile.path) {
+                override fun getAbsolutePath(): String = currentFile.path
+                override fun getPath(): String = currentFile.path
+                override fun getName(): String = currentFile.name
+                override fun length(): Long = currentFile.size
+            }
+        } else {
+            File(currentFile.path)
+        }
+        
+        activity.lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            val resource = viewModel.state.value.resource
+            
+            // Extract current browse path from file (parent directory)
+            val currentBrowsePath = currentFile.path.let { path ->
+                val lastSlashIndex = path.lastIndexOf('/')
+                if (lastSlashIndex > 0) {
+                    path.substring(0, lastSlashIndex + 1)
+                } else {
+                    null
+                }
+            }
+            
+            FileOperationDestinationDialog(
+                context = activity,
+                operationType = FileOperationType.COPY,
+                sourceFiles = listOf(sourceFile),
+                sourceFolderName = resource?.name ?: "Current folder",
+                currentResourceId = resourceId,
+                currentBrowsePath = currentBrowsePath,
+                sourceCredentialsId = resource?.credentialsId,
+                fileOperationUseCase = viewModel.fileOperationUseCase,
+                getDestinationsUseCase = viewModel.getDestinationsUseCase,
+                overwriteFiles = settings.overwriteOnCopy,
+                onComplete = { undoOperation ->
+                    // Save undo operation if enabled
+                    if (settings.enableUndo && undoOperation != null) {
+                        viewModel.saveUndoOperation(undoOperation)
+                    }
+                    // Go to next file if setting enabled
+                    if (settings.goToNextAfterCopy) {
+                        viewModel.nextFile()
+                    }
+                },
+                onAuthRequest = { provider ->
+                    // Delegate to activity via helper method or callback
+                    // Since we don't have direct access to activity methods, we can cast or use a callback
+                    // But wait, showCloudAuthError is in this class.
+                    // We can call showCloudAuthError(provider) but that just shows the dialog.
+                    // We need to trigger the actual auth.
+                    // I should add onAuthRequest to PlayerDialogHelper constructor/setter.
+                    // I already added it to showCloudAuthError, but not to the class itself.
+                    
+                    // I'll add a property to PlayerDialogHelper to hold the auth callback.
+                    onAuthRequestCallback?.invoke(provider)
+                }
+            ).show()
+        }
+    }
+    
+    /**
+     * Show move dialog with destination selection
+     */
+    fun showMoveDialog(currentFile: MediaFile, resourceId: Long) {
+        activity.lifecycleScope.launch {
+            val settings = settingsRepository.getSettings().first()
+            
+            // Check Safe Mode for move confirmation
+            val shouldConfirmMove = settings.enableSafeMode && settings.confirmMove
+            
+            if (shouldConfirmMove) {
+                // Show confirmation dialog first
+                val resource = viewModel.state.value.resource
+                AlertDialog.Builder(activity)
+                    .setTitle(R.string.confirm_move_title)
+                    .setMessage(activity.getString(R.string.confirm_move_message, 1, resource?.name ?: "destination"))
+                    .setPositiveButton(R.string.move) { _, _ ->
+                        // Proceed with move dialog
+                        showMoveDialogInternal(currentFile, resourceId, settings)
+                    }
+                    .setNegativeButton(R.string.cancel, null)
+                    .show()
+            } else {
+                // Skip confirmation - show move dialog directly
+                showMoveDialogInternal(currentFile, resourceId, settings)
+            }
+        }
+    }
+    
+    private fun showMoveDialogInternal(currentFile: MediaFile, resourceId: Long, settings: AppSettings) {
+        // For network paths (SMB/S/FTP), create File with URI-compatible scheme
+        val sourceFile = if (currentFile.path.startsWith("smb://") || 
+                             currentFile.path.startsWith("sftp://") || 
+                             currentFile.path.startsWith("ftp://") ||
+                             currentFile.path.startsWith("cloud://")) {
+            object : File(currentFile.path) {
+                override fun getAbsolutePath(): String = currentFile.path
+                override fun getPath(): String = currentFile.path
+                override fun getName(): String = currentFile.name
+                override fun length(): Long = currentFile.size
+            }
+        } else {
+            File(currentFile.path)
+        }
+        
+        val resource = viewModel.state.value.resource
+        
+        // Extract current browse path from file (parent directory)
+        val currentBrowsePath = currentFile.path.let { path ->
+            val lastSlashIndex = path.lastIndexOf('/')
+            if (lastSlashIndex > 0) {
+                path.substring(0, lastSlashIndex + 1)
+            } else {
+                null
+            }
+        }
+        
+        FileOperationDestinationDialog(
+            context = activity,
+            operationType = FileOperationType.MOVE,
+            sourceFiles = listOf(sourceFile),
+            sourceFolderName = resource?.name ?: "Current folder",
+            currentResourceId = resourceId,
+            currentBrowsePath = currentBrowsePath,
+            sourceCredentialsId = resource?.credentialsId,
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            getDestinationsUseCase = viewModel.getDestinationsUseCase,
+            overwriteFiles = settings.overwriteOnMove,
+            onComplete = { undoOperation ->
+                // Save undo operation if enabled
+                if (settings.enableUndo && undoOperation != null) {
+                    viewModel.saveUndoOperation(undoOperation)
+                }
+                // Remove moved file from list and go to next
+                viewModel.onFileMoved(currentFile.path)
+            },
+            onAuthRequest = { provider ->
+                onAuthRequestCallback?.invoke(provider)
+            }
+        ).show()
+    }
+    
+    /**
+     * Show rename dialog
+     */
+    fun showRenameDialog(currentFile: MediaFile) {
+        val resource = viewModel.state.value.resource
+        
+        // Create File object - for network/cloud paths, preserve the scheme
+        val file = if (currentFile.path.startsWith("smb://") || 
+                       currentFile.path.startsWith("sftp://") || 
+                       currentFile.path.startsWith("ftp://") ||
+                       currentFile.path.startsWith("cloud://")) {
+            object : File(currentFile.path) {
+                override fun getAbsolutePath(): String = currentFile.path
+                override fun getPath(): String = currentFile.path
+                override fun getName(): String = currentFile.name
+                override fun length(): Long = currentFile.size
+            }
+        } else {
+            File(currentFile.path)
+        }
+        
+        RenameDialog(
+            context = activity,
+            lifecycleOwner = activity,
+            files = listOf(file),
+            sourceFolderName = resource?.name ?: "Current folder",
+            fileOperationUseCase = viewModel.fileOperationUseCase,
+            onComplete = { _, _ ->
+                // Reload file in player after rename
+                dialogCallback.onRenameComplete()
+            }
+        ).show()
+    }
+    
+    /**
+     * Show file information dialog
+     */
+    fun showFileInfo(file: MediaFile) {
+        val dialog = com.sza.fastmediasorter.ui.dialog.FileInfoDialog(
+            activity, 
+            file,
+            smbClient,
+            sftpClient,
+            ftpClient,
+            credentialsRepository,
+            unifiedCache,
+            downloadNetworkFileUseCase
+        )
+        dialog.show()
+    }
+    
+    /**
+     * Show image editing dialog (rotate, flip, filters)
+     */
+    fun showImageEditDialog(currentFile: MediaFile) {
+        if (currentFile.type != MediaType.IMAGE) {
+            Toast.makeText(activity, R.string.toast_edit_images_only, Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val dialog = com.sza.fastmediasorter.ui.dialog.ImageEditDialog(
+            context = activity,
+            imagePath = currentFile.path,
+            rotateImageUseCase = rotateImageUseCase,
+            flipImageUseCase = flipImageUseCase,
+            networkImageEditUseCase = networkImageEditUseCase,
+            applyImageFilterUseCase = applyImageFilterUseCase,
+            adjustImageUseCase = adjustImageUseCase,
+            onEditComplete = {
+                dialogCallback.onImageEditComplete()
+            }
+        )
+        dialog.show()
+    }
+    
+    /**
+     * Show GIF editing dialog (extract frames, change speed, save first frame)
+     */
+    fun showGifEditDialog(currentFile: MediaFile) {
+        if (currentFile.type != MediaType.GIF) {
+            Toast.makeText(activity, R.string.gif_editing_only_for_gif_files, Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        val dialog = com.sza.fastmediasorter.ui.dialog.GifEditorDialog(
+            context = activity,
+            gifPath = currentFile.path,
+            extractFramesUseCase = extractGifFramesUseCase,
+            saveFirstFrameUseCase = saveGifFirstFrameUseCase,
+            changeSpeedUseCase = changeGifSpeedUseCase,
+            downloadNetworkFileUseCase = downloadNetworkFileUseCase,
+            onEditComplete = {
+                dialogCallback.onGifEditComplete()
+            }
+        )
+        dialog.show()
+    }
+    
+    /**
+     * Show player settings dialog for video/audio files
+     */
+    fun showPlayerSettingsDialog(
+        currentSettings: com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog.PlayerSettings,
+        onSettingsApplied: (com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog.PlayerSettings) -> Unit
+    ) {
+        val dialog = com.sza.fastmediasorter.ui.dialog.PlayerSettingsDialog(
+            context = activity,
+            currentSettings = currentSettings,
+            onSettingsApplied = onSettingsApplied
+        )
+        dialog.show()
+    }
+    
+    /**
+     * Show cloud authentication error dialog
+     * @param providerName Optional provider name (e.g., "Dropbox", "Google Drive")
+     * @param onAuthRequest Optional callback to trigger authentication
+     */
+    fun showCloudAuthError(providerName: String? = null, onAuthRequest: (() -> Unit)? = null) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            Timber.w("showCloudAuthenticationError: Activity is finishing/destroyed, skipping dialog")
+            return
+        }
+        
+        val message = if (providerName != null) {
+            activity.getString(R.string.cloud_auth_required, providerName)
+        } else {
+            activity.getString(R.string.cloud_auth_copy_error)
+        }
+        
+        val builder = AlertDialog.Builder(activity)
+            .setTitle(activity.getString(R.string.authentication_required))
+            .setMessage(message)
+            .setNegativeButton(android.R.string.cancel, null)
+
+        if (onAuthRequest != null) {
+             builder.setPositiveButton(activity.getString(R.string.sign_in)) { _, _ ->
+                 onAuthRequest.invoke()
+             }
+             builder.setNeutralButton(activity.getString(R.string.go_to_resources)) { _, _ ->
+                 activity.finish()
+             }
+        } else {
+             builder.setPositiveButton(activity.getString(R.string.go_to_resources)) { _, _ ->
+                 activity.finish()
+             }
+        }
+        builder.show()
+    }
+    /**
+     * Show PDF editing dialog (Placeholder for future functionality)
+     */
+    fun showPdfEditDialog(currentFile: MediaFile) {
+        if (currentFile.type != MediaType.PDF) {
+            Toast.makeText(activity, "PDF editing only for PDF files", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // TODO: Implement actual PDF editing dialog
+        AlertDialog.Builder(activity)
+            .setTitle("PDF Edit")
+            .setMessage("PDF editing functionality will be implemented here.")
+            .setPositiveButton("OK", null)
+            .show()
+    }
+}

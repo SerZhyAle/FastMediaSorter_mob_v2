@@ -1,0 +1,357 @@
+package com.sza.fastmediasorter.ui.settings.fragments
+
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.Toast
+import androidx.core.view.isVisible
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
+import com.sza.fastmediasorter.databinding.ItemDestinationBinding
+import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
+import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import kotlinx.coroutines.launch
+
+class DestinationsSettingsFragment : Fragment() {
+    private var _binding: FragmentSettingsDestinationsBinding? = null
+    private val binding get() = _binding!!
+    private val viewModel: SettingsViewModel by activityViewModels()
+    private lateinit var adapter: DestinationsAdapter
+    private var isUpdatingFromSettings = false
+    
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _binding = FragmentSettingsDestinationsBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+    
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setupViews()
+        observeData()
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+    
+    private fun setupViews() {
+        // Copying switches
+        binding.switchEnableCopying.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableCopying = isChecked))
+            updateCopyOptionsVisibility(isChecked)
+        }
+        
+        binding.switchGoToNextAfterCopy.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(goToNextAfterCopy = isChecked))
+        }
+        
+        binding.switchOverwriteOnCopy.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(overwriteOnCopy = isChecked))
+        }
+        
+        // Moving switches
+        binding.switchEnableMoving.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableMoving = isChecked))
+            updateMoveOptionsVisibility(isChecked)
+        }
+        
+        binding.switchOverwriteOnMove.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(overwriteOnMove = isChecked))
+        }
+        
+        binding.iconHelpDestinations.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_destinations_title,
+                R.string.tooltip_destinations_message
+            )
+        }
+
+        binding.iconHelpGoToNextAfterCopy.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_go_to_next_after_copy_title,
+                R.string.tooltip_go_to_next_after_copy_message
+            )
+        }
+        
+        // RecyclerView setup
+        adapter = DestinationsAdapter(
+            onMoveUp = { position -> moveDestination(position, -1) },
+            onMoveDown = { position -> moveDestination(position, 1) },
+            onDelete = { position -> deleteDestination(position) },
+            onColorClick = { resource -> showColorPicker(resource) }
+        )
+        
+        // Use GridLayoutManager with 2 columns in landscape, 1 in portrait
+        setupDestinationsLayoutManager()
+        binding.rvDestinations.adapter = adapter
+        
+        // Add button
+        binding.btnAddDestination.setOnClickListener {
+            showAddDestinationDialog()
+        }
+        
+        // Max Recipients
+        val maxRecipientsOptions = arrayOf("5", "10", "15", "20", "25", "30")
+        val maxRecipientsAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, maxRecipientsOptions)
+        binding.etMaxRecipients.setAdapter(maxRecipientsAdapter)
+        binding.etMaxRecipients.setOnItemClickListener { _, _, position, _ ->
+            val limit = maxRecipientsOptions[position].toInt()
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(maxRecipients = limit))
+        }
+
+        binding.etMaxRecipients.setOnFocusChangeListener { _, hasFocus ->
+            if (!hasFocus && !isUpdatingFromSettings) {
+                val text = binding.etMaxRecipients.text.toString()
+                val limit = text.toIntOrNull()
+                if (limit != null && limit in 1..30) {
+                    val current = viewModel.settings.value
+                    if (current.maxRecipients != limit) {
+                        viewModel.updateSettings(current.copy(maxRecipients = limit))
+                        binding.tilMaxRecipients.error = null
+                    }
+                } else {
+                    // Invalid input
+                    binding.tilMaxRecipients.error = getString(R.string.max_recipients_error)
+                    // Restore previous valid value
+                    binding.etMaxRecipients.setText(viewModel.settings.value.maxRecipients.toString())
+                }
+            }
+        }
+        
+        binding.etMaxRecipients.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
+                binding.etMaxRecipients.clearFocus()
+                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                imm.hideSoftInputFromWindow(binding.etMaxRecipients.windowToken, 0)
+                true
+            } else {
+                false
+            }
+        }
+    }
+    
+    private fun showAddDestinationDialog() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val availableResources = viewModel.getWritableNonDestinationResources()
+            
+            if (availableResources.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.no_writable_resources_destinations,
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@launch
+            }
+            
+            val items = availableResources.map { "${it.name} (${it.path})" }.toTypedArray()
+            
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.select_destination_title)
+                .setItems(items) { _, which ->
+                    val selectedResource = availableResources[which]
+                    viewModel.addDestination(selectedResource)
+                    Toast.makeText(
+                        requireContext(),
+                        getString(R.string.destination_added, selectedResource.name),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+    }
+    
+    private fun showColorPicker(resource: MediaResource) {
+        ColorPickerDialog.newInstance(
+            initialColor = resource.destinationColor,
+            onColorSelected = { color ->
+                viewModel.updateDestinationColor(resource, color)
+            }
+        ).show(parentFragmentManager, "ColorPickerDialog")
+    }
+    
+    private fun observeData() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                launch {
+                    viewModel.settings.collect { settings ->
+                        isUpdatingFromSettings = true
+                        // Update switches
+                        binding.switchEnableCopying.isChecked = settings.enableCopying
+                        binding.switchGoToNextAfterCopy.isChecked = settings.goToNextAfterCopy
+                        binding.switchOverwriteOnCopy.isChecked = settings.overwriteOnCopy
+                        binding.switchEnableMoving.isChecked = settings.enableMoving
+                        binding.switchOverwriteOnMove.isChecked = settings.overwriteOnMove
+                        
+                        // Update Max Recipients
+                        if (binding.etMaxRecipients.text.toString() != settings.maxRecipients.toString()) {
+                            binding.etMaxRecipients.setText(settings.maxRecipients.toString())
+                        }
+                        
+                        updateCopyOptionsVisibility(settings.enableCopying)
+                        updateMoveOptionsVisibility(settings.enableMoving)
+                        isUpdatingFromSettings = false
+                    }
+                }
+                
+                launch {
+                    viewModel.destinations.collect { destinations ->
+                        adapter.submitList(destinations)
+                        // Update visibility based on current destinations list
+                        updateAddDestinationVisibility(destinations.isNotEmpty())
+                    }
+                }
+                
+                // Initial check for resources availability
+                launch {
+                    updateAddDestinationVisibility(viewModel.destinations.value.isNotEmpty())
+                }
+            }
+        }
+    }
+    
+    private fun updateCopyOptionsVisibility(enabled: Boolean) {
+        binding.layoutCopyOptions.isVisible = enabled
+        binding.layoutOverwriteCopyWrapper.isVisible = enabled
+    }
+    
+    private fun updateMoveOptionsVisibility(enabled: Boolean) {
+        binding.layoutOverwriteMoveWrapper.isVisible = enabled
+    }
+    
+    private fun setupDestinationsLayoutManager() {
+        val spanCount = resources.getInteger(R.integer.destinations_column_count)
+        binding.rvDestinations.layoutManager = androidx.recyclerview.widget.GridLayoutManager(requireContext(), spanCount)
+    }
+    
+    override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
+        super.onConfigurationChanged(newConfig)
+        setupDestinationsLayoutManager()
+    }
+    
+    private suspend fun updateAddDestinationVisibility(hasDestinations: Boolean) {
+        val availableResources = viewModel.getWritableNonDestinationResources()
+        val hasResources = availableResources.isNotEmpty()
+        
+        binding.btnAddDestination.isVisible = hasResources
+        // Show message only if no destinations AND no available resources
+        binding.tvNoResourcesMessage.isVisible = !hasResources && !hasDestinations
+    }
+    
+    private fun moveDestination(position: Int, direction: Int) {
+        val destinations = viewModel.destinations.value
+        if (position < 0 || position >= destinations.size) return
+        
+        val resource = destinations[position]
+        viewModel.moveDestination(resource, direction)
+    }
+    
+    private fun deleteDestination(position: Int) {
+        val destinations = viewModel.destinations.value
+        if (position < 0 || position >= destinations.size) return
+        
+        val resource = destinations[position]
+        
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.remove_destination_title)
+            .setMessage(getString(R.string.remove_destination_message, resource.name))
+            .setPositiveButton(R.string.remove_action) { _, _ ->
+                viewModel.removeDestination(resource)
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.destination_removed, resource.name),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+    
+    inner class DestinationsAdapter(
+        private val onMoveUp: (Int) -> Unit,
+        private val onMoveDown: (Int) -> Unit,
+        private val onDelete: (Int) -> Unit,
+        private val onColorClick: (MediaResource) -> Unit
+    ) : ListAdapter<MediaResource, DestinationsAdapter.ViewHolder>(DestinationDiffCallback) {
+        
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+            val binding = ItemDestinationBinding.inflate(
+                LayoutInflater.from(parent.context), parent, false
+            )
+            return ViewHolder(binding)
+        }
+        
+        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+            holder.bind(getItem(position), position)
+        }
+        
+        inner class ViewHolder(private val binding: ItemDestinationBinding) : 
+            RecyclerView.ViewHolder(binding.root) {
+            
+            fun bind(resource: MediaResource, position: Int) {
+                val order = resource.destinationOrder ?: -1
+                // Display order for user: order+1 (0-based to 1-based)
+                binding.tvDestinationNumber.text = if (order >= 0) (order + 1).toString() else ""
+                binding.tvDestinationName.text = resource.name
+                binding.tvDestinationPath.text = resource.path
+                
+                // Set color indicator from database
+                binding.viewColorIndicator.setBackgroundColor(resource.destinationColor)
+                binding.viewColorIndicator.setOnClickListener {
+                    onColorClick(resource)
+                }
+                
+                // Long click on item to change color
+                binding.root.setOnLongClickListener {
+                    onColorClick(resource)
+                    true
+                }
+                
+                // Move up button
+                binding.btnMoveUp.isEnabled = position > 0
+                binding.btnMoveUp.setOnClickListener { onMoveUp(position) }
+                
+                // Move down button
+                binding.btnMoveDown.isEnabled = position < itemCount - 1
+                binding.btnMoveDown.setOnClickListener { onMoveDown(position) }
+                
+                // Delete button
+                binding.btnDelete.setOnClickListener { onDelete(position) }
+            }
+        }
+    }
+    
+    private object DestinationDiffCallback : DiffUtil.ItemCallback<MediaResource>() {
+        override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
+            return oldItem == newItem
+        }
+    }
+}

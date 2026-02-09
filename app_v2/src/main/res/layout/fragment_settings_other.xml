@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/settings_padding">
+
+        <!-- Translation Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnableTranslation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/enable_translation"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <ImageButton
+                android:id="@+id/iconHelpTranslation"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/tooltip_translation_title"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary" />
+        </LinearLayout>
+
+        <!-- Translation Languages Container (portrait: vertical, landscape: horizontal) -->
+        <LinearLayout
+            android:id="@+id/layoutTranslationLanguages"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <!-- Source Language -->
+            <LinearLayout
+                android:id="@+id/layoutTranslationSource"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/button_height"
+                android:layout_marginBottom="@dimen/margin_small">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/translation_source_language"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/spinnerTranslationSourceLanguage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/settings_spinner_min_width" />
+            </LinearLayout>
+
+            <!-- Swap Button -->
+            <ImageButton
+                android:id="@+id/btnSwapLanguages"
+                android:layout_width="@dimen/settings_width_icon"
+                android:layout_height="@dimen/settings_height_icon"
+                android:layout_gravity="center_horizontal"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_swap_horizontal"
+                android:contentDescription="@string/swap_languages"
+                android:layout_marginBottom="@dimen/margin_small" />
+
+            <!-- Target Language -->
+            <LinearLayout
+                android:id="@+id/layoutTranslationTarget"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/button_height">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/translation_target_language"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
+                <androidx.appcompat.widget.AppCompatSpinner
+                    android:id="@+id/spinnerTranslationTargetLanguage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="@dimen/settings_spinner_min_width" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Translation Lens Style -->
+        <LinearLayout
+            android:id="@+id/layoutTranslationLensStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchTranslationLensStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/translation_lens_style"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <ImageButton
+                android:id="@+id/iconHelpTranslationBlocks"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/tooltip_translation_blocks_title"
+                android:src="@android:drawable/ic_menu_help"
+                android:tint="?android:attr/textColorSecondary" />
+        </LinearLayout>
+
+        <!-- Google Lens -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:layout_marginBottom="16dp">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnableGoogleLens"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="false" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/enable_google_lens"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+        </LinearLayout>
+
+        <!-- OCR (Text Recognition) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchEnableOcr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:checked="false" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/enable_ocr"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvOcrSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/enable_ocr_summary"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <!-- OCR Font Size -->
+        <LinearLayout
+            android:id="@+id/layoutOcrFontSize"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:visibility="gone"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/ocr_font_size"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinnerOcrFontSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/settings_spinner_min_width" />
+        </LinearLayout>
+
+        <!-- OCR Font Family -->
+        <LinearLayout
+            android:id="@+id/layoutOcrFontFamily"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:visibility="gone"
+            android:layout_marginStart="48dp"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/ocr_font_family"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <androidx.appcompat.widget.AppCompatSpinner
+                android:id="@+id/spinnerOcrFontFamily"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minWidth="@dimen/settings_spinner_min_width" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

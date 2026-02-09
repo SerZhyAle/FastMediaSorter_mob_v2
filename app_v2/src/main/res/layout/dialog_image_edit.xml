@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <!-- Title and Close button at top -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_large">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/image_edit_title"
+            android:textSize="@dimen/text_size_large"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/close" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvImagePath"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:ellipsize="middle"
+        android:singleLine="true"
+        android:layout_marginBottom="@dimen/margin_xlarge" />
+
+    <!-- Rotation Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_rotation"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/margin_tiny">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRotateLeft"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:text="@string/image_edit_rotate_left" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRotate180"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:text="@string/image_edit_rotate_180" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnRotateRight"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:text="@string/image_edit_rotate_right" />
+    </LinearLayout>
+
+    <!-- Flip Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_flip"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/margin_tiny">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFlipHorizontal"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:text="@string/image_edit_flip_horizontal" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnFlipVertical"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/image_edit_flip_vertical" />
+    </LinearLayout>
+
+    <!-- Filters Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_filters"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/margin_tiny">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGrayscale"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:text="@string/image_edit_grayscale" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSepia"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:text="@string/image_edit_sepia" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNegative"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/margin_tiny"
+            android:text="@string/image_edit_negative" />
+    </LinearLayout>
+
+    <!-- Adjustments Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_adjustments"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginTop="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <!-- Brightness -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_brightness"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:layout_marginBottom="@dimen/margin_tiny" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/padding_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:textSize="@dimen/text_size_large"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <SeekBar
+            android:id="@+id/seekBrightness"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="200"
+            android:progress="100" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            android:textSize="@dimen/text_size_large"
+            android:layout_marginStart="@dimen/dialog_field_spacing" />
+    </LinearLayout>
+
+    <!-- Contrast -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_contrast"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:layout_marginBottom="@dimen/margin_tiny" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/padding_vertical">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="-"
+            android:textSize="@dimen/text_size_large"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <SeekBar
+            android:id="@+id/seekContrast"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="200"
+            android:progress="100" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="+"
+            android:textSize="@dimen/text_size_large"
+            android:layout_marginStart="@dimen/dialog_field_spacing" />
+    </LinearLayout>
+
+    <!-- Saturation -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_saturation"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:layout_marginBottom="@dimen/margin_tiny" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_large">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="@dimen/text_size_large"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <SeekBar
+            android:id="@+id/seekSaturation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:max="200"
+            android:progress="100" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2x"
+            android:textSize="@dimen/text_size_large"
+            android:layout_marginStart="@dimen/dialog_field_spacing" />
+    </LinearLayout>
+
+    <!-- Apply Adjustments Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnApplyAdjustments"
+        style="@style/Widget.Material3.Button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/image_edit_apply_adjustments" />
+
+</LinearLayout>
+</ScrollView>

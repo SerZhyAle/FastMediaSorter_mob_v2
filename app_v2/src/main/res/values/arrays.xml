@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="image_size_default_range">
+        <item>10.0</item>
+        <item>50.0</item>
+    </array>
+    
+    <array name="video_size_default_range">
+        <item>20.0</item>
+        <item>80.0</item>
+    </array>
+    
+    <array name="audio_size_default_range">
+        <item>15.0</item>
+        <item>70.0</item>
+    </array>
+</resources>

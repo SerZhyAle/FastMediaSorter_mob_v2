@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large"
+    android:minWidth="@dimen/dialog_file_info_min_width">
+
+    <!-- Action buttons at top -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="@dimen/margin_medium"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenExternal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:text="@string/open_in_default_player"
+            style="@style/Widget.Material3.Button.TonalButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDownloadAndOpen"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:text="@string/download_and_open"
+            android:visibility="gone"
+            style="@style/Widget.Material3.Button.TonalButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/dialog_button_min_width_small"
+            android:text="@android:string/ok"
+            style="@style/Widget.Material3.Button" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:maxHeight="@dimen/dialog_scroll_max_height"
+        android:scrollbars="vertical">
+
+        <!-- Horizontal split for landscape content -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+            
+            <!-- Column 1: File Information -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingEnd="@dimen/padding_large">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/file_info_section"
+                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                    android:textSize="@dimen/text_size_large"
+                    android:paddingTop="@dimen/padding_small"
+                    android:paddingBottom="@dimen/padding_normal" />
+
+                <TextView
+                    android:id="@+id/tvFileName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small" />
+
+                <TextView
+                    android:id="@+id/tvFileSize"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small" />
+
+                <TextView
+                    android:id="@+id/tvFileDate"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small" />
+
+                <TextView
+                    android:id="@+id/tvFileType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small" />
+
+                <TextView
+                    android:id="@+id/tvFilePath"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                    android:textIsSelectable="true"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small" />
+            </LinearLayout>
+
+            <!-- Column 2: Metadata (EXIF/Audio/Video/Doc) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingStart="@dimen/padding_large">
+
+                <!-- Image EXIF Section -->
+                <LinearLayout
+                    android:id="@+id/sectionExif"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/exif_info_section"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textSize="@dimen/text_size_large"
+                        android:paddingTop="@dimen/padding_small"
+                        android:paddingBottom="@dimen/padding_normal" />
+
+                    <TextView
+                        android:id="@+id/tvExifDateTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvExifOrientation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvExifGPS"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvImageResolution"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+                        
+                    <TextView
+                        android:id="@+id/tvImageMegapixels"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvImageFormat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvImageColorSpace"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvExifCamera"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvExifISO"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvExifAperture"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvExifExposure"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/tvExifFocalLength"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+                        
+                    <TextView
+                        android:id="@+id/tvGifFrames"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Audio Metadata Section -->
+                <LinearLayout
+                    android:id="@+id/sectionAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/audio_info_section"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textSize="@dimen/text_size_large"
+                        android:paddingTop="@dimen/padding_small"
+                        android:paddingBottom="@dimen/padding_normal" />
+
+                    <TextView
+                        android:id="@+id/tvAudioDuration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvAudioCodecInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvAudioChannels"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvAudioBitrate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+                </LinearLayout>
+
+                <!-- Video Metadata Section -->
+                <LinearLayout
+                    android:id="@+id/sectionVideo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/video_info_section"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textSize="@dimen/text_size_large"
+                        android:paddingTop="@dimen/padding_small"
+                        android:paddingBottom="@dimen/padding_normal" />
+
+                    <TextView
+                        android:id="@+id/tvVideoDuration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvVideoResolution"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvVideoCodec"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvVideoBitrate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvVideoFrameRate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvVideoRotation"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small" />
+
+                    <TextView
+                        android:id="@+id/tvAudioCodec"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                        android:lineSpacingMultiplier="1.2"
+                        android:paddingBottom="@dimen/padding_small"
+                        android:visibility="gone" />
+                </LinearLayout>
+
+                <!-- Document Metadata Section -->
+                <LinearLayout
+                    android:id="@+id/sectionDocument"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/document_info_section"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textSize="@dimen/text_size_large"
+                        android:paddingTop="@dimen/padding_small"
+                        android:paddingBottom="@dimen/padding_normal" />
+                        
+                    <!-- Reusing valid IDs from portrait XML -->
+                    <TextView android:id="@+id/tvDocPageCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocTitle" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocAuthor" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocChapterCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocLineCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocWordCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocCharCount" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvDocEncoding" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfVersion" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfCreator" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfProducer" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfSubject" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfKeywords" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfCreationDate" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                    <TextView android:id="@+id/tvPdfModDate" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingBottom="@dimen/padding_small" android:visibility="gone" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvGpsLocation"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:textColor="?attr/colorPrimary"
+                    android:textIsSelectable="true"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

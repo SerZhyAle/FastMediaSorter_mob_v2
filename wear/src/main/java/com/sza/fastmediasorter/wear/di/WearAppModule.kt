@@ -1,0 +1,132 @@
+package com.sza.fastmediasorter.wear.di
+
+import android.content.Context
+import android.content.SharedPreferences
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKey
+import com.sza.fastmediasorter.wear.data.network.itunes.ITunesApiService
+import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
+import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
+import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
+import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
+import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import dagger.Module
+import dagger.Provides
+import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Qualifier
+import javax.inject.Singleton
+
+/**
+ * Qualifier for EncryptedSharedPreferences.
+ */
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class EncryptedPrefs
+
+/**
+ * Hilt DI module for Wear OS app.
+ * Provides repositories, ExoPlayer, and system services.
+ */
+@Module
+@InstallIn(SingletonComponent::class)
+object WearAppModule {
+    
+    @Provides
+    @Singleton
+    fun provideContentResolver(
+        @ApplicationContext context: Context
+    ): android.content.ContentResolver {
+        return context.contentResolver
+    }
+    
+    @Provides
+    @Singleton
+    fun provideExoPlayer(
+        @ApplicationContext context: Context
+    ): androidx.media3.exoplayer.ExoPlayer {
+        return androidx.media3.exoplayer.ExoPlayer.Builder(context)
+            .setHandleAudioBecomingNoisy(true)
+            .build()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideWearMediaRepository(
+        contentResolver: android.content.ContentResolver
+    ): WearMediaRepository {
+        return WearMediaRepositoryImpl(contentResolver)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideWearPreferencesRepository(
+        @ApplicationContext context: Context
+    ): WearPreferencesRepository {
+        return WearPreferencesRepositoryImpl(context)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideRetrofit(): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://itunes.apple.com/")
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideITunesApiService(retrofit: Retrofit): ITunesApiService {
+        return retrofit.create(ITunesApiService::class.java)
+    }
+    
+    @Provides
+    @Singleton
+    fun provideAlbumArtRepository(
+        iTunesApiService: ITunesApiService
+    ): AlbumArtRepository {
+        return AlbumArtRepositoryImpl(iTunesApiService)
+    }
+    
+    @Provides
+    @Singleton
+    @EncryptedPrefs
+    fun provideEncryptedSharedPreferences(
+        @ApplicationContext context: Context
+    ): SharedPreferences {
+        val masterKey = MasterKey.Builder(context)
+            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+            .build()
+        
+        return EncryptedSharedPreferences.create(
+            context,
+            "network_sources_encrypted",
+            masterKey,
+            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+        )
+    }
+    
+    @Provides
+    @Singleton
+    fun provideSmbDataSource(): SmbDataSource {
+        return SmbDataSource()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideNetworkSourceRepository(
+        @EncryptedPrefs encryptedPrefs: SharedPreferences,
+        smbDataSource: SmbDataSource
+    ): NetworkSourceRepository {
+        return NetworkSourceRepositoryImpl(encryptedPrefs, smbDataSource)
+    }
+}

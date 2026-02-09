@@ -1,0 +1,56 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Player Basic Controls
+# Description: Open a media file and toggle command panel controls
+# Duration: ~60 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "Downloads"
+    timeout: 10000
+
+- tapOn:
+    text: "Downloads"
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|webp|mp4|mkv|mov)$"
+    timeout: 15000
+    optional: true
+
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png|webp|mp4|mkv|mov)$"
+    optional: true
+
+- waitForAnimationToEnd
+
+- tapOn:
+    point: "50%, 50%"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSlideshowCmd"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnFavorite"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSlideshowCmd"
+    optional: true
+- waitForAnimationToEnd
+
+- back
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd

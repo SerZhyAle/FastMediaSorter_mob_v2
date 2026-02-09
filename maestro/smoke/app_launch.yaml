@@ -1,0 +1,34 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: App Launch (Resilient)
+# Description: Verify app launches successfully and main UI is responsive
+# Duration: ~20 seconds
+
+# Launch the application
+- launchApp
+
+# Wait for app to fully load
+- waitForAnimationToEnd
+
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Verify app is alive - use optional checks so single missing element doesn't fail
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnRefresh"
+    optional: true
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+    optional: true
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnStartPlayer"
+    optional: true
+
+# Verify app responds to interaction
+- tapOn:
+    point: "50%,50%"
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd

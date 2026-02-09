@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Search (PDF/TXT/EPUB) -->
+    <item
+        android:id="@+id/menu_search"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/search"
+        app:showAsAction="never" />
+
+
+
+    <!-- Google Lens (PDF) -->
+    <item
+        android:id="@+id/menu_google_lens"
+        android:icon="@drawable/ic_google_lens"
+        android:title="@string/google_lens"
+        app:showAsAction="never" />
+
+    <!-- OCR (PDF) -->
+    <item
+        android:id="@+id/menu_ocr"
+        android:icon="@drawable/ic_ocr"
+        android:title="@string/ocr_button_description"
+        app:showAsAction="never" />
+
+    <!-- Translate (PDF/TXT/EPUB) -->
+    <item
+        android:id="@+id/menu_translate"
+        android:icon="@drawable/ic_translate"
+        android:title="@string/translate"
+        app:showAsAction="never" />
+
+    <!-- Text Settings (Translation & OCR Settings) -->
+    <item
+        android:id="@+id/menu_text_settings"
+        android:icon="@drawable/ic_book"
+        android:title="@string/translation_settings"
+        app:showAsAction="never" />
+
+
+
+    <!-- Lyrics (Audio files) -->
+    <item
+        android:id="@+id/menu_lyrics"
+        android:icon="@drawable/ic_microphone"
+        android:title="@string/lyrics"
+        app:showAsAction="never" />
+
+    <!-- Rename -->
+    <item
+        android:id="@+id/menu_rename"
+        android:icon="@drawable/ic_rename"
+        android:title="@string/rename"
+        app:showAsAction="never" />
+
+    <!-- Copy Text (TXT) -->
+    <item
+        android:id="@+id/menu_copy_text"
+        android:icon="@android:drawable/ic_menu_save"
+        android:title="@string/copy"
+        app:showAsAction="never" />
+
+
+
+    <!-- Edit (Image/Video/TXT) -->
+    <item
+        android:id="@+id/menu_edit"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/edit"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_edit_text"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:title="@string/edit"
+        app:showAsAction="never" />
+
+
+
+    <!-- Undo (if available) -->
+    <item
+        android:id="@+id/menu_undo"
+        android:icon="@android:drawable/ic_menu_revert"
+        android:title="@string/undo"
+        app:showAsAction="never" />
+
+</menu>

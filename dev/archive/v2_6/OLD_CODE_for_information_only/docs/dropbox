@@ -1,0 +1,100 @@
+Dropbox Support Implementation Plan
+Goal Description
+Integrate Dropbox as a supported cloud storage provider in FastMediaSorter. This involves enabling user authentication via Dropbox OAuth, listing and selecting Dropbox folders, and performing file operations (upload, download, move, copy, delete) using the Dropbox API.
+
+User Review Required
+IMPORTANT
+
+Dropbox App Key: The Dropbox SDK requires an App Key. This key is currently missing from the codebase. I will add a placeholder DROPBOX_APP_KEY in 
+gradle.properties
+ (or 
+build.gradle.kts
+) and 
+AndroidManifest.xml
+. The user must provide a valid Dropbox App Key for the integration to work.
+
+Proposed Changes
+Core / Backend
+[MODIFY] 
+AppModule.kt
+Provide 
+DropboxClient
+ singleton (if not already handled by @Inject).
+[MODIFY] 
+CloudFileOperationHandler.kt
+Inject 
+DropboxClient
+.
+Update 
+getCloudClient
+ to return 
+DropboxClient
+ for CloudProvider.DROPBOX.
+Ensure 
+parseCloudPath
+ correctly handles cloud://dropbox/... paths.
+UI - Add Resource
+[MODIFY] 
+AddResourceActivity.kt
+Inject 
+DropboxClient
+.
+Implement authenticateDropbox() using Auth.startOAuth2PKCE.
+Handle onResume to complete authentication (dropboxClient.finishAuthentication()).
+Add UI logic to show Dropbox status and "Sign In" button.
+Navigate to DropboxFolderPickerActivity upon successful auth.
+[MODIFY] 
+activity_add_resource.xml
+Ensure Dropbox card/button is visible and clickable (already present in strings, likely in layout too).
+UI - Folder Picker (New)
+[NEW] 
+DropboxFolderPickerActivity.kt
+Activity to browse Dropbox folders.
+Similar to 
+GoogleDriveFolderPickerActivity
+.
+[NEW] 
+DropboxFolderPickerViewModel.kt
+ViewModel to handle folder listing and selection using 
+DropboxClient
+.
+[NEW] 
+DropboxFolderAdapter.kt
+RecyclerView adapter for displaying Dropbox folders.
+[NEW] 
+activity_dropbox_folder_picker.xml
+Layout for the picker activity.
+Configuration
+[MODIFY] 
+AndroidManifest.xml
+Add com.dropbox.core.android.AuthActivity for OAuth.
+Add DropboxFolderPickerActivity.
+[MODIFY] 
+build.gradle.kts
+Add manifestPlaceholders for dropboxAppKey.
+Verification Plan
+Automated Tests
+Unit tests for 
+DropboxClient
+ (mocking DbxClientV2).
+Unit tests for DropboxFolderPickerViewModel.
+Manual Verification
+Authentication:
+Click "Dropbox" in "Add Resource" screen.
+Verify Dropbox OAuth page opens.
+Sign in and allow access.
+Verify app returns to "Add Resource" and shows "Connected as [email]".
+Folder Selection:
+Click "Select Folder" (or similar) after auth.
+Verify folder list loads.
+Navigate into subfolders.
+Select a folder and click "Add".
+Resource Addition:
+Verify the new resource appears in the main list.
+Verify file count and write access are checked.
+File Operations:
+Open the new Dropbox resource.
+Test Copy (Local -> Dropbox).
+Test Move (Local -> Dropbox).
+Test Delete (file in Dropbox).
+Test Rename (file in Dropbox).

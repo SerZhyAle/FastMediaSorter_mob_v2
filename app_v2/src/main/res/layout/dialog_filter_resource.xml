@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="@dimen/padding_large">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Title -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_and_sort_resources"
+            android:textSize="@dimen/text_size_large"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/margin_large" />
+
+        <!-- Sort Section -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/sort_by"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <Spinner
+            android:id="@+id/spinnerSort"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/button_height"
+            android:padding="@dimen/padding_small" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_divider_height"
+            android:background="?android:attr/listDivider"
+            android:layout_marginTop="@dimen/margin_large"
+            android:layout_marginBottom="@dimen/margin_large" />
+
+        <!-- Resource Type Filter -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_by_resource_type"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupResourceType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="false"
+            app:chipSpacing="@dimen/dialog_field_spacing" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_divider_height"
+            android:background="?android:attr/listDivider"
+            android:layout_marginTop="@dimen/margin_large"
+            android:layout_marginBottom="@dimen/margin_large" />
+
+        <!-- Media Type Filter -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_by_media_types"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupMediaType"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:singleSelection="false"
+            app:chipSpacing="@dimen/dialog_field_spacing" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_divider_height"
+            android:background="?android:attr/listDivider"
+            android:layout_marginTop="@dimen/margin_large"
+            android:layout_marginBottom="@dimen/margin_large" />
+
+        <!-- Name Filter -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/filter_by_name_substring"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/enter_name_hint"
+            app:endIconMode="clear_text">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/etNameFilter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="1" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Buttons -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/dialog_padding_large"
+            android:gravity="end">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClear"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/clear_all"
+                app:icon="@drawable/ic_refresh"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/dialog_button_icon_padding"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:minWidth="@dimen/dialog_icon_button_min_width"
+                android:insetLeft="@dimen/dialog_button_inset"
+                android:insetRight="@dimen/dialog_button_inset" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/cancel"
+                app:icon="@drawable/ic_cancel"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/dialog_button_icon_padding"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:minWidth="@dimen/dialog_icon_button_min_width"
+                android:insetLeft="@dimen/dialog_button_inset"
+                android:insetRight="@dimen/dialog_button_inset" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApply"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/apply"
+                app:icon="@drawable/ic_check"
+                app:iconGravity="textStart"
+                app:iconPadding="@dimen/dialog_button_icon_padding"
+                style="@style/Widget.Material3.Button"
+                android:minWidth="@dimen/dialog_icon_button_min_width"
+                android:insetLeft="@dimen/dialog_button_inset"
+                android:insetRight="@dimen/dialog_button_inset" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

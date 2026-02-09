@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/dialog_padding_large">
+
+    <!-- Title and Buttons at top -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="@dimen/margin_large">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/player_settings_title"
+            android:textSize="@dimen/text_size_title_dialog"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnCancel"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel"
+            android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnApply"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/apply" />
+
+    </LinearLayout>
+
+    <!-- Playback Speed Section -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/player_speed"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupSpeed"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_large"
+        app:singleSelection="true"
+        app:selectionRequired="true"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed025"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.25x" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed05"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0.5x" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed1"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1x"
+            android:checked="true" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed125"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.25x" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed15"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.5x" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed175"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1.75x" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipSpeed2"
+            style="@style/Widget.Material3.Chip.Filter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2x" />
+
+    </com.google.android.material.chip.ChipGroup>
+
+    <!-- Repeat Video -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/button_height"
+        android:layout_marginBottom="@dimen/margin_normal">
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbRepeatVideo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:minWidth="@dimen/dialog_button_inset"
+            android:minHeight="@dimen/dialog_button_inset" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/player_repeat_video"
+            android:textSize="@dimen/resource_card_title_text_size" />
+
+    </LinearLayout>
+
+    <!-- Subtitles Section -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/settings_divider_height"
+        android:background="?android:attr/listDivider"
+        android:layout_marginBottom="@dimen/margin_normal" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/button_height"
+        android:layout_marginBottom="@dimen/margin_small">
+
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbShowSubtitles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:minWidth="@dimen/dialog_button_inset"
+            android:minHeight="@dimen/dialog_button_inset" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/player_show_subtitles"
+            android:textSize="@dimen/resource_card_title_text_size" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSubtitleLanguageLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/player_subtitle_language"
+        android:textSize="@dimen/resource_card_desc_text_size"
+        android:layout_marginStart="@dimen/margin_xxlarge"
+        android:layout_marginBottom="@dimen/margin_tiny" />
+
+    <Spinner
+        android:id="@+id/spinnerSubtitleLanguage"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_color_item_size"
+        android:layout_marginStart="@dimen/margin_xxlarge"
+        android:layout_marginBottom="@dimen/margin_large"
+        android:background="@drawable/spinner_background"
+        android:padding="@dimen/padding_small" />
+
+    <!-- Audio Track Section -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/settings_divider_height"
+        android:background="?android:attr/listDivider"
+        android:layout_marginBottom="@dimen/margin_large" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/player_audio_track"
+        android:textSize="@dimen/resource_card_title_text_size"
+        android:textStyle="bold"
+        android:layout_marginBottom="@dimen/margin_small" />
+
+    <Spinner
+        android:id="@+id/spinnerAudioLanguage"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/dialog_color_item_size"
+        android:layout_marginBottom="@dimen/margin_huge"
+        android:background="@drawable/spinner_background"
+        android:padding="@dimen/padding_small" />
+
+</LinearLayout>
+</ScrollView>

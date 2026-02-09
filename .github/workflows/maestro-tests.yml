@@ -1,0 +1,153 @@
+ did name: Maestro E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  maestro-smoke-tests:
+    name: Smoke Tests
+    runs-on: macos-latest
+    timeout-minutes: 30
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+          
+      - name: Build debug APK
+        run: ./gradlew assembleStandardDebug --stacktrace
+        
+      - name: Install Maestro CLI
+        run: |
+          brew tap mobile-dev-inc/tap
+          brew install maestro
+          
+      - name: Verify Maestro installation
+        run: maestro --version
+        
+      - name: Set up Android Emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_3a
+          cores: 2
+          ram-size: 4096M
+          heap-size: 512M
+          disk-size: 8192M
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          script: |
+            echo "Emulator started successfully"
+            adb devices
+            
+      - name: Install app on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_3a
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          script: |
+            APK=$(find app_v2/build/outputs/apk/standard/debug -name "*.apk" | head -n 1)
+            echo "Installing APK: $APK"
+            adb install -r "$APK"
+            adb shell pm list packages | grep fastmediasorter
+            
+      - name: Run Maestro smoke tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_3a
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          script: |
+            echo "Running smoke tests..."
+            maestro test maestro/smoke/ || exit 1
+            
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: maestro-smoke-results
+          path: |
+            ~/.maestro/tests/
+            maestro/
+          retention-days: 30
+          
+      - name: Upload test recordings
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: maestro-recordings
+          path: ~/.maestro/tests/**/*.mp4
+          retention-days: 7
+
+  maestro-critical-tests:
+    name: Critical Path Tests
+    runs-on: macos-latest
+    timeout-minutes: 30
+    needs: maestro-smoke-tests
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+          
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+          
+      - name: Build debug APK
+        run: ./gradlew assembleStandardDebug --stacktrace
+        
+      - name: Install Maestro CLI
+        run: |
+          brew tap mobile-dev-inc/tap
+          brew install maestro
+          
+      - name: Set up Android Emulator and run tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          profile: pixel_3a
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim
+          disable-animations: false
+          script: |
+            APK=$(find app_v2/build/outputs/apk/standard/debug -name "*.apk" | head -n 1)
+            adb install -r "$APK"
+            echo "Running critical path tests..."
+            maestro test maestro/critical/ || exit 1
+            
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: maestro-critical-results
+          path: ~/.maestro/tests/
+          retention-days: 30

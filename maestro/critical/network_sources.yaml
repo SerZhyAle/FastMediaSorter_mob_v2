@@ -1,0 +1,49 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Network Resources Navigation
+# Description: Open SMB and S/FTP resources when available
+# Duration: ~60 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "SFTP"
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: "SFTP"
+    optional: true
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "FTP"
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: "FTP"
+    optional: true
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "test_media"
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: "test_media"
+    optional: true
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd

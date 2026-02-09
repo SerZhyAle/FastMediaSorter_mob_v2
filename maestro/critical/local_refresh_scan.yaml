@@ -1,0 +1,33 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Local Scan and Refresh
+# Description: Open Downloads resource and trigger refresh
+# Duration: ~45 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: "Downloads"
+    timeout: 10000
+
+- tapOn:
+    text: "Downloads"
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnRefresh"
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnRefresh"
+- waitForAnimationToEnd
+
+- scroll
+- swipe:
+    direction: DOWN
+
+- back
+- waitForAnimationToEnd

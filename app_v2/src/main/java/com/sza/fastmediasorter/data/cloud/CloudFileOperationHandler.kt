@@ -1,0 +1,1354 @@
+package com.sza.fastmediasorter.data.cloud
+
+import android.content.Context
+import android.net.Uri
+import androidx.documentfile.provider.DocumentFile
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.model.SmbResult
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
+import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
+import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.CloudOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
+import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.FileOperationResult
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import com.sza.fastmediasorter.utils.MediaStoreNotifier
+import java.io.File
+import java.io.FileInputStream
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * Handler for cloud storage file operations.
+ * Handles copy, move, delete operations for Google Drive resources.
+ * Supports operations between Cloud, Local, SMB, SFTP, and FTP resources.
+ * 
+ * Cloud path format: cloud://google_drive/<folderId>/file.ext
+ * Network paths: smb://server/share/path, sftp://server/path, ftp://server/path
+ * 
+ * Operations:
+ * - Cloud↔Local: Download/upload between cloud and local storage
+ * - Cloud↔Network: Download/upload between cloud and SMB/SFTP/FTP
+ * - Cloud↔Cloud: Copy/move between cloud folders (same or different providers)
+ */
+@Singleton
+class CloudFileOperationHandler @Inject constructor(
+    @ApplicationContext context: Context,
+    private val googleDriveClient: GoogleDriveRestClient,
+    private val dropboxClient: DropboxClient,
+    private val oneDriveClient: OneDriveRestClient,
+    private val smbClient: SmbClient,
+    private val sftpClient: SftpClient,
+    private val ftpClient: FtpClient,
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val cloudPathParser: CloudPathParser,
+    private val networkCredentialsResolver: NetworkCredentialsResolver,
+    private val cloudAuthHelper: CloudAuthenticationHelper
+) : BaseFileOperationHandler(context) {
+
+    private val cloudStrategy = CloudOperationStrategy(context, googleDriveClient, dropboxClient, oneDriveClient)
+    private val smbStrategy = SmbOperationStrategy(context, smbClient, credentialsRepository)
+    private val sftpStrategy = SftpOperationStrategy(context, sftpClient, credentialsRepository)
+    private val ftpStrategy = FtpOperationStrategy(context, ftpClient, credentialsRepository)
+    private val localStrategy = LocalOperationStrategy(context)
+
+    override fun getStrategies(): List<FileOperationStrategy> {
+        return listOf(cloudStrategy, smbStrategy, sftpStrategy, ftpStrategy, localStrategy)
+    }
+
+    // ========== Helper Methods ==========
+
+    /**
+     * Determine resource type from path
+     */
+    private fun getResourceType(path: String): ResourceType {
+        val normalized = normalizeNetworkPath(path)
+        return when {
+            normalized.startsWith("cloud://") -> ResourceType.CLOUD
+            normalized.startsWith("smb://") -> ResourceType.SMB
+            normalized.startsWith("sftp://") -> ResourceType.SFTP
+            normalized.startsWith("ftp://") -> ResourceType.FTP
+            else -> ResourceType.LOCAL
+        }
+    }
+
+    /**
+     * Check if path is network resource (SMB/SFTP/FTP)
+     */
+    private fun isNetworkPath(path: String): Boolean {
+        val normalized = normalizeNetworkPath(path)
+        return normalized.startsWith("smb://") || normalized.startsWith("sftp://") || normalized.startsWith("ftp://")
+    }
+
+    private fun normalizeNetworkPath(path: String): String {
+        var normalized = if (path.startsWith("/")) path.substring(1) else path
+        
+        return when {
+            normalized.startsWith("smb:/") && !normalized.startsWith("smb://") -> normalized.replaceFirst("smb:/", "smb://")
+            normalized.startsWith("sftp:/") && !normalized.startsWith("sftp://") -> normalized.replaceFirst("sftp:/", "sftp://")
+            normalized.startsWith("ftp:/") && !normalized.startsWith("ftp://") -> normalized.replaceFirst("ftp:/", "ftp://")
+            else -> normalized
+        }
+    }
+
+    // ========== Core Operations ==========
+
+    override suspend fun executeCopy(
+        operation: FileOperation.Copy,
+        progressCallback: ByteProgressCallback?
+    ): FileOperationResult {
+        val destinationPath = operation.destination.path
+
+        // Check auth for destination if it's cloud
+        if (cloudPathParser.isCloudPath(destinationPath)) {
+            val destInfo = cloudPathParser.parseCloudPath(destinationPath)
+            if (destInfo != null) {
+                checkAuthenticationRequired(destInfo.provider)?.let { return it }
+            }
+            
+            // Handle Upload (Any -> Cloud)
+            Timber.d("Cloud executeCopy: Starting upload of ${operation.sources.size} files to $destinationPath")
+            val errors = mutableListOf<String>()
+            val copiedPaths = mutableListOf<String>()
+            var successCount = 0
+
+            operation.sources.forEachIndexed { index, source ->
+                val sourceType = getResourceType(source.path)
+                val fileName = extractFileName(source.path, source.name)
+                
+                Timber.d("Cloud executeCopy: [${index + 1}/${operation.sources.size}] Uploading $fileName from $sourceType")
+                
+                // Handle Cloud-to-Cloud copy separately
+                val cloudFile = if (sourceType == ResourceType.CLOUD) {
+                    copyCloudToCloud(source.path, destinationPath)
+                } else {
+                    uploadToCloudFromPath(
+                        sourcePath = source.path,
+                        fileName = fileName,
+                        cloudPath = destinationPath,
+                        sourceType = sourceType,
+                        progressCallback = progressCallback
+                    )
+                }
+                
+                if (cloudFile != null) {
+                    copiedPaths.add(cloudFile)
+                    successCount++
+                } else {
+                    val error = "Failed to upload $fileName to cloud"
+                    errors.add(error)
+                }
+            }
+            
+            return buildCopyResult(successCount, operation, copiedPaths, errors)
+        }
+
+        // Check auth for sources if any are cloud
+        val firstSource = operation.sources.firstOrNull()
+        if (firstSource != null && cloudPathParser.isCloudPath(firstSource.path)) {
+            val sourceInfo = cloudPathParser.parseCloudPath(firstSource.path)
+            if (sourceInfo != null) {
+                checkAuthenticationRequired(sourceInfo.provider)?.let { return it }
+            }
+            
+            // Handle Download (Cloud -> Any)
+            Timber.d("Cloud executeCopy: Starting download of ${operation.sources.size} files to $destinationPath")
+            val errors = mutableListOf<String>()
+            val copiedPaths = mutableListOf<String>()
+            var successCount = 0
+            
+            operation.sources.forEachIndexed { index, source ->
+                val fileName = extractFileName(source.path, source.name)
+                Timber.d("Cloud executeCopy: [${index + 1}/${operation.sources.size}] Downloading $fileName")
+                
+                val success = downloadFromCloudTo(
+                    cloudPath = source.path,
+                    destPath = destinationPath,
+                    fileName = fileName,
+                    progressCallback = progressCallback
+                )
+                
+                if (success) {
+                    val resultPath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" else "$destinationPath/$fileName"
+                    copiedPaths.add(resultPath)
+                    successCount++
+                } else {
+                    errors.add("Failed to download $fileName from cloud")
+                }
+            }
+            return buildCopyResult(successCount, operation, copiedPaths, errors)
+        }
+
+        return super.executeCopy(operation, progressCallback)
+    }
+
+    suspend fun executeCopy(operation: FileOperation.Copy): FileOperationResult {
+        return executeCopy(operation, null)
+    }
+
+    override suspend fun executeMove(
+        operation: FileOperation.Move,
+        progressCallback: ByteProgressCallback?
+    ): FileOperationResult {
+        val destinationPath = operation.destination.path
+
+        // Check auth for destination if it's cloud
+        if (cloudPathParser.isCloudPath(destinationPath)) {
+            val destInfo = cloudPathParser.parseCloudPath(destinationPath)
+            if (destInfo != null) {
+                checkAuthenticationRequired(destInfo.provider)?.let { return it }
+            }
+            
+            // Handle Move to Cloud (Upload + Delete Source)
+            Timber.d("Cloud executeMove: Starting move of ${operation.sources.size} files to $destinationPath")
+            
+            // NO pre-flight check! Upload first, then delete.
+            // Delete uses createDeleteRequest which auto-deletes after user grants permission.
+            
+            val errors = mutableListOf<String>()
+            val movedPaths = mutableListOf<String>()
+            var successCount = 0
+            
+            // Collect files that need permission for batch delete after all uploads
+            val pendingDeletePaths = mutableListOf<String>()
+
+            operation.sources.forEachIndexed { index, source ->
+                val sourceType = getResourceType(source.path)
+                val fileName = extractFileName(source.path, source.name)
+                
+                Timber.d("Cloud executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName from $sourceType")
+                
+                // 1. Upload/Copy to destination
+                val cloudFile = if (sourceType == ResourceType.CLOUD) {
+                    // Use moveCloudToCloud for native move (or copy+delete for cross-provider)
+                    moveCloudToCloud(source.path, destinationPath)
+                } else {
+                    uploadToCloudFromPath(
+                        sourcePath = source.path,
+                        fileName = fileName,
+                        cloudPath = destinationPath,
+                        sourceType = sourceType,
+                        progressCallback = progressCallback
+                    )
+                }
+                
+                if (cloudFile != null) {
+                    // 2. Delete Source (only for non-CLOUD, as moveCloudToCloud handles it)
+                    val deleteSuccess = if (sourceType == ResourceType.CLOUD) {
+                        // moveCloudToCloud already deleted source
+                        true
+                    } else {
+                        try {
+                            when (sourceType) {
+                                ResourceType.LOCAL -> {
+                                    if (source.path.startsWith("content:/")) {
+                                        deleteWithSaf(source.path)
+                                    } else {
+                                        deleteFile(source.path).isSuccess
+                                    }
+                                }
+                                else -> {
+                                    val deleteResult = deleteFile(source.path)
+                                    deleteResult.isSuccess
+                                }
+                            }
+                        } catch (e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException) {
+                            // File is already uploaded to cloud! Collect for batch delete after all uploads.
+                            Timber.i("Cloud executeMove: File uploaded, permission needed for delete - $fileName")
+                            pendingDeletePaths.add(source.path)
+                            movedPaths.add(cloudFile)
+                            successCount++
+                            true // Consider delete "pending"
+                        }
+                    }
+                    
+                    if (deleteSuccess && !pendingDeletePaths.contains(source.path)) {
+                        movedPaths.add(cloudFile)
+                        successCount++
+                        Timber.i("Cloud executeMove: SUCCESS - moved $fileName")
+                    } else if (!pendingDeletePaths.contains(source.path)) {
+                        val error = "Uploaded $fileName but failed to delete source"
+                        Timber.w("Cloud executeMove: PARTIAL - $error")
+                        errors.add(error)
+                        // Do NOT add to movedPaths or successCount
+                        // File was copied but not moved (source still exists)
+                    }
+                } else {
+                    val error = "Failed to upload $fileName to cloud"
+                    errors.add(error)
+                }
+            }
+            
+            // After all uploads complete, check if any files need permission for batch delete
+            if (pendingDeletePaths.isNotEmpty()) {
+                Timber.i("Cloud executeMove: All ${pendingDeletePaths.size} files uploaded, requesting batch delete permission")
+                requestBatchDeletePermission(pendingDeletePaths)
+            }
+            
+            return buildMoveResult(successCount, operation, movedPaths, errors)
+        }
+
+        // Check auth for sources if any are cloud
+        val firstSource = operation.sources.firstOrNull()
+        if (firstSource != null && cloudPathParser.isCloudPath(firstSource.path)) {
+            val sourceInfo = cloudPathParser.parseCloudPath(firstSource.path)
+            if (sourceInfo != null) {
+                checkAuthenticationRequired(sourceInfo.provider)?.let { return it }
+            }
+            
+            // Handle Move from Cloud (Download + Delete Cloud)
+            Timber.d("Cloud executeMove: Starting move of ${operation.sources.size} files from cloud")
+            val errors = mutableListOf<String>()
+            val movedPaths = mutableListOf<String>()
+            var successCount = 0
+            
+            operation.sources.forEachIndexed { index, source ->
+                val fileName = extractFileName(source.path, source.name)
+                Timber.d("Cloud executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName from cloud")
+                
+                // 1. Download
+                val success = downloadFromCloudTo(
+                    cloudPath = source.path,
+                    destPath = destinationPath,
+                    fileName = fileName,
+                    progressCallback = progressCallback
+                )
+                
+                if (success) {
+                    // 2. Delete from Cloud
+                    if (deleteFromCloud(source.path)) {
+                        val resultPath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" else "$destinationPath/$fileName"
+                        movedPaths.add(resultPath)
+                        successCount++
+                        Timber.i("Cloud executeMove: SUCCESS - moved $fileName")
+                    } else {
+                        errors.add("Downloaded $fileName but failed to delete from cloud")
+                    }
+                } else {
+                    errors.add("Failed to download $fileName from cloud")
+                }
+            }
+            return buildMoveResult(successCount, operation, movedPaths, errors)
+        }
+
+        return super.executeMove(operation, progressCallback)
+    }
+
+    suspend fun executeMove(operation: FileOperation.Move): FileOperationResult {
+        return executeMove(operation, null)
+    }
+
+    suspend fun executeRename(operation: FileOperation.Rename): FileOperationResult = withContext(Dispatchers.IO) {
+        Timber.d("Cloud executeRename: Renaming ${operation.file.name} to ${operation.newName}")
+        
+        try {
+            val cloudPath = operation.file.path
+
+            if (!cloudPathParser.isCloudPath(cloudPath)) {
+                Timber.e("Cloud executeRename: File is not cloud path: $cloudPath")
+                return@withContext FileOperationResult.Failure("Not a cloud file: $cloudPath")
+            }
+            
+            val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+            if (pathInfo == null) {
+                Timber.e("Cloud executeRename: Failed to parse cloud path: $cloudPath")
+                return@withContext FileOperationResult.Failure("Invalid cloud path: $cloudPath")
+            }
+            
+            Timber.d("Cloud executeRename: Parsed - provider=${pathInfo.provider}, fileId=${pathInfo.fileId}")
+            
+            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                // Check if file with new name already exists
+                val existsResult = client.fileExists(operation.newName, pathInfo.folderId ?: "root")
+                if (existsResult is CloudResult.Success && existsResult.data) {
+                    val error = "File with name '${operation.newName}' already exists"
+                    Timber.w("Cloud executeRename: SKIPPED - $error")
+                    return@executeWithAutoReauth CloudResult.Error(error)
+                }
+                
+                client.renameFile(pathInfo.fileId, operation.newName)
+            }
+            
+            when (result) {
+                is CloudResult.Success -> {
+                    val newPath = "cloud://${pathInfo.provider}/${result.data.path}"
+                    Timber.i("Cloud executeRename: SUCCESS - renamed to $newPath")
+                    FileOperationResult.Success(1, operation, listOf(newPath))
+                }
+                is CloudResult.Error -> {
+                    val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${result.message}"
+                    Timber.e("Cloud executeRename: FAILED - $error")
+                    FileOperationResult.Failure(error)
+                }
+                null -> {
+                    val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: Re-authentication failed or cancelled"
+                    Timber.e("Cloud executeRename: FAILED - $error")
+                    FileOperationResult.Failure(error)
+                }
+            }
+        } catch (e: Exception) {
+            val error = "${operation.file.name}\n  New name: ${operation.newName}\n  Error: ${e.javaClass.simpleName} - ${e.message}"
+            Timber.e(e, "Cloud executeRename: EXCEPTION - $error")
+            FileOperationResult.Failure(error)
+        }
+    }
+
+    override suspend fun executeDelete(operation: FileOperation.Delete): FileOperationResult = withContext(Dispatchers.IO) {
+        val errors = mutableListOf<String>()
+        val deletedPaths = mutableListOf<String>()
+        var successCount = 0
+        
+        // Cloud services use native trash, no need for manual .trash folder
+        operation.files.forEach { file ->
+            try {
+                val filePath = file.path
+                val isCloud = cloudPathParser.isCloudPath(filePath)
+
+                if (isCloud) {
+                    val info = cloudPathParser.parseCloudPath(filePath)
+                    if (info != null) {
+                        checkAuthenticationRequired(info.provider)?.let { return@withContext it }
+                    }
+                    if (deleteFromCloud(filePath)) {
+                        deletedPaths.add(filePath)
+                        successCount++
+                        Timber.d("Cloud delete: deleted ${file.name}")
+                    } else {
+                        errors.add("Failed to delete ${file.name} from cloud")
+                    }
+                } else {
+                    errors.add("Invalid operation: file is local")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to delete ${file.name}")
+                errors.add("Delete error for ${file.name}: ${e.message}")
+            }
+        }
+
+        return@withContext when {
+            successCount == operation.files.size -> FileOperationResult.Success(successCount, operation, deletedPaths)
+            successCount > 0 -> FileOperationResult.PartialSuccess(successCount, errors.size, errors)
+            else -> {
+                val errorMessage = errors.joinToString("; ")
+                FileOperationResult.Failure(
+                    error = "All delete operations failed: $errorMessage",
+                    errorRes = R.string.all_delete_operations_failed,
+                    formatArgs = listOf(errorMessage)
+                )
+            }
+        }
+    }
+
+    /**
+     * Universal download from cloud to any destination (local or network)
+     * @param cloudPath Cloud path (cloud://provider/fileId/filename)
+     * @param destPath Destination path (local path, smb://, sftp://, or ftp://)
+     * @return true on success, false on failure
+     */
+    private suspend fun downloadFromCloudTo(
+        cloudPath: String,
+        destPath: String,
+        fileName: String,
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+    ): Boolean {
+        val normalizedDestPath = normalizeNetworkPath(destPath)
+        Timber.d("downloadFromCloudTo: $cloudPath → $normalizedDestPath (orig: $destPath)")
+        
+        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+        if (pathInfo == null) {
+            Timber.e("downloadFromCloudTo: Failed to parse cloud path: $cloudPath")
+            return false
+        }
+        
+        // Download to temp file first
+        val tempFile = File.createTempFile("cloud_download_", ".tmp", context.cacheDir)
+        try {
+            val downloadResult = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                // Apply adaptive buffering
+                val resourceKey = "cloud://${pathInfo.provider}"
+                val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
+                Timber.d("downloadFromCloudTo: Using buffer size ${bufferSize / 1024} KB for cloud download")
+                
+                // Use BufferedOutputStream for performance
+                val outputStream = java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize)
+                val result = client.downloadFile(pathInfo.fileId, outputStream, null)
+                outputStream.close()
+                result
+            }
+            
+            if (downloadResult !is CloudResult.Success) {
+                val errorMsg = (downloadResult as? CloudResult.Error)?.message ?: "Re-authentication failed"
+                Timber.e("downloadFromCloudTo: Download failed - $errorMsg")
+                return false
+            }
+            
+            Timber.d("downloadFromCloudTo: Downloaded ${tempFile.length()} bytes")
+            
+            // Determine destination type and write
+            val destType = getResourceType(normalizedDestPath)
+            return when (destType) {
+                    ResourceType.LOCAL -> {
+                        // Copy temp file to local destination
+                        val localFile = File(normalizedDestPath, fileName)
+                        localFile.parentFile?.mkdirs()
+                        tempFile.copyTo(localFile, overwrite = true)
+                        Timber.i("downloadFromCloudTo: SUCCESS - wrote to local ${localFile.absolutePath}")
+                        MediaStoreNotifier.notifyFile(context, localFile.absolutePath, "cloud-download")
+                        true
+                    }
+                    ResourceType.SMB -> {
+                        // Upload to SMB
+                        val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
+                        if (credentials == null) {
+                            Timber.e("downloadFromCloudTo: No credentials for SMB path $normalizedDestPath")
+                            return false
+                        }
+                        val prefix = "smb://${credentials.server}/${credentials.shareName}"
+                        val remotePath = normalizedDestPath.removePrefix(prefix).removePrefix("/")
+                        val remoteFilePath = if (remotePath.isEmpty()) fileName else "$remotePath/$fileName"
+                        
+                        val uploadResult = smbClient.uploadFile(
+                            networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
+                            remoteFilePath,
+                            tempFile.inputStream(),
+                            tempFile.length(),
+                        progressCallback
+                    )
+                    
+                    when (uploadResult) {
+                        is SmbResult.Success -> {
+                            Timber.i("downloadFromCloudTo: SUCCESS - uploaded to SMB $remoteFilePath")
+                            true
+                        }
+                        is SmbResult.Error -> {
+                            Timber.e("downloadFromCloudTo: SMB upload failed - ${uploadResult.message}")
+                            false
+                        }
+                    }
+                }
+                ResourceType.SFTP -> {
+                    // Upload to SFTP
+                    val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
+                    if (credentials == null) {
+                        Timber.e("downloadFromCloudTo: No credentials for SFTP path $normalizedDestPath")
+                        return false
+                    }
+                    val prefix = "sftp://${credentials.server}:${credentials.port}"
+                    val remotePath = normalizedDestPath.removePrefix(prefix)
+                    val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") fileName else "$remotePath/$fileName"
+                    
+                    val uploadResult = sftpClient.uploadFile(
+                        networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
+                        remoteFilePath,
+                        tempFile.inputStream(),
+                        tempFile.length()
+                    )
+                    
+                    uploadResult.fold(
+                        onSuccess = {
+                            Timber.i("downloadFromCloudTo: SUCCESS - uploaded to SFTP $remoteFilePath")
+                            true
+                        },
+                        onFailure = { e ->
+                            Timber.e("downloadFromCloudTo: SFTP upload failed - ${e.message}")
+                            false
+                        }
+                    )
+                }
+                ResourceType.FTP -> {
+                    // Upload to FTP
+                    val credentials = networkCredentialsResolver.getCredentials(normalizedDestPath)
+                    if (credentials == null) {
+                        Timber.e("downloadFromCloudTo: No credentials for FTP path $normalizedDestPath")
+                        return false
+                    }
+                    
+                    // Connect to FTP
+                    val connectResult = ftpClient.connect(
+                        host = credentials.server,
+                        port = credentials.port,
+                        username = credentials.username,
+                        password = credentials.password
+                    )
+                    
+                    if (connectResult.isFailure) {
+                        Timber.e("downloadFromCloudTo: FTP connection failed - ${connectResult.exceptionOrNull()?.message}")
+                        return false
+                    }
+                    
+                    try {
+                        val prefix = "ftp://${credentials.server}:${credentials.port}"
+                        val remotePath = normalizedDestPath.removePrefix(prefix)
+                        val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") fileName else "$remotePath/$fileName"
+                        
+                        val uploadResult = ftpClient.uploadFile(
+                            remoteFilePath,
+                            tempFile.inputStream(),
+                            tempFile.length(),
+                            progressCallback
+                        )
+                        
+                        if (uploadResult.isSuccess) {
+                            Timber.i("downloadFromCloudTo: SUCCESS - uploaded to FTP $remoteFilePath")
+                            true
+                        } else {
+                            Timber.e("downloadFromCloudTo: FTP upload failed - ${uploadResult.exceptionOrNull()?.message}")
+                            false
+                        }
+                    } finally {
+                        ftpClient.disconnect()
+                    }
+                }
+                ResourceType.CLOUD -> {
+                    Timber.e("downloadFromCloudTo: Cannot download cloud to cloud, use copyCloudToCloud")
+                    false
+                }
+            }
+        } finally {
+            tempFile.delete()
+        }
+    }
+
+    /**
+     * Download file from cloud to local storage
+     * @param cloudPath Cloud path (cloud://provider/folderId/fileId/filename)
+     * @param localFile Destination local file
+     * @return Local file on success, null on failure
+     */
+    private suspend fun downloadFromCloud(
+        cloudPath: String,
+        localFile: File,
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+    ): File? {
+        Timber.d("downloadFromCloud: $cloudPath → ${localFile.absolutePath}")
+        
+        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+        if (pathInfo == null) {
+            Timber.e("downloadFromCloud: Failed to parse cloud path: $cloudPath")
+            return null
+        }
+        
+        val tempFile = File.createTempFile("cloud_download_", ".tmp", context.cacheDir)
+
+        return try {
+            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                // Apply adaptive buffering
+                val resourceKey = "cloud://${pathInfo.provider}"
+                val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
+                
+                val outputStream = java.io.BufferedOutputStream(tempFile.outputStream(), bufferSize)
+                val downloadResult = client.downloadFile(pathInfo.fileId, outputStream, null)
+                outputStream.close()
+                downloadResult
+            }
+            
+            when (result) {
+                is CloudResult.Success -> {
+                    Timber.d("downloadFromCloud: Downloaded ${tempFile.length()} bytes, copying to local file")
+                    localFile.parentFile?.mkdirs()
+                    tempFile.copyTo(localFile, overwrite = true)
+                    Timber.i("downloadFromCloud: SUCCESS - ${tempFile.length()} bytes written to ${localFile.name}")
+                    localFile
+                }
+                is CloudResult.Error -> {
+                    Timber.e("downloadFromCloud: FAILED - ${result.message}")
+                    null
+                }
+                null -> {
+                    Timber.e("downloadFromCloud: Re-authentication failed or cancelled")
+                    null
+                }
+            }
+        } finally {
+            tempFile.delete()
+        }
+    }
+
+    /**
+     * Universal upload to cloud from any source (local or network)
+     * Uses temp files to avoid OOM on large files
+     * @param sourcePath Full source path (local file path, smb://, sftp://, or ftp://)
+     * @param fileName File name
+     * @param cloudPath Destination cloud path (cloud://provider/parentFolderId/)
+     * @param sourceType Type of source resource
+     * @return Cloud path on success, null on failure
+     */
+    private suspend fun uploadToCloudFromPath(
+        sourcePath: String,
+        fileName: String,
+        cloudPath: String,
+        sourceType: ResourceType,
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+    ): String? {
+        val normalizedSourcePath = normalizeNetworkPath(sourcePath)
+        Timber.d("uploadToCloudFromPath: START - sourcePath=$normalizedSourcePath (orig: $sourcePath), fileName=$fileName, cloudPath=$cloudPath, sourceType=$sourceType")
+        
+        // Check if source is SAF URI (needs temp file even though it's LOCAL type)
+        val isSafUri = normalizedSourcePath.startsWith("content:/") || normalizedSourcePath.startsWith("content://")
+        
+        // Get file from source (use temp file for network sources and SAF URIs)
+        val tempFile = if (sourceType != ResourceType.LOCAL || isSafUri) {
+            File.createTempFile("cloud_upload_", ".tmp", context.cacheDir)
+        } else {
+            null
+        }
+        
+        val sourceFile = try {
+            when (sourceType) {
+                ResourceType.LOCAL -> {
+                    // Check if it's a SAF URI (content://)
+                    if (isSafUri) {
+                        // Handle SAF URI - copy to temp file first
+                        val normalizedPath = if (normalizedSourcePath.startsWith("content:/") && !normalizedSourcePath.startsWith("content://")) {
+                            normalizedSourcePath.replaceFirst("content:/", "content://")
+                        } else {
+                            normalizedSourcePath
+                        }
+                        val uri = Uri.parse(normalizedPath)
+                        val docFile = DocumentFile.fromSingleUri(context, uri)
+                        
+                        Timber.d("uploadToCloudFromPath: SAF URI - checking: $normalizedPath, exists=${docFile?.exists()}")
+                        
+                        if (docFile == null || !docFile.exists()) {
+                            Timber.e("uploadToCloudFromPath: SAF file does not exist: $normalizedPath")
+                            tempFile?.delete()
+                            return null
+                        }
+                        
+                        // Copy SAF content to temp file for upload
+                        try {
+                            context.contentResolver.openInputStream(uri)?.use { input ->
+                                tempFile!!.outputStream().use { output ->
+                                    input.copyTo(output)
+                                }
+                            } ?: run {
+                                Timber.e("uploadToCloudFromPath: Failed to open SAF input stream: $normalizedPath")
+                                tempFile?.delete()
+                                return null
+                            }
+                            Timber.d("uploadToCloudFromPath: SAF - copied ${tempFile!!.length()} bytes to temp")
+                            tempFile
+                        } catch (e: Exception) {
+                            Timber.e(e, "uploadToCloudFromPath: Failed to copy SAF content to temp")
+                            tempFile?.delete()
+                            return null
+                        }
+                    } else {
+                        // Regular local file path
+                        val localFile = File(normalizedSourcePath)
+                        Timber.d("uploadToCloudFromPath: LOCAL - checking file: ${localFile.absolutePath}, exists=${localFile.exists()}")
+                        if (!localFile.exists()) {
+                            Timber.e("uploadToCloudFromPath: Local file does not exist: ${localFile.absolutePath}")
+                            return null
+                        }
+                        Timber.d("uploadToCloudFromPath: LOCAL - file size=${localFile.length()} bytes")
+                        localFile
+                    }
+                }
+                ResourceType.SMB -> {
+                    val credentials = networkCredentialsResolver.getCredentials(normalizedSourcePath)
+                    if (credentials == null) {
+                        Timber.e("uploadToCloudFromPath: No credentials for SMB path $normalizedSourcePath")
+                        tempFile?.delete()
+                        return null
+                    }
+                    // Extract remote path: smb://server:port/share/path/file.ext -> path/file.ext
+                    val remotePath = networkCredentialsResolver.extractSmbRemotePath(normalizedSourcePath)
+                    
+                    Timber.d("uploadToCloudFromPath: SMB - extracted remotePath='$remotePath' from sourcePath='$normalizedSourcePath'")
+                    
+                    val outputStream = tempFile!!.outputStream()
+                    val downloadResult = smbClient.downloadFile(
+                        networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
+                        remotePath,
+                        outputStream,
+                        0L, // fileSize unknown
+                        progressCallback
+                    )
+                    
+                    outputStream.close()
+                    when (downloadResult) {
+                        is SmbResult.Success -> {
+                            Timber.d("uploadToCloudFromPath: SMB - downloaded ${tempFile.length()} bytes to temp")
+                            tempFile
+                        }
+                        is SmbResult.Error -> {
+                            Timber.e("uploadToCloudFromPath: SMB download failed - ${downloadResult.message}")
+                            tempFile.delete()
+                            return null
+                        }
+                    }
+                }
+                ResourceType.SFTP -> {
+                    val credentials = networkCredentialsResolver.getCredentials(normalizedSourcePath)
+                    if (credentials == null) {
+                        Timber.e("uploadToCloudFromPath: No credentials for SFTP path $normalizedSourcePath")
+                        tempFile?.delete()
+                        return null
+                    }
+                    val remotePath = normalizedSourcePath.substringAfter("sftp://${credentials.server}:${credentials.port}")
+                    Timber.d("uploadToCloudFromPath: SFTP - extracted remotePath='$remotePath' from sourcePath='$normalizedSourcePath'")
+                    
+                    val outputStream = tempFile!!.outputStream()
+                    val downloadResult = sftpClient.downloadFile(
+                        networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
+                        remotePath,
+                        outputStream,
+                        0L, // fileSize unknown
+                        progressCallback
+                    )
+                    
+                    outputStream.close()
+                    if (downloadResult.isSuccess) {
+                        Timber.d("uploadToCloudFromPath: SFTP - downloaded ${tempFile.length()} bytes to temp")
+                        tempFile
+                    } else {
+                        Timber.e("uploadToCloudFromPath: SFTP download failed - ${downloadResult.exceptionOrNull()?.message}")
+                        tempFile.delete()
+                        return null
+                    }
+                }
+                ResourceType.FTP -> {
+                    val credentials = networkCredentialsResolver.getCredentials(normalizedSourcePath)
+                    if (credentials == null) {
+                        Timber.e("uploadToCloudFromPath: No credentials for FTP path $normalizedSourcePath")
+                        tempFile?.delete()
+                        return null
+                    }
+                    
+                    // Connect to FTP
+                    val connectResult = ftpClient.connect(
+                        host = credentials.server,
+                        port = credentials.port,
+                        username = credentials.username,
+                        password = credentials.password
+                    )
+                    
+                    if (connectResult.isFailure) {
+                        Timber.e("uploadToCloudFromPath: FTP connection failed - ${connectResult.exceptionOrNull()?.message}")
+                        tempFile?.delete()
+                        return null
+                    }
+                    
+                    try {
+                        val remotePath = normalizedSourcePath.substringAfter("ftp://${credentials.server}:${credentials.port}")
+                        Timber.d("uploadToCloudFromPath: FTP - extracted remotePath='$remotePath' from sourcePath='$normalizedSourcePath'")
+                        
+                        val outputStream = tempFile!!.outputStream()
+                        val downloadResult = ftpClient.downloadFile(
+                            remotePath,
+                            outputStream,
+                            0L, // fileSize unknown
+                            progressCallback
+                        )
+                        
+                        outputStream.close()
+                        if (downloadResult.isSuccess) {
+                            Timber.d("uploadToCloudFromPath: FTP - downloaded ${tempFile.length()} bytes to temp")
+                            tempFile
+                        } else {
+                            Timber.e("uploadToCloudFromPath: FTP download failed - ${downloadResult.exceptionOrNull()?.message}")
+                            tempFile.delete()
+                            return null
+                        }
+                    } finally {
+                        ftpClient.disconnect()
+                    }
+                }
+                ResourceType.CLOUD -> {
+                    Timber.e("uploadToCloudFromPath: Cannot upload cloud to cloud, use copyCloudToCloud")
+                    tempFile?.delete()
+                    return null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "uploadToCloudFromPath: Exception during read from $sourceType: ${e.message}")
+            tempFile?.delete()
+            return null
+        }
+        
+        Timber.d("uploadToCloudFromPath: Source file ready (${sourceFile.length()} bytes), preparing upload")
+        
+        // Upload to cloud
+        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+        if (pathInfo == null) {
+            Timber.e("uploadToCloudFromPath: Failed to parse cloud path: $cloudPath")
+            tempFile?.delete()
+            return null
+        }
+        Timber.d("uploadToCloudFromPath: Parsed cloud path - provider=${pathInfo.provider}, folderId=${pathInfo.folderId}")
+        
+        val mimeType = getMimeType(fileName)
+        Timber.d("uploadToCloudFromPath: Calling uploadFile - fileName=$fileName, mimeType=$mimeType, folderId=${pathInfo.folderId}")
+
+        return try {
+            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                // Apply adaptive buffering
+                val resourceKey = "cloud://${pathInfo.provider}"
+                val bufferSize = ConnectionThrottleManager.getRecommendedBufferSize(resourceKey)
+                Timber.d("uploadToCloudFromPath: Using buffer size ${bufferSize / 1024} KB for cloud upload")
+
+                val inputStream = java.io.BufferedInputStream(FileInputStream(sourceFile), bufferSize)
+                val uploadResult = client.uploadFile(inputStream, fileName, mimeType, pathInfo.folderId, null)
+                inputStream.close()
+                uploadResult
+            }
+            
+            when (result) {
+                is CloudResult.Success -> {
+                    Timber.i("uploadToCloudFromPath: SUCCESS - uploaded $fileName, cloud path=${result.data.path}")
+                    "cloud://${pathInfo.provider}/${result.data.path}"
+                }
+                is CloudResult.Error -> {
+                    Timber.e("uploadToCloudFromPath: FAILED - ${result.message}")
+                    null
+                }
+                null -> {
+                    Timber.e("uploadToCloudFromPath: Re-authentication failed or cancelled")
+                    null
+                }
+            }
+        } finally {
+            tempFile?.delete()
+        }
+    }
+
+    /**
+     * Universal upload to cloud from any source (local or network) - DEPRECATED
+     * Use uploadToCloudFromPath instead
+     * @param sourcePath Source directory path
+     * @param fileName File name
+     * @param cloudPath Destination cloud path (cloud://provider/parentFolderId/)
+     * @return Cloud path on success, null on failure
+     */
+    @Deprecated("Use uploadToCloudFromPath with full file path instead")
+    private suspend fun uploadToCloudFrom(
+        sourcePath: String,
+        fileName: String,
+        cloudPath: String,
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+    ): String? {
+        Timber.d("uploadToCloudFrom: $sourcePath/$fileName → $cloudPath")
+        
+        val sourceType = getResourceType(sourcePath)
+        
+        // Get file from source
+        val sourceFile = try {
+            when (sourceType) {
+                ResourceType.LOCAL -> {
+                    val localFile = File(sourcePath, fileName)
+                    if (!localFile.exists()) {
+                        Timber.e("uploadToCloudFrom: Local file does not exist: ${localFile.absolutePath}")
+                        return null
+                    }
+                    localFile
+                }
+                ResourceType.SMB -> {
+                    val credentials = networkCredentialsResolver.getCredentials(sourcePath)
+                    if (credentials == null) {
+                        Timber.e("uploadToCloudFrom: No credentials for SMB path $sourcePath")
+                        return null
+                    }
+                    val remotePath = networkCredentialsResolver.extractSmbRemotePath(sourcePath)
+                    val remoteFilePath = if (remotePath.isEmpty()) fileName else "$remotePath/$fileName"
+                    
+                    val tempFile = File.createTempFile("cloud_smb_", ".tmp", context.cacheDir)
+                    val outputStream = tempFile.outputStream()
+                    val downloadResult = smbClient.downloadFile(
+                        networkCredentialsResolver.run { credentials.toSmbConnectionInfo() },
+                        remoteFilePath,
+                        outputStream,
+                        0L, // fileSize unknown
+                        progressCallback
+                    )
+                    outputStream.close()
+                    
+                    when (downloadResult) {
+                        is SmbResult.Success -> tempFile
+                        is SmbResult.Error -> {
+                            Timber.e("uploadToCloudFrom: SMB download failed - ${downloadResult.message}")
+                            tempFile.delete()
+                            return null
+                        }
+                    }
+                }
+                ResourceType.SFTP -> {
+                    val credentials = networkCredentialsResolver.getCredentials(sourcePath)
+                    if (credentials == null) {
+                        Timber.e("uploadToCloudFrom: No credentials for SFTP path $sourcePath")
+                        return null
+                    }
+                    val remotePath = sourcePath.substringAfter("sftp://${credentials.server}:${credentials.port}")
+                    val remoteFilePath = if (remotePath.isEmpty()) fileName else "$remotePath/$fileName"
+                    
+                    val tempFile = File.createTempFile("cloud_sftp_", ".tmp", context.cacheDir)
+                    val outputStream = tempFile.outputStream()
+                    val downloadResult = sftpClient.downloadFile(
+                        networkCredentialsResolver.run { credentials.toSftpConnectionInfo() },
+                        remoteFilePath,
+                        outputStream,
+                        0L, // fileSize unknown
+                        progressCallback
+                    )
+                    outputStream.close()
+                    
+                    if (downloadResult.isSuccess) {
+                        tempFile
+                    } else {
+                        Timber.e("uploadToCloudFrom: SFTP download failed - ${downloadResult.exceptionOrNull()?.message}")
+                        tempFile.delete()
+                        return null
+                    }
+                }
+                ResourceType.FTP -> {
+                    val credentials = networkCredentialsResolver.getCredentials(sourcePath)
+                    if (credentials == null) {
+                        Timber.e("uploadToCloudFrom: No credentials for FTP path $sourcePath")
+                        return null
+                    }
+                    
+                    // Connect to FTP
+                    val connectResult = ftpClient.connect(
+                        host = credentials.server,
+                        port = credentials.port,
+                        username = credentials.username,
+                        password = credentials.password
+                    )
+                    
+                    if (connectResult.isFailure) {
+                        Timber.e("uploadToCloudFrom: FTP connection failed - ${connectResult.exceptionOrNull()?.message}")
+                        return null
+                    }
+                    
+                    try {
+                        val remotePath = sourcePath.substringAfter("ftp://${credentials.server}:${credentials.port}")
+                        val remoteFilePath = if (remotePath.isEmpty()) fileName else "$remotePath/$fileName"
+                        
+                        val tempFile = File.createTempFile("cloud_ftp_", ".tmp", context.cacheDir)
+                        val outputStream = tempFile.outputStream()
+                        val downloadResult = ftpClient.downloadFile(
+                            remoteFilePath,
+                            outputStream,
+                            0L, // fileSize unknown
+                            progressCallback
+                        )
+                        outputStream.close()
+                        
+                        if (downloadResult.isSuccess) {
+                            tempFile
+                        } else {
+                            Timber.e("uploadToCloudFrom: FTP download failed - ${downloadResult.exceptionOrNull()?.message}")
+                            tempFile.delete()
+                            return null
+                        }
+                    } finally {
+                        ftpClient.disconnect()
+                    }
+                }
+                ResourceType.CLOUD -> {
+                    Timber.e("uploadToCloudFrom: Cannot upload cloud to cloud, use copyCloudToCloud")
+                    return null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "uploadToCloudFrom: Exception during read")
+            return null
+        }
+        
+        Timber.d("uploadToCloudFrom: Source file ready (${sourceFile.length()} bytes)")
+        
+        // Upload to cloud
+        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+        if (pathInfo == null) {
+            Timber.e("uploadToCloudFrom: Failed to parse cloud path: $cloudPath")
+            if (getResourceType(sourcePath) != ResourceType.LOCAL) sourceFile.delete()
+            return null
+        }
+        
+        val mimeType = getMimeType(fileName)
+
+        return try {
+            sourceFile.inputStream().use { inputStream ->
+                val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                    client.uploadFile(inputStream, fileName, mimeType, pathInfo.folderId, null)
+                }
+                
+                when (result) {
+                    is CloudResult.Success -> {
+                        Timber.i("uploadToCloudFrom: SUCCESS - uploaded $fileName")
+                        "cloud://${pathInfo.provider}/${result.data.path}"
+                    }
+                    is CloudResult.Error -> {
+                        Timber.e("uploadToCloudFrom: FAILED - ${result.message}")
+                        null
+                    }
+                    null -> {
+                        Timber.e("uploadToCloudFrom: Re-authentication failed or cancelled")
+                        null
+                    }
+                }
+            }
+        } finally {
+            // Delete temp file if used (network sources)
+            if (getResourceType(sourcePath) != ResourceType.LOCAL) {
+                sourceFile.delete()
+            }
+        }
+    }
+
+    /**
+     * Upload file from local storage to cloud
+     * @param localFile Source local file
+     * @param cloudPath Destination cloud path (cloud://provider/parentFolderId/filename)
+     * @return Cloud path on success, null on failure
+     */
+    private suspend fun uploadToCloud(
+        localFile: File,
+        cloudPath: String,
+        @Suppress("UNUSED_PARAMETER") progressCallback: ByteProgressCallback? = null
+    ): String? {
+        Timber.d("uploadToCloud: ${localFile.absolutePath} → $cloudPath")
+        
+        if (!localFile.exists()) {
+            Timber.e("uploadToCloud: Local file does not exist: ${localFile.absolutePath}")
+            return null
+        }
+        
+        val fileSize = localFile.length()
+        Timber.d("uploadToCloud: Local file size=$fileSize bytes")
+        
+        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+        if (pathInfo == null) {
+            Timber.e("uploadToCloud: Failed to parse cloud path: $cloudPath")
+            return null
+        }
+        
+        val mimeType = getMimeType(localFile.name)
+
+        return localFile.inputStream().use { inputStream ->
+            val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+                client.uploadFile(inputStream, localFile.name, mimeType, pathInfo.folderId, null)
+            }
+            
+            when (result) {
+                is CloudResult.Success -> {
+                    Timber.i("uploadToCloud: SUCCESS - uploaded ${localFile.name}")
+                    "cloud://${pathInfo.provider}/${result.data.path}"
+                }
+                is CloudResult.Error -> {
+                    Timber.e("uploadToCloud: FAILED - ${result.message}")
+                    null
+                }
+                null -> {
+                    Timber.e("uploadToCloud: Re-authentication failed or cancelled")
+                    null
+                }
+            }
+        }
+    }
+
+    /**
+     * Delete file from cloud storage
+     */
+    private suspend fun deleteFromCloud(cloudPath: String): Boolean {
+        Timber.d("deleteFromCloud: $cloudPath")
+        
+        val pathInfo = cloudPathParser.parseCloudPath(cloudPath)
+        if (pathInfo == null) {
+            Timber.e("deleteFromCloud: Failed to parse cloud path: $cloudPath")
+            return false
+        }
+
+        val result = cloudAuthHelper.executeWithAutoReauth(pathInfo.provider) { client ->
+            client.deleteFile(pathInfo.fileId)
+        }
+
+        return when (result) {
+            is CloudResult.Success -> {
+                Timber.i("deleteFromCloud: SUCCESS")
+                true
+            }
+            is CloudResult.Error -> {
+                Timber.e("deleteFromCloud: FAILED - ${result.message}")
+                false
+            }
+            null -> {
+                Timber.e("deleteFromCloud: Re-authentication failed or cancelled")
+                false
+            }
+        }
+    }
+
+    /**
+     * Copy file between cloud folders (same or different providers)
+     */
+    private suspend fun copyCloudToCloud(sourcePath: String, destPath: String): String? {
+        Timber.d("copyCloudToCloud: $sourcePath → $destPath")
+        
+        val sourceInfo = cloudPathParser.parseCloudPath(sourcePath)
+        val destInfo = cloudPathParser.parseCloudPath(destPath)
+        
+        if (sourceInfo == null || destInfo == null) {
+            Timber.e("copyCloudToCloud: Failed to parse paths")
+            return null
+        }
+        
+        // If same provider, use native copy
+        if (sourceInfo.provider == destInfo.provider) {
+            val fileName = sourcePath.substringAfterLast('/')
+            val result = cloudAuthHelper.executeWithAutoReauth(sourceInfo.provider) { client ->
+                client.copyFile(sourceInfo.fileId, destInfo.folderId ?: "root", fileName)
+            }
+            
+            return when (result) {
+                is CloudResult.Success -> {
+                    Timber.i("copyCloudToCloud: SUCCESS - native copy")
+                    "cloud://${destInfo.provider}/${result.data.path}"
+                }
+                is CloudResult.Error -> {
+                    Timber.e("copyCloudToCloud: Native copy FAILED - ${result.message}")
+                    null
+                }
+                null -> {
+                    Timber.e("copyCloudToCloud: Re-authentication failed or cancelled")
+                    null
+                }
+            }
+        }
+        
+        // Cross-provider: download to temp file, then upload
+        Timber.d("copyCloudToCloud: Cross-provider copy via temp file")
+        val sourceClient = cloudAuthHelper.getCloudClient(sourceInfo.provider) ?: return null
+        val destClient = cloudAuthHelper.getCloudClient(destInfo.provider) ?: return null
+        
+        val tempFile = File.createTempFile("cloud_copy_", ".tmp", context.cacheDir)
+        
+        return try {
+            val outputStream = tempFile.outputStream()
+            val downloadResult = sourceClient.downloadFile(sourceInfo.fileId, outputStream, null)
+            outputStream.close()
+            
+            when (downloadResult) {
+                is CloudResult.Success -> {
+                    Timber.d("copyCloudToCloud: Downloaded ${tempFile.length()} bytes from source to temp")
+                    
+                    val fileName = sourcePath.substringAfterLast('/')
+                    val mimeType = getMimeType(fileName)
+                    val inputStream = FileInputStream(tempFile)
+                    val uploadResult = destClient.uploadFile(inputStream, fileName, mimeType, destInfo.folderId, null)
+                    inputStream.close()
+
+                    when (uploadResult) {
+                        is CloudResult.Success -> {
+                            Timber.i("copyCloudToCloud: SUCCESS - ${tempFile.length()} bytes copied between providers")
+                            "cloud://${destInfo.provider}/${uploadResult.data.path}"
+                        }
+                        is CloudResult.Error -> {
+                            Timber.e("copyCloudToCloud: Upload FAILED - ${uploadResult.message}")
+                            null
+                        }
+                    }
+                }
+                is CloudResult.Error -> {
+                    Timber.e("copyCloudToCloud: Download FAILED - ${downloadResult.message}")
+                    null
+                }
+            }
+        } finally {
+            tempFile.delete()
+        }
+    }
+
+    /**
+     * Move file between cloud folders using native move API
+     */
+    private suspend fun moveCloudToCloud(sourcePath: String, destPath: String): String? {
+        Timber.d("moveCloudToCloud: $sourcePath → $destPath")
+        
+        val sourceInfo = cloudPathParser.parseCloudPath(sourcePath)
+        val destInfo = cloudPathParser.parseCloudPath(destPath)
+        
+        if (sourceInfo == null || destInfo == null) {
+            Timber.e("moveCloudToCloud: Failed to parse paths")
+            return null
+        }
+        
+        // Only same provider supports native move
+        if (sourceInfo.provider != destInfo.provider) {
+            Timber.w("moveCloudToCloud: Cross-provider move not supported, fallback to copy+delete")
+            val copied = copyCloudToCloud(sourcePath, destPath)
+            return if (copied != null && deleteFromCloud(sourcePath)) {
+                copied
+            } else {
+                null
+            }
+        }
+        
+        val result = cloudAuthHelper.executeWithAutoReauth(sourceInfo.provider) { client ->
+            client.moveFile(sourceInfo.fileId, destInfo.folderId ?: "root")
+        }
+
+        return when (result) {
+            is CloudResult.Success -> {
+                Timber.i("moveCloudToCloud: SUCCESS - native move")
+                "cloud://${destInfo.provider}/${result.data.path}"
+            }
+            is CloudResult.Error -> {
+                Timber.e("moveCloudToCloud: FAILED - ${result.message}")
+                null
+            }
+            null -> {
+                Timber.e("moveCloudToCloud: Re-authentication failed or cancelled")
+                null
+            }
+        }
+    }
+
+
+
+    /**
+     * Check if operation failed due to authentication and return appropriate result
+     * This helps UI to prompt re-authentication
+     */
+    internal suspend fun checkAuthenticationRequired(provider: CloudProvider): FileOperationResult? {
+        return when (cloudAuthHelper.getCloudClientResult(provider)) {
+            is CloudAuthenticationHelper.CloudClientResult.AuthRequired -> {
+                val providerName = provider.name.lowercase().replaceFirstChar { it.uppercase() }
+                FileOperationResult.AuthenticationRequired(
+                    provider = providerName,
+                    message = context.getString(R.string.cloud_auth_required, providerName)
+                )
+            }
+            else -> null
+        }
+    }
+
+    private fun getMimeType(fileName: String): String {
+        val extension = fileName.substringAfterLast('.', "").lowercase()
+        return when (extension) {
+            "jpg", "jpeg" -> "image/jpeg"
+            "png" -> "image/png"
+            "gif" -> "image/gif"
+            "webp" -> "image/webp"
+            "mp4" -> "video/mp4"
+            "webm" -> "video/webm"
+            "mkv" -> "video/x-matroska"
+            "mp3" -> "audio/mpeg"
+            "wav" -> "audio/wav"
+            else -> "application/octet-stream"
+        }
+    }
+}

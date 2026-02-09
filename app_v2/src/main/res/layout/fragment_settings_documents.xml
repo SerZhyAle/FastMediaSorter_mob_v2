@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/settings_padding">
+
+        <!-- Text + PDF Row Container -->
+        <LinearLayout
+            android:id="@+id/containerTextPdf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <!-- Support Text (vertical container for Text + line numbers) -->
+            <LinearLayout
+                android:id="@+id/layoutSupportText"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginEnd="@dimen/resource_field_margin_end">
+
+                <!-- Support Text switch -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/button_height">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchSupportText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/support_text_description"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
+                </LinearLayout>
+
+                <!-- Show Text Line Numbers (nested under Support Text) -->
+                <LinearLayout
+                    android:id="@+id/layoutShowTextLineNumbers"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/button_height"
+                    android:layout_marginStart="@dimen/settings_nested_margin_start"
+                    android:visibility="gone">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchShowTextLineNumbers"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_text_line_numbers"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
+
+                    <ImageButton
+                        android:id="@+id/iconHelpLineNumbers"
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/tooltip_line_numbers_title"
+                        android:src="@android:drawable/ic_menu_help"
+                        android:tint="?android:attr/textColorSecondary" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Support PDF (vertical container for PDF + thumbnails) -->
+            <LinearLayout
+                android:id="@+id/layoutSupportPdf"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="@dimen/settings_help_icon_margin">
+
+                <!-- Support PDF switch -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/button_height">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchSupportPdf"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/support_pdf_description"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
+                </LinearLayout>
+
+                <!-- Show PDF Thumbnails (nested under Support PDF) -->
+                <LinearLayout
+                    android:id="@+id/layoutShowPdfThumbnails"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/button_height"
+                    android:layout_marginStart="@dimen/settings_nested_margin_start"
+                    android:visibility="gone">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchShowPdfThumbnails"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/show_pdf_thumbnails"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- EPUB Support Row -->
+        <LinearLayout
+            android:id="@+id/layoutSupportEpub"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/switchSupportEpub"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/support_epub_description"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

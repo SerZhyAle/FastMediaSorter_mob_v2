@@ -1,0 +1,31 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Resource Navigation
+# Description: Verify main controls, settings entry, and list interaction
+# Duration: ~40 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnRefresh"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvResources"
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnRefresh"
+- waitForAnimationToEnd
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd
+
+- scroll
+- swipe:
+    direction: DOWN

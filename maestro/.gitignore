@@ -1,0 +1,7 @@
+# Maestro test results and temporary files
+*.mp4
+*.webm
+.maestro/
+test-results/
+maestro-results/
+*.log

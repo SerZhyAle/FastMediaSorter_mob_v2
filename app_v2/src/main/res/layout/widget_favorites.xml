@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_favorites_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="@dimen/padding_small">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/favorites"
+        android:textSize="@dimen/item_title_text_size"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:padding="@dimen/padding_small"
+        android:gravity="center_horizontal" />
+
+    <ListView
+        android:id="@+id/widget_favorites_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="@dimen/margin_tiny" />
+
+</LinearLayout>

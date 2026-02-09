@@ -1,0 +1,268 @@
+package com.sza.fastmediasorter.utils
+
+import android.content.Context
+import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.domain.model.NetworkCredential
+import com.sza.fastmediasorter.domain.model.Resource
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.usecase.TestCredentialsLoader
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import javax.inject.Inject
+
+/**
+ * Utility to setup test resources from test_credentials.json.
+ * Use this to restore all test resources after app reinstall or data clear.
+ * 
+ * Usage:
+ * 1. Ensure test_credentials.json is in /sdcard/Android/data/com.sza.fastmediasorter.debug/files/test_media/
+ * 2. Call setupAllTestResources() from IntegrationTestRunner or manually from settings
+ */
+class TestResourceSetup @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val credentialsLoader: TestCredentialsLoader,
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val resourceRepository: ResourceRepository
+) {
+    
+    /**
+     * Setup all test resources from test_credentials.json
+     * Returns number of resources created
+     */
+    suspend fun setupAllTestResources(): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            Timber.d("TestResourceSetup: Starting resource setup...")
+            
+            // Load credentials from JSON
+            val credentials = credentialsLoader.loadCredentials()
+            if (credentials.isEmpty()) {
+                return@withContext Result.failure(Exception("No credentials found in test_credentials.json"))
+            }
+            
+            Timber.d("TestResourceSetup: Loaded ${credentials.size} credentials")
+            
+            var createdCount = 0
+            
+            // Process each credential
+            for (cred in credentials) {
+                try {
+                    when (cred.type) {
+                        ResourceType.SMB -> {
+                            if (cred.shareName.isNullOrEmpty()) {
+                                Timber.w("TestResourceSetup: Skipping SMB - no shareName")
+                                continue
+                            }
+                            createSmbResource(cred)
+                            createdCount++
+                        }
+                        ResourceType.SFTP -> {
+                            createSftpResource(cred)
+                            createdCount++
+                        }
+                        ResourceType.FTP -> {
+                            createFtpResource(cred)
+                            createdCount++
+                        }
+                        ResourceType.CLOUD -> {
+                            if (cred.cloudProvider == null) {
+                                Timber.w("TestResourceSetup: Skipping cloud - no provider")
+                                continue
+                            }
+                            createCloudResource(cred)
+                            createdCount++
+                        }
+                        else -> {
+                            Timber.w("TestResourceSetup: Unknown type ${cred.type}")
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "TestResourceSetup: Failed to create resource for ${cred.server}")
+                }
+            }
+            
+            Timber.i("TestResourceSetup: Successfully created $createdCount resources")
+            Result.success(createdCount)
+            
+        } catch (e: Exception) {
+            Timber.e(e, "TestResourceSetup: Failed to setup resources")
+            Result.failure(e)
+        }
+    }
+    
+    private suspend fun createSmbResource(cred: TestCredentialsLoader.TestCredential) {
+        // 1. Add credentials to database
+        val credential = NetworkCredential(
+            id = 0,
+            displayName = "Test SMB - ${cred.server}",
+            type = "SMB",
+            server = cred.server,
+            port = cred.port ?: 445,
+            username = cred.username,
+            password = cred.password,
+            shareName = cred.shareName,
+            domain = cred.domain,
+            decryptedUsername = cred.username,
+            decryptedPassword = cred.password
+        )
+        
+        val credId = credentialsRepository.insert(credential)
+        Timber.d("TestResourceSetup: Created SMB credential #$credId")
+        
+        // 2. Create resource
+        val path = "smb:/${cred.server}/${cred.shareName}"
+        val resource = Resource(
+            id = 0,
+            name = "Test SMB - ${cred.server}",
+            path = path,
+            type = ResourceType.SMB,
+            credentialId = credId,
+            isEnabled = true,
+            lastSyncTime = System.currentTimeMillis()
+        )
+        
+        val resourceId = resourceRepository.insert(resource)
+        Timber.i("TestResourceSetup: Created SMB resource #$resourceId at $path")
+    }
+    
+    private suspend fun createSftpResource(cred: TestCredentialsLoader.TestCredential) {
+        // 1. Add credentials
+        val credential = NetworkCredential(
+            id = 0,
+            displayName = "Test SFTP - ${cred.server}",
+            type = "SFTP",
+            server = cred.server,
+            port = cred.port ?: 22,
+            username = cred.username,
+            password = cred.password,
+            decryptedUsername = cred.username,
+            decryptedPassword = cred.password
+        )
+        
+        val credId = credentialsRepository.insert(credential)
+        Timber.d("TestResourceSetup: Created SFTP credential #$credId")
+        
+        // 2. Create resource
+        val path = "sftp:/${cred.server}${cred.folder ?: ""}"
+        val resource = Resource(
+            id = 0,
+            name = "Test SFTP - ${cred.server}",
+            path = path,
+            type = ResourceType.SFTP,
+            credentialId = credId,
+            isEnabled = true,
+            lastSyncTime = System.currentTimeMillis()
+        )
+        
+        val resourceId = resourceRepository.insert(resource)
+        Timber.i("TestResourceSetup: Created SFTP resource #$resourceId at $path")
+    }
+    
+    private suspend fun createFtpResource(cred: TestCredentialsLoader.TestCredential) {
+        // 1. Add credentials
+        val credential = NetworkCredential(
+            id = 0,
+            displayName = "Test FTP - ${cred.server}",
+            type = "FTP",
+            server = cred.server,
+            port = cred.port ?: 21,
+            username = cred.username,
+            password = cred.password,
+            decryptedUsername = cred.username,
+            decryptedPassword = cred.password
+        )
+        
+        val credId = credentialsRepository.insert(credential)
+        Timber.d("TestResourceSetup: Created FTP credential #$credId")
+        
+        // 2. Create resource
+        val path = "ftp:/${cred.server}:${cred.port ?: 21}${cred.folder ?: "/"}"
+        val resource = Resource(
+            id = 0,
+            name = "Test FTP - ${cred.server}",
+            path = path,
+            type = ResourceType.FTP,
+            credentialId = credId,
+            isEnabled = true,
+            lastSyncTime = System.currentTimeMillis()
+        )
+        
+        val resourceId = resourceRepository.insert(resource)
+        Timber.i("TestResourceSetup: Created FTP resource #$resourceId at $path")
+    }
+    
+    private suspend fun createCloudResource(cred: TestCredentialsLoader.TestCredential) {
+        val provider = cred.cloudProvider!!
+        
+        // 1. Add cloud credential (mostly for tracking, auth happens separately)
+        val credential = NetworkCredential(
+            id = 0,
+            displayName = "Test ${provider.name}",
+            type = "CLOUD",
+            server = cred.server,
+            port = 0,
+            username = "",
+            password = "",
+            cloudProvider = provider.name,
+            cloudFolder = cred.folder,
+            decryptedUsername = "",
+            decryptedPassword = ""
+        )
+        
+        val credId = credentialsRepository.insert(credential)
+        Timber.d("TestResourceSetup: Created ${provider.name} credential #$credId")
+        
+        // 2. Create resource
+        val path = "cloud://${cred.server}${cred.folder ?: ""}"
+        val resource = Resource(
+            id = 0,
+            name = "Test ${provider.name}",
+            path = path,
+            type = ResourceType.CLOUD,
+            credentialId = credId,
+            cloudProvider = provider,
+            cloudFolderId = cred.folder,
+            isEnabled = true,
+            lastSyncTime = System.currentTimeMillis()
+        )
+        
+        val resourceId = resourceRepository.insert(resource)
+        Timber.i("TestResourceSetup: Created ${provider.name} resource #$resourceId at $path")
+    }
+    
+    /**
+     * Clear all test resources (resources with names starting with "Test ")
+     */
+    suspend fun clearAllTestResources(): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val resources = resourceRepository.getAllResources()
+            val testResources = resources.filter { it.name.startsWith("Test ") }
+            
+            var deletedCount = 0
+            for (resource in testResources) {
+                try {
+                    resourceRepository.delete(resource)
+                    // Also delete associated credential
+                    resource.credentialId?.let { credId ->
+                        credentialsRepository.getById(credId)?.let { cred ->
+                            credentialsRepository.delete(cred)
+                        }
+                    }
+                    deletedCount++
+                } catch (e: Exception) {
+                    Timber.e(e, "Failed to delete resource ${resource.name}")
+                }
+            }
+            
+            Timber.i("TestResourceSetup: Deleted $deletedCount test resources")
+            Result.success(deletedCount)
+            
+        } catch (e: Exception) {
+            Timber.e(e, "TestResourceSetup: Failed to clear resources")
+            Result.failure(e)
+        }
+    }
+}

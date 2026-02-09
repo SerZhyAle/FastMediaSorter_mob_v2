@@ -1,0 +1,15 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Common system dialogs
+- tapOn:
+    text: "Allow"
+    optional: true
+- tapOn:
+    text: "ALLOW"
+    optional: true
+- tapOn:
+    text: "Allow only while using the app"
+    optional: true
+- tapOn:
+    text: "OK"
+    optional: true

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Very small screen grid column counts (≈320dp width) -->
+    <integer name="grid_column_count">3</integer>
+    <integer name="grid_column_count_list">1</integer>
+    <integer name="resource_grid_column_count">1</integer>
+</resources>

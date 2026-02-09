@@ -1,0 +1,202 @@
+package com.sza.fastmediasorter.wear.ui.player.image
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.wear.compose.material.CircularProgressIndicator
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.Text
+import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import timber.log.Timber
+import kotlin.math.abs
+
+private const val SWIPE_THRESHOLD = 100f
+
+/**
+ * Image viewer screen for Wear OS.
+ * Displays images with swipe navigation between photos.
+ */
+@Composable
+fun ImageViewerScreen(
+    viewModel: ImageViewerViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    
+    Timber.d("ImageViewerScreen composing, index: ${uiState.currentIndex}")
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        when {
+            uiState.error != null -> {
+                ErrorContent(message = uiState.error!!)
+            }
+            uiState.isLoading -> {
+                CircularProgressIndicator(modifier = Modifier.size(48.dp))
+            }
+            uiState.mediaFile != null -> {
+                ImageViewerContent(
+                    uiState = uiState,
+                    onSwipeLeft = viewModel::navigateToNext,
+                    onSwipeRight = viewModel::navigateToPrevious,
+                    onToggleSlideshow = viewModel::toggleSlideshow
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ImageViewerContent(
+    uiState: ImageViewerUiState,
+    onSwipeLeft: () -> Unit,
+    onSwipeRight: () -> Unit,
+    onToggleSlideshow: () -> Unit
+) {
+    var dragOffset by remember { mutableFloatStateOf(0f) }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        when {
+                            dragOffset < -SWIPE_THRESHOLD -> onSwipeLeft()
+                            dragOffset > SWIPE_THRESHOLD -> onSwipeRight()
+                        }
+                        dragOffset = 0f
+                    },
+                    onDragCancel = {
+                        dragOffset = 0f
+                    },
+                    onHorizontalDrag = { _, dragAmount ->
+                        dragOffset += dragAmount
+                    }
+                )
+            }
+    ) {
+        // Image
+        var isImageLoading by remember { mutableFloatStateOf(1f) }
+        
+        AsyncImage(
+            model = uiState.mediaFile?.uri,
+            contentDescription = uiState.mediaFile?.name,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Fit,
+            onState = { state ->
+                isImageLoading = when (state) {
+                    is AsyncImagePainter.State.Loading -> 1f
+                    else -> 0f
+                }
+            }
+        )
+        
+        // Loading indicator while image loads
+        if (isImageLoading > 0f) {
+            CircularProgressIndicator(
+                modifier = Modifier
+                    .size(32.dp)
+                    .align(Alignment.Center)
+            )
+        }
+        
+        // Bottom info overlay
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.BottomCenter)
+                .background(Color.Black.copy(alpha = 0.6f))
+                .padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // File name
+            Text(
+                text = uiState.mediaFile?.name ?: "",
+                style = MaterialTheme.typography.caption2,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = Color.White
+            )
+            
+            // Navigation info
+            if (uiState.totalCount > 1) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "← Prev",
+                        style = MaterialTheme.typography.caption3,
+                        color = Color.Gray
+                    )
+                    Text(
+                        text = uiState.positionText,
+                        style = MaterialTheme.typography.caption3,
+                        color = Color.White
+                    )
+                    Text(
+                        text = "Next →",
+                        style = MaterialTheme.typography.caption3,
+                        color = Color.Gray
+                    )
+                }
+            }
+            
+            // Slideshow indicator
+            if (uiState.isSlideshowActive) {
+                Text(
+                    text = "▶ Slideshow Active",
+                    style = MaterialTheme.typography.caption3,
+                    color = Color.Green,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ErrorContent(message: String) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "⚠️",
+            style = MaterialTheme.typography.display2
+        )
+        Text(
+            text = message,
+            style = MaterialTheme.typography.body1,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(16.dp)
+        )
+    }
+}

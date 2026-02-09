@@ -1,0 +1,129 @@
+package com.sza.fastmediasorter.data.cloud
+
+import timber.log.Timber
+import javax.inject.Inject
+import javax.inject.Singleton
+
+/**
+ * Helper class for cloud storage authentication management.
+ * 
+ * Handles:
+ * - Getting authenticated cloud clients with auto-restoration
+ * - Automatic silent re-authentication on auth failures
+ * - Retrying operations after successful re-auth
+ */
+@Singleton
+class CloudAuthenticationHelper @Inject constructor(
+    private val googleDriveClient: GoogleDriveRestClient,
+    private val dropboxClient: DropboxClient,
+    private val oneDriveClient: OneDriveRestClient
+) {
+
+    /**
+     * Result of getting cloud client
+     */
+    sealed class CloudClientResult {
+        data class Success(val client: CloudStorageClient) : CloudClientResult()
+        data class AuthRequired(val provider: CloudProvider) : CloudClientResult()
+        data object NotSupported : CloudClientResult()
+    }
+
+    /**
+     * Get cloud client for provider, initializing from stored credentials if needed
+     * @return CloudClientResult with client if authenticated, AuthRequired if needs auth, NotSupported if provider unknown
+     */
+    suspend fun getCloudClientResult(provider: CloudProvider): CloudClientResult {
+        val client = when (provider) {
+            CloudProvider.GOOGLE_DRIVE -> googleDriveClient
+            CloudProvider.DROPBOX -> dropboxClient
+            CloudProvider.ONEDRIVE -> oneDriveClient
+        }
+        
+        // Check if already authenticated
+        if (client.isAuthenticated()) {
+            return CloudClientResult.Success(client)
+        }
+        
+        // Try to restore from client's own encrypted storage
+        val restored = when (provider) {
+            CloudProvider.DROPBOX -> (client as? DropboxClient)?.tryRestoreFromStorage() == true
+            CloudProvider.GOOGLE_DRIVE -> (client as? GoogleDriveRestClient)?.tryRestoreFromStorage() == true
+            CloudProvider.ONEDRIVE -> {
+                 // OneDrive uses MSAL which manages its own cache, try to initialize with empty credentials
+                 // to hit the silent auth check inside initialize()
+                 (client as? OneDriveRestClient)?.initialize("{}") == true
+            }
+        }
+        
+        if (restored) {
+            Timber.d("Auto-restored $provider client from encrypted storage")
+            return CloudClientResult.Success(client)
+        }
+        
+        Timber.w("$provider client not authenticated and no stored credentials")
+        return CloudClientResult.AuthRequired(provider)
+    }
+
+    /**
+     * Get cloud client for provider, initializing from stored credentials if needed
+     * @return CloudStorageClient if authenticated, null otherwise
+     */
+    suspend fun getCloudClient(provider: CloudProvider): CloudStorageClient? {
+        return when (val result = getCloudClientResult(provider)) {
+            is CloudClientResult.Success -> result.client
+            else -> null
+        }
+    }
+
+    /**
+     * Execute operation with automatic re-authentication on auth errors.
+     * If operation fails with authentication error, attempts silent re-authentication and retries once.
+     * 
+     * @param provider Cloud provider
+     * @param operation Suspending operation that returns CloudResult<T>
+     * @return Operation result or null if re-auth failed/cancelled
+     */
+    suspend fun <T> executeWithAutoReauth(
+        provider: CloudProvider,
+        operation: suspend (CloudStorageClient) -> CloudResult<T>
+    ): CloudResult<T>? {
+        val client = getCloudClient(provider) ?: return null
+        
+        val result = operation(client)
+        
+        // Check if authentication error
+        if (result is CloudResult.Error && result.message.contains("Not authenticated", ignoreCase = true)) {
+            Timber.w("executeWithAutoReauth: Authentication error, attempting silent re-authentication")
+            
+            // Attempt silent re-authentication
+            val reAuthResult = when (provider) {
+                CloudProvider.GOOGLE_DRIVE -> {
+                    try {
+                        googleDriveClient.authenticate()
+                    } catch (e: Exception) {
+                        Timber.e(e, "Silent re-authentication failed")
+                        AuthResult.Error("Re-authentication failed: ${e.message}")
+                    }
+                }
+                else -> AuthResult.Error("Auto re-authentication not supported for $provider")
+            }
+            
+            return when (reAuthResult) {
+                is AuthResult.Success -> {
+                    Timber.i("executeWithAutoReauth: Silent re-authentication successful, retrying operation")
+                    operation(client)  // Retry once
+                }
+                is AuthResult.Error -> {
+                    Timber.e("executeWithAutoReauth: Re-authentication failed - ${reAuthResult.message}")
+                    null
+                }
+                is AuthResult.Cancelled -> {
+                    Timber.w("executeWithAutoReauth: Re-authentication cancelled by user")
+                    null
+                }
+            }
+        }
+        
+        return result
+    }
+}

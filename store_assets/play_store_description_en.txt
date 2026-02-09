@@ -1,0 +1,50 @@
+TITLE (30 chars):
+FastMediaSorter: Files & Cloud
+
+SHORT DESCRIPTION (80 chars):
+Organize media fast: Local, SMB, Cloud. Slideshow, editor, trash protection.
+
+FULL DESCRIPTION (4000 chars):
+FastMediaSorter is your all-in-one tool for managing media files on your device, local network, and cloud. Sort thousands of photos and videos in minutes, create slideshows, and keep your collection organized.
+
+KEY FEATURES:
+
+📂 All Files in One Place
+Manage files from phone storage, SD card, home NAS (SMB), servers (SFTP, FTP), and Google Drive in a single interface.
+
+⚡ Fast Sorting
+Configure destination folders and copy or move files with a single tap while viewing. Perfect for organizing photo archives.
+
+🖥️ Network Storage Support
+Direct connection to your servers and NAS. Browse, delete, and copy files without unnecessary intermediate downloads.
+- SMB (Windows Sharing/Samba)
+- SFTP (SSH File Transfer Protocol)
+- FTP (File Transfer Protocol)
+- Google Drive (Cloud capabilities)
+
+🖼️ Powerful Viewer & Player
+- View photos, GIFs, and videos.
+- Slideshow with customizable interval.
+- Zoom and pan images.
+- Video player supporting major formats.
+
+✏️ Image Editor
+Rotate, flip, adjust brightness/contrast, and apply filters (Grayscale, Sepia, etc.) directly in the app. Works even with network files!
+
+🧹 Safe Delete
+Accidentally deleted a file? No problem! The "Trash" feature (soft-delete) saves deleted files to a special .trash folder (supported on local and network resources).
+
+🔍 Smart Search & Filters
+Filter media by type, date, size. Find the files you need instantly.
+
+🚀 Optimization
+- Thumbnail caching for fast performance.
+- Support for large collections (1000+ files).
+- Keyboard navigation (for Android TV / Desktop mode).
+
+No ads, no hidden fees. Your data remains yours — the app does not send files to third-party servers.
+
+OFFICIAL WEBSITE:
+https://serzhyale.github.io/FastMediaSorter_mob_v2/
+
+Download FastMediaSorter and organize your media library today!

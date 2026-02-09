@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/margin_tiny"
+    android:background="@drawable/item_focus_selector"
+    android:focusable="true"
+    android:focusableInTouchMode="false"
+    android:foreground="?attr/selectableItemBackground">
+    
+    <!-- Destination border (colored stroke) -->
+
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <!-- Square aspect ratio container implicitly handled by width/height constraints in Recycler -->
+    <!-- But here we just make it look good. The adapter will likely set height or we rely on content -->
+    
+    <ImageView
+        android:id="@+id/ivResourceTypeIcon"
+        android:layout_width="@dimen/icon_size_small"
+        android:layout_height="@dimen/icon_size_small"
+        android:layout_marginTop="@dimen/margin_large"
+        android:contentDescription="@null"
+        app:layout_constraintBottom_toTopOf="@id/tvResourceName"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        tools:src="@drawable/ic_resource_local" />
+
+    <TextView
+        android:id="@+id/tvResourceName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_small"
+        android:layout_marginTop="@dimen/margin_small"
+        android:layout_marginBottom="@dimen/margin_large"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:textColor="?android:attr/textColorPrimary"
+        android:textSize="@dimen/text_size_huge"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivResourceTypeIcon"
+        tools:text="Resource Name" />
+
+    <TextView
+        android:id="@+id/tvMediaTypes"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_small"
+        android:layout_marginBottom="@dimen/margin_small"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="@dimen/item_detail_text_size_small"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvResourceName"
+        tools:text="I V A G T P" />
+
+    <TextView
+        android:id="@+id/tvSpeedTestResults"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="@dimen/margin_small"
+        android:layout_marginTop="@dimen/margin_tiny"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="?android:attr/textColorSecondary"
+        android:textSize="@dimen/item_detail_text_size_tiny"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvMediaTypes"
+        tools:text="R:50 W:30 T:2"
+        tools:visibility="visible" />
+
+
+    <!-- Destination Badge (simplified for grid - maybe just a dot or small overlay?) -->
+    <!-- Per requirements: "colored by destination". Background color handles this. -->
+    
+    <!-- Lock icon if needed -->
+    <ImageView
+        android:id="@+id/tvWritableIndicator"
+        android:layout_width="@dimen/item_icon_size_tiny"
+        android:layout_height="@dimen/item_icon_size_tiny"
+        android:layout_margin="@dimen/item_margin_tiny"
+        android:src="@android:drawable/ic_lock_lock"
+        android:tint="@android:color/holo_red_light"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Destination border (colored stroke) -->
+    <View
+        android:id="@+id/viewDestinationBorder"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/destination_border"
+        android:elevation="@dimen/toolbar_elevation"
+        android:visibility="gone" />
+
+</FrameLayout>

@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ui.main.MainActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:theme="@style/ThemeOverlay.AppCompat.ActionBar">
+
+        <LinearLayout
+            android:id="@+id/layoutControlButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/control_bar_padding">
+
+            <!-- Exit -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExit"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/exit"
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+            <!-- Larger space between Exit and Add Resource -->
+            <Space
+                android:layout_width="@dimen/control_button_spacing_large"
+                android:layout_height="1dp" />
+
+            <!-- Add Resource -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddResource"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/add"
+                app:icon="@android:drawable/ic_menu_add"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+            <!-- Small space -->
+            <Space
+                android:layout_width="@dimen/control_button_spacing_small"
+                android:layout_height="1dp" />
+
+            <!-- Filter and Sort -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/filter"
+                app:icon="@android:drawable/ic_menu_search"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+            <!-- Refresh -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnRefresh"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/refresh"
+                app:icon="@android:drawable/ic_popup_sync"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+            <!-- Small space -->
+            <Space
+                android:layout_width="@dimen/control_button_spacing_small"
+                android:layout_height="1dp" />
+
+            <!-- Settings -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/settings"
+                app:icon="@android:drawable/ic_menu_preferences"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+            <!-- Small space -->
+            <Space
+                android:layout_width="@dimen/control_button_spacing_small"
+                android:layout_height="1dp" />
+
+            <!-- Small space -->
+            <Space
+                android:layout_width="@dimen/control_button_spacing_small"
+                android:layout_height="1dp" />
+
+            <!-- Toggle List/Grid View -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnToggleView"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/toggle_view"
+                app:icon="@drawable/ic_view_grid"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <!-- Favorites -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFavorites"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/tab_favorites"
+                app:icon="@drawable/ic_star_outline"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+            <!-- Start Player - double sized PLAY icon -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStartPlayer"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/control_button_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/start_player"
+                app:icon="@android:drawable/ic_media_play"
+                app:iconTint="?attr/colorControlNormal"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:insetLeft="0dp"
+                android:insetRight="0dp"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:padding="0dp"
+                android:text=""
+                style="@style/Widget.Material3.Button.TextButton" />
+
+        </LinearLayout>
+
+        <!-- Resource Type Tabs -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabResourceTypes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="?attr/colorSurface"
+            app:tabMode="fixed"
+            app:tabGravity="fill"
+            app:tabIconTint="?attr/colorControlNormal"
+            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabTextColor="?attr/colorControlNormal"
+            app:tabInlineLabel="@bool/is_tab_inline"
+            app:tabIndicatorColor="?attr/colorPrimary" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvResources"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="@dimen/main_recycler_margin"
+            android:scrollbars="vertical"
+            android:scrollbarThumbVertical="@android:color/darker_gray"
+            android:fadeScrollbars="false"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:listitem="@layout/item_resource" />
+
+        <!-- Empty state view -->
+        <LinearLayout
+            android:id="@+id/emptyStateView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/empty_state_padding"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="@id/rvResources"
+            app:layout_constraintBottom_toBottomOf="@id/rvResources"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="@dimen/empty_state_icon_size"
+                android:layout_height="@dimen/empty_state_icon_size"
+                android:src="@android:drawable/ic_input_add"
+                android:contentDescription="Add resource"
+                android:alpha="0.6" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/empty_state_text_margin_top"
+                android:text="@string/empty_state_message"
+                android:textSize="@dimen/empty_state_text_size"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:alpha="0.6" />
+        </LinearLayout>
+
+        <!-- Error state view for network errors -->
+        <LinearLayout
+            android:id="@+id/errorStateView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="@dimen/empty_state_padding"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="@id/rvResources"
+            app:layout_constraintBottom_toBottomOf="@id/rvResources"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <ImageView
+                android:layout_width="@dimen/empty_state_icon_size"
+                android:layout_height="@dimen/empty_state_icon_size"
+                android:src="@android:drawable/stat_notify_error"
+                android:contentDescription="@string/error"
+                android:tint="@android:color/holo_red_dark" />
+
+            <TextView
+                android:id="@+id/tvErrorMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/empty_state_text_margin_top"
+                android:text="@string/connection_failed"
+                android:textSize="@dimen/empty_state_text_size"
+                android:textAlignment="center"
+                android:gravity="center"
+                android:textColor="@android:color/holo_red_dark" />
+
+            <Button
+                android:id="@+id/btnRetry"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/button_margin_top_normal"
+                android:text="@string/retry"
+                style="@style/Widget.Material3.Button.TextButton" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvFilterWarning"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:padding="@dimen/padding_small"
+            android:textSize="@dimen/text_size_small"
+            android:textColor="@android:color/holo_orange_dark"
+            android:background="@android:color/darker_gray"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Filters: Type: LOCAL, NETWORK | Media: Images, Videos | Name: 'test'"
+            tools:visibility="visible" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        android:contentDescription="@string/loading_indicator" />
+
+    <!-- Navigation progress overlay -->
+    <LinearLayout
+        android:id="@+id/navigationProgressLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/dialog_padding_large"
+        android:background="@android:drawable/dialog_holo_dark_frame"
+        android:elevation="@dimen/elevation_dialog"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/connecting"
+            android:textSize="@dimen/empty_state_text_size"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <TextView
+            android:id="@+id/tvNavigationMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="@dimen/text_size_normal"
+            android:layout_marginBottom="@dimen/margin_large" />
+
+        <ProgressBar
+            android:id="@+id/navigationProgressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:indeterminate="true"
+            android:contentDescription="@string/loading_indicator" />
+    </LinearLayout>
+
+    <!-- Scan progress overlay -->
+    <LinearLayout
+        android:id="@+id/scanProgressLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:padding="@dimen/dialog_padding_large"
+        android:background="@android:drawable/dialog_holo_dark_frame"
+        android:elevation="@dimen/elevation_dialog"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvScanProgress"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Scanning resources..."
+            android:textSize="@dimen/empty_state_text_size"
+            android:textStyle="bold"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <TextView
+            android:id="@+id/tvScanDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 files scanned"
+            android:textSize="@dimen/text_size_normal"
+            android:layout_marginBottom="@dimen/margin_large" />
+
+        <ProgressBar
+            android:id="@+id/scanProgressBar"
+            android:layout_width="@dimen/progress_bar_width"
+            android:layout_height="wrap_content"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:contentDescription="@string/scan_progress_indicator"
+            android:indeterminate="true" />
+    </LinearLayout>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

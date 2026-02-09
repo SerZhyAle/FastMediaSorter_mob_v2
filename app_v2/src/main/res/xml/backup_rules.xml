@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backup Rules for FastMediaSorter
+    
+    Security Note:
+    - network_credentials.db is excluded because it contains encrypted credentials
+      that are tied to Android Keystore (hardware-backed). The encryption key 
+      cannot be restored to a different device, making the backup useless.
+    - datastore/* is excluded because it may contain device-specific settings
+      and encrypted default password (also tied to Android Keystore).
+      
+    For future implementation: Consider password-based encryption (PBE) with
+    master password if cloud backup of credentials is desired.
+-->
+<full-backup-content>
+    <!-- Exclude encrypted credentials database (key cannot be restored) -->
+    <exclude domain="database" path="network_credentials.db" />
+    <exclude domain="database" path="network_credentials.db-shm" />
+    <exclude domain="database" path="network_credentials.db-wal" />
+    
+    <!-- Exclude DataStore preferences (contains encrypted default password) -->
+    <exclude domain="file" path="datastore/" />
+</full-backup-content>

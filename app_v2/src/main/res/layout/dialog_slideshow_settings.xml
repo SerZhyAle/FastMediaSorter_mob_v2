@@ -1,0 +1,134 @@
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="24dp"
+    android:minWidth="300dp">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/slideshow_settings"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Interval Section -->
+        <TextView
+            android:id="@+id/tvIntervalLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/slideshow_interval"
+            android:textSize="16sp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+        <TextView
+            android:id="@+id/tvIntervalValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5s"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/tvIntervalLabel" />
+
+        <com.google.android.material.slider.Slider
+            android:id="@+id/sliderInterval"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:valueFrom="1"
+            android:valueTo="60"
+            android:stepSize="1"
+            app:layout_constraintTop_toBottomOf="@id/tvIntervalLabel" />
+
+        <!-- Play to End Checkbox -->
+        <com.google.android.material.checkbox.MaterialCheckBox
+            android:id="@+id/cbPlayToEnd"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/play_video_audio_to_end"
+            app:layout_constraintTop_toBottomOf="@id/sliderInterval" />
+
+        <TextView
+            android:id="@+id/tvPlayToEndHint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:text="@string/play_to_end_hint"
+            android:textSize="12sp"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintTop_toBottomOf="@id/cbPlayToEnd" />
+
+        <!-- Background Music Section -->
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="24dp"
+            android:background="?android:attr/listDivider"
+            app:layout_constraintTop_toBottomOf="@id/tvPlayToEndHint" />
+
+        <TextView
+            android:id="@+id/tvMusicLabel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/background_music"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/divider" />
+
+        <TextView
+            android:id="@+id/tvMusicStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/no_music_selected"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            app:layout_constraintTop_toBottomOf="@id/tvMusicLabel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSelectMusic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/select_music_file"
+            icon="@drawable/ic_music_note"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvMusicStatus" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClearMusic"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginStart="8dp"
+            android:text="@string/action_clear"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:textColor="?android:attr/colorError"
+            app:layout_constraintStart_toEndOf="@id/btnSelectMusic"
+            app:layout_constraintTop_toBottomOf="@id/tvMusicStatus"
+            app:layout_constraintBottom_toBottomOf="@id/btnSelectMusic" />
+
+        <!-- Footer Buttons -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/close"
+            style="@style/Widget.Material3.Button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/btnSelectMusic" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

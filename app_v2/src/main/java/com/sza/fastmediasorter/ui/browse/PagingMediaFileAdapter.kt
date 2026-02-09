@@ -1,0 +1,760 @@
+package com.sza.fastmediasorter.ui.browse
+
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import android.net.Uri
+import android.text.format.DateFormat
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.core.content.ContextCompat
+import androidx.paging.PagingDataAdapter
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.bitmap.RoundedCorners
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.signature.ObjectKey
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
+import com.sza.fastmediasorter.databinding.ItemMediaFileGridBinding
+import com.sza.fastmediasorter.data.network.glide.NetworkFileData
+import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
+import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
+import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
+import timber.log.Timber
+import java.io.File
+import java.util.Date
+import kotlin.math.ln
+import kotlin.math.pow
+
+/**
+ * PagingDataAdapter for large datasets (1000+ files).
+ * Efficiently loads files in pages to prevent OOM crashes.
+ */
+class PagingMediaFileAdapter(
+    private val onFileClick: (MediaFile, Int) -> Unit, // Added position parameter
+    private val onFileLongClick: (MediaFile) -> Unit,
+    private val onSelectionChanged: (MediaFile, Boolean) -> Unit,
+    private val onSelectionRangeRequested: (MediaFile) -> Unit = {}, // Long click on checkbox
+    private val onPlayClick: (MediaFile) -> Unit,
+    private var isGridMode: Boolean = false,
+    private var thumbnailSize: Int = 96,
+    private val getShowVideoThumbnails: () -> Boolean = { false }, // Callback to get current setting
+    private val getShowPdfThumbnails: () -> Boolean = { false } // Callback to get PDF thumbnail setting
+) : PagingDataAdapter<MediaFile, RecyclerView.ViewHolder>(MediaFileDiffCallback()) {
+
+    private var selectedPaths = setOf<String>()
+    private var credentialsId: String? = null
+
+    companion object {
+        private const val VIEW_TYPE_LIST = 0
+        private const val VIEW_TYPE_GRID = 1
+        private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
+        
+        // EPUB cover size limits for network resources (same as PDF)
+        private const val SMB_EPUB_MAX_SIZE = 50 * 1024 * 1024L // 50 MB for SMB
+        private const val NETWORK_EPUB_MAX_SIZE = 10 * 1024 * 1024L // 10 MB for SFTP/FTP/Cloud
+    }
+
+    fun setCredentialsId(id: String?) {
+        credentialsId = id
+    }
+
+    fun setGridMode(enabled: Boolean, iconSize: Int = 96) {
+        if (isGridMode != enabled || thumbnailSize != iconSize) {
+            val modeChanged = isGridMode != enabled
+            val sizeChanged = thumbnailSize != iconSize
+            isGridMode = enabled
+            thumbnailSize = iconSize
+            
+            // When only size changes, force full refresh to update view layouts
+            if (sizeChanged && !modeChanged) {
+                notifyDataSetChanged()
+            } else {
+                notifyItemRangeChanged(0, itemCount, PAYLOAD_VIEW_MODE_CHANGE)
+            }
+        }
+    }
+
+    fun setSelectedPaths(paths: Set<String>) {
+        val oldSelected = selectedPaths
+        selectedPaths = paths
+
+        snapshot().forEachIndexed { index, file ->
+            if (file != null && (file.path in oldSelected || file.path in paths)) {
+                notifyItemChanged(index)
+            }
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return if (isGridMode) VIEW_TYPE_GRID else VIEW_TYPE_LIST
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_GRID -> {
+                val binding = ItemMediaFileGridBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                GridViewHolder(binding)
+            }
+            else -> {
+                val binding = ItemMediaFileBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                ListViewHolder(binding)
+            }
+        }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        val file = getItem(position) ?: return
+        when (holder) {
+            is ListViewHolder -> holder.bind(file, selectedPaths)
+            is GridViewHolder -> holder.bind(file, selectedPaths)
+        }
+    }
+    
+    override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
+        super.onViewRecycled(holder)
+        // Explicitly clear Glide requests when view is recycled to free up
+        // ConnectionThrottleManager slots immediately. Critical for network resources.
+        when (holder) {
+            is ListViewHolder -> holder.clearImage()
+            is GridViewHolder -> holder.clearImage()
+        }
+    }
+
+    inner class ListViewHolder(
+        private val binding: ItemMediaFileBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun clearImage() {
+            Glide.with(binding.ivThumbnail.context).clear(binding.ivThumbnail)
+        }
+
+        fun bind(file: MediaFile, selectedPaths: Set<String>) {
+            binding.apply {
+                val isSelected = file.path in selectedPaths
+
+                cbSelect.setOnCheckedChangeListener(null)
+                cbSelect.isChecked = isSelected
+                cbSelect.setOnCheckedChangeListener { _, isChecked ->
+                    onSelectionChanged(file, isChecked)
+                }
+                
+                // Long click on checkbox: select range from last selected to this file
+                cbSelect.setOnLongClickListener {
+                    if (!isSelected) {
+                        // Only handle long click on unchecked checkbox
+                        onSelectionRangeRequested(file)
+                    }
+                    true // Consume the event
+                }
+                // Highlight selected items
+                root.setBackgroundColor(
+                    if (isSelected) {
+                        root.context.getColor(com.sza.fastmediasorter.R.color.item_selected)
+                    } else {
+                        root.context.getColor(com.sza.fastmediasorter.R.color.item_normal)
+                    }
+                )
+
+                tvFileName.text = file.name
+                tvFileInfo.text = buildFileInfo(file)
+
+                loadThumbnail(file)
+
+                ivThumbnail.setOnClickListenerDebounced {
+                    onFileClick(file, bindingAdapterPosition)
+                }
+
+                root.setOnClickListenerDebounced {
+                    onFileClick(file, bindingAdapterPosition)
+                }
+
+                root.setOnLongClickListenerDebounced {
+                    onFileLongClick(file)
+                    true
+                }
+            }
+        }
+
+        private fun loadThumbnail(file: MediaFile) {
+            val imageView = binding.ivThumbnail
+            val context = imageView.context
+            val isCloudPath = file.path.startsWith("cloud://") || file.path.startsWith("cloud:/")
+            val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+            val cacheKey = "${file.path}_${file.size}"
+
+            if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
+                val localFile = File(file.path)
+                if (!localFile.exists()) {
+                    Timber.w("File no longer exists: ${file.path}")
+                    when (file.type) {
+                        MediaType.IMAGE, MediaType.GIF -> imageView.setImageResource(R.drawable.ic_image_error)
+                        MediaType.VIDEO -> imageView.setImageResource(R.drawable.ic_video_error)
+                        MediaType.AUDIO -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.TEXT -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.PDF -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.EPUB -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                    }
+                    return
+                }
+            }
+
+            when (file.type) {
+                MediaType.IMAGE, MediaType.GIF -> {
+                    if (isCloudPath) {
+                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
+                        if (!file.thumbnailUrl.isNullOrEmpty()) {
+                            val fileId = file.path.substringAfterLast("/")
+                            Glide.with(context)
+                                .load(GoogleDriveThumbnailData(
+                                    thumbnailUrl = file.thumbnailUrl,
+                                    fileId = fileId
+                                ))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .override(200, 200)
+                                .centerCrop()
+                                .transform(RoundedCorners(8))
+                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .placeholder(R.drawable.ic_image_placeholder)
+                                .error(R.drawable.ic_image_placeholder)
+                                .into(imageView)
+                        } else {
+                            Timber.w("No thumbnailUrl for cloud file: ${file.name}")
+                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        }
+                    } else if (isNetworkPath) {
+                        Glide.with(context)
+                            .load(NetworkFileData(path = file.path, credentialsId = credentialsId, size = file.size, createdDate = file.createdDate))
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_placeholder)
+                            .into(imageView)
+                    } else {
+                        val data = if (file.path.startsWith("content://")) {
+                            Uri.parse(file.path)
+                        } else {
+                            File(file.path)
+                        }
+                        Glide.with(context)
+                            .load(data)
+                            .signature(ObjectKey(cacheKey))
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded (critical for GIF persistence)
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_error)
+                            .into(imageView)
+                    }
+                }
+                MediaType.VIDEO -> {
+                    if (isCloudPath) {
+                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
+                        if (!file.thumbnailUrl.isNullOrEmpty()) {
+                            val fileId = file.path.substringAfterLast("/")
+                            Glide.with(context)
+                                .load(GoogleDriveThumbnailData(
+                                    thumbnailUrl = file.thumbnailUrl,
+                                    fileId = fileId
+                                ))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .override(200, 200)
+                                .centerCrop()
+                                .transform(RoundedCorners(8))
+                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .placeholder(R.drawable.ic_video_placeholder)
+                                .error(R.drawable.ic_video_error)
+                                .into(imageView)
+                        } else {
+                            Timber.w("No thumbnailUrl for cloud video: ${file.name}")
+                            imageView.setImageResource(R.drawable.ic_video_placeholder)
+                        }
+                    } else if (isNetworkPath) {
+                        Glide.with(context)
+                            .load(NetworkFileData(path = file.path, credentialsId = credentialsId, size = file.size, createdDate = file.createdDate, highPriority = false))
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_video_placeholder)
+                            .error(R.drawable.ic_video_error)
+                            .into(imageView)
+                    } else {
+                        val data = if (file.path.startsWith("content://")) {
+                            Uri.parse(file.path)
+                        } else {
+                            File(file.path)
+                        }
+                        Glide.with(context)
+                            .load(data)
+                            .signature(ObjectKey(cacheKey))
+                            .diskCacheStrategy(DiskCacheStrategy.DATA)
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_video_placeholder)
+                            .error(R.drawable.ic_video_error)
+                            .into(imageView)
+                    }
+                }
+                MediaType.AUDIO -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    val bitmap = createExtensionBitmap(extension)
+                    imageView.setImageBitmap(bitmap)
+                }
+                MediaType.TEXT -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    val bitmap = createExtensionBitmap(extension)
+                    imageView.setImageBitmap(bitmap)
+                }
+                MediaType.PDF -> {
+                    // Always load PDF thumbnails for network paths
+                    // Download size depends on "Large PDF Thumbnails" setting:
+                    // - OFF: 5MB (fast, lower quality)
+                    // - ON: full file (slow, best quality)
+                    if (isNetworkPath) {
+                        Glide.with(context)
+                            .asBitmap()
+                            .load(NetworkFileData(
+                                path = file.path,
+                                size = file.size,
+                                credentialsId = credentialsId
+                            ))
+                            .apply(com.bumptech.glide.request.RequestOptions()
+                                .set(com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD, getShowPdfThumbnails()))
+                            .signature(ObjectKey(cacheKey))
+                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_error)
+                            .into(imageView)
+                    } else {
+                        // Local PDF or cloud - show extension bitmap
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        val bitmap = createExtensionBitmap(extension)
+                        imageView.setImageBitmap(bitmap)
+                    }
+                }
+                MediaType.EPUB -> {
+                    // Load EPUB cover using Glide (EpubCoverDecoder registered in GlideAppModule)
+                    if (!isCloudPath && !isNetworkPath) {
+                        // Local EPUB - Glide will use EpubCoverDecoder automatically for .epub files
+                        val epubFile = File(file.path)
+                        if (epubFile.exists()) {
+                            Glide.with(context)
+                                .asBitmap()
+                                .load(epubFile)
+                                .signature(ObjectKey(cacheKey))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
+                                .placeholder(R.drawable.ic_image_placeholder)
+                                .error(createExtensionBitmap("EPUB")) // Fallback to extension bitmap if no cover
+                                .into(imageView)
+                        } else {
+                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        }
+                    } else if (isNetworkPath) {
+                        // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
+                        val isSmbPath = file.path.startsWith("smb://")
+                        val maxSize = if (isSmbPath) SMB_EPUB_MAX_SIZE else NETWORK_EPUB_MAX_SIZE
+                        
+                        if (file.size > maxSize) {
+                            // File too large - show placeholder without downloading
+                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        } else {
+                            // File size OK - use NetworkEpubCoverLoader
+                            val networkData = NetworkFileData(
+                                path = file.path,
+                                size = file.size,
+                                credentialsId = credentialsId
+                            )
+                            Glide.with(context)
+                                .asBitmap()
+                                .load(networkData)
+                                .signature(ObjectKey(cacheKey))
+                                .placeholder(R.drawable.ic_image_placeholder)
+                                .error(createExtensionBitmap("EPUB"))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .into(imageView)
+                        }
+                    } else {
+                        // Cloud EPUB - check size limit (same as PDF)
+                        if (file.size > NETWORK_EPUB_MAX_SIZE) {
+                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        } else {
+                            // Cloud EPUB implementation would go here
+                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        }
+                    }
+                }
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    imageView.setImageBitmap(createExtensionBitmap(extension))
+                }
+            }
+        }
+
+        private fun createExtensionBitmap(extension: String): Bitmap {
+            val size = 200
+            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+
+            val bgPaint = Paint().apply {
+                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
+                style = Paint.Style.FILL
+            }
+            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+
+            val textPaint = Paint().apply {
+                color = Color.WHITE
+                textSize = 60f
+                textAlign = Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            val xPos = size / 2f
+            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
+            canvas.drawText(extension, xPos, yPos, textPaint)
+
+            return bitmap
+        }
+
+        private fun buildFileInfo(file: MediaFile): String {
+            val size = formatFileSize(file.size)
+            val date = DateFormat.format("yyyy-MM-dd", Date(file.createdDate))
+            return "$size • $date"
+        }
+
+        private fun formatFileSize(size: Long): String {
+            return com.sza.fastmediasorter.core.util.formatFileSize(size)
+        }
+    }
+
+    inner class GridViewHolder(
+        private val binding: ItemMediaFileGridBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun clearImage() {
+            Glide.with(binding.ivThumbnail.context).clear(binding.ivThumbnail)
+        }
+
+        fun bind(file: MediaFile, selectedPaths: Set<String>) {
+            binding.apply {
+                val isSelected = file.path in selectedPaths
+
+                // Setup checkbox
+                cbSelect.setOnCheckedChangeListener(null)
+                cbSelect.isChecked = isSelected
+                cbSelect.setOnCheckedChangeListener { _, isChecked ->
+                    onSelectionChanged(file, isChecked)
+                }
+                
+                // Long click on checkbox: select range from last selected to this file
+                cbSelect.setOnLongClickListener {
+                    if (!isSelected) {
+                        // Only handle long click on unchecked checkbox
+                        onSelectionRangeRequested(file)
+                    }
+                    true // Consume the event
+                }
+
+                val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()
+                
+                // Set fixed height for consistent grid appearance
+                // Width is match_parent from XML
+                val imgParams = ivThumbnail.layoutParams
+                imgParams.height = sizeInPx
+                ivThumbnail.layoutParams = imgParams
+
+                cvCard.setCardBackgroundColor(
+                    if (isSelected) {
+                        root.context.getColor(R.color.item_selected)
+                    } else {
+                        root.context.getColor(R.color.item_normal)
+                    }
+                )
+
+                tvFileName.text = file.name
+
+                loadThumbnail(file)
+
+                ivThumbnail.setOnClickListenerDebounced {
+                    onFileClick(file, bindingAdapterPosition)
+                }
+
+                root.setOnClickListenerDebounced {
+                    onFileClick(file, bindingAdapterPosition)
+                }
+
+                root.setOnLongClickListenerDebounced {
+                    onFileLongClick(file)
+                    true
+                }
+            }
+        }
+
+        private fun loadThumbnail(file: MediaFile) {
+            val imageView = binding.ivThumbnail
+            val context = imageView.context
+            val isCloudPath = file.path.startsWith("cloud://") || file.path.startsWith("cloud:/")
+            val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+            val cacheKey = "${file.path}_${file.size}"
+
+            if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
+                val localFile = File(file.path)
+                if (!localFile.exists()) {
+                    Timber.w("File no longer exists: ${file.path}")
+                    when (file.type) {
+                        MediaType.IMAGE, MediaType.GIF -> imageView.setImageResource(R.drawable.ic_image_error)
+                        MediaType.VIDEO -> imageView.setImageResource(R.drawable.ic_video_error)
+                        MediaType.AUDIO -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.TEXT -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.PDF -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.EPUB -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                        MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
+                            val extension = file.name.substringAfterLast('.', "").uppercase()
+                            imageView.setImageBitmap(createExtensionBitmap(extension))
+                        }
+                    }
+                    return
+                }
+            }
+
+            when (file.type) {
+                MediaType.IMAGE, MediaType.GIF -> {
+                    if (isCloudPath) {
+                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
+                        if (!file.thumbnailUrl.isNullOrEmpty()) {
+                            val fileId = file.path.substringAfterLast("/")
+                            Glide.with(context)
+                                .load(GoogleDriveThumbnailData(
+                                    thumbnailUrl = file.thumbnailUrl,
+                                    fileId = fileId
+                                ))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .override(200, 200)
+                                .centerCrop()
+                                .transform(RoundedCorners(8))
+                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .placeholder(R.drawable.ic_image_placeholder)
+                                .error(R.drawable.ic_image_error)
+                                .into(imageView)
+                        } else {
+                            Timber.w("No thumbnailUrl for cloud file: ${file.name}")
+                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        }
+                    } else if (isNetworkPath) {
+                        Glide.with(context)
+                            .load(NetworkFileData(path = file.path, credentialsId = credentialsId, size = file.size, createdDate = file.createdDate))
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_error)
+                            .into(imageView)
+                    } else {
+                        val data = if (file.path.startsWith("content://")) {
+                            Uri.parse(file.path)
+                        } else {
+                            File(file.path)
+                        }
+                        Glide.with(context)
+                            .load(data)
+                            .signature(ObjectKey(cacheKey))
+                            .diskCacheStrategy(DiskCacheStrategy.DATA)
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_error)
+                            .into(imageView)
+                    }
+                }
+                MediaType.VIDEO -> {
+                    if (isCloudPath) {
+                        // Cloud path: use GoogleDriveThumbnailData for authenticated access
+                        if (!file.thumbnailUrl.isNullOrEmpty()) {
+                            val fileId = file.path.substringAfterLast("/")
+                            Glide.with(context)
+                                .load(GoogleDriveThumbnailData(
+                                    thumbnailUrl = file.thumbnailUrl,
+                                    fileId = fileId
+                                ))
+                                .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                                .override(200, 200)
+                                .centerCrop()
+                                .transform(RoundedCorners(8))
+                                .transition(DrawableTransitionOptions.withCrossFade(100))
+                                .placeholder(R.drawable.ic_video_placeholder)
+                                .error(R.drawable.ic_video_error)
+                                .into(imageView)
+                        } else {
+                            Timber.w("No thumbnailUrl for cloud video: ${file.name}")
+                            imageView.setImageResource(R.drawable.ic_video_placeholder)
+                        }
+                    } else if (isNetworkPath) {
+                        Glide.with(context)
+                            .load(NetworkFileData(path = file.path, credentialsId = credentialsId, size = file.size, createdDate = file.createdDate, highPriority = false))
+                            .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_video_placeholder)
+                            .error(R.drawable.ic_video_error)
+                            .into(imageView)
+                    } else {
+                        val data = if (file.path.startsWith("content://")) {
+                            Uri.parse(file.path)
+                        } else {
+                            File(file.path)
+                        }
+                        Glide.with(context)
+                            .load(data)
+                            .signature(ObjectKey(cacheKey))
+                            .diskCacheStrategy(DiskCacheStrategy.DATA)
+                            .override(200, 200)
+                            .centerCrop()
+                            .transform(RoundedCorners(8))
+                            .transition(DrawableTransitionOptions.withCrossFade(100))
+                            .placeholder(R.drawable.ic_video_placeholder)
+                            .error(R.drawable.ic_video_error)
+                            .into(imageView)
+                    }
+                }
+                MediaType.AUDIO -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    val bitmap = createExtensionBitmap(extension)
+                    imageView.setImageBitmap(bitmap)
+                }
+                MediaType.TEXT -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    val bitmap = createExtensionBitmap(extension)
+                    imageView.setImageBitmap(bitmap)
+                }
+                MediaType.PDF -> {
+                    // Always load PDF thumbnails for network paths
+                    // Download size depends on "Large PDF Thumbnails" setting
+                    if (isNetworkPath) {
+                        Glide.with(context)
+                            .asBitmap()
+                            .load(NetworkFileData(
+                                path = file.path,
+                                size = file.size,
+                                credentialsId = credentialsId
+                            ))
+                            .apply(com.bumptech.glide.request.RequestOptions()
+                                .set(com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD, getShowPdfThumbnails()))
+                            .signature(ObjectKey(cacheKey))
+                            .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                            .placeholder(R.drawable.ic_image_placeholder)
+                            .error(R.drawable.ic_image_error)
+                            .into(imageView)
+                    } else {
+                        // Local PDF or cloud - show extension bitmap
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        val bitmap = createExtensionBitmap(extension)
+                        imageView.setImageBitmap(bitmap)
+                    }
+                }
+                MediaType.EPUB -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    val bitmap = createExtensionBitmap(extension)
+                    imageView.setImageBitmap(bitmap)
+                }
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> {
+                    val extension = file.name.substringAfterLast('.', "").uppercase()
+                    imageView.setImageBitmap(createExtensionBitmap(extension))
+                }
+            }
+        }
+
+        private fun createExtensionBitmap(extension: String): Bitmap {
+            val size = 200
+            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(bitmap)
+
+            val bgPaint = Paint().apply {
+                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
+                style = Paint.Style.FILL
+            }
+            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+
+            val textPaint = Paint().apply {
+                color = Color.WHITE
+                textSize = 60f
+                textAlign = Paint.Align.CENTER
+                isAntiAlias = true
+            }
+            val xPos = size / 2f
+            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
+            canvas.drawText(extension, xPos, yPos, textPaint)
+
+            return bitmap
+        }
+    }
+}
+
+private class MediaFileDiffCallback : DiffUtil.ItemCallback<MediaFile>() {
+    override fun areItemsTheSame(oldItem: MediaFile, newItem: MediaFile): Boolean {
+        return oldItem.path == newItem.path
+    }
+
+    override fun areContentsTheSame(oldItem: MediaFile, newItem: MediaFile): Boolean {
+        return oldItem == newItem
+    }
+}
+
+
+
