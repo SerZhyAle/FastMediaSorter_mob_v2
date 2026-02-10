@@ -60,7 +60,7 @@ class SystemBarsManager(
                 
                 // Immersive sticky mode: bars stay hidden, no swipe to reveal
                 controller.systemBarsBehavior = 
-                    WindowInsetsController.BEHAVIOR_DEFAULT
+                    WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 
                 Timber.d("SystemBars: Entered fullscreen mode (API 30+) - immersive sticky")
             }
@@ -76,7 +76,7 @@ class SystemBarsManager(
                 
                 // Immersive sticky mode: bars stay hidden, no swipe to reveal
                 controller.systemBarsBehavior = 
-                    WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 
                 Timber.d("SystemBars: Entered fullscreen mode (Legacy API) - immersive sticky")
             }

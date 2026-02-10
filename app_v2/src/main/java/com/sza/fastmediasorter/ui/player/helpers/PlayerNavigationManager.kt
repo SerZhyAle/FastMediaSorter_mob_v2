@@ -75,6 +75,11 @@ class PlayerNavigationManager(
                     viewModel.setPaused(isPaused)
                     activity.updateSlideShowButton()
                     activity.updatePlayPauseButton()
+                    
+                    // Auto-enter fullscreen when slideshow starts
+                    if (isActive && !isPaused) {
+                        viewModel.enterFullscreenMode()
+                    }
                 }
 
                 override fun onCountdownTick(seconds: Int) {

@@ -1764,16 +1764,25 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             isExplicitFullscreenMode = false
         }
 
+        // Check if user wants to hide system UI in fullscreen mode (default: true)
+        val hideSystemUiEnabled = currentSettings?.hideSystemUiInFullscreen != false
+
         val isDocumentFullscreen = _pdfViewerManager?.isInFullscreenMode() == true ||
             _epubViewerManager?.isInFullscreenMode() == true
-        if (isDocumentFullscreen) {
+        if (isDocumentFullscreen && hideSystemUiEnabled) {
             systemBarsManager.enterFullscreenMode()
+            return
+        } else if (isDocumentFullscreen) {
+            // Document fullscreen but system UI hiding disabled - keep bars visible
+            systemBarsManager.exitFullscreenMode()
             return
         }
 
-        val shouldHideSystemBars = isExplicitFullscreenMode ||
+        val shouldHideSystemBars = hideSystemUiEnabled && (
+            isExplicitFullscreenMode ||
             viewModel.state.value.isSlideShowActive ||
             isAudioSlideshowPhotoMode
+        )
 
         if (shouldHideSystemBars) {
             systemBarsManager.enterFullscreenMode()
@@ -3169,7 +3178,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun onEnterFullscreenMode() {
-                    systemBarsManager.enterFullscreenMode()
+                    if (currentSettings?.hideSystemUiInFullscreen != false) {
+                        systemBarsManager.enterFullscreenMode()
+                    }
                     binding.toolbar.isVisible = false
                     binding.copyToPanel.isVisible = false
                     binding.moveToPanel.isVisible = false
@@ -3209,7 +3220,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun onEnterFullscreenMode() {
-                    systemBarsManager.enterFullscreenMode()
+                    if (currentSettings?.hideSystemUiInFullscreen != false) {
+                        systemBarsManager.enterFullscreenMode()
+                    }
                 }
                 
                 override fun onExitFullscreenMode() {

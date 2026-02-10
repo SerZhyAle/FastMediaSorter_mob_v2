@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.ui.main
 
 import android.content.res.ColorStateList
+import android.graphics.Color
+import android.text.SpannableString
+import android.text.Spanned
 import android.text.format.DateUtils
+import android.text.style.ForegroundColorSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
@@ -31,17 +35,70 @@ class ResourceAdapter(
         const val VIEW_TYPE_LIST = 0
         const val VIEW_TYPE_GRID = 1
         
+        // Color definitions for each media type
+        private const val COLOR_IMAGE = 0xFF2196F3.toInt()     // Blue
+        private const val COLOR_VIDEO = 0xFFE91E63.toInt()     // Pink
+        private const val COLOR_AUDIO = 0xFF4CAF50.toInt()     // Green
+        private const val COLOR_GIF = 0xFFFF9800.toInt()       // Orange
+        private const val COLOR_TEXT = 0xFF9C27B0.toInt()      // Purple
+        private const val COLOR_PDF = 0xFFF44336.toInt()       // Red
+        private const val COLOR_EPUB = 0xFF00BCD4.toInt()      // Cyan
+        
         /**
-         * Formats supported media types as IVAGTPE string
+         * Formats supported media types as colored IVAGTPE string or "ALL" for allFiles mode
          */
-        fun formatMediaTypes(types: Set<MediaType>): String = buildString {
-            if (MediaType.IMAGE in types) append("I")
-            if (MediaType.VIDEO in types) append("V")
-            if (MediaType.AUDIO in types) append("A")
-            if (MediaType.GIF in types) append("G")
-            if (MediaType.TEXT in types) append("T")
-            if (MediaType.PDF in types) append("P")
-            if (MediaType.EPUB in types) append("E")
+        fun formatMediaTypes(types: Set<MediaType>, allFiles: Boolean): CharSequence {
+            // If allFiles flag is set, show "ALL" instead of type letters
+            if (allFiles) {
+                return "ALL"
+            }
+            
+            // Build colored string for each media type
+            val text = buildString {
+                if (MediaType.IMAGE in types) append("I")
+                if (MediaType.VIDEO in types) append("V")
+                if (MediaType.AUDIO in types) append("A")
+                if (MediaType.GIF in types) append("G")
+                if (MediaType.TEXT in types) append("T")
+                if (MediaType.PDF in types) append("P")
+                if (MediaType.EPUB in types) append("E")
+            }
+            
+            if (text.isEmpty()) return ""
+            
+            val spannable = SpannableString(text)
+            var position = 0
+            
+            if (MediaType.IMAGE in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_IMAGE), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.VIDEO in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_VIDEO), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.AUDIO in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_AUDIO), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.GIF in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_GIF), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.TEXT in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_TEXT), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.PDF in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_PDF), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            if (MediaType.EPUB in types) {
+                spannable.setSpan(ForegroundColorSpan(COLOR_EPUB), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                position++
+            }
+            
+            return spannable
         }
     }
 
@@ -181,8 +238,8 @@ class ResourceAdapter(
                     android.view.View.GONE
                 }
 
-                // Media Types Indicator (IVAGTPE)
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(resource.supportedMediaTypes)
+                // Media Types Indicator (IVAGTPE or ALL)
+                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(resource.supportedMediaTypes, resource.allFiles)
 
                 // Interaction with debounce protection
                 root.isSelected = resource.id == selectedId
@@ -268,7 +325,7 @@ class ResourceAdapter(
                     else -> root.context.getString(R.string.file_count_format, resource.fileCount)
                 }
                 
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(resource.supportedMediaTypes)
+                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(resource.supportedMediaTypes, resource.allFiles)
                 
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
                 

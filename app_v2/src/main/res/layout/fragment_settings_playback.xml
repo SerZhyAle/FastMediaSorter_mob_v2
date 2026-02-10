@@ -238,27 +238,59 @@
 
         </LinearLayout>
 
-        <!-- Hide Grid Action Buttons (sub-option under Grid Mode) -->
+        <!-- Hide Grid Action Buttons + Hide System UI (One Row) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical"
+            android:baselineAligned="false"
             android:paddingStart="@dimen/settings_margin_end_large"
             android:paddingEnd="@dimen/padding_none"
             android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchHideGridActionButtons"
-                android:layout_width="wrap_content"
+            <!-- Hide Grid Action Buttons -->
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginEnd="@dimen/margin_small">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchHideGridActionButtons"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hide_grid_action_buttons"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+            </LinearLayout>
+
+            <!-- Hide System UI in Fullscreen -->
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/hide_grid_action_buttons"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginStart="@dimen/margin_small">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchHideSystemUiInFullscreen"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/hide_system_ui_in_fullscreen"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Command Panel + Detailed Errors (One Row) -->

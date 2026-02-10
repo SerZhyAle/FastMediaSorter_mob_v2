@@ -120,6 +120,12 @@ class PlaybackSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(hideGridActionButtons = isChecked))
         }
         
+        binding.switchHideSystemUiInFullscreen.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(hideSystemUiInFullscreen = isChecked))
+        }
+        
         binding.switchShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -247,6 +253,9 @@ class PlaybackSettingsFragment : Fragment() {
                     }
                     if (binding.switchHideGridActionButtons.isChecked != settings.hideGridActionButtons) {
                         binding.switchHideGridActionButtons.isChecked = settings.hideGridActionButtons
+                    }
+                    if (binding.switchHideSystemUiInFullscreen.isChecked != settings.hideSystemUiInFullscreen) {
+                        binding.switchHideSystemUiInFullscreen.isChecked = settings.hideSystemUiInFullscreen
                     }
                     if (binding.switchShowCommandPanel.isChecked != settings.defaultShowCommandPanel) {
                         binding.switchShowCommandPanel.isChecked = settings.defaultShowCommandPanel

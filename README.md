@@ -75,6 +75,8 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 >
 > 🔐 **ZIP Password: `1`** (APK files are packaged as password-protected ZIP archives to bypass Google Drive restrictions)
 
+📄 **Detailed information about builds and download process:** [docs/DOWLOADS_EN.md](docs/DOWLOADS_EN.md)
+
 ## Screenshots 📱
 
 <!-- Place screenshots here. Example structure: -->

@@ -328,6 +328,7 @@
     <string name="confirm_delete">Confirm delete</string>
     <string name="grid_mode">Grid mode by default</string>
     <string name="hide_grid_action_buttons">Hide quick action buttons on thumbnails</string>
+    <string name="hide_system_ui_in_fullscreen">Hide OS UI in fullscreen</string>
     <string name="show_command_panel_by_default">Show command panel by default</string>
     <string name="show_detailed_errors">Show detailed errors</string>
     <string name="show_player_hint">Show touch zones hint on first run</string>

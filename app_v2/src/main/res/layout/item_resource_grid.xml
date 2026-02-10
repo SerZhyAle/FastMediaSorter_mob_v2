@@ -60,7 +60,7 @@
         android:gravity="center"
         android:maxLines="1"
         android:textColor="?android:attr/textColorSecondary"
-        android:textSize="@dimen/item_detail_text_size_small"
+        android:textSize="@dimen/item_detail_text_size_tiny"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

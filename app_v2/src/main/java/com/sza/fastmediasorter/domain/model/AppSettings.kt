@@ -74,6 +74,7 @@ data class AppSettings(
     val confirmMove: Boolean = false, // Confirm before moving files (used by Safe Mode)
     val defaultGridMode: Boolean = false,
     val hideGridActionButtons: Boolean = true, // Hide quick action buttons (copy/move/rename/delete) on grid thumbnails
+    val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
     val showDetailedErrors: Boolean = false,

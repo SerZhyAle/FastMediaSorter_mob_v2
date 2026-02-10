@@ -220,3 +220,5 @@ google*.html
 # ✅ ProGuard rules: proguard-rules.pro
 # ============================================================================
 servers/
+
+archive/

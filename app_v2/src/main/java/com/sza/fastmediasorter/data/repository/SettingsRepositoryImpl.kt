@@ -88,6 +88,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_CONFIRM_MOVE = booleanPreferencesKey("confirm_move")
         private val KEY_DEFAULT_GRID_MODE = booleanPreferencesKey("default_grid_mode")
         private val KEY_HIDE_GRID_ACTION_BUTTONS = booleanPreferencesKey("hide_grid_action_buttons")
+        private val KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN = booleanPreferencesKey("hide_system_ui_in_fullscreen")
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
         private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
@@ -221,6 +222,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     confirmMove = preferences[KEY_CONFIRM_MOVE] ?: false,
                     defaultGridMode = preferences[KEY_DEFAULT_GRID_MODE] ?: false,
                     hideGridActionButtons = preferences[KEY_HIDE_GRID_ACTION_BUTTONS] ?: true,
+                    hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = run {
                         val savedSize = preferences[KEY_DEFAULT_ICON_SIZE] ?: 96
                         // Validate: must be 32 + 8*N (valid range: 32..256)
@@ -342,6 +344,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_CONFIRM_MOVE] = settings.confirmMove
             preferences[KEY_DEFAULT_GRID_MODE] = settings.defaultGridMode
             preferences[KEY_HIDE_GRID_ACTION_BUTTONS] = settings.hideGridActionButtons
+            preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
             preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
             preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
             preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors

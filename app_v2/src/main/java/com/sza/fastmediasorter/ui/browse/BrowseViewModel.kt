@@ -1010,7 +1010,7 @@ class BrowseViewModel @Inject constructor(
             )) {
                 is com.sza.fastmediasorter.ui.browse.cache.BrowseCacheManager.CacheCheckResult.UseCache -> {
                     // Filter cached files based on scanSubdirectories setting
-                    val filteredFiles = if (resource.scanSubdirectories) {
+                    var filteredFiles = if (resource.scanSubdirectories) {
                         cacheResult.files
                     } else {
                         // When scanSubdirectories=false: remove directories AND files from subdirectories
@@ -1024,6 +1024,17 @@ class BrowseViewModel @Inject constructor(
                             val parentPath = filePath.substringBeforeLast('/', "")
                             parentPath.trimEnd('/') == resourcePath
                         }
+                    }
+                    
+                    // CRITICAL FIX: Filter cached files by resource.supportedMediaTypes
+                    // Cache may contain files from previous "allFiles" mode session
+                    // Always respect resource-level supportedMediaTypes configuration
+                    if (!resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
+                        val beforeCount = filteredFiles.size
+                        filteredFiles = filteredFiles.filter { file ->
+                            file.isDirectory || resource.supportedMediaTypes.contains(file.type)
+                        }
+                        Timber.d("BrowseViewModel.loadResource: Cache filtered by supportedMediaTypes=${resource.supportedMediaTypes.map { it.name }} - before=$beforeCount, after=${filteredFiles.size}")
                     }
                     
                     Timber.d("BrowseViewModel.loadResource: Cache files filtered - original=${cacheResult.files.size}, after scanSubdirectories filter=${filteredFiles.size}, scanSubdirectories=${resource.scanSubdirectories}")
@@ -1163,15 +1174,16 @@ class BrowseViewModel @Inject constructor(
             Timber.d("BrowseViewModel.loadMediaFiles: Size filter configured - imageMin=${settings.imageSizeMin}, videoMin=${settings.videoSizeMin}")
             
             // CRITICAL: Check if "All Files" setting is enabled
-            // When allFiles is ON (global setting or resource-level), show ALL file types regardless of supportedMediaTypes
-            val effectiveMediaTypes = if (settings.allFiles || resource.allFiles) {
-                Timber.d("BrowseViewModel.loadMediaFiles: 'All Files' mode ON - showing ALL file types (global=${settings.allFiles}, resource=${resource.allFiles})")
+            // FIXED: Resource-level allFiles overrides supportedMediaTypes, but global setting does NOT override resource configuration
+            val effectiveMediaTypes = if (resource.allFiles) {
+                // Resource-specific "show all files" flag - overrides supportedMediaTypes for THIS resource
+                Timber.d("BrowseViewModel.loadMediaFiles: 'All Files' mode ON for RESOURCE - showing ALL file types (resource.allFiles=true)")
                 MediaType.entries.toSet() // All 7 types: IMAGE, VIDEO, AUDIO, GIF, TEXT, PDF, EPUB
             } else {
-                // Apply global media type restrictions: intersect resource types with globally enabled types
+                // Respect resource's supportedMediaTypes, intersect with global restrictions
                 val globallyEnabled = settings.getGloballyEnabledMediaTypes()
                 val intersected = resource.supportedMediaTypes.intersect(globallyEnabled)
-                Timber.d("BrowseViewModel.loadMediaFiles: Normal mode - resource types: ${resource.supportedMediaTypes}, global enabled: $globallyEnabled, effective: $intersected")
+                Timber.d("BrowseViewModel.loadMediaFiles: Normal mode - resource types: ${resource.supportedMediaTypes}, global enabled: $globallyEnabled, effective: $intersected (global allFiles ignored: ${settings.allFiles})")
                 intersected
             }
             
@@ -2277,6 +2289,7 @@ class BrowseViewModel @Inject constructor(
      */
     fun syncWithCache() {
         val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
+        val resource = state.value.resource
         if (cachedFiles != null) {
             val currentFiles = state.value.mediaFiles
             
@@ -2284,13 +2297,23 @@ class BrowseViewModel @Inject constructor(
             // The size check was insufficient because renames don't change size, 
             // and sometimes cache updates might not be reflected if size happens to match
             Timber.d("syncWithCache: Syncing state with cache (${cachedFiles.size} files)")
+            
+            // CRITICAL: Filter by resource.supportedMediaTypes first
+            // Cache may contain files from previous "allFiles" mode session
+            var filteredFiles = if (resource != null && !resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
+                cachedFiles.filter { file ->
+                    file.isDirectory || resource.supportedMediaTypes.contains(file.type)
+                }
+            } else {
+                cachedFiles
+            }
              
             // Apply current filter to cached files before updating state
             val filter = state.value.filter
-            val filteredFiles = if (filter != null) {
-                applyFilterToList(cachedFiles, filter)
+            filteredFiles = if (filter != null) {
+                applyFilterToList(filteredFiles, filter)
             } else {
-                cachedFiles
+                filteredFiles
             }
              
             Timber.d("syncWithCache: After filter applied - ${filteredFiles.size} files (was ${cachedFiles.size})")
