@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -44,6 +45,9 @@ class BackgroundMusicManager @Inject constructor(
     private var currentTrackPath: String? = null
     private var currentTrackName: String? = null // Track name for display (without extension)
     
+    // Track failed files to skip corrupted/problematic tracks
+    private val failedFiles = mutableSetOf<String>()
+    
     // Track name callback for UI display
     private var onTrackChangedListener: ((trackName: String?) -> Unit)? = null
     
@@ -59,6 +63,7 @@ class BackgroundMusicManager @Inject constructor(
     // Scope for background file loading
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var loadPlaylistJob: Job? = null
+    private var healthCheckJob: Job? = null
     
     /**
      * Set listener for track name changes (for UI display during slideshow)
@@ -81,7 +86,7 @@ class BackgroundMusicManager @Inject constructor(
                 volume = 0.5f 
                 prepare()
                 
-                // Add listener for auto-advance on track completion
+                // Add listener for auto-advance on track completion and error recovery
                 addListener(object : Player.Listener {
                     override fun onPlaybackStateChanged(playbackState: Int) {
                         // Prevent operations after release
@@ -94,9 +99,69 @@ class BackgroundMusicManager @Inject constructor(
                             skipToNextRandomTrack()
                         }
                     }
+                    
+                    override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                        Timber.e(error, "BackgroundMusic: ExoPlayer ERROR detected")
+                        Timber.e("BackgroundMusic: Error code: ${error.errorCode}, name: ${error.errorCodeName}")
+                        Timber.e("BackgroundMusic: Message: ${error.message}")
+                        Timber.e("BackgroundMusic: Current track: $currentTrackPath")
+                        
+                        // Mark current file as failed to avoid replaying it
+                        currentTrackPath?.let { path ->
+                            failedFiles.add(path)
+                            Timber.w("BackgroundMusic: Marked file as failed: $path (total failed: ${failedFiles.size})")
+                        }
+                        
+                        // Attempt recovery by skipping to next track
+                        scope.launch {
+                            try {
+                                delay(500) // Small delay to let error state settle
+                                Timber.w("BackgroundMusic: Attempting auto-recovery - skipping to next track")
+                                
+                                withContext(Dispatchers.Main) {
+                                    // Stop current playback
+                                    musicPlayer?.stop()
+                                }
+                                
+                                delay(200)
+                                
+                                // Skip to next track (excluding failed files)
+                                skipToNextRandomTrack()
+                                
+                                Timber.i("BackgroundMusic: Auto-recovery successful - playing next track")
+                                
+                            } catch (e: Exception) {
+                                Timber.e(e, "BackgroundMusic: Auto-recovery failed, attempting full reinitialization")
+                                
+                                // Last resort: reinitialize player
+                                withContext(Dispatchers.Main) {
+                                    try {
+                                        this@BackgroundMusicManager.musicPlayer?.release()
+                                        this@BackgroundMusicManager.musicPlayer = null
+                                        this@BackgroundMusicManager.isPlaying = false
+                                        
+                                        // Reinitialize
+                                        this@BackgroundMusicManager.initialize()
+                                        
+                                        // Notify user
+                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke("Музыка перезапущена после ошибки")
+                                        
+                                        Timber.i("BackgroundMusic: Player reinitialized after recovery failure")
+                                        
+                                    } catch (reinitError: Exception) {
+                                        Timber.e(reinitError, "BackgroundMusic: Reinitialization failed - music playback disabled")
+                                        this@BackgroundMusicManager.onMusicErrorListener?.invoke("Не удалось восстановить воспроизведение музыки")
+                                    }
+                                }
+                            }
+                        }
+                    }
                 })
             }
-            Timber.d("BackgroundMusic: Player initialized with auto-advance listener")
+            Timber.d("BackgroundMusic: Player initialized with auto-advance and error recovery")
+            
+            // Start health check watchdog
+            startHealthCheck()
         }
     }
 
@@ -297,11 +362,21 @@ class BackgroundMusicManager @Inject constructor(
         
         val isSingleFile = availableAudioFiles.size == 1
         
-        // Select a different random file (avoid same track if possible)
+        // Select a different random file (avoid same track and failed files)
         val candidateFiles = if (availableAudioFiles.size > 1 && currentTrackPath != null) {
-            availableAudioFiles.filter { it.path != currentTrackPath }
+            val filtered = availableAudioFiles.filter { 
+                it.path != currentTrackPath && it.path !in failedFiles 
+            }
+            // If all files failed, clear failed list and try again
+            if (filtered.isEmpty() && failedFiles.isNotEmpty()) {
+                Timber.w("BackgroundMusic: All files marked as failed (${failedFiles.size}), clearing failed list")
+                failedFiles.clear()
+                availableAudioFiles.filter { it.path != currentTrackPath }
+            } else {
+                filtered
+            }
         } else {
-            availableAudioFiles
+            availableAudioFiles.filter { it.path !in failedFiles }
         }
         
         val randomFile = candidateFiles.random()
@@ -377,18 +452,72 @@ class BackgroundMusicManager @Inject constructor(
         }
     }
 
+    /**
+     * Health check watchdog - monitors player state and auto-recovers if stuck.
+     * Runs every 60 seconds while music should be playing.
+     */
+    private fun startHealthCheck() {
+        healthCheckJob?.cancel()
+        healthCheckJob = scope.launch {
+            while (isActive) {
+                delay(60_000) // Check every 60 seconds
+                
+                if (isPlaying) {
+                    val player = musicPlayer
+                    if (player == null) {
+                        Timber.w("BackgroundMusic: Health check - player is null while isPlaying=true")
+                        isPlaying = false
+                        continue
+                    }
+                    
+                    val playbackState = player.playbackState
+                    val isActuallyPlaying = player.isPlaying
+                    
+                    if (playbackState == Player.STATE_IDLE && isPlaying) {
+                        Timber.w("BackgroundMusic: Health check FAILED - player in IDLE state while should be playing")
+                        Timber.w("BackgroundMusic: Attempting recovery via skip to next track")
+                        
+                        try {
+                            skipToNextRandomTrack()
+                        } catch (e: Exception) {
+                            Timber.e(e, "BackgroundMusic: Health check recovery failed")
+                        }
+                    } else if (!isActuallyPlaying && playbackState != Player.STATE_BUFFERING) {
+                        Timber.w("BackgroundMusic: Health check - player not playing (state: $playbackState)")
+                        Timber.w("BackgroundMusic: Attempting to resume playback")
+                        
+                        withContext(Dispatchers.Main) {
+                            try {
+                                player.play()
+                            } catch (e: Exception) {
+                                Timber.e(e, "BackgroundMusic: Failed to resume playback")
+                            }
+                        }
+                    } else {
+                        Timber.d("BackgroundMusic: Health check OK - playbackState=$playbackState, isPlaying=$isActuallyPlaying")
+                    }
+                }
+            }
+        }
+        Timber.d("BackgroundMusic: Health check watchdog started (60s interval)")
+    }
+    
     fun release() {
+        healthCheckJob?.cancel()
+        loadPlaylistJob?.cancel()
         musicPlayer?.release()
         musicPlayer = null
         isPlaying = false
-        loadPlaylistJob?.cancel()
         
         // Reset state to ensure fresh load next time
         currentMusicResourceId = null
         currentPlaylist = emptyList()
         availableAudioFiles = emptyList()
         currentTrackPath = null
-        currentTrackName = null // Clear current track name
+        currentTrackName = null
+        failedFiles.clear()
+        
+        Timber.d("BackgroundMusic: Released all resources")
     }
     
     fun setVolume(volume: Float) {
