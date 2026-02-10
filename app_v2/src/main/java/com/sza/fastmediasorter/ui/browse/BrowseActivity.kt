@@ -1743,7 +1743,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         val state = viewModel.state.value
         val resource = state.resource
         
-        // Try to find lastViewedFile
+        // Try to find lastViewedFile or selected file
         val startIndex = if (resource?.lastViewedFile != null) {
             state.mediaFiles.indexOfFirst { it.path == resource.lastViewedFile }
         } else if (state.selectedFiles.isNotEmpty()) {
@@ -1752,36 +1752,26 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             -1
         }
         
-        if (startIndex >= 0) {
-            val file = state.mediaFiles[startIndex]
+        // If file not found or no starting point specified, use first file (index 0)
+        val actualIndex = if (startIndex >= 0) startIndex else 0
+        
+        if (state.mediaFiles.isNotEmpty()) {
+            val file = state.mediaFiles[actualIndex]
             val isDocument = file.type == MediaType.TEXT || 
                             file.type == MediaType.PDF || 
                             file.type == MediaType.EPUB
             
             val resourceId = resource?.id ?: 0L
             val skipCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
-            val intent = PlayerActivity.createIntent(this, resourceId, startIndex, skipCheck).apply {
+            val intent = PlayerActivity.createIntent(this, resourceId, actualIndex, skipCheck).apply {
                 // Start slideshow only for media files (not documents)
                 if (!isDocument) {
                     putExtra("slideshow_mode", true)
                 }
             }
             startActivity(intent)
-        } else if (resource?.lastViewedFile != null) {
-            // File was set but not found (deleted or moved)
-            Toast.makeText(this, R.string.toast_file_unavailable, Toast.LENGTH_LONG).show()
         } else {
-            // No lastViewedFile, no selected files - use first file
-            if (state.mediaFiles.isNotEmpty()) {
-                val resourceId = resource?.id ?: 0L
-                val skipCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
-                val intent = PlayerActivity.createIntent(this, resourceId, 0, skipCheck).apply {
-                    putExtra("slideshow_mode", true)
-                }
-                startActivity(intent)
-            } else {
-                Toast.makeText(this, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
-            }
+            Toast.makeText(this, R.string.toast_no_files_to_play, Toast.LENGTH_SHORT).show()
         }
     }
     
