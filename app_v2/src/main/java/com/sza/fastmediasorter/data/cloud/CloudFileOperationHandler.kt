@@ -19,14 +19,11 @@ import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
@@ -58,54 +55,35 @@ class CloudFileOperationHandler @Inject constructor(
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val settingsRepository: SettingsRepository,
     private val cloudPathParser: CloudPathParser,
     private val networkCredentialsResolver: NetworkCredentialsResolver,
     private val cloudAuthHelper: CloudAuthenticationHelper
 ) : BaseFileOperationHandler(context) {
 
-    private val cloudStrategy: FileOperationStrategy by lazy {
-        val base = CloudOperationStrategy(context, googleDriveClient, dropboxClient, oneDriveClient)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val cloudStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        CloudOperationStrategy(context, googleDriveClient, dropboxClient, oneDriveClient),
+        enableAtomic = true
+    )
     
-    private val smbStrategy: FileOperationStrategy by lazy {
-        val base = SmbOperationStrategy(context, smbClient, credentialsRepository)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val smbStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        SmbOperationStrategy(context, smbClient, credentialsRepository),
+        enableAtomic = true
+    )
     
-    private val sftpStrategy: FileOperationStrategy by lazy {
-        val base = SftpOperationStrategy(context, sftpClient, credentialsRepository)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        SftpOperationStrategy(context, sftpClient, credentialsRepository),
+        enableAtomic = true
+    )
     
-    private val ftpStrategy: FileOperationStrategy by lazy {
-        val base = FtpOperationStrategy(context, ftpClient, credentialsRepository)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val ftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        FtpOperationStrategy(context, ftpClient, credentialsRepository),
+        enableAtomic = true
+    )
     
-    private val localStrategy: FileOperationStrategy by lazy {
-        val base = LocalOperationStrategy(context)
-        wrapWithAtomicIfEnabled(base)
-    }
-    
-    private fun wrapWithAtomicIfEnabled(strategy: FileOperationStrategy): FileOperationStrategy {
-        val enableAtomic = runBlocking {
-            try {
-                settingsRepository.getSettings().first().enableAtomicTransfer
-            } catch (e: Exception) {
-                Timber.w(e, "CloudFileOperationHandler: Failed to read atomic transfer setting, defaulting to true")
-                true
-            }
-        }
-        
-        return if (enableAtomic) {
-            Timber.d("CloudFileOperationHandler: Wrapping ${strategy.getProtocolName()} with atomic support")
-            AtomicFileOperationStrategy(strategy, enableAtomic = true)
-        } else {
-            strategy
-        }
-    }
+    private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        LocalOperationStrategy(context),
+        enableAtomic = true
+    )
 
     override fun getStrategies(): List<FileOperationStrategy> {
         return listOf(cloudStrategy, smbStrategy, sftpStrategy, ftpStrategy, localStrategy)

@@ -110,6 +110,7 @@ class BrowseViewModel @Inject constructor(
     val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
     private val cleanupTrashFoldersUseCase: com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase,
+    private val cleanupOrphanedTempFilesUseCase: com.sza.fastmediasorter.domain.usecase.CleanupOrphanedTempFilesUseCase,
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
@@ -1150,6 +1151,27 @@ class BrowseViewModel @Inject constructor(
             
             // Reset graceful stop flag at start of new scan
             shouldStopScan.set(false)
+            
+            // Cleanup orphaned .temp_copy files from previous failed transfers
+            // Non-blocking - errors are logged but do not prevent file loading
+            try {
+                Timber.d("BrowseViewModel.loadMediaFiles: Starting cleanup of orphaned temp files in '${resource.path}'")
+                val cleanupResult = cleanupOrphanedTempFilesUseCase(resource.path)
+                cleanupResult.fold(
+                    onSuccess = { deletedCount ->
+                        if (deletedCount > 0) {
+                            Timber.i("BrowseViewModel.loadMediaFiles: Cleanup completed - deleted $deletedCount orphaned temp file(s)")
+                        } else {
+                            Timber.d("BrowseViewModel.loadMediaFiles: Cleanup completed - no orphaned temp files found")
+                        }
+                    },
+                    onFailure = { error ->
+                        Timber.w(error, "BrowseViewModel.loadMediaFiles: Cleanup failed (non-critical, continuing)")
+                    }
+                )
+            } catch (e: Exception) {
+                Timber.w(e, "BrowseViewModel.loadMediaFiles: Cleanup exception (non-critical, continuing)")
+            }
             
             // Start 5-second timer to show STOP button in the same coroutine context
             launch {

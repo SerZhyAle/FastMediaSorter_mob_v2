@@ -9,7 +9,6 @@ import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
-import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.remote.ftp.FtpClient
@@ -20,8 +19,6 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -37,47 +34,28 @@ class SftpFileOperationHandler @Inject constructor(
     private val sftpClient: SftpClient,
     private val smbClient: SmbClient,
     private val ftpClient: FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository,
-    private val settingsRepository: SettingsRepository
+    private val credentialsRepository: NetworkCredentialsRepository
 ) : BaseFileOperationHandler(context) {
 
-    private val sftpStrategy: FileOperationStrategy by lazy {
-        val base = SftpOperationStrategy(context, sftpClient, credentialsRepository)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val sftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        SftpOperationStrategy(context, sftpClient, credentialsRepository),
+        enableAtomic = true
+    )
     
-    private val smbStrategy: FileOperationStrategy by lazy {
-        val base = SmbOperationStrategy(context, smbClient, credentialsRepository)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val smbStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        SmbOperationStrategy(context, smbClient, credentialsRepository),
+        enableAtomic = true
+    )
     
-    private val ftpStrategy: FileOperationStrategy by lazy {
-        val base = FtpOperationStrategy(context, ftpClient, credentialsRepository)
-        wrapWithAtomicIfEnabled(base)
-    }
+    private val ftpStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        FtpOperationStrategy(context, ftpClient, credentialsRepository),
+        enableAtomic = true
+    )
     
-    private val localStrategy: FileOperationStrategy by lazy {
-        val base = LocalOperationStrategy(context)
-        wrapWithAtomicIfEnabled(base)
-    }
-    
-    private fun wrapWithAtomicIfEnabled(strategy: FileOperationStrategy): FileOperationStrategy {
-        val enableAtomic = runBlocking {
-            try {
-                settingsRepository.getSettings().first().enableAtomicTransfer
-            } catch (e: Exception) {
-                Timber.w(e, "SftpFileOperationHandler: Failed to read atomic transfer setting, defaulting to true")
-                true
-            }
-        }
-        
-        return if (enableAtomic) {
-            Timber.d("SftpFileOperationHandler: Wrapping ${strategy.getProtocolName()} with atomic support")
-            AtomicFileOperationStrategy(strategy, enableAtomic = true)
-        } else {
-            strategy
-        }
-    }
+    private val localStrategy: FileOperationStrategy = AtomicFileOperationStrategy(
+        LocalOperationStrategy(context),
+        enableAtomic = true
+    )
 
     override fun getStrategies(): List<FileOperationStrategy> {
         return listOf(sftpStrategy, smbStrategy, ftpStrategy, localStrategy)

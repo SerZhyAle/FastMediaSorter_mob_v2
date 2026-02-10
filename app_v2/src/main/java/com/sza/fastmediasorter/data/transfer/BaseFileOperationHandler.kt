@@ -477,8 +477,9 @@ abstract class BaseFileOperationHandler(
     
     /**
      * Delete a file using the appropriate strategy.
+     * Public method for use by other components (e.g., cleanup operations).
      */
-    protected open suspend fun deleteFile(filePath: String): Result<Unit> {
+    open suspend fun deleteFile(filePath: String): Result<Unit> {
         val strategy = getStrategyForPath(filePath)
             ?: return Result.failure(IllegalArgumentException("No strategy found for path: $filePath"))
         
@@ -864,6 +865,25 @@ abstract class BaseFileOperationHandler(
                     formatArgs = listOf(errorMessage)
                 )
             }
+        }
+    }
+    
+    /**
+     * List files in directory using appropriate strategy.
+     * Public method for use by other components (e.g., cleanup operations).
+     * 
+     * @param directoryPath Path to directory (protocol URL or local path)
+     * @return Result with list of file paths, or error
+     */
+    open suspend fun listFiles(directoryPath: String): Result<List<String>> {
+        return withContext(Dispatchers.IO) {
+            Timber.d("BaseFileOperationHandler.listFiles: Listing files in '$directoryPath'")
+            val strategy = getStrategyForPath(directoryPath)
+            if (strategy == null) {
+                Timber.e("BaseFileOperationHandler.listFiles: No strategy found for path '$directoryPath'")
+                return@withContext Result.failure(IllegalArgumentException("No strategy supports path: $directoryPath"))
+            }
+            strategy.listFiles(directoryPath)
         }
     }
 }
