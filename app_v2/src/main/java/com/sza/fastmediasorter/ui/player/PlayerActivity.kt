@@ -1720,7 +1720,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.state
-                        .distinctUntilChangedBy { Triple(it.currentIndex, it.currentFile?.path, it.isSlideShowActive) }
+                        .distinctUntilChangedBy { 
+                            // Track showCommandPanel to trigger UI updates on fullscreen/panel mode changes
+                            Pair(
+                                Triple(it.currentIndex, it.currentFile?.path, it.isSlideShowActive),
+                                it.showCommandPanel
+                            )
+                        }
                         .collect { state ->
                             updateUI(state)
                             backgroundMusicManager.updateState(state)
@@ -3152,8 +3158,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             if (metadataLines.isNotEmpty()) {
                 binding.audioMetadata.text = metadataLines.joinToString("\n")
                 binding.audioMetadata.visibility = View.VISIBLE
-                // Make filename smaller when we have metadata
-                binding.audioFileName.textSize = 14f
+                // Hide filename when we have metadata (redundant)
+                binding.audioFileName.visibility = View.GONE
                 Timber.d("Audio metadata displayed: ${metadataLines.joinToString(" | ")}")
                 
                 // Update song label in audio slideshow photo mode if active
@@ -3162,7 +3168,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
             } else {
                 binding.audioMetadata.visibility = View.GONE
-                // Keep filename large when no metadata
+                // Show filename (without extension) when no metadata
+                binding.audioFileName.visibility = View.VISIBLE
                 binding.audioFileName.textSize = 22f
             }
         }

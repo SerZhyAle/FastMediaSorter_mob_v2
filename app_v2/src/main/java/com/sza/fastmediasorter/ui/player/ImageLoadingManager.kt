@@ -770,10 +770,11 @@ class ImageLoadingManager(
         binding.audioMetadata.visibility = View.GONE
         binding.audioMetadata.text = ""
         
-        // Display full file name with extension
+        // Display full file name WITHOUT extension
         // Start with large font (will be reduced if metadata is found)
-        binding.audioFileName.text = file.name
+        binding.audioFileName.text = file.name.substringBeforeLast('.')
         binding.audioFileName.textSize = 22f
+        binding.audioFileName.visibility = View.VISIBLE
         
         // Get file info asynchronously (size, duration, format)
         lifecycleScope.launch(Dispatchers.IO) {
