@@ -878,7 +878,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun onUpdateCommandAvailability() {
-                    updateCommandAvailability(viewModel.state.value)
+                    val state = viewModel.state.value
+                    Timber.d("PlayerActivity.onUpdateCommandAvailability: showCommandPanel=${state.showCommandPanel}, enableCopying=${state.enableCopying}, enableMoving=${state.enableMoving}")
+                    updateCommandAvailability(state)
+                }
+                
+                override fun isCommandPanelVisible(): Boolean {
+                    return viewModel.state.value.showCommandPanel
                 }
             }
         )
@@ -933,7 +939,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     if (viewModel.state.value.showCommandPanel) {
                         viewModel.toggleCommandPanel()
                     }
-                    updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
+                    // CRITICAL: Pass false directly, not viewModel.state.value.showCommandPanel
+                    // because toggleCommandPanel() is async and state hasn't updated yet
+                    updateSystemBarsForPlayer(false)
                 }
                 
                 override fun onSlideshowClicked() {
@@ -2720,7 +2728,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 .priority(Priority.HIGH)
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 // No animation - instant photo change
-                .dontTransition()
+                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(0))
                 // Keep current image as placeholder to avoid showing PlayerView icon between photos
                 .placeholder(binding.imageView.drawable)
                 .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {

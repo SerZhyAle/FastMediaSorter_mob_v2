@@ -239,6 +239,10 @@
     <string name="max_recipients_error">Value must be between 1 and 30</string>
     <string name="load_full_size_images">Load images at full resolution</string>
     <string name="load_full_size_images_hint">Enables pinch-to-zoom and rotation gestures in command panel mode, but uses more data and memory. Off by default (loads 1920px resolution).</string>
+    <string name="pref_crop_images_fullscreen_title">Crop images to fill screen</string>
+    <string name="pref_crop_images_fullscreen_summary">When showing fullscreen or slideshow, crop images to fill screen if orientations match</string>
+    <string name="tooltip_crop_images_fullscreen_title">Image Crop Behavior</string>
+    <string name="tooltip_crop_images_fullscreen_message">When enabled: In fullscreen or slideshow mode, if the image and device have matching orientations (both landscape or both portrait), the image will be cropped to fill the entire screen. When disabled: All images will fit within the screen boundaries without cropping.</string>
     <string name="image_size_limit">Image size limit</string>
     <string name="image_and_animation_size_limit">Image and animation size limits</string>
     <string name="image_size_range">1 KB - 10 MB</string>

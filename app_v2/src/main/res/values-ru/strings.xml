@@ -1122,4 +1122,10 @@
     <string name="send_email">Отправить письмо</string>
     <string name="no_email_client">Email клиент не найден</string>
 
+    <!-- Crop Images to Fullscreen -->
+    <string name="pref_crop_images_fullscreen_title">Обрезать изображения на весь экран</string>
+    <string name="pref_crop_images_fullscreen_summary">При отображении в полноэкранном режиме или слайдшоу обрезать изображения, если ориентации совпадают</string>
+    <string name="tooltip_crop_images_fullscreen_title">Поведение обрезки изображений</string>
+    <string name="tooltip_crop_images_fullscreen_message">Когда включено: В полноэкранном режиме или слайдшоу, если изображение и устройство имеют совпадающие ориентации (оба альбомные или оба портретные), изображение будет обрезано для заполнения всего экрана. Когда выключено: Все изображения будут вписываться в границы экрана без обрезки.</string>
+
 </resources>

@@ -31,6 +31,7 @@ data class AppSettings(
     val imageSizeMin: Long = 1024L, // 1KB
     val imageSizeMax: Long = 10485760L, // 10MB
     val loadFullSizeImages: Boolean = true, // Load full resolution images (for zoom support)
+    val cropImagesToFullscreen: Boolean = true, // Crop images to fill screen when orientations match (fullscreen & slideshow)
     val supportGifs: Boolean = true,
     val supportVideos: Boolean = true,
     val videoSizeMin: Long = 1048576L, // 1MB

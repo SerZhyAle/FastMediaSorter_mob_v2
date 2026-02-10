@@ -66,6 +66,14 @@ class ImagesSettingsFragment : Fragment() {
             }
         }
 
+        // Crop Images to Fullscreen
+        binding.switchCropImagesToFullscreen.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(cropImagesToFullscreen = isChecked))
+            }
+        }
+
         // Help buttons
         binding.iconHelpSupportImages.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
@@ -80,6 +88,14 @@ class ImagesSettingsFragment : Fragment() {
                 requireContext(),
                 com.sza.fastmediasorter.R.string.load_full_size_images,
                 com.sza.fastmediasorter.R.string.load_full_size_images_hint
+            )
+        }
+
+        binding.iconHelpCropImages.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                com.sza.fastmediasorter.R.string.tooltip_crop_images_fullscreen_title,
+                com.sza.fastmediasorter.R.string.tooltip_crop_images_fullscreen_message
             )
         }
 
@@ -155,8 +171,7 @@ class ImagesSettingsFragment : Fragment() {
                     binding.switchSupportImages.isChecked = settings.supportImages
                     binding.switchSupportGifs.isChecked = settings.supportGifs
                     binding.switchLoadFullSizeImages.isChecked = settings.loadFullSizeImages
-
-                    binding.switchLoadFullSizeImages.isChecked = settings.loadFullSizeImages
+                    binding.switchCropImagesToFullscreen.isChecked = settings.cropImagesToFullscreen
 
                     val minKb = settings.imageSizeMin / KB_TO_BYTES
                     val maxKb = settings.imageSizeMax / KB_TO_BYTES

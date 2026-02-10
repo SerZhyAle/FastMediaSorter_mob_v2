@@ -41,6 +41,8 @@ class DestinationButtonsManager(
         fun onMoveClicked(destination: MediaResource)
         fun getCurrentResourceId(): Long
         fun onUpdateCommandAvailability()
+        /** Check if command panel should be visible (used to prevent race condition) */
+        fun isCommandPanelVisible(): Boolean
     }
     
     /**
@@ -152,18 +154,34 @@ class DestinationButtonsManager(
                 // Hide panels if no destination buttons created
                 // Check destinationsList (after take(maxRecipients)), not destinations
                 val hasDestinations = destinationsList.isNotEmpty()
+                
+                // CRITICAL: Check current state before showing panels
+                // This prevents race condition when user switches to fullscreen while buttons are loading
+                val shouldShowPanels = callback.isCommandPanelVisible()
+                
                 if (!hasDestinations) {
                     Timber.d("DestinationButtonsManager: No valid destinations after filtering (count=0), hiding panels")
                     binding.copyToPanel.isVisible = false
                     binding.moveToPanel.isVisible = false
+                } else if (!shouldShowPanels) {
+                    Timber.d("DestinationButtonsManager: Command panel not visible (fullscreen mode?), skipping panel show")
+                    // Panels remain hidden - fullscreen mode or slideshow active
                 } else {
-                    // Restore collapsed state AFTER adding buttons
-                    Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed, destinationsCount=${destinationsList.size}")
+                    // CRITICAL: Show panels EXPLICITLY when destinations exist AND command panel is visible
+                    // This fixes race condition where updateCommandAvailability runs before buttons are created
+                    Timber.d("DestinationButtonsManager: SHOWING panels - destinationsCount=${destinationsList.size}")
+                    binding.copyToPanel.isVisible = true
+                    binding.moveToPanel.isVisible = true
+                    
+                    // Restore collapsed state AFTER showing panels
+                    Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")
                     updateCopyPanelVisibility(copyCollapsed)
                     updateMovePanelVisibility(moveCollapsed)
                 }
                 
                 // Update command availability to refresh panel visibility
+                // This may hide moveToPanel if canWrite=false (read-only resource)
+                Timber.d("DestinationButtonsManager: Calling onUpdateCommandAvailability callback - copyGrid.childCount=${binding.copyToButtonsGrid.childCount}, moveGrid.childCount=${binding.moveToButtonsGrid.childCount}")
                 callback.onUpdateCommandAvailability()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load destinations")

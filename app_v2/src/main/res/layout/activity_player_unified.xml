@@ -447,11 +447,12 @@
         <ImageView
             android:id="@+id/audioCoverArtView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:adjustViewBounds="true"
             android:visibility="gone"
             android:scaleType="fitCenter"
             android:background="#000000"
-            android:layout_marginBottom="@dimen/player_audio_cover_margin_bottom"
             android:contentDescription="Audio cover art" />
 
         <!-- Audio file info overlay (visible only for audio files) -->

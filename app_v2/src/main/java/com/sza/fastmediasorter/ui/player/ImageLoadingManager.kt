@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
+import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -262,6 +263,23 @@ class ImageLoadingManager(
             
             // Determine target view for image loading
             val targetView = if (usePhotoView) binding.photoView else binding.imageView
+            
+            // Determine scale type based on crop setting and orientation match
+            val isFullscreenOrSlideshow = !callback.isShowingCommandPanel() || isSlideshowActive
+            val bounds = callback.getWindowManager().currentWindowMetrics.bounds
+            val deviceWidth = bounds.width()
+            val deviceHeight = bounds.height()
+            
+            // Apply initial scale type based on settings
+            // Note: This is a heuristic - we don't have image dimensions yet
+            // For images cropping setting is enabled + fullscreen/slideshow, use CENTER_CROP as default
+            // The actual scale type will be re-evaluated in onResourceReady when we have image dims
+            val initialScaleType = if (settings.cropImagesToFullscreen && isFullscreenOrSlideshow) {
+                android.widget.ImageView.ScaleType.CENTER_CROP
+            } else {
+                android.widget.ImageView.ScaleType.FIT_CENTER
+            }
+            targetView.scaleType = initialScaleType
             
             // NOTE: Touch listeners are NOT set here anymore - they are configured once
             // in PlayerActivity.setupTouchZones() and must NOT be overwritten.

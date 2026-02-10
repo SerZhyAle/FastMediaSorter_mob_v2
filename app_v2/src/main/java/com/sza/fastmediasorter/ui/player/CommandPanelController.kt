@@ -354,10 +354,14 @@ class CommandPanelController(
         val hasCopyButtons = (binding.copyToButtonsGrid as? android.view.ViewGroup)?.childCount ?: 0 > 0
         val hasMoveButtons = (binding.moveToButtonsGrid as? android.view.ViewGroup)?.childCount ?: 0 > 0
         
-        Timber.d("CommandPanelController: hasCopyButtons=$hasCopyButtons (childCount=${binding.copyToButtonsGrid.childCount}), hasMoveButtons=$hasMoveButtons (childCount=${binding.moveToButtonsGrid.childCount})")
+        val copyPanelVisible = state.showCommandPanel && state.enableCopying && hasCopyButtons
+        val movePanelVisible = state.showCommandPanel && state.enableMoving && hasMoveButtons && canWrite
         
-        binding.copyToPanel.isVisible = state.showCommandPanel && state.enableCopying && hasCopyButtons
-        binding.moveToPanel.isVisible = state.showCommandPanel && state.enableMoving && hasMoveButtons && canWrite // Move requires write
+        Timber.d("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${binding.copyToButtonsGrid.childCount})")
+        Timber.d("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${binding.moveToButtonsGrid.childCount})")
+        
+        binding.copyToPanel.isVisible = copyPanelVisible
+        binding.moveToPanel.isVisible = movePanelVisible
         
 
     }
