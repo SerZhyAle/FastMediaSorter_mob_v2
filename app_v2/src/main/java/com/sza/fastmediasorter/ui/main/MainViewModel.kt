@@ -133,23 +133,9 @@ class MainViewModel @Inject constructor(
                 getResourcesUseCase(),
                 settingsRepository.getSettings()
             ) { allResources, settings ->
-                // Load recommendedThreads into ConnectionThrottleManager
-                allResources.forEach { resource ->
-                    if (resource.recommendedThreads != null) {
-                        val resourceKey = when {
-                            resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
-                            resource.path.startsWith("ftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
-                                .let { "ftp://$it" }
-                            resource.path.startsWith("sftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
-                                .let { "sftp://$it" }
-                            else -> resource.path
-                        }
-                        com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setRecommendedThreads(
-                            resourceKey,
-                            resource.recommendedThreads
-                        )
-                    }
-                }
+                // OPTIMIZATION: Removed global ConnectionThrottleManager setup for ALL resources.
+                // Now configured only when opening specific resource in PlayerViewModel/BrowseViewModel.
+                // This prevents unnecessary FTP/SFTP configuration when only using SMB.
                 
                 // Apply current filters and sorting
                 val filteredResources = applyFiltersAndSorting(allResources, settings.enableFavorites)

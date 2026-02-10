@@ -887,6 +887,23 @@ class BrowseViewModel @Inject constructor(
                 return@launch
             }
             
+            // Configure ConnectionThrottleManager for active resource (instead of global config in MainViewModel)
+            if (resource.recommendedThreads != null) {
+                val resourceKey = when {
+                    resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
+                    resource.path.startsWith("ftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
+                        .let { "ftp://$it" }
+                    resource.path.startsWith("sftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
+                        .let { "sftp://$it" }
+                    else -> resource.path
+                }
+                com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setRecommendedThreads(
+                    resourceKey,
+                    resource.recommendedThreads
+                )
+                Timber.d("BrowseViewModel: Configured ConnectionThrottleManager for $resourceKey with ${resource.recommendedThreads} threads")
+            }
+            
             Timber.d("BrowseViewModel.loadResource: Resource found - name='${resource.name}', type=${resource.type}, path='${resource.path}'")
             Timber.d("BrowseViewModel.loadResource: fileCount=${resource.fileCount}, isWritable=${resource.isWritable}, lastBrowse=${resource.lastBrowseDate}")
             Timber.i("╔═══ RESOURCE MEDIA TYPES ═══")

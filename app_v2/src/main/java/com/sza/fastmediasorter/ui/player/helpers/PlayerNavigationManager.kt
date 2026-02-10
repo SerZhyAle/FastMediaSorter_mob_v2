@@ -180,6 +180,8 @@ class PlayerNavigationManager(
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()
+            // Update current song label after track change
+            activity.updateAudioSlideshowCurrentSongLabel()
         }
     }
 
@@ -192,6 +194,8 @@ class PlayerNavigationManager(
         // Advance to next photo if was playing audio (file type checked before navigation)
         if (currentFileBeforeNav?.type == MediaType.AUDIO) {
             activity.advanceAudioBackgroundPhoto()
+            // Update current song label after track change
+            activity.updateAudioSlideshowCurrentSongLabel()
         }
     }
 

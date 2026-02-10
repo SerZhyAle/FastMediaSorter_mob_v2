@@ -641,6 +641,12 @@ class VideoPlayerManager(
      * Release player resources
      */
     fun releasePlayer() {
+        // Skip if already released (prevent redundant calls)
+        if (exoPlayer == null && activeResourceKey == null) {
+            Timber.d("VideoPlayerManager: releasePlayer() skipped - already released")
+            return
+        }
+        
         Timber.d("VideoPlayerManager: releasePlayer() called. exoPlayer=${if(exoPlayer != null) "NOT_NULL" else "NULL"}, isActive=$activeResourceKey")
         exoPlayer?.let { player ->
             player.removeListener(playerListener)

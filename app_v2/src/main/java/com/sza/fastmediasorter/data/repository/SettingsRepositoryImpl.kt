@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
@@ -258,6 +259,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L
                 )
             }
+            .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
     }
 
     override suspend fun updateSettings(settings: AppSettings) {

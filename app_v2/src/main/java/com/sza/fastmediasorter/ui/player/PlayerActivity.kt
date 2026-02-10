@@ -68,6 +68,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -696,6 +698,23 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun startSlideshow(intervalSeconds: Int) = slideshowController.startSlideshow(intervalSeconds)
                 override fun getLatestState(): PlayerViewModel.PlayerState = viewModel.state.value
                 override fun forceStateUpdate() = viewModel.forceStateUpdate()
+                override fun enterAudioSlideshowPhotoModeIfNeeded() {
+                    val state = viewModel.state.value
+                    val currentFile = state.currentFile
+                    val isAudioWithPhotos = currentFile?.type == MediaType.AUDIO &&
+                        state.enablePhotosDuringAudio &&
+                        state.audioBackgroundPhotosResourceId != null
+                    
+                    Timber.d("PlayerActivity: enterAudioSlideshowPhotoModeIfNeeded - isAudio=${currentFile?.type == MediaType.AUDIO}, enablePhotos=${state.enablePhotosDuringAudio}, resourceId=${state.audioBackgroundPhotosResourceId}, slideshowActive=${state.isSlideShowActive}, alreadyInMode=$isAudioSlideshowPhotoMode")
+                    
+                    if (isAudioWithPhotos && state.isSlideShowActive && !isAudioSlideshowPhotoMode) {
+                        Timber.i("PlayerActivity: ✓ Auto-entering audio slideshow photo mode")
+                        backgroundMusicManager.isAudioSlideshowPhotoMode = true
+                        enterAudioSlideshowPhotoMode()
+                    } else {
+                        Timber.d("PlayerActivity: ✗ Not entering audio slideshow photo mode (conditions not met)")
+                    }
+                }
             }
         )
 
@@ -1691,11 +1710,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
-                    viewModel.state.collect { state ->
-                        updateUI(state)
-                        backgroundMusicManager.updateState(state)
-                        audioBackgroundPhotosManager.updateState(state)
-                    }
+                    viewModel.state
+                        .distinctUntilChangedBy { Triple(it.currentIndex, it.currentFile?.path, it.isSlideShowActive) }
+                        .collect { state ->
+                            updateUI(state)
+                            backgroundMusicManager.updateState(state)
+                            audioBackgroundPhotosManager.updateState(state)
+                        }
                 }
 
                 launch {
@@ -1717,8 +1738,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 // Observe settings to show/hide favorite button and update touch zones mode
                 launch {
                     combine(
-                        settingsRepository.getSettings(),
-                        viewModel.state
+                        settingsRepository.getSettings().distinctUntilChanged(),
+                        viewModel.state.distinctUntilChangedBy { it.resource?.id }
                     ) { settings, state ->
                         // Cache settings for overlay visibility and touch zones
                         currentSettings = settings
@@ -2698,6 +2719,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             glideRequest
                 .priority(Priority.HIGH)
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                // No animation - instant photo change
+                .dontTransition()
+                // Keep current image as placeholder to avoid showing PlayerView icon between photos
+                .placeholder(binding.imageView.drawable)
                 .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
                     override fun onResourceReady(
                         resource: android.graphics.drawable.Drawable,
@@ -2742,7 +2767,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             when (resourceType) {
                 ResourceType.LOCAL -> {
                     val file = File(nextPhoto.path)
-                    Glide.with(this).load(file).preload()
+                    Glide.with(this)
+                        .load(file)
+                        .priority(Priority.HIGH)
+                        .preload()
                 }
                 ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
                     val networkData = NetworkFileData(
@@ -2757,6 +2785,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         .load(networkData)
                         .signature(ObjectKey(networkData.getCacheKey()))
                         .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                        .priority(Priority.HIGH)
                         .preload()
                 }
                 else -> {
@@ -2786,7 +2815,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.audioInfoOverlay.isVisible = false
 
         // Show imageView fullscreen with centerCrop for cinematic feel
-        binding.imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
+        binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
         binding.imageView.isVisible = true
 
         // Show current photo path/name overlay
@@ -2796,6 +2825,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Load current photo if available
         if (photo != null) {
             loadBackgroundPhotoIntoImageView(photo)
+            // Preload next 2 photos immediately for instant transitions
+            preloadNextAudioSlideshowPhoto()
         }
 
         // Tap on imageView to return to normal audio player
@@ -2911,8 +2942,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     /**
      * Update the current song label (tvBackgroundMusicTrack) during audio slideshow photo mode.
      * Shows "♪ Artist - Track" from audio metadata, or falls back to file name.
+     * Called when entering mode, changing tracks, or updating metadata.
      */
-    private fun updateAudioSlideshowCurrentSongLabel() {
+    internal fun updateAudioSlideshowCurrentSongLabel() {
         if (!isAudioSlideshowPhotoMode) return
         
         // Try audio metadata first (Artist - Track from online lookup)
@@ -2920,7 +2952,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val songText = if (!metadata.isNullOrBlank()) {
             "♪ $metadata"
         } else {
-            // Fall back to current file name without extension
+            // Fall back to current file name WITHOUT extension
             val currentFile = viewModel.state.value.currentFile
             if (currentFile != null) {
                 "♪ ${currentFile.name.substringBeforeLast('.')}"

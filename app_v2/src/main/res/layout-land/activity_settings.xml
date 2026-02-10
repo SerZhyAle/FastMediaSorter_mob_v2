@@ -6,51 +6,45 @@
     android:layout_height="match_parent"
     android:fitsSystemWindows="true">
 
-    <!-- Toolbar container: Title on first row, tabs on second row (portrait) -->
+    <!-- Combined toolbar with title and tabs in one line (landscape) -->
     <LinearLayout
         android:id="@+id/toolbarContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="?attr/actionBarSize"
+        android:orientation="horizontal"
         android:background="?attr/colorPrimary"
         android:elevation="@dimen/toolbar_elevation"
+        android:gravity="center_vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Title row with back button and settings text -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+        <!-- Back button -->
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="?attr/actionBarSize"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_arrow_back"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            app:tint="?attr/colorOnPrimary" />
 
-            <!-- Back button -->
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="?attr/actionBarSize"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_arrow_back"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/back"
-                app:tint="?attr/colorOnPrimary" />
+        <!-- Settings title -->
+        <TextView
+            android:id="@+id/titleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings"
+            android:textColor="?attr/colorOnPrimary"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="16dp"
+            tools:ignore="SpUsage" />
 
-            <!-- Settings title -->
-            <TextView
-                android:id="@+id/titleText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings"
-                android:textColor="?attr/colorOnPrimary"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                tools:ignore="SpUsage" />
-
-        </LinearLayout>
-
-        <!-- Tabs row -->
+        <!-- Tabs taking remaining space -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
             android:background="@android:color/transparent"
             app:tabTextColor="?attr/colorOnPrimary"
             app:tabSelectedTextColor="?attr/colorOnPrimary"

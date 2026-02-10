@@ -72,6 +72,7 @@ class PlayerUiStateCoordinator(
         fun startSlideshow(intervalSeconds: Int)
         fun getLatestState(): PlayerViewModel.PlayerState
         fun forceStateUpdate()
+        fun enterAudioSlideshowPhotoModeIfNeeded()
     }
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
@@ -115,6 +116,9 @@ class PlayerUiStateCoordinator(
                     
                     // Force re-emit state to trigger AudioBackgroundPhotos check (if audio file loaded)
                     callback.forceStateUpdate()
+                    
+                    // Check if we need to enter audio slideshow photo mode
+                    callback.enterAudioSlideshowPhotoModeIfNeeded()
                     
                     Timber.d("PlayerUiStateCoordinator: Slideshow auto-start COMPLETE")
                 } else {

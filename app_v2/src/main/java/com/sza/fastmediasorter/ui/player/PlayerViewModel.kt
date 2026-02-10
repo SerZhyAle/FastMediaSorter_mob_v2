@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -95,6 +96,7 @@ class PlayerViewModel @Inject constructor(
     private val initialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
     
     private var loadingJob: Job? = null
+    private var saveLastViewedFileJob: Job? = null // Debounce job for database updates
 
     init {
         loadSettings()
@@ -182,6 +184,23 @@ class PlayerViewModel @Inject constructor(
                     sendEvent(PlayerEvent.FinishActivity)
                     setLoading(false)
                     return@launch
+                }
+
+                // Configure ConnectionThrottleManager for active resource (instead of global config in MainViewModel)
+                if (resource.recommendedThreads != null) {
+                    val resourceKey = when {
+                        resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
+                        resource.path.startsWith("ftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
+                            .let { "ftp://$it" }
+                        resource.path.startsWith("sftp://") -> resource.path.substringBefore("/", resource.path.substringAfter("://"))
+                            .let { "sftp://$it" }
+                        else -> resource.path
+                    }
+                    com.sza.fastmediasorter.data.network.ConnectionThrottleManager.setRecommendedThreads(
+                        resourceKey,
+                        resource.recommendedThreads
+                    )
+                    Timber.d("PlayerViewModel: Configured ConnectionThrottleManager for $resourceKey with ${resource.recommendedThreads} threads")
                 }
 
                 // Ensure Google Drive client is initialized with credentials if available
@@ -421,18 +440,11 @@ class PlayerViewModel @Inject constructor(
         
         updateState { it.copy(currentIndex = nextIndex) }
         
-        // Save last viewed file for scroll restoration in Browse
+        // Save last viewed file for scroll restoration in Browse (debounced - 5 seconds)
         val resource = currentState.resource
         if (resource != null && nextIndex < currentState.files.size) {
             val fileToSave = currentState.files[nextIndex]
-            viewModelScope.launch {
-                try {
-                    resourceRepository.updateResource(resource.copy(lastViewedFile = fileToSave.path))
-                    // Updated lastViewedFile to next file
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to update lastViewedFile")
-                }
-            }
+            saveLastViewedFileDebounced(fileToSave.path)
         }
     }
 
@@ -502,18 +514,11 @@ class PlayerViewModel @Inject constructor(
         
         updateState { it.copy(currentIndex = prevIndex) }
         
-        // Save last viewed file for scroll restoration in Browse
+        // Save last viewed file for scroll restoration in Browse (debounced - 5 seconds)
         val resource = currentState.resource
         if (resource != null && prevIndex < currentState.files.size) {
             val fileToSave = currentState.files[prevIndex]
-            viewModelScope.launch {
-                try {
-                    resourceRepository.updateResource(resource.copy(lastViewedFile = fileToSave.path))
-                    // Updated lastViewedFile to previous file
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to update lastViewedFile")
-                }
-            }
+            saveLastViewedFileDebounced(fileToSave.path)
         }
     }
     
@@ -1010,11 +1015,31 @@ class PlayerViewModel @Inject constructor(
     }
     
     /**
-     * Save last viewed file path to resource for position restoration
+     * Save last viewed file path to resource for position restoration (debounced - 5 seconds)
+     */
+    private fun saveLastViewedFileDebounced(filePath: String) {
+        val resource = state.value.resource ?: return
+        
+        saveLastViewedFileJob?.cancel()
+        saveLastViewedFileJob = viewModelScope.launch {
+            delay(5000) // Debounce 5 seconds - reduces DB writes during slideshow navigation
+            try {
+                resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
+                Timber.d("Saved lastViewedFile=$filePath for resource: ${resource.name}")
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to save lastViewedFile")
+            }
+        }
+    }
+    
+    /**
+     * Save last viewed file path to resource for position restoration (immediate save)
+     * Used when explicitly requested (e.g., activity pause)
      */
     fun saveLastViewedFile(filePath: String) {
         val resource = state.value.resource ?: return
         
+        saveLastViewedFileJob?.cancel() // Cancel any pending debounced save
         viewModelScope.launch {
             try {
                 resourceRepository.updateResource(resource.copy(lastViewedFile = filePath))
@@ -1169,6 +1194,9 @@ class PlayerViewModel @Inject constructor(
             if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it
         }
         updateState { it.copy(files = updatedFiles) }
+        
+        // Force state update to trigger UI refresh (button icon update)
+        forceStateUpdate()
 
         viewModelScope.launch {
             try {
@@ -1182,6 +1210,7 @@ class PlayerViewModel @Inject constructor(
                     if (it.path == currentFile.path) it.copy(isFavorite = !it.isFavorite) else it
                 }
                 updateState { it.copy(files = revertedFiles) }
+                forceStateUpdate() // Also force update on error to revert icon
                 sendEvent(PlayerEvent.ShowError("Failed to update favorite status"))
             }
         }
