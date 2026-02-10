@@ -35,7 +35,8 @@ data class AppSettings(
     val translationLensStyle: Boolean = false,
     val enableSlideshowBackgroundMusic: Boolean = false, // Enable slideshow background music
     val slideshowMusicResourceId: Long? = null, // Resource ID of selected slideshow music
-    val useTrash: Boolean = true // Use .trash folder for recoverable deletion
+    val useTrash: Boolean = true, // Use .trash folder for recoverable deletion
+    val cropImagesToFullscreen: Boolean = true // Crop images to fill screen when orientations match (fullscreen & slideshow)
 )
 
 @Singleton
@@ -72,6 +73,7 @@ class SettingsManager @Inject constructor(
         private val ENABLE_SLIDESHOW_BACKGROUND_MUSIC = booleanPreferencesKey("enable_slideshow_background_music")
         private val SLIDESHOW_MUSIC_RESOURCE_ID = longPreferencesKey("slideshow_music_resource_id")
         private val USE_TRASH = booleanPreferencesKey("use_trash")
+        private val CROP_IMAGES_TO_FULLSCREEN = booleanPreferencesKey("crop_images_to_fullscreen")
     }
     
     val settings: Flow<AppSettings> = dataStore.data.map { preferences ->
@@ -103,7 +105,8 @@ class SettingsManager @Inject constructor(
             translationLensStyle = preferences[TRANSLATION_LENS_STYLE] ?: true,
             enableSlideshowBackgroundMusic = preferences[ENABLE_SLIDESHOW_BACKGROUND_MUSIC] ?: false,
             slideshowMusicResourceId = preferences[SLIDESHOW_MUSIC_RESOURCE_ID],
-            useTrash = preferences[USE_TRASH] ?: true
+            useTrash = preferences[USE_TRASH] ?: true,
+            cropImagesToFullscreen = preferences[CROP_IMAGES_TO_FULLSCREEN] ?: true
         )
     }
     
@@ -276,6 +279,12 @@ class SettingsManager @Inject constructor(
     suspend fun setUseTrash(value: Boolean) {
         dataStore.edit { preferences ->
             preferences[USE_TRASH] = value
+        }
+    }
+
+    suspend fun setCropImagesToFullscreen(value: Boolean) {
+        dataStore.edit { preferences ->
+            preferences[CROP_IMAGES_TO_FULLSCREEN] = value
         }
     }
 }

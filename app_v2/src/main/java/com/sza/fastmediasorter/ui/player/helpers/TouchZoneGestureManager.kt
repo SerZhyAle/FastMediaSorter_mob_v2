@@ -97,10 +97,12 @@ class TouchZoneGestureManager(
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                 Timber.d("TOUCH_DEBUG: imageTouchGestureDetector.onSingleTapConfirmed - FIRED! x=${e.x.toInt()}, y=${e.y.toInt()}")
                 val currentFile = viewModel.state.value.currentFile
-                val isInFullscreenMode = !viewModel.state.value.showCommandPanel
+                val state = viewModel.state.value
+                // CRITICAL: During slideshow, always use fullscreen mode (9 zones) even if command panel is enabled
+                val isInFullscreenMode = !state.showCommandPanel || state.isSlideShowActive
                 val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
                 
-                Timber.d("SingleTap: pos=(${e.x.toInt()},${e.y.toInt()}), duration=${e.eventTime - e.downTime}ms, image=$isImage, fullscreen=$isInFullscreenMode")
+                Timber.d("SingleTap: pos=(${e.x.toInt()},${e.y.toInt()}), duration=${e.eventTime - e.downTime}ms, image=$isImage, fullscreen=$isInFullscreenMode, slideshow=${state.isSlideShowActive}")
                 
                 // Don't handle touch zones when overlays (translation/OCR) are visible
                 if (callback.isOverlayBlocking()) {

@@ -246,13 +246,17 @@ class PlayerDialogAndUiStateManager(
     fun updatePanelVisibility(showCommandPanel: Boolean) {
         val state = viewModel.state.value
         val isAudioFile = state.currentFile?.type == MediaType.AUDIO
+        val isSlideshowActive = state.isSlideShowActive
         
         // OVERRIDE: Audio files ALWAYS show command panel (except in audio slideshow photo mode)
         val forceShowPanel = showCommandPanel || (isAudioFile && !isAudioSlideshowPhotoMode)
         
-        Timber.d("PlayerDialogAndUiStateManager: updatePanelVisibility(showCommandPanel=$showCommandPanel, isAudio=$isAudioFile, RESULT=$forceShowPanel)")
+        // CRITICAL: Hide topCommandPanel during slideshow mode for fullscreen experience
+        val shouldHideForSlideshow = isSlideshowActive && !isAudioFile
         
-        if (forceShowPanel) {
+        Timber.d("PlayerDialogAndUiStateManager: updatePanelVisibility(showCommandPanel=$showCommandPanel, isAudio=$isAudioFile, slideshow=$isSlideshowActive, RESULT=${forceShowPanel && !shouldHideForSlideshow})")
+        
+        if (forceShowPanel && !shouldHideForSlideshow) {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
             binding.tvFileNameOverlay?.isVisible = true
@@ -288,7 +292,7 @@ class PlayerDialogAndUiStateManager(
                 restoreCommandButtonHeightsIfNeeded()
             }
         } else {
-            // Fullscreen mode
+            // Fullscreen mode or slideshow mode
             binding.topCommandPanel.isVisible = false
             binding.tvFileNameOverlay?.isVisible = false
             // View-based overlays always hidden - TouchZoneGestureManager handles zones

@@ -2845,7 +2845,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             viewModel.toggleCommandPanel()
         }
 
-        // Hide toolbar and system bars for true fullscreen
+        // Hide toolbar to avoid showing music file name (oda.mp3)
+        binding.toolbar.isVisible = false
         supportActionBar?.hide()
         updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
         
@@ -2888,7 +2889,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             viewModel.toggleCommandPanel()
         }
 
-        // Restore toolbar and system bars
+        // Restore toolbar
+        binding.toolbar.isVisible = true
         supportActionBar?.show()
         updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
     }
