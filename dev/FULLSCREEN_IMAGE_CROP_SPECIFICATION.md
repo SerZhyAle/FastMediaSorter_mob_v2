@@ -33,12 +33,12 @@ When viewing photos or animations in fullscreen mode or during a slideshow, user
 **New Field:**
 - **Name:** `cropImagesToFullscreen` (or `fullscreenImageCrop`)
 - **Type:** `BOOLEAN`
-- **Default:** `false`
+- **Default:** `true`
 - **Description:** When enabled, images and animations use CENTER_CROP in fullscreen/slideshow mode if orientations match
 
 **Migration:**
 ```sql
-ALTER TABLE MediaSettings ADD COLUMN cropImagesToFullscreen BOOLEAN NOT NULL DEFAULT 0;
+ALTER TABLE MediaSettings ADD COLUMN cropImagesToFullscreen BOOLEAN NOT NULL DEFAULT 1;
 ```
 
 ### 2. Settings UI Location
@@ -49,7 +49,7 @@ ALTER TABLE MediaSettings ADD COLUMN cropImagesToFullscreen BOOLEAN NOT NULL DEF
 - **Type:** Switch/Toggle
 - **Label (English):** "Crop images to fullscreen"
 - **Description/Subtitle:** "Fill screen with images when orientations match (fullscreen & slideshow only)"
-- **Default State:** OFF (unchecked)
+- **Default State:** ON (checked)
 
 **String Resources Required:**
 ```xml
