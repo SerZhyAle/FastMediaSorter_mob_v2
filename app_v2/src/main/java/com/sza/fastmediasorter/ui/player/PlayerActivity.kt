@@ -83,6 +83,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
+    
+    override fun shouldKeepScreenAwake(): Boolean {
+        return cachedPreventSleep
+    }
 
     internal val viewModel: PlayerViewModel by viewModels()
     
@@ -259,6 +263,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
+    
+    // Cache preventSleep setting for shouldKeepScreenAwake()
+    private var cachedPreventSleep: Boolean = true
     
     @Inject
     lateinit var playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -1723,6 +1730,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         // Cache settings for overlay visibility and touch zones
                         currentSettings = settings
                         loadFullSizeImages = settings.loadFullSizeImages
+                        
+                        // Update preventSleep cache and reapply if changed
+                        val changed = (cachedPreventSleep != settings.preventSleep)
+                        cachedPreventSleep = settings.preventSleep
+                        if (changed) {
+                            Timber.d("PlayerActivity: preventSleep changed to $cachedPreventSleep, reapplying...")
+                            reapplyKeepScreenAwake()
+                        }
+                        
                         // Show favorite button if:
                         // 1. enableFavorites setting is on, OR
                         // 2. Currently viewing Favorites resource (id = -100)

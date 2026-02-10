@@ -12,7 +12,7 @@ import timber.log.Timber
 
 /**
  * Base Activity that provides common functionality for all activities.
- * - Handles keep screen awake
+ * - Handles keep screen awake (subclasses must override shouldKeepScreenAwake())
  * - Provides logging
  * - Manages ViewBinding lifecycle
  * - Applies locale
@@ -49,7 +49,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         _binding = getViewBinding()
         setContentView(binding.root)
         
-        // Apply keep screen awake if needed (will be controlled by settings)
+        // Apply keep screen awake if needed (controlled by subclass)
         applyKeepScreenAwake()
         
         // Defer heavy initialization to allow first frame to render quickly
@@ -59,12 +59,23 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Reapply on resume in case settings changed
+        applyKeepScreenAwake()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         _binding = null
         Timber.d("onDestroy: ${this::class.simpleName}")
     }
 
+    /**
+     * Override this method in subclasses to control screen awake behavior.
+     * Default: true (screen stays awake).
+     * Subclasses should check their settings and return appropriate value.
+     */
     protected open fun shouldKeepScreenAwake(): Boolean = true
 
     /**
@@ -110,11 +121,27 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         return super.dispatchTouchEvent(ev)
     }
 
+    /**
+     * Apply or remove FLAG_KEEP_SCREEN_ON based on shouldKeepScreenAwake()
+     */
     private fun applyKeepScreenAwake() {
-        if (shouldKeepScreenAwake()) {
+        val shouldKeepAwake = shouldKeepScreenAwake()
+        val hasFlag = (window.attributes.flags and WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) != 0
+        Timber.d("${this::class.simpleName}: applyKeepScreenAwake(shouldKeepAwake=$shouldKeepAwake), current flag=$hasFlag")
+        
+        if (shouldKeepAwake) {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            Timber.i("${this::class.simpleName}: ✓ FLAG_KEEP_SCREEN_ON SET - Screen will stay awake")
         } else {
             window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            Timber.i("${this::class.simpleName}: ✗ FLAG_KEEP_SCREEN_ON CLEARED - Screen can sleep")
         }
+    }
+
+    /**
+     * Call this method from subclasses when settings change to reapply screen awake state.
+     */
+    protected fun reapplyKeepScreenAwake() {
+        applyKeepScreenAwake()
     }
 }
