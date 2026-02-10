@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.net.Uri
+import android.os.Looper
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -80,6 +81,17 @@ class BackgroundMusicManager @Inject constructor(
     }
 
     fun initialize() {
+        // ExoPlayer MUST be created on Main thread
+        if (Looper.myLooper() != Looper.getMainLooper()) {
+            scope.launch(Dispatchers.Main) {
+                initializeInternal()
+            }
+        } else {
+            initializeInternal()
+        }
+    }
+    
+    private fun initializeInternal() {
         if (musicPlayer == null) {
             musicPlayer = ExoPlayer.Builder(context).build().apply {
                 // Don't set repeatMode or shuffle here - will be set when loading playlist
@@ -187,7 +199,9 @@ class BackgroundMusicManager @Inject constructor(
              loadPlaylistJob?.cancel() // Cancel ongoing download
              loadPlaylistJob = null
              currentMusicResourceId = null
-             musicPlayer?.clearMediaItems()
+             scope.launch(Dispatchers.Main) {
+                 musicPlayer?.clearMediaItems()
+             }
              currentPlaylist = emptyList()
              currentTrackName = null // Clear current track name
              // Notify UI to hide track name
@@ -210,30 +224,35 @@ class BackgroundMusicManager @Inject constructor(
             // Lazy initialization only when needed
             if (musicPlayer == null) initialize()
             
-            // Ensure playlist is set if player was just initialized or verified empty
-            if (currentPlaylist.isNotEmpty() && musicPlayer?.mediaItemCount == 0) {
-                 Timber.d("BackgroundMusic: Setting playlist for active player")
-                 musicPlayer?.setMediaItems(currentPlaylist)
-                 musicPlayer?.prepare()
-            }
-            
-            if (musicPlayer?.playbackState == Player.STATE_IDLE) {
-                 musicPlayer?.prepare()
-            }
-            
-            if (!isPlaying) {
-                musicPlayer?.play()
-                isPlaying = true
-                // Show track name when music resumes (e.g., after video ends)
-                onTrackChangedListener?.invoke(currentTrackName)
-                Timber.d("BackgroundMusic: Started/Resumed, showing track: $currentTrackName")
+            // ExoPlayer MUST be accessed from Main thread
+            scope.launch(Dispatchers.Main) {
+                // Ensure playlist is set if player was just initialized or verified empty
+                if (currentPlaylist.isNotEmpty() && musicPlayer?.mediaItemCount == 0) {
+                     Timber.d("BackgroundMusic: Setting playlist for active player")
+                     musicPlayer?.setMediaItems(currentPlaylist)
+                     musicPlayer?.prepare()
+                }
+                
+                if (musicPlayer?.playbackState == Player.STATE_IDLE) {
+                     musicPlayer?.prepare()
+                }
+                
+                if (!isPlaying) {
+                    musicPlayer?.play()
+                    isPlaying = true
+                    // Show track name when music resumes (e.g., after video ends)
+                    onTrackChangedListener?.invoke(currentTrackName)
+                    Timber.d("BackgroundMusic: Started/Resumed, showing track: $currentTrackName")
+                }
             }
         } else if (isPlaying) {
-            musicPlayer?.pause()
-            isPlaying = false
-            // Hide track name when music stops
-            onTrackChangedListener?.invoke(null)
-            Timber.d("BackgroundMusic: Paused and track name hidden")
+            scope.launch(Dispatchers.Main) {
+                musicPlayer?.pause()
+                isPlaying = false
+                // Hide track name when music stops
+                onTrackChangedListener?.invoke(null)
+                Timber.d("BackgroundMusic: Paused and track name hidden")
+            }
         }
     }
     
@@ -470,31 +489,32 @@ class BackgroundMusicManager @Inject constructor(
                         continue
                     }
                     
-                    val playbackState = player.playbackState
-                    val isActuallyPlaying = player.isPlaying
-                    
-                    if (playbackState == Player.STATE_IDLE && isPlaying) {
-                        Timber.w("BackgroundMusic: Health check FAILED - player in IDLE state while should be playing")
-                        Timber.w("BackgroundMusic: Attempting recovery via skip to next track")
+                    // ExoPlayer MUST be accessed from Main thread
+                    withContext(Dispatchers.Main) {
+                        val playbackState = player.playbackState
+                        val isActuallyPlaying = player.isPlaying
                         
-                        try {
-                            skipToNextRandomTrack()
-                        } catch (e: Exception) {
-                            Timber.e(e, "BackgroundMusic: Health check recovery failed")
-                        }
-                    } else if (!isActuallyPlaying && playbackState != Player.STATE_BUFFERING) {
-                        Timber.w("BackgroundMusic: Health check - player not playing (state: $playbackState)")
-                        Timber.w("BackgroundMusic: Attempting to resume playback")
-                        
-                        withContext(Dispatchers.Main) {
+                        if (playbackState == Player.STATE_IDLE && isPlaying) {
+                            Timber.w("BackgroundMusic: Health check FAILED - player in IDLE state while should be playing")
+                            Timber.w("BackgroundMusic: Attempting recovery via skip to next track")
+                            
+                            try {
+                                skipToNextRandomTrack()
+                            } catch (e: Exception) {
+                                Timber.e(e, "BackgroundMusic: Health check recovery failed")
+                            }
+                        } else if (!isActuallyPlaying && playbackState != Player.STATE_BUFFERING) {
+                            Timber.w("BackgroundMusic: Health check - player not playing (state: $playbackState)")
+                            Timber.w("BackgroundMusic: Attempting to resume playback")
+                            
                             try {
                                 player.play()
                             } catch (e: Exception) {
                                 Timber.e(e, "BackgroundMusic: Failed to resume playback")
                             }
+                        } else {
+                            Timber.d("BackgroundMusic: Health check OK - playbackState=$playbackState, isPlaying=$isActuallyPlaying")
                         }
-                    } else {
-                        Timber.d("BackgroundMusic: Health check OK - playbackState=$playbackState, isPlaying=$isActuallyPlaying")
                     }
                 }
             }
@@ -505,8 +525,13 @@ class BackgroundMusicManager @Inject constructor(
     fun release() {
         healthCheckJob?.cancel()
         loadPlaylistJob?.cancel()
-        musicPlayer?.release()
-        musicPlayer = null
+        
+        // ExoPlayer MUST be released on Main thread
+        scope.launch(Dispatchers.Main) {
+            musicPlayer?.release()
+            musicPlayer = null
+        }
+        
         isPlaying = false
         
         // Reset state to ensure fresh load next time
@@ -521,6 +546,9 @@ class BackgroundMusicManager @Inject constructor(
     }
     
     fun setVolume(volume: Float) {
-        musicPlayer?.volume = volume
+        // ExoPlayer MUST be accessed from Main thread
+        scope.launch(Dispatchers.Main) {
+            musicPlayer?.volume = volume
+        }
     }
 }
