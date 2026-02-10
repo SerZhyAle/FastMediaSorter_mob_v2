@@ -1641,6 +1641,13 @@
 
     </FrameLayout>
 
+    <!-- Bottom Panels Container (wraps Copy and Move panels for correct inset handling) -->
+    <LinearLayout
+        android:id="@+id/bottomPanelsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
     <!-- Copy to Panel (visible only in command panel mode) -->
     <LinearLayout
         android:id="@+id/copyToPanel"
@@ -1733,6 +1740,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:columnCount="1" />
+    </LinearLayout>
+
     </LinearLayout>
 
 </LinearLayout>

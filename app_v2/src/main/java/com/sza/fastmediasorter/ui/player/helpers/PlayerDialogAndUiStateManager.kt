@@ -40,6 +40,7 @@ class PlayerDialogAndUiStateManager(
     private val textViewerManager: TextViewerManager,
     private val mediaLoaderManager: PlayerMediaLoaderManager,
     private val networkFileManager: NetworkFileManager,
+    private val imageLoadingManager: com.sza.fastmediasorter.ui.player.ImageLoadingManager,
     private val lifecycleScope: LifecycleCoroutineScope
 ) {
     
@@ -306,6 +307,10 @@ class PlayerDialogAndUiStateManager(
                 restoreCommandButtonHeightsIfNeeded()
             }
         }
+        
+        // CRITICAL: Re-evaluate image scale type when panel visibility changes
+        // This ensures the image immediately scales up/down when entering/exiting fullscreen
+        imageLoadingManager.reEvaluateScaleTypeOnRotation()
         
         // Update audio touch zones overlay whenever panel visibility changes
         updateAudioTouchZonesVisibility()

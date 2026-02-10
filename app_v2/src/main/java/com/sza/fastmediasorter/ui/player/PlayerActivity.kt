@@ -1427,6 +1427,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             textViewerManager = textViewerManager,
             mediaLoaderManager = mediaLoaderManager,
             networkFileManager = networkFileManager,
+            imageLoadingManager = imageLoadingManager,
             lifecycleScope = lifecycleScope
         )
 
@@ -1617,36 +1618,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             Timber.d("TopCommandPanel: Requested apply insets in setupToolbar() [posted]")
         }
         
-        // Apply WindowInsets to copyToPanel (copy destinations panel at bottom)
-        // In landscape mode, navigation bar is on the left/right, so we need horizontal insets
-        // CRITICAL FIX: Add bottom inset to existing padding to avoid overlap with navigation bar
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.copyToPanel) { view, insets ->
-            val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            val originalBottomPadding = resources.getDimensionPixelSize(R.dimen.player_cmd_padding_vertical)
-            view.setPadding(
-                systemBarsInsets.left,  // Navigation bar on left (landscape)
-                view.paddingTop,
-                systemBarsInsets.right, // Navigation bar on right (some devices)
-                originalBottomPadding + systemBarsInsets.bottom // Add nav bar height to bottom padding
-            )
-            Timber.d("CopyToPanel: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
-            insets
-        }
-        
-        // Apply WindowInsets to moveToPanel (move destinations panel at bottom)
-        // In landscape mode, navigation bar is on the left/right, so we need horizontal insets
-        // CRITICAL FIX: Add bottom inset to existing padding to avoid overlap with navigation bar
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.moveToPanel) { view, insets ->
-            val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-            val originalBottomPadding = resources.getDimensionPixelSize(R.dimen.player_cmd_padding_vertical)
-            view.setPadding(
-                systemBarsInsets.left,  // Navigation bar on left (landscape)
-                view.paddingTop,
-                systemBarsInsets.right, // Navigation bar on right (some devices)
-                originalBottomPadding + systemBarsInsets.bottom // Add nav bar height to bottom padding
-            )
-            Timber.d("MoveToPanel: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
-            insets
+        // Apply WindowInsets to bottomPanelsContainer (wraps both Copy and Move panels)
+        // This unified container ensures consistent bottom padding regardless of which panel is visible.
+        // It prevents the "double padding" issue where a panel sitting above another one would get unnecessary bottom padding.
+        binding.bottomPanelsContainer?.let { container ->
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+                val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+                
+                // Apply insets to the container
+                // The container wraps the panels, so we apply padding to it to push everything above the nav bar.
+                view.setPadding(
+                    systemBarsInsets.left,   // Navigation bar on left (landscape)
+                    view.paddingTop,         // Keep original top padding (likely 0)
+                    systemBarsInsets.right,  // Navigation bar on right (landscape)
+                    systemBarsInsets.bottom  // Navigation bar on bottom
+                )
+                Timber.d("BottomPanelsContainer: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
+                insets
+            }
         }
     }
 

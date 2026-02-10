@@ -1044,19 +1044,27 @@
          app:layout_constraintStart_toStartOf="parent"
          app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Bottom Panels Container (wraps Copy and Move panels for consistent binding and inset handling) -->
+    <LinearLayout
+        android:id="@+id/bottomPanelsContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
     <!-- Collapsible Copy To Panel (Bottom - Horizontal Layout for Landscape) -->
     <LinearLayout
         android:id="@+id/copyToPanel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:background="#CC004D00"
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
         android:paddingHorizontal="4dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/moveToPanel">
+        android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/copyToPanelHeader"
@@ -1099,15 +1107,12 @@
         android:id="@+id/moveToPanel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:background="#CC00004D"
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
         android:paddingHorizontal="4dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/copyToPanel"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_goneMarginStart="0dp">
+        android:visibility="gone">
 
         <LinearLayout
             android:id="@+id/moveToPanelHeader"
@@ -1143,6 +1148,8 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:columnCount="1" />
+    </LinearLayout>
+
     </LinearLayout>
 
     <!-- Touch Zones (Legacy Overlay) -->
