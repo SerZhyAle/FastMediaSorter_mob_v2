@@ -112,6 +112,9 @@ class ImageLoadingManager(
     fun displayImage(path: String) {
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
         
+        // Log memory state BEFORE loading new image
+        logMemoryStats("BEFORE displayImage")
+        
         // Cancel any pending Glide requests from previous file immediately
         Glide.with(binding.root.context).clear(binding.imageView)
         Glide.with(binding.root.context).clear(binding.photoView)
@@ -508,6 +511,10 @@ class ImageLoadingManager(
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
                 if (!callback.isDestroyed()) {
                     binding.progressBar.isVisible = false
+                    
+                    // Log memory state AFTER successful image load
+                    logMemoryStats("AFTER onResourceReady")
+                    
                     preloadNextImageIfNeeded()
                 }
                 return false
@@ -640,6 +647,13 @@ class ImageLoadingManager(
             }
         }
         Timber.d("ImageLoadingManager: Preload initiated for ${adjacentFiles.size} files")
+        
+        // Log memory stats every 10 preloads to track accumulation patterns
+        preloadCounter++
+        if (preloadCounter >= 10) {
+            logMemoryStats("AFTER preload (every 10)")
+            preloadCounter = 0
+        }
     }
     
     /**
@@ -997,6 +1011,43 @@ class ImageLoadingManager(
      * Should be called periodically during slideshow to prevent OOM.
      * Every 100 clears, triggers System.gc() for aggressive memory reclamation.
      */
+    /**
+     * Logs current memory usage and Glide cache statistics for debugging memory leaks.
+     * Call this before/after image loading to track memory consumption patterns.
+     * 
+     * @param context Contextual description for the log entry (e.g., "BEFORE displayImage", "AFTER onResourceReady")
+     */
+    private fun logMemoryStats(context: String) {
+        try {
+            val runtime = Runtime.getRuntime()
+            
+            // Heap memory stats (in MB)
+            val totalMemory = runtime.totalMemory() / (1024 * 1024)
+            val freeMemory = runtime.freeMemory() / (1024 * 1024)
+            val maxMemory = runtime.maxMemory() / (1024 * 1024)
+            val usedMemory = totalMemory - freeMemory
+            val percentUsed = (usedMemory * 100) / maxMemory
+            
+            // Native memory (approximate)
+            val nativeHeapSize = android.os.Debug.getNativeHeapSize() / (1024 * 1024)
+            val nativeHeapAllocated = android.os.Debug.getNativeHeapAllocatedSize() / (1024 * 1024)
+            val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
+            
+            // Preload jobs count
+            val activePreloadJobs = synchronized(preloadJobs) { preloadJobs.size }
+            
+            // Single comprehensive log line for easier filtering
+            Timber.i(
+                "MEMORY_DEBUG [$context] | " +
+                "Heap: ${usedMemory}MB/${maxMemory}MB (${percentUsed}%) | " +
+                "Native: ${nativeHeapAllocated}MB/${nativeHeapSize}MB (free: ${nativeHeapFree}MB) | " +
+                "Preload Jobs: $activePreloadJobs"
+            )
+        } catch (e: Exception) {
+            Timber.w(e, "MEMORY_DEBUG: Failed to log memory stats")
+        }
+    }
+    
     fun clearMemoryCache() {
         try {
             Glide.get(binding.root.context).clearMemory()
@@ -1019,5 +1070,9 @@ class ImageLoadingManager(
         // Global counter for cache clears across all instances
         // System.gc() is called every 100 clears to aggressively reclaim memory
         private var cacheClears = 0
+        
+        // Counter for preload operations to periodically log memory stats
+        // Logs memory state every 10 preloads to track accumulation patterns
+        private var preloadCounter = 0
     }
 }

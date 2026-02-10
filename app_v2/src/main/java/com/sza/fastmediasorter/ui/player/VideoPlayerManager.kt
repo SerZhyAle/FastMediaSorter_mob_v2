@@ -164,6 +164,10 @@ class VideoPlayerManager(
             when (playbackState) {
                 Player.STATE_READY -> {
                     Timber.d("VideoPlayerManager: Playback ready")
+                    
+                    // Log memory state AFTER video becomes ready
+                    logMemoryStats("AFTER STATE_READY")
+                    
                     playbackRetryCount = 0  // Reset retry counter
                     playerCallback.onBuffering(false)
                     playerCallback.onPlaybackReady()
@@ -432,6 +436,9 @@ class VideoPlayerManager(
         onComplete: () -> Unit = {}
     ) {
         Timber.d("VideoPlayerManager: playVideo - path=$path, type=$resourceType")
+        
+        // Log memory state BEFORE video loading
+        logMemoryStats("BEFORE playVideo")
         
         // Store current file path for position saving
         currentFilePath = path
@@ -1522,5 +1529,37 @@ class VideoPlayerManager(
         }.start()
 
         lifecycle.removeObserver(this)
+    }
+    
+    /**
+     * Logs current memory usage for debugging memory leaks during video playback.
+     * Tracks heap memory, native memory, and provides context for log filtering.
+     * 
+     * @param context Contextual description (e.g., "BEFORE playVideo", "AFTER first frame")
+     */
+    private fun logMemoryStats(context: String) {
+        try {
+            val runtime = Runtime.getRuntime()
+            
+            // Heap memory stats (in MB)
+            val totalMemory = runtime.totalMemory() / (1024 * 1024)
+            val freeMemory = runtime.freeMemory() / (1024 * 1024)
+            val maxMemory = runtime.maxMemory() / (1024 * 1024)
+            val usedMemory = totalMemory - freeMemory
+            val percentUsed = (usedMemory * 100) / maxMemory
+            
+            // Native memory (approximate)
+            val nativeHeapSize = android.os.Debug.getNativeHeapSize() / (1024 * 1024)
+            val nativeHeapAllocated = android.os.Debug.getNativeHeapAllocatedSize() / (1024 * 1024)
+            val nativeHeapFree = android.os.Debug.getNativeHeapFreeSize() / (1024 * 1024)
+            
+            Timber.i(
+                "MEMORY_DEBUG [$context] | " +
+                "Heap: ${usedMemory}MB/${maxMemory}MB (${percentUsed}%) | " +
+                "Native: ${nativeHeapAllocated}MB/${nativeHeapSize}MB (free: ${nativeHeapFree}MB)"
+            )
+        } catch (e: Exception) {
+            Timber.w(e, "MEMORY_DEBUG: Failed to log memory stats (VideoPlayer)")
+        }
     }
 }
