@@ -67,6 +67,20 @@ class AtomicFileOperationStrategy(
         Timber.d("  Temp destination: $tempDestination")
         
         return try {
+            // Step 0: Check destination exists BEFORE copying if overwrite=false
+            // This prevents unnecessary data transfer if file already exists
+            if (!overwrite) {
+                val destExists = delegate.exists(destination).getOrNull() ?: false
+                if (destExists) {
+                    Timber.w("AtomicFileOperationStrategy: Destination exists and overwrite=false, aborting")
+                    // Extract filename from destination path for error message
+                    val fileName = destination.substringAfterLast('/')
+                        .ifEmpty { destination.substringAfterLast('\\') }
+                        .ifEmpty { destination }
+                    return Result.failure(FileExistsException(fileName, destination, isMove = false))
+                }
+            }
+            
             // Step 1: Handle collision - if temp file exists, delete it (overwrite policy)
             val tempExists = delegate.exists(tempDestination).getOrNull() ?: false
             if (tempExists) {
