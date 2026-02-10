@@ -57,16 +57,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     
     @Inject
     lateinit var unifiedCache: UnifiedFileCache
-    
-    // Cache preventSleep setting for shouldKeepScreenAwake()
-    private var cachedPreventSleep: Boolean = true
 
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
-    }
-    
-    override fun shouldKeepScreenAwake(): Boolean {
-        return cachedPreventSleep
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -312,19 +305,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     override fun observeData() {
-        // Observe preventSleep setting and reapply when it changes
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                settingsRepository.getSettings().collect { settings ->
-                    val changed = (cachedPreventSleep != settings.preventSleep)
-                    cachedPreventSleep = settings.preventSleep
-                    if (changed) {
-                        Timber.d("MainActivity: preventSleep changed to $cachedPreventSleep, reapplying...")
-                        reapplyKeepScreenAwake()
-                    }
-                }
-            }
-        }
         
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {

@@ -17,6 +17,7 @@ data class AppSettings(
     val networkParallelism: Int = 4, // Parallel threads for network operations (1, 2, 4, 8, 12, 24)
     val cacheSizeMb: Int = 2048, // Glide disk cache size in MB (512, 1024, 2048, 4096, 8192, 16384) - Default: 2GB after installation
     val isCacheSizeUserModified: Boolean = false, // Flag indicating if user manually changed cache size
+    val enableAtomicTransfer: Boolean = true, // Enable atomic file copy/move (prevents incomplete files from appearing during transfer)
     
     // Network sync settings
     val enableBackgroundSync: Boolean = false,

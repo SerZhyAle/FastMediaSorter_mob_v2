@@ -84,6 +84,12 @@ class PlayerGestureSetupManager(
                 return@setOnTouchListener false
             }
             
+            // For Audio Slideshow Photo Mode: don't intercept touches - let imageView handle tap-to-exit
+            if (activity.isInAudioSlideshowPhotoMode() && binding.imageView.isVisible) {
+                Timber.d("PlayerActivity.root.onTouch: Audio slideshow photo mode - passing touch to imageView")
+                return@setOnTouchListener false
+            }
+            
             // For PDF/EPUB in non-fullscreen mode: intercept touches for navigation zones
             // But only when overlays are NOT blocking (translation/OCR/Lens)
             if (isPdfOrEpub && !isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {

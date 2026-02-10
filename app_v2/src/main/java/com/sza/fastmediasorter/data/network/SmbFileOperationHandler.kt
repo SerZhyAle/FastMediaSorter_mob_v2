@@ -5,11 +5,13 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.SmbOperationStrategy
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 
 import com.sza.fastmediasorter.domain.transfer.FileOperationError
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
@@ -21,7 +23,9 @@ import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.ByteArrayInputStream
@@ -43,14 +47,51 @@ class SmbFileOperationHandler @Inject constructor(
     private val smbClient: SmbClient,
     private val sftpClient: com.sza.fastmediasorter.data.remote.sftp.SftpClient,
     private val ftpClient: com.sza.fastmediasorter.data.remote.ftp.FtpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val settingsRepository: SettingsRepository
 ) : BaseFileOperationHandler(context) {
     
-    // Strategy instances for protocol-specific operations
-    private val smbStrategy = SmbOperationStrategy(context, smbClient, credentialsRepository)
-    private val sftpStrategy = com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy(context, sftpClient, credentialsRepository)
-    private val ftpStrategy = com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy(context, ftpClient, credentialsRepository)
-    private val localStrategy = LocalOperationStrategy(context)
+    // Strategy instances for protocol-specific operations (lazy-wrapped for atomic support)
+    private val smbStrategy: FileOperationStrategy by lazy {
+        val base = SmbOperationStrategy(context, smbClient, credentialsRepository)
+        wrapWithAtomicIfEnabled(base)
+    }
+    
+    private val sftpStrategy: FileOperationStrategy by lazy {
+        val base = com.sza.fastmediasorter.data.transfer.strategy.SftpOperationStrategy(context, sftpClient, credentialsRepository)
+        wrapWithAtomicIfEnabled(base)
+    }
+    
+    private val ftpStrategy: FileOperationStrategy by lazy {
+        val base = com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy(context, ftpClient, credentialsRepository)
+        wrapWithAtomicIfEnabled(base)
+    }
+    
+    private val localStrategy: FileOperationStrategy by lazy {
+        val base = LocalOperationStrategy(context)
+        wrapWithAtomicIfEnabled(base)
+    }
+    
+    /**
+     * Wrap strategy in AtomicFileOperationStrategy if enabled in settings.
+     */
+    private fun wrapWithAtomicIfEnabled(strategy: FileOperationStrategy): FileOperationStrategy {
+        val enableAtomic = runBlocking {
+            try {
+                settingsRepository.getSettings().first().enableAtomicTransfer
+            } catch (e: Exception) {
+                Timber.w(e, "SmbFileOperationHandler: Failed to read atomic transfer setting, defaulting to true")
+                true
+            }
+        }
+        
+        return if (enableAtomic) {
+            Timber.d("SmbFileOperationHandler: Wrapping ${strategy.getProtocolName()} with atomic support")
+            AtomicFileOperationStrategy(strategy, enableAtomic = true)
+        } else {
+            strategy
+        }
+    }
     
     override fun getStrategies(): List<FileOperationStrategy> {
         return listOf(smbStrategy, sftpStrategy, ftpStrategy, localStrategy)

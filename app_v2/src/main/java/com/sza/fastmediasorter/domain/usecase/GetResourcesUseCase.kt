@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 import javax.inject.Inject
 
 class GetResourcesUseCase @Inject constructor(
@@ -20,7 +21,9 @@ class GetResourcesUseCase @Inject constructor(
     }
 
     suspend fun getById(id: Long): MediaResource? {
-        return repository.getResourceById(id)
+        val resource = repository.getResourceById(id)
+        Timber.w("🔶 SORT_DEBUG GetResourcesUseCase.getById($id): sortMode=${resource?.sortMode}, name=${resource?.name}")
+        return resource
     }
     
     /**
