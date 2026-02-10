@@ -935,6 +935,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun onFullscreenClicked() {
+                    // Transition FROM command panel mode TO fullscreen mode
+                    // (no return logic needed - fullscreen has no buttons!)
                     isExplicitFullscreenMode = true
                     if (viewModel.state.value.showCommandPanel) {
                         viewModel.toggleCommandPanel()
@@ -1472,6 +1474,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             
             // For images, reload with new dimensions (in coroutine to avoid blocking main thread)
             if (currentFile != null && (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)) {
+                // Re-evaluate scale type immediately for currently displayed image
+                // This provides instant visual feedback before the image reload completes
+                if (::imageLoadingManager.isInitialized) {
+                    imageLoadingManager.reEvaluateScaleTypeOnRotation()
+                }
+                
                 // Clear current image from ImageViews to free memory before reloading
                 binding.imageView.setImageDrawable(null)
                 binding.photoView.setImageDrawable(null)
@@ -1611,29 +1619,33 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Apply WindowInsets to copyToPanel (copy destinations panel at bottom)
         // In landscape mode, navigation bar is on the left/right, so we need horizontal insets
+        // CRITICAL FIX: Add bottom inset to existing padding to avoid overlap with navigation bar
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.copyToPanel) { view, insets ->
             val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            val originalBottomPadding = resources.getDimensionPixelSize(R.dimen.player_cmd_padding_vertical)
             view.setPadding(
                 systemBarsInsets.left,  // Navigation bar on left (landscape)
                 view.paddingTop,
                 systemBarsInsets.right, // Navigation bar on right (some devices)
-                view.paddingBottom
+                originalBottomPadding + systemBarsInsets.bottom // Add nav bar height to bottom padding
             )
-            Timber.d("CopyToPanel: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}")
+            Timber.d("CopyToPanel: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
             insets
         }
         
         // Apply WindowInsets to moveToPanel (move destinations panel at bottom)
         // In landscape mode, navigation bar is on the left/right, so we need horizontal insets
+        // CRITICAL FIX: Add bottom inset to existing padding to avoid overlap with navigation bar
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.moveToPanel) { view, insets ->
             val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+            val originalBottomPadding = resources.getDimensionPixelSize(R.dimen.player_cmd_padding_vertical)
             view.setPadding(
                 systemBarsInsets.left,  // Navigation bar on left (landscape)
                 view.paddingTop,
                 systemBarsInsets.right, // Navigation bar on right (some devices)
-                view.paddingBottom
+                originalBottomPadding + systemBarsInsets.bottom // Add nav bar height to bottom padding
             )
-            Timber.d("MoveToPanel: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}")
+            Timber.d("MoveToPanel: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
             insets
         }
     }
@@ -2365,6 +2377,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Populate destination buttons dynamically based on destinations from DB
      */
     internal fun populateDestinationButtons() {
+        Timber.d("PlayerActivity: populateDestinationButtons() CALLED")
         destinationButtonsManager.populateDestinationButtons()
     }
 

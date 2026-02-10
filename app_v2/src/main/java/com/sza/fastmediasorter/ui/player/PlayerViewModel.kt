@@ -341,13 +341,28 @@ class PlayerViewModel @Inject constructor(
                     // Always use resource-specific slideshow interval (takes precedence over global settings)
                     val intervalToUse = resource.slideshowInterval * 1000L
                     
+                    // CRITICAL: Recalculate showCommandPanel when resource is loaded
+                    // Because loadSettings() runs in parallel and may complete before resource is available
+                    val currentSettings = settingsRepository.getSettings().first()
+
+                    // Special logic: if resource has explicit false but global default is true,
+                    // treat it as "use global default" to avoid confusion
+                    val showCommandPanel = when {
+                        resource.showCommandPanel == null -> currentSettings.defaultShowCommandPanel
+                        resource.showCommandPanel == false && currentSettings.defaultShowCommandPanel == true -> currentSettings.defaultShowCommandPanel
+                        else -> resource.showCommandPanel ?: currentSettings.defaultShowCommandPanel
+                    }
+
+                    Timber.d("PlayerViewModel.loadMediaFiles: Determined showCommandPanel=$showCommandPanel (resource.showCommandPanel=${resource.showCommandPanel}, default=${currentSettings.defaultShowCommandPanel})")
+                    
                     // Update state with resource first
                     updateState { 
                         it.copy(
                             files = files, 
                             currentIndex = safeIndex, 
                             resource = resource,
-                            slideShowInterval = intervalToUse
+                            slideShowInterval = intervalToUse,
+                            showCommandPanel = showCommandPanel
                         ) 
                     }
                 }
@@ -590,13 +605,21 @@ class PlayerViewModel @Inject constructor(
     fun toggleCommandPanel() {
         val newShowCommandPanel = !state.value.showCommandPanel
         updateState { it.copy(showCommandPanel = newShowCommandPanel) }
-        
+
         // Save user preference for this resource
         val resource = state.value.resource
         if (resource != null) {
             viewModelScope.launch {
                 try {
-                    resourceRepository.updateResource(resource.copy(showCommandPanel = newShowCommandPanel))
+                    // If new value matches global default, reset resource setting to null (use global)
+                    val currentSettings = settingsRepository.getSettings().first()
+                    val effectiveShowCommandPanel = if (newShowCommandPanel == currentSettings.defaultShowCommandPanel) {
+                        null // Reset to use global default
+                    } else {
+                        newShowCommandPanel // Override with specific value
+                    }
+                    resourceRepository.updateResource(resource.copy(showCommandPanel = effectiveShowCommandPanel))
+                    Timber.d("PlayerViewModel.toggleCommandPanel: Saved showCommandPanel=$effectiveShowCommandPanel for resource ${resource.id} (global default=${currentSettings.defaultShowCommandPanel})")
                 } catch (e: Exception) {
                     timber.log.Timber.e(e, "Failed to save command panel preference")
                 }

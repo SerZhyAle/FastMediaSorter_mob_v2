@@ -51,11 +51,15 @@ class DestinationButtonsManager(
      */
     fun populateDestinationButtons() {
         val resourceId = callback.getCurrentResourceId()
+        Timber.d("DestinationButtonsManager: populateDestinationButtons() CALLED - resourceId=$resourceId")
         
         lifecycleScope.launch {
+            Timber.d("DestinationButtonsManager: coroutine STARTED for resourceId=$resourceId")
             try {
-                val destinations = getDestinationsUseCase().first()
-                    .filter { it.id != resourceId } // Exclude current resource
+                val allDestinations = getDestinationsUseCase().first()
+                Timber.d("DestinationButtonsManager: getDestinationsUseCase returned ${allDestinations.size} resources: ${allDestinations.map { "${it.id}:${it.name}" }}")
+                val destinations = allDestinations.filter { it.id != resourceId } // Exclude current resource
+                Timber.d("DestinationButtonsManager: After filtering (exclude resourceId=$resourceId): ${destinations.size} destinations")
                 
                 // Read collapsed state and max recipients from settings (cached)
                 if (cachedCopyCollapsed == null || cachedMoveCollapsed == null || cachedMaxRecipients == null) {
@@ -172,6 +176,9 @@ class DestinationButtonsManager(
                     Timber.d("DestinationButtonsManager: SHOWING panels - destinationsCount=${destinationsList.size}")
                     binding.copyToPanel.isVisible = true
                     binding.moveToPanel.isVisible = true
+                    
+                    // Force layout recalculation to prevent panels from being pushed off-screen
+                    binding.root.requestLayout()
                     
                     // Restore collapsed state AFTER showing panels
                     Timber.d("DestinationButtonsManager: RESTORING panel states - copy=$copyCollapsed, move=$moveCollapsed")

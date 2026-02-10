@@ -363,6 +363,38 @@ class CommandPanelController(
         binding.copyToPanel.isVisible = copyPanelVisible
         binding.moveToPanel.isVisible = movePanelVisible
         
+        // CRITICAL FIX: Force layout recalculation when panel visibility changes
+        // Problem: mediaContentArea has layout_weight=1 and takes all available space
+        // When panels change from gone->visible, LinearLayout doesn't recalculate automatically
+        // Result: panels are pushed off-screen (Y > screen height)
+        // Solution: Force complete layout recalculation via requestLayout() + requestApplyInsets()
+        // This is the same approach used in updateSystemBarsForPlayer after exitFullscreen
+        if (copyPanelVisible || movePanelVisible) {
+            binding.root.post {
+                // Force immediate layout recalculation
+                binding.mediaContentArea.requestLayout()
+                binding.copyToPanel.requestLayout()
+                binding.moveToPanel.requestLayout()
+                binding.root.requestLayout()
+                
+                // Also request insets reapply for proper system bars handling
+                binding.root.requestApplyInsets()
+                Timber.d("CommandPanelController: Requested full layout recalculation and insets reapply")
+            }
+        }
+        
+        // DEBUG: Log actual panel state after visibility change
+        binding.copyToPanel.post {
+            val location = IntArray(2)
+            binding.copyToPanel.getLocationOnScreen(location)
+            Timber.w("CommandPanelController: ACTUAL copyToPanel state - visibility=${binding.copyToPanel.visibility}, isVisible=${binding.copyToPanel.isVisible}, width=${binding.copyToPanel.width}, height=${binding.copyToPanel.height}, Y=${location[1]}, parent=${binding.copyToPanel.parent?.javaClass?.simpleName}, background=${binding.copyToPanel.background}")
+        }
+        binding.moveToPanel.post {
+            val location = IntArray(2)
+            binding.moveToPanel.getLocationOnScreen(location)
+            Timber.w("CommandPanelController: ACTUAL moveToPanel state - visibility=${binding.moveToPanel.visibility}, isVisible=${binding.moveToPanel.isVisible}, width=${binding.moveToPanel.width}, height=${binding.moveToPanel.height}, Y=${location[1]}, parent=${binding.moveToPanel.parent?.javaClass?.simpleName}, background=${binding.moveToPanel.background}")
+        }
+        
 
     }
     

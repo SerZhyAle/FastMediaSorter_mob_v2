@@ -71,6 +71,13 @@ class ImageLoadingManager(
         fun isSlideshowActive(): Boolean
     }
     
+    // Context for scale type determination (set before loading image)
+    private var currentCropSetting: Boolean = true
+    private var currentIsFullscreenOrSlideshow: Boolean = false
+    private var currentDeviceWidth: Int = 0
+    private var currentDeviceHeight: Int = 0
+    private var currentTargetView: android.widget.ImageView? = null
+    
     /**
      * Cleanup all resources - cancel Glide requests and pending handlers.
      * Called from PlayerLifecycleManager.onDestroy() to prevent memory leaks.
@@ -96,6 +103,58 @@ class ImageLoadingManager(
         preloadJobs.clear()
         
         Timber.d("ImageLoadingManager: Cleanup complete")
+    }
+    
+    /**
+     * Re-evaluate and apply scale type after device rotation.
+     * Called when configuration changes (portrait ↔ landscape) to update the scale type
+     * for the currently displayed image without reloading it.
+     */
+    fun reEvaluateScaleTypeOnRotation() {
+        lifecycleScope.launch {
+            try {
+                // Get current settings
+                val settings = settingsRepository.getSettings().first()
+                
+                // Get current device dimensions
+                val bounds = callback.getWindowManager().currentWindowMetrics.bounds
+                val deviceWidth = bounds.width()
+                val deviceHeight = bounds.height()
+                
+                // Determine which view is currently visible
+                val targetView = when {
+                    binding.imageView.isVisible -> binding.imageView
+                    binding.photoView.isVisible -> binding.photoView
+                    else -> null
+                }
+                
+                targetView?.let { view ->
+                    val drawable = view.drawable
+                    if (drawable != null) {
+                        val imageWidth = drawable.intrinsicWidth
+                        val imageHeight = drawable.intrinsicHeight
+                        
+                        if (imageWidth > 0 && imageHeight > 0) {
+                            val isFullscreenOrSlideshow = !callback.isShowingCommandPanel() || callback.isSlideshowActive()
+                            
+                            val scaleType = ImageDisplayUtils.determineImageScaleType(
+                                cropImagesToFullscreen = settings.cropImagesToFullscreen,
+                                isFullscreenOrSlideshow = isFullscreenOrSlideshow,
+                                imageWidth = imageWidth,
+                                imageHeight = imageHeight,
+                                deviceWidth = deviceWidth,
+                                deviceHeight = deviceHeight
+                            )
+                            
+                            view.scaleType = scaleType
+                            Timber.d("ImageLoadingManager: Re-evaluated scale type on rotation: $scaleType (image: ${imageWidth}x${imageHeight}, device: ${deviceWidth}x${deviceHeight})")
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "ImageLoadingManager: Error re-evaluating scale type on rotation")
+            }
+        }
     }
     
     // Safety timeout to hide spinner if Glide hangs or cancels silently
@@ -270,9 +329,15 @@ class ImageLoadingManager(
             val deviceWidth = bounds.width()
             val deviceHeight = bounds.height()
             
+            // Store context for scale type determination in onResourceReady
+            currentCropSetting = settings.cropImagesToFullscreen
+            currentIsFullscreenOrSlideshow = isFullscreenOrSlideshow
+            currentDeviceWidth = deviceWidth
+            currentDeviceHeight = deviceHeight
+            currentTargetView = targetView
+            
             // Apply initial scale type based on settings
             // Note: This is a heuristic - we don't have image dimensions yet
-            // For images cropping setting is enabled + fullscreen/slideshow, use CENTER_CROP as default
             // The actual scale type will be re-evaluated in onResourceReady when we have image dims
             val initialScaleType = if (settings.cropImagesToFullscreen && isFullscreenOrSlideshow) {
                 android.widget.ImageView.ScaleType.CENTER_CROP
@@ -529,6 +594,25 @@ class ImageLoadingManager(
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
                 if (!callback.isDestroyed()) {
                     binding.progressBar.isVisible = false
+                    
+                    // Apply proper scale type based on orientation matching
+                    currentTargetView?.let { view ->
+                        val imageWidth = resource.intrinsicWidth
+                        val imageHeight = resource.intrinsicHeight
+                        
+                        if (imageWidth > 0 && imageHeight > 0) {
+                            val scaleType = ImageDisplayUtils.determineImageScaleType(
+                                cropImagesToFullscreen = currentCropSetting,
+                                isFullscreenOrSlideshow = currentIsFullscreenOrSlideshow,
+                                imageWidth = imageWidth,
+                                imageHeight = imageHeight,
+                                deviceWidth = currentDeviceWidth,
+                                deviceHeight = currentDeviceHeight
+                            )
+                            view.scaleType = scaleType
+                            Timber.d("ImageLoadingManager: Applied scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${currentDeviceWidth}x${currentDeviceHeight})")
+                        }
+                    }
                     
                     // Log memory state AFTER successful image load
                     logMemoryStats("AFTER onResourceReady")

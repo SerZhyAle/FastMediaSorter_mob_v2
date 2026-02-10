@@ -1606,6 +1606,39 @@
             android:maxWidth="280dp"
             android:visibility="gone" />
 
+        <!-- Fullscreen PDF Page Viewer (shown on long tap on PDF page) -->
+        <FrameLayout
+            android:id="@+id/pdfFullscreenOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#FF000000"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            android:focusableInTouchMode="true">
+
+            <com.github.chrisbanes.photoview.PhotoView
+                android:id="@+id/pdfFullscreenPhotoView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="@string/pdf_fullscreen" />
+
+            <!-- PDF Exit Fullscreen Button (top-right corner) -->
+            <ImageButton
+                android:id="@+id/btnExitPdfFullscreen"
+                android:layout_width="@dimen/player_cmd_button_size"
+                android:layout_height="@dimen/player_cmd_button_size"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/ic_fullscreen_exit"
+                android:background="@drawable/bg_circle_dark"
+                android:tint="@android:color/white"
+                android:scaleType="fitCenter"
+                android:padding="6dp"
+                android:contentDescription="Exit Fullscreen" />
+        </FrameLayout>
+
     </FrameLayout>
 
     <!-- Copy to Panel (visible only in command panel mode) -->
@@ -1617,7 +1650,7 @@
         android:background="#CC004D00"
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
         android:paddingHorizontal="4dp"
-        android:visibility="gone">
+        android:visibility="invisible">
 
         <LinearLayout
             android:id="@+id/copyToPanelHeader"
@@ -1664,7 +1697,7 @@
         android:background="#CC00004D"
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
         android:paddingHorizontal="4dp"
-        android:visibility="gone">
+        android:visibility="invisible">
 
         <LinearLayout
             android:id="@+id/moveToPanelHeader"
@@ -1701,38 +1734,5 @@
             android:orientation="vertical"
             android:columnCount="1" />
     </LinearLayout>
-
-    <!-- Fullscreen PDF Page Viewer (shown on long tap on PDF page) -->
-    <FrameLayout
-        android:id="@+id/pdfFullscreenOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#FF000000"
-        android:visibility="gone"
-        android:clickable="true"
-        android:focusable="true"
-        android:focusableInTouchMode="true">
-
-        <com.github.chrisbanes.photoview.PhotoView
-            android:id="@+id/pdfFullscreenPhotoView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:contentDescription="@string/pdf_fullscreen" />
-
-        <!-- PDF Exit Fullscreen Button (top-right corner) -->
-        <ImageButton
-            android:id="@+id/btnExitPdfFullscreen"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:src="@drawable/ic_fullscreen_exit"
-            android:background="@drawable/bg_circle_dark"
-            android:tint="@android:color/white"
-            android:scaleType="fitCenter"
-            android:padding="6dp"
-            android:contentDescription="Exit Fullscreen" />
-    </FrameLayout>
 
 </LinearLayout>
