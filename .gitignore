@@ -54,6 +54,9 @@ render.experimental.xml
 # VS Code
 .vscode/
 
+# AI Agent configurations
+.agent/
+
 # Eclipse
 .classpath
 .project
