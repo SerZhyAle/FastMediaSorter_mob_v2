@@ -639,6 +639,10 @@ class GeneralSettingsFragment : Fragment() {
             clearCache()
         }
         
+        binding.btnResetSmbConnections.setOnClickListener {
+            resetSmbConnections()
+        }
+        
         // Update cache size on view creation
         updateCacheSize()
     }
@@ -839,10 +843,8 @@ class GeneralSettingsFragment : Fragment() {
             .setMessage(getString(R.string.restart_app_message, languageName))
             .setPositiveButton(R.string.restart) { _, _ ->
                 // Language already saved in DataStore by updateSettings()
-                // Sync to SharedPreferences for app restart
-                LocaleHelper.saveLanguage(requireActivity(), languageCode)
-                // Restart app
-                LocaleHelper.restartApp(requireActivity())
+                // Use changeLanguage() which handles Android 13+ LocaleManager correctly
+                LocaleHelper.changeLanguage(requireActivity(), languageCode)
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 // User declined restart - revert spinner to current active language
@@ -1115,13 +1117,8 @@ class GeneralSettingsFragment : Fragment() {
             .setTitle(R.string.restart_required_title)
             .setMessage(R.string.restart_required_message)
             .setPositiveButton(R.string.restart_now) { _, _ ->
-                // Restart app
-                val intent = requireActivity().packageManager.getLaunchIntentForPackage(requireActivity().packageName)
-                intent?.let {
-                    it.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-                    startActivity(it)
-                    requireActivity().finish()
-                }
+                // Use LocaleHelper for consistent restart behavior (handles Android 13+ correctly)
+                LocaleHelper.restartApp(requireActivity())
             }
             .setNegativeButton(R.string.restart_later) { dialog, _ ->
                 dialog.dismiss()
@@ -1283,6 +1280,47 @@ class GeneralSettingsFragment : Fragment() {
                             ).show()
                             binding.btnClearCache.isEnabled = true
                             updateCacheSize()
+                        }
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+    
+    private fun resetSmbConnections() {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.reset_smb_connections_title)
+            .setMessage(R.string.reset_smb_connections_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                // Show loading state
+                binding.btnResetSmbConnections.isEnabled = false
+                binding.btnResetSmbConnections.text = getString(R.string.please_wait)
+                
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        // Reset all SMB connections and error state
+                        viewModel.resetSmbConnectionsUseCase()
+                        
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                requireContext(),
+                                R.string.reset_smb_success,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            binding.btnResetSmbConnections.isEnabled = true
+                            binding.btnResetSmbConnections.text = getString(R.string.reset_smb_connections)
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to reset SMB connections")
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                requireContext(),
+                                "Failed to reset SMB connections: ${e.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            binding.btnResetSmbConnections.isEnabled = true
+                            binding.btnResetSmbConnections.text = getString(R.string.reset_smb_connections)
                         }
                     }
                 }

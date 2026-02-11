@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.ExportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
+import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +35,8 @@ class SettingsViewModel @Inject constructor(
     val getResourcesUseCase: GetResourcesUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     val exportSettingsUseCase: ExportSettingsUseCase,
-    val importSettingsUseCase: ImportSettingsUseCase
+    val importSettingsUseCase: ImportSettingsUseCase,
+    val resetSmbConnectionsUseCase: ResetSmbConnectionsUseCase
 ) : ViewModel() {
 
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()

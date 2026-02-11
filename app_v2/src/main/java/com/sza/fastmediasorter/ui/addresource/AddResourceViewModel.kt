@@ -718,7 +718,8 @@ class AddResourceViewModel @Inject constructor(
         addToDestinations: Boolean = false,
         supportedTypes: Set<MediaType> = emptySet(),
         isReadOnly: Boolean = false,
-        allFiles: Boolean = false
+        allFiles: Boolean = false,
+        scanSubdirectories: Boolean = false
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -780,7 +781,8 @@ class AddResourceViewModel @Inject constructor(
                     slideshowInterval = settings.slideshowInterval,
                     supportedMediaTypes = finalSupportedTypes,
                     isReadOnly = isReadOnly,
-                    allFiles = allFiles
+                    allFiles = allFiles,
+                    scanSubdirectories = scanSubdirectories
                 )
                 
                 // Add resource to database
@@ -978,7 +980,9 @@ class AddResourceViewModel @Inject constructor(
         comment: String? = null,
         supportedTypes: Set<MediaType> = emptySet(),
         isReadOnly: Boolean = false,
-        allFiles: Boolean = false
+        allFiles: Boolean = false,
+        scanSubdirectories: Boolean = false,
+        addToDestinations: Boolean = false
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1011,6 +1015,26 @@ class AddResourceViewModel @Inject constructor(
             credentialsResult.onSuccess { credentialsId ->
                 Timber.d("Saved $protocolName credentials with ID: $credentialsId")
                 
+                // Determine destination settings if needed
+                // Read-only resources cannot be destinations
+                val (isDestination, destinationOrder, destinationColor) = if (addToDestinations && !isReadOnly) {
+                    val allResources = resourceRepository.getAllResources().first()
+                    val destinations = allResources.filter { it.isDestination }
+                    
+                    if (destinations.size >= 10) {
+                        sendEvent(AddResourceEvent.ShowError("Maximum 30 destinations allowed"))
+                        setLoading(false)
+                        return@launch
+                    }
+                    
+                    val maxOrder = destinations.mapNotNull { it.destinationOrder }.maxOrNull() ?: -1
+                    val nextOrder = maxOrder + 1
+                    val color = DestinationColors.getColorForDestination(nextOrder)
+                    Triple(true, nextOrder, color)
+                } else {
+                    Triple(false, 0, 0)
+                }
+                
                 // Create resource
                 val formattedRemotePath = if (remotePath.startsWith("/") || remotePath.isEmpty()) remotePath else "/$remotePath"
                 val path = "$protocolLower://$host:$port$formattedRemotePath"
@@ -1032,7 +1056,9 @@ class AddResourceViewModel @Inject constructor(
                     name = finalName,
                     path = path,
                     type = protocolType,
-                    isDestination = false,
+                    isDestination = isDestination,
+                    destinationOrder = destinationOrder,
+                    destinationColor = destinationColor,
                     credentialsId = credentialsId,
                     comment = comment,
                     displayMode = displayMode,
@@ -1040,7 +1066,8 @@ class AddResourceViewModel @Inject constructor(
                     slideshowInterval = settings.slideshowInterval,
                     supportedMediaTypes = finalSupportedTypes,
                     isReadOnly = isReadOnly,
-                    allFiles = allFiles
+                    allFiles = allFiles,
+                    scanSubdirectories = scanSubdirectories
                 )
                 
                 // Add resource to database
@@ -1309,7 +1336,10 @@ class AddResourceViewModel @Inject constructor(
         resourceName: String? = null,
         comment: String? = null,
         supportedTypes: Set<MediaType> = emptySet(),
-        allFiles: Boolean = false
+        allFiles: Boolean = false,
+        isReadOnly: Boolean = false,
+        scanSubdirectories: Boolean = false,
+        addToDestinations: Boolean = false
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1334,6 +1364,26 @@ class AddResourceViewModel @Inject constructor(
             ).onSuccess { credentialsId ->
                 Timber.d("Saved SFTP SSH key credentials with ID: $credentialsId")
                 
+                // Determine destination settings if needed
+                // Read-only resources cannot be destinations
+                val (isDestination, destinationOrder, destinationColor) = if (addToDestinations && !isReadOnly) {
+                    val allResources = resourceRepository.getAllResources().first()
+                    val destinations = allResources.filter { it.isDestination }
+                    
+                    if (destinations.size >= 10) {
+                        sendEvent(AddResourceEvent.ShowError("Maximum 30 destinations allowed"))
+                        setLoading(false)
+                        return@launch
+                    }
+                    
+                    val maxOrder = destinations.mapNotNull { it.destinationOrder }.maxOrNull() ?: -1
+                    val nextOrder = maxOrder + 1
+                    val color = DestinationColors.getColorForDestination(nextOrder)
+                    Triple(true, nextOrder, color)
+                } else {
+                    Triple(false, 0, 0)
+                }
+                
                 // Create resource
                 val formattedRemotePath = if (remotePath.startsWith("/") || remotePath.isEmpty()) remotePath else "/$remotePath"
                 val path = "sftp://$host:$port$formattedRemotePath"
@@ -1355,14 +1405,18 @@ class AddResourceViewModel @Inject constructor(
                     name = finalName,
                     path = path,
                     type = ResourceType.SFTP,
-                    isDestination = false,
+                    isDestination = isDestination,
+                    destinationOrder = destinationOrder,
+                    destinationColor = destinationColor,
                     credentialsId = credentialsId,
                     comment = comment,
                     displayMode = displayMode,
                     sortMode = settings.defaultSortMode,
                     slideshowInterval = settings.slideshowInterval,
                     supportedMediaTypes = finalSupportedTypes,
-                    allFiles = allFiles
+                    isReadOnly = isReadOnly,
+                    allFiles = allFiles,
+                    scanSubdirectories = scanSubdirectories
                 )
                 
                 // Add resource to database

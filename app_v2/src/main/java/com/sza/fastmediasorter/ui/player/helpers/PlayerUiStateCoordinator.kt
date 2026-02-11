@@ -158,7 +158,7 @@ class PlayerUiStateCoordinator(
                 if (file.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
             )
 
-            binding.tvFileNameOverlay?.text = file.name
+            binding.tvFileNameOverlay?.text = "${file.name} (${state.currentIndex + 1}/${state.files.size})"
 
             val currentFilePath = callback.getCurrentFilePath()
             if (currentFilePath != file.path) {

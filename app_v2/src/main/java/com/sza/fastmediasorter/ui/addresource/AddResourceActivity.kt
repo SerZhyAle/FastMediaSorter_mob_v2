@@ -1127,7 +1127,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             addToDestinations = binding.cbSmbAddToDestinations.isChecked,
             supportedTypes = getSmbSupportedTypes(),
             isReadOnly = isReadOnly,
-            allFiles = binding.cbSmbAllFiles.isChecked
+            allFiles = binding.cbSmbAllFiles.isChecked,
+            scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked
         )
     }
 
@@ -1286,16 +1287,58 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 }
                 
                 // Add with SSH key
-                viewModel.addSftpResourceWithKey(host, port, username, privateKey, keyPassphrase, remotePath, resourceName, comment, supportedTypes, allFiles = binding.cbSftpAllFiles.isChecked)
+                viewModel.addSftpResourceWithKey(
+                    host = host,
+                    port = port,
+                    username = username,
+                    privateKey = privateKey,
+                    keyPassphrase = keyPassphrase,
+                    remotePath = remotePath,
+                    resourceName = resourceName,
+                    comment = comment,
+                    supportedTypes = supportedTypes,
+                    allFiles = binding.cbSftpAllFiles.isChecked,
+                    scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
+                    addToDestinations = binding.cbSftpAddToDestinations.isChecked,
+                    isReadOnly = binding.cbSftpReadOnlyMode.isChecked
+                )
             } else {
                 // Add with password
                 val password = binding.etSftpPassword.text.toString().trim()
-                viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath, resourceName, comment, supportedTypes, allFiles = binding.cbSftpAllFiles.isChecked)
+                viewModel.addSftpFtpResource(
+                    protocolType = protocolType,
+                    host = host,
+                    port = port,
+                    username = username,
+                    password = password,
+                    remotePath = remotePath,
+                    resourceName = resourceName,
+                    comment = comment,
+                    supportedTypes = supportedTypes,
+                    allFiles = binding.cbSftpAllFiles.isChecked,
+                    scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
+                    addToDestinations = binding.cbSftpAddToDestinations.isChecked,
+                    isReadOnly = binding.cbSftpReadOnlyMode.isChecked
+                )
             }
         } else {
             // FTP always uses password
             val password = binding.etSftpPassword.text.toString().trim()
-            viewModel.addSftpFtpResource(protocolType, host, port, username, password, remotePath, resourceName, comment, supportedTypes, allFiles = binding.cbSftpAllFiles.isChecked)
+            viewModel.addSftpFtpResource(
+                protocolType = protocolType,
+                host = host,
+                port = port,
+                username = username,
+                password = password,
+                remotePath = remotePath,
+                resourceName = resourceName,
+                comment = comment,
+                supportedTypes = supportedTypes,
+                allFiles = binding.cbSftpAllFiles.isChecked,
+                scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
+                addToDestinations = binding.cbSftpAddToDestinations.isChecked,
+                isReadOnly = binding.cbSftpReadOnlyMode.isChecked
+            )
         }
     }
     

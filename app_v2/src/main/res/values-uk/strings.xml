@@ -493,6 +493,11 @@
     <string name="show_log">ПОКАЗАТИ ЛОГ</string>
     <string name="show_current_session_log">ЛОГ ПОТОЧНОЇ СЕСІЇ</string>
     <string name="clear_cache">ОЧИСТИТИ КЕШ</string>
+    <string name="reset_smb_connections">СКИД SMB</string>
+    <string name="reset_smb_connections_title">Скидання SMB з\'єднань</string>
+    <string name="reset_smb_connections_message">Це закриє всі SMB з\'єднання та скине стан помилок. Використовуйте, якщо виникають проблеми з підключенням.</string>
+    <string name="reset_smb_success">SMB з\'єднання скинуто успішно</string>
+    <string name="smb_auto_reset_notification">SMB з\'єднання скинуто автоматично</string>
     <string name="cache_size_limit">Розмір кешу</string>
     <string name="cache_size_limit_mb">%d МБ</string>
     <string name="cache_size_calculating">Обчислення…</string>

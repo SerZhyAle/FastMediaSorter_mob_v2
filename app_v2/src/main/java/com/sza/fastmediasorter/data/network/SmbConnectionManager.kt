@@ -27,6 +27,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
+ * Callback interface for SMB connection reset notifications.
+ * Allows UI layer to show feedback to user when auto-reset occurs.
+ */
+interface SmbResetCallback {
+    /**
+     * Called when SMB connections are automatically reset.
+     * @param reason Human-readable reason for reset (for logging/debugging)
+     */
+    fun onAutoReset(reason: String)
+}
+
+/**
  * Manages SMB connection pooling, lifecycle, and health tracking.
  * 
  * Responsibilities:
@@ -82,11 +94,17 @@ class SmbConnectionManager @Inject constructor(
         private const val TIMEOUT_WARNING_THRESHOLD = 5
         private const val TIMEOUT_CRITICAL_THRESHOLD = 20
         
+        // Auto-reset cooldown - prevent frequent resets
+        private const val AUTO_RESET_COOLDOWN_MS = 30000L // 30 seconds
+        
         @Volatile
         private var consecutiveTimeouts = 0
         
         @Volatile
         private var lastSuccessfulOperation = System.currentTimeMillis()
+        
+        @Volatile
+        private var lastAutoResetTime = 0L
     }
     
     // Connection pool
@@ -101,6 +119,10 @@ class SmbConnectionManager @Inject constructor(
     
     private val connectionPool = ConcurrentHashMap<ConnectionKey, PooledConnection>()
     private val connectionSemaphore = Semaphore(MAX_CONCURRENT_CONNECTIONS)
+    
+    // Callback for auto-reset notifications
+    @Volatile
+    private var resetCallback: SmbResetCallback? = null
     
     // Lazy initialization of SMB clients
     private val normalConfig by lazy {
@@ -413,19 +435,40 @@ class SmbConnectionManager @Inject constructor(
             }
         }
         
+        // Check if this is a configuration/authentication error (not a network issue)
+        val isAuthError = errorMessage.contains("STATUS_LOGON_FAILURE", ignoreCase = true) ||
+                         errorMessage.contains("Authentication failed", ignoreCase = true)
+        val isAccessError = errorMessage.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
+                           errorMessage.contains("Access denied", ignoreCase = true)
+        val isConfigError = errorMessage.contains("Unknown host", ignoreCase = true) ||
+                           errorMessage.contains("Connection refused", ignoreCase = true)
+        
         val isTimeout = e.toString().contains("TimeoutException", ignoreCase = true)
-        if (isTimeout) {
+        
+        if (isAuthError || isAccessError || isConfigError) {
+            // Configuration/authentication errors - don't increment timeout counter
+            Timber.w(e, "Pooled connection configuration error (not network issue)")
+            // Auto-reset SMB connections for this server
+            val resetReason = when {
+                isAuthError -> "Authentication failure detected"
+                isAccessError -> "Access denied detected"
+                else -> "Configuration error detected"
+            }
+            autoResetIfNeeded(resetReason)
+        } else if (isTimeout) {
             Timber.w("Pooled connection timed out (server session expired)")
             consecutiveTimeouts++
-        } else {
-            Timber.w(e, "Pooled connection failed, retrying with fresh")
-        }
-        
-        // Track failures
-        if (e is com.hierynomus.smbj.common.SMBRuntimeException || isTimeout) {
-            if (!isTimeout) consecutiveTimeouts++
             if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
-                Timber.w("SMB degradation: $consecutiveTimeouts consecutive failures")
+                Timber.w("SMB degradation: $consecutiveTimeouts consecutive timeouts")
+            }
+        } else {
+            // Other SMB errors - track as potential network issue
+            Timber.w(e, "Pooled connection failed, retrying with fresh")
+            if (e is com.hierynomus.smbj.common.SMBRuntimeException) {
+                consecutiveTimeouts++
+                if (consecutiveTimeouts >= TIMEOUT_WARNING_THRESHOLD) {
+                    Timber.w("SMB degradation: $consecutiveTimeouts consecutive failures")
+                }
             }
         }
         
@@ -487,13 +530,32 @@ class SmbConnectionManager @Inject constructor(
              cause.message?.contains("Broken pipe") == true)
         } ?: false
         
+        // Check if this is a configuration/authentication error (not a network issue)
+        val isAuthError = errorMessage.contains("STATUS_LOGON_FAILURE", ignoreCase = true) ||
+                         errorMessage.contains("Authentication failed", ignoreCase = true)
+        val isAccessError = errorMessage.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
+                           errorMessage.contains("Access denied", ignoreCase = true)
+        val isConfigError = errorMessage.contains("Unknown host", ignoreCase = true) ||
+                           errorMessage.contains("Connection refused", ignoreCase = true)
+        
         if (isCriticalError) {
             Timber.e("CRITICAL socket error - forcing full reset")
             closeAllConnections()
             resetClients()
             consecutiveTimeouts = 0
+        } else if (isAuthError || isAccessError || isConfigError) {
+            // Configuration/authentication errors - don't increment timeout counter
+            Timber.w("Fresh connection configuration error (not network issue): $errorMessage")
+            // Don't track these as consecutive failures - they indicate user config issues
+            // Auto-reset SMB connections to clear stale sessions
+            val resetReason = when {
+                isAuthError -> "Authentication failure on new connection"
+                isAccessError -> "Access denied on new connection"
+                else -> "Configuration error on new connection"
+            }
+            autoResetIfNeeded(resetReason)
         } else {
-            // Track timeouts
+            // Track real network timeouts and failures
             if (e is kotlinx.coroutines.TimeoutCancellationException || 
                 e is com.hierynomus.smbj.common.SMBRuntimeException) {
                 consecutiveTimeouts++
@@ -571,6 +633,57 @@ class SmbConnectionManager @Inject constructor(
      */
     fun clearConnectionPool() {
         closeAllConnections()
+    }
+    
+    /**
+     * Set callback for auto-reset notifications.
+     * Should be called from Application or ViewModel to show user feedback.
+     */
+    fun setResetCallback(callback: SmbResetCallback?) {
+        resetCallback = callback
+    }
+    
+    /**
+     * Automatically reset SMB connections when needed (auth/config errors).
+     * Uses cooldown to prevent frequent resets.
+     * @param reason Human-readable reason for logging
+     */
+    private fun autoResetIfNeeded(reason: String) {
+        val currentTime = System.currentTimeMillis()
+        val timeSinceLastReset = currentTime - lastAutoResetTime
+        
+        if (timeSinceLastReset < AUTO_RESET_COOLDOWN_MS) {
+            Timber.d("SmbConnectionManager: Auto-reset skipped (cooldown: ${timeSinceLastReset}ms / ${AUTO_RESET_COOLDOWN_MS}ms)")
+            return
+        }
+        
+        Timber.d("SmbConnectionManager: Auto-reset triggered - $reason")
+        lastAutoResetTime = currentTime
+        
+        closeAllConnections()
+        resetClients()
+        consecutiveTimeouts = 0
+        lastSuccessfulOperation = currentTime
+        
+        // Notify callback (for UI toast)
+        resetCallback?.onAutoReset(reason)
+        
+        Timber.d("SmbConnectionManager: Auto-reset complete")
+    }
+    
+    /**
+     * Reset all SMB connections and clear error state.
+     * Public API for manual recovery from connection issues.
+     * Closes all connections, resets clients, and clears timeout counters.
+     */
+    fun resetAllConnections() {
+        Timber.d("SmbConnectionManager: Manual reset requested")
+        closeAllConnections()
+        resetClients()
+        consecutiveTimeouts = 0
+        lastSuccessfulOperation = System.currentTimeMillis()
+        lastAutoResetTime = System.currentTimeMillis() // Update to prevent immediate auto-reset after manual
+        Timber.d("SmbConnectionManager: Reset complete")
     }
     
     /**

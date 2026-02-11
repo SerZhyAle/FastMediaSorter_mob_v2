@@ -12,6 +12,7 @@ import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
@@ -175,9 +176,10 @@ class ImageLoadingManager(
         // Log memory state BEFORE loading new image
         logMemoryStats("BEFORE displayImage")
         
-        // Cancel any pending Glide requests from previous file immediately
-        Glide.with(binding.root.context).clear(binding.imageView)
-        Glide.with(binding.root.context).clear(binding.photoView)
+        // NOTE: Do NOT clear imageView/photoView before loading new image!
+        // This causes a brief black screen flash between slides.
+        // Glide will automatically replace the image when the new one is ready.
+        // Memory cleanup happens when the new request completes and replaces the old bitmap.
         
         // Cancel all preload jobs to prevent memory accumulation
         synchronized(preloadJobs) {
@@ -434,6 +436,7 @@ class ImageLoadingManager(
         }
         
         finalRequest
+            .transition(DrawableTransitionOptions.withCrossFade(150)) // Smooth 150ms crossfade between slides
             .listener(createGlideListener())
             .into(targetView)
     }
@@ -478,6 +481,7 @@ class ImageLoadingManager(
         }
         
         finalRequest
+            .transition(DrawableTransitionOptions.withCrossFade(150)) // Smooth 150ms crossfade between slides
             .listener(createGlideListener())
             .into(targetView)
     }
@@ -541,6 +545,7 @@ class ImageLoadingManager(
         }
         
         finalRequest
+            .transition(DrawableTransitionOptions.withCrossFade(150)) // Smooth 150ms crossfade between slides
             .listener(createGlideListener())
             .into(targetView)
     }

@@ -23,8 +23,33 @@ object LoggingHelper {
      */
     fun initialize(context: Context) {
         if (BuildConfig.DEBUG) {
-            // Debug build: log everything to Logcat
-            Timber.plant(Timber.DebugTree())
+            // Debug build: log to Logcat with system noise filtering
+            Timber.plant(object : Timber.DebugTree() {
+                override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+                    // Filter out noisy system logs
+                    if (shouldFilterLog(tag, message)) {
+                        return
+                    }
+                    super.log(priority, tag, message, t)
+                }
+                
+                private fun shouldFilterLog(tag: String?, message: String?): Boolean {
+                    if (tag == null || message == null) return false
+                    
+                    // Filter SurfaceView updateSurface debug logs
+                    if (tag.contains("SurfaceView") && message.contains("updateSurface")) {
+                        return true
+                    }
+                    
+                    // Filter other noisy system logs
+                    if ((tag.contains("ExoPlayer") || tag.contains("MediaCodec")) && 
+                        (message.contains("updateSurface") || message.contains("has no frame"))) {
+                        return true
+                    }
+                    
+                    return false
+                }
+            })
             // Also log to file for debugging without ADB connection
             Timber.plant(FileLoggingTree(context))
         } else {

@@ -82,7 +82,19 @@
 
     <resource
         name="mp3"
-        path="smb://192.168.1.110/media/mp33"
+        path="smb://192.168.1.110/media/mp3"
+        type="SMB"
+        username="sza"
+        supportedMediaTypes="AUDIO"
+        sortMode="NAME_ASC"
+        displayMode="GRID"
+        scanSubdirectories="true"
+        addToDestinations="false"
+        disableThumbnails="false" />        
+
+    <resource
+        name="apeflac"
+        path="smb://192.168.1.110/media/apeflac"
         type="SMB"
         username="sza"
         supportedMediaTypes="AUDIO"

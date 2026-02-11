@@ -61,6 +61,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor
     
+    @Inject
+    lateinit var smbConnectionManager: com.sza.fastmediasorter.data.network.SmbConnectionManager
+    
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     
@@ -108,6 +111,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Start network state monitoring for automatic connection recovery
         networkStateMonitor.start()
         
+        // Setup SMB auto-reset callback to show user feedback
+        setupSmbAutoReset()
+        
         // Log Glide disk cache status at startup
         CacheStatusHelper.logGlideDiskCacheStatus(this)
         
@@ -144,6 +150,31 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // }
     }
 
+    /**
+     * Setup SMB connection auto-reset callback.
+     * Shows toast to user when system automatically resets SMB connections
+     * due to authentication or configuration errors.
+     */
+    private fun setupSmbAutoReset() {
+        smbConnectionManager.setResetCallback(object : com.sza.fastmediasorter.data.network.SmbResetCallback {
+            override fun onAutoReset(reason: String) {
+                applicationScope.launch(Dispatchers.Main) {
+                    try {
+                        val message = getString(R.string.smb_auto_reset_notification)
+                        android.widget.Toast.makeText(
+                            applicationContext,
+                            message,
+                            android.widget.Toast.LENGTH_SHORT
+                        ).show()
+                        Timber.d("SMB auto-reset notification shown: $reason")
+                    } catch (e: Exception) {
+                        Timber.e(e, "Failed to show SMB auto-reset notification")
+                    }
+                }
+            }
+        })
+    }
+    
     override val workManagerConfiguration: Configuration
         get() = Configuration.Builder()
             .setWorkerFactory(workerFactory)

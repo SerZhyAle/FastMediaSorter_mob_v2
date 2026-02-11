@@ -506,6 +506,11 @@
     <string name="cache_size_limit">Cache Size Limit</string>
     <string name="cache_size_limit_mb">%d MB</string>
     <string name="clear_cache">CLEAR CACHE</string>
+    <string name="reset_smb_connections">RESET SMB</string>
+    <string name="reset_smb_connections_title">Reset SMB Connections</string>
+    <string name="reset_smb_connections_message">This will close all SMB connections and clear error state. Use if you experience persistent connection issues.</string>
+    <string name="reset_smb_success">SMB connections reset successfully</string>
+    <string name="smb_auto_reset_notification">SMB connections reset automatically</string>
     <string name="cache_size_calculating">Calculating…</string>
     <string name="cache_size_format">Cache: %s</string>
     <string name="cache_cleared">Cache cleared successfully</string>

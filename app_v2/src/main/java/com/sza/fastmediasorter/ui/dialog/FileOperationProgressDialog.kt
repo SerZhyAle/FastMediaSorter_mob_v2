@@ -111,9 +111,9 @@ class FileOperationProgressDialog(
                     
                     progressBar.isIndeterminate = false
                     progressBar.max = progress.totalFiles
-                    progressBar.progress = progress.currentIndex
+                    progressBar.progress = progress.currentIndex + 1
                     
-                    tvProgress.text = "${progress.currentIndex} / ${progress.totalFiles}"
+                    tvProgress.text = "${progress.currentIndex + 1} / ${progress.totalFiles}"
                     tvCurrentFile.text = progress.currentFile
                     
                     // Show speed if available

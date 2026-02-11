@@ -731,6 +731,19 @@
                 app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit"
                 app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetSmbConnections"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                android:text="@string/reset_smb_connections"
+                app:icon="@android:drawable/stat_notify_sync"
+                app:layout_constraintStart_toEndOf="@+id/btnClearCache"
+                app:layout_constraintTop_toTopOf="@+id/tilCacheSizeLimit"
+                app:layout_constraintBottom_toBottomOf="@+id/tilCacheSizeLimit" />
+
             <TextView
                 android:id="@+id/tvCacheSize"
                 android:layout_width="wrap_content"
@@ -739,7 +752,7 @@
                 android:text="@string/cache_size_calculating"
                 android:textSize="@dimen/resource_card_desc_text_size"
                 android:textColor="?android:textColorSecondary"
-                app:layout_constraintStart_toEndOf="@+id/btnClearCache"
+                app:layout_constraintStart_toEndOf="@+id/btnResetSmbConnections"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent" />
 

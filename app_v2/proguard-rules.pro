@@ -241,3 +241,21 @@
     <init>(...);
     <methods>;
 }
+
+# ===== LocaleHelper & Localization Resources =====
+# CRITICAL: Keep LocaleHelper for language switching (Android 13+)
+-keep class com.sza.fastmediasorter.core.util.LocaleHelper { *; }
+-keepclassmembers class com.sza.fastmediasorter.core.util.LocaleHelper {
+    public <methods>;
+}
+
+# Keep all string resources for all locales (prevent R8 from removing translations)
+-keep class **.R$string { *; }
+-keepclassmembers class **.R$* {
+    public static <fields>;
+}
+
+# Keep SharedPreferences for language storage
+-keepclassmembers class android.content.SharedPreferences {
+    public <methods>;
+}
