@@ -2747,6 +2747,39 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         dataSource: com.bumptech.glide.load.DataSource,
                         isFirstResource: Boolean
                     ): Boolean {
+                        // Apply scale type based on orientation match and user setting
+                        val imageWidth = resource.intrinsicWidth
+                        val imageHeight = resource.intrinsicHeight
+                        
+                        if (imageWidth > 0 && imageHeight > 0) {
+                            lifecycleScope.launch(Dispatchers.Main) {
+                                try {
+                                    val settings = settingsRepository.getSettings().first()
+                                    val bounds = windowManager.currentWindowMetrics.bounds
+                                    val deviceWidth = bounds.width()
+                                    val deviceHeight = bounds.height()
+                                    
+                                    val scaleType = com.sza.fastmediasorter.ui.image.ImageDisplayUtils.determineImageScaleType(
+                                        cropImagesToFullscreen = settings.cropImagesToFullscreen,
+                                        isFullscreenOrSlideshow = true, // Always fullscreen in audio slideshow
+                                        imageWidth = imageWidth,
+                                        imageHeight = imageHeight,
+                                        deviceWidth = deviceWidth,
+                                        deviceHeight = deviceHeight
+                                    )
+                                    
+                                    binding.imageView.scaleType = scaleType
+                                    Timber.d("AudioSlideshow: Applied scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${deviceWidth}x${deviceHeight})")
+                                } catch (e: Exception) {
+                                    Timber.e(e, "AudioSlideshow: Error determining scale type, using FIT_CENTER")
+                                    binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                                }
+                            }
+                        } else {
+                            // Fallback to FIT_CENTER if dimensions unavailable
+                            binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+                        }
+                        
                         // Photo loaded successfully - preload next photo for smooth transition
                         preloadNextAudioSlideshowPhoto()
                         return false // Let Glide display the drawable
@@ -2830,8 +2863,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
 
-        // Show imageView fullscreen with centerCrop for cinematic feel
-        binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
+        // Show imageView fullscreen
+        // Note: Scale type will be determined dynamically in loadBackgroundPhotoIntoImageView
+        // based on cropImagesToFullscreen setting and orientation match
         binding.imageView.isVisible = true
 
         // Show current photo path/name overlay

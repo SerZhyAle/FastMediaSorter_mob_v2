@@ -165,6 +165,8 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 
 ## Documentation / Документація / Документация 📚
 
+**🗺️ Documentation Map / Карта документации:** [View all docs / Все документы](docs/DOCS_MAP.md)
+
 **🌐 Official Website:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
 
 Detailed guides are available in multiple languages:

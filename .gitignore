@@ -157,6 +157,9 @@ spec_v2/
 servers/
 bundletool.jar
 
+# Helper scripts with personal API keys (template versions are tracked)
+scripts/ask-smart-router.ps1
+
 # Python virtual environments (for scripts)
 .venv/
 venv/
@@ -222,3 +225,4 @@ google*.html
 servers/
 
 archive/
+ChoiceModelRules.md

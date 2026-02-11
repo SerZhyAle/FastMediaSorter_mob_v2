@@ -29,6 +29,63 @@
 
 ---
 
+## 1.5. MODEL SELECTION PROTOCOL [INFO]
+
+**OBJECTIVE**: Reference guide for model selection and Smart Router Helper integration.
+
+### Complexity Classification (for reference):
+
+**SIMPLE:**
+- Typo fixes, formatting, renaming
+- Adding logs, comments, simple refactoring
+- File/code navigation, search, explanations
+- Quick fixes under 50 lines
+- **Recommended:** Haiku 4.5 (0.33x cost)
+
+**MEDIUM:**
+- New features: UseCases, Managers, ViewModels
+- Bug fixes requiring code analysis
+- Multi-file changes, UI implementation
+- Network/DB integration
+- **Recommended:** Sonnet 4.5 (1x baseline)
+
+**COMPLEX:**
+- Architectural changes, major refactoring
+- Cross-module modifications
+- Performance optimization, complex debugging
+- New modules, critical infrastructure
+- **Recommended:** Opus 4.6 (3x cost)
+
+### Using Smart Router Helper
+
+For automatic complexity analysis and model recommendation:
+
+```powershell
+# Analyze your question with free AI (GPT-4o/Grok)
+.\scripts\ask-smart-router.ps1 "Your question here"
+
+# Example
+.\scripts\ask-smart-router.ps1 "Посоветуй каких скриншотов не хватает"
+```
+
+**How it works:**
+1. Sends question to free analyzer (GPT-4o or Grok)
+2. Receives complexity analysis + model recommendation
+3. Generates detailed enhanced prompt
+4. Copies to clipboard for Copilot Chat
+
+**Setup:** See `temp/SMART_ROUTER_HELPER_GUIDE.md`
+
+### Model Capability Tiers:
+
+| Model | Best For | Cost Multiplier |
+|-------|----------|----------------|
+| Haiku 4.5 | Simple, quick tasks | 0.33x |
+| Sonnet 4.5 | Main development | 1x (baseline) |
+| Opus 4.6 | Complex architecture | 3x |
+
+---
+
 ## 2. PROJECT ARCHITECTURE
 
 **Framework**: Android Native (Kotlin 1.9+, Java 17).

@@ -1,0 +1,368 @@
+<#
+.SYNOPSIS
+    Smart Router Helper Script for GitHub Copilot [TEMPLATE]
+    
+.DESCRIPTION
+    ⚠️ THIS IS A TEMPLATE FILE ⚠️
+    Copy this file to 'ask-smart-router.ps1' and configure API keys below.
+    
+    Sends your question to a free AI analyzer (GPT-4o or Grok),
+    receives complexity analysis and model recommendation,
+    then opens Copilot Chat with ready prompt.
+
+.PARAMETER Question
+    Your question for Copilot (e.g., "Fix NPE in MainActivity")
+
+.PARAMETER Analyzer
+    Analyzer to use: "gpt4o" (default), "grok", or "auto"
+
+.EXAMPLE
+    # 1. Copy template
+    Copy-Item ask-smart-router.ps1.template ask-smart-router.ps1
+    
+    # 2. Configure API keys in CONFIGURATION section
+    # 3. Use script
+    .\scripts\ask-smart-router.ps1 "Посоветуй каких скриншотов не хватает"
+
+.NOTES
+    Setup:
+    1. Get API key from https://platform.openai.com/api-keys (GPT-4o)
+    2. Set $API_KEYS below OR use environment variables
+    3. Script will auto-select available analyzer
+    
+    Cost: ~$0.15 per 1M tokens (almost free)
+#>
+
+param(
+    [Parameter(Mandatory = $true, Position = 0)]
+    [string]$Question,
+    
+    [Parameter(Mandatory = $false)]
+    [ValidateSet("gpt4o", "grok", "auto")]
+    [string]$Analyzer = "auto"
+)
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+
+# Hardcoded API Keys (optional - takes priority over environment variables)
+# ⚠️ CONFIGURE YOUR API KEYS HERE:
+$API_KEYS = @{
+    "OPENAI_API_KEY" = ""  # Get from https://platform.openai.com/api-keys
+    "XAI_API_KEY"     = ""  # Get from https://x.ai/
+}
+
+$ANALYZERS = @{
+    "gpt4o" = @{
+        "name"            = "GPT-4o"
+        "api_base"        = "https://api.openai.com/v1"
+        "model"           = "gpt-4o"
+        "env_key"         = "OPENAI_API_KEY"
+        "cost_multiplier" = "0x (free tier available)"
+    }
+    "grok"  = @{
+        "name"            = "Grok Code Fast 1"
+        "api_base"        = "https://api.x.ai/v1"
+        "model"           = "grok-2-1212"
+        "env_key"         = "XAI_API_KEY"
+        "cost_multiplier" = "0x (free tier available)"
+    }
+}
+
+$MODEL_COSTS = @{
+    "Haiku 4.5"  = "0.33x"
+    "Sonnet 4.5" = "1x (baseline)"
+    "Opus 4.6"   = "3x"
+}
+
+# ============================================================================
+# FUNCTIONS
+# ============================================================================
+
+function Get-AvailableAnalyzer {
+    param([string]$Preference = "auto")
+    
+    if ($Preference -ne "auto") {
+        $config = $ANALYZERS[$Preference]
+        # Try hardcoded key first, then environment variable
+        $apiKey = $API_KEYS[$config.env_key]
+        if (-not $apiKey) {
+            $apiKey = [Environment]::GetEnvironmentVariable($config.env_key)
+        }
+        
+        if (-not $apiKey) {
+            Write-Host "❌ $($config.name) требует API key" -ForegroundColor Red
+            Write-Host "Конфигурируйте в секции `$API_KEYS или в переменной окружения" -ForegroundColor Yellow
+            Write-Host "`$env:$($config.env_key) = 'your_api_key_here'" -ForegroundColor Cyan
+            exit 1
+        }
+        
+        return @{
+            "name"     = $config.name
+            "api_base" = $config.api_base
+            "model"    = $config.model
+            "api_key"  = $apiKey
+            "cost"     = $config.cost_multiplier
+        }
+    }
+    
+    # Auto-select: try GPT-4o first, then Grok
+    foreach ($key in @("gpt4o", "grok")) {
+        $config = $ANALYZERS[$key]
+        # Try hardcoded key first, then environment variable
+        $apiKey = $API_KEYS[$config.env_key]
+        if (-not $apiKey) {
+            $apiKey = [Environment]::GetEnvironmentVariable($config.env_key)
+        }
+        
+        if ($apiKey) {
+            return @{
+                "name"     = $config.name
+                "api_base" = $config.api_base
+                "model"    = $config.model
+                "api_key"  = $apiKey
+                "cost"     = $config.cost_multiplier
+            }
+        }
+    }
+    
+    Write-Host "❌ Не найдены API keys для анализаторов!" -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Установите хотя бы один из:" -ForegroundColor Yellow
+    Write-Host "  1. OPENAI_API_KEY для GPT-4o" -ForegroundColor Cyan
+    Write-Host "     Получить: https://platform.openai.com/api-keys" -ForegroundColor Gray
+    Write-Host "  2. XAI_API_KEY для Grok" -ForegroundColor Cyan
+    Write-Host "     Получить: https://x.ai/" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Пример установки:" -ForegroundColor Yellow
+    Write-Host "`$env:OPENAI_API_KEY = 'sk-...'" -ForegroundColor Cyan
+    exit 1
+}
+
+function Invoke-ComplexityAnalysis {
+    param(
+        [hashtable]$Analyzer,
+        [string]$Question
+    )
+    
+    $systemPrompt = @"
+You are a complexity analyzer for software development tasks.
+Analyze the user's request and respond ONLY with a JSON object (no markdown, no explanations):
+
+{
+  "complexity": "SIMPLE" | "MEDIUM" | "COMPLEX",
+  "recommended_model": "Haiku 4.5" | "Sonnet 4.5" | "Opus 4.6",
+  "reasoning": "Brief explanation (1-2 sentences)",
+  "enhanced_prompt": "Rewritten detailed prompt for executor agent"
+}
+
+Complexity rules:
+- SIMPLE: Typos, formatting, renaming, logs, comments, quick fixes <50 lines → Haiku 4.5
+- MEDIUM: New features (UseCases, Managers, ViewModels), bug fixes, UI, network/DB → Sonnet 4.5
+- COMPLEX: Architecture changes, refactoring, cross-module, performance, critical infrastructure → Opus 4.6
+
+Be conservative. Enhanced prompt should be detailed, structured, and include context.
+"@
+
+    $headers = @{
+        "Authorization" = "Bearer $($Analyzer.api_key)"
+        "Content-Type"  = "application/json"
+    }
+    
+    $body = @{
+        "model"       = $Analyzer.model
+        "messages"    = @(
+            @{
+                "role"    = "system"
+                "content" = $systemPrompt
+            },
+            @{
+                "role"    = "user"
+                "content" = $Question
+            }
+        )
+        "temperature" = 0.1
+        "max_tokens"  = 1000
+    } | ConvertTo-Json -Depth 10
+    
+    try {
+        $response = Invoke-RestMethod `
+            -Uri "$($Analyzer.api_base)/chat/completions" `
+            -Method Post `
+            -Headers $headers `
+            -Body $body `
+            -ContentType "application/json" `
+            -TimeoutSec 30
+        
+        $content = $response.choices[0].message.content
+        
+        # Try to parse JSON (handle markdown code blocks if present)
+        if ($content -match '```json\s*(.*?)\s*```') {
+            $content = $matches[1]
+        }
+        
+        $analysis = $content | ConvertFrom-Json
+        return $analysis
+        
+    }
+    catch {
+        Write-Host "❌ Ошибка API запроса: $($_.Exception.Message)" -ForegroundColor Red
+        
+        if ($_.Exception.Response) {
+            $reader = New-Object System.IO.StreamReader($_.Exception.Response.GetResponseStream())
+            $errorBody = $reader.ReadToEnd()
+            Write-Host "Детали: $errorBody" -ForegroundColor Gray
+        }
+        
+        exit 1
+    }
+}
+
+function Add-ToPromptLog {
+    param(
+        [string]$Question,
+        [PSCustomObject]$Analysis,
+        [string]$AnalyzerName
+    )
+    
+    $logPath = Join-Path $PSScriptRoot "..\temp\ai_prompts.xml"
+    $timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ss"
+    
+    # Create new prompt entry
+    $newEntry = @"
+  <prompt>
+    <datetime>$timestamp</datetime>
+    <question><![CDATA[$Question]]></question>
+    <analyzer>$AnalyzerName</analyzer>
+    <complexity>$($Analysis.complexity)</complexity>
+    <recommended_model>$($Analysis.recommended_model)</recommended_model>
+    <reasoning><![CDATA[$($Analysis.reasoning)]]></reasoning>
+  </prompt>
+"@
+    
+    try {
+        # Check if file exists
+        if (Test-Path $logPath) {
+            # Read existing content
+            $content = Get-Content $logPath -Raw
+            
+            # Insert new entry before closing tag
+            $content = $content -replace '</prompts>', "$newEntry`n</prompts>"
+            
+            # Write back
+            $content | Set-Content $logPath -Encoding UTF8 -NoNewline
+        } else {
+            # Create new XML file
+            $xmlContent = @"
+<?xml version="1.0" encoding="UTF-8"?>
+<prompts>
+$newEntry
+</prompts>
+"@
+            # Ensure temp directory exists
+            $tempDir = Split-Path $logPath -Parent
+            if (-not (Test-Path $tempDir)) {
+                New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+            }
+            
+            $xmlContent | Set-Content $logPath -Encoding UTF8
+        }
+    } catch {
+        Write-Host "⚠️ Warning: Could not log to ai_prompts.xml: $($_.Exception.Message)" -ForegroundColor Yellow
+    }
+}
+
+function Show-AnalysisResult {
+    param(
+        [PSCustomObject]$Analysis,
+        [string]$AnalyzerName
+    )
+    
+    # Minimal one-line output
+    $complexityEmoji = switch ($Analysis.complexity) {
+        "SIMPLE" { "🟢" }
+        "MEDIUM" { "🟡" }
+        "COMPLEX" { "🔴" }
+        default { "⚪" }
+    }
+    
+    Write-Host "$complexityEmoji " -NoNewline
+    Write-Host "$($Analysis.recommended_model)" -ForegroundColor Cyan -NoNewline
+    Write-Host " | " -NoNewline
+    Write-Host "$($Analysis.reasoning)" -ForegroundColor Gray
+}
+
+function Copy-ToClipboard {
+    param([string]$Text)
+    
+    try {
+        $Text | Set-Clipboard
+        return $true
+    }
+    catch {
+        Write-Host "⚠️ Ошибка копирования в буфер обмена: $($_.Exception.Message)" -ForegroundColor Yellow
+        return $false
+    }
+}
+
+function Open-CopilotChat {
+    param(
+        [string]$Prompt,
+        [string]$Model
+    )
+    
+    # Minimal output with clickable link
+    Write-Host "📋 Промпт в буфере | " -NoNewline -ForegroundColor Green
+    
+    # ANSI escape sequence for clickable link (OSC 8)
+    $esc = [char]27
+    $vscodeUri = "vscode://ms-vscode.copilot-chat"
+    $clickableLink = "$esc]8;;$vscodeUri$esc\Открыть Copilot Chat$esc]8;;$esc\"
+    
+    Write-Host $clickableLink -NoNewline -ForegroundColor Cyan
+    Write-Host " (" -NoNewline
+    Write-Host "Ctrl+Alt+I" -NoNewline -ForegroundColor Yellow
+    Write-Host ")" -ForegroundColor White
+}
+
+# ============================================================================
+# MAIN EXECUTION
+# ============================================================================
+
+# Select analyzer
+$analyzerConfig = Get-AvailableAnalyzer -Preference $Analyzer
+
+# Analyze complexity
+$analysis = Invoke-ComplexityAnalysis -Analyzer $analyzerConfig -Question $Question
+
+# Log to XML file
+Add-ToPromptLog -Question $Question -Analysis $analysis -AnalyzerName $analyzerConfig.name
+
+# Show results
+Show-AnalysisResult -Analysis $analysis -AnalyzerName $analyzerConfig.name
+
+# Prepare enhanced prompt
+$enhancedPrompt = @"
+[Complexity: $($analysis.complexity) → Model: $($analysis.recommended_model)]
+
+$($analysis.enhanced_prompt)
+
+Context: FastMediaSorter v2.x Android app (Kotlin, Clean Architecture, MVVM, Hilt DI)
+See .github/copilot-instructions.md for full project context.
+"@
+
+# Copy to clipboard and show instructions
+$copied = Copy-ToClipboard -Text $enhancedPrompt
+
+if ($copied) {
+    Open-CopilotChat -Prompt $enhancedPrompt -Model $analysis.recommended_model
+}
+else {
+    Write-Host "ПРОМПТ ДЛЯ КОПИЛОТА:" -ForegroundColor Yellow
+    Write-Host "────────────────────────────────────────────────" -ForegroundColor Gray
+    Write-Host $enhancedPrompt -ForegroundColor White
+    Write-Host "────────────────────────────────────────────────" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "Скопируйте текст выше вручную и вставьте в Copilot Chat." -ForegroundColor Yellow
+}
