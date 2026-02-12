@@ -51,7 +51,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -62,7 +62,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/search_audio_covers_online"
@@ -89,7 +89,7 @@
                 android:checked="true" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/search_covers_only_on_wifi"
@@ -103,7 +103,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <TextView
@@ -134,9 +134,9 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilAudioSizeMin"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
-                android:hint="Min (MB)"
+                android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small"
                 app:layout_constraintStart_toStartOf="parent"
@@ -144,7 +144,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp">
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etAudioSizeMin"
@@ -156,16 +156,16 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilAudioSizeMax"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
-                android:hint="Max (MB)"
+                android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 app:layout_constraintStart_toEndOf="@+id/tilAudioSizeMin"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp">
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etAudioSizeMax"
@@ -183,7 +183,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -194,7 +194,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_photos_during_audio_description"

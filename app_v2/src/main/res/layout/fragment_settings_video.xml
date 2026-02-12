@@ -51,7 +51,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -83,7 +83,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <TextView
@@ -114,9 +114,9 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilVideoSizeMin"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
-                android:hint="Min (KB)"
+                android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small"
                 app:layout_constraintStart_toStartOf="parent"
@@ -124,7 +124,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp">
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etVideoSizeMin"
@@ -136,16 +136,16 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilVideoSizeMax"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
-                android:hint="Max (KB)"
+                android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 app:layout_constraintStart_toEndOf="@+id/tilVideoSizeMin"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp">
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etVideoSizeMax"

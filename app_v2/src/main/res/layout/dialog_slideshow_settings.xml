@@ -3,15 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="24dp"
-    android:minWidth="300dp">
+    android:padding="@dimen/activity_player_audioInfoOverlay_padding"
+    android:minWidth="@dimen/dialog_slideshow_settings_unknown_minWidth">
 
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/slideshow_settings"
-            android:textSize="20sp"
+            android:textSize="@dimen/activity_player_btnInfo_textSize"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -21,9 +21,9 @@
             android:id="@+id/tvIntervalLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvIntervalLabel_layout_marginTop"
             android:text="@string/slideshow_interval"
-            android:textSize="16sp"
+            android:textSize="@dimen/dialog_slideshow_settings_tvIntervalLabel_textSize"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvTitle" />
 
@@ -31,8 +31,8 @@
             android:id="@+id/tvIntervalValue"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="5s"
-            android:textSize="16sp"
+            android:text="@string/dialog_slideshow_settings_tvIntervalValue_text"
+            android:textSize="@dimen/dialog_slideshow_settings_tvIntervalLabel_textSize"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tvIntervalLabel" />
@@ -41,7 +41,7 @@
             android:id="@+id/sliderInterval"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:valueFrom="1"
             android:valueTo="60"
             android:stepSize="1"
@@ -52,7 +52,7 @@
             android:id="@+id/cbPlayToEnd"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
             android:text="@string/play_video_audio_to_end"
             app:layout_constraintTop_toBottomOf="@id/sliderInterval" />
 
@@ -60,9 +60,9 @@
             android:id="@+id/tvPlayToEndHint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
+            android:layout_marginStart="@dimen/dialog_slideshow_settings_tvPlayToEndHint_layout_marginStart"
             android:text="@string/play_to_end_hint"
-            android:textSize="12sp"
+            android:textSize="@dimen/dialog_slideshow_settings_tvPlayToEndHint_textSize"
             android:textColor="?android:attr/textColorSecondary"
             app:layout_constraintTop_toBottomOf="@id/cbPlayToEnd" />
 
@@ -70,8 +70,8 @@
         <View
             android:id="@+id/divider"
             android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="24dp"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvIntervalLabel_layout_marginTop"
             android:background="?android:attr/listDivider"
             app:layout_constraintTop_toBottomOf="@id/tvPlayToEndHint" />
 
@@ -79,9 +79,9 @@
             android:id="@+id/tvMusicLabel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
             android:text="@string/background_music"
-            android:textSize="18sp"
+            android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/divider" />
@@ -90,7 +90,7 @@
             android:id="@+id/tvMusicStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:text="@string/no_music_selected"
             android:ellipsize="middle"
             android:singleLine="true"
@@ -100,7 +100,7 @@
             android:id="@+id/btnSelectMusic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:text="@string/select_music_file"
             icon="@drawable/ic_music_note"
             style="@style/Widget.Material3.Button.OutlinedButton"
@@ -111,8 +111,8 @@
             android:id="@+id/btnClearMusic"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginStart="8dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
+            android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart"
             android:text="@string/action_clear"
             style="@style/Widget.Material3.Button.TextButton"
             android:textColor="?android:attr/colorError"
@@ -125,7 +125,7 @@
             android:id="@+id/btnClose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnClose_layout_marginTop"
             android:text="@string/close"
             style="@style/Widget.Material3.Button"
             app:layout_constraintEnd_toEndOf="parent"

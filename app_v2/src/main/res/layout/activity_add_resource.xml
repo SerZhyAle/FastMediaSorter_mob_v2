@@ -13,27 +13,30 @@
         android:layout_height="?attr/actionBarSize"
         android:background="?attr/colorPrimary"
         android:elevation="@dimen/toolbar_elevation"
-        app:title="Add Resource"
-        app:titleTextColor="?attr/colorOnPrimary"
+        app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back"
         app:navigationIconTint="?attr/colorOnPrimary"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:title="Add Resource"
+        app:titleTextColor="?attr/colorOnPrimary" />
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_margin="@dimen/add_resource_title_margin"
+        android:layout_marginStart="@dimen/resource_title_margin_start"
+        android:paddingTop="@dimen/resource_padding_zero"
+        android:paddingBottom="@dimen/resource_padding_zero"
         android:text="@string/select_resource_type"
         android:textSize="@dimen/add_resource_title_text_size"
         android:textStyle="bold"
-        android:layout_margin="@dimen/add_resource_title_margin"
         android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolbar" />
+        tools:layout_editor_absoluteY="64dp" />
 
     <GridLayout
         android:id="@+id/layoutResourceTypes"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:columnCount="1"
         android:useDefaultMargins="true"
@@ -44,7 +47,7 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardLocalFolder"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/resource_card_margin_bottom"
             android:layout_columnWeight="1"
@@ -69,7 +72,7 @@
                     android:contentDescription="Local folder icon" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -96,7 +99,7 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardNetworkFolder"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/resource_card_margin_bottom"
             android:layout_columnWeight="1"
@@ -121,7 +124,7 @@
                     android:contentDescription="Network folder icon" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -148,7 +151,7 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardSftpFolder"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/resource_card_margin_bottom"
             android:layout_columnWeight="1"
@@ -173,7 +176,7 @@
                     android:contentDescription="S/FTP folder icon" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -200,7 +203,7 @@
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCloudStorage"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/resource_card_margin_bottom"
             android:layout_columnWeight="1"
@@ -225,7 +228,7 @@
                     android:contentDescription="Cloud storage icon" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -254,7 +257,7 @@
 
     <LinearLayout
         android:id="@+id/layoutLocalFolder"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:orientation="vertical"
         android:visibility="gone"
@@ -276,7 +279,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnScan"
                 style="@style/Widget.MaterialComponents.Button.Icon"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/scan_button"
@@ -285,7 +288,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddManually"
                 style="@style/Widget.MaterialComponents.Button.Icon"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -301,7 +304,7 @@
             android:text="@string/resources_to_add"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textStyle="bold"
-            android:layout_marginTop="0dp"
+            android:layout_marginTop="@dimen/resource_padding_zero"
             android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
@@ -309,7 +312,7 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1"
-            android:layout_marginTop="0dp"
+            android:layout_marginTop="@dimen/resource_padding_zero"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             android:visibility="gone"
             tools:listitem="@layout/item_resource_to_add" />
@@ -319,13 +322,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="0dp"
+            android:layout_marginTop="@dimen/resource_padding_zero"
             android:visibility="gone"
             android:id="@+id/layoutLocalOptions">
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbLocalScanSubdirectories"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:checked="true"
@@ -333,7 +336,7 @@
 
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbLocalAddToDestinations"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:checked="false"
@@ -346,7 +349,7 @@
             android:id="@+id/cbLocalReadOnlyMode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/resource_margin_2dp"
             android:checked="false"
             android:text="@string/read_only_mode"
             android:visibility="gone" />
@@ -360,7 +363,7 @@
             app:helperText="@string/resource_pin_code_hint"
             app:helperTextEnabled="true"
             app:endIconMode="password_toggle"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="@dimen/resource_margin_2dp"
             android:visibility="gone">
 
             <com.google.android.material.textfield.TextInputEditText
@@ -385,7 +388,7 @@
 
     <ScrollView
         android:id="@+id/layoutSmbFolder"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:visibility="gone"
         android:padding="@dimen/padding_large"
@@ -441,7 +444,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSmbUsername"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -458,7 +461,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSmbPassword"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -495,7 +498,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSmbShareName"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -514,7 +517,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSmbResourceName"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -542,7 +545,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSmbComment"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -593,7 +596,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSmbAddToDestinations"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="false"
@@ -601,7 +604,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSmbReadOnlyMode"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="false"
@@ -615,11 +618,11 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:layout_marginBottom="@dimen/resource_margin_4dp">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSmbScanSubdirectories"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="true"
@@ -627,7 +630,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSmbAllFiles"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/all_files"
@@ -642,14 +645,14 @@
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textStyle="bold"
                 android:layout_marginTop="@dimen/resource_field_margin_top"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="@dimen/resource_margin_4dp" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardElevation="0dp"
+                app:cardElevation="@dimen/resource_card_elevation_zero"
                 app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                app:strokeWidth="1dp"
+                app:strokeWidth="@dimen/resource_stroke_width"
                 app:strokeColor="?attr/colorOutlineVariant"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
@@ -667,7 +670,7 @@
                         android:baselineAligned="false">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -678,11 +681,11 @@
                                 android:id="@+id/cbSmbSupportImage"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/images_i"
@@ -690,7 +693,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -701,11 +704,11 @@
                                 android:id="@+id/cbSmbSupportVideo"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/videos_v"
@@ -713,7 +716,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -724,11 +727,11 @@
                                 android:id="@+id/cbSmbSupportAudio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/audio_a"
@@ -736,7 +739,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -747,11 +750,11 @@
                                 android:id="@+id/cbSmbSupportGif"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/gifs_g"
@@ -768,7 +771,7 @@
                         android:baselineAligned="false">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -779,11 +782,11 @@
                                 android:id="@+id/cbSmbSupportText"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/text_t"
@@ -791,7 +794,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -802,11 +805,11 @@
                                 android:id="@+id/cbSmbSupportPdf"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/pdf_p"
@@ -814,7 +817,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="horizontal"
@@ -825,11 +828,11 @@
                                 android:id="@+id/cbSmbSupportEpub"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:minWidth="0dp"
-                                android:minHeight="0dp" />
+                                android:minWidth="@dimen/resource_checkbox_min_size_zero"
+                                android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="@dimen/match_constraint"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
                                 android:text="@string/epub_e"
@@ -837,7 +840,7 @@
                         </LinearLayout>
 
                         <Space
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
@@ -862,11 +865,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="@dimen/resource_margin_16dp">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSmbDomain"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -897,7 +900,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
-                        android:text="445"
+                        android:text="@string/default_smb_port"
                         android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -940,7 +943,7 @@
     <!-- SFTP Folder Section -->
     <ScrollView
         android:id="@+id/layoutSftpFolder"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:visibility="gone"
         android:padding="@dimen/padding_large"
@@ -968,11 +971,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="@dimen/resource_margin_16dp">
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbSftp"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/protocol_sftp"
@@ -980,7 +983,7 @@
 
                 <com.google.android.material.radiobutton.MaterialRadioButton
                     android:id="@+id/rbFtp"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/protocol_ftp" />
@@ -1035,11 +1038,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="12dp">
+                android:layout_marginBottom="@dimen/resource_margin_12dp">
 
                 <RadioButton
                     android:id="@+id/rbSftpPassword"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/sftp_auth_password"
@@ -1047,7 +1050,7 @@
 
                 <RadioButton
                     android:id="@+id/rbSftpSshKey"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/sftp_auth_ssh_key"/>
@@ -1065,7 +1068,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSftpUsername"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -1082,7 +1085,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSftpPassword"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -1118,7 +1121,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSftpPrivateKey"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:hint="@string/sftp_private_key"
@@ -1176,11 +1179,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginBottom="16dp">
+                android:layout_marginBottom="@dimen/resource_margin_16dp">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSftpPath"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -1192,13 +1195,13 @@
                         android:id="@+id/etSftpPath"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="/" />
+                        android:text="@string/activity_add_resource_etSftpPath_text" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSftpResourceName"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -1226,7 +1229,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSftpComment"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -1271,7 +1274,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSftpAddToDestinations"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="false"
@@ -1279,7 +1282,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSftpReadOnlyMode"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="false"
@@ -1293,11 +1296,11 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:layout_marginBottom="@dimen/resource_margin_4dp">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSftpScanSubdirectories"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="true"
@@ -1305,7 +1308,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbSftpAllFiles"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/all_files"
@@ -1321,14 +1324,14 @@
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textStyle="bold"
                 android:layout_marginTop="@dimen/resource_field_margin_top"
-                android:layout_marginBottom="4dp" />
+                android:layout_marginBottom="@dimen/resource_margin_4dp" />
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardElevation="0dp"
+                app:cardElevation="@dimen/resource_card_elevation_zero"
                 app:cardBackgroundColor="?attr/colorSurfaceVariant"
-                app:strokeWidth="1dp"
+                app:strokeWidth="@dimen/resource_stroke_width"
                 app:strokeColor="?attr/colorOutlineVariant"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
@@ -1345,28 +1348,28 @@
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportImage"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/images_i" />
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportVideo"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/videos_v" />
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportAudio"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/audio_a" />
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportGif"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/gifs_g" />
@@ -1380,27 +1383,27 @@
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportText"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/text_t" />
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportPdf"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/pdf_p" />
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportEpub"
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/epub_e" />
 
                         <Space
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1" />
 
@@ -1416,12 +1419,12 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="4dp">
+                android:layout_marginBottom="@dimen/resource_margin_4dp">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSftpTest"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/sftp_test_connection"
@@ -1430,7 +1433,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSftpAddResource"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -1446,7 +1449,7 @@
     <!-- Cloud Storage Layout -->
     <ScrollView
         android:id="@+id/layoutCloudStorage"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:visibility="gone"
         app:layout_constraintTop_toBottomOf="@id/layoutResourceTypes"
@@ -1466,7 +1469,7 @@
                 android:text="@string/select_cloud_provider"
                 android:textSize="@dimen/resource_card_title_text_size"
                 android:textStyle="bold"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="@dimen/resource_margin_16dp" />
 
             <!-- Google Drive Card -->
             <com.google.android.material.card.MaterialCardView
@@ -1494,7 +1497,7 @@
                         android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/google_drive"
@@ -1539,7 +1542,7 @@
                         android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/onedrive"
@@ -1563,7 +1566,7 @@
                 android:id="@+id/cardDropbox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="@dimen/resource_margin_16dp"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
                 android:clickable="true"
@@ -1584,7 +1587,7 @@
                         android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/dropbox"

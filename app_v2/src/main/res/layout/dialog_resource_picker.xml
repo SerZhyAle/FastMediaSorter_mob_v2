@@ -19,7 +19,7 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxHeight="400dp">
+        android:maxHeight="@dimen/dialog_resource_picker_tvTitle_maxHeight">
 
         <LinearLayout
             android:id="@+id/layoutResources"

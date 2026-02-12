@@ -32,7 +32,7 @@
             <!-- Support static images -->
             <LinearLayout
                 android:id="@+id/layoutSupportImages"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -48,7 +48,7 @@
                     android:checked="true" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/support_images_description"
@@ -59,7 +59,7 @@
             <!-- Support GIF animation -->
             <LinearLayout
                 android:id="@+id/layoutSupportGifs"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -74,7 +74,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/support_gif_description"
@@ -100,7 +100,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
@@ -111,7 +111,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/load_full_size_images"
@@ -135,7 +135,7 @@
             android:layout_height="wrap_content"
             android:text="@string/image_and_animation_size_limit"
             android:textSize="@dimen/resource_card_desc_text_size"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <LinearLayout
@@ -143,15 +143,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Min (KB)"
+                android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small">
 
@@ -165,10 +165,10 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Max (KB)"
+                android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -185,9 +185,9 @@
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
             android:background="?android:attr/listDivider"
-            android:layout_marginVertical="16dp" />
+            android:layout_marginVertical="@dimen/fragment_settings_media_etAudioSizeMax_layout_marginVertical" />
 
         <!-- ========== VIDEO CATEGORY ========== -->
         <TextView
@@ -230,7 +230,7 @@
                         android:checked="true" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_video_description"
@@ -243,7 +243,7 @@
                     android:text="@string/supported_video_formats"
                     android:textSize="@dimen/text_size_small"
                     android:textColor="?android:textColorSecondary"
-                    android:layout_marginStart="48dp" />
+                    android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" />
 
             </LinearLayout>
 
@@ -255,7 +255,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp">
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchShowVideoThumbnails"
@@ -264,7 +264,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/show_video_thumbnails"
@@ -280,7 +280,7 @@
             android:layout_height="wrap_content"
             android:text="@string/video_size_limit"
             android:textSize="@dimen/resource_card_desc_text_size"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <LinearLayout
@@ -288,15 +288,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Min (KB)"
+                android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small">
 
@@ -310,10 +310,10 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Max (KB)"
+                android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -330,9 +330,9 @@
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
             android:background="?android:attr/listDivider"
-            android:layout_marginVertical="16dp" />
+            android:layout_marginVertical="@dimen/fragment_settings_media_etAudioSizeMax_layout_marginVertical" />
 
         <!-- ========== AUDIO CATEGORY ========== -->
         <TextView
@@ -375,7 +375,7 @@
                         android:checked="true" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_audio_description"
@@ -388,7 +388,7 @@
                     android:text="@string/supported_audio_formats"
                     android:textSize="@dimen/text_size_small"
                     android:textColor="?android:textColorSecondary"
-                    android:layout_marginStart="48dp" />
+                    android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" />
 
             </LinearLayout>
 
@@ -400,7 +400,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp">
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchSearchAudioCoversOnline"
@@ -410,7 +410,7 @@
                     android:checked="false" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/search_audio_covers_online"
@@ -426,7 +426,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="72dp"
+                android:layout_marginStart="@dimen/fragment_settings_media_layoutSearchCoversOnlyWifi_layout_marginStart"
                 android:visibility="gone">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -437,7 +437,7 @@
                     android:checked="true" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/search_covers_only_on_wifi"
@@ -454,7 +454,7 @@
             android:layout_height="wrap_content"
             android:text="@string/audio_size_limit"
             android:textSize="@dimen/resource_card_desc_text_size"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <LinearLayout
@@ -462,15 +462,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Min (MB)"
+                android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small">
 
@@ -484,10 +484,10 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:hint="Max (MB)"
+                android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -506,9 +506,9 @@
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
             android:background="?android:attr/listDivider"
-            android:layout_marginVertical="16dp" />
+            android:layout_marginVertical="@dimen/fragment_settings_media_etAudioSizeMax_layout_marginVertical" />
 
         <!-- ========== DOCUMENTS CATEGORY ========== -->
         <TextView
@@ -533,7 +533,7 @@
             <!-- Support Text -->
             <LinearLayout
                 android:id="@+id/layoutSupportText"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -548,7 +548,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/support_text_description"
@@ -559,7 +559,7 @@
             <!-- Support PDF (vertical container for PDF + thumbnails) -->
             <LinearLayout
                 android:id="@+id/layoutSupportPdf"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
@@ -580,7 +580,7 @@
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_pdf_description"
@@ -606,7 +606,7 @@
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/show_pdf_thumbnails"
@@ -621,9 +621,9 @@
         <!-- Divider -->
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
             android:background="?android:attr/listDivider"
-            android:layout_marginVertical="16dp" />
+            android:layout_marginVertical="@dimen/fragment_settings_media_etAudioSizeMax_layout_marginVertical" />
 
         <!-- ========== OTHER SETTINGS (Translation, OCR) ========== -->
         <TextView
@@ -660,7 +660,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/enable_translation"
@@ -676,11 +676,11 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp"
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
                 android:visibility="gone">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_source_language"
@@ -703,11 +703,11 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp"
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
                 android:visibility="gone">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_target_language"
@@ -730,7 +730,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp"
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
                 android:visibility="gone">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -740,7 +740,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_lens_style"
@@ -756,7 +756,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp"
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
                 android:visibility="gone">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
@@ -766,7 +766,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/enable_google_lens"
@@ -781,7 +781,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="48dp"
+                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
                 android:visibility="gone">
 
                 <LinearLayout
@@ -797,7 +797,7 @@
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/enable_ocr"
@@ -808,7 +808,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="56dp"
+                    android:layout_marginStart="@dimen/fragment_settings_media_switchEnableOcr_layout_marginStart"
                     android:layout_marginTop="@dimen/margin_tiny"
                     android:text="@string/enable_ocr_summary"
                     android:textSize="@dimen/text_size_small"

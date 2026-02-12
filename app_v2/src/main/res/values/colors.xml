@@ -48,5 +48,126 @@
     
     <!-- Action button background (semitransparent for both themes) -->
     <color name="action_button_bg">#20000000</color>
+    
+    <!-- ============================================================ -->
+    <!-- BASE PLAYER COLORS (Light Theme) -->
+    <!-- ============================================================ -->
+    
+    <!-- Overlay backgrounds -->
+    <color name="player_overlay_standard">#CC000000</color>
+    <color name="player_overlay_light">#80000000</color>
+    <color name="player_overlay_heavy">#DD000000</color>
+    <color name="player_overlay_translucent">#B0000000</color>
+    <color name="player_overlay_subtle">#88000000</color>
+    <color name="player_overlay_minimal">#44000000</color>
+    <color name="player_overlay_solid">#FF000000</color>
+    
+    <!-- Touch zone backgrounds -->
+    <color name="player_touch_zone_active">#50000000</color>
+    <color name="player_touch_zone_inactive">#20000000</color>
+    
+    <!-- Text colors -->
+    <color name="player_audio_info_text">#666666</color>
+    <color name="player_countdown_text">#888888</color>
+    <color name="player_search_hint_text">#999999</color>
+    <color name="player_zone_text">@color/white</color>
+    <color name="player_filename_overlay_text">@color/white</color>
+    <color name="player_music_track_text">#DDFFFFFF</color>
+    
+    <!-- Action buttons -->
+    <color name="player_navigation_action">#4CAF50</color>
+    <color name="player_home_action">#2196F3</color>
+    <color name="player_close_action">#424242</color>
+    
+    <!-- Action panels -->
+    <color name="player_panel_copy">#CC004D00</color>
+    <color name="player_panel_move">#CC00004D</color>
+    
+    <!-- ============================================================ -->
+    <!-- PLAYER COLOR ALIASES (mapped to base colors) -->
+    <!-- ============================================================ -->
+    
+    <!-- Player overlay backgrounds (dark semi-transparent on light theme) -->
+    <color name="activity_player_unified_translationOverlay_cardBackgroundColor">@color/player_overlay_translucent</color>
+    <color name="activity_player_unified_etTextContent_background">@color/player_overlay_standard</color>
+    <color name="activity_player_unified_pdfFullscreenOverlay_background">@color/player_overlay_solid</color>
+    <color name="activity_player_audioInfoOverlay_background">@color/player_overlay_standard</color>
+    <color name="activity_player_unified_audioInfoOverlay_background">@color/player_overlay_standard</color>
+    <color name="custom_player_controls_exo_bottom_bar_background">@color/player_overlay_light</color>
+    <color name="activity_player_controlsOverlay_background">@color/player_overlay_light</color>
+    <color name="activity_player_unified_searchPanel_background">@color/player_overlay_heavy</color>
+    <color name="activity_player_unified_topCommandPanel_background">@color/player_overlay_standard</color>
+    <color name="player_command_panel_mode_topCommandPanel_background">@color/player_overlay_standard</color>
+    <color name="activity_player_unified_btnVolumeUp_background">@color/player_overlay_light</color>
+    <color name="activity_player_unified_toolbar_background">@color/player_overlay_light</color>
+    <color name="activity_player_unified_audioSlideshowSongLabel_background">@color/player_overlay_subtle</color>
+    <color name="activity_player_unified_tvBackgroundMusicTrack_background">@color/player_overlay_minimal</color>
+    
+    <!-- Action panel backgrounds (green/blue dark for light theme) -->
+    <color name="activity_player_unified_copyToPanel_background">@color/player_panel_copy</color>
+    <color name="player_command_panel_mode_copyToPanel_background">@color/player_panel_copy</color>
+    <color name="activity_player_unified_moveToPanel_background">@color/player_panel_move</color>
+    <color name="player_command_panel_mode_moveToPanel_background">@color/player_panel_move</color>
+    
+    <!-- Touch zone backgrounds (dark semi-transparent for light theme) -->
+    <color name="activity_player_unified_zoneBack_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneBack_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneCommandPanel_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneCommandPanel_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneCopy_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneCopy_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneDelete_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneDelete_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneMove_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneMove_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneNext_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneNext_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zonePrevious_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zonePrevious_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneRename_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneRename_background">@color/player_touch_zone_inactive</color>
+    <color name="activity_player_unified_zoneSlideshow_background">@color/player_touch_zone_active</color>
+    <color name="touch_zones_overlay_zoneSlideshow_background">@color/player_touch_zone_inactive</color>
+    
+    <!-- Player text colors (dark for light theme) -->
+    <color name="activity_player_audioFileInfo_textColor">@color/player_audio_info_text</color>
+    <color name="activity_player_unified_audioFileInfo_textColor">@color/player_audio_info_text</color>
+    <color name="activity_player_audioFileName_textColor">@color/player_audio_info_text</color>
+    <color name="activity_player_unified_audioFileName_textColor">@color/player_audio_info_text</color>
+    <color name="activity_player_tvCountdown_textColor">@color/player_countdown_text</color>
+    <color name="activity_player_unified_tvCountdown_textColor">@color/player_countdown_text</color>
+    <color name="activity_player_unified_etSearchQuery_textColorHint">@color/player_search_hint_text</color>
+    
+    <!-- Zone text colors (white for readability on dark overlays) -->
+    <color name="activity_player_unified_zoneBack_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneCommandPanel_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneCopy_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneDelete_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneMove_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneNext_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zonePrevious_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneRename_textColor">@color/player_zone_text</color>
+    <color name="activity_player_unified_zoneSlideshow_textColor">@color/player_zone_text</color>
+    
+    <!-- Overlay text colors (white with alpha) -->
+    <color name="activity_player_unified_tvFileNameOverlay_textColor">@color/player_filename_overlay_text</color>
+    <color name="activity_player_unified_tvBackgroundMusicTrack_textColor">@color/player_music_track_text</color>
+    
+    <!-- Player button tints (Material colors) -->
+    <color name="activity_player_unified_btnCloseTextViewer_tint">@color/player_close_action</color>
+    <color name="activity_player_unified_btnEpubHome_tint">@color/player_home_action</color>
+    <color name="activity_player_unified_btnEpubNextChapter_tint">@color/player_navigation_action</color>
+    <color name="activity_player_unified_btnEpubPrevChapter_tint">@color/player_navigation_action</color>
+    <color name="activity_player_unified_btnPdfHome_tint">@color/player_home_action</color>
+    <color name="activity_player_unified_btnPdfNextPage_tint">@color/player_navigation_action</color>
+    <color name="activity_player_unified_btnPdfPrevPage_tint">@color/player_navigation_action</color>
+    <color name="activity_player_unified_btnSaveText_backgroundTint">@color/player_navigation_action</color>
+    
+    <!-- ExoPlayer progress bar -->
+    <color name="custom_player_controls_exo_bottom_bar_unplayed_color">#40FFFFFF</color>
+    
+    <!-- Additional base colors -->
+    <color name="white_50_alpha">#80FFFFFF</color>
+    <color name="transparent">#00000000</color>
 </resources>
 

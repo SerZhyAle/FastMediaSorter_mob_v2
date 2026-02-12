@@ -23,7 +23,7 @@
             <!-- Support Text (vertical container for Text + line numbers) -->
             <LinearLayout
                 android:id="@+id/layoutSupportText"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
@@ -44,7 +44,7 @@
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_text_description"
@@ -89,7 +89,7 @@
             <!-- Support PDF (vertical container for PDF + thumbnails) -->
             <LinearLayout
                 android:id="@+id/layoutSupportPdf"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
@@ -110,7 +110,7 @@
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_pdf_description"
@@ -135,7 +135,7 @@
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/show_pdf_thumbnails"
@@ -161,7 +161,7 @@
                 android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/support_epub_description"

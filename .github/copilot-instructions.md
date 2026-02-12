@@ -178,6 +178,9 @@ Room DB version 6. Migrations in `AppDatabase.kt`. Always increment version on s
 - **FILE_SIZE**: Max 1000 lines (soft limit).
   - **ACTION**: Use `helpers/*.kt` classes to split logic during development.
   - **AIM**: Keep files concise and readable.
+- **SAFETY_BACKUP**:
+  - **CONDITION**: File > 500 lines.
+  - **ACTION**: Create backup in `temp/` with timestamp BEFORE modification.
 - **ACTIVITY_LOGIC**: **PROHIBITED**. Complex logic MUST reside in `helpers/*Manager`.
   - _Example_: `PlayerActivity.kt` delegates to `VideoPlayerManager.kt`.
 - **NAMING**:

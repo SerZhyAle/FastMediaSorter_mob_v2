@@ -9,7 +9,7 @@
         android:id="@+id/tvProgressTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Loading..."
+        android:text="@string/dialog_material_progress_horizontal_tvProgressTitle_text"
         android:textSize="@dimen/text_size_large"
         android:textStyle="bold"
         android:layout_marginBottom="@dimen/margin_small" />
@@ -18,7 +18,7 @@
         android:id="@+id/tvProgressMessage"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Please wait..."
+        android:text="@string/dialog_material_progress_horizontal_tvProgressMessage_text"
         android:textSize="@dimen/resource_card_desc_text_size"
         android:ellipsize="middle"
         android:singleLine="true"
@@ -38,7 +38,7 @@
         android:id="@+id/tvProgress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="0%"
+        android:text="@string/dialog_material_progress_horizontal_tvProgress_text"
         android:textSize="@dimen/text_size_small"
         android:gravity="center" />
 

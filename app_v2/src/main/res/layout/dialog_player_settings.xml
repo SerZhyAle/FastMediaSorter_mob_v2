@@ -19,7 +19,7 @@
 
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_settings_title"
@@ -66,21 +66,21 @@
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.25x" />
+            android:text="@string/dialog_player_settings_chipSpeed025_text" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSpeed05"
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0.5x" />
+            android:text="@string/dialog_player_settings_chipSpeed05_text" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSpeed1"
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1x"
+            android:text="@string/dialog_player_settings_chipSpeed1_text"
             android:checked="true" />
 
         <com.google.android.material.chip.Chip
@@ -88,28 +88,28 @@
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.25x" />
+            android:text="@string/dialog_player_settings_chipSpeed125_text" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSpeed15"
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.5x" />
+            android:text="@string/dialog_player_settings_chipSpeed15_text" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSpeed175"
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="1.75x" />
+            android:text="@string/dialog_player_settings_chipSpeed175_text" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipSpeed2"
             style="@style/Widget.Material3.Chip.Filter"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2x" />
+            android:text="@string/dialog_image_edit_seekSaturation_text" />
 
     </com.google.android.material.chip.ChipGroup>
 
@@ -131,7 +131,7 @@
             android:minHeight="@dimen/dialog_button_inset" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_repeat_video"
@@ -163,7 +163,7 @@
             android:minHeight="@dimen/dialog_button_inset" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_show_subtitles"

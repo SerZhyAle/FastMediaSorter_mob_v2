@@ -24,10 +24,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:padding="24dp"
-        android:layout_marginBottom="140dp"
-        android:background="#CC000000"
-        android:elevation="8dp"
+        android:padding="@dimen/activity_player_audioInfoOverlay_padding"
+        android:layout_marginBottom="@dimen/activity_player_audioInfoOverlay_layout_marginBottom"
+        android:background="@color/activity_player_unified_topCommandPanel_background"
+        android:elevation="@dimen/activity_edit_resource_layoutProgress_elevation"
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone">
@@ -36,22 +36,22 @@
             android:id="@+id/audioMetadata"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
+            android:textColor="@color/white"
+            android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
             android:textStyle="bold"
             android:gravity="center"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="@dimen/activity_player_unified_audioMetadata_layout_marginBottom"
             android:visibility="gone"
-            android:lineSpacingMultiplier="1.2" />
+            android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
 
         <TextView
             android:id="@+id/audioFileName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#CCCCCC"
-            android:textSize="14sp"
+            android:textColor="@color/activity_player_unified_audioFileName_textColor"
+            android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
             android:gravity="center"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
             android:ellipsize="middle"
             android:singleLine="true" />
 
@@ -59,10 +59,10 @@
             android:id="@+id/audioFileInfo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#CCCCCC"
-            android:textSize="14sp"
+            android:textColor="@color/activity_player_unified_audioFileName_textColor"
+            android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
             android:gravity="center"
-            android:lineSpacingMultiplier="1.2" />
+            android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
     </LinearLayout>
 
     <ImageView
@@ -78,14 +78,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:background="#80000000"
+        android:background="@color/activity_player_unified_toolbar_background"
         android:visibility="visible">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@android:color/transparent"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/toolbar_elevation"
             app:navigationIcon="@drawable/ic_back"
             app:titleTextColor="@android:color/white" />
 
@@ -95,12 +96,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|end"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="16dp"
-            android:textColor="#888888"
-            android:textSize="14sp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
+            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
+            android:textColor="@color/activity_player_tvCountdown_textColor"
+            android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
             android:visibility="gone"
-            android:elevation="10dp" />
+            android:elevation="@dimen/activity_player_unified_tvCountdown_elevation" />
 
         <View
             android:layout_width="match_parent"
@@ -111,8 +112,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingVertical="16dp"
-            android:paddingHorizontal="8dp"
+            android:paddingVertical="@dimen/activity_player_tvCountdown_paddingVertical"
+            android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
             android:gravity="center">
 
             <com.google.android.material.button.MaterialButton
@@ -120,11 +121,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="40dp"
+                android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="−"
-                android:textSize="24sp"
+                android:text="@string/activity_player_unified_btnVolumeDown_text"
+                android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                 android:textColor="@android:color/white"
                 android:visibility="gone"
                 app:backgroundTint="@android:color/transparent" />
@@ -134,11 +135,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="◀"
-                android:textSize="24sp"
+                android:text="@string/activity_player_unified_btnPrevious_text"
+                android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                 android:textColor="@android:color/white"
                 app:backgroundTint="@android:color/transparent" />
 
@@ -147,11 +148,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="▶"
-                android:textSize="32sp"
+                android:text="@string/activity_player_btnPlayPause_text"
+                android:textSize="@dimen/activity_player_unified_btnPlayPause_textSize"
                 android:textColor="@android:color/white"
                 app:backgroundTint="@android:color/transparent" />
 
@@ -160,11 +161,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="▶"
-                android:textSize="24sp"
+                android:text="@string/activity_player_btnPlayPause_text"
+                android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                 android:textColor="@android:color/white"
                 app:backgroundTint="@android:color/transparent" />
 
@@ -173,11 +174,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="40dp"
+                android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="+"
-                android:textSize="24sp"
+                android:text="@string/activity_player_unified_btnVolumeUp_text"
+                android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                 android:textColor="@android:color/white"
                 android:visibility="gone"
                 app:backgroundTint="@android:color/transparent" />
@@ -187,8 +188,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingHorizontal="8dp"
-            android:paddingBottom="16dp"
+            android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
+            android:paddingBottom="@dimen/activity_player_unified_btnVolumeUp_paddingBottom"
             android:gravity="center">
 
             <com.google.android.material.button.MaterialButton
@@ -196,16 +197,16 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:paddingHorizontal="8dp"
-                android:text="SlideShow"
+                android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
+                android:text="@string/activity_player_btnSlideShow_text"
                 android:textColor="@android:color/white" />
 
             <View
-                android:layout_width="0dp"
-                android:layout_height="1dp"
+                android:layout_width="@dimen/match_constraint"
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
                 android:layout_weight="1" />
 
             <com.google.android.material.button.MaterialButton
@@ -213,11 +214,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="☆"
-                android:textSize="24sp"
+                android:text="@string/activity_player_btnFavorite_text"
+                android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                 android:textColor="@android:color/white"
                 android:contentDescription="Favorite"
                 app:backgroundTint="@android:color/transparent" />
@@ -227,11 +228,11 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:text="ℹ"
-                android:textSize="20sp"
+                android:text="@string/activity_player_btnInfo_text"
+                android:textSize="@dimen/activity_player_btnInfo_textSize"
                 android:textColor="@android:color/white"
                 android:contentDescription="@string/file_information"
                 app:backgroundTint="@android:color/transparent" />
@@ -241,11 +242,11 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="48dp"
+                android:minWidth="@dimen/activity_player_btnFavorite_minWidth"
                 android:insetLeft="0dp"
                 android:insetRight="0dp"
-                android:paddingHorizontal="8dp"
-                android:text="Delete"
+                android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
+                android:text="@string/activity_player_btnDelete_text"
                 android:textColor="@android:color/white" />
         </LinearLayout>
     </LinearLayout>

@@ -22,8 +22,9 @@
             android:id="@+id/backButton"
             android:layout_width="?attr/actionBarSize"
             android:layout_height="match_parent"
+            android:background="?attr/colorPrimary"
+            android:elevation="@dimen/toolbar_elevation"
             android:src="@drawable/ic_arrow_back"
-            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
             app:tint="?attr/colorOnPrimary" />
 

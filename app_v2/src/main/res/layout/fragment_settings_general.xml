@@ -46,7 +46,7 @@
             <!-- All Files -->
             <LinearLayout
                 android:id="@+id/layoutAllFiles"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -80,7 +80,7 @@
             <!-- Show Hidden Files -->
             <LinearLayout
                 android:id="@+id/layoutShowHiddenFiles"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -278,7 +278,7 @@
                 android:checked="true" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_safe_mode"
@@ -348,7 +348,7 @@
                     android:checked="true" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/confirm_move_safe_mode"
@@ -484,7 +484,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDefaultUser"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:hint="@string/default_user"
                 android:layout_marginEnd="@dimen/margin_small"
@@ -493,7 +493,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp">
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDefaultUser"
@@ -505,7 +505,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDefaultPassword"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:hint="@string/default_password"
                 app:endIconMode="password_toggle"
@@ -514,7 +514,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp">
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etDefaultPassword"
@@ -551,7 +551,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExportSettings"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_small"
                 android:text="@string/export_settings"
@@ -561,12 +561,12 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnImportSettings"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:text="@string/import_settings"
                 app:icon="@android:drawable/ic_menu_revert"
@@ -575,7 +575,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
             <ImageButton
                 android:id="@+id/btnHelpExportImport"
@@ -613,7 +613,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLocalFilesPermission"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -622,7 +622,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnNetworkPermission"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/settings_help_icon_margin"
@@ -650,7 +650,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShowLog"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/margin_small"
                 android:text="@string/show_log"
@@ -659,12 +659,12 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShowSessionLog"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:text="@string/show_current_session_log"
                 app:layout_constraintStart_toEndOf="@+id/btnShowLog"
@@ -672,7 +672,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -693,7 +693,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintWidth_max="200dp"
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_tilCacheSizeLimit_layout_constraintWidth_max"
                 app:layout_constraintHorizontal_bias="0">
 
                 <AutoCompleteTextView
@@ -711,7 +711,7 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:minWidth="80dp"
+                android:minWidth="@dimen/fragment_settings_general_btnAutoCalculateCache_minWidth"
                 android:layout_marginEnd="@dimen/margin_small"
                 android:text="@string/auto_calculate_cache"
                 app:icon="@android:drawable/ic_menu_manage"
@@ -801,7 +801,7 @@
             <Button
                 android:id="@+id/btnIntegrationTests"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:text="@string/run_integration_tests"
                 android:visibility="gone"
@@ -812,13 +812,13 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
             <!-- Import Test Credentials Button (DEBUG only) -->
             <Button
                 android:id="@+id/btnImportTestCredentials"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:text="@string/import_test_credentials"
                 android:visibility="gone"
@@ -829,13 +829,13 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
             <!-- Reset Settings Button -->
             <Button
                 android:id="@+id/btnResetSettings"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:text="@string/reset_settings_to_defaults"
                 app:icon="@android:drawable/ic_menu_revert"
@@ -845,7 +845,7 @@
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="600dp" />
+                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -860,7 +860,7 @@
             android:clickable="true"
             android:focusable="true"
             android:background="?android:attr/selectableItemBackground"
-            android:padding="8dp"
+            android:padding="@dimen/item_resource_btnCopy_padding"
             android:layout_marginTop="@dimen/resource_field_margin_top" />
 
     </LinearLayout>

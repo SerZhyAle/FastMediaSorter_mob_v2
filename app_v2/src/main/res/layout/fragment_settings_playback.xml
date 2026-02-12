@@ -21,7 +21,7 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/margin_small"
@@ -76,7 +76,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutPlayToEnd"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -91,7 +91,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/play_video_to_end"
@@ -101,7 +101,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutAllowRename"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -116,7 +116,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/allow_rename"
@@ -137,7 +137,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutAllowDelete"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -152,7 +152,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/allow_delete"
@@ -162,7 +162,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutConfirmDelete"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -177,7 +177,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/confirm_delete"
@@ -197,7 +197,7 @@
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilIconSize"
-                android:layout_width="120dp"
+                android:layout_width="@dimen/fragment_settings_playback_tilIconSize_layout_width"
                 android:layout_height="wrap_content"
                 android:hint="@string/default_icon_size"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -250,7 +250,7 @@
 
             <!-- Hide Grid Action Buttons -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -272,7 +272,7 @@
 
             <!-- Hide System UI in Fullscreen -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -303,7 +303,7 @@
 
             <!-- Show Command Panel -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -335,7 +335,7 @@
                     android:tint="?android:attr/textColorSecondary" />
 
                 <View
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
@@ -343,7 +343,7 @@
 
             <!-- Show Detailed Errors -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -358,7 +358,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/show_detailed_errors"
@@ -378,7 +378,7 @@
 
             <!-- Show Player Hint -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -393,7 +393,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/show_player_hint"
@@ -403,7 +403,7 @@
 
             <!-- Always Show Touch Zones -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -435,7 +435,7 @@
                     android:tint="?android:attr/textColorSecondary" />
 
                 <View
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
@@ -449,9 +449,9 @@
             android:text="@string/always_show_touch_zones_overlay_description"
             android:textSize="@dimen/text_size_small"
             android:textColor="?android:attr/textColorSecondary"
-            android:layout_marginStart="48dp"
-            android:layout_marginEnd="16dp"
-            android:layout_marginBottom="16dp"/>
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"/>
 
         <!-- Touch Zones Scheme Header and Button -->
         <LinearLayout
@@ -463,7 +463,7 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/touch_zones_scheme"
@@ -489,8 +489,8 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <ImageView
-                android:layout_width="0dp"
-                android:layout_height="140dp"
+                android:layout_width="@dimen/match_constraint"
+                android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height"
                 android:layout_weight="1"
                 android:contentDescription="@string/touch_zones_scheme"
                 android:scaleType="fitCenter"
@@ -498,7 +498,7 @@
                 android:layout_marginEnd="@dimen/margin_small"/>
 
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">
@@ -516,56 +516,56 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_1_back"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_2_copy"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_3_rename"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_4_previous"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_5_move"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_6_next"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_7_command"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_8_delete"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_9_slideshow"
-                    android:textSize="10sp"
-                    android:lineSpacingMultiplier="1.2"/>
+                    android:textSize="@dimen/activity_browse_btnSort_textSize"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
 
             </LinearLayout>
 

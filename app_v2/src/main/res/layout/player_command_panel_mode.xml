@@ -12,17 +12,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
+        android:paddingTop="@dimen/player_command_panel_mode_topCommandPanel_paddingTop"
+        android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom"
         android:paddingStart="0dp"
         android:paddingEnd="0dp"
-        android:background="#CC000000">
+        android:background="@color/activity_player_unified_topCommandPanel_background">
 
         <ImageButton
             android:id="@+id/btnBack"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_back"
@@ -30,9 +30,9 @@
 
         <ImageButton
             android:id="@+id/btnPreviousCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Previous"
             android:src="@android:drawable/ic_media_previous"
@@ -40,9 +40,9 @@
 
         <ImageButton
             android:id="@+id/btnNextCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Next"
             android:src="@android:drawable/ic_media_next"
@@ -50,9 +50,9 @@
 
         <ImageButton
             android:id="@+id/btnRenameCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Rename"
             android:src="@drawable/ic_rename"
@@ -60,9 +60,9 @@
 
         <ImageButton
             android:id="@+id/btnShareCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share"
             android:src="@drawable/ic_share"
@@ -70,9 +70,9 @@
 
         <ImageButton
             android:id="@+id/btnDeleteCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete"
@@ -80,9 +80,9 @@
 
         <ImageButton
             android:id="@+id/btnUndoCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Undo"
             android:src="@android:drawable/ic_menu_revert"
@@ -91,9 +91,9 @@
 
         <ImageButton
             android:id="@+id/btnFullscreenCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginEnd="-6dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
+            android:layout_marginEnd="@dimen/player_command_panel_mode_btnFullscreenCmd_layout_marginEnd"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/fullscreen_mode"
             android:src="@drawable/ic_fullscreen"
@@ -101,8 +101,8 @@
 
         <ImageButton
             android:id="@+id/btnSlideshowCmd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="@dimen/player_command_panel_mode_btnDeleteCmd_layout_width"
+            android:layout_height="@dimen/player_command_panel_mode_btnDeleteCmd_layout_height"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Slideshow"
             android:src="@android:drawable/ic_media_play"
@@ -142,14 +142,14 @@
 
             <View
                 android:id="@+id/touchZonePrevious"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZoneNext"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
@@ -162,7 +162,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#CC004D00"
+        android:background="@color/activity_player_unified_copyToPanel_background"
         android:padding="@dimen/padding_tiny">
 
         <TextView
@@ -170,8 +170,8 @@
             android:layout_height="wrap_content"
             android:text="@string/panel_copy_to"
             android:textColor="@android:color/white"
-            android:textSize="10sp"
-            android:paddingBottom="2dp" />
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
+            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom" />
 
         <GridLayout
             android:id="@+id/copyDestinationsGrid"
@@ -189,7 +189,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#CC00004D"
+        android:background="@color/activity_player_unified_moveToPanel_background"
         android:padding="@dimen/padding_tiny">
 
         <TextView
@@ -197,8 +197,8 @@
             android:layout_height="wrap_content"
             android:text="@string/panel_move_to"
             android:textColor="@android:color/white"
-            android:textSize="10sp"
-            android:paddingBottom="2dp" />
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
+            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom" />
 
         <GridLayout
             android:id="@+id/moveDestinationsGrid"

@@ -19,7 +19,7 @@
 
     <TextView
         android:id="@+id/tvTitle"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/welcome_title_margin_top"
         android:gravity="center"
@@ -32,7 +32,7 @@
         tools:text="Welcome to FastMediaSorter" />
 
     <ScrollView
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/welcome_description_margin_top"
         android:fillViewport="true"

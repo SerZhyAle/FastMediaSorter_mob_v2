@@ -4,16 +4,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="@dimen/bottom_sheet_binary_file_unknown_padding">
 
     <!-- File Name Header -->
     <TextView
         android:id="@+id/tvFileName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textSize="18sp"
+        android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
         android:maxLines="2"
         android:ellipsize="end"
         android:text="@string/file_name" />

@@ -26,7 +26,7 @@
 
         <EditText
             android:id="@+id/etName"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_small"
             android:textSize="@dimen/item_title_text_size"
@@ -40,7 +40,7 @@
 
         <TextView
             android:id="@+id/tvPath"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginTop="0dp"
             android:textSize="@dimen/item_detail_text_size"

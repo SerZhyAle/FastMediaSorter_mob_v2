@@ -23,7 +23,7 @@
 
         <TextView
             android:id="@+id/tvResourceName"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:textSize="@dimen/item_title_text_size"
             android:textStyle="bold"
@@ -90,7 +90,7 @@
 
         <TextView
             android:id="@+id/tvResourcePath"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:textSize="@dimen/item_detail_text_size_small"
@@ -104,7 +104,7 @@
 
         <TextView
             android:id="@+id/tvResourceComment"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:textSize="@dimen/text_size_tiny"
@@ -166,7 +166,7 @@
 
         <TextView
             android:id="@+id/tvLastSync"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:textSize="@dimen/item_detail_text_size_small"
@@ -183,7 +183,7 @@
 
         <TextView
             android:id="@+id/tvSpeedTestResults"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:textSize="@dimen/item_detail_text_size_small"
@@ -218,7 +218,7 @@
                 android:contentDescription="@string/edit"
                 android:src="@android:drawable/ic_menu_edit"
                 android:tint="?attr/colorControlNormal"
-                android:padding="8dp" />
+                android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
                 android:id="@+id/btnCopy"
@@ -228,7 +228,7 @@
                 android:contentDescription="@string/copy_resource"
                 android:src="@android:drawable/ic_menu_save"
                 android:tint="?attr/colorControlNormal"
-                android:padding="8dp" />
+                android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
                 android:id="@+id/btnMoveUp"
@@ -238,7 +238,7 @@
                 android:contentDescription="@string/move_up"
                 android:src="@android:drawable/arrow_up_float"
                 android:tint="?attr/colorControlNormal"
-                android:padding="8dp" />
+                android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
                 android:id="@+id/btnMoveDown"
@@ -248,7 +248,7 @@
                 android:contentDescription="@string/move_down"
                 android:src="@android:drawable/arrow_down_float"
                 android:tint="?attr/colorControlNormal"
-                android:padding="8dp" />
+                android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
                 android:id="@+id/btnDelete"
@@ -258,7 +258,7 @@
                 android:contentDescription="@string/delete"
                 android:src="@android:drawable/ic_menu_delete"
                 android:tint="?attr/colorControlNormal"
-                android:padding="8dp" />
+                android:padding="@dimen/item_resource_btnCopy_padding" />
         </LinearLayout>
 
         <!-- Menu Action Button (replaces individual buttons in portrait) -->

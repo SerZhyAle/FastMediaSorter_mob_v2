@@ -50,7 +50,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:visibility="gone"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
             <!-- Source Language -->
             <LinearLayout
@@ -63,7 +63,7 @@
                 android:layout_marginBottom="@dimen/margin_small">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_source_language"
@@ -97,7 +97,7 @@
                 android:minHeight="@dimen/button_height">
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_target_language"
@@ -120,7 +120,7 @@
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
             android:visibility="gone"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchTranslationLensStyle"
@@ -153,7 +153,7 @@
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchEnableGoogleLens"
@@ -163,7 +163,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_google_lens"
@@ -186,7 +186,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_ocr"
@@ -200,7 +200,7 @@
             android:text="@string/enable_ocr_summary"
             android:textSize="@dimen/text_size_small"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <!-- OCR Font Size -->
@@ -212,11 +212,11 @@
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
             android:visibility="gone"
-            android:layout_marginStart="48dp"
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_size"
@@ -238,11 +238,11 @@
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
             android:visibility="gone"
-            android:layout_marginStart="48dp"
-            android:layout_marginBottom="16dp">
+            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
+            android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_family"

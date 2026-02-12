@@ -18,7 +18,7 @@
         android:layout_marginBottom="@dimen/margin_large">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/image_edit_title"
@@ -61,7 +61,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotateLeft"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="@dimen/margin_tiny"
@@ -70,7 +70,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotate180"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_tiny"
@@ -80,7 +80,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRotateRight"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_tiny"
@@ -106,7 +106,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFlipHorizontal"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="@dimen/dialog_field_spacing"
@@ -115,7 +115,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFlipVertical"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/image_edit_flip_vertical" />
@@ -140,7 +140,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGrayscale"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginEnd="@dimen/margin_tiny"
@@ -149,7 +149,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSepia"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_tiny"
@@ -159,7 +159,7 @@
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNegative"
             style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:layout_marginStart="@dimen/margin_tiny"
@@ -194,13 +194,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
+            android:text="@string/activity_edit_resource_tvRecThreads_text"
             android:textSize="@dimen/text_size_large"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
         <SeekBar
             android:id="@+id/seekBrightness"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="200"
@@ -209,7 +209,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
+            android:text="@string/activity_player_unified_btnVolumeUp_text"
             android:textSize="@dimen/text_size_large"
             android:layout_marginStart="@dimen/dialog_field_spacing" />
     </LinearLayout>
@@ -232,13 +232,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="-"
+            android:text="@string/activity_edit_resource_tvRecThreads_text"
             android:textSize="@dimen/text_size_large"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
         <SeekBar
             android:id="@+id/seekContrast"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="200"
@@ -247,7 +247,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="+"
+            android:text="@string/activity_player_unified_btnVolumeUp_text"
             android:textSize="@dimen/text_size_large"
             android:layout_marginStart="@dimen/dialog_field_spacing" />
     </LinearLayout>
@@ -276,7 +276,7 @@
 
         <SeekBar
             android:id="@+id/seekSaturation"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:max="200"
@@ -285,7 +285,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="2x"
+            android:text="@string/dialog_image_edit_seekSaturation_text"
             android:textSize="@dimen/text_size_large"
             android:layout_marginStart="@dimen/dialog_field_spacing" />
     </LinearLayout>

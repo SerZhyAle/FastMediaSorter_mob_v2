@@ -31,7 +31,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -45,7 +45,7 @@
             <!-- Larger space between Exit and Add Resource -->
             <Space
                 android:layout_width="@dimen/control_button_spacing_large"
-                android:layout_height="1dp" />
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
             <!-- Add Resource -->
             <com.google.android.material.button.MaterialButton
@@ -58,7 +58,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -72,7 +72,7 @@
             <!-- Small space -->
             <Space
                 android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
             <!-- Filter and Sort -->
             <com.google.android.material.button.MaterialButton
@@ -85,7 +85,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -107,7 +107,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -121,7 +121,7 @@
             <!-- Small space -->
             <Space
                 android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
             <!-- Settings -->
             <com.google.android.material.button.MaterialButton
@@ -134,7 +134,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -148,12 +148,12 @@
             <!-- Small space -->
             <Space
                 android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
             <!-- Small space -->
             <Space
                 android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
             <!-- Toggle List/Grid View -->
             <com.google.android.material.button.MaterialButton
@@ -166,7 +166,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -190,7 +190,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -212,7 +212,7 @@
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
                 android:insetLeft="0dp"
@@ -281,7 +281,7 @@
                 android:layout_height="@dimen/empty_state_icon_size"
                 android:src="@android:drawable/ic_input_add"
                 android:contentDescription="Add resource"
-                android:alpha="0.6" />
+                android:alpha="@string/activity_main_emptyStateView_alpha" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -291,7 +291,7 @@
                 android:textSize="@dimen/empty_state_text_size"
                 android:textAlignment="center"
                 android:gravity="center"
-                android:alpha="0.6" />
+                android:alpha="@string/activity_main_emptyStateView_alpha" />
         </LinearLayout>
 
         <!-- Error state view for network errors -->
@@ -337,7 +337,7 @@
 
         <TextView
             android:id="@+id/tvFilterWarning"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_tiny"
@@ -414,7 +414,7 @@
             android:id="@+id/tvScanProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scanning resources..."
+            android:text="@string/activity_main_tvScanProgress_text"
             android:textSize="@dimen/empty_state_text_size"
             android:textStyle="bold"
             android:layout_marginBottom="@dimen/margin_small" />
@@ -423,7 +423,7 @@
             android:id="@+id/tvScanDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0 files scanned"
+            android:text="@string/activity_main_tvScanDetail_text"
             android:textSize="@dimen/text_size_normal"
             android:layout_marginBottom="@dimen/margin_large" />
 

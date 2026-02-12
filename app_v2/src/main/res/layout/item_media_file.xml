@@ -34,7 +34,7 @@
 
     <TextView
         android:id="@+id/tvFileName"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/dialog_button_spacing"
         android:textSize="@dimen/item_subtitle_text_size"
@@ -52,7 +52,7 @@
 
     <TextView
         android:id="@+id/tvFileInfo"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:layout_marginTop="0dp"
         android:textSize="@dimen/item_detail_text_size"

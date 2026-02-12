@@ -9,18 +9,18 @@
 
     <LinearLayout
         android:id="@+id/layoutControls"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="@dimen/control_bar_padding"
         android:background="?attr/colorSurface"
-        android:elevation="4dp"
         android:clickable="true"
+        android:elevation="@dimen/dimension_zero"
         android:focusable="true"
         android:importantForAccessibility="no"
-        app:layout_constraintTop_toTopOf="parent"
+        android:orientation="horizontal"
+        android:padding="@dimen/control_bar_padding"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <!-- Back button -->
         <com.google.android.material.button.MaterialButton
@@ -29,15 +29,31 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:contentDescription="@string/back"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@drawable/ic_arrow_back"
-            app:iconTint="?attr/colorControlNormal"
             app:iconGravity="textStart"
-            app:iconPadding="4dp" />
+            app:iconPadding="@dimen/spacing_none"
+            app:iconTint="?attr/colorControlNormal" />
 
         <!-- Breadcrumb path (visible during subfolder navigation) -->
         <com.sza.fastmediasorter.ui.common.BreadcrumbView
             android:id="@+id/breadcrumbView"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="@dimen/control_button_size"
             android:layout_weight="1"
             android:visibility="gone" />
@@ -45,43 +61,68 @@
         <!-- Small space after Back (only visible when breadcrumb is hidden) -->
         <Space
             android:id="@+id/spaceAfterBack"
-            android:layout_width="0dp"
-            android:layout_height="1dp" />
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
         <!-- Sort Button (shows current mode, popup menu on click) -->
+
+        <!-- Filter (with badge) -->
         <TextView
             android:id="@+id/btnSort"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
-            android:minWidth="80dp"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="4dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:textSize="12sp"
-            android:textColor="?attr/colorControlNormal"
             android:drawableEnd="@drawable/ic_arrow_drop_down"
             android:drawableTint="?attr/colorControlNormal"
-            android:singleLine="true"
             android:ellipsize="end"
+            android:gravity="center_horizontal|center_vertical"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:singleLine="true"
+            android:textColor="?attr/colorControlNormal"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             tools:text="Date ↓" />
 
-        <!-- Filter (with badge) -->
         <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size">
-            
+
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
                 style="?attr/materialIconButtonStyle"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_height="@dimen/control_button_size"
                 android:contentDescription="@string/filter"
+                android:insetLeft="0dp"
+                android:insetTop="0dp"
+                android:insetRight="0dp"
+                android:insetBottom="0dp"
+                android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+                android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+                android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+                android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+                android:padding="0dp"
+                android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+                android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+                android:paddingTop="0dp"
+                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+                android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+                android:paddingBottom="0dp"
+                android:textSize="@dimen/activity_browse_btnSort_textSize"
                 app:icon="@android:drawable/ic_menu_search"
-                app:iconTint="?attr/colorControlNormal"
                 app:iconGravity="textStart"
-                app:iconPadding="4dp" />
-            
+                app:iconPadding="@dimen/spacing_none"
+                app:iconTint="?attr/colorControlNormal" />
+
             <TextView
                 android:id="@+id/tvFilterBadge"
                 android:layout_width="@dimen/browse_filter_badge_size"
@@ -104,10 +145,26 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:contentDescription="@string/refresh"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@android:drawable/ic_popup_sync"
-            app:iconTint="?attr/colorControlNormal"
             app:iconGravity="textStart"
-            app:iconPadding="4dp" />
+            app:iconPadding="@dimen/spacing_none"
+            app:iconTint="?attr/colorControlNormal" />
 
         <!-- Grid/List toggle -->
         <com.google.android.material.button.MaterialButton
@@ -116,15 +173,31 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:contentDescription="@string/toggle_view"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@android:drawable/ic_menu_view"
-            app:iconTint="?attr/colorControlNormal"
             app:iconGravity="textStart"
-            app:iconPadding="4dp" />
+            app:iconPadding="@dimen/spacing_none"
+            app:iconTint="?attr/colorControlNormal" />
 
         <!-- Small space -->
         <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp" />
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
         <!-- Select All -->
         <com.google.android.material.button.MaterialButton
@@ -133,10 +206,26 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:contentDescription="@string/select_all"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@drawable/ic_select_all"
-            app:iconTint="?attr/colorControlNormal"
             app:iconGravity="textStart"
-            app:iconPadding="4dp" />
+            app:iconPadding="@dimen/spacing_none"
+            app:iconTint="?attr/colorControlNormal" />
 
         <!-- Deselect All -->
         <com.google.android.material.button.MaterialButton
@@ -145,15 +234,31 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:contentDescription="@string/deselect_all"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@drawable/ic_deselect_all"
-            app:iconTint="?attr/colorControlNormal"
             app:iconGravity="textStart"
-            app:iconPadding="4dp" />
+            app:iconPadding="@dimen/spacing_none"
+            app:iconTint="?attr/colorControlNormal" />
 
         <!-- Small space -->
         <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp" />
+            android:layout_width="@dimen/match_constraint"
+            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
 
         <!-- Play/Slideshow -->
         <com.google.android.material.button.MaterialButton
@@ -162,16 +267,32 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:contentDescription="@string/play"
+            android:insetLeft="0dp"
+            android:insetTop="0dp"
+            android:insetRight="0dp"
+            android:insetBottom="0dp"
+            android:maxWidth="@dimen/activity_browse_btnSort_maxWidth"
+            android:minHeight="@dimen/activity_browse_btnDeselectAll_minHeight"
+            android:padding="0dp"
+            android:paddingStart="@dimen/activity_browse_btnDeselectAll_paddingStart"
+            android:paddingLeft="@dimen/activity_browse_btnPlay_paddingLeft"
+            android:paddingTop="0dp"
+            android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd"
+            android:paddingRight="@dimen/activity_browse_btnSort_paddingRight"
+            android:paddingBottom="0dp"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@android:drawable/ic_media_play"
-            app:iconTint="?attr/colorControlNormal"
             app:iconGravity="textStart"
-            app:iconPadding="4dp" />
+            app:iconPadding="@dimen/spacing_none"
+            app:iconTint="?attr/colorControlNormal"
+            android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
+            android:minWidth="@dimen/activity_browse_btnBack_minWidth" />
 
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layoutResourceInfo"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
@@ -183,10 +304,10 @@
 
         <ImageButton
             android:id="@+id/btnResourceAction"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:layout_marginEnd="8dp"
-            android:padding="6dp"
+            android:layout_width="@dimen/activity_browse_btnResourceAction_layout_width"
+            android:layout_height="@dimen/activity_browse_btnResourceAction_layout_height"
+            android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
+            android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="fitCenter"
             android:contentDescription="@string/edit"
@@ -197,7 +318,7 @@
 
         <TextView
             android:id="@+id/tvResourceInfo"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:paddingTop="@dimen/padding_small"
@@ -211,7 +332,7 @@
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipeRefreshLayout"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/layoutResourceInfo"
         app:layout_constraintBottom_toTopOf="@id/layoutOperations"
@@ -269,7 +390,7 @@
     <!-- Operations bar at bottom -->
     <LinearLayout
         android:id="@+id/layoutOperations"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:padding="@dimen/control_bar_padding"
@@ -350,7 +471,7 @@
 
     <TextView
         android:id="@+id/tvFilterWarning"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:background="@color/filter_warning_bg"
         android:padding="@dimen/padding_small"
@@ -399,9 +520,9 @@
             android:id="@+id/tvEmptyStateHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:text="@string/empty_folder_hint"
-            android:textSize="14sp"
+            android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
             android:textAlignment="center"
             android:gravity="center"
             android:textColor="?android:attr/textColorTertiary"

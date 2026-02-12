@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#000000"
+    android:background="@color/black"
     tools:context=".ui.player.PlayerActivity">
 
     <!-- Command Panel Top (visible only in command panel mode) -->
@@ -18,7 +18,7 @@
         android:paddingTop="@dimen/player_cmd_padding_top"
         android:paddingBottom="@dimen/player_cmd_padding_vertical"
         android:paddingHorizontal="@dimen/player_cmd_padding_horizontal"
-        android:background="#CC000000"
+        android:background="@color/activity_player_unified_topCommandPanel_background"
         android:visibility="gone">
 
         <!-- LEFT GROUP: Back button -->
@@ -35,7 +35,7 @@
 
         <!-- CENTER GROUP: Action buttons centered without scrolling -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="horizontal"
@@ -121,7 +121,7 @@
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/ocr_button_description"
-            android:text="OCR"
+            android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
             android:textColor="@android:color/white"
             android:textSize="@dimen/player_audio_info_text_size"
             android:textStyle="bold"
@@ -220,7 +220,7 @@
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/ocr_button_description"
-            android:text="OCR"
+            android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
             android:textColor="@android:color/white"
             android:textSize="@dimen/player_audio_info_text_size"
             android:textStyle="bold"
@@ -452,7 +452,7 @@
             android:adjustViewBounds="true"
             android:visibility="gone"
             android:scaleType="fitCenter"
-            android:background="#000000"
+            android:background="@color/black"
             android:contentDescription="Audio cover art" />
 
         <!-- Audio file info overlay (visible only for audio files) -->
@@ -464,7 +464,7 @@
             android:orientation="vertical"
             android:padding="@dimen/player_audio_overlay_padding"
             android:layout_marginBottom="@dimen/player_audio_overlay_margin_bottom"
-            android:background="#CC000000"
+            android:background="@color/activity_player_unified_topCommandPanel_background"
             android:elevation="@dimen/elevation_player_overlay"
             android:clickable="true"
             android:focusable="true"
@@ -474,20 +474,20 @@
                 android:id="@+id/audioMetadata"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#FFFFFF"
-                android:textSize="22sp"
+                android:textColor="@color/white"
+                android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
                 android:textStyle="bold"
                 android:gravity="center"
-                android:layout_marginBottom="8dp"
+                android:layout_marginBottom="@dimen/activity_player_unified_audioMetadata_layout_marginBottom"
                 android:visibility="gone"
-                android:lineSpacingMultiplier="1.2" />
+                android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
 
             <TextView
                 android:id="@+id/audioFileName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#CCCCCC"
-                android:textSize="14sp"
+                android:textColor="@color/activity_player_unified_audioFileName_textColor"
+                android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
                 android:gravity="center"
                 android:layout_marginBottom="@dimen/margin_large"
                 android:ellipsize="middle"
@@ -497,10 +497,10 @@
                 android:id="@+id/audioFileInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="#CCCCCC"
+                android:textColor="@color/activity_player_unified_audioFileName_textColor"
                 android:textSize="@dimen/player_audio_info_text_size"
                 android:gravity="center"
-                android:lineSpacingMultiplier="1.2" />
+                android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
         </LinearLayout>
 
         <!-- Standard ImageView for non-zoomable mode -->
@@ -518,18 +518,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|start"
-            android:layout_margin="12dp"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp"
-            android:background="#88000000"
-            android:textColor="#FFFFFF"
-            android:textSize="10sp"
+            android:layout_margin="@dimen/activity_player_unified_audioSlideshowSongLabel_layout_margin"
+            android:paddingStart="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingStart"
+            android:paddingEnd="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingEnd"
+            android:paddingTop="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingTop"
+            android:paddingBottom="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingBottom"
+            android:background="@color/activity_player_unified_audioSlideshowSongLabel_background"
+            android:textColor="@color/white"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             android:maxLines="1"
             android:ellipsize="end"
             android:visibility="gone"
-            android:elevation="4dp" />
+            android:elevation="@dimen/activity_player_unified_audioSlideshowSongLabel_elevation" />
 
         <!-- PhotoView for zoomable mode (when loadFullSizeImages=true) -->
         <com.github.chrisbanes.photoview.PhotoView
@@ -556,7 +556,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="top"
             android:orientation="horizontal"
-            android:background="#DD000000"
+            android:background="@color/activity_player_unified_searchPanel_background"
             android:padding="@dimen/player_search_panel_padding"
             android:gravity="center_vertical"
             android:visibility="gone"
@@ -564,12 +564,12 @@
 
             <EditText
                 android:id="@+id/etSearchQuery"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/search_hint"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#AAAAAA"
+                android:textColor="@color/white"
+                android:textColorHint="@color/activity_player_unified_etSearchQuery_textColorHint"
                 android:background="@android:color/transparent"
                 android:padding="@dimen/player_search_panel_padding"
                 android:singleLine="true"
@@ -580,8 +580,8 @@
                 android:id="@+id/tvSearchCounter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0/0"
-                android:textColor="#FFFFFF"
+                android:text="@string/activity_player_unified_tvSearchCounter_text"
+                android:textColor="@color/white"
                 android:paddingHorizontal="@dimen/player_search_counter_padding"
                 android:visibility="gone" />
 
@@ -636,7 +636,7 @@
                 android:layout_margin="@dimen/player_close_button_margin"
                 android:background="@drawable/bg_circle_light"
                 android:src="@drawable/ic_cancel"
-                android:tint="#424242"
+                android:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_close_button_padding"
                 android:contentDescription="Close"
@@ -657,7 +657,7 @@
                     android:textSize="@dimen/player_audio_info_text_size"
                     android:fontFamily="monospace"
                     android:scrollHorizontally="false"
-                    android:breakStrategy="simple"
+                    android:breakStrategy="@string/activity_player_unified_tvTextContent_breakStrategy"
                     android:hyphenationFrequency="none"
                     android:textIsSelectable="true" />
             </ScrollView>
@@ -694,7 +694,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:background="#CC000000"
+                    android:background="@color/activity_player_unified_topCommandPanel_background"
                     android:padding="@dimen/player_search_panel_padding"
                     android:gravity="end">
 
@@ -704,7 +704,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@android:string/cancel"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/white"
                         android:layout_marginEnd="@dimen/player_text_edit_margin_end" />
 
                     <com.google.android.material.button.MaterialButton
@@ -713,7 +713,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@android:string/ok"
-                        android:backgroundTint="#4CAF50" />
+                        android:backgroundTint="@color/activity_player_unified_btnSaveText_backgroundTint" />
                 </LinearLayout>
             </LinearLayout>
         </FrameLayout>
@@ -801,7 +801,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="#4CAF50"
+                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Previous Page" />
@@ -812,14 +812,14 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_rew"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="#2196F3"
+                android:tint="@color/activity_player_unified_btnPdfHome_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
                 android:contentDescription="To begin" />
 
             <Space
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -841,10 +841,10 @@
                 android:background="@drawable/bg_rounded_dark"
                 android:paddingHorizontal="@dimen/player_indicator_padding"
                 android:paddingVertical="@dimen/player_indicator_padding_vertical"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:text="1/1"
+                android:text="@string/activity_player_unified_tvPdfPageIndicator_text"
                 android:layout_marginHorizontal="@dimen/player_indicator_margin" />
 
             <ImageButton
@@ -859,7 +859,7 @@
                 android:contentDescription="Zoom In" />
 
             <Space
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -936,7 +936,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_next"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="#4CAF50"
+                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -1002,7 +1002,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="#4CAF50"
+                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Previous Chapter" />
@@ -1013,14 +1013,14 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_rew"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="#2196F3"
+                android:tint="@color/activity_player_unified_btnPdfHome_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
                 android:contentDescription="To begin" />
 
             <Space
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -1031,10 +1031,10 @@
                 android:background="@drawable/bg_rounded_dark"
                 android:paddingHorizontal="@dimen/player_indicator_padding_horizontal"
                 android:paddingVertical="@dimen/player_indicator_padding_vertical_4dp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/white"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:text="1/1"
+                android:text="@string/activity_player_unified_tvPdfPageIndicator_text"
                 android:layout_marginHorizontal="@dimen/player_epub_chapter_indicator_margin_horizontal" />
 
             <ImageButton
@@ -1074,7 +1074,7 @@
                 android:contentDescription="Increase Font Size" />
 
             <Space
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -1084,7 +1084,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_next"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="#4CAF50"
+                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -1099,7 +1099,7 @@
             android:layout_height="@dimen/player_close_button_size"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="@dimen/margin_large"
-            android:layout_marginBottom="88dp"
+            android:layout_marginBottom="@dimen/activity_player_unified_btnGoogleLensImage_layout_marginBottom"
             android:src="@drawable/ic_google_lens"
             android:background="@drawable/bg_circle_dark"
             android:tint="@android:color/white"
@@ -1116,8 +1116,8 @@
             android:layout_height="@dimen/player_close_button_size"
             android:layout_gravity="bottom|end"
             android:layout_marginEnd="@dimen/margin_large"
-            android:layout_marginBottom="152dp"
-            android:text="OCR"
+            android:layout_marginBottom="@dimen/activity_player_unified_btnOcrImage_layout_marginBottom"
+            android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
             android:textColor="@android:color/white"
             android:textSize="@dimen/player_audio_info_text_size"
             android:textStyle="bold"
@@ -1133,17 +1133,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="120dp"
+            android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart"
+            android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
+            android:layout_marginBottom="@dimen/activity_player_unified_translationOverlay_layout_marginBottom"
             android:visibility="gone"
             android:clickable="true"
             android:focusable="true"
             android:elevation="@dimen/elevation_player_controls"
-            app:cardBackgroundColor="#B0000000"
-            app:cardCornerRadius="8dp"
-            app:cardElevation="16dp">
+            app:cardBackgroundColor="@color/activity_player_unified_translationOverlay_cardBackgroundColor"
+            app:cardCornerRadius="@dimen/activity_player_unified_translationOverlay_cardCornerRadius"
+            app:cardElevation="@dimen/activity_player_unified_translationOverlay_cardElevation">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -1152,11 +1152,11 @@
                 <!-- Close button (X) in top-right corner -->
                 <ImageButton
                     android:id="@+id/btnCloseTranslation"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="@dimen/activity_player_unified_btnCloseTranslation_layout_width"
+                    android:layout_height="@dimen/activity_player_unified_btnCloseTranslation_layout_height"
                     android:layout_alignParentEnd="true"
                     android:layout_alignParentTop="true"
-                    android:layout_margin="4dp"
+                    android:layout_margin="@dimen/activity_player_unified_btnCloseTranslation_layout_margin"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_menu_close_clear_cancel"
                     android:tint="#FFFFFF"
@@ -1167,7 +1167,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_below="@id/btnCloseTranslation"
-                    android:maxHeight="200dp"
+                    android:maxHeight="@dimen/activity_player_unified_translationScrollView_maxHeight"
                     android:padding="@dimen/player_close_button_padding"
                     android:paddingTop="0dp">
 
@@ -1175,9 +1175,9 @@
                         android:id="@+id/tvTranslatedText"
                         android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/white"
                     android:textSize="@dimen/player_audio_info_text_size"
-                    android:lineSpacingMultiplier="1.2" />
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
                 </ScrollView>
             </RelativeLayout>
         </androidx.cardview.widget.CardView>
@@ -1190,7 +1190,7 @@
             android:visibility="gone"
             android:clickable="true"
             android:focusable="true"
-            android:background="#00000000" />
+            android:background="@color/transparent" />
 
         <!-- Touch zones for command panel mode (2 columns: left=Previous, right=Next) -->
         <LinearLayout
@@ -1202,14 +1202,14 @@
 
             <View
                 android:id="@+id/touchZonePrevious"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZoneNext"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
@@ -1225,21 +1225,21 @@
 
             <View
                 android:id="@+id/touchZone3Previous"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="0.20"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZone3Gestures"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="0.60"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZone3Next"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="match_parent"
                 android:layout_weight="0.20"
                 android:background="@android:color/transparent" />
@@ -1258,7 +1258,8 @@
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                android:background="#80000000"
+                android:background="?attr/colorPrimary"
+                android:elevation="@dimen/toolbar_elevation"
                 app:navigationIcon="@drawable/ic_back"
                 app:titleTextColor="@android:color/white" />
 
@@ -1272,7 +1273,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:padding="@dimen/player_text_viewer_padding"
-                android:background="#80000000"
+                android:background="@color/activity_player_unified_toolbar_background"
                 android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton
@@ -1280,9 +1281,9 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minWidth="40dp"
-                    android:text="−"
-                    android:textSize="24sp"
+                    android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth"
+                    android:text="@string/activity_player_unified_btnVolumeDown_text"
+                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                     android:textColor="@android:color/white"
                     android:visibility="gone"
                     app:backgroundTint="@android:color/transparent" />
@@ -1292,8 +1293,8 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="◀"
-                    android:textSize="24sp"
+                    android:text="@string/activity_player_unified_btnPrevious_text"
+                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                     android:textColor="@android:color/white"
                     app:backgroundTint="@android:color/transparent" />
 
@@ -1302,10 +1303,10 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="▶"
-                    android:textSize="32sp"
+                    android:text="@string/activity_player_btnPlayPause_text"
+                    android:textSize="@dimen/activity_player_unified_btnPlayPause_textSize"
                     android:textColor="@android:color/white"
-                    android:layout_marginHorizontal="32dp"
+                    android:layout_marginHorizontal="@dimen/activity_player_unified_btnPlayPause_layout_marginHorizontal"
                     app:backgroundTint="@android:color/transparent" />
 
                 <com.google.android.material.button.MaterialButton
@@ -1313,8 +1314,8 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="▶"
-                    android:textSize="24sp"
+                    android:text="@string/activity_player_btnPlayPause_text"
+                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                     android:textColor="@android:color/white"
                     app:backgroundTint="@android:color/transparent" />
 
@@ -1323,9 +1324,9 @@
                     style="@style/Widget.Material3.Button.IconButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:minWidth="40dp"
-                    android:text="+"
-                    android:textSize="24sp"
+                    android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth"
+                    android:text="@string/activity_player_unified_btnVolumeUp_text"
+                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
                     android:textColor="@android:color/white"
                     android:visibility="gone"
                     app:backgroundTint="@android:color/transparent" />
@@ -1335,9 +1336,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:paddingHorizontal="16dp"
-                android:paddingBottom="16dp"
-                android:background="#80000000"
+                android:paddingHorizontal="@dimen/activity_player_unified_btnVolumeUp_paddingHorizontal"
+                android:paddingBottom="@dimen/activity_player_unified_btnVolumeUp_paddingBottom"
+                android:background="@color/activity_player_unified_toolbar_background"
                 android:gravity="center">
 
                 <com.google.android.material.button.MaterialButton
@@ -1345,12 +1346,12 @@
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SlideShow"
+                    android:text="@string/activity_player_btnSlideShow_text"
                     android:textColor="@android:color/white" />
 
                 <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
+                    android:layout_width="@dimen/match_constraint"
+                    android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
                     android:layout_weight="1" />
 
                 <com.google.android.material.button.MaterialButton
@@ -1358,7 +1359,7 @@
                     style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Delete"
+                    android:text="@string/activity_player_btnDelete_text"
                     android:textColor="@android:color/white" />
             </LinearLayout>
         </LinearLayout>
@@ -1377,12 +1378,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|end"
-            android:layout_margin="16dp"
+            android:layout_margin="@dimen/activity_player_unified_tvCountdown_layout_margin"
             android:textSize="@dimen/player_audio_info_text_size"
-            android:textColor="#888888"
+            android:textColor="@color/activity_player_tvCountdown_textColor"
             android:visibility="gone"
-            android:elevation="10dp" />
-            android:text="3.." />
+            android:elevation="@dimen/activity_player_unified_tvCountdown_elevation" />
+            android:text="@string/activity_player_unified_tvCountdown_text" />
 
         <!-- Touch zones overlay for audio playback in fullscreen (3x3 grid with labels) -->
         <GridLayout
@@ -1396,7 +1397,7 @@
             <!-- Row 0: BACK, COPY, RENAME -->
             <TextView
                 android:id="@+id/zoneBack"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="0"
                 android:layout_column="0"
@@ -1404,14 +1405,14 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_back"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF" />
+                android:background="@color/activity_player_unified_zoneBack_background" />
 
             <TextView
                 android:id="@+id/zoneCopy"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="0"
                 android:layout_column="1"
@@ -1419,16 +1420,16 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_copy"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF"
-                android:layout_marginStart="1dp"
-                android:layout_marginEnd="1dp" />
+                android:background="@color/activity_player_unified_zoneBack_background"
+                android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
+                android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd" />
 
             <TextView
                 android:id="@+id/zoneRename"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="0"
                 android:layout_column="2"
@@ -1436,15 +1437,15 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_rename"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF" />
+                android:background="@color/activity_player_unified_zoneBack_background" />
 
             <!-- Row 1: PREVIOUS, MOVE, NEXT -->
             <TextView
                 android:id="@+id/zonePrevious"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="1"
                 android:layout_column="0"
@@ -1452,16 +1453,16 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_previous"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF"
-                android:layout_marginTop="1dp"
-                android:layout_marginBottom="1dp" />
+                android:background="@color/activity_player_unified_zoneBack_background"
+                android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
+                android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
 
             <TextView
                 android:id="@+id/zoneMove"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="1"
                 android:layout_column="1"
@@ -1469,18 +1470,18 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_move"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF"
-                android:layout_marginStart="1dp"
-                android:layout_marginEnd="1dp"
-                android:layout_marginTop="1dp"
-                android:layout_marginBottom="1dp" />
+                android:background="@color/activity_player_unified_zoneBack_background"
+                android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
+                android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd"
+                android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
+                android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
 
             <TextView
                 android:id="@+id/zoneNext"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="1"
                 android:layout_column="2"
@@ -1488,17 +1489,17 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_next"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF"
-                android:layout_marginTop="1dp"
-                android:layout_marginBottom="1dp" />
+                android:background="@color/activity_player_unified_zoneBack_background"
+                android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
+                android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
 
             <!-- Row 2: COMMAND_PANEL, DELETE, Queue -->
             <TextView
                 android:id="@+id/zoneCommandPanel"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="2"
                 android:layout_column="0"
@@ -1506,14 +1507,14 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_command_panel"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF" />
+                android:background="@color/activity_player_unified_zoneBack_background" />
 
             <TextView
                 android:id="@+id/zoneDelete"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="2"
                 android:layout_column="1"
@@ -1521,16 +1522,16 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_delete"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF"
-                android:layout_marginStart="1dp"
-                android:layout_marginEnd="1dp" />
+                android:background="@color/activity_player_unified_zoneBack_background"
+                android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
+                android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd" />
 
             <TextView
                 android:id="@+id/zoneSlideshow"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="0dp"
                 android:layout_row="2"
                 android:layout_column="2"
@@ -1538,10 +1539,10 @@
                 android:layout_columnWeight="1"
                 android:gravity="center"
                 android:text="@string/touch_zone_queue"
-                android:textColor="#D0FFFFFF"
+                android:textColor="@color/activity_player_unified_zoneCommandPanel_textColor"
                 android:textSize="@dimen/empty_state_text_size"
                 android:textStyle="bold"
-                android:background="#50FFFFFF" />
+                android:background="@color/activity_player_unified_zoneBack_background" />
         </GridLayout>
 
         <!-- File name overlay (visible only in command panel mode) - positioned last for z-order -->
@@ -1550,12 +1551,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top|start"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="4dp"
+            android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart"
+            android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textColor="#CCFFFFFF"
-            android:textSize="10sp"
+            android:textColor="@color/activity_player_unified_tvFileNameOverlay_textColor"
+            android:textSize="@dimen/activity_browse_btnSort_textSize"
             android:shadowColor="#000000"
             android:shadowDx="1"
             android:shadowDy="1"
@@ -1566,16 +1567,16 @@
         <!-- Shown in top-right corner for PDF/EPUB/TXT in fullscreen mode -->
         <ImageButton
             android:id="@+id/btnDocumentFullscreenExit"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="@dimen/activity_player_unified_btnDocumentFullscreenExit_layout_width"
+            android:layout_height="@dimen/activity_player_unified_btnDocumentFullscreenExit_layout_height"
             android:layout_gravity="top|end"
-            android:layout_marginTop="16dp"
-            android:layout_marginEnd="16dp"
+            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
+            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="@drawable/bg_circle_semi_transparent"
             android:tint="@android:color/white"
             android:scaleType="centerInside"
-            android:padding="12dp"
+            android:padding="@dimen/activity_player_unified_btnDocumentFullscreenExit_padding"
             android:contentDescription="@string/exit_fullscreen"
             android:visibility="gone" />
 
@@ -1594,16 +1595,16 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom|start"
-            android:layout_marginStart="12dp"
-            android:layout_marginBottom="12dp"
-            android:textSize="11sp"
-            android:textColor="#AAFFFFFF"
-            android:background="#44000000"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
+            android:layout_marginStart="@dimen/activity_player_unified_tvBackgroundMusicTrack_layout_marginStart"
+            android:layout_marginBottom="@dimen/activity_player_unified_tvBackgroundMusicTrack_layout_marginBottom"
+            android:textSize="@dimen/activity_edit_resource_tvLastTestDate_textSize"
+            android:textColor="@color/activity_player_unified_tvBackgroundMusicTrack_textColor"
+            android:background="@color/activity_player_unified_tvBackgroundMusicTrack_background"
+            android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
+            android:paddingVertical="@dimen/activity_player_unified_tvBackgroundMusicTrack_paddingVertical"
             android:maxLines="1"
             android:ellipsize="end"
-            android:maxWidth="280dp"
+            android:maxWidth="@dimen/activity_player_unified_tvBackgroundMusicTrack_maxWidth"
             android:visibility="gone" />
 
         <!-- Fullscreen PDF Page Viewer (shown on long tap on PDF page) -->
@@ -1611,7 +1612,7 @@
             android:id="@+id/pdfFullscreenOverlay"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#FF000000"
+            android:background="@color/activity_player_unified_pdfFullscreenOverlay_background"
             android:visibility="gone"
             android:clickable="true"
             android:focusable="true"
@@ -1629,13 +1630,13 @@
                 android:layout_width="@dimen/player_cmd_button_size"
                 android:layout_height="@dimen/player_cmd_button_size"
                 android:layout_gravity="top|end"
-                android:layout_marginTop="8dp"
-                android:layout_marginEnd="8dp"
+                android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
+                android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
                 android:src="@drawable/ic_fullscreen_exit"
                 android:background="@drawable/bg_circle_dark"
                 android:tint="@android:color/white"
                 android:scaleType="fitCenter"
-                android:padding="6dp"
+                android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
                 android:contentDescription="Exit Fullscreen" />
         </FrameLayout>
 
@@ -1654,9 +1655,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#CC004D00"
+        android:background="@color/activity_player_unified_copyToPanel_background"
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
-        android:paddingHorizontal="4dp"
+        android:paddingHorizontal="@dimen/activity_player_unified_moveToPanel_paddingHorizontal"
         android:visibility="invisible">
 
         <LinearLayout
@@ -1664,7 +1665,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="2dp"
+            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackground">
@@ -1673,13 +1674,13 @@
                 android:id="@+id/copyToPanelIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▼"
+                android:text="@string/activity_player_unified_moveToPanelIndicator_text"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
-                android:paddingEnd="4dp" />
+                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/panel_copy_to"
@@ -1701,9 +1702,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#CC00004D"
+        android:background="@color/activity_player_unified_moveToPanel_background"
         android:paddingVertical="@dimen/player_cmd_padding_vertical"
-        android:paddingHorizontal="4dp"
+        android:paddingHorizontal="@dimen/activity_player_unified_moveToPanel_paddingHorizontal"
         android:visibility="invisible">
 
         <LinearLayout
@@ -1711,7 +1712,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingBottom="2dp"
+            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackground">
@@ -1720,13 +1721,13 @@
                 android:id="@+id/moveToPanelIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▼"
+                android:text="@string/activity_player_unified_moveToPanelIndicator_text"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
-                android:paddingEnd="4dp" />
+                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/panel_move_to"

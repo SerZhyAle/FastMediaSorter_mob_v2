@@ -7,7 +7,7 @@
     android:background="@drawable/item_focus_selector"
     android:focusable="true"
     android:focusableInTouchMode="false"
-    android:padding="2dp">
+    android:padding="@dimen/item_media_file_grid_unknown_padding">
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cvCard"

@@ -23,7 +23,7 @@
         android:layout_marginBottom="@dimen/margin_large">
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/current_color"
@@ -40,7 +40,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/dialog_field_spacing"
-            android:text="Green"
+            android:text="@string/dialog_color_picker_tvColorName_text"
             android:textSize="@dimen/resource_card_desc_text_size" />
 
     </LinearLayout>

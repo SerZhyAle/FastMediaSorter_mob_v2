@@ -42,7 +42,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="All Tests"
+                android:text="@string/dialog_integration_test_chipAll_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -50,7 +50,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Failed Only"
+                android:text="@string/dialog_integration_test_chipFailedOnly_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -58,7 +58,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Local"
+                android:text="@string/dialog_integration_test_chipLocal_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -66,7 +66,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Network"
+                android:text="@string/dialog_integration_test_chipNetwork_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -74,7 +74,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Image"
+                android:text="@string/dialog_integration_test_chipImage_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -82,7 +82,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="GIF"
+                android:text="@string/dialog_integration_test_chipGif_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
         </LinearLayout>
@@ -105,7 +105,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Matrix Copy"
+                android:text="@string/dialog_integration_test_chipMatrixCopy_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -113,7 +113,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Matrix Move"
+                android:text="@string/dialog_integration_test_chipMatrixMove_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -121,7 +121,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Matrix Other"
+                android:text="@string/dialog_integration_test_chipMatrixOther_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -129,7 +129,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Settings"
+                android:text="@string/dialog_integration_test_chipSettings_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -137,7 +137,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Favorites"
+                android:text="@string/dialog_integration_test_chipFavorites_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -145,7 +145,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Metadata"
+                android:text="@string/dialog_integration_test_chipMetadata_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
         </LinearLayout>
@@ -168,7 +168,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Audio"
+                android:text="@string/dialog_integration_test_chipAudio_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -176,7 +176,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Network Utils"
+                android:text="@string/dialog_integration_test_chipNetworkUtils_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -184,7 +184,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cache"
+                android:text="@string/dialog_integration_test_chipCache_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -192,7 +192,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Scanning"
+                android:text="@string/dialog_integration_test_chipScanning_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
             <com.google.android.material.chip.Chip
@@ -200,7 +200,7 @@
                 style="@style/Widget.Material3.Chip.Filter"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Cloud Providers"
+                android:text="@string/dialog_integration_test_chipCloudProviders_text"
                 android:layout_marginEnd="@dimen/margin_tiny" />
 
         </LinearLayout>
@@ -219,7 +219,7 @@
             android:id="@+id/tvProgress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Ready to run tests"
+            android:text="@string/dialog_integration_test_tvProgress_text"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface"
@@ -229,7 +229,7 @@
             android:id="@+id/tvStatus"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Click 'Run Tests' to start"
+            android:text="@string/dialog_integration_test_tvStatus_text"
             android:textSize="@dimen/resource_card_desc_text_size"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:layout_marginBottom="@dimen/margin_small" />
@@ -248,7 +248,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Test Log:"
+        android:text="@string/dialog_integration_test_progressBar_text"
         android:textSize="@dimen/resource_card_desc_text_size"
         android:textStyle="bold"
         android:textColor="?attr/colorOnSurface"
@@ -266,7 +266,7 @@
             android:id="@+id/tvLog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="No tests run yet"
+            android:text="@string/dialog_integration_test_tvLog_text"
             android:textSize="@dimen/text_size_small"
             android:textColor="@android:color/white"
             android:fontFamily="monospace"
@@ -286,7 +286,7 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Import Log"
+            android:text="@string/dialog_integration_test_btnImportLog_text"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
         <Button
@@ -294,7 +294,7 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Copy Log"
+            android:text="@string/dialog_integration_test_btnCopyLog_text"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
         <Button
@@ -302,7 +302,7 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Save Log"
+            android:text="@string/dialog_integration_test_btnSaveLog_text"
             android:layout_marginEnd="@dimen/dialog_field_spacing" />
 
         <Button
@@ -310,7 +310,7 @@
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Close" />
+            android:text="@string/dialog_integration_test_btnClose_text" />
     </LinearLayout>
 
 </LinearLayout>

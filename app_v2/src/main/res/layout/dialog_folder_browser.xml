@@ -32,7 +32,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_tiny"
                 android:textSize="@dimen/resource_card_desc_text_size"
-                android:text="/storage/emulated/0"
+                android:text="@string/dialog_folder_browser_tvCurrentPath_text"
                 android:textIsSelectable="true" />
 
         </LinearLayout>

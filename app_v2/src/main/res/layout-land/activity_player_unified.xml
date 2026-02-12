@@ -1255,7 +1255,8 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="#80000000"
+            android:elevation="@dimen/toolbar_elevation"
+            android:background="?attr/colorPrimary"
             app:navigationIcon="@drawable/ic_back"
             app:titleTextColor="@android:color/white" />
 

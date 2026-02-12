@@ -21,7 +21,7 @@
 
             <!-- Enable Copying -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -36,7 +36,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/enable_copying"
@@ -47,7 +47,7 @@
             <!-- Overwrite on Copy -->
             <LinearLayout
                 android:id="@+id/layoutOverwriteCopyWrapper"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -62,7 +62,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/overwrite_on_copy"
@@ -125,7 +125,7 @@
 
             <!-- Enable Moving -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -140,7 +140,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/enable_moving"
@@ -151,7 +151,7 @@
             <!-- Overwrite on Move -->
             <LinearLayout
                 android:id="@+id/layoutOverwriteMoveWrapper"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -166,7 +166,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/overwrite_on_move"
@@ -186,7 +186,7 @@
             android:paddingTop="@dimen/settings_padding_vertical_top_small">
             
             <com.google.android.material.textview.MaterialTextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/destinations_list_header"
@@ -244,7 +244,7 @@
             android:text="@string/add_resources_first_message"
             android:textSize="@dimen/resource_card_desc_text_size"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:padding="16dp"
+            android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
             android:gravity="center"
             android:layout_marginBottom="@dimen/margin_small"
             android:visibility="gone"/>

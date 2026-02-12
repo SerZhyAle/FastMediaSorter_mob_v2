@@ -9,7 +9,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="#80000000"
+        android:background="@color/activity_player_unified_toolbar_background"
         android:orientation="vertical"
         android:padding="@dimen/player_controls_padding">
 
@@ -35,8 +35,8 @@
                 android:layout_marginHorizontal="@dimen/player_progress_margin_horizontal"
                 app:played_color="@android:color/white"
                 app:scrubber_color="@android:color/white"
-                app:buffered_color="#80FFFFFF"
-                app:unplayed_color="#40FFFFFF" />
+                app:buffered_color="@color/white_50_alpha"
+                app:unplayed_color="@color/custom_player_controls_exo_bottom_bar_unplayed_color" />
 
             <TextView
                 android:id="@id/exo_duration"

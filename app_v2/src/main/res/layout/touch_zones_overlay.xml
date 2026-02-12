@@ -12,150 +12,150 @@
     <!-- Row 0: BACK, COPY, RENAME -->
     <TextView
         android:id="@+id/zoneBack"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="0"
         android:layout_column="0"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="BACK"
+        android:text="@string/touch_zones_overlay_zoneBack_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background" />
 
     <TextView
         android:id="@+id/zoneCopy"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="0"
         android:layout_column="1"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="COPY"
+        android:text="@string/touch_zones_overlay_zoneCopy_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background"
+        android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
+        android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd" />
 
     <TextView
         android:id="@+id/zoneRename"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="0"
         android:layout_column="2"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="RENAME"
+        android:text="@string/touch_zones_overlay_zoneRename_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background" />
 
     <!-- Row 1: PREVIOUS, COMMAND_PANEL, NEXT -->
     <TextView
         android:id="@+id/zonePrevious"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="1"
         android:layout_column="0"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="PREVIOUS"
+        android:text="@string/touch_zones_overlay_zonePrevious_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF"
-        android:layout_marginTop="1dp"
-        android:layout_marginBottom="1dp" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background"
+        android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
+        android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
 
     <TextView
         android:id="@+id/zoneCommandPanel"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="1"
         android:layout_column="1"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="COMMAND\nPANEL"
+        android:text="@string/touch_zones_overlay_zoneCommandPanel_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginTop="1dp"
-        android:layout_marginBottom="1dp" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background"
+        android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
+        android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd"
+        android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
+        android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
 
     <TextView
         android:id="@+id/zoneNext"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="1"
         android:layout_column="2"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="NEXT"
+        android:text="@string/touch_zones_overlay_zoneNext_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF"
-        android:layout_marginTop="1dp"
-        android:layout_marginBottom="1dp" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background"
+        android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
+        android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
 
     <!-- Row 2: MOVE, DELETE, SLIDESHOW -->
     <TextView
         android:id="@+id/zoneMove"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="2"
         android:layout_column="0"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="MOVE"
+        android:text="@string/touch_zones_overlay_zoneMove_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background" />
 
     <TextView
         android:id="@+id/zoneDelete"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="2"
         android:layout_column="1"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="DELETE"
+        android:text="@string/touch_zones_overlay_zoneDelete_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF"
-        android:layout_marginStart="1dp"
-        android:layout_marginEnd="1dp" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background"
+        android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
+        android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd" />
 
     <TextView
         android:id="@+id/zoneSlideshow"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_row="2"
         android:layout_column="2"
         android:layout_rowWeight="1"
         android:layout_columnWeight="1"
         android:gravity="center"
-        android:text="SLIDESHOW"
+        android:text="@string/touch_zones_overlay_zoneSlideshow_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
         android:textStyle="bold"
-        android:background="#20FFFFFF" />
+        android:background="@color/touch_zones_overlay_zoneCopy_background" />
 </GridLayout>

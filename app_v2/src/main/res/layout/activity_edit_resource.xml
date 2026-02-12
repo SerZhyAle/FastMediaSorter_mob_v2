@@ -29,7 +29,7 @@
         <!-- Buttons at the top (after toolbar) -->
         <LinearLayout
             android:id="@+id/layoutButtons"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:paddingHorizontal="@dimen/padding_large"
@@ -43,7 +43,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTest"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/test" />
@@ -53,7 +53,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReset"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -61,7 +61,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -71,7 +71,7 @@
 
         <LinearLayout
             android:id="@+id/layoutContent"
-            android:layout_width="0dp"
+            android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/padding_large"
@@ -107,7 +107,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilResourceComment"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -181,7 +181,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbShareNameEdit"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -208,7 +208,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbUsernameEdit"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -226,7 +226,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbPasswordEdit"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -254,7 +254,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbDomainEdit"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -303,7 +303,7 @@
                     android:id="@+id/tvCredentialsTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="S/FTP Credentials"
+                    android:text="@string/activity_edit_resource_tvCredentialsTitle_text"
                     android:textSize="@dimen/resource_card_title_text_size"
                     android:textStyle="bold" />
 
@@ -362,7 +362,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSftpUsernameEdit"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -380,7 +380,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSftpPasswordEdit"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -436,7 +436,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilResourcePath"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -483,7 +483,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbScanSubdirectories"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="true"
@@ -491,7 +491,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbAllFiles"
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/all_files"
@@ -504,7 +504,7 @@
                 android:id="@+id/tvAllFilesInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="All Files mode is enabled in Settings. All media types are automatically supported."
+                android:text="@string/activity_edit_resource_tvAllFilesInfo_text"
                 android:textSize="@dimen/text_size_small"
                 android:textColor="?attr/colorPrimary"
                 android:layout_marginTop="@dimen/resource_field_margin_top"
@@ -536,14 +536,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportImages"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/images" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportVideo"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/video" />
@@ -559,14 +559,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportAudio"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/audio" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportGif"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/gif_animations" />
@@ -584,14 +584,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportText"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_text" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportPdf"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_pdf" />
@@ -608,14 +608,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportEpub"
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_epub" />
 
                     <!-- Empty space for alignment -->
                     <View
-                        android:layout_width="0dp"
+                        android:layout_width="@dimen/match_constraint"
                         android:layout_height="0dp"
                         android:layout_weight="1" />
 
@@ -648,7 +648,7 @@
                     android:layout_height="wrap_content" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -687,7 +687,7 @@
                     android:layout_height="wrap_content" />
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -728,7 +728,7 @@
                     android:textOff="" />
 
                 <TextView
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/use_as_destination"
@@ -746,7 +746,7 @@
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
                 app:strokeColor="?attr/colorOutline"
-                app:strokeWidth="1dp">
+                app:strokeWidth="@dimen/activity_edit_resource_cardSpeedResults_strokeWidth">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -768,7 +768,7 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
@@ -784,13 +784,13 @@
                                 android:id="@+id/tvReadSpeed"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0.0 Mbps"
+                                android:text="@string/activity_edit_resource_tvReadSpeed_text"
                                 android:textSize="@dimen/resource_card_desc_text_size"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
@@ -806,13 +806,13 @@
                                 android:id="@+id/tvWriteSpeed"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="0.0 Mbps"
+                                android:text="@string/activity_edit_resource_tvReadSpeed_text"
                                 android:textSize="@dimen/resource_card_desc_text_size"
                                 android:textStyle="bold" />
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="@dimen/match_constraint"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
@@ -828,7 +828,7 @@
                                 android:id="@+id/tvRecThreads"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="-"
+                                android:text="@string/activity_edit_resource_tvRecThreads_text"
                                 android:textSize="@dimen/resource_card_desc_text_size"
                                 android:textStyle="bold" />
                         </LinearLayout>
@@ -840,8 +840,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/resource_section_margin_top"
-                        android:text="Last test: -"
-                        android:textSize="11sp"
+                        android:text="@string/activity_edit_resource_tvLastTestDate_text"
+                        android:textSize="@dimen/activity_edit_resource_tvLastTestDate_textSize"
                         android:textColor="?android:textColorSecondary" />
 
                 </LinearLayout>
@@ -866,7 +866,7 @@
             <!-- Metadata at bottom -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
+                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
                 android:layout_marginTop="@dimen/resource_section_margin_top_12"
                 android:background="?android:attr/listDivider" />
 
@@ -877,7 +877,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -900,7 +900,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="@dimen/match_constraint"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -959,7 +959,7 @@
             android:visibility="gone"
             android:padding="@dimen/padding_large"
             android:background="@drawable/bg_progress_dialog"
-            android:elevation="8dp"
+            android:elevation="@dimen/activity_edit_resource_layoutProgress_elevation"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"

@@ -38,7 +38,7 @@
                 android:checked="true" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_background_sync"
@@ -68,7 +68,7 @@
             android:id="@+id/tvSyncIntervalValue"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="4 hours"
+            android:text="@string/fragment_settings_network_tvSyncIntervalValue_text"
             android:textSize="@dimen/text_size_small"
             android:textColor="?android:textColorSecondary"
             android:layout_marginBottom="@dimen/margin_small" />

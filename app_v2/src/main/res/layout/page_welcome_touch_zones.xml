@@ -8,7 +8,7 @@
 
     <TextView
         android:id="@+id/tvTitle"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/welcome_title_3"
@@ -21,7 +21,7 @@
 
     <ImageView
         android:id="@+id/ivTouchZonesScheme"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/margin_medium"
         android:layout_marginBottom="@dimen/margin_medium"
@@ -35,13 +35,13 @@
 
     <TextView
         android:id="@+id/tvDescription"
-        android:layout_width="0dp"
+        android:layout_width="@dimen/match_constraint"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/welcome_description_3"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/welcome_description_text_size"
-        android:lineSpacingMultiplier="1.2"
+        android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
