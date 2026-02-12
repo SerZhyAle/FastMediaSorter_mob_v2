@@ -14,7 +14,7 @@
         android:text="@string/welcome_title_3"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/welcome_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

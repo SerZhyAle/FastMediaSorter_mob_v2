@@ -87,7 +87,7 @@ if (Test-Path -Path $gdPath) {
             & $sevenZipPath a -tzip -p1 -mem=AES256 $zipPath $destAabPath | Out-Null
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "AAB zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Green
-                Write-Host "Password: 1" -ForegroundColor Yellow
+                # Write-Host "Password: 1" -ForegroundColor Yellow
             }
             else {
                 Write-Host "Warning: Failed to create password-protected ZIP" -ForegroundColor Yellow

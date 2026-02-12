@@ -24,7 +24,7 @@
             android:layout_weight="1"
             android:text="@string/player_settings_title"
             android:textSize="@dimen/text_size_title_dialog"
-            android:textStyle="bold" />
+            android:textStyle="@string/text_style_bold" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancel"
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:text="@string/player_speed"
         android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:layout_marginBottom="@dimen/margin_small" />
 
     <com.google.android.material.chip.ChipGroup
@@ -201,7 +201,7 @@
         android:layout_height="wrap_content"
         android:text="@string/player_audio_track"
         android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:layout_marginBottom="@dimen/margin_small" />
 
     <Spinner

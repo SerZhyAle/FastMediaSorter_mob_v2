@@ -44,7 +44,7 @@
                 android:text="@string/settings"
                 android:textColor="?attr/colorOnPrimary"
                 android:textSize="@dimen/activity_player_btnInfo_textSize"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 tools:ignore="SpUsage" />
 
         </LinearLayout>

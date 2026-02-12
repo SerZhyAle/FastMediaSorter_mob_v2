@@ -15,7 +15,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/media_category_images"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textColor="?attr/colorPrimary"
             android:layout_marginTop="@dimen/margin_small"
@@ -194,7 +194,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/media_category_video"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="@dimen/settings_padding_vertical" />
@@ -339,7 +339,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/media_category_audio"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="@dimen/settings_padding_vertical" />
@@ -515,7 +515,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/media_category_documents"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="@dimen/settings_padding_vertical" />
@@ -630,7 +630,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/media_category_other"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:textSize="@dimen/resource_card_title_text_size"
             android:textColor="?attr/colorPrimary"
             android:layout_marginBottom="@dimen/settings_padding_vertical" />

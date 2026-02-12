@@ -22,7 +22,7 @@
         android:text="@string/touch_zones_overlay_zoneBack_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background" />
 
     <TextView
@@ -37,7 +37,7 @@
         android:text="@string/touch_zones_overlay_zoneCopy_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background"
         android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
         android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd" />
@@ -54,7 +54,7 @@
         android:text="@string/touch_zones_overlay_zoneRename_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background" />
 
     <!-- Row 1: PREVIOUS, COMMAND_PANEL, NEXT -->
@@ -70,7 +70,7 @@
         android:text="@string/touch_zones_overlay_zonePrevious_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background"
         android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
         android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
@@ -87,7 +87,7 @@
         android:text="@string/touch_zones_overlay_zoneCommandPanel_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background"
         android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
         android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd"
@@ -106,7 +106,7 @@
         android:text="@string/touch_zones_overlay_zoneNext_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background"
         android:layout_marginTop="@dimen/touch_zones_overlay_zoneNext_layout_marginTop"
         android:layout_marginBottom="@dimen/activity_player_unified_zonePrevious_layout_marginBottom" />
@@ -124,7 +124,7 @@
         android:text="@string/touch_zones_overlay_zoneMove_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background" />
 
     <TextView
@@ -139,7 +139,7 @@
         android:text="@string/touch_zones_overlay_zoneDelete_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background"
         android:layout_marginStart="@dimen/activity_player_unified_zoneMove_layout_marginStart"
         android:layout_marginEnd="@dimen/touch_zones_overlay_zoneDelete_layout_marginEnd" />
@@ -156,6 +156,6 @@
         android:text="@string/touch_zones_overlay_zoneSlideshow_text"
         android:textColor="#80FFFFFF"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:background="@color/touch_zones_overlay_zoneCopy_background" />
 </GridLayout>

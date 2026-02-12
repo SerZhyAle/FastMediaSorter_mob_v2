@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="@string/dialog_material_progress_horizontal_tvProgressTitle_text"
         android:textSize="@dimen/text_size_large"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:layout_marginBottom="@dimen/margin_small" />
 
     <TextView

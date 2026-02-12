@@ -38,7 +38,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/dialog_button_spacing"
         android:textSize="@dimen/item_subtitle_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:includeFontPadding="false"
         android:maxLines="2"
         android:ellipsize="end"

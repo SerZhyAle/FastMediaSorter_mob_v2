@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:text="@string/favorites"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:textColor="@color/white"
         android:padding="@dimen/padding_small"
         android:gravity="center_horizontal" />

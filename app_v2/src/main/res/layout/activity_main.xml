@@ -30,7 +30,7 @@
                 app:icon="@android:drawable/ic_menu_close_clear_cancel"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -57,7 +57,7 @@
                 app:icon="@android:drawable/ic_menu_add"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -84,7 +84,7 @@
                 app:icon="@android:drawable/ic_menu_search"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -106,7 +106,7 @@
                 app:icon="@android:drawable/ic_popup_sync"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -133,7 +133,7 @@
                 app:icon="@android:drawable/ic_menu_preferences"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -165,7 +165,7 @@
                 app:icon="@drawable/ic_view_grid"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -189,7 +189,7 @@
                 app:icon="@drawable/ic_star_outline"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -211,7 +211,7 @@
                 app:icon="@android:drawable/ic_media_play"
                 app:iconTint="?attr/colorControlNormal"
                 app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 android:insetTop="0dp"
                 android:insetBottom="0dp"
@@ -289,7 +289,7 @@
                 android:layout_marginTop="@dimen/empty_state_text_margin_top"
                 android:text="@string/empty_state_message"
                 android:textSize="@dimen/empty_state_text_size"
-                android:textAlignment="center"
+                android:textAlignment="@string/button_text_alignment_center"
                 android:gravity="center"
                 android:alpha="@string/activity_main_emptyStateView_alpha" />
         </LinearLayout>
@@ -322,7 +322,7 @@
                 android:layout_marginTop="@dimen/empty_state_text_margin_top"
                 android:text="@string/connection_failed"
                 android:textSize="@dimen/empty_state_text_size"
-                android:textAlignment="center"
+                android:textAlignment="@string/button_text_alignment_center"
                 android:gravity="center"
                 android:textColor="@android:color/holo_red_dark" />
 
@@ -379,7 +379,7 @@
             android:layout_height="wrap_content"
             android:text="@string/connecting"
             android:textSize="@dimen/empty_state_text_size"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <TextView
@@ -416,7 +416,7 @@
             android:layout_height="wrap_content"
             android:text="@string/activity_main_tvScanProgress_text"
             android:textSize="@dimen/empty_state_text_size"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <TextView

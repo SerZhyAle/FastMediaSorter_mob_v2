@@ -305,7 +305,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/activity_edit_resource_tvCredentialsTitle_text"
                     android:textSize="@dimen/resource_card_title_text_size"
-                    android:textStyle="bold" />
+                    android:textStyle="@string/text_style_bold" />
 
                 <!-- Host and Port in one row -->
                 <LinearLayout
@@ -519,7 +519,7 @@
                 android:layout_marginTop="@dimen/resource_section_margin_top"
                 android:text="@string/supported_media_types"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="bold" />
+                android:textStyle="@string/text_style_bold" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -759,7 +759,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/network_speed"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textStyle="bold" />
+                        android:textStyle="@string/text_style_bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -786,7 +786,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/activity_edit_resource_tvReadSpeed_text"
                                 android:textSize="@dimen/resource_card_desc_text_size"
-                                android:textStyle="bold" />
+                                android:textStyle="@string/text_style_bold" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -808,7 +808,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/activity_edit_resource_tvReadSpeed_text"
                                 android:textSize="@dimen/resource_card_desc_text_size"
-                                android:textStyle="bold" />
+                                android:textStyle="@string/text_style_bold" />
                         </LinearLayout>
 
                         <LinearLayout
@@ -830,7 +830,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/activity_edit_resource_tvRecThreads_text"
                                 android:textSize="@dimen/resource_card_desc_text_size"
-                                android:textStyle="bold" />
+                                android:textStyle="@string/text_style_bold" />
                         </LinearLayout>
 
                     </LinearLayout>

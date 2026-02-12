@@ -42,7 +42,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
-                    android:textStyle="bold"
+                    android:textStyle="@string/text_style_bold"
                     android:textSize="@dimen/text_size_large"
                     android:layout_marginEnd="@dimen/margin_small"
                     tools:text="1"/>
@@ -54,7 +54,7 @@
                     android:layout_weight="1"
                     android:textAppearance="?attr/textAppearanceTitleMedium"
                     android:textSize="@dimen/text_size_large"
-                    android:textStyle="bold"
+                    android:textStyle="@string/text_style_bold"
                     android:maxLines="1"
                     android:ellipsize="end"
                     tools:text="Family Photos"/>
@@ -91,7 +91,7 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:icon="@android:drawable/arrow_up_float"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/spacing_none"
                 style="@style/Widget.Material3.Button.IconButton"/>
 
@@ -106,7 +106,7 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:icon="@android:drawable/arrow_down_float"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/spacing_none"
                 style="@style/Widget.Material3.Button.IconButton"/>
 
@@ -120,7 +120,7 @@
                 android:insetBottom="0dp"
                 android:padding="0dp"
                 app:icon="@android:drawable/ic_menu_delete"
-                app:iconGravity="textStart"
+                app:iconGravity="@string/button_icon_alignment_text_start"
                 app:iconPadding="@dimen/spacing_none"
                 app:iconTint="?attr/colorError"
                 style="@style/Widget.Material3.Button.IconButton"/>

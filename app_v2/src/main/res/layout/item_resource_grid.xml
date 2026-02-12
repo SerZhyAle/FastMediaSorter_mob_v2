@@ -61,7 +61,7 @@
         android:maxLines="1"
         android:textColor="?android:attr/textColorSecondary"
         android:textSize="@dimen/item_detail_text_size_tiny"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -116,7 +116,7 @@ foreach ($apk in $apkFiles) {
     $7zipPath = "C:\Program Files\7-Zip\7z.exe"
     if (Test-Path -Path $7zipPath) {
         & $7zipPath a -tzip -p1 "$zipPath" "$destPath" | Out-Null
-        Write-Host "  -> Google Drive: $zipName (password: 1)" -ForegroundColor Cyan
+        # Write-Host "  -> Google Drive: $zipName (password: 1)" -ForegroundColor Cyan
     }
     else {
         Write-Host "  -> Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow

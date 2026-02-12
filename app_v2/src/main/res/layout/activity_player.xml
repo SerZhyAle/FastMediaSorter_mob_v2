@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:textColor="@color/white"
             android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:gravity="center"
             android:layout_marginBottom="@dimen/activity_player_unified_audioMetadata_layout_marginBottom"
             android:visibility="gone"

@@ -108,7 +108,7 @@ $7zipPath = "C:\Program Files\7-Zip\7z.exe"
 if (Test-Path -Path $7zipPath) {
     & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
     Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-    Write-Host "Password: 1" -ForegroundColor Yellow
+    # Write-Host "Password: 1" -ForegroundColor Yellow
 }
 else {
     Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow

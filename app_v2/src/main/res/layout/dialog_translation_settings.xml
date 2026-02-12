@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:text="@string/translation_settings"
         android:textSize="@dimen/text_size_title_dialog"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:layout_marginBottom="@dimen/margin_small" />
 
     <!-- Source Language Spinner -->

@@ -38,7 +38,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 tools:text="DESKTOP-ABC1234"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:textSize="@dimen/item_title_text_size" />
 
             <TextView

@@ -1492,6 +1492,28 @@
     <string name="touch_zones_overlay_zoneRename_text">RENAME</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">SLIDESHOW</string>
 
+    <!-- Semantic alignment and style values for unified UI control -->
+    
+    <!-- Button icon alignment -->
+    <string name="button_icon_alignment_start">start</string>
+    <string name="button_icon_alignment_text_start">textStart</string>
+    
+    <!-- Button text alignment -->
+    <string name="button_text_alignment_start">textStart</string>
+    <string name="button_text_alignment_center">center</string>
+    
+    <!-- Text style -->
+    <string name="text_style_bold">bold</string>
+    <string name="text_style_italic">italic</string>
+    
+    <!-- Layout gravity patterns -->
+    <string name="layout_gravity_bottom">bottom</string>
+    <string name="layout_gravity_center">center</string>
+    <string name="layout_gravity_center_vertical">center_vertical</string>
+    <string name="layout_gravity_bottom_end">bottom|end</string>
+    <string name="layout_gravity_bottom_start">bottom|start</string>
+    <string name="layout_gravity_top_end">top|end</string>
+
 </resources>
 
 

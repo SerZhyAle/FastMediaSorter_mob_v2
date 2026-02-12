@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:text="@string/network_discovery_title"
         android:textSize="@dimen/text_size_large"
-        android:textStyle="bold"
+        android:textStyle="@string/text_style_bold"
         android:layout_marginBottom="@dimen/margin_large" />
 
     <ProgressBar

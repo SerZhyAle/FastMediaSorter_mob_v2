@@ -30,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/margin_small"
             android:textSize="@dimen/item_title_text_size"
-            android:textStyle="bold"
+            android:textStyle="@string/text_style_bold"
             android:background="@null"
             android:singleLine="true"
             app:layout_constraintEnd_toEndOf="parent"
@@ -80,7 +80,7 @@
                 android:gravity="center"
                 android:text="I"
                 android:textSize="@dimen/item_detail_text_size"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true" />
@@ -92,7 +92,7 @@
                 android:gravity="center"
                 android:text="V"
                 android:textSize="@dimen/item_detail_text_size"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -104,7 +104,7 @@
                 android:gravity="center"
                 android:text="A"
                 android:textSize="@dimen/item_detail_text_size"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -116,7 +116,7 @@
                 android:gravity="center"
                 android:text="G"
                 android:textSize="@dimen/item_detail_text_size"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -128,7 +128,7 @@
                 android:gravity="center"
                 android:text="T"
                 android:textSize="@dimen/item_detail_text_size"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"/>
@@ -140,7 +140,7 @@
                 android:gravity="center"
                 android:text="P"
                 android:textSize="@dimen/item_detail_text_size"
-                android:textStyle="bold"
+                android:textStyle="@string/text_style_bold"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true"/>

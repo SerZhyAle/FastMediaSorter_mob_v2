@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:text="@string/moving_files"
         android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-        android:textAlignment="center"
+        android:textAlignment="@string/button_text_alignment_center"
         android:paddingBottom="@dimen/margin_large" />
 
     <TextView
@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-        android:textAlignment="center"
+        android:textAlignment="@string/button_text_alignment_center"
         android:paddingBottom="@dimen/margin_small" />
 
     <com.google.android.material.progressindicator.LinearProgressIndicator
