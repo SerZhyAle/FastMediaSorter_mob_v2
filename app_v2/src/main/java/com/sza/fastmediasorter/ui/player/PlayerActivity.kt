@@ -2467,8 +2467,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
         binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-        binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-        binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+        safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
+        safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
         Timber.d("Translation stopped and overlays hidden")
     }
     
@@ -2606,15 +2606,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             }
                             
                             // Show font size controls when translation is active
-                            binding.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
-                            binding.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
+                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
+                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
                         },
                         onEmpty = {
                             // No text detected - reset button and show toast
                             binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                            binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
+                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
                             showError(getString(R.string.translation_no_text_found))
                         },
                         onError = { message ->
@@ -2642,14 +2642,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             binding.translationLensOverlay.isVisible = false // Hide lens overlay
                             
                             // Hide font size controls (text viewer has its own)
-                            binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                            binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
+                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
                         } else {
                             // No text or error
                             binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                            binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
+                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
+                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
                             showError(getString(R.string.translation_no_text_found))
                         }
                     }
@@ -3282,7 +3282,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     binding.toolbar.isVisible = false
                     binding.copyToPanel.isVisible = false
                     binding.moveToPanel.isVisible = false
-                    binding.pdfControlsLayout.isVisible = false
+                    safeViews.pdfControlsLayout.isVisible = false
                     binding.translationOverlay.isVisible = false
                     binding.translationLensOverlay.isVisible = false
                 }
@@ -3290,7 +3290,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onExitFullscreenMode() {
                     systemBarsManager.exitFullscreenMode()
                     binding.toolbar.isVisible = true
-                    binding.pdfControlsLayout.isVisible = true
+                    safeViews.pdfControlsLayout.isVisible = true
                 }
             },
             translationManager = translationManager,

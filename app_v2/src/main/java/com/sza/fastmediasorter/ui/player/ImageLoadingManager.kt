@@ -212,7 +212,7 @@ class ImageLoadingManager(
         binding.audioCoverArtView.isVisible = false
         binding.audioTouchZonesOverlay.isVisible = false
         binding.audioInfoOverlay.isVisible = false
-        binding.pdfControlsLayout.isVisible = false
+        safeViews.pdfControlsLayout.isVisible = false
         safeViews.textViewerContainer.isVisible = false
         
         // Hide text action buttons (they are for TXT files only)

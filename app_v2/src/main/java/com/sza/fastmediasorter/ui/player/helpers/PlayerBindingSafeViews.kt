@@ -105,6 +105,12 @@ class PlayerBindingSafeViews(
     val etTextContent: EditText get() = required(R.id.etTextContent)
     val btnCancelEdit: MaterialButton get() = required(R.id.btnCancelEdit)
     val btnSaveText: MaterialButton get() = required(R.id.btnSaveText)
+
+    val pdfControlsLayout: LinearLayout get() = required(R.id.pdfControlsLayout)
+    val btnTranslationFontDecrease: ImageButton?
+        get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
+    val btnTranslationFontIncrease: ImageButton?
+        get() = binding.root.findViewById(R.id.btnTranslationFontIncrease)
 }
 
 private fun <T : View> ActivityPlayerUnifiedBinding.requiredFromRoot(@IdRes id: Int): T {
@@ -152,3 +158,42 @@ val ActivityPlayerUnifiedBinding.btnCancelEdit: MaterialButton
 
 val ActivityPlayerUnifiedBinding.btnSaveText: MaterialButton
     get() = requiredFromRoot(R.id.btnSaveText)
+
+val ActivityPlayerUnifiedBinding.pdfControlsLayout: LinearLayout
+    get() = requiredFromRoot(R.id.pdfControlsLayout)
+
+val ActivityPlayerUnifiedBinding.btnPdfPrevPage: ImageButton
+    get() = requiredFromRoot(R.id.btnPdfPrevPage)
+
+val ActivityPlayerUnifiedBinding.btnPdfHome: ImageButton
+    get() = requiredFromRoot(R.id.btnPdfHome)
+
+val ActivityPlayerUnifiedBinding.btnPdfZoomOut: ImageButton
+    get() = requiredFromRoot(R.id.btnPdfZoomOut)
+
+val ActivityPlayerUnifiedBinding.tvPdfPageIndicator: TextView?
+    get() = root.findViewById(R.id.tvPdfPageIndicator)
+
+val ActivityPlayerUnifiedBinding.btnPdfZoomIn: ImageButton
+    get() = requiredFromRoot(R.id.btnPdfZoomIn)
+
+val ActivityPlayerUnifiedBinding.btnPdfNextPage: ImageButton
+    get() = requiredFromRoot(R.id.btnPdfNextPage)
+
+val ActivityPlayerUnifiedBinding.btnPdfEnd: ImageButton?
+    get() = root.findViewById(R.id.btnPdfEnd)
+
+val ActivityPlayerUnifiedBinding.btnTranslatePdf: ImageButton?
+    get() = root.findViewById(R.id.btnTranslatePdf)
+
+val ActivityPlayerUnifiedBinding.btnTranslationFontDecrease: ImageButton?
+    get() = root.findViewById(R.id.btnTranslationFontDecrease)
+
+val ActivityPlayerUnifiedBinding.btnTranslationFontIncrease: ImageButton?
+    get() = root.findViewById(R.id.btnTranslationFontIncrease)
+
+val ActivityPlayerUnifiedBinding.btnGoogleLensPdf: ImageButton?
+    get() = root.findViewById(R.id.btnGoogleLensPdf)
+
+val ActivityPlayerUnifiedBinding.btnSearchPdf: ImageButton?
+    get() = root.findViewById(R.id.btnSearchPdf)
