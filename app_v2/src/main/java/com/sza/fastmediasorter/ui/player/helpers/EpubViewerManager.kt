@@ -39,6 +39,7 @@ class EpubViewerManager(
     private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository,
     private val translationManager: TranslationManager
 ) : BaseDocumentViewerManager(binding) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     interface EpubViewerCallback {
         fun showError(message: String)
@@ -439,7 +440,7 @@ class EpubViewerManager(
         binding.playerView.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
-        binding.textViewerContainer.isVisible = false
+        safeViews.textViewerContainer.isVisible = false
         binding.pdfControlsLayout.isVisible = false
         binding.btnTranslateImage.isVisible = false
         binding.progressBar.isVisible = true

@@ -34,6 +34,7 @@ class SearchControlsManager(
     private val inputMethodManager: InputMethodManager,
     private val callback: SearchControlsCallback
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     interface SearchControlsCallback {
         fun getCurrentMediaFile(): com.sza.fastmediasorter.domain.model.MediaFile?
@@ -85,30 +86,30 @@ class SearchControlsManager(
         }
         
         // Search panel controls
-        binding.btnCloseSearch.setOnClickListener {
+        safeViews.btnCloseSearch.setOnClickListener {
             UserActionLogger.logButtonClick("CloseSearch", "SearchControlsManager")
             hideSearchPanel()
         }
         
-        binding.btnSearchNext.setOnClickListener {
+        safeViews.btnSearchNext.setOnClickListener {
             UserActionLogger.logButtonClick("SearchNext", "SearchControlsManager")
             performSearchNavigation(forward = true)
         }
         
-        binding.btnSearchPrev.setOnClickListener {
+        safeViews.btnSearchPrev.setOnClickListener {
             UserActionLogger.logButtonClick("SearchPrev", "SearchControlsManager")
             performSearchNavigation(forward = false)
         }
         
         // Search query input
-        binding.etSearchQuery.setOnEditorActionListener { _, actionId, _ ->
+        safeViews.etSearchQuery.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
                 performSearch()
                 true
             } else false
         }
         
-        binding.etSearchQuery.addTextChangedListener(object : android.text.TextWatcher {
+        safeViews.etSearchQuery.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
@@ -126,10 +127,10 @@ class SearchControlsManager(
      * Displays search input field and focuses it.
      */
     fun showSearchPanel() {
-        binding.searchPanel.isVisible = true
-        binding.etSearchQuery.requestFocus()
+        safeViews.searchPanel.isVisible = true
+        safeViews.etSearchQuery.requestFocus()
         // Show keyboard
-        inputMethodManager.showSoftInput(binding.etSearchQuery, InputMethodManager.SHOW_IMPLICIT)
+        inputMethodManager.showSoftInput(safeViews.etSearchQuery, InputMethodManager.SHOW_IMPLICIT)
     }
     
     /**
@@ -137,11 +138,11 @@ class SearchControlsManager(
      * Clears search query and hides search results.
      */
     fun hideSearchPanel() {
-        binding.searchPanel.isVisible = false
-        binding.etSearchQuery.text.clear()
+        safeViews.searchPanel.isVisible = false
+        safeViews.etSearchQuery.text.clear()
         clearSearch()
         // Hide keyboard
-        inputMethodManager.hideSoftInputFromWindow(binding.etSearchQuery.windowToken, 0)
+        inputMethodManager.hideSoftInputFromWindow(safeViews.etSearchQuery.windowToken, 0)
     }
     
     /**
@@ -149,9 +150,9 @@ class SearchControlsManager(
      * Searches in PDF/Text/EPUB and updates counter.
      */
     private fun performSearch() {
-        val query = binding.etSearchQuery.text.toString()
+        val query = safeViews.etSearchQuery.text.toString()
         if (query.isBlank()) {
-            binding.tvSearchCounter.isVisible = false
+            safeViews.tvSearchCounter.isVisible = false
             return
         }
         
@@ -173,8 +174,8 @@ class SearchControlsManager(
                 else -> 0
             }
             
-            binding.tvSearchCounter.text = if (matchCount > 0) "1/$matchCount" else "0/0"
-            binding.tvSearchCounter.isVisible = matchCount > 0
+            safeViews.tvSearchCounter.text = if (matchCount > 0) "1/$matchCount" else "0/0"
+            safeViews.tvSearchCounter.isVisible = matchCount > 0
         }
     }
     
@@ -190,7 +191,7 @@ class SearchControlsManager(
             MediaType.TEXT -> {
                 // TextView doesn't have built-in navigation, would need custom implementation
                 // For now, just highlight matches
-                val query = binding.etSearchQuery.text.toString()
+                val query = safeViews.etSearchQuery.text.toString()
                 textViewerManagerProvider().highlightSearchMatch(query, 0)
             }
             MediaType.PDF -> {
@@ -218,8 +219,8 @@ class SearchControlsManager(
      */
     private fun updateSearchCounter() {
         val (current, total, _) = pdfViewerManagerProvider().getSearchState()
-        binding.tvSearchCounter.text = "$current/$total"
-        binding.tvSearchCounter.isVisible = total > 0
+        safeViews.tvSearchCounter.text = "$current/$total"
+        safeViews.tvSearchCounter.isVisible = total > 0
     }
     
     /**
@@ -239,6 +240,6 @@ class SearchControlsManager(
             else -> {}
         }
         
-        binding.tvSearchCounter.isVisible = false
+        safeViews.tvSearchCounter.isVisible = false
     }
 }

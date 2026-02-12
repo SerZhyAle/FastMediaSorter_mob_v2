@@ -39,6 +39,7 @@ class PdfViewerManager(
     private val translationManager: TranslationManager,
     private val playbackPositionRepository: com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
 ) : BaseDocumentViewerManager(binding) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     interface PdfViewerCallback {
         fun showError(message: String)
@@ -218,7 +219,7 @@ class PdfViewerManager(
         binding.btnExitEpubFullscreen.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
-        binding.textViewerContainer.isVisible = false
+        safeViews.textViewerContainer.isVisible = false
         binding.btnTranslateImage.isVisible = false
         binding.pdfControlsLayout.isVisible = true
         binding.progressBar.isVisible = true

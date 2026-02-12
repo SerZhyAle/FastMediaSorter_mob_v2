@@ -29,6 +29,7 @@ class PlayerGestureSetupManager(
     private val viewModel: PlayerViewModel,
     private val touchZoneGestureManager: TouchZoneGestureManager
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     private lateinit var gestureDetector: GestureDetector
     private lateinit var imageTouchGestureDetector: GestureDetector
@@ -80,7 +81,7 @@ class PlayerGestureSetupManager(
             Timber.d("PlayerActivity.root.onTouch: action=${event.action}, type=${currentFile?.type}, fullscreen=$isInFullscreenMode, touchZones=$useTouchZones")
             
             // For Text files: don't intercept touches, let TextViewerManager handle scrolling/gestures
-            if (isText && binding.textViewerContainer.isVisible && !isOverlayBlocking()) {
+            if (isText && safeViews.textViewerContainer.isVisible && !isOverlayBlocking()) {
                 return@setOnTouchListener false
             }
             

@@ -48,6 +48,7 @@ class PlayerMediaLoaderManager(
     private val showLoadingIndicatorRunnable: Runnable,
     private val mediaFilesCacheManager: MediaFilesCacheManager
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
@@ -277,7 +278,7 @@ class PlayerMediaLoaderManager(
     }
 
     private fun hideTextViewerControls() {
-        binding.textViewerContainer.isVisible = false
+        safeViews.textViewerContainer.isVisible = false
         binding.btnCopyTextCmd.isVisible = false
         binding.btnEditTextCmd.isVisible = false
         binding.btnTranslateTextCmd.isVisible = false
