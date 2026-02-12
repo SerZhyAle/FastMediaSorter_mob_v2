@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/lyricsViewerContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone"
+    android:background="?android:attr/colorBackground"
+    android:elevation="@dimen/elevation_player_controls"
+    android:clickable="true"
+    android:focusable="true">
+
+    <ImageButton
+        android:id="@+id/btnTranslateLyrics"
+        android:layout_width="@dimen/player_close_button_size"
+        android:layout_height="@dimen/player_close_button_size"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/player_close_button_margin"
+        android:layout_marginEnd="@dimen/player_lyrics_close_margin_end"
+        android:background="@drawable/bg_circle_themed"
+        android:src="@drawable/ic_translate"
+        app:tint="?android:attr/textColorPrimary"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/player_close_button_padding"
+        android:contentDescription="@string/translate"
+        android:elevation="@dimen/elevation_player_overlay"
+        android:translationX="@dimen/player_lyrics_translate_offset_x" />
+
+    <ImageButton
+        android:id="@+id/btnCloseLyricsViewer"
+        android:layout_width="@dimen/player_close_button_size"
+        android:layout_height="@dimen/player_close_button_size"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/player_close_button_margin"
+        android:background="@drawable/bg_circle_themed"
+        android:src="@drawable/ic_cancel"
+        app:tint="?android:attr/textColorPrimary"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/player_close_button_padding"
+        android:contentDescription="@string/close"
+        android:elevation="@dimen/elevation_player_overlay" />
+
+    <ScrollView
+        android:id="@+id/lyricsScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/player_lyrics_margin_top"
+        android:background="?android:attr/colorBackground"
+        android:padding="@dimen/player_text_viewer_padding">
+
+        <TextView
+            android:id="@+id/tvLyricsContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="@dimen/empty_state_text_size"
+            android:lineSpacingExtra="@dimen/player_lyrics_line_spacing"
+            android:textIsSelectable="true"
+            android:scrollHorizontally="false" />
+    </ScrollView>
+
+</FrameLayout>

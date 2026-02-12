@@ -12,6 +12,11 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 class PlayerBindingSafeViews(
     private val binding: ActivityPlayerUnifiedBinding
 ) {
+    private fun <T : View> required(@IdRes id: Int): T {
+        return binding.root.findViewById(id)
+            ?: error("Required view not found: id=$id")
+    }
+
     private fun <T : View> required(view: T?, @IdRes id: Int): T {
         return view ?: binding.root.findViewById(id)
         ?: error("Required view not found: id=$id")
@@ -53,31 +58,31 @@ class PlayerBindingSafeViews(
 
     val btnTranslateImage: ImageButton get() = required(binding.btnTranslateImage, R.id.btnTranslateImage)
 
-    val audioMetadata: TextView get() = required(binding.audioMetadata, R.id.audioMetadata)
-    val audioFileName: TextView get() = required(binding.audioFileName, R.id.audioFileName)
-    val audioFileInfo: TextView get() = required(binding.audioFileInfo, R.id.audioFileInfo)
+    val audioMetadata: TextView get() = required(R.id.audioMetadata)
+    val audioFileName: TextView get() = required(R.id.audioFileName)
+    val audioFileInfo: TextView get() = required(R.id.audioFileInfo)
 
     val btnCloseLyricsViewer: ImageButton
         get() {
             ensureLyricsInflated()
-            return required(binding.btnCloseLyricsViewer, R.id.btnCloseLyricsViewer)
+            return required(R.id.btnCloseLyricsViewer)
         }
 
     val btnTranslateLyrics: ImageButton
         get() {
             ensureLyricsInflated()
-            return required(binding.btnTranslateLyrics, R.id.btnTranslateLyrics)
+            return required(R.id.btnTranslateLyrics)
         }
 
     val tvLyricsContent: TextView
         get() {
             ensureLyricsInflated()
-            return required(binding.tvLyricsContent, R.id.tvLyricsContent)
+            return required(R.id.tvLyricsContent)
         }
 
     val lyricsViewerContainer: FrameLayout
         get() {
             ensureLyricsInflated()
-            return required(binding.lyricsViewerContainer, R.id.lyricsViewerContainer)
+            return required(R.id.lyricsViewerContainer)
         }
 }
