@@ -1530,8 +1530,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         stopTranslation()
                         return
                     }
-                    if (binding.textViewerContainer.isVisible) {
-                        binding.textViewerContainer.isVisible = false
+                    if (safeViews.textViewerContainer.isVisible) {
+                        safeViews.textViewerContainer.isVisible = false
                         return
                     }
                     if (safeViews.lyricsViewerContainer.isVisible) {
@@ -3149,7 +3149,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal fun isOverlayBlocking(): Boolean {
         return binding.translationOverlay.isVisible ||
                binding.translationLensOverlay.isVisible ||
-               binding.textViewerContainer.isVisible ||  // OCR result window
+               safeViews.textViewerContainer.isVisible ||  // OCR result window
                safeViews.lyricsViewerContainer.isVisible   // Lyrics viewer window
     }
     

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/searchPanel"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top"
+    android:orientation="horizontal"
+    android:background="@color/activity_player_unified_searchPanel_background"
+    android:padding="@dimen/player_search_panel_padding"
+    android:gravity="center_vertical"
+    android:visibility="gone"
+    android:elevation="@dimen/elevation_player_overlay">
+
+    <EditText
+        android:id="@+id/etSearchQuery"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:hint="@string/search_hint"
+        android:textColor="@color/white"
+        android:textColorHint="@color/activity_player_unified_etSearchQuery_textColorHint"
+        android:background="@android:color/transparent"
+        android:padding="@dimen/player_search_panel_padding"
+        android:singleLine="true"
+        android:imeOptions="actionSearch"
+        android:inputType="text" />
+
+    <TextView
+        android:id="@+id/tvSearchCounter"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/activity_player_unified_tvSearchCounter_text"
+        android:textColor="@color/white"
+        android:paddingHorizontal="@dimen/player_search_counter_padding"
+        android:visibility="gone" />
+
+    <ImageButton
+        android:id="@+id/btnSearchPrev"
+        android:layout_width="@dimen/player_search_button_size"
+        android:layout_height="@dimen/player_search_button_size"
+        android:src="@android:drawable/ic_media_previous"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#FFFFFF"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/player_search_panel_padding"
+        android:contentDescription="Previous Match" />
+
+    <ImageButton
+        android:id="@+id/btnSearchNext"
+        android:layout_width="@dimen/player_search_button_size"
+        android:layout_height="@dimen/player_search_button_size"
+        android:src="@android:drawable/ic_media_next"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#FFFFFF"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/player_search_panel_padding"
+        android:contentDescription="Next Match" />
+
+    <ImageButton
+        android:id="@+id/btnCloseSearch"
+        android:layout_width="@dimen/player_search_button_size"
+        android:layout_height="@dimen/player_search_button_size"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:tint="#FFFFFF"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/player_search_panel_padding"
+        android:contentDescription="Close Search" />
+</LinearLayout>

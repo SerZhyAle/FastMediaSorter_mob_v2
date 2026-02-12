@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/textViewerContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone"
+    android:background="?android:attr/colorBackground">
+
+    <ImageButton
+        android:id="@+id/btnCloseTextViewer"
+        android:layout_width="@dimen/player_close_button_size"
+        android:layout_height="@dimen/player_close_button_size"
+        android:layout_gravity="top|end"
+        android:layout_margin="@dimen/player_close_button_margin"
+        android:background="@drawable/bg_circle_light"
+        android:src="@drawable/ic_cancel"
+        app:tint="#424242"
+        android:scaleType="fitCenter"
+        android:padding="@dimen/player_close_button_padding"
+        android:contentDescription="Close"
+        android:elevation="@dimen/elevation_player_overlay" />
+
+    <ScrollView
+        android:id="@+id/textScrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="@dimen/player_text_viewer_padding">
+
+        <TextView
+            android:id="@+id/tvTextContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?android:attr/textColorPrimary"
+            android:textSize="@dimen/player_audio_info_text_size"
+            android:fontFamily="monospace"
+            android:scrollHorizontally="false"
+            android:breakStrategy="simple"
+            android:hyphenationFrequency="none"
+            android:textIsSelectable="true" />
+    </ScrollView>
+
+    <LinearLayout
+        android:id="@+id/textEditContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:padding="@dimen/player_text_viewer_padding">
+
+            <EditText
+                android:id="@+id/etTextContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="?android:attr/textColorPrimary"
+                android:textSize="@dimen/player_audio_info_text_size"
+                android:fontFamily="monospace"
+                android:background="@android:color/transparent"
+                android:gravity="top|start"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:minLines="10" />
+        </ScrollView>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="#CC000000"
+            android:padding="@dimen/player_search_panel_padding"
+            android:gravity="end">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCancelEdit"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@android:string/cancel"
+                android:textColor="#FFFFFF"
+                android:layout_marginEnd="@dimen/player_text_edit_margin_end" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSaveText"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@android:string/ok"
+                android:backgroundTint="#4CAF50" />
+        </LinearLayout>
+    </LinearLayout>
+</FrameLayout>
