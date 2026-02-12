@@ -366,7 +366,7 @@
         android:scaleType="centerInside"
         android:visibility="gone"
         android:src="@drawable/ic_arrow_upward"
-        android:tint="@android:color/white"
+        app:tint="@android:color/white"
         app:layout_constraintTop_toTopOf="@id/swipeRefreshLayout"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -383,7 +383,7 @@
         android:scaleType="centerInside"
         android:visibility="gone"
         android:src="@drawable/ic_arrow_downward"
-        android:tint="@android:color/white"
+        app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="@id/swipeRefreshLayout"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -409,7 +409,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/copy"
             android:src="@android:drawable/ic_menu_save"
-            android:tint="?attr/colorControlNormal"
+            app:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Move -->
@@ -420,7 +420,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/move"
             android:src="@android:drawable/ic_menu_revert"
-            android:tint="?attr/colorControlNormal"
+            app:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Rename -->
@@ -431,7 +431,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/rename"
             android:src="@android:drawable/ic_menu_edit"
-            android:tint="?attr/colorControlNormal"
+            app:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Delete -->
@@ -442,7 +442,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete"
             android:src="@android:drawable/ic_menu_delete"
-            android:tint="?attr/colorControlNormal"
+            app:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Undo -->
@@ -453,7 +453,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/undo"
             android:src="@android:drawable/ic_menu_revert"
-            android:tint="?attr/colorControlNormal"
+            app:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
         <!-- Share -->
@@ -464,7 +464,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share"
             android:src="@drawable/ic_share"
-            android:tint="?attr/colorControlNormal"
+            app:tint="?attr/colorControlNormal"
             android:visibility="gone" />
 
     </LinearLayout>
@@ -503,7 +503,7 @@
             android:layout_height="@dimen/empty_state_icon_size"
             android:src="@drawable/ic_folder_open_24"
             android:contentDescription="@string/empty_folder"
-            android:tint="?android:attr/textColorSecondary" />
+            app:tint="?android:attr/textColorSecondary" />
 
         <TextView
             android:id="@+id/tvEmptyStateMessage"
@@ -548,7 +548,7 @@
             android:layout_height="@dimen/empty_state_icon_size"
             android:src="@android:drawable/stat_notify_error"
             android:contentDescription="@string/error"
-            android:tint="@android:color/holo_red_dark" />
+            app:tint="@android:color/holo_red_dark" />
 
         <TextView
             android:id="@+id/tvErrorMessage"

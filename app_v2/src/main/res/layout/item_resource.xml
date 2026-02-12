@@ -217,7 +217,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/edit"
                 android:src="@android:drawable/ic_menu_edit"
-                android:tint="?attr/colorControlNormal"
+                app:tint="?attr/colorControlNormal"
                 android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
@@ -227,7 +227,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/copy_resource"
                 android:src="@android:drawable/ic_menu_save"
-                android:tint="?attr/colorControlNormal"
+                app:tint="?attr/colorControlNormal"
                 android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
@@ -237,7 +237,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/move_up"
                 android:src="@android:drawable/arrow_up_float"
-                android:tint="?attr/colorControlNormal"
+                app:tint="?attr/colorControlNormal"
                 android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
@@ -247,7 +247,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/move_down"
                 android:src="@android:drawable/arrow_down_float"
-                android:tint="?attr/colorControlNormal"
+                app:tint="?attr/colorControlNormal"
                 android:padding="@dimen/item_resource_btnCopy_padding" />
 
             <ImageButton
@@ -257,7 +257,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/delete"
                 android:src="@android:drawable/ic_menu_delete"
-                android:tint="?attr/colorControlNormal"
+                app:tint="?attr/colorControlNormal"
                 android:padding="@dimen/item_resource_btnCopy_padding" />
         </LinearLayout>
 

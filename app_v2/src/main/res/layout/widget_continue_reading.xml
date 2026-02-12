@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widget_continue_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,7 +14,7 @@
         android:layout_height="@dimen/item_icon_size_small"
         android:src="@drawable/ic_play"
         android:contentDescription="@string/continue_reading"
-        android:tint="@color/white" />
+        app:tint="@color/white" />
 
     <TextView
         android:id="@+id/widget_continue_text"

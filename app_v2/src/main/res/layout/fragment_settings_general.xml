@@ -73,7 +73,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_all_files_title"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="?android:attr/textColorSecondary" />
 
             </LinearLayout>
 
@@ -107,7 +107,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_show_hidden_files_title"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="?android:attr/textColorSecondary" />
 
             </LinearLayout>
 
@@ -143,7 +143,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/show_subfolders_as_items"
                 android:src="@android:drawable/ic_menu_help"
-                android:tint="?android:attr/textColorSecondary" />
+                app:tint="?android:attr/textColorSecondary" />
 
         </LinearLayout>
 
@@ -185,7 +185,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_favorites_title"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="?android:attr/textColorSecondary" />
 
             </LinearLayout>
 
@@ -220,7 +220,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_prevent_sleep_title"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="?android:attr/textColorSecondary" />
 
             </LinearLayout>
 
@@ -256,7 +256,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_compact_controls_title"
                 android:src="@android:drawable/ic_menu_help"
-                android:tint="?android:attr/textColorSecondary" />
+                app:tint="?android:attr/textColorSecondary" />
 
         </LinearLayout>
 
@@ -326,7 +326,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_safe_mode_title"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="?android:attr/textColorSecondary" />
 
             </LinearLayout>
 
@@ -431,7 +431,7 @@
                         android:contentDescription="@string/background_sync_description"
                         android:tooltipText="@string/background_sync_description"
                         android:src="@android:drawable/ic_menu_help"
-                        android:tint="?android:attr/textColorSecondary" />
+                        app:tint="?android:attr/textColorSecondary" />
 
                 </LinearLayout>
 
@@ -532,7 +532,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_default_credentials_title"
                 android:src="@android:drawable/ic_menu_help"
-                android:tint="?android:attr/textColorSecondary"
+                app:tint="?android:attr/textColorSecondary"
                 app:layout_constraintStart_toEndOf="@+id/tilDefaultPassword"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@+id/tilDefaultPassword"
@@ -586,7 +586,7 @@
                 android:contentDescription="@string/export_import_file_info"
                 android:tooltipText="@string/export_import_file_info"
                 android:src="@android:drawable/ic_menu_help"
-                android:tint="?android:attr/textColorSecondary"
+                app:tint="?android:attr/textColorSecondary"
                 app:layout_constraintStart_toEndOf="@+id/btnImportSettings"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent"

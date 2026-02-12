@@ -26,7 +26,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_back"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnPreviousCmd"
@@ -36,7 +36,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Previous"
             android:src="@android:drawable/ic_media_previous"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnNextCmd"
@@ -46,7 +46,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Next"
             android:src="@android:drawable/ic_media_next"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnRenameCmd"
@@ -56,7 +56,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Rename"
             android:src="@drawable/ic_rename"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnShareCmd"
@@ -66,7 +66,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share"
             android:src="@drawable/ic_share"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnDeleteCmd"
@@ -76,7 +76,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnUndoCmd"
@@ -87,7 +87,7 @@
             android:contentDescription="Undo"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnFullscreenCmd"
@@ -97,7 +97,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/fullscreen_mode"
             android:src="@drawable/ic_fullscreen"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
 
         <ImageButton
             android:id="@+id/btnSlideshowCmd"
@@ -106,7 +106,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Slideshow"
             android:src="@android:drawable/ic_media_play"
-            android:tint="@android:color/white" />
+            app:tint="@android:color/white" />
     </LinearLayout>
 
     <!-- Media Content Area with touch zones -->

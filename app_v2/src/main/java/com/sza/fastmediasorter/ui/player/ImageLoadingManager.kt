@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
+import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -117,10 +118,10 @@ class ImageLoadingManager(
                 // Get current settings
                 val settings = settingsRepository.getSettings().first()
                 
-                // Get current device dimensions
-                val bounds = callback.getWindowManager().currentWindowMetrics.bounds
-                val deviceWidth = bounds.width()
-                val deviceHeight = bounds.height()
+                // Get current device dimensions (API 28+ compatible)
+                val (deviceWidth, deviceHeight) = WindowMetricsCompat.getScreenSize(
+                    callback.getWindowManager()
+                )
                 
                 // Determine which view is currently visible
                 val targetView = when {
@@ -327,9 +328,10 @@ class ImageLoadingManager(
             
             // Determine scale type based on crop setting and orientation match
             val isFullscreenOrSlideshow = !callback.isShowingCommandPanel() || isSlideshowActive
-            val bounds = callback.getWindowManager().currentWindowMetrics.bounds
-            val deviceWidth = bounds.width()
-            val deviceHeight = bounds.height()
+            // Get device dimensions (API 28+ compatible)
+            val (deviceWidth, deviceHeight) = WindowMetricsCompat.getScreenSize(
+                callback.getWindowManager()
+            )
             
             // Store context for scale type determination in onResourceReady
             currentCropSetting = settings.cropImagesToFullscreen
@@ -468,10 +470,10 @@ class ImageLoadingManager(
         
         // Apply size limit if loadFullSizeImages is false
         val finalRequest = if (!loadFullSize) {
-            // Limit to screen size to save memory
-            val bounds = callback.getWindowManager().currentWindowMetrics.bounds
-            val screenWidth = bounds.width()
-            val screenHeight = bounds.height()
+            // Limit to screen size to save memory (API 28+ compatible)
+            val (screenWidth, screenHeight) = WindowMetricsCompat.getScreenSize(
+                callback.getWindowManager()
+            )
             Timber.d("ImageLoadingManager: Loading image with screen size limit: ${screenWidth}x${screenHeight}")
             glideRequest.override(screenWidth, screenHeight)
         } else {
@@ -532,10 +534,10 @@ class ImageLoadingManager(
         
         // Apply size limit if loadFullSizeImages is false
         val finalRequest = if (!loadFullSize) {
-            // Limit to screen size to save memory
-            val bounds = callback.getWindowManager().currentWindowMetrics.bounds
-            val screenWidth = bounds.width()
-            val screenHeight = bounds.height()
+            // Limit to screen size to save memory (API 28+ compatible)
+            val (screenWidth, screenHeight) = WindowMetricsCompat.getScreenSize(
+                callback.getWindowManager()
+            )
             Timber.d("ImageLoadingManager: Loading local image with screen size limit: ${screenWidth}x${screenHeight}")
             glideRequest.override(screenWidth, screenHeight)
         } else {

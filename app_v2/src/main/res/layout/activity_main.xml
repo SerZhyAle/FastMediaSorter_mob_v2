@@ -313,7 +313,7 @@
                 android:layout_height="@dimen/empty_state_icon_size"
                 android:src="@android:drawable/stat_notify_error"
                 android:contentDescription="@string/error"
-                android:tint="@android:color/holo_red_dark" />
+                app:tint="@android:color/holo_red_dark" />
 
             <TextView
                 android:id="@+id/tvErrorMessage"

@@ -97,11 +97,12 @@
         android:layout_height="@dimen/item_icon_size_tiny"
         android:layout_margin="@dimen/item_margin_tiny"
         android:src="@android:drawable/ic_lock_lock"
-        android:tint="@android:color/holo_red_light"
+        app:tint="@android:color/holo_red_light"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        tools:visibility="visible" />
+        tools:visibility="visible" 
+            android:contentDescription="@null" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 

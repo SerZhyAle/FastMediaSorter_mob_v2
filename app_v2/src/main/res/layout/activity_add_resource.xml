@@ -1494,7 +1494,8 @@
                         android:layout_width="@dimen/resource_card_icon_size"
                         android:layout_height="@dimen/resource_card_icon_size"
                         android:src="@drawable/ic_provider_google_drive"
-                        android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
+                        android:layout_marginEnd="@dimen/resource_card_icon_margin_end" 
+            android:contentDescription="@null" />
 
                     <TextView
                         android:layout_width="@dimen/match_constraint"
@@ -1539,7 +1540,8 @@
                         android:layout_width="@dimen/resource_card_icon_size"
                         android:layout_height="@dimen/resource_card_icon_size"
                         android:src="@drawable/ic_provider_onedrive"
-                        android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
+                        android:layout_marginEnd="@dimen/resource_card_icon_margin_end" 
+            android:contentDescription="@null" />
 
                     <TextView
                         android:layout_width="@dimen/match_constraint"
@@ -1584,7 +1586,8 @@
                         android:layout_width="@dimen/resource_card_icon_size"
                         android:layout_height="@dimen/resource_card_icon_size"
                         android:src="@drawable/ic_provider_dropbox"
-                        android:layout_marginEnd="@dimen/resource_card_icon_margin_end" />
+                        android:layout_marginEnd="@dimen/resource_card_icon_margin_end" 
+            android:contentDescription="@null" />
 
                     <TextView
                         android:layout_width="@dimen/match_constraint"

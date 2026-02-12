@@ -29,7 +29,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Back"
             android:src="@drawable/ic_back"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -50,7 +50,7 @@
             android:contentDescription="@string/search"
             android:src="@android:drawable/ic_menu_search"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -62,7 +62,7 @@
             android:contentDescription="@string/translate"
             android:src="@drawable/ic_translate"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -74,7 +74,7 @@
             android:contentDescription="@string/translation_settings"
             android:src="@drawable/ic_book"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -87,7 +87,7 @@
             android:contentDescription="@string/search"
             android:src="@android:drawable/ic_menu_search"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -99,7 +99,7 @@
             android:contentDescription="@string/translate"
             android:src="@drawable/ic_translate"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -111,7 +111,7 @@
             android:contentDescription="@string/translation_settings"
             android:src="@drawable/ic_book"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -137,7 +137,7 @@
             android:contentDescription="Google Lens"
             android:src="@drawable/ic_google_lens"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -150,7 +150,7 @@
             android:contentDescription="@string/search"
             android:src="@android:drawable/ic_menu_search"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -173,7 +173,7 @@
             android:contentDescription="@string/translation_settings"
             android:src="@drawable/ic_book"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -185,7 +185,7 @@
             android:contentDescription="OCR"
             android:src="@drawable/ic_ocr"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -198,7 +198,7 @@
             android:contentDescription="@string/translate"
             android:src="@drawable/ic_translate"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -210,7 +210,7 @@
             android:contentDescription="@string/translation_settings"
             android:src="@drawable/ic_book"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -236,7 +236,7 @@
             android:contentDescription="Google Lens"
             android:src="@drawable/ic_google_lens"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -250,7 +250,7 @@
             android:contentDescription="@string/lyrics"
             android:src="@drawable/ic_microphone"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -261,7 +261,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Rename"
             android:src="@drawable/ic_rename"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -273,7 +273,7 @@
             android:contentDescription="Edit image"
             android:src="@android:drawable/ic_menu_edit"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -285,7 +285,7 @@
             android:contentDescription="@string/copy"
             android:src="@android:drawable/ic_menu_save"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -297,7 +297,7 @@
             android:contentDescription="@string/edit"
             android:src="@android:drawable/ic_menu_edit"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -311,7 +311,7 @@
             android:contentDescription="Undo"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -323,7 +323,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/more_actions"
             android:src="@drawable/ic_more_vert"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding"
             android:visibility="gone" />
@@ -338,7 +338,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Delete"
             android:src="@android:drawable/ic_menu_delete"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -349,7 +349,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/favorite"
             android:src="@drawable/ic_star_outline"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -361,7 +361,7 @@
             android:contentDescription="@string/share"
             android:src="@drawable/ic_share"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -373,7 +373,7 @@
             android:contentDescription="@string/file_information"
             android:src="@android:drawable/ic_menu_info_details"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -385,7 +385,7 @@
             android:contentDescription="@string/fullscreen_mode"
             android:src="@drawable/ic_fullscreen"
             android:visibility="gone"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -396,7 +396,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Slideshow"
             android:src="@android:drawable/ic_media_play"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -407,7 +407,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Previous"
             android:src="@android:drawable/ic_media_previous"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -418,7 +418,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Next"
             android:src="@android:drawable/ic_media_next"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
     </LinearLayout>
@@ -591,7 +591,7 @@
                 android:layout_height="@dimen/player_search_button_size"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="#FFFFFF"
+                app:tint="#FFFFFF"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Previous Match" />
@@ -602,7 +602,7 @@
                 android:layout_height="@dimen/player_search_button_size"
                 android:src="@android:drawable/ic_media_next"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="#FFFFFF"
+                app:tint="#FFFFFF"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Next Match" />
@@ -613,7 +613,7 @@
                 android:layout_height="@dimen/player_search_button_size"
                 android:src="@android:drawable/ic_menu_close_clear_cancel"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:tint="#FFFFFF"
+                app:tint="#FFFFFF"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Close Search" />
@@ -636,7 +636,7 @@
                 android:layout_margin="@dimen/player_close_button_margin"
                 android:background="@drawable/bg_circle_light"
                 android:src="@drawable/ic_cancel"
-                android:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
+                app:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_close_button_padding"
                 android:contentDescription="Close"
@@ -739,7 +739,7 @@
                 android:layout_marginEnd="@dimen/player_lyrics_close_margin_end"
                 android:background="@drawable/bg_circle_themed"
                 android:src="@drawable/ic_translate"
-                android:tint="?android:attr/textColorPrimary"
+                app:tint="?android:attr/textColorPrimary"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_close_button_padding"
                 android:contentDescription="@string/translate"
@@ -754,7 +754,7 @@
                 android:layout_margin="@dimen/player_close_button_margin"
                 android:background="@drawable/bg_circle_themed"
                 android:src="@drawable/ic_cancel"
-                android:tint="?android:attr/textColorPrimary"
+                app:tint="?android:attr/textColorPrimary"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_close_button_padding"
                 android:contentDescription="@string/close"
@@ -801,7 +801,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
+                app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Previous Page" />
@@ -812,7 +812,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_rew"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@color/activity_player_unified_btnPdfHome_tint"
+                app:tint="@color/activity_player_unified_btnPdfHome_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -829,7 +829,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@drawable/ic_zoom_out"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Zoom Out" />
@@ -853,7 +853,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@drawable/ic_zoom_in"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Zoom In" />
@@ -869,7 +869,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@drawable/ic_translate"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -882,7 +882,7 @@
                 android:layout_height="@dimen/player_cmd_button_size"
                 android:src="@drawable/ic_zoom_out"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_button_padding_small"
                 android:layout_marginStart="@dimen/player_button_margin_small"
@@ -895,7 +895,7 @@
                 android:layout_height="@dimen/player_cmd_button_size"
                 android:src="@drawable/ic_zoom_in"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_button_padding_small"
                 android:layout_marginStart="@dimen/player_button_margin_small"
@@ -910,7 +910,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@drawable/ic_google_lens"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_button_margin_small"
@@ -923,7 +923,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_menu_search"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_button_margin_small"
@@ -936,7 +936,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_next"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
+                app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -953,7 +953,7 @@
             android:layout_marginBottom="@dimen/margin_small"
             android:src="@drawable/ic_translate"
             android:background="@drawable/bg_circle_dark"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="fitCenter"
             android:padding="@dimen/player_close_button_padding"
             android:elevation="@dimen/elevation_player_overlay"
@@ -977,7 +977,7 @@
             android:layout_marginEnd="@dimen/player_epub_button_margin_end"
             android:src="@drawable/ic_fullscreen_exit"
             android:background="@drawable/bg_circle_dark"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="fitCenter"
             android:padding="@dimen/player_epub_button_padding"
             android:visibility="gone"
@@ -1002,7 +1002,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_previous"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
+                app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:contentDescription="Previous Chapter" />
@@ -1013,7 +1013,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_rew"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@color/activity_player_unified_btnPdfHome_tint"
+                app:tint="@color/activity_player_unified_btnPdfHome_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -1043,7 +1043,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_menu_agenda"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -1055,7 +1055,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@drawable/ic_zoom_out"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -1067,7 +1067,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@drawable/ic_zoom_in"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_button_margin_small"
@@ -1084,7 +1084,7 @@
                 android:layout_height="@dimen/player_pdf_button_size"
                 android:src="@android:drawable/ic_media_next"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
+                app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/player_search_panel_padding"
                 android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -1102,7 +1102,7 @@
             android:layout_marginBottom="@dimen/activity_player_unified_btnGoogleLensImage_layout_marginBottom"
             android:src="@drawable/ic_google_lens"
             android:background="@drawable/bg_circle_dark"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="fitCenter"
             android:padding="@dimen/player_close_button_padding"
             android:elevation="@dimen/elevation_player_overlay"
@@ -1159,7 +1159,7 @@
                     android:layout_margin="@dimen/activity_player_unified_btnCloseTranslation_layout_margin"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:src="@android:drawable/ic_menu_close_clear_cancel"
-                    android:tint="#FFFFFF"
+                    app:tint="#FFFFFF"
                     android:contentDescription="@string/close" />
 
                 <ScrollView
@@ -1574,7 +1574,7 @@
             android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="@drawable/bg_circle_semi_transparent"
-            android:tint="@android:color/white"
+            app:tint="@android:color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/activity_player_unified_btnDocumentFullscreenExit_padding"
             android:contentDescription="@string/exit_fullscreen"
@@ -1634,7 +1634,7 @@
                 android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
                 android:src="@drawable/ic_fullscreen_exit"
                 android:background="@drawable/bg_circle_dark"
-                android:tint="@android:color/white"
+                app:tint="@android:color/white"
                 android:scaleType="fitCenter"
                 android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
                 android:contentDescription="Exit Fullscreen" />

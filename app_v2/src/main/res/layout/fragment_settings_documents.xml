@@ -82,7 +82,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/tooltip_line_numbers_title"
                         android:src="@android:drawable/ic_menu_help"
-                        android:tint="?android:attr/textColorSecondary" />
+                        app:tint="?android:attr/textColorSecondary" />
                 </LinearLayout>
             </LinearLayout>
 

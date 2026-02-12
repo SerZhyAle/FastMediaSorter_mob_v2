@@ -63,6 +63,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
+import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -2755,9 +2756,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             lifecycleScope.launch(Dispatchers.Main) {
                                 try {
                                     val settings = settingsRepository.getSettings().first()
-                                    val bounds = windowManager.currentWindowMetrics.bounds
-                                    val deviceWidth = bounds.width()
-                                    val deviceHeight = bounds.height()
+                                    // Get device dimensions (API 28+ compatible)
+                                    val (deviceWidth, deviceHeight) = WindowMetricsCompat.getScreenSize(
+                                        windowManager
+                                    )
                                     
                                     val scaleType = com.sza.fastmediasorter.ui.image.ImageDisplayUtils.determineImageScaleType(
                                         cropImagesToFullscreen = settings.cropImagesToFullscreen,

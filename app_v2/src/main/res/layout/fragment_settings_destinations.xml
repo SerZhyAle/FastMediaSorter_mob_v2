@@ -110,7 +110,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_go_to_next_after_copy_title"
                     android:src="@android:drawable/ic_menu_help"
-                    android:tint="?android:attr/textColorSecondary" />
+                    app:tint="?android:attr/textColorSecondary" />
 
             </LinearLayout>
         </LinearLayout>
@@ -219,7 +219,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_destinations_title"
                 android:src="@android:drawable/ic_menu_help"
-                android:tint="?android:attr/textColorSecondary" />
+                app:tint="?android:attr/textColorSecondary" />
         
         </LinearLayout>
 

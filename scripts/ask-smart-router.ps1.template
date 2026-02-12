@@ -160,7 +160,7 @@ Analyze the user's request and respond ONLY with a JSON object (no markdown, no 
 Complexity rules:
 - SIMPLE: Typos, formatting, renaming, logs, comments, quick fixes <50 lines → Haiku 4.5
 - MEDIUM: New features (UseCases, Managers, ViewModels), bug fixes, UI, network/DB → Sonnet 4.5
-- COMPLEX: Architecture changes, refactoring, cross-module, performance, critical infrastructure → Opus 4.6
+- COMPLEX: Architecture changes, refactoring, cross-module, performance, critical infrastructure → Opus 4.5
 
 Be conservative. Enhanced prompt should be detailed, structured, and include context.
 "@
