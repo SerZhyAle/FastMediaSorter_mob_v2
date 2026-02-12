@@ -107,6 +107,7 @@ class PlayerBindingSafeViews(
     val btnSaveText: MaterialButton get() = required(R.id.btnSaveText)
 
     val pdfControlsLayout: LinearLayout get() = required(R.id.pdfControlsLayout)
+    val epubControlsLayout: LinearLayout get() = required(R.id.epubControlsLayout)
     val btnTranslationFontDecrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?
@@ -197,3 +198,27 @@ val ActivityPlayerUnifiedBinding.btnGoogleLensPdf: ImageButton?
 
 val ActivityPlayerUnifiedBinding.btnSearchPdf: ImageButton?
     get() = root.findViewById(R.id.btnSearchPdf)
+
+val ActivityPlayerUnifiedBinding.epubControlsLayout: LinearLayout
+    get() = requiredFromRoot(R.id.epubControlsLayout)
+
+val ActivityPlayerUnifiedBinding.btnEpubPrevChapter: ImageButton
+    get() = requiredFromRoot(R.id.btnEpubPrevChapter)
+
+val ActivityPlayerUnifiedBinding.btnEpubHome: ImageButton
+    get() = requiredFromRoot(R.id.btnEpubHome)
+
+val ActivityPlayerUnifiedBinding.tvEpubChapterIndicator: TextView
+    get() = requiredFromRoot(R.id.tvEpubChapterIndicator)
+
+val ActivityPlayerUnifiedBinding.btnEpubToc: ImageButton
+    get() = requiredFromRoot(R.id.btnEpubToc)
+
+val ActivityPlayerUnifiedBinding.btnEpubFontSizeDecrease: ImageButton
+    get() = requiredFromRoot(R.id.btnEpubFontSizeDecrease)
+
+val ActivityPlayerUnifiedBinding.btnEpubFontSizeIncrease: ImageButton
+    get() = requiredFromRoot(R.id.btnEpubFontSizeIncrease)
+
+val ActivityPlayerUnifiedBinding.btnEpubNextChapter: ImageButton
+    get() = requiredFromRoot(R.id.btnEpubNextChapter)

@@ -233,7 +233,7 @@ class ImageLoadingManager(
         
         // Hide EPUB WebView and controls (they are for EPUB files only)
         binding.epubWebView.isVisible = false
-        binding.epubControlsLayout.isVisible = false
+        safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = false
 
         // Schedule loading indicator to show after 1 second
