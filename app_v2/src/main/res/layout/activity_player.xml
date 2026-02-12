@@ -205,7 +205,7 @@
                 android:textColor="@android:color/white" />
 
             <View
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
                 android:layout_weight="1" />
 

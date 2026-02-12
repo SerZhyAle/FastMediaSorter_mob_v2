@@ -53,7 +53,7 @@
         <!-- Breadcrumb path (visible during subfolder navigation) -->
         <com.sza.fastmediasorter.ui.common.BreadcrumbView
             android:id="@+id/breadcrumbView"
-            android:layout_width="@dimen/match_constraint"
+            android:layout_width="0dp"
             android:layout_height="@dimen/control_button_size"
             android:layout_weight="1"
             android:visibility="gone" />
@@ -318,7 +318,7 @@
 
         <TextView
             android:id="@+id/tvResourceInfo"
-            android:layout_width="@dimen/match_constraint"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:paddingTop="@dimen/padding_small"

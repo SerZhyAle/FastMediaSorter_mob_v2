@@ -43,7 +43,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTest"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/test" />
@@ -53,7 +53,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReset"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -61,7 +61,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -107,7 +107,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilResourceComment"
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -181,7 +181,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbShareNameEdit"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -208,7 +208,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbUsernameEdit"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -226,7 +226,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbPasswordEdit"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -254,7 +254,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSmbDomainEdit"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -362,7 +362,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSftpUsernameEdit"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -380,7 +380,7 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/tilSftpPasswordEdit"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/resource_field_margin_start"
@@ -436,7 +436,7 @@
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilResourcePath"
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -483,7 +483,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbScanSubdirectories"
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:checked="true"
@@ -491,7 +491,7 @@
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbAllFiles"
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/all_files"
@@ -536,14 +536,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportImages"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/images" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportVideo"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/video" />
@@ -559,14 +559,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportAudio"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/audio" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportGif"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/gif_animations" />
@@ -584,14 +584,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportText"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_text" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportPdf"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_pdf" />
@@ -608,14 +608,14 @@
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportEpub"
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:text="@string/support_epub" />
 
                     <!-- Empty space for alignment -->
                     <View
-                        android:layout_width="@dimen/match_constraint"
+                        android:layout_width="0dp"
                         android:layout_height="0dp"
                         android:layout_weight="1" />
 
@@ -648,7 +648,7 @@
                     android:layout_height="wrap_content" />
 
                 <LinearLayout
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -687,7 +687,7 @@
                     android:layout_height="wrap_content" />
 
                 <LinearLayout
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/resource_button_margin_start"
@@ -728,7 +728,7 @@
                     android:textOff="" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/use_as_destination"
@@ -768,7 +768,7 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
-                            android:layout_width="@dimen/match_constraint"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
@@ -790,7 +790,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="@dimen/match_constraint"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
@@ -812,7 +812,7 @@
                         </LinearLayout>
 
                         <LinearLayout
-                            android:layout_width="@dimen/match_constraint"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:orientation="vertical">
@@ -877,7 +877,7 @@
                 android:orientation="horizontal">
 
                 <LinearLayout
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">
@@ -900,7 +900,7 @@
                 </LinearLayout>
 
                 <LinearLayout
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical">

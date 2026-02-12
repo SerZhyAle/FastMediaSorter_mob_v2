@@ -142,14 +142,14 @@
 
             <View
                 android:id="@+id/touchZonePrevious"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZoneNext"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />

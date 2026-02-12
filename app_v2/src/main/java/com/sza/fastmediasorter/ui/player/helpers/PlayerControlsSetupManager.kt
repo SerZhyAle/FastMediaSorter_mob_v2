@@ -42,6 +42,7 @@ class PlayerControlsSetupManager(
     private val exoPlayerControlsManager: ExoPlayerControlsManager,
     private val searchControlsManager: SearchControlsManager
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     /**
      * Setup all controls in the activity.
@@ -338,15 +339,15 @@ class PlayerControlsSetupManager(
      * Setup lyrics viewer controls.
      */
     private fun setupLyricsViewerControls() {
-        binding.btnCloseLyricsViewer.setOnClickListener {
+        safeViews.btnCloseLyricsViewer.setOnClickListener {
             UserActionLogger.logButtonClick("CloseLyricsViewer", "PlayerActivity")
             activity.hideLyricsViewer()
             activity.scheduleHideControls()
         }
 
-        binding.btnTranslateLyrics.setOnClickListener {
+        safeViews.btnTranslateLyrics.setOnClickListener {
             UserActionLogger.logButtonClick("TranslateLyrics", "PlayerActivity")
-            val currentText = binding.tvLyricsContent.text.toString()
+            val currentText = safeViews.tvLyricsContent.text.toString()
             if (currentText.isBlank()) return@setOnClickListener
             
             // Show loading state
@@ -363,7 +364,7 @@ class PlayerControlsSetupManager(
                     
                     withContext(Dispatchers.Main) {
                         if (translatedText != null) {
-                            binding.tvLyricsContent.text = translatedText
+                            safeViews.tvLyricsContent.text = translatedText
                         } else {
                             Toast.makeText(activity, R.string.translation_error, Toast.LENGTH_SHORT).show()
                         }

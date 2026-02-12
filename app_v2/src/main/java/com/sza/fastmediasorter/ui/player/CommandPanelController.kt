@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.LanguageBadgeDrawable
+import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +70,7 @@ class CommandPanelController(
     private val originalPaddings = mutableMapOf<Int, android.graphics.Rect>()
     private val originalContainerPaddings = mutableMapOf<Int, android.graphics.Rect>()
     private var smallControlsApplied = false
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     // Cached state for overflow menu visibility
     private var cachedState: PlayerViewModel.PlayerState? = null
@@ -87,7 +89,7 @@ class CommandPanelController(
         }
         
         // Overflow menu button for portrait mode
-        binding.btnOverflowMenu.setOnClickListener { view ->
+        safeViews.btnOverflowMenu.setOnClickListener { view ->
             showOverflowMenu(view)
         }
 
@@ -101,7 +103,7 @@ class CommandPanelController(
             callback.onNextClicked()
         }
 
-        binding.btnRenameCmd.setOnClickListener {
+        safeViews.btnRenameCmd.setOnClickListener {
             callback.onRenameClicked()
         }
 
@@ -113,11 +115,11 @@ class CommandPanelController(
             callback.onShareClicked()
         }
         
-        binding.btnEditCmd.setOnClickListener {
+        safeViews.btnEditCmd.setOnClickListener {
             callback.onEditClicked()
         }
         
-        binding.btnUndoCmd.setOnClickListener {
+        safeViews.btnUndoCmd.setOnClickListener {
             callback.onUndoClicked()
         }
 
@@ -219,7 +221,7 @@ class CommandPanelController(
         val showInPortrait = state.showCommandPanel && !isLandscapeMode
         
         // Overflow menu button - visible only in portrait mode
-        binding.btnOverflowMenu.isVisible = showInPortrait
+        safeViews.btnOverflowMenu.isVisible = showInPortrait
         
         // Back, Delete, Fullscreen, Previous, Next: always visible in command panel mode
         binding.btnBack.isVisible = state.showCommandPanel
@@ -271,67 +273,67 @@ class CommandPanelController(
             val isEpub = currentFile.type == MediaType.EPUB
 
             // Common actions
-            binding.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
+            safeViews.btnRenameCmd.isEnabled = canWrite && canRead && state.allowRename
             // Hide rename if not writable or not allowed
-            binding.btnRenameCmd.isVisible = canWrite && state.allowRename
+            safeViews.btnRenameCmd.isVisible = canWrite && state.allowRename
             
-            binding.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
-            binding.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
+            safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
+            safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             // Edit is visible for images (if writable) OR video (always, as it's controls)
-            binding.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf || isPdf
+            safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf || isPdf
             
             // Update button contentDescription based on file type
             if (isVideo) {
-                binding.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
+                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
             } else {
-                binding.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
+                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
             }
             
             // Update button text based on file type
             if (isVideo) {
-                binding.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
+                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.control)
             } else {
-                binding.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
+                safeViews.btnEditCmd.contentDescription = binding.root.context.getString(R.string.edit)
             }
             
             // PDF Actions
-            binding.btnGoogleLensPdfCmd.isVisible = isPdf && isLandscapeMode
-            binding.btnOcrPdfCmd.isVisible = isPdf && isLandscapeMode
-            binding.btnTranslatePdfCmd.isVisible = isPdf && isLandscapeMode
-            binding.btnSearchPdfCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnGoogleLensPdfCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnOcrPdfCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnTranslatePdfCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnSearchPdfCmd.isVisible = isPdf && isLandscapeMode
             
             // Text Actions
-            binding.btnCopyTextCmd.isVisible = isText && isLandscapeMode
-            binding.btnEditTextCmd.isVisible = isText && isLandscapeMode && canWrite // Edit text requires write
-            binding.btnTranslateTextCmd.isVisible = isText && isLandscapeMode
-            binding.btnTextSettingsCmd.isVisible = isText && isLandscapeMode
-            binding.btnSearchTextCmd.isVisible = isText && isLandscapeMode
+            safeViews.btnCopyTextCmd.isVisible = isText && isLandscapeMode
+            safeViews.btnEditTextCmd.isVisible = isText && isLandscapeMode && canWrite // Edit text requires write
+            safeViews.btnTranslateTextCmd.isVisible = isText && isLandscapeMode
+            safeViews.btnTextSettingsCmd.isVisible = isText && isLandscapeMode
+            safeViews.btnSearchTextCmd.isVisible = isText && isLandscapeMode
             
             // EPUB Actions
-            binding.btnSearchEpubCmd.isVisible = isEpub && isLandscapeMode
-            binding.btnTranslateEpubCmd.isVisible = isEpub && isLandscapeMode
-            binding.btnEpubTextSettingsCmd.isVisible = isEpub && isLandscapeMode
-            binding.btnOcrEpubCmd.isVisible = isEpub && isLandscapeMode
+            safeViews.btnSearchEpubCmd.isVisible = isEpub && isLandscapeMode
+            safeViews.btnTranslateEpubCmd.isVisible = isEpub && isLandscapeMode
+            safeViews.btnEpubTextSettingsCmd.isVisible = isEpub && isLandscapeMode
+            safeViews.btnOcrEpubCmd.isVisible = isEpub && isLandscapeMode
             
             // PDF Actions
-            binding.btnPdfTextSettingsCmd.isVisible = isPdf && isLandscapeMode
+            safeViews.btnPdfTextSettingsCmd.isVisible = isPdf && isLandscapeMode
             
             // Image Actions (for IMAGE/GIF)
             // Show buttons in landscape mode based on file type and settings from state
             if (isImage && isLandscapeMode) {
                 // Use settings from state (already loaded synchronously)
-                binding.btnTranslateImageCmd.isVisible = state.enableTranslation
-                binding.btnOcrImageCmd.isVisible = state.enableOcr
-                binding.btnGoogleLensImageCmd.isVisible = state.enableGoogleLens
-                binding.btnImageTextSettingsCmd.isVisible = true
+                safeViews.btnTranslateImageCmd.isVisible = state.enableTranslation
+                safeViews.btnOcrImageCmd.isVisible = state.enableOcr
+                safeViews.btnGoogleLensImageCmd.isVisible = state.enableGoogleLens
+                safeViews.btnImageTextSettingsCmd.isVisible = true
                 Timber.d("CommandPanelController: Image buttons IN LANDSCAPE - translate=${state.enableTranslation}, ocr=${state.enableOcr}, lens=${state.enableGoogleLens}")
-                Timber.d("CommandPanelController: btnTranslateImageCmd.isVisible=${binding.btnTranslateImageCmd.isVisible}, visibility=${binding.btnTranslateImageCmd.visibility}")
+                Timber.d("CommandPanelController: btnTranslateImageCmd.isVisible=${safeViews.btnTranslateImageCmd.isVisible}, visibility=${safeViews.btnTranslateImageCmd.visibility}")
             } else if (!isImage) {
                 // Hide buttons if not an image
-                binding.btnTranslateImageCmd.isVisible = false
-                binding.btnImageTextSettingsCmd.isVisible = false
-                binding.btnOcrImageCmd.isVisible = false
-                binding.btnGoogleLensImageCmd.isVisible = false
+                safeViews.btnTranslateImageCmd.isVisible = false
+                safeViews.btnImageTextSettingsCmd.isVisible = false
+                safeViews.btnOcrImageCmd.isVisible = false
+                safeViews.btnGoogleLensImageCmd.isVisible = false
             } else if (isImage && !isLandscapeMode) {
                 Timber.d("CommandPanelController: Image in PORTRAIT mode - buttons should be hidden")
             }
@@ -565,41 +567,41 @@ class CommandPanelController(
         binding.btnPreviousCmd,
         binding.btnNextCmd,
         // File operations
-        binding.btnRenameCmd,
+        safeViews.btnRenameCmd,
         binding.btnDeleteCmd,
         binding.btnShareCmd,
         binding.btnInfoCmd,
-        binding.btnEditCmd,
-        binding.btnUndoCmd,
+        safeViews.btnEditCmd,
+        safeViews.btnUndoCmd,
         binding.btnFullscreenCmd,
         binding.btnSlideshowCmd,
         binding.btnFavorite,
         // Overflow menu
-        binding.btnOverflowMenu,
+        safeViews.btnOverflowMenu,
         // Text commands
-        binding.btnSearchTextCmd,
-        binding.btnTranslateTextCmd,
-        binding.btnTextSettingsCmd,
-        binding.btnCopyTextCmd,
-        binding.btnEditTextCmd,
+        safeViews.btnSearchTextCmd,
+        safeViews.btnTranslateTextCmd,
+        safeViews.btnTextSettingsCmd,
+        safeViews.btnCopyTextCmd,
+        safeViews.btnEditTextCmd,
         // PDF commands
-        binding.btnSearchPdfCmd,
-        binding.btnTranslatePdfCmd,
-        binding.btnPdfTextSettingsCmd,
-        binding.btnOcrPdfCmd,
-        binding.btnGoogleLensPdfCmd,
+        safeViews.btnSearchPdfCmd,
+        safeViews.btnTranslatePdfCmd,
+        safeViews.btnPdfTextSettingsCmd,
+        safeViews.btnOcrPdfCmd,
+        safeViews.btnGoogleLensPdfCmd,
         // EPUB commands
-        binding.btnSearchEpubCmd,
-        binding.btnTranslateEpubCmd,
-        binding.btnEpubTextSettingsCmd,
-        binding.btnOcrEpubCmd,
+        safeViews.btnSearchEpubCmd,
+        safeViews.btnTranslateEpubCmd,
+        safeViews.btnEpubTextSettingsCmd,
+        safeViews.btnOcrEpubCmd,
         // Image commands
-        binding.btnTranslateImageCmd,
-        binding.btnImageTextSettingsCmd,
-        binding.btnOcrImageCmd,
-        binding.btnGoogleLensImageCmd,
+        safeViews.btnTranslateImageCmd,
+        safeViews.btnImageTextSettingsCmd,
+        safeViews.btnOcrImageCmd,
+        safeViews.btnGoogleLensImageCmd,
         // Audio commands
-        binding.btnLyricsCmd
+        safeViews.btnLyricsCmd
     )
 
     private fun resolveOriginalButtonHeight(button: View): Int {
@@ -778,29 +780,28 @@ class CommandPanelController(
      * Get buttons that should be hidden in portrait mode (shown in overflow menu)
      */
     private fun getOverflowableButtons(): List<View> = listOf(
-        binding.btnRenameCmd,
-        binding.btnLyricsCmd,
-        binding.btnEditCmd,
-
-        binding.btnUndoCmd,
-        binding.btnGoogleLensPdfCmd,
-        binding.btnOcrPdfCmd,
-        binding.btnTranslatePdfCmd,
-        binding.btnSearchPdfCmd,
-        binding.btnSearchTextCmd,
-        binding.btnEditTextCmd,
-        binding.btnTranslateTextCmd,
-        binding.btnTextSettingsCmd,
-        binding.btnCopyTextCmd,
-        binding.btnSearchEpubCmd,
-        binding.btnTranslateEpubCmd,
-        binding.btnEpubTextSettingsCmd,
-        binding.btnOcrEpubCmd,
-        binding.btnPdfTextSettingsCmd,
-        binding.btnTranslateImageCmd,
-        binding.btnImageTextSettingsCmd,
-        binding.btnOcrImageCmd,
-        binding.btnGoogleLensImageCmd
+        safeViews.btnRenameCmd,
+        safeViews.btnLyricsCmd,
+        safeViews.btnEditCmd,
+        safeViews.btnUndoCmd,
+        safeViews.btnGoogleLensPdfCmd,
+        safeViews.btnOcrPdfCmd,
+        safeViews.btnTranslatePdfCmd,
+        safeViews.btnSearchPdfCmd,
+        safeViews.btnSearchTextCmd,
+        safeViews.btnEditTextCmd,
+        safeViews.btnTranslateTextCmd,
+        safeViews.btnTextSettingsCmd,
+        safeViews.btnCopyTextCmd,
+        safeViews.btnSearchEpubCmd,
+        safeViews.btnTranslateEpubCmd,
+        safeViews.btnEpubTextSettingsCmd,
+        safeViews.btnOcrEpubCmd,
+        safeViews.btnPdfTextSettingsCmd,
+        safeViews.btnTranslateImageCmd,
+        safeViews.btnImageTextSettingsCmd,
+        safeViews.btnOcrImageCmd,
+        safeViews.btnGoogleLensImageCmd
     )
     
     /**

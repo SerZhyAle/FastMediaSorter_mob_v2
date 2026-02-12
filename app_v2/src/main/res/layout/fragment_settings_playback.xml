@@ -21,7 +21,7 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/margin_small"
@@ -76,7 +76,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutPlayToEnd"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -91,7 +91,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/play_video_to_end"
@@ -101,7 +101,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutAllowRename"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -116,7 +116,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/allow_rename"
@@ -137,7 +137,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutAllowDelete"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -152,7 +152,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/allow_delete"
@@ -162,7 +162,7 @@
 
             <LinearLayout
                 android:id="@+id/layoutConfirmDelete"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -177,7 +177,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/confirm_delete"
@@ -250,7 +250,7 @@
 
             <!-- Hide Grid Action Buttons -->
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -272,7 +272,7 @@
 
             <!-- Hide System UI in Fullscreen -->
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -303,7 +303,7 @@
 
             <!-- Show Command Panel -->
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -335,7 +335,7 @@
                     app:tint="?android:attr/textColorSecondary" />
 
                 <View
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
@@ -343,7 +343,7 @@
 
             <!-- Show Detailed Errors -->
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -358,7 +358,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/show_detailed_errors"
@@ -378,7 +378,7 @@
 
             <!-- Show Player Hint -->
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -393,7 +393,7 @@
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/show_player_hint"
@@ -403,7 +403,7 @@
 
             <!-- Always Show Touch Zones -->
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -435,7 +435,7 @@
                     app:tint="?android:attr/textColorSecondary" />
 
                 <View
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_weight="1" />
 
@@ -463,7 +463,7 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/touch_zones_scheme"
@@ -489,7 +489,7 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <ImageView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height"
                 android:layout_weight="1"
                 android:contentDescription="@string/touch_zones_scheme"
@@ -498,7 +498,7 @@
                 android:layout_marginEnd="@dimen/margin_small"/>
 
             <LinearLayout
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical">

@@ -19,7 +19,7 @@
 
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="@dimen/match_constraint"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_settings_title"
@@ -131,7 +131,7 @@
             android:minHeight="@dimen/dialog_button_inset" />
 
         <TextView
-            android:layout_width="@dimen/match_constraint"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_repeat_video"
@@ -163,7 +163,7 @@
             android:minHeight="@dimen/dialog_button_inset" />
 
         <TextView
-            android:layout_width="@dimen/match_constraint"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/player_show_subtitles"

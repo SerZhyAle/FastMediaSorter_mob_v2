@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <TextView
+        android:id="@+id/audioMetadata"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
+        android:textStyle="@string/text_style_bold"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/activity_player_unified_audioMetadata_layout_marginBottom"
+        android:visibility="gone"
+        android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+
+    <TextView
+        android:id="@+id/audioFileName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/activity_player_unified_audioFileName_textColor"
+        android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
+        android:gravity="center"
+        android:layout_marginBottom="@dimen/margin_large"
+        android:ellipsize="middle"
+        android:singleLine="true" />
+
+    <TextView
+        android:id="@+id/audioFileInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/activity_player_unified_audioFileName_textColor"
+        android:textSize="@dimen/player_audio_info_text_size"
+        android:gravity="center"
+        android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+
+</merge>

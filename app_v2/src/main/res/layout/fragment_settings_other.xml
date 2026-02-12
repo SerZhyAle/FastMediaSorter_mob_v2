@@ -63,7 +63,7 @@
                 android:layout_marginBottom="@dimen/margin_small">
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_source_language"
@@ -97,7 +97,7 @@
                 android:minHeight="@dimen/button_height">
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/translation_target_language"
@@ -163,7 +163,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_google_lens"
@@ -186,7 +186,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_ocr"
@@ -216,7 +216,7 @@
             android:layout_marginBottom="@dimen/margin_small">
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_size"
@@ -242,7 +242,7 @@
             android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom">
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/ocr_font_family"

@@ -62,7 +62,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/search_audio_covers_online"
@@ -89,7 +89,7 @@
                 android:checked="true" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/search_covers_only_on_wifi"
@@ -194,7 +194,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_photos_during_audio_description"

@@ -60,6 +60,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import com.sza.fastmediasorter.ui.player.helpers.PlayerDialogAndUiStateManager
+import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
@@ -111,6 +112,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+    private val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
@@ -1532,7 +1534,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         binding.textViewerContainer.isVisible = false
                         return
                     }
-                    if (binding.lyricsViewerContainer.isVisible) {
+                    if (safeViews.lyricsViewerContainer.isVisible) {
                         hideLyricsViewer()
                         return
                     }
@@ -3002,7 +3004,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (!isAudioSlideshowPhotoMode) return
         
         // Try audio metadata first (Artist - Track from online lookup)
-        val metadata = binding.audioMetadata.text?.toString()
+        val metadata = safeViews.audioMetadata.text?.toString()
         val songText = if (!metadata.isNullOrBlank()) {
             "♪ $metadata"
         } else {
@@ -3148,7 +3150,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         return binding.translationOverlay.isVisible ||
                binding.translationLensOverlay.isVisible ||
                binding.textViewerContainer.isVisible ||  // OCR result window
-               binding.lyricsViewerContainer.isVisible   // Lyrics viewer window
+               safeViews.lyricsViewerContainer.isVisible   // Lyrics viewer window
     }
     
     /**
@@ -3192,10 +3194,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
             
             if (metadataLines.isNotEmpty()) {
-                binding.audioMetadata.text = metadataLines.joinToString("\n")
-                binding.audioMetadata.visibility = View.VISIBLE
+                safeViews.audioMetadata.text = metadataLines.joinToString("\n")
+                safeViews.audioMetadata.visibility = View.VISIBLE
                 // Hide filename when we have metadata (redundant)
-                binding.audioFileName.visibility = View.GONE
+                safeViews.audioFileName.visibility = View.GONE
                 Timber.d("Audio metadata displayed: ${metadataLines.joinToString(" | ")}")
                 
                 // Update song label in audio slideshow photo mode if active
@@ -3203,10 +3205,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     updateAudioSlideshowCurrentSongLabel()
                 }
             } else {
-                binding.audioMetadata.visibility = View.GONE
+                safeViews.audioMetadata.visibility = View.GONE
                 // Show filename (without extension) when no metadata
-                binding.audioFileName.visibility = View.VISIBLE
-                binding.audioFileName.textSize = 22f
+                safeViews.audioFileName.visibility = View.VISIBLE
+                safeViews.audioFileName.textSize = 22f
             }
         }
     }

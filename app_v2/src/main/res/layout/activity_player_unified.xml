@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@color/black"
+    tools:ignore="TooManyViews"
     tools:context=".ui.player.PlayerActivity">
 
     <!-- Command Panel Top (visible only in command panel mode) -->
@@ -35,7 +36,7 @@
 
         <!-- CENTER GROUP: Action buttons centered without scrolling -->
         <LinearLayout
-            android:layout_width="@dimen/match_constraint"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:orientation="horizontal"
@@ -469,38 +470,7 @@
             android:clickable="true"
             android:focusable="true"
             android:visibility="gone">
-
-            <TextView
-                android:id="@+id/audioMetadata"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/white"
-                android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
-                android:textStyle="@string/text_style_bold"
-                android:gravity="center"
-                android:layout_marginBottom="@dimen/activity_player_unified_audioMetadata_layout_marginBottom"
-                android:visibility="gone"
-                android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
-
-            <TextView
-                android:id="@+id/audioFileName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/activity_player_unified_audioFileName_textColor"
-                android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
-                android:gravity="center"
-                android:layout_marginBottom="@dimen/margin_large"
-                android:ellipsize="middle"
-                android:singleLine="true" />
-
-            <TextView
-                android:id="@+id/audioFileInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textColor="@color/activity_player_unified_audioFileName_textColor"
-                android:textSize="@dimen/player_audio_info_text_size"
-                android:gravity="center"
-                android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+            <include layout="@layout/player_audio_info_overlay_content" />
         </LinearLayout>
 
         <!-- Standard ImageView for non-zoomable mode -->
@@ -564,7 +534,7 @@
 
             <EditText
                 android:id="@+id/etSearchQuery"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/search_hint"
@@ -718,68 +688,12 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Lyrics Viewer Container -->
-        <FrameLayout
-            android:id="@+id/lyricsViewerContainer"
+        <ViewStub
+            android:id="@+id/lyricsViewerStub"
+            android:inflatedId="@+id/lyricsViewerContainer"
+            android:layout="@layout/player_lyrics_viewer_container"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:background="?android:attr/colorBackground"
-            android:elevation="@dimen/elevation_player_controls"
-            android:clickable="true"
-            android:focusable="true">
-
-            <!-- Translate button (top-right, left of close button) -->
-            <ImageButton
-                android:id="@+id/btnTranslateLyrics"
-                android:layout_width="@dimen/player_close_button_size"
-                android:layout_height="@dimen/player_close_button_size"
-                android:layout_gravity="top|end"
-                android:layout_margin="@dimen/player_close_button_margin"
-                android:layout_marginEnd="@dimen/player_lyrics_close_margin_end"
-                android:background="@drawable/bg_circle_themed"
-                android:src="@drawable/ic_translate"
-                app:tint="?android:attr/textColorPrimary"
-                android:scaleType="fitCenter"
-                android:padding="@dimen/player_close_button_padding"
-                android:contentDescription="@string/translate"
-                android:elevation="@dimen/elevation_player_overlay"
-                android:translationX="@dimen/player_lyrics_translate_offset_x" />
-
-            <ImageButton
-                android:id="@+id/btnCloseLyricsViewer"
-                android:layout_width="@dimen/player_close_button_size"
-                android:layout_height="@dimen/player_close_button_size"
-                android:layout_gravity="top|end"
-                android:layout_margin="@dimen/player_close_button_margin"
-                android:background="@drawable/bg_circle_themed"
-                android:src="@drawable/ic_cancel"
-                app:tint="?android:attr/textColorPrimary"
-                android:scaleType="fitCenter"
-                android:padding="@dimen/player_close_button_padding"
-                android:contentDescription="@string/close"
-                android:elevation="@dimen/elevation_player_overlay" />
-
-            <!-- Lyrics Text View with Scroll -->
-            <ScrollView
-                android:id="@+id/lyricsScrollView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="@dimen/player_lyrics_margin_top"
-                android:background="?android:attr/colorBackground"
-                android:padding="@dimen/player_text_viewer_padding">
-
-                <TextView
-                    android:id="@+id/tvLyricsContent"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textColor="?android:attr/textColorPrimary"
-                    android:textSize="@dimen/empty_state_text_size"
-                    android:lineSpacingExtra="@dimen/player_lyrics_line_spacing"
-                    android:textIsSelectable="true"
-                    android:scrollHorizontally="false" />
-            </ScrollView>
-        </FrameLayout>
+            android:layout_height="match_parent" />
 
         <!-- PDF Controls Overlay (Page Navigation) -->
         <LinearLayout
@@ -819,7 +733,7 @@
                 android:contentDescription="To begin" />
 
             <Space
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -859,7 +773,7 @@
                 android:contentDescription="Zoom In" />
 
             <Space
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -1020,7 +934,7 @@
                 android:contentDescription="To begin" />
 
             <Space
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -1074,7 +988,7 @@
                 android:contentDescription="Increase Font Size" />
 
             <Space
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -1202,14 +1116,14 @@
 
             <View
                 android:id="@+id/touchZonePrevious"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZoneNext"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@android:color/transparent" />
@@ -1225,21 +1139,21 @@
 
             <View
                 android:id="@+id/touchZone3Previous"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.20"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZone3Gestures"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.60"
                 android:background="@android:color/transparent" />
 
             <View
                 android:id="@+id/touchZone3Next"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="0.20"
                 android:background="@android:color/transparent" />
@@ -1350,7 +1264,7 @@
                     android:textColor="@android:color/white" />
 
                 <View
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
                     android:layout_weight="1" />
 
@@ -1680,7 +1594,7 @@
                 android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/panel_copy_to"
@@ -1727,7 +1641,7 @@
                 android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/panel_move_to"

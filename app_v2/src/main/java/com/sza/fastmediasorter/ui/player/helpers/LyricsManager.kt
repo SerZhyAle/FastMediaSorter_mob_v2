@@ -30,6 +30,7 @@ class LyricsManager(
     private val searchLyricsUseCase: SearchLyricsUseCase,
     private val getTranslationSessionSettings: () -> com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     /**
      * Search and display song lyrics for audio files.
@@ -111,13 +112,13 @@ class LyricsManager(
             com.sza.fastmediasorter.domain.models.TranslationFontFamily.DEFAULT -> android.graphics.Typeface.SANS_SERIF
         }
         
-        binding.tvLyricsContent.apply {
+        safeViews.tvLyricsContent.apply {
             this.text = filteredLyrics
             this.textSize = fontSize
             this.typeface = fontFamily
         }
         
-        binding.lyricsViewerContainer.isVisible = true
+        safeViews.lyricsViewerContainer.isVisible = true
         // Hide top command panel when showing lyrics
         binding.topCommandPanel.isVisible = false
     }
@@ -127,7 +128,7 @@ class LyricsManager(
      */
     fun hideLyricsViewer() {
         Timber.d("LyricsManager: Hiding lyrics viewer")
-        binding.lyricsViewerContainer.isVisible = false
+        safeViews.lyricsViewerContainer.isVisible = false
         // Restore top command panel visibility
         binding.topCommandPanel.isVisible = true
         // Force WindowInsets re-application via post() to ensure visual update

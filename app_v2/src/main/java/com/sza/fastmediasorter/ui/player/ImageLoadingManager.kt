@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
+import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -54,6 +55,7 @@ class ImageLoadingManager(
     private val preloadJobs: MutableList<Job>,
     private val callback: ImageLoadingCallback
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     interface ImageLoadingCallback {
         fun isFinishing(): Boolean
@@ -774,14 +776,14 @@ class ImageLoadingManager(
         binding.audioInfoOverlay.isVisible = true
         
         // Clear previous metadata (will be populated later if found online)
-        binding.audioMetadata.visibility = View.GONE
-        binding.audioMetadata.text = ""
+        safeViews.audioMetadata.visibility = View.GONE
+        safeViews.audioMetadata.text = ""
         
         // Display full file name WITHOUT extension
         // Start with large font (will be reduced if metadata is found)
-        binding.audioFileName.text = file.name.substringBeforeLast('.')
-        binding.audioFileName.textSize = 22f
-        binding.audioFileName.visibility = View.VISIBLE
+        safeViews.audioFileName.text = file.name.substringBeforeLast('.')
+        safeViews.audioFileName.textSize = 22f
+        safeViews.audioFileName.visibility = View.VISIBLE
         
         // Get file info asynchronously (size, duration, format)
         lifecycleScope.launch(Dispatchers.IO) {
@@ -794,7 +796,7 @@ class ImageLoadingManager(
                 } else "N/A"
                 
                 withContext(Dispatchers.Main) {
-                    binding.audioFileInfo.text = buildString {
+                    safeViews.audioFileInfo.text = buildString {
                         append("Size: $fileSizeStr")
                         file.duration?.let { if (it > 0) append("\nDuration: ${formatDuration(it)}") }
                     }
@@ -802,7 +804,7 @@ class ImageLoadingManager(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get audio file info")
                 withContext(Dispatchers.Main) {
-                    binding.audioFileInfo.text = callback.getString(R.string.file_info_unavailable)
+                    safeViews.audioFileInfo.text = callback.getString(R.string.file_info_unavailable)
                 }
             }
         }
@@ -855,7 +857,7 @@ class ImageLoadingManager(
         
         if (!formatInfo.isNullOrEmpty()) {
             // Update only the format line, preserve size and duration
-            val currentText = binding.audioFileInfo.text.toString()
+            val currentText = safeViews.audioFileInfo.text.toString()
             val lines = currentText.split("\n").toMutableList()
             
             // Replace or add format info line
@@ -865,7 +867,7 @@ class ImageLoadingManager(
                 lines.add(formatInfo)
             }
             
-            binding.audioFileInfo.text = lines.joinToString("\n")
+            safeViews.audioFileInfo.text = lines.joinToString("\n")
         }
     }
     

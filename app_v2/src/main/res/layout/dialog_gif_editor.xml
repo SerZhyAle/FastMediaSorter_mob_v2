@@ -19,7 +19,7 @@
             android:layout_marginBottom="@dimen/margin_large">
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/gif_edit_title"
@@ -55,7 +55,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExtractFrames"
                 style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"
@@ -108,7 +108,7 @@
 
             <SeekBar
                 android:id="@+id/seekSpeed"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:max="100"
@@ -133,7 +133,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnApplySpeed"
                 style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"
@@ -170,7 +170,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFirstFrameToImage"
                 style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"

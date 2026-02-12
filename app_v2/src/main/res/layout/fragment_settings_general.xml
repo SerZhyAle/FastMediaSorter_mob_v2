@@ -46,7 +46,7 @@
             <!-- All Files -->
             <LinearLayout
                 android:id="@+id/layoutAllFiles"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -80,7 +80,7 @@
             <!-- Show Hidden Files -->
             <LinearLayout
                 android:id="@+id/layoutShowHiddenFiles"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="horizontal"
@@ -278,7 +278,7 @@
                 android:checked="true" />
 
             <TextView
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_safe_mode"
@@ -348,7 +348,7 @@
                     android:checked="true" />
 
                 <TextView
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/confirm_move_safe_mode"
@@ -613,7 +613,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLocalFilesPermission"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
@@ -622,7 +622,7 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnNetworkPermission"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="@dimen/match_constraint"
+                    android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:layout_marginStart="@dimen/settings_help_icon_margin"
