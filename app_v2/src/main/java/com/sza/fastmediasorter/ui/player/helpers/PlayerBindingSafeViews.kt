@@ -9,6 +9,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.IdRes
+import androidx.cardview.widget.CardView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.google.android.material.button.MaterialButton
@@ -108,6 +109,8 @@ class PlayerBindingSafeViews(
 
     val pdfControlsLayout: LinearLayout get() = required(R.id.pdfControlsLayout)
     val epubControlsLayout: LinearLayout get() = required(R.id.epubControlsLayout)
+    val translationOverlay: CardView get() = required(R.id.translationOverlay)
+    val translationOverlayBackground: View get() = required(R.id.translationOverlayBackground)
     val btnTranslationFontDecrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?
@@ -222,3 +225,18 @@ val ActivityPlayerUnifiedBinding.btnEpubFontSizeIncrease: ImageButton
 
 val ActivityPlayerUnifiedBinding.btnEpubNextChapter: ImageButton
     get() = requiredFromRoot(R.id.btnEpubNextChapter)
+
+val ActivityPlayerUnifiedBinding.translationOverlay: CardView
+    get() = requiredFromRoot(R.id.translationOverlay)
+
+val ActivityPlayerUnifiedBinding.translationOverlayBackground: View
+    get() = requiredFromRoot(R.id.translationOverlayBackground)
+
+val ActivityPlayerUnifiedBinding.btnCloseTranslation: ImageButton
+    get() = requiredFromRoot(R.id.btnCloseTranslation)
+
+val ActivityPlayerUnifiedBinding.translationScrollView: ScrollView
+    get() = requiredFromRoot(R.id.translationScrollView)
+
+val ActivityPlayerUnifiedBinding.tvTranslatedText: TextView
+    get() = requiredFromRoot(R.id.tvTranslatedText)

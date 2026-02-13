@@ -1526,7 +1526,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 
                 // Check if overlays are blocking (Translation, OCR, Lyrics)
                 if (isOverlayBlocking()) {
-                    if (binding.translationOverlay.isVisible || binding.translationLensOverlay.isVisible) {
+                    if (safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible) {
                         stopTranslation()
                         return
                     }
@@ -2455,8 +2455,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun stopTranslation() {
         translationJob?.cancel()
-        binding.translationOverlay.isVisible = false
-        binding.translationOverlayBackground.isVisible = false // Also hide background
+        safeViews.translationOverlay.isVisible = false
+        safeViews.translationOverlayBackground.isVisible = false // Also hide background
         binding.translationLensOverlay.isVisible = false
         binding.translationLensOverlay.clear() // Clear blocks
         
@@ -2484,7 +2484,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
         
         // Toggle translation state - check both overlay types
-        val isCurrentlyVisible = binding.translationOverlay.isVisible || binding.translationLensOverlay.isVisible
+        val isCurrentlyVisible = safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible
         
         if (isCurrentlyVisible) {
             stopTranslation()
@@ -2592,7 +2592,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         displayRect = displayRect,
                         onSuccess = { _ ->
                             // Hide the old-style overlay
-                            binding.translationOverlay.isVisible = false
+                            safeViews.translationOverlay.isVisible = false
                             
                             // Setup matrix change listener for PhotoView to update overlay position
                             if (binding.photoView.isVisible) {
@@ -3147,7 +3147,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Check if translation/OCR overlays are blocking PDF/EPUB touch zones
      */
     internal fun isOverlayBlocking(): Boolean {
-        return binding.translationOverlay.isVisible ||
+        return safeViews.translationOverlay.isVisible ||
                binding.translationLensOverlay.isVisible ||
                safeViews.textViewerContainer.isVisible ||  // OCR result window
                safeViews.lyricsViewerContainer.isVisible   // Lyrics viewer window
@@ -3283,7 +3283,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     binding.copyToPanel.isVisible = false
                     binding.moveToPanel.isVisible = false
                     safeViews.pdfControlsLayout.isVisible = false
-                    binding.translationOverlay.isVisible = false
+                    safeViews.translationOverlay.isVisible = false
                     binding.translationLensOverlay.isVisible = false
                 }
                 

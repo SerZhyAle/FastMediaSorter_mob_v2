@@ -1149,38 +1149,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-     <!-- CardView Translation Overlay (Binding expects CardView, Landscape uses custom view) -->
-     <!-- We add hidden CardView to satisfy type requirements if any -->
-     <androidx.cardview.widget.CardView
-        android:id="@+id/translationOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone">
-        <RelativeLayout
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content">
-             <ImageButton
-                 android:id="@+id/btnCloseTranslation"
-                 android:layout_width="wrap_content"
-                 android:layout_height="wrap_content" 
-            android:contentDescription="@null" />
-             <ScrollView
-                 android:id="@+id/translationScrollView"
-                 android:layout_width="match_parent"
-                 android:layout_height="wrap_content">
-                 <TextView
-                     android:id="@+id/tvTranslatedText"
-                     android:layout_width="match_parent"
-                     android:layout_height="wrap_content" />
-             </ScrollView>
-        </RelativeLayout>
-     </androidx.cardview.widget.CardView>
-     
-     <View
-        android:id="@+id/translationOverlayBackground"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone" />
+    <include layout="@layout/player_translation_overlay_content" />
         
 
         

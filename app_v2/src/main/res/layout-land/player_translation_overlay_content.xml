@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/translationOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart"
+        android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
+        android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
+        android:layout_marginBottom="@dimen/activity_player_unified_translationOverlay_layout_marginBottom"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="@dimen/elevation_player_controls"
+        app:cardBackgroundColor="@color/activity_player_unified_translationOverlay_cardBackgroundColor"
+        app:cardCornerRadius="@dimen/activity_player_unified_translationOverlay_cardCornerRadius"
+        app:cardElevation="@dimen/activity_player_unified_translationOverlay_cardElevation">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageButton
+                android:id="@+id/btnCloseTranslation"
+                android:layout_width="@dimen/activity_player_unified_btnCloseTranslation_layout_width"
+                android:layout_height="@dimen/activity_player_unified_btnCloseTranslation_layout_height"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:layout_margin="@dimen/activity_player_unified_btnCloseTranslation_layout_margin"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                app:tint="#FFFFFF"
+                android:contentDescription="@string/close" />
+
+            <ScrollView
+                android:id="@+id/translationScrollView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/btnCloseTranslation"
+                android:maxHeight="@dimen/activity_player_unified_translationScrollView_maxHeight"
+                android:padding="@dimen/player_close_button_padding"
+                android:paddingTop="0dp">
+
+                <TextView
+                    android:id="@+id/tvTranslatedText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/player_audio_info_text_size"
+                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+            </ScrollView>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+
+    <View
+        android:id="@+id/translationOverlayBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="@color/transparent" />
+
+</merge>
