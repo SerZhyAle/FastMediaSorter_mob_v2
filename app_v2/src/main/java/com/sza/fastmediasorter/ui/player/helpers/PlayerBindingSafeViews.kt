@@ -111,6 +111,9 @@ class PlayerBindingSafeViews(
     val epubControlsLayout: LinearLayout get() = required(R.id.epubControlsLayout)
     val translationOverlay: CardView get() = required(R.id.translationOverlay)
     val translationOverlayBackground: View get() = required(R.id.translationOverlayBackground)
+    val btnCloseTranslation: ImageButton get() = required(R.id.btnCloseTranslation)
+    val translationScrollView: ScrollView get() = required(R.id.translationScrollView)
+    val tvTranslatedText: TextView get() = required(R.id.tvTranslatedText)
     val btnTranslationFontDecrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?

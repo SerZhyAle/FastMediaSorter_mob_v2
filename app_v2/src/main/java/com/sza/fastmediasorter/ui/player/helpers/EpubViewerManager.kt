@@ -282,7 +282,7 @@ class EpubViewerManager(
         setupTranslationOverlayGestures()
         
         // Setup close button for translation overlay
-        binding.btnCloseTranslation.setOnClickListener {
+        safeViews.btnCloseTranslation.setOnClickListener {
             closeTranslationOverlay()
         }
         
@@ -328,7 +328,7 @@ class EpubViewerManager(
                         return true
                     } else if (!isHorizontalSwipe && kotlin.math.abs(diffY) > 100 && kotlin.math.abs(velocityY) > 100) {
                         // Vertical swipe: close overlay if at scroll edge
-                        val scrollView = binding.translationScrollView
+                        val scrollView = safeViews.translationScrollView
                         val canScrollUp = scrollView.canScrollVertically(-1)
                         val canScrollDown = scrollView.canScrollVertically(1)
                         
@@ -369,7 +369,7 @@ class EpubViewerManager(
     private fun closeTranslationOverlay() {
         safeViews.translationOverlay.isVisible = false
         safeViews.translationOverlayBackground.isVisible = false
-        binding.tvTranslatedText.text = ""
+        safeViews.tvTranslatedText.text = ""
         translationEnabled = false
         Timber.d("EPUB Translation: Overlay closed, translationEnabled set to false")
         
@@ -419,7 +419,7 @@ class EpubViewerManager(
      * Apply current translation font size to TextView
      */
     private fun applyTranslationFontSize() {
-        binding.tvTranslatedText.textSize = translationFontSize.toFloat()
+        safeViews.tvTranslatedText.textSize = translationFontSize.toFloat()
     }
     
     /**

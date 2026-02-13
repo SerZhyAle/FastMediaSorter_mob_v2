@@ -109,7 +109,7 @@ class TextViewerManager(
         }
         
         // Close button for translation overlay
-        binding.btnCloseTranslation.setOnClickListener {
+        safeViews.btnCloseTranslation.setOnClickListener {
             UserActionLogger.logButtonClick("CloseTranslation", "TextViewerManager")
             hideTranslationOverlay()
         }
@@ -126,7 +126,7 @@ class TextViewerManager(
         }
         
         // Setup translation overlay touch listener for horizontal swipe gestures
-        binding.translationScrollView.setOnTouchListener { v, event ->
+        safeViews.translationScrollView.setOnTouchListener { v, event ->
             val handled = translationGestureDetector.onTouchEvent(event)
             // Let ScrollView handle vertical scrolling if gesture wasn't a horizontal swipe
             if (!handled) {
@@ -355,7 +355,7 @@ class TextViewerManager(
             else -> android.graphics.Typeface.SANS_SERIF
         }
         safeViews.tvTextContent.typeface = currentTypeface
-        binding.tvTranslatedText.typeface = currentTypeface
+        safeViews.tvTranslatedText.typeface = currentTypeface
         
         Timber.d("Applied font settings: size=${settings.fontSize.name} (${textFontSizeSp}sp), family=${settings.fontFamily.name}")
     }
@@ -411,7 +411,7 @@ class TextViewerManager(
      * Apply current translation font size to translated text TextView
      */
     private fun applyTranslationFontSize() {
-        binding.tvTranslatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, translationFontSizeSp)
+        safeViews.tvTranslatedText.setTextSize(TypedValue.COMPLEX_UNIT_SP, translationFontSizeSp)
     }
     
     /**
@@ -748,7 +748,7 @@ class TextViewerManager(
         isTranslationExpanded = !isTranslationExpanded
         
         val layoutParams = safeViews.translationOverlay.layoutParams as android.widget.FrameLayout.LayoutParams
-        val scrollViewLayoutParams = binding.translationScrollView.layoutParams as android.widget.RelativeLayout.LayoutParams
+        val scrollViewLayoutParams = safeViews.translationScrollView.layoutParams as android.widget.RelativeLayout.LayoutParams
         
         if (isTranslationExpanded) {
             // Fullscreen mode: match_parent height, no margin, opaque background
@@ -783,7 +783,7 @@ class TextViewerManager(
         }
         
         safeViews.translationOverlay.layoutParams = layoutParams
-        binding.translationScrollView.layoutParams = scrollViewLayoutParams
+        safeViews.translationScrollView.layoutParams = scrollViewLayoutParams
     }
     
     /**
@@ -820,9 +820,9 @@ class TextViewerManager(
             
             withContext(Dispatchers.Main) {
                 if (translated != null) {
-                    binding.tvTranslatedText.text = translated
+                    safeViews.tvTranslatedText.text = translated
                 } else {
-                    binding.tvTranslatedText.text = "Translation failed"
+                    safeViews.tvTranslatedText.text = "Translation failed"
                 }
             }
         }

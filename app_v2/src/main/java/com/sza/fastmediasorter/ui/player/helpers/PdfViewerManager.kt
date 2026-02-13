@@ -99,7 +99,7 @@ class PdfViewerManager(
         }
         
         // Setup close button for translation overlay (simple mode)
-        binding.btnCloseTranslation.setOnClickListener {
+        safeViews.btnCloseTranslation.setOnClickListener {
             Timber.d("PDF: btnCloseTranslation clicked - hiding translation overlay")
             safeViews.translationOverlay.isVisible = false
             if (isTranslationExpanded) {
@@ -133,7 +133,7 @@ class PdfViewerManager(
         isTranslationExpanded = !isTranslationExpanded
         
         val layoutParams = safeViews.translationOverlay.layoutParams as? android.widget.FrameLayout.LayoutParams ?: return
-        val scrollViewLayoutParams = binding.translationScrollView.layoutParams as? android.widget.LinearLayout.LayoutParams ?: return
+        val scrollViewLayoutParams = safeViews.translationScrollView.layoutParams as? android.widget.LinearLayout.LayoutParams ?: return
         
         if (isTranslationExpanded) {
             // Fullscreen mode: match_parent height, no margin, opaque background
@@ -168,7 +168,7 @@ class PdfViewerManager(
         }
         
         safeViews.translationOverlay.layoutParams = layoutParams
-        binding.translationScrollView.layoutParams = scrollViewLayoutParams
+        safeViews.translationScrollView.layoutParams = scrollViewLayoutParams
     }
     
     /**
@@ -537,7 +537,7 @@ class PdfViewerManager(
         if (cachedTranslation != null) {
             withContext(Dispatchers.Main) {
                 safeViews.translationOverlay.isVisible = true
-                binding.tvTranslatedText.text = cachedTranslation
+                safeViews.tvTranslatedText.text = cachedTranslation
                 binding.translationLensOverlay.isVisible = false
             }
             Timber.d("Using cached translation for $filePath page $currentPdfPageIndex")
@@ -985,7 +985,7 @@ class PdfViewerManager(
      */
     private fun clearTranslationOverlays() {
         safeViews.translationOverlay.isVisible = false
-        binding.tvTranslatedText.text = ""
+        safeViews.tvTranslatedText.text = ""
         
         binding.translationLensOverlay.isVisible = false
         binding.translationLensOverlay.clear()
