@@ -322,8 +322,8 @@ class ImageLoadingManager(
             // TouchZoneGestureManager handles ALL touch detection via gesture listeners
             // - Command panel mode: 3-zone via handleCommandPanelTouchZones()
             // - Fullscreen mode: 9-zone via handleTouchZone()
-            binding.touchZonesOverlay.isVisible = false
-            binding.touchZones3Overlay.isVisible = false
+            safeViews.touchZonesOverlay.isVisible = false
+            safeViews.touchZones3Overlay.isVisible = false
             
             // Determine target view for image loading
             val targetView = if (usePhotoView) binding.photoView else binding.imageView

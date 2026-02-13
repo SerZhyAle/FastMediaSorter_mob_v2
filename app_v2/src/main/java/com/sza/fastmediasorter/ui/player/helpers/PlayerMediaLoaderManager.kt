@@ -245,8 +245,8 @@ class PlayerMediaLoaderManager(
         
         // ALWAYS hide View-based touch zone overlays
         // TouchZoneGestureManager handles all touch zone detection via gesture listeners
-        binding.touchZonesOverlay.isVisible = false
-        binding.touchZones3Overlay.isVisible = false
+        safeViews.touchZonesOverlay.isVisible = false
+        safeViews.touchZones3Overlay.isVisible = false
         
         if (isVideo) {
             // For video/audio: View-based touch zones hidden - but gestures handled by PlayerGestureSetupManager

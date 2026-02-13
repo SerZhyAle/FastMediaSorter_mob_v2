@@ -115,6 +115,13 @@ class PlayerBindingSafeViews(
     val btnCloseTranslation: ImageButton get() = required(R.id.btnCloseTranslation)
     val translationScrollView: ScrollView get() = required(R.id.translationScrollView)
     val tvTranslatedText: TextView get() = required(R.id.tvTranslatedText)
+    val touchZonesOverlay: LinearLayout get() = required(R.id.touchZonesOverlay)
+    val touchZones3Overlay: LinearLayout get() = required(R.id.touchZones3Overlay)
+    val touchZonePrevious: View get() = required(R.id.touchZonePrevious)
+    val touchZoneNext: View get() = required(R.id.touchZoneNext)
+    val touchZone3Previous: View get() = required(R.id.touchZone3Previous)
+    val touchZone3Gestures: View get() = required(R.id.touchZone3Gestures)
+    val touchZone3Next: View get() = required(R.id.touchZone3Next)
     val btnTranslationFontDecrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?

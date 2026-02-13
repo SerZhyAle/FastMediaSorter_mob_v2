@@ -669,15 +669,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun displayPdf(file: MediaFile) {
                     stopVideoPlayback()
                     // Disable touch zones for PDF - use PDF navigation controls instead
-                    binding.touchZonesOverlay.isVisible = false
-                    binding.touchZones3Overlay.isVisible = false
+                    safeViews.touchZonesOverlay.isVisible = false
+                    safeViews.touchZones3Overlay.isVisible = false
                     if (_pdfViewerManager != null) pdfViewerManager.displayPdf(file)
                 }
                 override fun displayEpub(file: MediaFile) {
                     stopVideoPlayback()
                     // Disable touch zones for EPUB - use EPUB navigation controls instead
-                    binding.touchZonesOverlay.isVisible = false
-                    binding.touchZones3Overlay.isVisible = false
+                    safeViews.touchZonesOverlay.isVisible = false
+                    safeViews.touchZones3Overlay.isVisible = false
                     if (_epubViewerManager != null) epubViewerManager.displayEpub(file)
                 }
 
@@ -1663,20 +1663,20 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // since the overlay Views are always hidden (isVisible = false).
         
         // Legacy 2-zone mode listeners (deprecated)
-        binding.touchZonePrevious.setOnClickListener {
+        safeViews.touchZonePrevious.setOnClickListener {
             navigationManager.navigatePreviousFromTouchZone()
         }
 
-        binding.touchZoneNext.setOnClickListener {
+        safeViews.touchZoneNext.setOnClickListener {
             navigationManager.navigateNextFromTouchZone()
         }
         
         // Legacy 3-zone mode listeners (deprecated)
-        binding.touchZone3Previous.setOnClickListener {
+        safeViews.touchZone3Previous.setOnClickListener {
             navigationManager.navigatePreviousFromTouchZone()
         }
         
-        binding.touchZone3Next.setOnClickListener {
+        safeViews.touchZone3Next.setOnClickListener {
             navigationManager.navigateNextFromTouchZone()
         }
         
@@ -3360,7 +3360,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
 
                 override fun setTouchZonesEnabled(enabled: Boolean) {
-                    binding.touchZonesOverlay.isVisible = enabled && useTouchZones
+                    safeViews.touchZonesOverlay.isVisible = enabled && useTouchZones
                 }
             },
             translationManager = translationManager

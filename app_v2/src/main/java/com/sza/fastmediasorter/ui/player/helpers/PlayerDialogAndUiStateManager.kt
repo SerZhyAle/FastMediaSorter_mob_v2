@@ -43,6 +43,7 @@ class PlayerDialogAndUiStateManager(
     private val imageLoadingManager: com.sza.fastmediasorter.ui.player.ImageLoadingManager,
     private val lifecycleScope: LifecycleCoroutineScope
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     /**
      * Flag indicating audio slideshow photo mode is active.
@@ -297,8 +298,8 @@ class PlayerDialogAndUiStateManager(
             binding.topCommandPanel.isVisible = false
             binding.tvFileNameOverlay?.isVisible = false
             // View-based overlays always hidden - TouchZoneGestureManager handles zones
-            binding.touchZones3Overlay.isVisible = false
-            binding.touchZonesOverlay.isVisible = false
+            safeViews.touchZones3Overlay.isVisible = false
+            safeViews.touchZonesOverlay.isVisible = false
             binding.copyToPanel.isVisible = false
             binding.moveToPanel.isVisible = false
             // controlsOverlay visibility is controlled in updateUI based on showControls

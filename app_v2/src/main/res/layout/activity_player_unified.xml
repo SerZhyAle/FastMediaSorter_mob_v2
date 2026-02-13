@@ -612,58 +612,7 @@
 
         <include layout="@layout/player_translation_overlay_content" />
 
-        <!-- Touch zones for command panel mode (2 columns: left=Previous, right=Next) -->
-        <LinearLayout
-            android:id="@+id/touchZonesOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <View
-                android:id="@+id/touchZonePrevious"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@android:color/transparent" />
-
-            <View
-                android:id="@+id/touchZoneNext"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:background="@android:color/transparent" />
-        </LinearLayout>
-
-        <!-- 3-zone touch overlay for zoomable mode: 20% left=Previous, 60% center=Gestures, 20% right=Next -->
-        <LinearLayout
-            android:id="@+id/touchZones3Overlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <View
-                android:id="@+id/touchZone3Previous"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.20"
-                android:background="@android:color/transparent" />
-
-            <View
-                android:id="@+id/touchZone3Gestures"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.60"
-                android:background="@android:color/transparent" />
-
-            <View
-                android:id="@+id/touchZone3Next"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="0.20"
-                android:background="@android:color/transparent" />
-        </LinearLayout>
+        <include layout="@layout/player_touch_zones_legacy_content" />
 
         <!-- Fullscreen controls overlay (visible only in fullscreen mode when showControls=true) -->
         <LinearLayout
