@@ -23,6 +23,7 @@ import kotlinx.coroutines.withTimeout
 import timber.log.Timber
 import javax.inject.Inject
 import com.sza.fastmediasorter.R
+import java.util.Locale
 
 data class EditResourceState(
     val originalResource: MediaResource? = null,
@@ -801,8 +802,8 @@ class EditResourceViewModel @Inject constructor(
                              }
                              is com.sza.fastmediasorter.domain.usecase.NetworkSpeedTestUseCase.SpeedTestStatus.Complete -> {
                                  val result = status.result
-                                 val readSpeed = String.format("%.2f", result.readSpeedMbps)
-                                 val writeSpeed = String.format("%.2f", result.writeSpeedMbps)
+                                 val readSpeed = String.format(Locale.getDefault(), "%.2f", result.readSpeedMbps)
+                                 val writeSpeed = String.format(Locale.getDefault(), "%.2f", result.writeSpeedMbps)
                                  val message = context.getString(
                                      R.string.speed_test_complete,
                                      readSpeed, writeSpeed, result.recommendedThreads
@@ -993,8 +994,8 @@ class EditResourceViewModel @Inject constructor(
                              is com.sza.fastmediasorter.domain.usecase.NetworkSpeedTestUseCase.SpeedTestStatus.Complete -> {
                                  val result = status.result
                                  // Pass raw values to View for localization
-                                 val readSpeed = String.format("%.2f", result.readSpeedMbps)
-                                 val writeSpeed = String.format("%.2f", result.writeSpeedMbps)
+                                 val readSpeed = String.format(Locale.getDefault(), "%.2f", result.readSpeedMbps)
+                                 val writeSpeed = String.format(Locale.getDefault(), "%.2f", result.writeSpeedMbps)
                                  
                                  val message = context.getString(
                                      R.string.speed_test_complete,
@@ -1060,8 +1061,8 @@ class EditResourceViewModel @Inject constructor(
                              // Final result
                              updateState { it.copy(isTestingSpeed = false, speedTestStatus = "") }
                              val result = status.result
-                             val readSpeed = String.format("%.2f", result.readSpeedMbps)
-                             val writeSpeed = String.format("%.2f", result.writeSpeedMbps)
+                             val readSpeed = String.format(Locale.getDefault(), "%.2f", result.readSpeedMbps)
+                             val writeSpeed = String.format(Locale.getDefault(), "%.2f", result.writeSpeedMbps)
                              sendEvent(EditResourceEvent.ShowMessageRes(
                                  R.string.speed_test_complete,
                                  listOf(readSpeed, writeSpeed, result.recommendedThreads)

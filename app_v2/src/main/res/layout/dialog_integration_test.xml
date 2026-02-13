@@ -11,7 +11,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Integration Tests"
+        android:text="@string/integration_tests_title"
         android:textSize="@dimen/text_size_huge"
         android:textStyle="@string/text_style_bold"
         android:textColor="?attr/colorOnSurface"
@@ -20,7 +20,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Automated testing of file operations across all resource types"
+        android:text="@string/integration_tests_description"
         android:textSize="@dimen/resource_card_desc_text_size"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:layout_marginBottom="@dimen/margin_small" />

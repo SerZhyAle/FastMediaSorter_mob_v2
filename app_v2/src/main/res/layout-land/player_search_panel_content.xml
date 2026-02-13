@@ -33,7 +33,7 @@
         android:id="@+id/tvSearchCounter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0/0"
+        android:text="@string/search_counter_default"
         android:textColor="#FFFFFF"
         android:paddingHorizontal="@dimen/player_search_counter_padding"
         android:visibility="gone" />
@@ -47,7 +47,7 @@
         app:tint="#FFFFFF"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Previous Match" />
+        android:contentDescription="@string/previous_match" />
 
     <ImageButton
         android:id="@+id/btnSearchNext"
@@ -58,7 +58,7 @@
         app:tint="#FFFFFF"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Next Match" />
+        android:contentDescription="@string/next_match" />
 
     <ImageButton
         android:id="@+id/btnCloseSearch"
@@ -69,5 +69,5 @@
         app:tint="#FFFFFF"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Close Search" />
+        android:contentDescription="@string/close_search" />
 </LinearLayout>

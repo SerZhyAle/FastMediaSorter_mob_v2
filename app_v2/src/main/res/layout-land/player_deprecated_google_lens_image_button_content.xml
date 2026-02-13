@@ -14,4 +14,4 @@
     android:padding="@dimen/player_close_button_padding"
     android:elevation="@dimen/elevation_player_overlay"
     android:visibility="gone"
-    android:contentDescription="Google Lens" />
+    android:contentDescription="@string/google_lens" />

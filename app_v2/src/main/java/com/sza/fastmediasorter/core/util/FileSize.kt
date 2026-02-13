@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.core.util
 
+import java.util.Locale
+
 /**
  * Format file size to human-readable format with bytes grouped by thousands
  * 
@@ -11,15 +13,15 @@ package com.sza.fastmediasorter.core.util
 fun formatFileSize(bytes: Long): String {
     // For small files (< 10KB), show exact bytes with thousand separators
     if (bytes < 10240) {
-        val formatted = String.format("%,d", bytes).replace(',', ' ')
+        val formatted = String.format(Locale.getDefault(), "%,d", bytes).replace(',', ' ')
         return "$formatted B"
     }
     
     // For larger files, show in KB/MB/GB
     val kb = bytes / 1024.0
-    if (kb < 1024) return String.format("%.2f KB", kb)
+    if (kb < 1024) return String.format(Locale.getDefault(), "%.2f KB", kb)
     val mb = kb / 1024.0
-    if (mb < 1024) return String.format("%.2f MB", mb)
+    if (mb < 1024) return String.format(Locale.getDefault(), "%.2f MB", mb)
     val gb = mb / 1024.0
-    return String.format("%.2f GB", gb)
+    return String.format(Locale.getDefault(), "%.2f GB", gb)
 }

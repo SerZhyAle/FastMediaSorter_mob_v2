@@ -28,7 +28,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
+            android:contentDescription="@string/back"
             android:src="@drawable/ic_back"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -135,7 +135,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Google Lens"
+            android:contentDescription="@string/google_lens"
             android:src="@drawable/ic_google_lens"
             android:visibility="gone"
             app:tint="@android:color/white"
@@ -183,7 +183,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="OCR"
+            android:contentDescription="@string/activity_player_unified_btnOcrImage_text"
             android:src="@drawable/ic_ocr"
             android:visibility="gone"
             app:tint="@android:color/white"
@@ -234,7 +234,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Google Lens"
+            android:contentDescription="@string/google_lens"
             android:src="@drawable/ic_google_lens"
             android:visibility="gone"
             app:tint="@android:color/white"
@@ -260,7 +260,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Rename"
+            android:contentDescription="@string/rename"
             android:src="@drawable/ic_rename"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -271,7 +271,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Edit image"
+            android:contentDescription="@string/edit_image"
             android:src="@android:drawable/ic_menu_edit"
             android:visibility="gone"
             app:tint="@android:color/white"
@@ -309,7 +309,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Undo"
+            android:contentDescription="@string/undo"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone"
             app:tint="@android:color/white"
@@ -337,7 +337,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Delete"
+            android:contentDescription="@string/delete"
             android:src="@android:drawable/ic_menu_delete"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -395,7 +395,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Slideshow"
+            android:contentDescription="@string/slideshow"
             android:src="@android:drawable/ic_media_play"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -406,7 +406,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Previous"
+            android:contentDescription="@string/previous"
             android:src="@android:drawable/ic_media_previous"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -417,7 +417,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Next"
+            android:contentDescription="@string/next"
             android:src="@android:drawable/ic_media_next"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -454,7 +454,7 @@
             android:visibility="gone"
             android:scaleType="fitCenter"
             android:background="@color/black"
-            android:contentDescription="Audio cover art" />
+            android:contentDescription="@string/audio_cover_art" />
 
         <!-- Audio file info overlay (visible only for audio files) -->
         <LinearLayout
@@ -555,7 +555,7 @@
             android:scaleType="fitCenter"
             android:padding="@dimen/player_epub_button_padding"
             android:visibility="gone"
-            android:contentDescription="Exit Fullscreen" />
+            android:contentDescription="@string/exit_fullscreen" />
 
         <include layout="@layout/player_epub_controls_overlay_content" />
 

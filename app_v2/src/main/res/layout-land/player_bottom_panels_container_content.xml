@@ -34,7 +34,7 @@
                 android:id="@+id/copyToPanelIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▼"
+                android:text="@string/panel_indicator_collapsed"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
                 android:paddingEnd="4dp" />
@@ -81,7 +81,7 @@
                 android:id="@+id/moveToPanelIndicator"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▼"
+                android:text="@string/panel_indicator_collapsed"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
                 android:paddingEnd="4dp" />

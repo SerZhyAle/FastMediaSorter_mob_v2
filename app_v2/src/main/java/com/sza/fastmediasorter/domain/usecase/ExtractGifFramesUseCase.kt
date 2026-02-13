@@ -15,6 +15,7 @@ import android.media.MediaScannerConnection
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -75,7 +76,7 @@ class ExtractGifFramesUseCase @Inject constructor(
                     
                     if (frameBitmap != null) {
                         // Create output file
-                        val frameFileName = "${baseFileName}_frame_${String.format("%03d", i + 1)}.png"
+                        val frameFileName = "${baseFileName}_frame_${String.format(Locale.US, "%03d", i + 1)}.png"
                         val frameFile = File(downloadsDir, frameFileName)
                         
                         // Save frame as PNG

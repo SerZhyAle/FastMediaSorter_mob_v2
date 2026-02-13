@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.wifi.WifiManager
 import timber.log.Timber
 import java.net.NetworkInterface
+import java.util.Locale
 
 object NetworkUtils {
     /**
@@ -21,6 +22,7 @@ object NetworkUtils {
                 val ipInt = wifiInfo.ipAddress
                 if (ipInt != 0) {
                     return String.format(
+                        Locale.US,
                         "%d.%d.%d.%d",
                         ipInt and 0xff,
                         ipInt shr 8 and 0xff,

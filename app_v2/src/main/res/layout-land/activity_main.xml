@@ -304,7 +304,7 @@
                 android:layout_width="@dimen/empty_state_icon_size"
                 android:layout_height="@dimen/empty_state_icon_size"
                 android:src="@android:drawable/ic_input_add"
-                android:contentDescription="Add resource"
+                android:contentDescription="@string/add_resource"
                 android:alpha="0.6" />
 
             <TextView
@@ -438,7 +438,7 @@
             android:id="@+id/tvScanProgress"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Scanning resources..."
+            android:text="@string/scanning_resources"
             android:textSize="@dimen/empty_state_text_size"
             android:textStyle="bold"
             android:layout_marginBottom="@dimen/margin_small" />
@@ -447,7 +447,7 @@
             android:id="@+id/tvScanDetail"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="0 files scanned"
+            android:text="@string/files_scanned_default"
             android:textSize="@dimen/text_size_normal"
             android:layout_marginBottom="@dimen/margin_large" />
 

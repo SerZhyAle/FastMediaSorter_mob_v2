@@ -145,14 +145,10 @@ class ExtractVideoMetadataUseCase @Inject constructor(
         val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
             ?.toIntOrNull()
 
-        // Extract frame rate (available on API 23+)
+        // Extract frame rate
         val frameRate = try {
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
-                    ?.toFloatOrNull()
-            } else {
-                null
-            }
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
+                ?.toFloatOrNull()
         } catch (e: Exception) {
             Log.w(tag, "Failed to extract frame rate", e)
             null

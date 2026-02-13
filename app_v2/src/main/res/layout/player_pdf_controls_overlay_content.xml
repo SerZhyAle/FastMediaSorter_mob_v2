@@ -22,7 +22,7 @@
         app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Previous Page" />
+        android:contentDescription="@string/previous_page" />
 
     <ImageButton
         android:id="@+id/btnPdfHome"
@@ -34,7 +34,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="To begin" />
+        android:contentDescription="@string/to_begin" />
 
     <Space
         android:layout_width="0dp"
@@ -50,7 +50,7 @@
         app:tint="@android:color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Zoom Out" />
+        android:contentDescription="@string/zoom_out" />
 
     <TextView
         android:id="@+id/tvPdfPageIndicator"
@@ -74,7 +74,7 @@
         app:tint="@android:color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Zoom In" />
+        android:contentDescription="@string/zoom_in" />
 
     <Space
         android:layout_width="0dp"
@@ -92,7 +92,7 @@
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:visibility="gone"
-        android:contentDescription="Translate Page" />
+        android:contentDescription="@string/translate_page" />
 
     <ImageButton
         android:id="@+id/btnTranslationFontDecrease"
@@ -105,7 +105,7 @@
         android:padding="@dimen/player_button_padding_small"
         android:layout_marginStart="@dimen/player_button_margin_small"
         android:visibility="gone"
-        android:contentDescription="Decrease Translation Font" />
+        android:contentDescription="@string/decrease_translation_font" />
 
     <ImageButton
         android:id="@+id/btnTranslationFontIncrease"
@@ -118,7 +118,7 @@
         android:padding="@dimen/player_button_padding_small"
         android:layout_marginStart="@dimen/player_button_margin_small"
         android:visibility="gone"
-        android:contentDescription="Increase Translation Font" />
+        android:contentDescription="@string/increase_translation_font" />
 
     <ImageButton
         android:id="@+id/btnGoogleLensPdf"
@@ -131,7 +131,7 @@
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_button_margin_small"
         android:visibility="gone"
-        android:contentDescription="Google Lens" />
+        android:contentDescription="@string/google_lens" />
 
     <ImageButton
         android:id="@+id/btnSearchPdf"
@@ -144,7 +144,7 @@
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_button_margin_small"
         android:visibility="gone"
-        android:contentDescription="Search in PDF" />
+        android:contentDescription="@string/search_in_pdf" />
 
     <ImageButton
         android:id="@+id/btnPdfNextPage"
@@ -156,5 +156,5 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="Next Page" />
+        android:contentDescription="@string/next_page" />
 </LinearLayout>

@@ -23,14 +23,8 @@
         
         <!-- Disable edge-to-edge to prevent system UI overlap -->
         <item name="android:windowLayoutInDisplayCutoutMode">default</item>
-        <item name="android:enforceNavigationBarContrast">true</item>
-        <item name="android:enforceStatusBarContrast">true</item>
-        
         <!-- Window background - dark for night mode -->
         <item name="android:windowBackground">@color/item_normal</item>
-        <item name="android:windowSplashScreenBackground">@color/item_normal</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
-        <item name="android:windowSplashScreenAnimationDuration">0</item>
     </style>
 
     <style name="Theme.FastMediaSorter.FullScreen" parent="Theme.FastMediaSorter">

@@ -146,10 +146,12 @@ abstract class AppDatabase : RoomDatabase() {
                 // Query current schema to check if column is nullable
                 val cursor = db.query("PRAGMA table_info(resources)")
                 var isShowSubfoldersNullable = false
+                val nameColumnIndex = cursor.getColumnIndexOrThrow("name")
+                val notNullColumnIndex = cursor.getColumnIndexOrThrow("notnull")
                 
                 while (cursor.moveToNext()) {
-                    val columnName = cursor.getString(cursor.getColumnIndex("name"))
-                    val notNull = cursor.getInt(cursor.getColumnIndex("notnull"))
+                    val columnName = cursor.getString(nameColumnIndex)
+                    val notNull = cursor.getInt(notNullColumnIndex)
                     if (columnName == "showSubfoldersAsItems" && notNull == 0) {
                         isShowSubfoldersNullable = true
                         break

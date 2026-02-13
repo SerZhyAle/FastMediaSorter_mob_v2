@@ -280,7 +280,7 @@
                 android:layout_width="@dimen/empty_state_icon_size"
                 android:layout_height="@dimen/empty_state_icon_size"
                 android:src="@android:drawable/ic_input_add"
-                android:contentDescription="Add resource"
+                android:contentDescription="@string/add_resource"
                 android:alpha="@string/activity_main_emptyStateView_alpha" />
 
             <TextView

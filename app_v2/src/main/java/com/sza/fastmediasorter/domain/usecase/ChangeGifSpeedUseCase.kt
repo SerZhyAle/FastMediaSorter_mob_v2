@@ -14,6 +14,7 @@ import timber.log.Timber
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Locale
 import javax.inject.Inject
 
 /**
@@ -130,7 +131,7 @@ class ChangeGifSpeedUseCase @Inject constructor(
             val outputFile = if (saveToDownloads) {
                 // Save to Downloads with speed suffix
                 val baseFileName = gifFile.nameWithoutExtension
-                val speedFormatted = String.format("%.1f", clampedSpeed).replace(".", "_")
+                val speedFormatted = String.format(Locale.US, "%.1f", clampedSpeed).replace(".", "_")
                 val outputFileName = "${baseFileName}_speed_${speedFormatted}x.gif"
                 
                 val downloadsDir = android.os.Environment.getExternalStoragePublicDirectory(

@@ -118,7 +118,7 @@
     <string name="video_resolution_label">Роздільна здатність: %1$dx%2$d</string>
     <string name="video_codec_label">Кодек: %1$s</string>
     <string name="video_bitrate_label">Бітрейт: %1$s Мбіт/с</string>
-    <string name="video_framerate_label">Частота кадрів: %1$s к/с</string>
+    <string name="video_framerate_label">Частота кадрів: %1$.2f к/с</string>
     <string name="video_rotation_label">Поворот: %1$d°</string>
     <string name="exif_camera_model_label">Камера: %1$s</string>
     <string name="exif_iso_label">ISO: %1$s</string>
@@ -843,11 +843,11 @@
     <string name="msg_move_started">Переміщення до %1$s…</string>    <string name="msg_copy_success">Файл скопійовано в %1$s</string>
     <string name="msg_copy_success_count">Скопійовано %1$d файлів в %2$s</string>
     <string name="error_copy_failed">Помилка копіювання: %1$s</string>
-    <string name="error_file_exists_copy">Файл "%1$s" вже існує.\n\nУвімкніть "Перезапис при копіюванні" в Налаштування → Операції з файлами</string>
+    <string name="error_file_exists_copy">Файл "%1$s" вже існує в "%2$s".\n\nУвімкніть "Перезапис при копіюванні" в Налаштування → Операції з файлами</string>
     <string name="msg_move_success">Файл переміщено до %1$s</string>
     <string name="msg_move_success_count">Переміщено %1$d файлів до %2$s</string>
     <string name="error_move_failed">Помилка переміщення: %1$s</string>
-    <string name="error_file_exists_move">Файл "%1$s" вже існує.\n\nУвімкніть "Перезапис при переміщенні" в Налаштування → Операції з файлами</string>
+    <string name="error_file_exists_move">Файл "%1$s" вже існує в "%2$s".\n\nУвімкніть "Перезапис при переміщенні" в Налаштування → Операції з файлами</string>
     <string name="msg_delete_success">Файл видалено</string>
     <string name="error_delete_failed">Помилка видалення: %1$s</string>
     <string name="error_delete_unexpected">Несподівана помилка видалення</string>

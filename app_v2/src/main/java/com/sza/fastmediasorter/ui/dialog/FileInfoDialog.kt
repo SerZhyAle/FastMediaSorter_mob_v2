@@ -87,7 +87,6 @@ class FileInfoDialog(
     
     private fun isLocalFile(): Boolean {
         return (mediaFile.path.startsWith("/storage") || 
-                mediaFile.path.startsWith("/sdcard") ||
                 mediaFile.path.matches(Regex("^/.*"))) && 
                !mediaFile.path.startsWith("smb://") &&
                !mediaFile.path.startsWith("sftp://") &&
@@ -391,7 +390,7 @@ class FileInfoDialog(
             val megapixels = (details.width * details.height) / 1_000_000.0
             binding.tvImageMegapixels.text = context.getString(
                 R.string.image_megapixels_label,
-                String.format("%.1f", megapixels)
+                String.format(Locale.getDefault(), "%.1f", megapixels)
             )
             binding.tvImageMegapixels.visibility = View.VISIBLE
         }
@@ -500,13 +499,13 @@ class FileInfoDialog(
         // Video Bitrate
         if (details.bitrate != null) {
             val bitrateMbps = details.bitrate / 1_000_000.0
-            binding.tvVideoBitrate.text = context.getString(R.string.video_bitrate_label, String.format("%.2f", bitrateMbps))
+            binding.tvVideoBitrate.text = context.getString(R.string.video_bitrate_label, String.format(Locale.getDefault(), "%.2f", bitrateMbps))
             binding.tvVideoBitrate.visibility = View.VISIBLE
         }
         
         // Video Frame Rate
         if (details.frameRate != null) {
-            binding.tvVideoFrameRate.text = context.getString(R.string.video_framerate_label, String.format("%.2f", details.frameRate))
+            binding.tvVideoFrameRate.text = context.getString(R.string.video_framerate_label, details.frameRate)
             binding.tvVideoFrameRate.visibility = View.VISIBLE
         }
         
@@ -514,8 +513,8 @@ class FileInfoDialog(
         if (details.latitude != null && details.longitude != null) {
             val locationText = context.getString(
                 R.string.gps_location_label,
-                String.format("%.6f", details.latitude),
-                String.format("%.6f", details.longitude)
+                String.format(Locale.getDefault(), "%.6f", details.latitude),
+                String.format(Locale.getDefault(), "%.6f", details.longitude)
             )
             binding.tvGpsLocation.text = locationText
             binding.tvGpsLocation.visibility = View.VISIBLE
@@ -791,9 +790,9 @@ class FileInfoDialog(
         val secs = seconds % 60
 
         return if (hours > 0) {
-            String.format("%02d:%02d:%02d", hours, minutes, secs)
+            String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, secs)
         } else {
-            String.format("%02d:%02d", minutes, secs)
+            String.format(Locale.getDefault(), "%02d:%02d", minutes, secs)
         }
     }
 
@@ -821,6 +820,7 @@ class FileInfoDialog(
         val latDirection = if (latitude >= 0) "N" else "S"
         val lonDirection = if (longitude >= 0) "E" else "W"
         return String.format(
+            Locale.getDefault(),
             "%.6f° %s, %.6f° %s",
             Math.abs(latitude),
             latDirection,
@@ -835,10 +835,10 @@ class FileInfoDialog(
     private fun formatBitrate(bitrate: Int): String {
         val kbps = bitrate / 1000.0
         return if (kbps < 1000) {
-            String.format("%.1f Kbps", kbps)
+            String.format(Locale.getDefault(), "%.1f Kbps", kbps)
         } else {
             val mbps = kbps / 1000.0
-            String.format("%.2f Mbps", mbps)
+            String.format(Locale.getDefault(), "%.2f Mbps", mbps)
         }
     }
 }

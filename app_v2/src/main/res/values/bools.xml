@@ -2,4 +2,8 @@
 <resources>
     <bool name="is_tab_inline">false</bool>
     <bool name="is_resource_actions_inline">false</bool>
+    <bool name="is_small_screen">false</bool>
+    <bool name="enable_compact_layout">false</bool>
+    <bool name="reduce_animations">false</bool>
+    <bool name="use_single_pane_layout">false</bool>
 </resources>

@@ -49,7 +49,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:maxLength="5"
-                    android:text="5"/>
+                    android:text="@string/default_slideshow_interval"/>
 
             </com.google.android.material.textfield.TextInputLayout>
             
@@ -209,7 +209,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:maxLength="4"
-                    android:text="96"/>
+                    android:text="@string/default_icon_size_value"/>
 
             </com.google.android.material.textfield.TextInputLayout>
             

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import android.os.Environment
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import kotlinx.coroutines.Dispatchers
@@ -121,10 +122,11 @@ class TestCredentialsLoader @Inject constructor(
     
     private fun tryLoadFromExternalStorage(): String? {
         return try {
+            val externalStoragePath = Environment.getExternalStorageDirectory().path
             // Try multiple locations
             val locations = listOf(
-                File("/sdcard/test_media/test_credentials.json"),
-                File("/sdcard/Android/data/${context.packageName}/files/test_media/test_credentials.json"),
+                File("$externalStoragePath/test_media/test_credentials.json"),
+                File("$externalStoragePath/Android/data/${context.packageName}/files/test_media/test_credentials.json"),
                 File(context.getExternalFilesDir(null), "test_media/test_credentials.json")
             )
             

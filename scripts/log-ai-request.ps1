@@ -1,3 +1,4 @@
+
 # Log AI Request with Analysis
 # Usage: .\scripts\log-ai-request.ps1 -Question "your question" -Analyzer "GPT-4o" -Complexity "MEDIUM" -RecommendedModel "Sonnet 4.5" -Reasoning "explanation"
 

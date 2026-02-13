@@ -21,25 +21,14 @@
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <item name="android:navigationBarColor">@color/black</item>
         
-        <!-- Opt out of edge-to-edge enforcement on Android 15+ -->
-        <!-- App should not draw under system bars -->
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
-        
         <!-- Window background - white for day mode -->
         <item name="android:windowBackground">@color/white</item>
-        
-        <!-- Disable splash screen (Android 12+) -->
-        <item name="android:windowSplashScreenBackground">@color/white</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
-        <item name="android:windowSplashScreenAnimationDuration">0</item>
     </style>
 
     <style name="Theme.FastMediaSorter.FullScreen" parent="Theme.FastMediaSorter">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowFullscreen">true</item>
-        <!-- Allow edge-to-edge for fullscreen player mode -->
-        <item name="android:windowOptOutEdgeToEdgeEnforcement">false</item>
     </style>
 
     <style name="Theme.FastMediaSorter.NoActionBar" parent="Theme.FastMediaSorter">

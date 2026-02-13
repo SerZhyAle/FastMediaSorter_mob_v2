@@ -18,7 +18,7 @@
         app:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
-        android:contentDescription="Close"
+        android:contentDescription="@string/close"
         android:elevation="@dimen/elevation_player_overlay" />
 
     <ScrollView

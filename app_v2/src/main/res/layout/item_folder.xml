@@ -21,6 +21,6 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:textSize="@dimen/item_title_text_size"
-        android:text="Folder Name" />
+        android:text="@string/item_folder_tvFolderName_text" />
 
 </LinearLayout>

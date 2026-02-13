@@ -21,7 +21,7 @@
         app:tint="#4CAF50"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Previous Chapter" />
+        android:contentDescription="@string/previous_chapter" />
 
     <ImageButton
         android:id="@+id/btnEpubHome"
@@ -33,7 +33,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="To begin" />
+        android:contentDescription="@string/to_begin" />
 
     <Space
         android:layout_width="0dp"
@@ -50,7 +50,7 @@
         android:textColor="#FFFFFF"
         android:textSize="@dimen/empty_state_text_size"
         android:textStyle="bold"
-        android:text="1/1"
+        android:text="@string/epub_chapter_indicator_default"
         android:layout_marginHorizontal="@dimen/player_epub_chapter_indicator_margin_horizontal" />
 
     <ImageButton
@@ -63,7 +63,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="Table of Contents" />
+        android:contentDescription="@string/table_of_contents" />
 
     <ImageButton
         android:id="@+id/btnEpubFontSizeDecrease"
@@ -75,7 +75,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="Decrease Font Size" />
+        android:contentDescription="@string/decrease_font_size" />
 
     <ImageButton
         android:id="@+id/btnEpubFontSizeIncrease"
@@ -87,7 +87,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_button_margin_small"
-        android:contentDescription="Increase Font Size" />
+        android:contentDescription="@string/increase_font_size" />
 
     <Space
         android:layout_width="0dp"
@@ -104,5 +104,5 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="Next Chapter" />
+        android:contentDescription="@string/next_chapter" />
 </LinearLayout>

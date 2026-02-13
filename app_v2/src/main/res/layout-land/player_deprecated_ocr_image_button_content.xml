@@ -6,7 +6,7 @@
     android:layout_gravity="bottom|end"
     android:layout_marginEnd="@dimen/margin_large"
     android:layout_marginBottom="152dp"
-    android:text="OCR"
+    android:text="@string/activity_player_unified_btnOcrImage_text"
     android:textColor="@android:color/white"
     android:textSize="@dimen/player_audio_info_text_size"
     android:textStyle="bold"

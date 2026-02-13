@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
-import android.media.ExifInterface
 import android.net.Uri
 import android.util.Log
+import androidx.exifinterface.media.ExifInterface
 import com.sza.fastmediasorter.core.constants.AppConstants
 import androidx.core.net.toUri
 import com.sza.fastmediasorter.domain.model.MediaType

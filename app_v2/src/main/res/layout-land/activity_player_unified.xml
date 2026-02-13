@@ -25,7 +25,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Back"
+            android:contentDescription="@string/back"
             android:src="@drawable/ic_back"
             app:tint="@android:color/white"
             android:scaleType="centerInside"
@@ -146,7 +146,7 @@
                     android:id="@+id/btnOcrPdfCmd"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/player_cmd_button_size"
-                    android:text="OCR"
+                    android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
                     android:textColor="@android:color/white"
                     android:textSize="@dimen/text_size_small" 
                     android:textStyle="bold"
@@ -244,7 +244,7 @@
                     android:id="@+id/btnOcrImageCmd"
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/player_cmd_button_size"
-                    android:text="OCR"
+                    android:text="@string/activity_player_unified_btnOcrImageCmd_text"
                     android:textColor="@android:color/white"
                     android:textSize="@dimen/text_size_small"
                     android:textStyle="bold"
@@ -454,7 +454,7 @@
             android:visibility="gone"
             android:scaleType="fitCenter"
             android:background="#000000"
-            android:contentDescription="Audio cover art" />
+            android:contentDescription="@string/audio_cover_art" />
 
         <!-- Audio file info overlay -->
         <LinearLayout
@@ -550,7 +550,7 @@
             android:scaleType="fitCenter"
             android:padding="@dimen/player_epub_button_padding"
             android:visibility="gone"
-            android:contentDescription="Exit Fullscreen" />
+            android:contentDescription="@string/exit_fullscreen" />
 
         <include layout="@layout/player_epub_controls_overlay_content" />
 
@@ -630,7 +630,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="40dp"
-                android:text="−"
+                android:text="@string/player_volume_down_symbol"
                 android:textSize="24sp"
                 android:textColor="@android:color/white"
                 android:visibility="gone"
@@ -641,7 +641,7 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="◀"
+                android:text="@string/player_previous_symbol"
                 android:textSize="24sp"
                 android:textColor="@android:color/white"
                 app:backgroundTint="@android:color/transparent" />
@@ -651,7 +651,7 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▶"
+                android:text="@string/player_play_symbol"
                 android:textSize="32sp"
                 android:textColor="@android:color/white"
                 android:layout_marginHorizontal="32dp"
@@ -662,7 +662,7 @@
                 style="@style/Widget.Material3.Button.IconButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="▶"
+                android:text="@string/player_next_symbol"
                 android:textSize="24sp"
                 android:textColor="@android:color/white"
                 app:backgroundTint="@android:color/transparent" />
@@ -673,7 +673,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="40dp"
-                android:text="+"
+                android:text="@string/player_volume_up_symbol"
                 android:textSize="24sp"
                 android:textColor="@android:color/white"
                 android:visibility="gone"
@@ -694,7 +694,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SlideShow"
+                android:text="@string/slideshow"
                 android:textColor="@android:color/white" />
 
             <View
@@ -707,7 +707,7 @@
                 style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Delete"
+                android:text="@string/delete"
                 android:textColor="@android:color/white" />
         </LinearLayout>
     </LinearLayout>

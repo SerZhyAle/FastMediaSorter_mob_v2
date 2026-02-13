@@ -281,7 +281,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:text="445"
+                            android:text="@string/default_smb_port"
                             android:maxLines="1" />
 
                     </com.google.android.material.textfield.TextInputLayout>
@@ -346,7 +346,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="number"
-                            android:text="22"
+                            android:text="@string/default_sftp_port"
                             android:maxLines="1" />
 
                     </com.google.android.material.textfield.TextInputLayout>
@@ -467,7 +467,7 @@
                         android:layout_height="wrap_content"
                         android:inputType="number"
                         android:maxLength="5"
-                        android:text="5"/>
+                        android:text="@string/default_slideshow_interval"/>
 
                 </com.google.android.material.textfield.TextInputLayout>
 

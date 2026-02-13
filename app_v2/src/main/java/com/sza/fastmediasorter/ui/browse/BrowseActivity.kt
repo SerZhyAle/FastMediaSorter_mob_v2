@@ -1628,7 +1628,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     // Task 6: Show bottom sheet menu for binary files
     private fun showBinaryFileMenu(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {
         val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
-        val view = layoutInflater.inflate(R.layout.bottom_sheet_binary_file, null)
+        val root = findViewById<android.view.ViewGroup>(android.R.id.content)
+        val view = layoutInflater.inflate(R.layout.bottom_sheet_binary_file, root, false)
         
         view.findViewById<android.widget.TextView>(R.id.tvFileName)?.text = mediaFile.name
         

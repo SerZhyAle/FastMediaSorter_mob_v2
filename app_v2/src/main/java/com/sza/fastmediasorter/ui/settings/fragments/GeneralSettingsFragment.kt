@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.util.Locale
 
 class GeneralSettingsFragment : Fragment() {
 
@@ -957,8 +958,8 @@ class GeneralSettingsFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
             }
-        } else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-            // Android 6-10 (API 23-29): Request READ/WRITE_EXTERNAL_STORAGE
+        } else {
+            // Android 9-10 (API 28-29): Request READ/WRITE_EXTERNAL_STORAGE
             val permissions = arrayOf(
                 android.Manifest.permission.READ_EXTERNAL_STORAGE,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -975,9 +976,6 @@ class GeneralSettingsFragment : Fragment() {
             } else {
                 Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
             }
-        } else {
-            // Android 5.x and below: permissions granted at install time
-            Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
         }
     }
     
@@ -1170,9 +1168,9 @@ class GeneralSettingsFragment : Fragment() {
     private fun formatFileSize(size: Long): String {
         return when {
             size < 1024 -> "$size B"
-            size < 1024 * 1024 -> String.format("%.2f KB", size / 1024.0)
-            size < 1024 * 1024 * 1024 -> String.format("%.2f MB", size / (1024.0 * 1024.0))
-            else -> String.format("%.2f GB", size / (1024.0 * 1024.0 * 1024.0))
+            size < 1024 * 1024 -> String.format(Locale.getDefault(), "%.2f KB", size / 1024.0)
+            size < 1024 * 1024 * 1024 -> String.format(Locale.getDefault(), "%.2f MB", size / (1024.0 * 1024.0))
+            else -> String.format(Locale.getDefault(), "%.2f GB", size / (1024.0 * 1024.0 * 1024.0))
         }
     }
     

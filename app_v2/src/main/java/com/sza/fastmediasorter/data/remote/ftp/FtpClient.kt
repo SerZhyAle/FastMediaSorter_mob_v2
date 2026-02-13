@@ -535,7 +535,9 @@ class FtpClient @Inject constructor() {
                 val bytes = try {
                     client.retrieveFileStream(remotePath)?.use { inputStream ->
                         val bytes = if (maxBytes < Long.MAX_VALUE) {
-                            inputStream.readNBytes(maxBytes.toInt())
+                            val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                            val allBytes = inputStream.readBytes()
+                            if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
                         } else {
                             inputStream.readBytes()
                         }
@@ -560,7 +562,9 @@ class FtpClient @Inject constructor() {
                     try {
                         client.retrieveFileStream(remotePath)?.use { inputStream ->
                             val bytes = if (maxBytes < Long.MAX_VALUE) {
-                                inputStream.readNBytes(maxBytes.toInt())
+                                val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                                val allBytes = inputStream.readBytes()
+                                if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
                             } else {
                                 inputStream.readBytes()
                             }
@@ -1313,7 +1317,9 @@ class FtpClient @Inject constructor() {
             try {
                 val bytes = client.retrieveFileStream(remotePath)?.use { inputStream ->
                     if (maxBytes < Long.MAX_VALUE) {
-                        inputStream.readNBytes(maxBytes.toInt())
+                        val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                        val allBytes = inputStream.readBytes()
+                        if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
                     } else {
                         inputStream.readBytes()
                     }
@@ -1336,7 +1342,9 @@ class FtpClient @Inject constructor() {
                 try {
                     val bytes = client.retrieveFileStream(remotePath)?.use { inputStream ->
                         if (maxBytes < Long.MAX_VALUE) {
-                            inputStream.readNBytes(maxBytes.toInt())
+                            val maxBytesInt = maxBytes.coerceAtMost(Int.MAX_VALUE.toLong()).toInt()
+                            val allBytes = inputStream.readBytes()
+                            if (allBytes.size > maxBytesInt) allBytes.copyOf(maxBytesInt) else allBytes
                         } else {
                             inputStream.readBytes()
                         }

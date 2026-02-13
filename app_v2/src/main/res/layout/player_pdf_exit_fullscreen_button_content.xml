@@ -12,4 +12,4 @@
     app:tint="@android:color/white"
     android:scaleType="fitCenter"
     android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
-    android:contentDescription="Exit Fullscreen" />
+    android:contentDescription="@string/exit_fullscreen" />

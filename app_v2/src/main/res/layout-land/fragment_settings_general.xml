@@ -381,7 +381,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="number"
-                android:text="2"
+                android:text="@string/default_network_parallelism"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -459,7 +459,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="number"
-                        android:text="240"
+                        android:text="@string/default_sync_interval_minutes"
                         android:textSize="@dimen/resource_card_desc_text_size" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -700,7 +700,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="number"
-                    android:text="2048"
+                    android:text="@string/default_cache_size_limit_mb"
                     android:textSize="@dimen/resource_card_desc_text_size" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -764,7 +764,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="left"
+            android:gravity="start"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny">
 

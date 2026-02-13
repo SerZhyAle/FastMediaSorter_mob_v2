@@ -236,21 +236,12 @@ class TranslationOverlayView @JvmOverloads constructor(
     /**
      * Create StaticLayout for multiline text with word wrapping
      */
-    @Suppress("DEPRECATION")
     private fun createStaticLayout(text: String, paint: TextPaint, width: Int): StaticLayout {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            StaticLayout.Builder.obtain(text, 0, text.length, paint, width)
-                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
-                .setLineSpacing(0f, 1f)
-                .setIncludePad(false)
-                .build()
-        } else {
-            StaticLayout(
-                text, paint, width,
-                Layout.Alignment.ALIGN_NORMAL,
-                1f, 0f, false
-            )
-        }
+        return StaticLayout.Builder.obtain(text, 0, text.length, paint, width)
+            .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+            .setLineSpacing(0f, 1f)
+            .setIncludePad(false)
+            .build()
     }
     
     private var imageDisplayRect: RectF? = null

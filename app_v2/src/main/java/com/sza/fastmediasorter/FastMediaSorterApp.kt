@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -253,6 +254,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // Disk cache is cleared: manually in settings, on file delete/move/rename, or by FIFO eviction
             }
             ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE,
             ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
@@ -277,19 +279,19 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         sb.append("==========================================\n")
         
         // App Info
-        sb.append(String.format("%-20s: %s\n", "Version Name", BuildConfig.VERSION_NAME))
-        sb.append(String.format("%-20s: %d\n", "Version Code", BuildConfig.VERSION_CODE))
-        sb.append(String.format("%-20s: %s\n", "App ID", BuildConfig.APPLICATION_ID))
-        sb.append(String.format("%-20s: %s\n", "Build Type", BuildConfig.BUILD_TYPE))
-        sb.append(String.format("%-20s: %s\n", "Flavor", BuildConfig.FLAVOR))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Version Name", BuildConfig.VERSION_NAME))
+        sb.append(String.format(Locale.US, "%-20s: %d\n", "Version Code", BuildConfig.VERSION_CODE))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "App ID", BuildConfig.APPLICATION_ID))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Build Type", BuildConfig.BUILD_TYPE))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Flavor", BuildConfig.FLAVOR))
         
         // Build Details
         
         // Device Info
         sb.append("------------------------------------------\n")
-        sb.append(String.format("%-20s: %s\n", "Manufacturer", android.os.Build.MANUFACTURER))
-        sb.append(String.format("%-20s: %s\n", "Model", android.os.Build.MODEL))
-        sb.append(String.format("%-20s: %d (%s)\n", "SDK Version", android.os.Build.VERSION.SDK_INT, android.os.Build.VERSION.RELEASE))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Manufacturer", android.os.Build.MANUFACTURER))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Model", android.os.Build.MODEL))
+        sb.append(String.format(Locale.US, "%-20s: %d (%s)\n", "SDK Version", android.os.Build.VERSION.SDK_INT, android.os.Build.VERSION.RELEASE))
         
         sb.append("==========================================")
         

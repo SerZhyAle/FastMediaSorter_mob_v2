@@ -44,7 +44,7 @@
         app:tint="#FFFFFF"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Previous Match" />
+        android:contentDescription="@string/previous_match" />
 
     <ImageButton
         android:id="@+id/btnSearchNext"
@@ -55,7 +55,7 @@
         app:tint="#FFFFFF"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Next Match" />
+        android:contentDescription="@string/next_match" />
 
     <ImageButton
         android:id="@+id/btnCloseSearch"
@@ -66,5 +66,5 @@
         app:tint="#FFFFFF"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Close Search" />
+        android:contentDescription="@string/close_search" />
 </LinearLayout>

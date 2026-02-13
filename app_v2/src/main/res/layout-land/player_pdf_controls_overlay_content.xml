@@ -21,7 +21,7 @@
         app:tint="#4CAF50"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Previous Page" />
+        android:contentDescription="@string/previous_page" />
 
     <ImageButton
         android:id="@+id/btnPdfHome"
@@ -33,7 +33,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
-        android:contentDescription="To begin" />
+        android:contentDescription="@string/to_begin" />
 
     <Space
         android:layout_width="0dp"
@@ -50,7 +50,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginEnd="@dimen/player_pdf_button_margin"
-        android:contentDescription="Zoom Out" />
+        android:contentDescription="@string/zoom_out" />
 
     <ImageButton
         android:id="@+id/btnPdfZoomIn"
@@ -61,7 +61,7 @@
         app:tint="@android:color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Zoom In" />
+        android:contentDescription="@string/zoom_in" />
 
     <Space
         android:layout_width="0dp"
@@ -78,7 +78,7 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginEnd="@dimen/player_pdf_button_margin"
-        android:contentDescription="To end" />
+        android:contentDescription="@string/to_end" />
 
     <ImageButton
         android:id="@+id/btnPdfNextPage"
@@ -89,5 +89,5 @@
         app:tint="#4CAF50"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
-        android:contentDescription="Next Page" />
+        android:contentDescription="@string/next_page" />
 </LinearLayout>

@@ -52,10 +52,10 @@ class FileOperationProgressDialog(
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+        val dialogRoot = android.widget.FrameLayout(context)
         val view = LayoutInflater.from(context).inflate(
             R.layout.dialog_file_operation_progress,
-            null,
+            dialogRoot,
             false
         )
         

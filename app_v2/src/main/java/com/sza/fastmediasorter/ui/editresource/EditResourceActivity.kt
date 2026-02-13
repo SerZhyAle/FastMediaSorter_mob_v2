@@ -554,8 +554,8 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                         if (resource.type in listOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD) && 
                             (resource.readSpeedMbps != null || resource.writeSpeedMbps != null)) {
                             binding.cardSpeedResults.isVisible = true
-                            binding.tvReadSpeed.text = resource.readSpeedMbps?.let { String.format("%.2f Mbps", it) } ?: "-"
-                            binding.tvWriteSpeed.text = resource.writeSpeedMbps?.let { String.format("%.2f Mbps", it) } ?: "-"
+                            binding.tvReadSpeed.text = resource.readSpeedMbps?.let { String.format(Locale.getDefault(), "%.2f Mbps", it) } ?: "-"
+                            binding.tvWriteSpeed.text = resource.writeSpeedMbps?.let { String.format(Locale.getDefault(), "%.2f Mbps", it) } ?: "-"
                             binding.tvRecThreads.text = resource.recommendedThreads?.toString() ?: "-"
                             
                             binding.tvLastTestDate.text = resource.lastSpeedTestDate?.let {

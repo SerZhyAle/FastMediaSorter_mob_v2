@@ -120,7 +120,7 @@
     <string name="video_resolution_label">Разрешение: %1$dx%2$d</string>
     <string name="video_codec_label">Кодек: %1$s</string>
     <string name="video_bitrate_label">Битрейт: %1$s Мбит/с</string>
-    <string name="video_framerate_label">Частота кадров: %1$s к/с</string>
+    <string name="video_framerate_label">Частота кадров: %1$.2f к/с</string>
     <string name="video_rotation_label">Поворот: %1$d°</string>
     <string name="exif_camera_model_label">Камера: %1$s</string>
     <string name="exif_iso_label">ISO: %1$s</string>
@@ -853,11 +853,11 @@
     <string name="msg_copy_success">Файл скопирован в %1$s</string>
     <string name="msg_copy_success_count">Скопировано %1$d файлов в %2$s</string>
     <string name="error_copy_failed">Ошибка копирования: %1$s</string>
-    <string name="error_file_exists_copy">Файл "%1$s" уже существует.\n\nВключите "Перезапись при копировании" в Настройки → Операции с файлами</string>
+    <string name="error_file_exists_copy">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при копировании" в Настройки → Операции с файлами</string>
     <string name="msg_move_success">Файл перемещён в %1$s</string>
     <string name="msg_move_success_count">Перемещено %1$d файлов в %2$s</string>
     <string name="error_move_failed">Ошибка перемещения: %1$s</string>
-    <string name="error_file_exists_move">Файл "%1$s" уже существует.\n\nВключите "Перезапись при перемещении" в Настройки → Операции с файлами</string>
+    <string name="error_file_exists_move">Файл "%1$s" уже существует в "%2$s".\n\nВключите "Перезапись при перемещении" в Настройки → Операции с файлами</string>
     <string name="msg_delete_success">Файл удален</string>
     <string name="error_delete_failed">Ошибка удаления: %1$s</string>
     <string name="error_delete_unexpected">Неожиданная ошибка удаления</string>
