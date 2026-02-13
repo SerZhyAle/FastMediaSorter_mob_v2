@@ -470,7 +470,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
         
         // Click on track name to skip to another random track
-        binding.tvBackgroundMusicTrack.setOnClickListener {
+        safeViews.tvBackgroundMusicTrack.setOnClickListener {
             Timber.d("BackgroundMusic: User clicked track name - skipping to next random")
             backgroundMusicManager.skipToNextRandomTrack()
         }
@@ -1980,11 +1980,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
         
         if (trackName != null) {
-            binding.tvBackgroundMusicTrack.text = "♪ $trackName"
-            binding.tvBackgroundMusicTrack.isVisible = true
+            safeViews.tvBackgroundMusicTrack.text = "♪ $trackName"
+            safeViews.tvBackgroundMusicTrack.isVisible = true
             Timber.d("BackgroundMusic: Showing track name: $trackName")
         } else {
-            binding.tvBackgroundMusicTrack.isVisible = false
+            safeViews.tvBackgroundMusicTrack.isVisible = false
             Timber.d("BackgroundMusic: Hiding track name")
         }
     }
@@ -2931,7 +2931,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         // Hide countdown and background music label that may linger
         binding.tvCountdown.isVisible = false
-        binding.tvBackgroundMusicTrack.isVisible = false
+        safeViews.tvBackgroundMusicTrack.isVisible = false
 
         // Restore audio player UI
         binding.playerView.isVisible = true
@@ -3016,10 +3016,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
         
         if (songText.isNotBlank()) {
-            binding.tvBackgroundMusicTrack.text = songText
-            binding.tvBackgroundMusicTrack.isVisible = true
+            safeViews.tvBackgroundMusicTrack.text = songText
+            safeViews.tvBackgroundMusicTrack.isVisible = true
         } else {
-            binding.tvBackgroundMusicTrack.isVisible = false
+            safeViews.tvBackgroundMusicTrack.isVisible = false
         }
     }
 

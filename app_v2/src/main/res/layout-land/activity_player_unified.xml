@@ -795,24 +795,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topCommandPanel" />
 
-    <!-- Background Music Track Name Overlay (visible during slideshow with music) -->
-    <TextView
-        android:id="@+id/tvBackgroundMusicTrack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="12dp"
-        android:layout_marginBottom="12dp"
-        android:textSize="11sp"
-        android:textColor="#AAFFFFFF"
-        android:background="#44000000"
-        android:paddingHorizontal="8dp"
-        android:paddingVertical="4dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:maxWidth="280dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+    <include layout="@layout/player_background_music_track_overlay_content" />
 
     <include layout="@layout/player_translation_overlay_content" />
         
