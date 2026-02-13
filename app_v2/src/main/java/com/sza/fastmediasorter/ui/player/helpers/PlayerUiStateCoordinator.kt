@@ -24,6 +24,7 @@ class PlayerUiStateCoordinator(
     private val coroutineScope: CoroutineScope,
     private val callback: Callback
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
 
     private val mediaDisplayCoordinator = MediaDisplayCoordinator(
         callback = object : MediaDisplayCoordinator.Callback {
@@ -168,7 +169,7 @@ class PlayerUiStateCoordinator(
                 callback.setCurrentFilePath(file.path)
 
                 // Hide translation overlays when changing files
-                binding.translationOverlay.isVisible = false
+                safeViews.translationOverlay.isVisible = false
                 binding.translationLensOverlay.isVisible = false
 
                 mediaDisplayCoordinator.display(file)

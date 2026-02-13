@@ -94,14 +94,14 @@ class PdfViewerManager(
         }
         
         // Setup translation overlay click to expand/collapse
-        binding.translationOverlay.setOnClickListener {
+        safeViews.translationOverlay.setOnClickListener {
             toggleTranslationOverlaySize()
         }
         
         // Setup close button for translation overlay (simple mode)
         binding.btnCloseTranslation.setOnClickListener {
             Timber.d("PDF: btnCloseTranslation clicked - hiding translation overlay")
-            binding.translationOverlay.isVisible = false
+            safeViews.translationOverlay.isVisible = false
             if (isTranslationExpanded) {
                 toggleTranslationOverlaySize()
             }
@@ -132,7 +132,7 @@ class PdfViewerManager(
     private fun toggleTranslationOverlaySize() {
         isTranslationExpanded = !isTranslationExpanded
         
-        val layoutParams = binding.translationOverlay.layoutParams as? android.widget.FrameLayout.LayoutParams ?: return
+        val layoutParams = safeViews.translationOverlay.layoutParams as? android.widget.FrameLayout.LayoutParams ?: return
         val scrollViewLayoutParams = binding.translationScrollView.layoutParams as? android.widget.LinearLayout.LayoutParams ?: return
         
         if (isTranslationExpanded) {
@@ -145,7 +145,7 @@ class PdfViewerManager(
             scrollViewLayoutParams.height = android.widget.LinearLayout.LayoutParams.MATCH_PARENT
             scrollViewLayoutParams.setMargins(0, 0, 0, 0)
             
-            binding.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#FF000000")) // Opaque black
+            safeViews.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#FF000000")) // Opaque black
             
             Timber.d("Translation overlay expanded to fullscreen")
         } else {
@@ -162,12 +162,12 @@ class PdfViewerManager(
             scrollViewLayoutParams.height = maxHeightPx
             scrollViewLayoutParams.setMargins(0, 0, 0, 0)
             
-            binding.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#B0000000")) // Semi-transparent
+            safeViews.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#B0000000")) // Semi-transparent
             
             Timber.d("Translation overlay collapsed to compact mode")
         }
         
-        binding.translationOverlay.layoutParams = layoutParams
+        safeViews.translationOverlay.layoutParams = layoutParams
         binding.translationScrollView.layoutParams = scrollViewLayoutParams
     }
     
@@ -536,7 +536,7 @@ class PdfViewerManager(
         val cachedTranslation = com.sza.fastmediasorter.core.cache.TranslationCacheManager.getTranslation(filePath, currentPdfPageIndex)
         if (cachedTranslation != null) {
             withContext(Dispatchers.Main) {
-                binding.translationOverlay.isVisible = true
+                safeViews.translationOverlay.isVisible = true
                 binding.tvTranslatedText.text = cachedTranslation
                 binding.translationLensOverlay.isVisible = false
             }
@@ -631,7 +631,7 @@ class PdfViewerManager(
                 // Update overlay and show
                 binding.translationLensOverlay.setTranslatedBlocks(overlayBlocks)
                 binding.translationLensOverlay.isVisible = true
-                binding.translationOverlay.isVisible = false
+                safeViews.translationOverlay.isVisible = false
                 
                 // Show font size controls when translation is active
                 binding.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
@@ -715,7 +715,7 @@ class PdfViewerManager(
                 // Update overlay and show
                 binding.translationLensOverlay.setTranslatedBlocks(overlayBlocks)
                 binding.translationLensOverlay.isVisible = true
-                binding.translationOverlay.isVisible = false
+                safeViews.translationOverlay.isVisible = false
                 
                 // Show font size controls when translation is active
                 binding.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
@@ -725,7 +725,7 @@ class PdfViewerManager(
             } else {
                 // No text detected
                 binding.translationLensOverlay.isVisible = false
-                binding.translationOverlay.isVisible = false
+                safeViews.translationOverlay.isVisible = false
                 binding.btnTranslationFontDecrease?.visibility = android.view.View.GONE
                 binding.btnTranslationFontIncrease?.visibility = android.view.View.GONE
             }
@@ -984,7 +984,7 @@ class PdfViewerManager(
      * Used when changing pages to prevent old translations from showing
      */
     private fun clearTranslationOverlays() {
-        binding.translationOverlay.isVisible = false
+        safeViews.translationOverlay.isVisible = false
         binding.tvTranslatedText.text = ""
         
         binding.translationLensOverlay.isVisible = false
