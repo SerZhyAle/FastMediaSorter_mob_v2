@@ -557,21 +557,7 @@
         <!-- DEPRECATED Overlay buttons (Required for binding/code compatibility) -->
         <include layout="@layout/player_deprecated_translate_image_button_content" />
 
-        <ImageButton
-            android:id="@+id/btnGoogleLensImage"
-            android:layout_width="@dimen/player_close_button_size"
-            android:layout_height="@dimen/player_close_button_size"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="@dimen/margin_large"
-            android:layout_marginBottom="88dp"
-            android:src="@drawable/ic_google_lens"
-            android:background="@drawable/bg_circle_dark"
-            app:tint="@android:color/white"
-            android:scaleType="fitCenter"
-            android:padding="@dimen/player_close_button_padding"
-            android:elevation="@dimen/elevation_player_overlay"
-            android:visibility="gone"
-            android:contentDescription="Google Lens" />
+        <include layout="@layout/player_deprecated_google_lens_image_button_content" />
 
         <TextView
             android:id="@+id/btnOcrImage"

@@ -21,6 +21,7 @@ class GoogleLensButtonsManager(
     private val onExtractEpubText: () -> Unit,
     private val onShowTranslationSettings: () -> Unit
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     /**
      * Setup all Google Lens and OCR button click listeners.
@@ -30,7 +31,7 @@ class GoogleLensButtonsManager(
         // ===== Google Lens Buttons =====
         
         // Deprecated overlay button (kept for compatibility)
-        binding.btnGoogleLensImage.setOnClickListener {
+        safeViews.btnGoogleLensImage.setOnClickListener {
             Timber.d("BUTTON: btnGoogleLensImage clicked (deprecated)")
             onShareToGoogleLens()
         }

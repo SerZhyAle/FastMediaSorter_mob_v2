@@ -63,6 +63,7 @@ class PlayerBindingSafeViews(
     val btnGoogleLensImageCmd: ImageButton get() = required(binding.btnGoogleLensImageCmd, R.id.btnGoogleLensImageCmd)
 
     val btnTranslateImage: ImageButton get() = required(R.id.btnTranslateImage)
+    val btnGoogleLensImage: ImageButton get() = required(R.id.btnGoogleLensImage)
 
     val audioMetadata: TextView get() = required(R.id.audioMetadata)
     val audioFileName: TextView get() = required(R.id.audioFileName)

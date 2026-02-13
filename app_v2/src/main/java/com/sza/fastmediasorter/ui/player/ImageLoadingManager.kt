@@ -313,7 +313,7 @@ class ImageLoadingManager(
             
             // Hide deprecated overlay buttons (moved to command panel)
             safeViews.btnTranslateImage.isVisible = false
-            binding.btnGoogleLensImage.isVisible = false
+            safeViews.btnGoogleLensImage.isVisible = false
             binding.btnOcrImage.isVisible = false
             
             Timber.d("ImageLoadingManager.displayImage: btnTranslateImage.isVisible=${safeViews.btnTranslateImage.isVisible}, btnTranslateImage.visibility=${safeViews.btnTranslateImage.visibility}")
@@ -1109,7 +1109,7 @@ class ImageLoadingManager(
                     
                     // Hide deprecated overlay buttons
                     safeViews.btnTranslateImage.isVisible = false
-                    binding.btnGoogleLensImage.isVisible = false
+                    safeViews.btnGoogleLensImage.isVisible = false
                     binding.btnOcrImage.isVisible = false
                     
                     Timber.d("ImageLoadingManager: Force updated button visibility. Lens=${settings.enableGoogleLens}, OCR=${settings.enableOcr}")
