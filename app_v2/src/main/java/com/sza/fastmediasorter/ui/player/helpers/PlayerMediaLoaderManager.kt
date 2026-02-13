@@ -217,7 +217,7 @@ class PlayerMediaLoaderManager(
         val isInFullscreenMode = !state.showCommandPanel && !state.showControls
         
         // NEVER show overlay for audio - audio uses ExoPlayer UI, not touch zones
-        binding.audioTouchZonesOverlay.isVisible = false
+        safeViews.audioTouchZonesOverlay.isVisible = false
         Timber.d("PlayerMediaLoaderManager.updateAudioTouchZonesVisibility: Overlay hidden - audio=$isAudioFile, fullscreen=$isInFullscreenMode")
     }
 
@@ -326,7 +326,7 @@ class PlayerMediaLoaderManager(
             binding.playerView.artworkDisplayMode = androidx.media3.ui.PlayerView.ARTWORK_DISPLAY_MODE_FIT
             
             // Hide touch zones overlay for video
-            binding.audioTouchZonesOverlay.isVisible = false
+            safeViews.audioTouchZonesOverlay.isVisible = false
             
             // Hide audio info overlay for video
             binding.audioInfoOverlay.isVisible = false

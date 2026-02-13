@@ -4,6 +4,7 @@ import android.view.View
 import android.view.ViewStub
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.GridLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.ScrollView
@@ -118,6 +119,7 @@ class PlayerBindingSafeViews(
         get() = binding.root.findViewById(R.id.btnTranslationFontDecrease)
     val btnTranslationFontIncrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontIncrease)
+    val audioTouchZonesOverlay: GridLayout get() = required(R.id.audioTouchZonesOverlay)
 }
 
 private fun <T : View> ActivityPlayerUnifiedBinding.requiredFromRoot(@IdRes id: Int): T {

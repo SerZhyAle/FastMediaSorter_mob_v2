@@ -210,7 +210,7 @@ class ImageLoadingManager(
         // Hide audio-related views
         Timber.w("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
         binding.audioCoverArtView.isVisible = false
-        binding.audioTouchZonesOverlay.isVisible = false
+        safeViews.audioTouchZonesOverlay.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.pdfControlsLayout.isVisible = false
         safeViews.textViewerContainer.isVisible = false

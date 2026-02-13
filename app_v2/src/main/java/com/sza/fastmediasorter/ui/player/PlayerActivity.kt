@@ -1690,11 +1690,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     private fun showFirstRunHintOverlay() {
         // Make overlay visible with solid background (increased from 0.9f)
-        binding.audioTouchZonesOverlay.isVisible = true
-        binding.audioTouchZonesOverlay.alpha = 1.0f
+        safeViews.audioTouchZonesOverlay.isVisible = true
+        safeViews.audioTouchZonesOverlay.alpha = 1.0f
         
         // Dismiss on any tap
-        binding.audioTouchZonesOverlay.setOnClickListener {
+        safeViews.audioTouchZonesOverlay.setOnClickListener {
             dismissFirstRunHintOverlay()
         }
         
@@ -1705,8 +1705,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Dismiss first-run hint overlay (deprecated)
      */
     private fun dismissFirstRunHintOverlay() {
-        binding.audioTouchZonesOverlay.isVisible = false
-        binding.audioTouchZonesOverlay.setOnClickListener(null)
+        safeViews.audioTouchZonesOverlay.isVisible = false
+        safeViews.audioTouchZonesOverlay.setOnClickListener(null)
     }
     
     /**
