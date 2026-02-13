@@ -439,7 +439,7 @@ class TextViewerManager(
         binding.playerView.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
-        binding.pdfControlsLayout.isVisible = false
+        safeViews.pdfControlsLayout.isVisible = false
         binding.btnTranslateImage.isVisible = false
         
         // Hide PDF action buttons (they are for PDF files only)
@@ -454,7 +454,7 @@ class TextViewerManager(
         
         // Hide EPUB WebView and controls (they are for EPUB files only)
         binding.epubWebView.isVisible = false
-        binding.epubControlsLayout.isVisible = false
+        safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = false
 
         safeViews.textViewerContainer.isVisible = true
@@ -868,7 +868,7 @@ class TextViewerManager(
             binding.photoView.isVisible -> binding.photoView
             binding.imageView.isVisible -> binding.imageView
             binding.playerView.isVisible -> binding.playerView
-            binding.pdfControlsLayout.isVisible -> binding.pdfControlsLayout
+            safeViews.pdfControlsLayout.isVisible -> safeViews.pdfControlsLayout
             else -> null
         }
         
@@ -876,7 +876,7 @@ class TextViewerManager(
         binding.playerView.isVisible = false
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
-        binding.pdfControlsLayout.isVisible = false
+        safeViews.pdfControlsLayout.isVisible = false
         safeViews.translationOverlay.isVisible = false
         binding.translationLensOverlay.isVisible = false
         binding.audioCoverArtView.isVisible = false
@@ -973,8 +973,8 @@ class TextViewerManager(
         translationEnabled = false
         
         // Save which view was active before showing translation
-        val isPdfActive = binding.pdfControlsLayout.isVisible
-        val isEpubActive = binding.epubControlsLayout.isVisible
+        val isPdfActive = safeViews.pdfControlsLayout.isVisible
+        val isEpubActive = safeViews.epubControlsLayout.isVisible
         
         // Track EPUB WebView visibility state BEFORE hiding it
         wasEpubWebViewVisible = binding.epubWebView.isVisible
@@ -983,8 +983,8 @@ class TextViewerManager(
             binding.photoView.isVisible -> binding.photoView
             binding.imageView.isVisible -> binding.imageView
             binding.playerView.isVisible -> binding.playerView
-            isPdfActive -> binding.pdfControlsLayout
-            isEpubActive -> binding.epubControlsLayout
+            isPdfActive -> safeViews.pdfControlsLayout
+            isEpubActive -> safeViews.epubControlsLayout
             else -> null
         }
         
@@ -993,8 +993,8 @@ class TextViewerManager(
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
         // Keep PDF/EPUB controls visible if they were active for navigation
-        if (!isPdfActive) binding.pdfControlsLayout.isVisible = false
-        if (!isEpubActive) binding.epubControlsLayout.isVisible = false
+        if (!isPdfActive) safeViews.pdfControlsLayout.isVisible = false
+        if (!isEpubActive) safeViews.epubControlsLayout.isVisible = false
         binding.epubWebView.isVisible = false
         safeViews.translationOverlay.isVisible = false
         binding.translationLensOverlay.isVisible = false

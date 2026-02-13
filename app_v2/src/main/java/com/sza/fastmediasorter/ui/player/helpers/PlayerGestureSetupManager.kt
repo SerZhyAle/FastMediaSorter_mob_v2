@@ -95,15 +95,15 @@ class PlayerGestureSetupManager(
             // But only when overlays are NOT blocking (translation/OCR/Lens)
             if (isPdfOrEpub && !isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
                 // Check if touch is in PDF/EPUB controls area (bottom panel)
-                val pdfControlsVisible = binding.pdfControlsLayout.isVisible
-                val epubControlsVisible = binding.epubControlsLayout.isVisible
+                val pdfControlsVisible = safeViews.pdfControlsLayout.isVisible
+                val epubControlsVisible = safeViews.epubControlsLayout.isVisible
                 
-                if (pdfControlsVisible && event.y >= binding.pdfControlsLayout.top) {
+                if (pdfControlsVisible && event.y >= safeViews.pdfControlsLayout.top) {
                     // Touch is in PDF controls area - let buttons handle it
                     return@setOnTouchListener false
                 }
                 
-                if (epubControlsVisible && event.y >= binding.epubControlsLayout.top) {
+                if (epubControlsVisible && event.y >= safeViews.epubControlsLayout.top) {
                     // Touch is in EPUB controls area - let buttons handle it
                     return@setOnTouchListener false
                 }

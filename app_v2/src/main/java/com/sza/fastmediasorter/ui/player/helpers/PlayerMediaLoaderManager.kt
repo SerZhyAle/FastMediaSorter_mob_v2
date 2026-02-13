@@ -286,7 +286,7 @@ class PlayerMediaLoaderManager(
     }
 
     private fun hidePdfViewerControls() {
-        binding.pdfControlsLayout.isVisible = false
+        safeViews.pdfControlsLayout.isVisible = false
         binding.btnGoogleLensPdfCmd.isVisible = false
         binding.btnOcrPdfCmd.isVisible = false
         binding.btnTranslatePdfCmd.isVisible = false
@@ -295,7 +295,7 @@ class PlayerMediaLoaderManager(
 
     private fun hideEpubViewerControls() {
         binding.epubWebView.isVisible = false
-        binding.epubControlsLayout.isVisible = false
+        safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = false
         binding.btnSearchEpubCmd.isVisible = false
         binding.btnTranslateEpubCmd.isVisible = false

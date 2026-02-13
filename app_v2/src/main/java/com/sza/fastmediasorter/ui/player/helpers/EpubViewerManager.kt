@@ -162,7 +162,7 @@ class EpubViewerManager(
                     if (diffY < 0) {
                         // Swipe up - show controls if not in fullscreen
                         if (!isFullscreenMode) {
-                            binding.epubControlsLayout.isVisible = true
+                            safeViews.epubControlsLayout.isVisible = true
                             Timber.d("EPUB: Controls shown via swipe up")
                         }
                     } else {
@@ -441,7 +441,7 @@ class EpubViewerManager(
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.textViewerContainer.isVisible = false
-        binding.pdfControlsLayout.isVisible = false
+        safeViews.pdfControlsLayout.isVisible = false
         binding.btnTranslateImage.isVisible = false
         binding.progressBar.isVisible = true
         
@@ -469,7 +469,7 @@ class EpubViewerManager(
         
         // Show EPUB UI
         binding.epubWebView.isVisible = true
-        binding.epubControlsLayout.isVisible = true
+        safeViews.epubControlsLayout.isVisible = true
         binding.btnExitEpubFullscreen.isVisible = false // Hidden initially, shown in fullscreen
         
         closeEpubBook()
@@ -1048,7 +1048,7 @@ class EpubViewerManager(
     fun enterFullscreenMode() {
         isFullscreenMode = true
         callback.onEnterFullscreenMode()
-        binding.epubControlsLayout.isVisible = false
+        safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = true
         Timber.d("EPUB: Entered fullscreen mode")
     }
@@ -1059,7 +1059,7 @@ class EpubViewerManager(
     fun exitFullscreenMode() {
         isFullscreenMode = false
         callback.onExitFullscreenMode()
-        binding.epubControlsLayout.isVisible = true
+        safeViews.epubControlsLayout.isVisible = true
         binding.btnExitEpubFullscreen.isVisible = false
         Timber.d("EPUB: Exited fullscreen mode")
     }
@@ -1591,7 +1591,7 @@ class EpubViewerManager(
         ) { result ->
             val isAtBottom = result?.toBoolean() == true
             if (isAtBottom) {
-                binding.epubControlsLayout.isVisible = false
+                safeViews.epubControlsLayout.isVisible = false
                 Timber.d("EPUB: Controls hidden - user at bottom of page")
                 android.widget.Toast.makeText(
                     binding.root.context,

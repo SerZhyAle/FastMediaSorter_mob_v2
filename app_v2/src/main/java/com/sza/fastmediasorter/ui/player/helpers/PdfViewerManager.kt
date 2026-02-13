@@ -215,13 +215,13 @@ class PdfViewerManager(
         
         // Hide EPUB viewer when displaying PDF
         binding.epubWebView.isVisible = false
-        binding.epubControlsLayout.isVisible = false
+        safeViews.epubControlsLayout.isVisible = false
         binding.btnExitEpubFullscreen.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.textViewerContainer.isVisible = false
         binding.btnTranslateImage.isVisible = false
-        binding.pdfControlsLayout.isVisible = true
+        safeViews.pdfControlsLayout.isVisible = true
         binding.progressBar.isVisible = true
         Timber.d("PDF PROGRESS: progressBar.isVisible = TRUE (before coroutine)")
         
