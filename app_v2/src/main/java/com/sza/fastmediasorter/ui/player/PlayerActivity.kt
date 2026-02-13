@@ -1938,14 +1938,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Don't show countdown in audio slideshow photo mode
         if (isAudioSlideshowPhotoMode) {
-            binding.tvCountdown.isVisible = false
+            safeViews.tvCountdown.isVisible = false
             return
         }
         
-        binding.tvCountdown.text = "$seconds.."
-        binding.tvCountdown.isVisible = true
+        safeViews.tvCountdown.text = "$seconds.."
+        safeViews.tvCountdown.isVisible = true
         if (seconds == 0) {
-            binding.tvCountdown.isVisible = false
+            safeViews.tvCountdown.isVisible = false
         }
     }
     
@@ -2930,7 +2930,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.audioSlideshowSongLabel.isVisible = false
 
         // Hide countdown and background music label that may linger
-        binding.tvCountdown.isVisible = false
+        safeViews.tvCountdown.isVisible = false
         safeViews.tvBackgroundMusicTrack.isVisible = false
 
         // Restore audio player UI
@@ -2963,7 +2963,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Hide all overlays and panels that could cover the photo
         binding.controlsOverlay.isVisible = false
         binding.topCommandPanel.isVisible = false
-        binding.tvCountdown.isVisible = false
+        safeViews.tvCountdown.isVisible = false
         safeViews.copyToPanel.isVisible = false
         safeViews.moveToPanel.isVisible = false
         

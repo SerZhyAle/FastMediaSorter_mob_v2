@@ -634,18 +634,7 @@
     
     <!-- MISSING VIEWS REQUIRED FOR BINDING COMPATIBILITY -->
     
-    <!-- Countdown timer -->
-    <TextView
-        android:id="@+id/tvCountdown"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/topCommandPanel"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_margin="16dp" />
+    <include layout="@layout/player_tv_countdown_content" />
 
     <!-- Fullscreen controls overlay (Portrait style, hidden but required for binding types) -->
     <LinearLayout

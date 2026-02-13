@@ -68,6 +68,7 @@ class PlayerBindingSafeViews(
     val audioFileName: TextView get() = required(R.id.audioFileName)
     val audioFileInfo: TextView get() = required(R.id.audioFileInfo)
     val tvBackgroundMusicTrack: TextView get() = required(R.id.tvBackgroundMusicTrack)
+    val tvCountdown: TextView get() = required(R.id.tvCountdown)
 
     val btnCloseLyricsViewer: ImageButton
         get() {

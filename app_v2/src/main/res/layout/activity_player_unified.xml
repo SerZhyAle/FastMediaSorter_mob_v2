@@ -741,18 +741,7 @@
             android:contentDescription="@string/loading_indicator"
             android:visibility="gone" />
 
-        <!-- Countdown timer for slideshow (top-right corner) -->
-        <TextView
-            android:id="@+id/tvCountdown"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_margin="@dimen/activity_player_unified_tvCountdown_layout_margin"
-            android:textSize="@dimen/player_audio_info_text_size"
-            android:textColor="@color/activity_player_tvCountdown_textColor"
-            android:visibility="gone"
-            android:elevation="@dimen/activity_player_unified_tvCountdown_elevation" />
-            android:text="@string/activity_player_unified_tvCountdown_text" />
+        <include layout="@layout/player_tv_countdown_content" />
 
         <include layout="@layout/player_audio_touch_zones_overlay_content" />
 

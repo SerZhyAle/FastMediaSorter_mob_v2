@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvCountdown"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="top|end"
+    android:layout_margin="@dimen/activity_player_unified_tvCountdown_layout_margin"
+    android:text="@string/activity_player_unified_tvCountdown_text"
+    android:textSize="@dimen/player_audio_info_text_size"
+    android:textColor="@color/activity_player_tvCountdown_textColor"
+    android:visibility="gone"
+    android:elevation="@dimen/activity_player_unified_tvCountdown_elevation" />
