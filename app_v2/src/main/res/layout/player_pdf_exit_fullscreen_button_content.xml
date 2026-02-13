@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btnExitPdfFullscreen"
+    android:layout_width="@dimen/player_cmd_button_size"
+    android:layout_height="@dimen/player_cmd_button_size"
+    android:layout_gravity="top|end"
+    android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
+    android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
+    android:src="@drawable/ic_fullscreen_exit"
+    android:background="@drawable/bg_circle_dark"
+    app:tint="@android:color/white"
+    android:scaleType="fitCenter"
+    android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
+    android:contentDescription="Exit Fullscreen" />
