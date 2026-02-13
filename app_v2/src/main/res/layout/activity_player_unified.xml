@@ -723,38 +723,7 @@
 
         <include layout="@layout/player_background_music_track_overlay_content" />
 
-        <!-- Fullscreen PDF Page Viewer (shown on long tap on PDF page) -->
-        <FrameLayout
-            android:id="@+id/pdfFullscreenOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/activity_player_unified_pdfFullscreenOverlay_background"
-            android:visibility="gone"
-            android:clickable="true"
-            android:focusable="true"
-            android:focusableInTouchMode="true">
-
-            <com.github.chrisbanes.photoview.PhotoView
-                android:id="@+id/pdfFullscreenPhotoView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@string/pdf_fullscreen" />
-
-            <!-- PDF Exit Fullscreen Button (top-right corner) -->
-            <ImageButton
-                android:id="@+id/btnExitPdfFullscreen"
-                android:layout_width="@dimen/player_cmd_button_size"
-                android:layout_height="@dimen/player_cmd_button_size"
-                android:layout_gravity="top|end"
-                android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
-                android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
-                android:src="@drawable/ic_fullscreen_exit"
-                android:background="@drawable/bg_circle_dark"
-                app:tint="@android:color/white"
-                android:scaleType="fitCenter"
-                android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
-                android:contentDescription="Exit Fullscreen" />
-        </FrameLayout>
+        <include layout="@layout/player_pdf_fullscreen_overlay_content" />
 
     </FrameLayout>
 

@@ -108,13 +108,13 @@ class PdfViewerManager(
         }
         
         // Setup exit from fullscreen mode
-        binding.pdfFullscreenOverlay?.setOnClickListener {
+        safeViews.pdfFullscreenOverlay?.setOnClickListener {
             exitFullscreenMode()
         }
-        binding.pdfFullscreenPhotoView?.setOnClickListener {
+        safeViews.pdfFullscreenPhotoView?.setOnClickListener {
             exitFullscreenMode()
         }
-        binding.btnExitPdfFullscreen?.setOnClickListener {
+        safeViews.btnExitPdfFullscreen?.setOnClickListener {
             exitFullscreenMode()
         }
         
@@ -881,9 +881,9 @@ class PdfViewerManager(
         callback.onEnterFullscreenMode()
         
         // Show fullscreen overlay with current page bitmap
-        binding.pdfFullscreenPhotoView?.setImageBitmap(bitmap)
-        binding.pdfFullscreenPhotoView?.setScale(1f, true)
-        binding.pdfFullscreenOverlay?.isVisible = true
+        safeViews.pdfFullscreenPhotoView?.setImageBitmap(bitmap)
+        safeViews.pdfFullscreenPhotoView?.setScale(1f, true)
+        safeViews.pdfFullscreenOverlay?.isVisible = true
         
         Timber.d("PDF fullscreen mode entered for page ${currentPdfPageIndex + 1}")
     }
@@ -895,8 +895,8 @@ class PdfViewerManager(
         if (!isFullscreenMode) return
         
         isFullscreenMode = false
-        binding.pdfFullscreenOverlay?.isVisible = false
-        binding.pdfFullscreenPhotoView?.setImageBitmap(null)
+        safeViews.pdfFullscreenOverlay?.isVisible = false
+        safeViews.pdfFullscreenPhotoView?.setImageBitmap(null)
         
         // Restore UI elements
         callback.onExitFullscreenMode()

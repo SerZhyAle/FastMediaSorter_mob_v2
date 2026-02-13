@@ -14,6 +14,7 @@ import androidx.cardview.widget.CardView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.google.android.material.button.MaterialButton
+import com.github.chrisbanes.photoview.PhotoView
 
 class PlayerBindingSafeViews(
     private val binding: ActivityPlayerUnifiedBinding
@@ -65,6 +66,12 @@ class PlayerBindingSafeViews(
     val btnTranslateImage: ImageButton get() = required(R.id.btnTranslateImage)
     val btnGoogleLensImage: ImageButton get() = required(R.id.btnGoogleLensImage)
     val btnOcrImage: TextView get() = required(R.id.btnOcrImage)
+    val pdfFullscreenOverlay: FrameLayout?
+        get() = binding.root.findViewById(R.id.pdfFullscreenOverlay)
+    val pdfFullscreenPhotoView: PhotoView?
+        get() = binding.root.findViewById(R.id.pdfFullscreenPhotoView)
+    val btnExitPdfFullscreen: ImageButton?
+        get() = binding.root.findViewById(R.id.btnExitPdfFullscreen)
 
     val audioMetadata: TextView get() = required(R.id.audioMetadata)
     val audioFileName: TextView get() = required(R.id.audioFileName)
