@@ -300,8 +300,8 @@ class PlayerDialogAndUiStateManager(
             // View-based overlays always hidden - TouchZoneGestureManager handles zones
             safeViews.touchZones3Overlay.isVisible = false
             safeViews.touchZonesOverlay.isVisible = false
-            binding.copyToPanel.isVisible = false
-            binding.moveToPanel.isVisible = false
+            safeViews.copyToPanel.isVisible = false
+            safeViews.moveToPanel.isVisible = false
             // controlsOverlay visibility is controlled in updateUI based on showControls
             
             if (!state.showSmallControls) {

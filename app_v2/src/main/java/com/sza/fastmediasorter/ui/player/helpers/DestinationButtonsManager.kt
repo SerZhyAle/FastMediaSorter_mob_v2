@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -30,6 +31,7 @@ class DestinationButtonsManager(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val callback: DestinationButtonsCallback
 ) {
+    private val safeViews = PlayerBindingSafeViews(binding)
     
     // Cache settings to avoid repeated reads
     private var cachedCopyCollapsed: Boolean? = null
@@ -74,8 +76,8 @@ class DestinationButtonsManager(
                 val maxRecipients = cachedMaxRecipients!!
                 
                 // Clear existing buttons
-                binding.copyToButtonsGrid.removeAllViews()
-                binding.moveToButtonsGrid.removeAllViews()
+                safeViews.copyToButtonsGrid.removeAllViews()
+                safeViews.moveToButtonsGrid.removeAllViews()
                 
                 val destinationsList = destinations.take(maxRecipients)
                 val count = destinationsList.size
@@ -131,7 +133,7 @@ class DestinationButtonsManager(
                         }
                         // Only add row if it has buttons (avoid empty rows)
                         if (rowLayout.childCount > 0) {
-                            binding.copyToButtonsGrid.addView(rowLayout)
+                            safeViews.copyToButtonsGrid.addView(rowLayout)
                         }
                     }
                 }
@@ -150,7 +152,7 @@ class DestinationButtonsManager(
                         }
                         // Only add row if it has buttons (avoid empty rows)
                         if (rowLayout.childCount > 0) {
-                            binding.moveToButtonsGrid.addView(rowLayout)
+                            safeViews.moveToButtonsGrid.addView(rowLayout)
                         }
                     }
                 }
@@ -165,8 +167,8 @@ class DestinationButtonsManager(
                 
                 if (!hasDestinations) {
                     Timber.d("DestinationButtonsManager: No valid destinations after filtering (count=0), hiding panels")
-                    binding.copyToPanel.isVisible = false
-                    binding.moveToPanel.isVisible = false
+                    safeViews.copyToPanel.isVisible = false
+                    safeViews.moveToPanel.isVisible = false
                 } else if (!shouldShowPanels) {
                     Timber.d("DestinationButtonsManager: Command panel not visible (fullscreen mode?), skipping panel show")
                     // Panels remain hidden - fullscreen mode or slideshow active
@@ -174,8 +176,8 @@ class DestinationButtonsManager(
                     // CRITICAL: Show panels EXPLICITLY when destinations exist AND command panel is visible
                     // This fixes race condition where updateCommandAvailability runs before buttons are created
                     Timber.d("DestinationButtonsManager: SHOWING panels - destinationsCount=${destinationsList.size}")
-                    binding.copyToPanel.isVisible = true
-                    binding.moveToPanel.isVisible = true
+                    safeViews.copyToPanel.isVisible = true
+                    safeViews.moveToPanel.isVisible = true
                     
                     // Force layout recalculation to prevent panels from being pushed off-screen
                     binding.root.requestLayout()
@@ -188,7 +190,7 @@ class DestinationButtonsManager(
                 
                 // Update command availability to refresh panel visibility
                 // This may hide moveToPanel if canWrite=false (read-only resource)
-                Timber.d("DestinationButtonsManager: Calling onUpdateCommandAvailability callback - copyGrid.childCount=${binding.copyToButtonsGrid.childCount}, moveGrid.childCount=${binding.moveToButtonsGrid.childCount}")
+                Timber.d("DestinationButtonsManager: Calling onUpdateCommandAvailability callback - copyGrid.childCount=${safeViews.copyToButtonsGrid.childCount}, moveGrid.childCount=${safeViews.moveToButtonsGrid.childCount}")
                 callback.onUpdateCommandAvailability()
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load destinations")
@@ -348,15 +350,15 @@ class DestinationButtonsManager(
      * Update Copy to panel buttons visibility and indicator
      */
     private fun updateCopyPanelVisibility(collapsed: Boolean) {
-        binding.copyToButtonsGrid.isVisible = !collapsed
-        binding.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        safeViews.copyToButtonsGrid.isVisible = !collapsed
+        safeViews.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
     }
     
     /**
      * Update Move to panel buttons visibility and indicator
      */
     private fun updateMovePanelVisibility(collapsed: Boolean) {
-        binding.moveToButtonsGrid.isVisible = !collapsed
-        binding.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        safeViews.moveToButtonsGrid.isVisible = !collapsed
+        safeViews.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
     }
 }

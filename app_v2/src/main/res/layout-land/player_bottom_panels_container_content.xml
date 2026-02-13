@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottomPanelsContainer"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent">
+
+    <LinearLayout
+        android:id="@+id/copyToPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="#CC004D00"
+        android:paddingVertical="@dimen/player_cmd_padding_vertical"
+        android:paddingHorizontal="4dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/copyToPanelHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="2dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/copyToPanelIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▼"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small"
+                android:paddingEnd="4dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/panel_copy_to"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small" />
+        </LinearLayout>
+
+        <GridLayout
+            android:id="@+id/copyToButtonsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:columnCount="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/moveToPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:background="#CC00004D"
+        android:paddingVertical="@dimen/player_cmd_padding_vertical"
+        android:paddingHorizontal="4dp"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:id="@+id/moveToPanelHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="2dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/moveToPanelIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="▼"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small"
+                android:paddingEnd="4dp" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/panel_move_to"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small" />
+        </LinearLayout>
+
+        <GridLayout
+            android:id="@+id/moveToButtonsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:columnCount="1" />
+    </LinearLayout>
+
+</LinearLayout>

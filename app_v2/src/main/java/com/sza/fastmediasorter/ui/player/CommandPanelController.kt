@@ -140,7 +140,7 @@ class CommandPanelController(
         }
         
         // Setup collapsible Copy to panel
-        binding.copyToPanelHeader.apply {
+        safeViews.copyToPanelHeader.apply {
             setOnClickListener { _ ->
                 Timber.d("CommandPanelController: copyToPanelHeader clicked - toggling Copy panel")
                 callback.onCopyPanelHeaderClicked()
@@ -151,7 +151,7 @@ class CommandPanelController(
         }
         
         // Setup collapsible Move to panel
-        binding.moveToPanelHeader.apply {
+        safeViews.moveToPanelHeader.apply {
             setOnClickListener { _ ->
                 Timber.d("CommandPanelController: moveToPanelHeader clicked - toggling Move panel")
                 callback.onMovePanelHeaderClicked()
@@ -353,17 +353,17 @@ class CommandPanelController(
         updateSlideshowButtonColor(state.isSlideShowActive)
         
         // Copy/Move panels visibility based on settings AND whether there are destination buttons
-        val hasCopyButtons = (binding.copyToButtonsGrid as? android.view.ViewGroup)?.childCount ?: 0 > 0
-        val hasMoveButtons = (binding.moveToButtonsGrid as? android.view.ViewGroup)?.childCount ?: 0 > 0
+        val hasCopyButtons = safeViews.copyToButtonsGrid.childCount > 0
+        val hasMoveButtons = safeViews.moveToButtonsGrid.childCount > 0
         
         val copyPanelVisible = state.showCommandPanel && state.enableCopying && hasCopyButtons
         val movePanelVisible = state.showCommandPanel && state.enableMoving && hasMoveButtons && canWrite
         
-        Timber.d("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${binding.copyToButtonsGrid.childCount})")
-        Timber.d("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${binding.moveToButtonsGrid.childCount})")
+        Timber.d("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${safeViews.copyToButtonsGrid.childCount})")
+        Timber.d("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${safeViews.moveToButtonsGrid.childCount})")
         
-        binding.copyToPanel.isVisible = copyPanelVisible
-        binding.moveToPanel.isVisible = movePanelVisible
+        safeViews.copyToPanel.isVisible = copyPanelVisible
+        safeViews.moveToPanel.isVisible = movePanelVisible
         
         // CRITICAL FIX: Force layout recalculation when panel visibility changes
         // Problem: mediaContentArea has layout_weight=1 and takes all available space
@@ -375,8 +375,8 @@ class CommandPanelController(
             binding.root.post {
                 // Force immediate layout recalculation
                 binding.mediaContentArea.requestLayout()
-                binding.copyToPanel.requestLayout()
-                binding.moveToPanel.requestLayout()
+                safeViews.copyToPanel.requestLayout()
+                safeViews.moveToPanel.requestLayout()
                 binding.root.requestLayout()
                 
                 // Also request insets reapply for proper system bars handling
@@ -386,15 +386,15 @@ class CommandPanelController(
         }
         
         // DEBUG: Log actual panel state after visibility change
-        binding.copyToPanel.post {
+        safeViews.copyToPanel.post {
             val location = IntArray(2)
-            binding.copyToPanel.getLocationOnScreen(location)
-            Timber.w("CommandPanelController: ACTUAL copyToPanel state - visibility=${binding.copyToPanel.visibility}, isVisible=${binding.copyToPanel.isVisible}, width=${binding.copyToPanel.width}, height=${binding.copyToPanel.height}, Y=${location[1]}, parent=${binding.copyToPanel.parent?.javaClass?.simpleName}, background=${binding.copyToPanel.background}")
+            safeViews.copyToPanel.getLocationOnScreen(location)
+            Timber.w("CommandPanelController: ACTUAL copyToPanel state - visibility=${safeViews.copyToPanel.visibility}, isVisible=${safeViews.copyToPanel.isVisible}, width=${safeViews.copyToPanel.width}, height=${safeViews.copyToPanel.height}, Y=${location[1]}, parent=${safeViews.copyToPanel.parent?.javaClass?.simpleName}, background=${safeViews.copyToPanel.background}")
         }
-        binding.moveToPanel.post {
+        safeViews.moveToPanel.post {
             val location = IntArray(2)
-            binding.moveToPanel.getLocationOnScreen(location)
-            Timber.w("CommandPanelController: ACTUAL moveToPanel state - visibility=${binding.moveToPanel.visibility}, isVisible=${binding.moveToPanel.isVisible}, width=${binding.moveToPanel.width}, height=${binding.moveToPanel.height}, Y=${location[1]}, parent=${binding.moveToPanel.parent?.javaClass?.simpleName}, background=${binding.moveToPanel.background}")
+            safeViews.moveToPanel.getLocationOnScreen(location)
+            Timber.w("CommandPanelController: ACTUAL moveToPanel state - visibility=${safeViews.moveToPanel.visibility}, isVisible=${safeViews.moveToPanel.isVisible}, width=${safeViews.moveToPanel.width}, height=${safeViews.moveToPanel.height}, Y=${location[1]}, parent=${safeViews.moveToPanel.parent?.javaClass?.simpleName}, background=${safeViews.moveToPanel.background}")
         }
         
 
@@ -474,10 +474,10 @@ class CommandPanelController(
         // Scale command panel container paddings
         val containers = listOf(
             binding.topCommandPanel,
-            binding.copyToPanel,
-            binding.moveToPanel,
-            binding.copyToButtonsGrid,
-            binding.moveToButtonsGrid
+            safeViews.copyToPanel,
+            safeViews.moveToPanel,
+            safeViews.copyToButtonsGrid,
+            safeViews.moveToButtonsGrid
         )
         
         containers.forEach { container ->
@@ -540,10 +540,10 @@ class CommandPanelController(
         // Restore container paddings
         val containers = listOf(
             binding.topCommandPanel,
-            binding.copyToPanel,
-            binding.moveToPanel,
-            binding.copyToButtonsGrid,
-            binding.moveToButtonsGrid
+            safeViews.copyToPanel,
+            safeViews.moveToPanel,
+            safeViews.copyToButtonsGrid,
+            safeViews.moveToButtonsGrid
         )
         
         containers.forEach { container ->

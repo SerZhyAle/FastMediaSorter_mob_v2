@@ -1624,7 +1624,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Apply WindowInsets to bottomPanelsContainer (wraps both Copy and Move panels)
         // This unified container ensures consistent bottom padding regardless of which panel is visible.
         // It prevents the "double padding" issue where a panel sitting above another one would get unnecessary bottom padding.
-        binding.bottomPanelsContainer?.let { container ->
+        safeViews.bottomPanelsContainer.let { container ->
             androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
                 val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
                 
@@ -2964,8 +2964,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.controlsOverlay.isVisible = false
         binding.topCommandPanel.isVisible = false
         binding.tvCountdown.isVisible = false
-        binding.copyToPanel.isVisible = false
-        binding.moveToPanel.isVisible = false
+        safeViews.copyToPanel.isVisible = false
+        safeViews.moveToPanel.isVisible = false
         
         // Keep song info label visible in bottom-left
         // (tvBackgroundMusicTrack is NOT hidden here - shows current song)
@@ -3280,8 +3280,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         systemBarsManager.enterFullscreenMode()
                     }
                     binding.toolbar.isVisible = false
-                    binding.copyToPanel.isVisible = false
-                    binding.moveToPanel.isVisible = false
+                    safeViews.copyToPanel.isVisible = false
+                    safeViews.moveToPanel.isVisible = false
                     safeViews.pdfControlsLayout.isVisible = false
                     safeViews.translationOverlay.isVisible = false
                     binding.translationLensOverlay.isVisible = false

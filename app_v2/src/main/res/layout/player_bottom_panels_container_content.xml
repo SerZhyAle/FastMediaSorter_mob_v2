@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/bottomPanelsContainer"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:id="@+id/copyToPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/activity_player_unified_copyToPanel_background"
+        android:paddingVertical="@dimen/player_cmd_padding_vertical"
+        android:paddingHorizontal="@dimen/activity_player_unified_moveToPanel_paddingHorizontal"
+        android:visibility="invisible">
+
+        <LinearLayout
+            android:id="@+id/copyToPanelHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/copyToPanelIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_player_unified_moveToPanelIndicator_text"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small"
+                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/panel_copy_to"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small" />
+        </LinearLayout>
+
+        <GridLayout
+            android:id="@+id/copyToButtonsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:columnCount="1" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/moveToPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/activity_player_unified_moveToPanel_background"
+        android:paddingVertical="@dimen/player_cmd_padding_vertical"
+        android:paddingHorizontal="@dimen/activity_player_unified_moveToPanel_paddingHorizontal"
+        android:visibility="invisible">
+
+        <LinearLayout
+            android:id="@+id/moveToPanelHeader"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+
+            <TextView
+                android:id="@+id/moveToPanelIndicator"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/activity_player_unified_moveToPanelIndicator_text"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small"
+                android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/panel_move_to"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/text_size_small" />
+        </LinearLayout>
+
+        <GridLayout
+            android:id="@+id/moveToButtonsGrid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:columnCount="1" />
+    </LinearLayout>
+
+</LinearLayout>
