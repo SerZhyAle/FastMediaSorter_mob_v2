@@ -115,13 +115,13 @@ class TextViewerManager(
         }
         
         // Click on background to close translation overlay
-        binding.translationOverlayBackground.setOnClickListener {
+        safeViews.translationOverlayBackground.setOnClickListener {
             Timber.d("BUTTON: translationOverlayBackground clicked - hiding translation overlay")
             hideTranslationOverlay()
         }
         
         // Setup translation overlay click to expand/collapse + swipe for font size
-        binding.translationOverlay.setOnClickListener {
+        safeViews.translationOverlay.setOnClickListener {
             toggleTranslationOverlaySize()
         }
         
@@ -730,8 +730,8 @@ class TextViewerManager(
      * Hide translation overlay and reset to compact mode
      */
     private fun hideTranslationOverlay() {
-        binding.translationOverlay.isVisible = false
-        binding.translationOverlayBackground.isVisible = false
+        safeViews.translationOverlay.isVisible = false
+        safeViews.translationOverlayBackground.isVisible = false
         // Reset to compact mode when closing
         if (isTranslationExpanded) {
             isTranslationExpanded = true // Set to true so toggle makes it false
@@ -747,7 +747,7 @@ class TextViewerManager(
     private fun toggleTranslationOverlaySize() {
         isTranslationExpanded = !isTranslationExpanded
         
-        val layoutParams = binding.translationOverlay.layoutParams as android.widget.FrameLayout.LayoutParams
+        val layoutParams = safeViews.translationOverlay.layoutParams as android.widget.FrameLayout.LayoutParams
         val scrollViewLayoutParams = binding.translationScrollView.layoutParams as android.widget.RelativeLayout.LayoutParams
         
         if (isTranslationExpanded) {
@@ -760,7 +760,7 @@ class TextViewerManager(
             scrollViewLayoutParams.height = android.widget.RelativeLayout.LayoutParams.MATCH_PARENT
             scrollViewLayoutParams.setMargins(0, 0, 0, 0)
             
-            binding.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#FF000000")) // Opaque black
+            safeViews.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#FF000000")) // Opaque black
             
             Timber.d("Translation overlay expanded to fullscreen")
         } else {
@@ -777,12 +777,12 @@ class TextViewerManager(
             scrollViewLayoutParams.height = maxHeightPx
             scrollViewLayoutParams.setMargins(0, 0, 0, 0)
             
-            binding.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#B0000000")) // Semi-transparent
+            safeViews.translationOverlay.setCardBackgroundColor(android.graphics.Color.parseColor("#B0000000")) // Semi-transparent
             
             Timber.d("Translation overlay collapsed to compact mode")
         }
         
-        binding.translationOverlay.layoutParams = layoutParams
+        safeViews.translationOverlay.layoutParams = layoutParams
         binding.translationScrollView.layoutParams = scrollViewLayoutParams
     }
     
@@ -800,8 +800,8 @@ class TextViewerManager(
             return
         }
         
-        binding.translationOverlay.isVisible = true
-        binding.translationOverlayBackground.isVisible = true
+        safeViews.translationOverlay.isVisible = true
+        safeViews.translationOverlayBackground.isVisible = true
         // Apply saved translation font size
         applyTranslationFontSize()
         
@@ -877,7 +877,7 @@ class TextViewerManager(
         binding.photoView.isVisible = false
         binding.imageView.isVisible = false
         binding.pdfControlsLayout.isVisible = false
-        binding.translationOverlay.isVisible = false
+        safeViews.translationOverlay.isVisible = false
         binding.translationLensOverlay.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
@@ -941,8 +941,8 @@ class TextViewerManager(
         safeViews.textViewerContainer.isVisible = false
         safeViews.textScrollView.isVisible = false
         safeViews.tvTextContent.text = ""
-        binding.translationOverlay.isVisible = false
-        binding.translationOverlayBackground.isVisible = false
+        safeViews.translationOverlay.isVisible = false
+        safeViews.translationOverlayBackground.isVisible = false
         currentFile = null
         translationEnabled = false
         
@@ -996,7 +996,7 @@ class TextViewerManager(
         if (!isPdfActive) binding.pdfControlsLayout.isVisible = false
         if (!isEpubActive) binding.epubControlsLayout.isVisible = false
         binding.epubWebView.isVisible = false
-        binding.translationOverlay.isVisible = false
+        safeViews.translationOverlay.isVisible = false
         binding.translationLensOverlay.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
