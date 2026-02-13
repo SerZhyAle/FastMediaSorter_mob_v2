@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btnDocumentFullscreenExit"
+    android:layout_width="48dp"
+    android:layout_height="48dp"
+    android:src="@android:drawable/ic_menu_close_clear_cancel"
+    android:background="@drawable/bg_circle_semi_transparent"
+    app:tint="@android:color/white"
+    android:scaleType="centerInside"
+    android:padding="12dp"
+    android:contentDescription="@string/exit_fullscreen"
+    android:visibility="gone"
+    app:layout_constraintTop_toBottomOf="@id/topCommandPanel"
+    app:layout_constraintEnd_toEndOf="parent"
+    android:layout_marginTop="16dp"
+    android:layout_marginEnd="16dp" />

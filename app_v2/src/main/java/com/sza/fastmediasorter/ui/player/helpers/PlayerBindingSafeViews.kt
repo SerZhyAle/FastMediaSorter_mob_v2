@@ -124,6 +124,7 @@ class PlayerBindingSafeViews(
     val touchZone3Gestures: View get() = required(R.id.touchZone3Gestures)
     val touchZone3Next: View get() = required(R.id.touchZone3Next)
     val touchZonesOverlayNew: View get() = required(R.id.touchZonesOverlayNew)
+    val btnDocumentFullscreenExit: ImageButton get() = required(R.id.btnDocumentFullscreenExit)
     val bottomPanelsContainer: LinearLayout get() = required(R.id.bottomPanelsContainer)
     val copyToPanel: LinearLayout get() = required(R.id.copyToPanel)
     val moveToPanel: LinearLayout get() = required(R.id.moveToPanel)

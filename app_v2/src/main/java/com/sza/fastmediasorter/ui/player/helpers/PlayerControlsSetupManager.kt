@@ -408,7 +408,7 @@ class PlayerControlsSetupManager(
      * This button is shown in fullscreen mode for PDF/EPUB/TXT files.
      */
     fun setupDocumentFullscreenExitButton() {
-        binding.btnDocumentFullscreenExit.setOnClickListener {
+        safeViews.btnDocumentFullscreenExit.setOnClickListener {
             UserActionLogger.logButtonClick("DocumentFullscreenExit", "PlayerActivity")
             if (!viewModel.state.value.showCommandPanel) {
                 viewModel.toggleCommandPanel()
@@ -427,7 +427,7 @@ class PlayerControlsSetupManager(
                         currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.EPUB ||
                         currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.TEXT
         
-        binding.btnDocumentFullscreenExit.visibility = 
+        safeViews.btnDocumentFullscreenExit.visibility = 
             if (isFullscreen && isDocument) android.view.View.VISIBLE else android.view.View.GONE
     }
 }

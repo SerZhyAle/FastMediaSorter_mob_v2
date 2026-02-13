@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ImageButton xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/btnDocumentFullscreenExit"
+    android:layout_width="@dimen/activity_player_unified_btnDocumentFullscreenExit_layout_width"
+    android:layout_height="@dimen/activity_player_unified_btnDocumentFullscreenExit_layout_height"
+    android:layout_gravity="top|end"
+    android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
+    android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
+    android:src="@android:drawable/ic_menu_close_clear_cancel"
+    android:background="@drawable/bg_circle_semi_transparent"
+    app:tint="@android:color/white"
+    android:scaleType="centerInside"
+    android:padding="@dimen/activity_player_unified_btnDocumentFullscreenExit_padding"
+    android:contentDescription="@string/exit_fullscreen"
+    android:visibility="gone" />

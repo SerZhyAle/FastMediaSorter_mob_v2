@@ -774,22 +774,7 @@
             android:shadowRadius="2"
             android:visibility="gone" />
 
-        <!-- Fullscreen Exit Button for Documents (REG-DOC mode) -->
-        <!-- Shown in top-right corner for PDF/EPUB/TXT in fullscreen mode -->
-        <ImageButton
-            android:id="@+id/btnDocumentFullscreenExit"
-            android:layout_width="@dimen/activity_player_unified_btnDocumentFullscreenExit_layout_width"
-            android:layout_height="@dimen/activity_player_unified_btnDocumentFullscreenExit_layout_height"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
-            android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:background="@drawable/bg_circle_semi_transparent"
-            app:tint="@android:color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/activity_player_unified_btnDocumentFullscreenExit_padding"
-            android:contentDescription="@string/exit_fullscreen"
-            android:visibility="gone" />
+        <include layout="@layout/player_document_fullscreen_exit_button_content" />
 
         <include layout="@layout/player_touch_zones_overlay_new_content" />
 

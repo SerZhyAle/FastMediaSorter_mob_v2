@@ -768,22 +768,7 @@
 
         <include layout="@layout/player_audio_touch_zones_overlay_content" />
 
-    <!-- Fullscreen Exit Button for Documents (REG-DOC mode) -->
-    <ImageButton
-        android:id="@+id/btnDocumentFullscreenExit"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@android:drawable/ic_menu_close_clear_cancel"
-        android:background="@drawable/bg_circle_semi_transparent"
-        app:tint="@android:color/white"
-        android:scaleType="centerInside"
-        android:padding="12dp"
-        android:contentDescription="@string/exit_fullscreen"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/topCommandPanel"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="16dp" />
+    <include layout="@layout/player_document_fullscreen_exit_button_content" />
 
     <include layout="@layout/player_touch_zones_overlay_new_content" />
 
