@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/btnOcrImage"
+    android:layout_width="@dimen/player_close_button_size"
+    android:layout_height="@dimen/player_close_button_size"
+    android:layout_gravity="bottom|end"
+    android:layout_marginEnd="@dimen/margin_large"
+    android:layout_marginBottom="@dimen/activity_player_unified_btnOcrImage_layout_marginBottom"
+    android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
+    android:textColor="@android:color/white"
+    android:textSize="@dimen/player_audio_info_text_size"
+    android:textStyle="@string/text_style_bold"
+    android:gravity="center"
+    android:background="@drawable/bg_circle_dark"
+    android:elevation="@dimen/elevation_player_overlay"
+    android:visibility="gone"
+    android:contentDescription="@string/ocr_button_description" />

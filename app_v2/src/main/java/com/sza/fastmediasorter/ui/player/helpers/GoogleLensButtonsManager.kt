@@ -51,7 +51,7 @@ class GoogleLensButtonsManager(
         // ===== OCR Buttons =====
         
         // Deprecated overlay OCR button (kept for compatibility)
-        binding.btnOcrImage.setOnClickListener {
+        safeViews.btnOcrImage.setOnClickListener {
             Timber.d("BUTTON: btnOcrImage clicked (deprecated)")
             onExtractImageText()
         }
