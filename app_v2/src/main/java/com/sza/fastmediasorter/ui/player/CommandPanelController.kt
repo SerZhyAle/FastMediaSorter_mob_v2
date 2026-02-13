@@ -641,16 +641,7 @@ class CommandPanelController(
         val popup = PopupMenu(context, anchor)
         popup.menuInflater.inflate(R.menu.overflow_menu_player, popup.menu)
         
-        // Force show icons in popup menu
-        try {
-            val menuHelper = popup.javaClass.getDeclaredField("mPopup")
-            menuHelper.isAccessible = true
-            val helper = menuHelper.get(popup)
-            helper.javaClass.getDeclaredMethod("setForceShowIcon", Boolean::class.java)
-                .invoke(helper, true)
-        } catch (e: Exception) {
-            Timber.w("Failed to force show menu icons: ${e.message}")
-        }
+        popup.setForceShowIcon(true)
         
         // Apply dark tint to white icons for popup menu visibility
         val iconColor = android.graphics.Color.DKGRAY
@@ -720,8 +711,8 @@ class CommandPanelController(
             }
             true
         }
-        
-        // Long click handler for settings dialogs
+
+        // Long click shortcut for settings dialogs
         try {
             val listView = (popup.menu as? androidx.appcompat.view.menu.MenuBuilder)?.let { _ ->
                 popup.javaClass.getDeclaredField("mPopup")
@@ -729,11 +720,13 @@ class CommandPanelController(
                     .get(popup)
                     ?.javaClass
                     ?.getDeclaredMethod("getListView")
-                    ?.invoke(popup.javaClass.getDeclaredField("mPopup")
-                        .apply { isAccessible = true }
-                        .get(popup)) as? android.widget.ListView
+                    ?.invoke(
+                        popup.javaClass.getDeclaredField("mPopup")
+                            .apply { isAccessible = true }
+                            .get(popup)
+                    ) as? android.widget.ListView
             }
-            
+
             listView?.setOnItemLongClickListener { _, _, position, _ ->
                 val menuItem = popup.menu.getItem(position)
                 when (menuItem.itemId) {

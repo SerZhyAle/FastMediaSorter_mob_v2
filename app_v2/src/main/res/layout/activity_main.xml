@@ -233,6 +233,7 @@
             android:background="?attr/colorSurface"
             app:tabMode="fixed"
             app:tabGravity="fill"
+            app:tabIndicatorFullWidth="false"
             app:tabIconTint="?attr/colorControlNormal"
             app:tabSelectedTextColor="?attr/colorPrimary"
             app:tabTextColor="?attr/colorControlNormal"
@@ -262,37 +263,24 @@
             tools:listitem="@layout/item_resource" />
 
         <!-- Empty state view -->
-        <LinearLayout
+        <TextView
             android:id="@+id/emptyStateView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
             android:gravity="center"
             android:padding="@dimen/empty_state_padding"
             android:visibility="gone"
+            android:drawableTop="@android:drawable/ic_input_add"
+            android:drawablePadding="@dimen/empty_state_text_margin_top"
+            android:text="@string/empty_state_message"
+            android:textSize="@dimen/empty_state_text_size"
+            android:textAlignment="@string/button_text_alignment_center"
+            android:alpha="@string/activity_main_emptyStateView_alpha"
             app:layout_constraintTop_toTopOf="@id/rvResources"
             app:layout_constraintBottom_toBottomOf="@id/rvResources"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:visibility="visible">
-
-            <ImageView
-                android:layout_width="@dimen/empty_state_icon_size"
-                android:layout_height="@dimen/empty_state_icon_size"
-                android:src="@android:drawable/ic_input_add"
-                android:contentDescription="@string/add_resource"
-                android:alpha="@string/activity_main_emptyStateView_alpha" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/empty_state_text_margin_top"
-                android:text="@string/empty_state_message"
-                android:textSize="@dimen/empty_state_text_size"
-                android:textAlignment="@string/button_text_alignment_center"
-                android:gravity="center"
-                android:alpha="@string/activity_main_emptyStateView_alpha" />
-        </LinearLayout>
+            tools:visibility="visible" />
 
         <!-- Error state view for network errors -->
         <LinearLayout

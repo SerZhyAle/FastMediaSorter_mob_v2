@@ -77,18 +77,12 @@
             android:id="@+id/layoutCopyOptions"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:minHeight="@dimen/button_height"
             android:paddingStart="@dimen/settings_padding_horizontal_start"
             android:paddingEnd="@dimen/padding_none"
-            android:layout_marginBottom="@dimen/margin_small">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height"
-                android:layout_marginBottom="@dimen/margin_tiny">
+            android:layout_marginBottom="@dimen/margin_tiny">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchGoToNextAfterCopy"
@@ -111,8 +105,6 @@
                     android:contentDescription="@string/tooltip_go_to_next_after_copy_title"
                     android:src="@android:drawable/ic_menu_help"
                     app:tint="?android:attr/textColorSecondary" />
-
-            </LinearLayout>
         </LinearLayout>
 
         <!-- Enable Move + Overwrite on Move (One Row) -->

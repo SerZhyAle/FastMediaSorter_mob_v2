@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
+    tools:ignore="TooManyViews"
     tools:context=".ui.addresource.AddResourceActivity">
 
     <com.google.android.material.appbar.MaterialToolbar
@@ -62,6 +63,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:padding="@dimen/padding_large"
                 android:gravity="center_vertical">
 
@@ -114,6 +116,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:padding="@dimen/padding_large"
                 android:gravity="center_vertical">
 
@@ -166,6 +169,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:padding="@dimen/padding_large"
                 android:gravity="center_vertical">
 
@@ -218,6 +222,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:padding="@dimen/padding_large"
                 android:gravity="center_vertical">
 
@@ -275,6 +280,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:gravity="center_vertical">
 
             <com.google.android.material.button.MaterialButton
@@ -323,6 +329,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginTop="@dimen/resource_padding_zero"
             android:visibility="gone"
             android:id="@+id/layoutLocalOptions">
@@ -441,6 +448,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -495,6 +503,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -542,6 +551,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -592,6 +602,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
@@ -618,6 +629,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="@dimen/resource_margin_4dp">
 
@@ -686,9 +698,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/images_i"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -709,9 +720,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/videos_v"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -732,9 +742,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/audio_a"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -755,9 +764,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/gifs_g"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -787,9 +795,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/text_t"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -810,9 +817,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/pdf_p"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -833,9 +839,8 @@
                                 android:minHeight="@dimen/resource_checkbox_min_size_zero" />
 
                             <TextView
-                                android:layout_width="0dp"
+                                android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_weight="1"
                                 android:text="@string/epub_e"
                                 android:textSize="@dimen/resource_text_13sp" />
                         </LinearLayout>
@@ -866,6 +871,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_margin_16dp">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -996,6 +1002,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -1064,6 +1071,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:visibility="visible"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
@@ -1180,6 +1188,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_margin_16dp">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -1226,6 +1235,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
                 <com.google.android.material.textfield.TextInputLayout
@@ -1270,6 +1280,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:layout_marginTop="@dimen/resource_section_margin_top"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
@@ -1296,6 +1307,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="@dimen/resource_margin_4dp">
 
@@ -1345,7 +1357,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportImage"
@@ -1380,7 +1393,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
 
                         <com.google.android.material.checkbox.MaterialCheckBox
                             android:id="@+id/cbSftpSupportText"
@@ -1419,6 +1433,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:baselineAligned="false"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="@dimen/resource_margin_4dp">
 
@@ -1488,6 +1503,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:baselineAligned="false"
                     android:padding="@dimen/padding_large"
                     android:gravity="center_vertical">
 
@@ -1534,6 +1550,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:baselineAligned="false"
                     android:padding="@dimen/padding_large"
                     android:gravity="center_vertical">
 
@@ -1580,6 +1597,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
+                    android:baselineAligned="false"
                     android:padding="@dimen/padding_large"
                     android:gravity="center_vertical">
 

@@ -32,7 +32,7 @@
     <dimen name="margin_medium">12dp</dimen>
     
     <!-- UI Elements -->
-    <dimen name="button_height">40dp</dimen>
+    <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="list_item_height">64dp</dimen>
     <dimen name="icon_size_large">48dp</dimen>
@@ -101,7 +101,7 @@
     <dimen name="elevation_operations_bar">4dp</dimen>
     
     <!-- Player Activity -->
-    <dimen name="player_cmd_button_size">36dp</dimen>
+    <dimen name="player_cmd_button_size">48dp</dimen>
     <dimen name="player_cmd_overflow_width">72dp</dimen>
     <dimen name="player_cmd_padding_vertical">2dp</dimen>
     <dimen name="player_cmd_padding_top">2dp</dimen>
@@ -115,7 +115,7 @@
     <!-- Margin for audio cover art to not overlap ExoPlayer controls (controls height ~140-160dp) -->
     <dimen name="player_audio_cover_margin_bottom">100dp</dimen>
     <dimen name="player_search_panel_padding">8dp</dimen>
-    <dimen name="player_search_button_size">40dp</dimen>
+    <dimen name="player_search_button_size">48dp</dimen>
     <dimen name="player_close_button_size">48dp</dimen>
     <dimen name="player_close_button_padding">12dp</dimen>
     <dimen name="player_close_button_margin">8dp</dimen>
@@ -155,14 +155,14 @@
     <dimen name="add_resource_title_margin">16dp</dimen>
     
     <!-- Welcome Activity -->
-    <dimen name="welcome_button_min_height">40dp</dimen>
+    <dimen name="welcome_button_min_height">48dp</dimen>
     
     <!-- Custom Player Controls -->
     <dimen name="player_controls_padding">8dp</dimen>
     <dimen name="player_progress_height">26dp</dimen>
     <dimen name="player_progress_margin_horizontal">8dp</dimen>
     <dimen name="player_position_text_size">14sp</dimen>
-    <dimen name="player_small_button_size">40dp</dimen>
+    <dimen name="player_small_button_size">48dp</dimen>
     <dimen name="player_medium_button_size">48dp</dimen>
     <dimen name="player_large_button_size">56dp</dimen>
     <dimen name="player_button_margin_start">4dp</dimen>
@@ -184,7 +184,7 @@
     <dimen name="resource_field_margin_top">4dp</dimen>
     <dimen name="resource_section_margin_top">8dp</dimen>
     <dimen name="resource_section_margin_top_12">12dp</dimen>
-    <dimen name="resource_checkbox_min_height">40dp</dimen>
+    <dimen name="resource_checkbox_min_height">48dp</dimen>
     <dimen name="resource_text_13sp">13sp</dimen>
     <dimen name="resource_server_width">180dp</dimen>
     <dimen name="resource_port_width">120dp</dimen>
@@ -319,7 +319,8 @@
     <dimen name="layout_dimension_min">1dp</dimen>
     
     <!-- Layout constraints -->
-    <dimen name="layout_settings_button_max_width">600dp</dimen>
+    <dimen name="layout_settings_button_max_width">320dp</dimen>
+    <dimen name="layout_settings_text_field_max_width">488dp</dimen>
     <dimen name="layout_toolbar_button_max_width">100dp</dimen>
     
     <!-- Text sizes (layout-specific) -->
@@ -331,8 +332,8 @@
 
 
     <!-- Unique layout dimensions (no unification) -->
-    <dimen name="activity_browse_btnResourceAction_layout_height">36dp</dimen>
-    <dimen name="activity_browse_btnResourceAction_layout_width">36dp</dimen>
+    <dimen name="activity_browse_btnResourceAction_layout_height">48dp</dimen>
+    <dimen name="activity_browse_btnResourceAction_layout_width">48dp</dimen>
     <dimen name="activity_browse_btnResourceAction_padding">6dp</dimen>
     <dimen name="activity_edit_resource_tvLastTestDate_textSize">11sp</dimen>
     <dimen name="activity_player_audioInfoOverlay_layout_marginBottom">140dp</dimen>
@@ -568,8 +569,8 @@
     <dimen name="fragment_settings_audio_etAudioSizeMax_layout_marginStart">@dimen/layout_spacing_medium</dimen>
     <dimen name="fragment_settings_audio_iconHelpSupportAudio_layout_marginStart">@dimen/layout_spacing_medium</dimen>
     <dimen name="fragment_settings_audio_switchSearchCoversOnlyWifi_layout_marginStart">@dimen/layout_button_size_large</dimen>
-    <dimen name="fragment_settings_audio_tilAudioSizeMax_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
-    <dimen name="fragment_settings_audio_tilAudioSizeMin_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
+    <dimen name="fragment_settings_audio_tilAudioSizeMax_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
+    <dimen name="fragment_settings_audio_tilAudioSizeMin_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
     <dimen name="fragment_settings_destinations_tvNoResourcesMessage_padding">@dimen/layout_spacing_medium</dimen>
     <dimen name="fragment_settings_general_btnExportSettings_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
     <dimen name="fragment_settings_general_btnImportSettings_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
@@ -578,13 +579,13 @@
     <dimen name="fragment_settings_general_btnResetSettings_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
     <dimen name="fragment_settings_general_btnShowLog_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
     <dimen name="fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
-    <dimen name="fragment_settings_general_tilDefaultPassword_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
-    <dimen name="fragment_settings_general_tilDefaultUser_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
+    <dimen name="fragment_settings_general_tilDefaultPassword_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
+    <dimen name="fragment_settings_general_tilDefaultUser_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
     <dimen name="fragment_settings_general_tvVersionInfo_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="fragment_settings_images_iconHelpFullSizeImages_layout_marginStart">@dimen/layout_spacing_medium</dimen>
     <dimen name="fragment_settings_images_switchSupportGifs_layout_marginStart">@dimen/layout_spacing_medium</dimen>
-    <dimen name="fragment_settings_images_tilImageSizeMax_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
-    <dimen name="fragment_settings_images_tilImageSizeMin_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
+    <dimen name="fragment_settings_images_tilImageSizeMax_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
+    <dimen name="fragment_settings_images_tilImageSizeMin_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
     <dimen name="fragment_settings_media_etAudioSizeMax_layout_height">@dimen/layout_dimension_min</dimen>
     <dimen name="fragment_settings_media_etAudioSizeMax_layout_marginVertical">@dimen/layout_spacing_medium</dimen>
     <dimen name="fragment_settings_media_etImageSizeMax_layout_height">@dimen/layout_dimension_min</dimen>
@@ -625,8 +626,8 @@
     <dimen name="fragment_settings_playback_iconHelpTouchZones_layout_marginStart">@dimen/layout_button_size_large</dimen>
     <dimen name="fragment_settings_video_iconHelpSupportVideos_layout_marginStart">@dimen/layout_spacing_medium</dimen>
     <dimen name="fragment_settings_video_iconHelpVideoThumbnails_layout_marginStart">@dimen/layout_button_size_large</dimen>
-    <dimen name="fragment_settings_video_tilVideoSizeMax_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
-    <dimen name="fragment_settings_video_tilVideoSizeMin_layout_constraintWidth_max">@dimen/layout_settings_button_max_width</dimen>
+    <dimen name="fragment_settings_video_tilVideoSizeMax_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
+    <dimen name="fragment_settings_video_tilVideoSizeMin_layout_constraintWidth_max">@dimen/layout_settings_text_field_max_width</dimen>
     <dimen name="item_media_file_grid_unknown_padding">@dimen/layout_spacing_tiny</dimen>
     <dimen name="item_resource_btnCopy_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnDelete_padding">@dimen/layout_spacing_normal</dimen>

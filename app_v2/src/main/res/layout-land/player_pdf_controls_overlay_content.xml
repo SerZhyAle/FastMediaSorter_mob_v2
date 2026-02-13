@@ -90,4 +90,46 @@
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/next_page" />
+
+    <TextView
+        android:id="@+id/tvPdfPageIndicator"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:text="@string/activity_player_unified_tvPdfPageIndicator_text" />
+
+    <ImageButton
+        android:id="@+id/btnTranslatePdf"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="@string/translate_page" />
+
+    <ImageButton
+        android:id="@+id/btnTranslationFontDecrease"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="@string/decrease_translation_font" />
+
+    <ImageButton
+        android:id="@+id/btnTranslationFontIncrease"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="@string/increase_translation_font" />
+
+    <ImageButton
+        android:id="@+id/btnGoogleLensPdf"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="@string/google_lens" />
+
+    <ImageButton
+        android:id="@+id/btnSearchPdf"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="@string/search_in_pdf" />
 </LinearLayout>

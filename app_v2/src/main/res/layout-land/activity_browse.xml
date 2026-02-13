@@ -65,8 +65,8 @@
             android:layout_width="wrap_content"
             android:layout_height="@dimen/control_button_size"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:drawableEnd="@drawable/ic_arrow_drop_down"
-            android:drawableTint="?attr/colorControlNormal"
+            app:drawableEndCompat="@drawable/ic_arrow_drop_down"
+            app:drawableTint="?attr/colorControlNormal"
             android:ellipsize="end"
             android:gravity="start|center_vertical"
             android:maxWidth="100dp"
@@ -254,8 +254,8 @@
 
         <ImageButton
             android:id="@+id/btnResourceAction"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginEnd="8dp"
             android:padding="6dp"
             android:background="?attr/selectableItemBackgroundBorderless"

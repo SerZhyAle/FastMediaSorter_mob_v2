@@ -33,7 +33,7 @@
     <dimen name="margin_medium">8dp</dimen>
     
     <!-- UI Elements - compact for 480x480 -->
-    <dimen name="button_height">40dp</dimen>
+    <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
     <dimen name="list_item_height">52dp</dimen>
     <dimen name="icon_size_large">36dp</dimen>
@@ -88,7 +88,7 @@
     
     <!-- Player controls -->
     <dimen name="player_small_button_size">32dp</dimen>
-    <dimen name="player_medium_button_size">40dp</dimen>
+    <dimen name="player_medium_button_size">48dp</dimen>
     <dimen name="player_large_button_size">48dp</dimen>
     <dimen name="player_controls_padding">4dp</dimen>
     

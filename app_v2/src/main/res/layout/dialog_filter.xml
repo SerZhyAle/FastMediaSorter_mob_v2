@@ -17,7 +17,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="@dimen/margin_large"
         android:gravity="end"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClearFilter"
@@ -70,7 +71,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/margin_small"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="0dp"
@@ -141,9 +143,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_image"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -166,9 +167,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_video"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -200,9 +200,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_audio"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -225,9 +224,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_gif"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -259,9 +257,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_text"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -284,9 +281,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_pdf"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 
@@ -309,9 +305,8 @@
                 android:minHeight="0dp" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:text="@string/media_type_epub"
                 android:textSize="@dimen/resource_card_desc_text_size" />
 

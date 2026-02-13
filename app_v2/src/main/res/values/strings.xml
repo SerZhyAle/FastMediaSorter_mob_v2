@@ -588,7 +588,7 @@
     <!-- Color Picker -->
     <string name="select_color">Select Color</string>
     <string name="current_color">Current color:</string>
-    <string name="selected">Selected</string>
+    <string name="selected_label">Selected</string>
     
     <!-- Languages array -->
     <string-array name="languages">

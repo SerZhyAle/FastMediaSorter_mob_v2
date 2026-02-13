@@ -19,6 +19,6 @@
         android:layout_gravity="center"
         android:src="@drawable/ic_check_circle"
         android:visibility="gone"
-        android:contentDescription="@string/selected" />
+        android:contentDescription="@string/selected_label" />
 
 </FrameLayout>

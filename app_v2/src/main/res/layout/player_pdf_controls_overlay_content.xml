@@ -157,4 +157,11 @@
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:contentDescription="@string/next_page" />
+
+    <ImageButton
+        android:id="@+id/btnPdfEnd"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        android:contentDescription="@string/to_end" />
 </LinearLayout>

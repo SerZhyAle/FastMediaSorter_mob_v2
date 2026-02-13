@@ -12,9 +12,9 @@
     <dimen name="margin_small">4dp</dimen>
     <dimen name="margin_large">12dp</dimen>
     
-    <!-- Touch targets - minimum 40dp for accessibility -->
-    <dimen name="button_height">40dp</dimen>
-    <dimen name="control_button_size">40dp</dimen>
+    <!-- Touch targets - minimum 48dp for accessibility -->
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="control_button_size">48dp</dimen>
     
     <!-- Text sizes - slightly reduced but still readable -->
     <dimen name="text_size_small">10sp</dimen>
@@ -33,7 +33,7 @@
     
     <!-- Player controls - compact -->
     <dimen name="player_small_button_size">32dp</dimen>
-    <dimen name="player_medium_button_size">40dp</dimen>
+    <dimen name="player_medium_button_size">48dp</dimen>
     <dimen name="player_large_button_size">44dp</dimen>
     <dimen name="player_controls_padding">4dp</dimen>
     
@@ -53,7 +53,7 @@
     <dimen name="indicator_margin">2dp</dimen>
     
     <!-- Destination buttons in Copy/Move dialogs -->
-    <dimen name="destination_button_min_height">40dp</dimen>
+    <dimen name="destination_button_min_height">48dp</dimen>
     
     <!-- Destination border width in resource list -->
     <dimen name="destination_border_width">1dp</dimen>
