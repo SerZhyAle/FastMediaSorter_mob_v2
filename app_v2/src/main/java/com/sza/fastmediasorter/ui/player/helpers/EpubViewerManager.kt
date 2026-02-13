@@ -287,7 +287,7 @@ class EpubViewerManager(
         }
         
         // Setup background click to close overlay (click outside overlay)
-        binding.translationOverlayBackground.setOnClickListener {
+        safeViews.translationOverlayBackground.setOnClickListener {
             closeTranslationOverlay()
         }
         
@@ -357,7 +357,7 @@ class EpubViewerManager(
         )
         
         // Attach gesture detector to translation overlay
-        binding.translationOverlay.setOnTouchListener { _, event ->
+        safeViews.translationOverlay.setOnTouchListener { _, event ->
             translationGestureDetector.onTouchEvent(event)
             true // Consume all touches to prevent propagation to WebView
         }
@@ -367,8 +367,8 @@ class EpubViewerManager(
      * Close translation overlay and return to original document view
      */
     private fun closeTranslationOverlay() {
-        binding.translationOverlay.isVisible = false
-        binding.translationOverlayBackground.isVisible = false
+        safeViews.translationOverlay.isVisible = false
+        safeViews.translationOverlayBackground.isVisible = false
         binding.tvTranslatedText.text = ""
         translationEnabled = false
         Timber.d("EPUB Translation: Overlay closed, translationEnabled set to false")
@@ -962,7 +962,7 @@ class EpubViewerManager(
     fun showPreviousChapter() {
         if (currentChapterIndex > 0) {
             // Clear translation when changing chapter
-            binding.translationOverlay.isVisible = false
+            safeViews.translationOverlay.isVisible = false
             binding.translationLensOverlay.isVisible = false
             coroutineScope.launch {
                 showChapter(currentChapterIndex - 1)
@@ -984,7 +984,7 @@ class EpubViewerManager(
     fun showNextChapter() {
         if (currentChapterIndex < chapterCount - 1) {
             // Clear translation when changing chapter
-            binding.translationOverlay.isVisible = false
+            safeViews.translationOverlay.isVisible = false
             binding.translationLensOverlay.isVisible = false
             coroutineScope.launch {
                 showChapter(currentChapterIndex + 1)
@@ -1006,7 +1006,7 @@ class EpubViewerManager(
     fun showFirstChapter() {
         if (currentChapterIndex > 0) {
             // Clear translation when changing chapter
-            binding.translationOverlay.isVisible = false
+            safeViews.translationOverlay.isVisible = false
             binding.translationLensOverlay.isVisible = false
             coroutineScope.launch {
                 showChapter(0)
@@ -1419,7 +1419,7 @@ class EpubViewerManager(
         } else {
             Timber.d("EPUB Translation: Hiding translation overlay")
             // Hide translation overlay
-            binding.translationOverlay.isVisible = false
+            safeViews.translationOverlay.isVisible = false
         }
         
         // Update command panel button icon
@@ -1653,7 +1653,7 @@ class EpubViewerManager(
             saveTranslationFontSize()
             
             // Update translation text size immediately if visible
-            if (binding.translationOverlay.isVisible) {
+            if (safeViews.translationOverlay.isVisible) {
                 applyTranslationFontSize()
             }
         }
