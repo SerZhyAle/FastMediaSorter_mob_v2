@@ -785,15 +785,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp" />
 
-    <com.sza.fastmediasorter.ui.player.TouchZoneOverlayView
-        android:id="@+id/touchZonesOverlayNew"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/topCommandPanel" />
+    <include layout="@layout/player_touch_zones_overlay_new_content" />
 
     <include layout="@layout/player_background_music_track_overlay_content" />
 

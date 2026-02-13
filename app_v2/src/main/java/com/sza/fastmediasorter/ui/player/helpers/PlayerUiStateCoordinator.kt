@@ -200,7 +200,7 @@ class PlayerUiStateCoordinator(
 
         val currentFile = state.currentFile
         val settings = callback.getCurrentSettings()
-        binding.touchZonesOverlayNew.isVisible =
+        safeViews.touchZonesOverlayNew.isVisible =
             !state.showCommandPanel &&
                 settings?.alwaysShowTouchZonesOverlay == true &&
                 currentFile != null &&

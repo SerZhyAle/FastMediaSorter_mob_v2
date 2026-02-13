@@ -791,14 +791,7 @@
             android:contentDescription="@string/exit_fullscreen"
             android:visibility="gone" />
 
-        <!-- Touch Zones Overlay (visible when setting enabled) -->
-        <com.sza.fastmediasorter.ui.player.TouchZoneOverlayView
-            android:id="@+id/touchZonesOverlayNew"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:clickable="false"
-            android:focusable="false" />
+        <include layout="@layout/player_touch_zones_overlay_new_content" />
 
         <include layout="@layout/player_background_music_track_overlay_content" />
 
