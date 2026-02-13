@@ -532,22 +532,7 @@
 
         <include layout="@layout/player_pdf_controls_overlay_content" />
 
-        <!-- DEPRECATED: Translate Image button moved to command panel (btnTranslateImageCmd) -->
-        <ImageButton
-            android:id="@+id/btnTranslateImage"
-            android:layout_width="@dimen/player_close_button_size"
-            android:layout_height="@dimen/player_close_button_size"
-            android:layout_gravity="bottom|end"
-            android:layout_marginEnd="@dimen/margin_large"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:src="@drawable/ic_translate"
-            android:background="@drawable/bg_circle_dark"
-            app:tint="@android:color/white"
-            android:scaleType="fitCenter"
-            android:padding="@dimen/player_close_button_padding"
-            android:elevation="@dimen/elevation_player_overlay"
-            android:visibility="gone"
-            android:contentDescription="Translate Image" />
+        <include layout="@layout/player_deprecated_translate_image_button_content" />
 
         <!-- EPUB WebView Container -->
         <WebView

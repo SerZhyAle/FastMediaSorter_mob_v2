@@ -312,11 +312,11 @@ class ImageLoadingManager(
             // by CommandPanelController.updateCommandAvailability() to ensure proper landscape/portrait handling
             
             // Hide deprecated overlay buttons (moved to command panel)
-            binding.btnTranslateImage.isVisible = false
+            safeViews.btnTranslateImage.isVisible = false
             binding.btnGoogleLensImage.isVisible = false
             binding.btnOcrImage.isVisible = false
             
-            Timber.d("ImageLoadingManager.displayImage: btnTranslateImage.isVisible=${binding.btnTranslateImage.isVisible}, btnTranslateImage.visibility=${binding.btnTranslateImage.visibility}")
+            Timber.d("ImageLoadingManager.displayImage: btnTranslateImage.isVisible=${safeViews.btnTranslateImage.isVisible}, btnTranslateImage.visibility=${safeViews.btnTranslateImage.visibility}")
             
             // ALWAYS hide View-based touch zone overlays
             // TouchZoneGestureManager handles ALL touch detection via gesture listeners
@@ -1108,7 +1108,7 @@ class ImageLoadingManager(
                     if (!settings.enableOcr) binding.btnOcrImageCmd.isVisible = false
                     
                     // Hide deprecated overlay buttons
-                    binding.btnTranslateImage.isVisible = false
+                    safeViews.btnTranslateImage.isVisible = false
                     binding.btnGoogleLensImage.isVisible = false
                     binding.btnOcrImage.isVisible = false
                     

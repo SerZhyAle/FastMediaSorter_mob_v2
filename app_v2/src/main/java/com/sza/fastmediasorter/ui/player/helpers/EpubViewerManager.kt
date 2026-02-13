@@ -442,7 +442,7 @@ class EpubViewerManager(
         binding.audioInfoOverlay.isVisible = false
         safeViews.textViewerContainer.isVisible = false
         safeViews.pdfControlsLayout.isVisible = false
-        binding.btnTranslateImage.isVisible = false
+        safeViews.btnTranslateImage.isVisible = false
         binding.progressBar.isVisible = true
         
         // Force UI update to ensure progressBar is actually visible before async work

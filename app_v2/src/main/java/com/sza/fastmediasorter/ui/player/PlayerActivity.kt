@@ -2465,7 +2465,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             binding.photoView.setOnMatrixChangeListener(null)
         }
         
-        binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+        safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
         binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
         safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
         safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
@@ -2545,7 +2545,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
         
         // Turn on translation - set button to red
-        binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
+        safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
         binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
         
         // Get view dimensions for overlay scaling
@@ -2611,14 +2611,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         },
                         onEmpty = {
                             // No text detected - reset button and show toast
-                            binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                            safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
                             safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
                             showError(getString(R.string.translation_no_text_found))
                         },
                         onError = { message ->
-                            binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                            safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             showError("Translation failed: $message")
                         }
@@ -2646,7 +2646,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                             safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
                         } else {
                             // No text or error
-                            binding.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
+                            safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
                             safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
                             safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE

@@ -280,12 +280,12 @@ class PlayerControlsSetupManager(
      */
     private fun setupTranslationControls() {
         // Image Translation Button (deprecated - kept for compatibility)
-        binding.btnTranslateImage.setOnClickListener {
+        safeViews.btnTranslateImage.setOnClickListener {
             UserActionLogger.logButtonClick("TranslateImage", "PlayerActivity (deprecated)")
             activity.translateCurrentImage()
             activity.scheduleHideControls()
         }
-        binding.btnTranslateImage.setOnLongClickListener {
+        safeViews.btnTranslateImage.setOnLongClickListener {
             Timber.d("PlayerActivity: btnTranslateImage long-clicked (deprecated)")
             translationButtonManager.showTranslationSettingsDialog()
             true

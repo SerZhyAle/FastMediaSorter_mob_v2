@@ -274,7 +274,7 @@ class PlayerMediaLoaderManager(
         if (!keepAudioCover) {
             binding.audioCoverArtView.isVisible = false
         }
-        binding.btnTranslateImage.isVisible = false
+        safeViews.btnTranslateImage.isVisible = false
     }
 
     private fun hideTextViewerControls() {

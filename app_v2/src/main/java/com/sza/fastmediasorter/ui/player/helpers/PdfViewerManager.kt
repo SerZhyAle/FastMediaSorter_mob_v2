@@ -220,7 +220,7 @@ class PdfViewerManager(
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.textViewerContainer.isVisible = false
-        binding.btnTranslateImage.isVisible = false
+        safeViews.btnTranslateImage.isVisible = false
         safeViews.pdfControlsLayout.isVisible = true
         binding.progressBar.isVisible = true
         Timber.d("PDF PROGRESS: progressBar.isVisible = TRUE (before coroutine)")

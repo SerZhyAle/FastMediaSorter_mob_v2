@@ -440,7 +440,7 @@ class TextViewerManager(
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
         safeViews.pdfControlsLayout.isVisible = false
-        binding.btnTranslateImage.isVisible = false
+        safeViews.btnTranslateImage.isVisible = false
         
         // Hide PDF action buttons (they are for PDF files only)
         binding.btnGoogleLensPdfCmd.isVisible = false
@@ -881,7 +881,7 @@ class TextViewerManager(
         binding.translationLensOverlay.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
-        binding.btnTranslateImage.isVisible = false
+        safeViews.btnTranslateImage.isVisible = false
         
         
         // Disable touch zones to allow text selection and interaction
@@ -1000,7 +1000,7 @@ class TextViewerManager(
         binding.translationLensOverlay.isVisible = false
         binding.audioCoverArtView.isVisible = false
         binding.audioInfoOverlay.isVisible = false
-        binding.btnTranslateImage.isVisible = false
+        safeViews.btnTranslateImage.isVisible = false
         
         // Disable touch zones to allow text selection and interaction
         callback.setTouchZonesEnabled(false)
