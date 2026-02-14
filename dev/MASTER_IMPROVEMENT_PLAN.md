@@ -1,9 +1,10 @@
 # MASTER IMPROVEMENT PLAN: FastMediaSorter v2
 
 **Created**: 2026-02-14  
+**Updated**: 2026-02-15 (решения по опроснику применены)  
 **Status**: ACTIVE  
 **Source Specs**: 11 documents consolidated  
-**Execution Model**: Sequential layers, parallel tracks within layer where independent
+**Execution Model**: Sequential tracks in priority order, parallel where independent
 
 ---
 
@@ -21,7 +22,97 @@ FOR EACH step:
 
 **RULE**: One step = one atomic commit. No multi-step commits.  
 **RULE**: If build fails → fix before proceeding.  
-**RULE**: Backup files > 500 lines to `temp/` before modification.
+**RULE**: Backup files > 500 lines to `temp/` before modification.  
+**RULE**: При неочевидном выборе реализации → СПРОСИТЬ пользователя ПЕРЕД написанием кода. Не гадать.  
+**RULE**: Если функция недоступна на старом API → скрыть из UI (graceful degradation). Не делать сложные ветвления.
+
+---
+
+## MASTER TODO LIST
+
+**Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
+**Прогресс**: 0 / 54 шагов
+
+### TRACK A: Main Window (7 шагов)
+- [ ] 1. A.1 — Browse Anti-Flicker
+- [ ] 2. A.2 — Batch Favorites
+- [ ] 3. A.3 — Directory Hash Optimization
+- [ ] 4. A.4 — Adapter Listener Optimization
+- [ ] 5. A.5 — ViewStub Audit
+- [ ] 6. A.6 — Player Warm-up (Feature-Flagged)
+- [ ] 7. A.7 — StrictMode & Glide Profiling
+
+### TRACK K: Device Compatibility (5 шагов)
+- [ ] 8. K.1 — Memory-Aware Image Loading
+- [ ] 9. K.2 — Storage Permission Unification
+- [ ] 10. K.3 — Tablet, Laptop & Screen Adaptation
+- [ ] 11. K.4 — Feature Degradation & Cloud Safety
+- [ ] 12. K.5 — Compatibility Stabilization
+
+### TRACK B: Settings (6 шагов)
+- [ ] 13. B.1 — Base Settings Binding Layer
+- [ ] 14. B.2 — Main Thread Safety
+- [ ] 15. B.3 — Media Tab Simplification
+- [ ] 16. B.4 — Global Settings Search
+- [ ] 17. B.5 — Reset Section + Import/Export UX
+- [ ] 18. B.6 — Visual Cleanup & Stabilization
+
+### TRACK C: Resources (8 шагов)
+- [ ] 19. C.1 — Domain Contracts & Strategy Interfaces
+- [ ] 20. C.2 — Strategy Implementations
+- [ ] 21. C.3 — Orchestration UseCase
+- [ ] 22. C.4 — Unified ViewModel
+- [ ] 23. C.5 — Unified Editor UI
+- [ ] 24. C.6 — Edit Mode Features
+- [ ] 25. C.7 — Copy/Duplicate Mode Features
+- [ ] 26. C.8 — Cleanup & Regression
+
+### TRACK D: Static Image (8 шагов)
+- [ ] 27. D.1 — Renderer Contracts & State Machine
+- [ ] 28. D.2 — Dual-Surface Layout
+- [ ] 29. D.3 — Image Loading Integration (Instant Swap)
+- [ ] 30. D.4 — Prefetch Priority & Lookahead
+- [ ] 31. D.5 — Gesture Unification
+- [ ] 32. D.6 — Slideshow Sync
+- [ ] 33. D.7 — Stabilization & Legacy Cleanup
+- [ ] 34. D.8 — Slideshow Keep-Awake
+
+### TRACK G: Audio (4 шага)
+- [ ] 35. G.1 — Audio Service Core (Audio-Only)
+- [ ] 36. G.2 — Background Support & Notifications
+- [ ] 37. G.3 — Audio UI Connection
+- [ ] 38. G.4 — Playback Indicator & Sleep Timer
+
+### TRACK F: Video (3 шага)
+- [ ] 39. F.1 — Gesture Engine
+- [ ] 40. F.2 — Custom Controls & Seeking
+- [ ] 41. F.3 — Picture-in-Picture (Android 12+)
+
+### TRACK E: Animated Image (4 шага)
+- [ ] 42. E.1 — Controller Abstraction
+- [ ] 43. E.2 — Play/Pause Implementation
+- [ ] 44. E.3 — Frame Extraction (Раскадровка)
+- [ ] 45. E.4 — Stabilization & Edge Cases
+
+### TRACK H: Text (3 шага)
+- [ ] 46. H.1 — Core IO: Pager + Encoding (up to 100MB)
+- [ ] 47. H.2 — Rich Rendering & Reader UI
+- [ ] 48. H.3 — Editor Enhancements
+
+### TRACK I: PDF (3 шага)
+- [ ] 49. I.1 — Vertical Scroll Engine
+- [ ] 50. I.2 — Night Mode & Comfort
+- [ ] 51. I.3 — Thumbnail Navigation
+
+### TRACK J: EPUB (3 шага)
+- [ ] 52. J.1 — Table of Contents Navigation
+- [ ] 53. J.2 — Styling Engine
+- [ ] 54. J.3 — Full-Text Search
+
+**Как отмечать прогресс**:
+1. После завершения шага: заменить `- [ ]` на `- [x]` в этом TODO-листе
+2. Параллельно: отметить `- [x] **DONE**` в детальной секции шага
+3. Обновить счётчик "Прогресс: X / 54 шагов" в начале этой секции
 
 ---
 
@@ -50,83 +141,65 @@ LAYER 3: DOCUMENT VIEWERS (independent, parallel)
   └── TRACK J: EPUB Playback
 ```
 
-**Parallelizable**: A ∥ B ∥ C ∥ K | D then E | F then G | H ∥ I ∥ J
+**Parallelizable**: A ∥ K ∥ B ∥ C | D then E | G then F | H ∥ I ∥ J  
+**Execution order**: A → K → B → C → D → G → F → E → H → I → J
 
 ---
 
-## RISK MAP: СПОРНЫЕ / СЛОЖНЫЕ ЗАДАЧИ
+## RISK MAP: РЕШЁННЫЕ ВОПРОСЫ
 
-Ниже — задачи с высоким техническим риском. Для каждой — причина сложности, реалистичная оценка и альтернатива.
+Все спорные решения приняты (2026-02-15). Ниже — итоговые решения и их влияние на план.
 
-### 🔴 КРИТИЧНО СЛОЖНЫЕ (могут потребовать пересмотра подхода)
+### ✅ РЕШЕНО: G.1–G.3 — Audio Service (поэтапно, audio-only)
 
-#### G.1–G.3: Audio — MediaSessionService миграция
+- **Решение**: Audio-only Service рядом с текущим. Video playback остаётся в Activity без изменений.
+- **Scope**: Только для музыки. Background playback — опциональная функция в настройках.
+- **Влияние**: ExoPlayer для video НЕ трогаем. Риск серьёзно снижен — текущее видео не ломается.
+- **Доп.задача**: Добавлен шаг D.8 — slideshow keep-awake (FLAG_KEEP_SCREEN_ON во время слайдшоу, независимо от глобальной настройки).
 
-- **Что**: перенос ExoPlayer из Activity в Service, MediaSession, Notification, Audio Focus, Bluetooth
-- **Почему сложно**: это полная перестройка playback-архитектуры. PlayerActivity, VideoPlayerManager, PlayerViewModel — всё затронуто. Media3 Session API имеет нетривиальный lifecycle. Нужна синхронизация Service ↔ UI через MediaController, а не прямые вызовы. Foreground Service требования различаются Android 12 vs 14+.
-- **Объём**: ~2-3 недели чистой работы, без учёта стабилизации
-- **Альтернатива**: поэтапно — сначала только audio background (без полного decoupling video), потом полная миграция
-- **Решение**: ❓ обсудить — делаем полный decoupling сразу или только audio-service отдельно?
+### ✅ РЕШЕНО: E.3 — GIF Speed УБРАН из плана
 
-#### E.3: Animated Image — Variable Speed Rendering
+- **Решение**: Variable speed rendering НЕ ДЕЛАЕМ. Никаких Glide-хаков.
+- **Замена**: E.3 = GIF Frame Extraction (раскадровка — создание серии PNG из GIF).
+- **Принцип**: Если API недоступен на старом устройстве — функция скрывается из UI.
+- **Влияние**: E.3 полностью переписан. E.4 заменён на стабилизацию раскадровки.
 
-- **Что**: перехват frame delay в Glide GifDrawable для real-time скорости 0.25x–4x
-- **Почему сложно**: `GifFrameLoader` и `GifDecoder` — internal/private классы Glide. Нет публичного API для модификации frame delay. Два пути: reflection (хрупко, ломается при обновлении Glide) или полная обёртка drawable с перехватом `scheduleSelf` (сложная, нужна копия frame-управления).
-- **Объём**: ~3-5 дней исследование + прототип
-- **Альтернатива**: использовать `ImageDecoder` + `AnimatedImageDrawable` (Android 9+, имеет реальный speed API) — но теряем поддержку Android 7-8.
-- **Решение**: ❓ минимальный API level проекта? Если ≥ 28 — `AnimatedImageDrawable` закрывает вопрос без хаков.
+### ✅ РЕШЕНО: F.3 — PiP только Android 12+
 
-### 🟡 ВЫСОКАЯ СЛОЖНОСТЬ (реализуемо, но трудоёмко)
+- **Решение**: PiP реализуем только для Android 12+ (auto-enter API). Опция в настройках.
+- **Старые устройства**: PiP-кнопка скрыта из UI. Функция gracefully absent.
+- **Влияние**: Никакого lifecycle ветвления для Android 8-11. Чистая реализация.
 
-#### F.3: Video — Picture-in-Picture
+### ✅ РЕШЕНО: D.3 — Instant swap, без cross-fade
 
-- **Что**: PiP mode с RemoteActions
-- **Почему сложно**: PiP lifecycle радикально отличается между Android 8 и 12+. `onPause` вызывается при входе в PiP (до Android 12), что конфликтует с текущей логикой release ExoPlayer. Нужен отдельный lifecycle-aware guard. Auto-PiP (Android 12+) и manual PiP (Android 8-11) — два разных пути.
-- **Объём**: ~3-4 дня + тестирование на 3+ версиях Android
-- **Митигация**: ограничить PiP до Android 12+ и использовать `setPictureInPictureParams` с auto-enter. Покрытие 8-11 — второй итерацией.
+- **Решение**: Только instant swap. Cross-fade НЕ ДЕЛАЕМ.
+- **Влияние**: D.3 упрощён кардинально — нет dual-bitmap peak memory, нет синхронизации переходов. Один путь отображения. Dual-surface layout (D.2) используется только для prefetch.
 
-#### D.3: Static Image — Dual-Surface Transition Integration
+### ✅ РЕШЕНО: G.4 — Вращающаяся пластинка вместо FFT
 
-- **Что**: мост ImageLoadingManager → StaticImageRenderer с двумя PhotoView + cross-fade
-- **Почему сложно**: Glide + PhotoView + dual surface = комбинаторная сложность. PhotoView хранит матрицу zoom/pan, при swap surface нужно переносить состояние. Cross-fade между двумя большими bitmap может вызвать peak memory × 2. Нужна точная синхронизация Glide callback → surface ready → transition start.
-- **Объём**: ~4-5 дней
-- **Митигация**: instant swap без cross-fade как fallback при low memory.
+- **Решение**: Простая GIF-анимация вращающейся виниловой пластинки в углу экрана. Без FFT, без AudioProcessor, без RECORD_AUDIO.
+- **Влияние**: G.4 превращается из сложной аудио-задачи в простую UI-задачу. Sleep Timer остаётся.
 
-#### G.4: Audio Visualizer (FFT через AudioProcessor)
+### ✅ РЕШЕНО: H.1 — Лимит 100MB
 
-- **Что**: real-time FFT извлечение через ExoPlayer AudioProcessor
-- **Почему сложно**: ExoPlayer `AudioProcessor` API задокументирован слабо для FFT use-case. Нужен custom AudioProcessor, который копирует PCM data без нарушения playback pipeline. Отрисовка FFT на каждом кадре — CPU/GPU нагрузка. Альтернатива `android.media.audiofx.Visualizer` требует RECORD_AUDIO permission.
-- **Объём**: ~3-4 дня
-- **Митигация**: начать с простой waveform (amplitude only, без FFT) — значительно проще. FFT-спектр — вторая итерация.
+- **Решение**: Максимальный поддерживаемый размер текстового файла — 100MB.
+- **Влияние**: Простая реализация чанками без сложной стыковки encoding на границах. Файлы > 100MB — предупреждение.
 
-#### H.1: Text — Paged Reader для файлов 500MB+
+### ✅ РЕШЕНО: Приоритеты треков
 
-- **Что**: RandomAccessFile + 50KB chunks + CharsetDetector
-- **Почему сложно**: multi-byte encoding (UTF-8) может разрываться на границе chunk. Нужна корректная обработка partial-character на стыке. Поиск по пагинированному файлу — нетривиально: нужен background scan всего файла с mappingом позиций. Line numbering через chunks — отдельная проблема.
-- **Объём**: ~3-4 дня core + 2 дня edge cases
-- **Митигация**: лимит поддерживаемого размера до 100MB вместо 500MB. Файлы > 100MB — предупреждение + принудительная пагинация без line numbers.
+**Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J
 
-### 🟢 РЕАЛИЗУЕМО БЕЗ ВЫСОКОГО РИСКА
+### ✅ РЕШЕНО: Совместимость устройств
 
-- **A.1–A.7**: Main Window — стандартная оптимизация, чёткие задачи
-- **B.1–B.6**: Settings — рефакторинг UI, предсказуемо
-- **C.1–C.8**: Resources — масштабный, но архитектурно понятный рефакторинг
-- **K.1–K.5**: Device Compatibility — defensive coding, API level checks, layout qualifiers
-- **D.1–D.2, D.4–D.7**: Static Image — кроме D.3, всё линейно
-- **E.1–E.2, E.4**: Animated Image — кроме E.3, стандартные задачи
-- **F.1–F.2**: Video gestures — хорошо документированный паттерн
-- **I.1–I.3**: PDF — RecyclerView + PdfRenderer, стандартный паттерн
-- **J.1–J.3**: EPUB — epub4j API простой, WebView CSS injection — стандартно
+- **Базовая версия**: Android 9+ (API 28) — все основные функции.
+- **Legacy (API 23-27)**: Nice-to-have. Если функция недоступна — скрывается из UI. Сложные ветвления ради старых API НЕ ДЕЛАЕМ.
+- **Большие экраны**: Планшеты, ноутбуки — ДА, важно. Tablet layout (sw600dp+) обязателен.
+- **Маленькие экраны**: Цель — от 240×240. Если сложно — минимум 480×480.
 
-### SUMMARY: ТОЧКИ ПРИНЯТИЯ РЕШЕНИЙ
+### ПРОЕКТНЫЙ ПРОТОКОЛ: ВОПРОСЫ ВО ВРЕМЯ РАБОТЫ
 
-| # | Задача | Вопрос | Влияние |
-|---|--------|--------|---------|
-| 1 | G.1–G.3 | Полный decoupling ExoPlayer в Service сразу или поэтапно? | Определяет объём Track G: 1 неделя vs 3 недели |
-| 2 | E.3 | Min API level ≥ 28? Тогда AnimatedImageDrawable, иначе Glide хаки | Определяет подход Track E.3 |
-| 3 | F.3 | PiP: Android 8+ или только 12+? | Определяет сложность: 2 дня vs 5 дней |
-| 4 | G.4 | Visualizer: простая waveform сначала или сразу FFT? | Определяет scope Phase 4 |
-| 5 | H.1 | Max supported file size: 100MB или 500MB? | Определяет сложность edge cases |
+**ПРАВИЛО**: При выполнении каждой задачи — если есть неочевидный выбор реализации, спрашивать пользователя ПЕРЕД написанием кода. Не гадать.  
+**ПРАВИЛО**: Задавать вопросы типа "А или Б?" с описанием последствий каждого варианта.
 
 ---
 
@@ -493,14 +566,17 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.2
 ## TRACK K: Device & Screen Compatibility
 
 **Source**: `OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md`  
-**Goal**: Graceful degradation on old devices, tablet layouts, permission safety across API 23-35  
+**Goal**: Graceful degradation on old devices, tablet/laptop layouts, small screens, permission safety across API 28-35  
 **Risk**: Low — defensive checks, no architectural changes  
+**Policy**: Android 9+ (API 28) = обязательная поддержка. Android 6-8 (API 23-27) = nice-to-have без сложных ветвлений.  
+**Screens**: Tablet/laptop (sw600dp+) — обязательно. Малые экраны — цель 240×240, минимум 480×480 если сложно.  
 
 ### K.1 — Memory-Aware Image Loading
 
 - [ ] **DONE**
 
 **Tasks**:
+
 1. In `ImageLoadingManager`: add `ActivityManager.isLowRamDevice()` + total RAM check.
 2. If low-end (< 3GB RAM):
    - Force Glide `DecodeFormat.PREFER_RGB_565` (50% memory per pixel).
@@ -514,6 +590,7 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.2
 **BUILD**: `.\.build-debug.PS1`  
 **COMMIT**: `perf(compat): memory-aware image loading — RGB_565, no-animate for low RAM`  
 **PROMPT**:
+
 ```
 Track K, Step K.2. Multi-API storage permission handling.
 Unify permission logic: API 30+ → MANAGE_EXTERNAL_STORAGE, API 29 → legacy flag + SAF fallback,
@@ -529,43 +606,52 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.1
 - [ ] **DONE**
 
 **Tasks**:
+
 1. Create `StoragePermissionHelper` utility (or extend existing permission logic).
 2. Implement `checkStoragePermissions(activity)` with clean API level branching:
    - API 30+ (Android 11+): `Environment.isExternalStorageManager()`.
    - API 29 (Android 10): `requestLegacyExternalStorage` + SAF fallback if denied.
-   - API 23-28 (Android 6-9): `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE`.
+   - API 28 (Android 9): `READ_EXTERNAL_STORAGE` / `WRITE_EXTERNAL_STORAGE`.
+   - API 23-27 (Android 6-8): только если legacy flavor — простой `READ_EXTERNAL_STORAGE`. Без сложных ветвлений.
 3. Route user to appropriate settings page based on OS version when permission missing.
-4. Test: permission flow on API 23, 29, 30, 33, 35 emulators.
+4. Test: permission flow on API 28, 29, 30, 33, 35 emulators.
 
 **Files**: new `StoragePermissionHelper.kt` or existing permission utility  
 **BUILD**: `.\.build-debug.PS1`  
-**COMMIT**: `fix(compat): unified storage permissions — API 23-35 clean branching`  
+**COMMIT**: `fix(compat): unified storage permissions — API 28-35 clean branching`  
 **PROMPT**:
+
 ```
-Track K, Step K.3. Tablet layout adaptations.
+Track K, Step K.3. Tablet, laptop and screen adaptation.
 Create layout-sw600dp for activity_browse — RecyclerView GridLayoutManager 3 columns.
-Ensure all input screens (AddResource, Rename) wrapped in ScrollView for small screens + keyboard.
-Verify no text truncation on sw320dp (4-inch screens).
+Ensure all input screens (AddResource, Rename) wrapped in ScrollView for keyboard.
+Audit small screens: target 240×240, minimum 480×480 if complex.
+Fix text truncation on small screens.
 Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §2
 ```
 
 ---
 
-### K.3 — Tablet & Screen Adaptation
+### K.3 — Tablet, Laptop & Screen Adaptation
 
 - [ ] **DONE**
 
 **Tasks**:
-1. Create `layout-sw600dp/activity_browse.xml`: `GridLayoutManager` with 3+ columns for tablet.
+
+1. Create `layout-sw600dp/activity_browse.xml`: `GridLayoutManager` with 3+ columns for tablet/laptop.
 2. Create `layout-sw600dp` variants for other key screens if needed (player, settings).
 3. Wrap all input screens (`AddResourceActivity`, `RenameDialog`, etc.) in `ScrollView` root — handle keyboard on short 16:9.
-4. Audit `sw320dp` (4-inch): fix text truncation in Toolbars, overlapping buttons.
-5. Convert `wrap_content` widths to `0dp` + constraint weights where truncation occurs.
+4. Audit small screens:
+   - Цель: работоспособность на 240×240.
+   - Минимум: 480×480 если 240×240 требует сложного кодинга.
+5. Fix text truncation / overlapping buttons на маленьких экранах (в Toolbars, dialogs).
+6. Convert `wrap_content` widths to `0dp` + constraint weights where truncation occurs.
 
 **Files**: new `layout-sw600dp/` files, existing input screen layouts  
 **BUILD**: `.\.build-debug.PS1`  
-**COMMIT**: `feat(compat): tablet layout sw600dp + small screen fixes`  
+**COMMIT**: `feat(compat): tablet/laptop layout sw600dp + small screen fixes`  
 **PROMPT**:
+
 ```
 Track K, Step K.4. Feature degradation for old devices.
 Hide OCR/Text Analysis settings on < 4GB RAM or < API 26.
@@ -582,6 +668,7 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.3-4.5
 - [ ] **DONE**
 
 **Tasks**:
+
 1. Hide "OCR / Text Analysis" settings on devices with < 4GB RAM or `Build.VERSION.SDK_INT < 26`.
 2. Show grayed-out state with note "Requires newer device" instead of crash.
 3. Allow manual single-file OCR with warning "This may be slow".
@@ -594,12 +681,12 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.3-4.5
 **BUILD**: `.\.build-debug.PS1`  
 **COMMIT**: `fix(compat): feature degradation — OCR/Cloud/Theme guards for old devices`  
 **PROMPT**:
+
 ```
 Track K, Step K.5. Compatibility stabilization pass.
-Test on emulators: API 23 (legacy flavor), API 29, API 30, API 33, API 35.
-Verify: permission flows, image loading on 2GB RAM, tablet layout, cloud options visibility.
-Fix any TLS/SSL issues on Android 6-7 (ProviderInstaller check).
-Verify vector drawable rendering on API 23.
+Test on emulators: API 28 (standard), API 29, API 30, API 33, API 35.
+Optional: API 23 (legacy flavor) if supported without complex branching.
+Verify: permission flows, image loading on 2GB RAM, tablet layout, small screen, cloud options.
 Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §1, §3
 ```
 
@@ -610,19 +697,21 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §1, §3
 - [ ] **DONE**
 
 **Tasks**:
-1. Test on emulators: API 23 (legacy flavor build), API 29, API 30, API 33, API 35.
-2. Verify: permission flows work per API level.
-3. Verify: image loading on 2GB RAM emulator — no OOM, reduced quality active.
-4. Verify: tablet layout (sw600dp) — 3-column grid, no stretched elements.
-5. Verify: cloud options visibility — Google Drive hidden without Play Services.
-6. Verify TLS/SSL on Android 6-7: `ProviderInstaller` or equivalent active.
-7. Verify vector drawable rendering on API 23 emulator.
+
+1. Test on emulators: API 28 (standard flavor), API 29, API 30, API 33, API 35.
+2. Опционально: API 23 (legacy flavor build) — только если поддержка не потребовала сложных ветвлений.
+3. Verify: permission flows work per API level.
+4. Verify: image loading on 2GB RAM emulator — no OOM, reduced quality active.
+5. Verify: tablet layout (sw600dp) — 3-column grid, no stretched elements.
+6. Verify: small screen (240×240 or 480×480) — no truncation, usable UI.
+7. Verify: cloud options visibility — Google Drive hidden without Play Services.
 8. Fix any found issues.
 
 **Files**: emulator testing, bug fixes as discovered  
 **BUILD**: `.\.build-debug.PS1`  
-**COMMIT**: `test(compat): stabilization pass — API 23-35, low-RAM, tablet verified`  
+**COMMIT**: `test(compat): stabilization pass — API 28-35, low-RAM, tablet, small screen verified`  
 **PROMPT**:
+
 ```
 Track K COMPLETE. Proceed to Track C, Step C.1.
 Introduce domain contracts for unified resource editor:
@@ -939,7 +1028,7 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §A (ImageLoadingManag
 
 ---
 
-### D.3 — Image Loading Integration
+### D.3 — Image Loading Integration (Instant Swap)
 
 - [ ] **DONE**
 
@@ -949,13 +1038,13 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §A (ImageLoadingManag
 2. In `ImageLoadingManager`: introduce adapter boundary to `StaticImageRenderer`.
 3. Move transition orchestration from direct view toggling to renderer API.
 4. Replace direct preloading calls with `PrefetchQueue` API.
-5. Implement dual-surface cross-fade transition: alpha with bounded duration.
-6. Post-transition: swap surface roles, recycle released resources.
+5. Instant swap only — загрузить следующее изображение в Surface B, затем мгновенная замена (visibility swap). Cross-fade НЕ ДЕЛАЕМ.
+6. Post-swap: переключить роли surface (B→A), переработать освобождённые ресурсы.
 7. Keep legacy path behind migration flag as compatibility shim.
 
 **Files**: `ImageLoadingManager.kt`, `StaticImageRenderer.kt`, `AppSettings.kt`  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `feat(player): ImageLoadingManager → renderer integration — dual surface transitions`  
+**COMMIT**: `feat(player): ImageLoadingManager → renderer integration — instant swap transitions`  
 **PROMPT**:
 
 ```
@@ -1077,6 +1166,33 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §4, §5
 **PROMPT**:
 
 ```
+Track D, Step D.8. Slideshow keep-awake behavior.
+During active slideshow: set FLAG_KEEP_SCREEN_ON regardless of global "don't sleep" setting.
+Clear flag when slideshow stops or user exits player.
+Show user a note that screen stays on during slideshow.
+Source: User decision 2026-02-15
+```
+
+---
+
+### D.8 — Slideshow Keep-Awake
+
+- [ ] **DONE**
+
+**Tasks**:
+
+1. In `SlideshowController` (or `SlideshowManager`): при старте слайдшоу — установить `FLAG_KEEP_SCREEN_ON` на Activity window.
+2. При остановке слайдшоу — снять `FLAG_KEEP_SCREEN_ON` (если глобальная настройка "не засыпать" выключена).
+3. Если глобальная настройка "не засыпать" включена — не снимать флаг при остановке.
+4. Показать пользователю информацию, что экран не будет гаснуть во время слайдшоу.
+5. Убедиться, что flag корректно снимается при выходе из player.
+
+**Files**: `SlideshowController.kt` или `SlideshowManager.kt`, `PlayerActivity.kt`  
+**BUILD**: `.\build-debug.PS1`  
+**COMMIT**: `feat(player): slideshow keep-awake — FLAG_KEEP_SCREEN_ON during slideshow`  
+**PROMPT**:
+
+```
 Track D COMPLETE. Proceed to Track E, Step E.1.
 Create AnimatedImageController class.
 Abstract Start/Stop logic away from ImageLoadingManager.
@@ -1090,8 +1206,8 @@ Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 1
 ## TRACK E: Animated Image Playback
 
 **Source**: `ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md`  
-**Goal**: Play/Pause, non-destructive speed, unified zoom for GIF/WEBP/APNG  
-**Risk**: Glide internals are private, performance on old devices  
+**Goal**: Play/Pause, GIF frame extraction (raскадровка), unified zoom for GIF/WEBP/APNG  
+**Risk**: Low — no Glide internals hacking, standard Android APIs  
 
 ### E.1 — Controller Abstraction
 
@@ -1140,62 +1256,60 @@ Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 2
 **PROMPT**:
 
 ```
-Track E, Step E.3. Implement non-destructive real-time speed control.
-Delay Interceptor: nextFrameDelay = originalFrameDelay / speedMultiplier.
-Speed range: 0.25x - 4.0x. UI: speed selector buttons (0.5x, 1x, 2x, etc.).
-Method: wrap GifDrawable to intercept scheduleSelf or hook GifFrameLoader.
-No file I/O — rendering-only change.
-Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §5.2, §6 Phase 3
+Track E, Step E.3. Implement GIF frame extraction (raскадровка).
+Extract all frames from GIF/WEBP/APNG as individual PNG files.
+Use ImageDecoder (API 28+) or GifDecoder. Save to user-chosen directory.
+If API unavailable on device — hide button from UI.
+Source: User decision 2026-02-15, replaces original speed control
 ```
 
 ---
 
-### E.3 — Variable Speed Rendering
+### E.3 — Frame Extraction (Раскадровка)
 
 - [ ] **DONE**
 
 **Tasks**:
 
-1. Implement "Delay Interceptor" in `AnimatedImageController`.
-2. Algorithm: `nextFrameDelay = originalFrameDelay / speedMultiplier`.
-3. Speed range: 0.25x — 4.0x.
-4. Method A: hook Glide's `GifFrameLoader` delay. Method B: wrap drawable, intercept `scheduleSelf`.
-5. Add UI: speed selector (0.5x, 1x, 2x, etc.) in animation control bar.
-6. Wire UI buttons to `controller.setPlaybackSpeed(float)`.
-7. No file I/O — rendering-only change.
+1. Create `ExtractGifFramesUseCase` в `domain/usecase/`.
+2. Извлечь все кадры из GIF/WEBP/APNG как отдельные PNG-файлы.
+3. Метод: `ImageDecoder` (API 28+) или `GifDecoder` / `Movie` API.
+4. Сохранять в выбранную пользователем папку (target resource directory).
+5. Именование: `<original_name>_frame_001.png`, `<original_name>_frame_002.png`, ...
+6. Progress dialog с отменой (проверка `Job.isActive`).
+7. Если API недоступен на устройстве — скрыть кнопку из UI.
+8. Добавить кнопку "Раскадровка" в панель управления анимацией.
 
-**Files**: `AnimatedImageController.kt`, control bar layout  
+**Files**: new `ExtractGifFramesUseCase.kt`, `AnimatedImageController.kt`, control bar layout  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `feat(player): animated speed control — non-destructive delay interceptor 0.25x-4x`  
+**COMMIT**: `feat(player): GIF frame extraction — export animated frames as PNG series`  
 **PROMPT**:
 
 ```
-Track E, Step E.4. Wire export to existing ChangeGifSpeedUseCase.
-Add "Export Speed" button in animation control bar.
-On tap: open existing speed dialog pre-filled with current playback speed.
-Reuse ChangeGifSpeedUseCase for permanent file save.
-Test: speed roundtrip (set playback → export → verify file).
-Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 4
+Track E, Step E.4. Stabilization and edge cases for animated image playback.
+Test: play/pause + zoom on all animated formats (GIF, WEBP, APNG).
+Test: frame extraction on large GIFs (100+ frames). Memory stability.
+Verify graceful degradation on devices where API is unavailable.
+Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md wrap-up
 ```
 
 ---
 
-### E.4 — Export Integration & Stabilization
+### E.4 — Stabilization & Edge Cases
 
 - [ ] **DONE**
 
 **Tasks**:
 
-1. Add "Export Speed" button to animation control bar.
-2. On tap: open existing speed change dialog, pre-fill with current `playbackSpeed`.
-3. Reuse `ChangeGifSpeedUseCase` for permanent file save.
-4. Test: speed roundtrip (set playback speed → export → reopen → verify).
-5. Test: memory stability for large GIFs (no spike vs current baseline).
-6. Disable variable speed on low-end devices if frame drops detected (optional).
+1. Тест: play/pause + zoom на всех анимированных форматах (GIF, WEBP, APNG).
+2. Тест: frame extraction на больших GIF (100+ кадров). Проверка памяти.
+3. Верифя: graceful degradation на устройствах без нужного API — кнопка скрыта, нет крэшей.
+4. Проверка корректной отмены экстракции (не оставлять недописанные файлы).
+5. Профилирование памяти на крупных анимациях.
 
-**Files**: `AnimatedImageController.kt`, UI wiring  
+**Files**: `AnimatedImageController.kt`, `ExtractGifFramesUseCase.kt`  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `feat(player): animated export integration — pre-filled speed, legacy reuse`  
+**COMMIT**: `test(player): animated image stabilization — all formats, extraction, degradation`  
 **PROMPT**:
 
 ```
@@ -1270,40 +1384,42 @@ Source: VIDEO_PLAYBACK_IMPROVEMENT_SPEC.md §5.2, §6 Phase 2
 **PROMPT**:
 
 ```
-Track F, Step F.3. Implement Picture-in-Picture (PiP) support.
+Track F, Step F.3. Implement Picture-in-Picture (Android 12+ only).
 Add android:supportsPictureInPicture="true" to PlayerActivity manifest.
-Handle onUserLeaveHint → trigger PiP.
-Ensure VideoPlayerManager does NOT release ExoPlayer in onPause if isInPictureInPictureMode.
-Add PiP button to custom controls. Test on Android 8-14.
+Use setPictureInPictureParams with setAutoEnterEnabled(true) — Android 12+ auto-enter.
+Add PiP toggle in Settings (default OFF). Hide PiP button on API < 31.
+Add PiP button to custom controls. Test on Android 12, 14.
 Source: VIDEO_PLAYBACK_IMPROVEMENT_SPEC.md §5.3, §6 Phase 3
 ```
 
 ---
 
-### F.3 — Picture-in-Picture
+### F.3 — Picture-in-Picture (Android 12+ only)
 
 - [ ] **DONE**
 
 **Tasks**:
 
 1. Update `AndroidManifest.xml`: `android:supportsPictureInPicture="true"` on `PlayerActivity`.
-2. Handle `onUserLeaveHint` to trigger PiP entry.
-3. In `PlayerActivity`: do NOT release `ExoPlayer` in `onPause` if `isInPictureInPictureMode == true`.
-4. Add PiP button to custom video controls.
-5. Handle PiP actions (play/pause via `RemoteAction`).
-6. Test: Android 8, 12, 14 lifecycle behavior.
+2. Add PiP toggle in Settings (по умолчанию выключен).
+3. Проверка `Build.VERSION.SDK_INT >= 31` — если ниже, PiP-кнопка скрыта из UI.
+4. Использовать `setPictureInPictureParams` с `setAutoEnterEnabled(true)` (auto-enter на Android 12+).
+5. Handle `onPictureInPictureModeChanged` — обновить UI controls.
+6. Add PiP button to custom video controls (видимость по API level + настройка).
+7. Handle PiP actions (play/pause via `RemoteAction`).
+8. Тест: Android 12, 14 — lifecycle поведение.
 
-**Files**: `AndroidManifest.xml`, `PlayerActivity.kt`, `VideoPlayerManager.kt`, custom controls layout  
+**Files**: `AndroidManifest.xml`, `PlayerActivity.kt`, `VideoPlayerManager.kt`, custom controls layout, `AppSettings.kt`  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `feat(player): PiP mode — manifest, lifecycle, remote actions`  
+**COMMIT**: `feat(player): PiP mode — Android 12+ auto-enter, optional in settings`  
 **PROMPT**:
 
 ```
 Track F COMPLETE. Proceed to Track G, Step G.1.
-Create FastMediaPlaybackService (MediaSessionService from Media3).
-Move ExoPlayer initialization to Service.
-Implement MediaSession callback handling.
-Service survives Activity destruction. Binds to UI for updates.
+Create AudioPlaybackService (MediaSessionService from Media3).
+Scope: AUDIO-ONLY. Video ExoPlayer stays in Activity.
+Create second ExoPlayer instance in Service for audio.
+Add "Background playback" toggle in Settings (default OFF).
 Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 ```
 
@@ -1312,32 +1428,35 @@ Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 ## TRACK G: Audio Playback
 
 **Source**: `AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md`  
-**Goal**: Background playback, system media controls, visualizer  
-**Risk**: Media3 service architecture complexity, audio focus  
+**Goal**: Background audio playback (optional), system media controls, playback indicator  
+**Risk**: Medium — audio-only Service doesn't touch video pipeline. Scoped to music only.  
 
-### G.1 — Service Core
+### G.1 — Audio Service Core (Audio-Only)
 
 - [ ] **DONE**
 
 **Tasks**:
 
-1. Create `FastMediaPlaybackService` extending `MediaSessionService` (Media3).
-2. Move `ExoPlayer` initialization from `VideoPlayerManager` to Service.
-3. Create `MediaControllerWrapper` to abstract `ExoPlayer` management.
+1. Create `AudioPlaybackService` extending `MediaSessionService` (Media3).
+2. Scope: ТОЛЬКО для аудио-файлов. Video ExoPlayer в Activity НЕ ТРОГАЕМ.
+3. Создать второй ExoPlayer instance в Service для аудио.
 4. Implement `MediaSession` callback handling (play, pause, skip, seek).
-5. Service lifecycle: starts on first play, binds to Activity, survives destruction.
+5. Service lifecycle: starts on audio play, survives Activity destruction.
+6. Добавить настройку "Фоновое воспроизведение" в Settings (по умолчанию OFF).
+7. Если настройка OFF — аудио работает как сейчас (в Activity, без Service).
 
-**Files**: new `FastMediaPlaybackService.kt`, new `MediaControllerWrapper.kt`  
+**Files**: new `AudioPlaybackService.kt`, `AppSettings.kt`  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `feat(audio): FastMediaPlaybackService — Media3 session service core`  
+**COMMIT**: `feat(audio): AudioPlaybackService — audio-only Media3 session service, optional`  
 **PROMPT**:
 
 ```
-Track G, Step G.2. Implement background support.
+Track G, Step G.2. Implement background audio support.
 Create MediaNotificationManager for system media controls.
 Handle startForeground requirements. Update AndroidManifest with FOREGROUND_SERVICE permission.
 Notification: play/pause/skip/seek. Lock screen controls.
 Audio focus handling for interruptions (calls, other apps).
+Scope: audio-only, video NOT affected.
 Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 2
 ```
 
@@ -1363,65 +1482,68 @@ Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 2
 **PROMPT**:
 
 ```
-Track G, Step G.3. Refactor PlayerActivity UI to connect via MediaSession.
-PlayerViewModel observes playback state via MediaController (not direct method calls).
-Refactor VideoPlayerManager to delegate to MediaControllerWrapper.
-UI communicates with Service via MediaController API.
+Track G, Step G.3. Connect audio UI to Service via MediaController.
+When "Background playback" ON: PlayerViewModel observes state via MediaController.
+When OFF: standard ExoPlayer path in Activity (as is now).
+Video playback: DO NOT TOUCH. Video always goes through Activity ExoPlayer.
 Cover art extraction using MediaMetadataRetriever.
 Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §5.2, §6 Phase 3
 ```
 
 ---
 
-### G.3 — UI Connection Refactor
+### G.3 — Audio UI Connection
 
 - [ ] **DONE**
 
 **Tasks**:
 
-1. Refactor `PlayerActivity` to connect to `MediaSession` for playback control.
-2. `PlayerViewModel`: observe playback state via `MediaController`, not direct `ExoPlayer` calls.
-3. Refactor `VideoPlayerManager` to delegate to `MediaControllerWrapper`.
-4. Communication: UI → `MediaController` API → Service.
-5. Cover art: extract via `MediaMetadataRetriever`, display properly.
-6. Gapless playback support via `ExoPlayer` playlist API in Service.
+1. Когда настройка "Фоновое воспроизведение" ON: `PlayerViewModel` наблюдает playback state через `MediaController`.
+2. Когда OFF: стандартный путь ExoPlayer в Activity (как сейчас).
+3. Video playback: НЕ ТРОГАЕМ. Видео всегда идёт через Activity ExoPlayer.
+4. Cover art: extract via `MediaMetadataRetriever`, display properly.
+5. Gapless audio playback support via ExoPlayer playlist API in Service.
 
-**Files**: `PlayerActivity.kt`, `PlayerViewModel.kt`, `VideoPlayerManager.kt`  
+**Files**: `PlayerActivity.kt`, `PlayerViewModel.kt`  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `refactor(audio): UI connects via MediaSession — decoupled from ExoPlayer lifecycle`  
+**COMMIT**: `feat(audio): UI connection — MediaController for background, direct for foreground`  
 **PROMPT**:
 
 ```
-Track G, Step G.4. Add audio visualizer and sleep timer.
-Integrate FFT extraction via ExoPlayer AudioProcessor (no RECORD_AUDIO permission).
-Create AudioVisualizerView (waveform/spectrum).
+Track G, Step G.4. Add playback indicator and sleep timer.
+Add small rotating vinyl record animation in corner during music playback.
+Implementation: ObjectAnimator rotation on ImageView with PNG vinyl asset.
+Show only when music actively playing. Stop on pause.
+No FFT, no AudioProcessor, no RECORD_AUDIO permission.
 Add Sleep Timer logic (countdown → pause + fade out).
-Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §5.3, §6 Phase 4
+Source: User decision 2026-02-15, replaces original FFT visualizer
 ```
 
 ---
 
-### G.4 — Visualizer & Sleep Timer
+### G.4 — Playback Indicator & Sleep Timer
 
 - [ ] **DONE**
 
 **Tasks**:
 
-1. Integrate FFT data extraction via ExoPlayer `AudioProcessor` (no `RECORD_AUDIO` permission needed).
-2. Create `AudioVisualizerView` custom view: waveform/spectrum visualization.
-3. Show visualizer when no cover art, or as overlay on cover art.
-4. Implement Sleep Timer: countdown → pause playback + optional fade out.
-5. Add Sleep Timer UI in player menu/controls.
-6. Test: audio continues playing on screen off, app minimized, headset controls.
+1. Добавить анимированный индикатор воспроизведения музыки — вращающаяся виниловая пластинка в углу экрана.
+2. Реализация: простая GIF/анимация через `ObjectAnimator.ofFloat(rotation)` на ImageView с PNG пластинки.
+3. Показывать только когда музыка активно играет (не на паузе, не остановлена). При паузе — анимация стоп.
+4. Минимальная нагрузка: никакого FFT, AudioProcessor, RECORD_AUDIO. Просто вращение картинки.
+5. Implement Sleep Timer: countdown → pause playback + optional fade out.
+6. Add Sleep Timer UI in player menu/controls.
+7. Test: индикатор не мешает просмотру фото на фоне.
 
-**Files**: new `AudioVisualizerView.kt`, `FastMediaPlaybackService.kt`, player menu  
+**Files**: player layout XML, new drawable asset `ic_vinyl_record.png`, `PlayerActivity.kt`  
 **BUILD**: `.\build-debug.PS1`  
-**COMMIT**: `feat(audio): visualizer + sleep timer — FFT-based, no microphone permission`  
+**COMMIT**: `feat(audio): vinyl record indicator + sleep timer — lightweight playback animation`  
 **PROMPT**:
 
 ```
 Track G COMPLETE. LAYER 2 COMPLETE. Proceed to LAYER 3, Track H, Step H.1.
 Implement TextFilePager for large file handling (RandomAccessFile, 50KB chunks).
+Max supported size: 100MB. Files > 100MB → warning and refuse.
 Implement CharsetDetector (BOM check + heuristic probe first 4KB).
 Add "Encoding" menu option in Player.
 Replace readText() with paged reader in TextViewerManager.
@@ -1439,10 +1561,10 @@ Source: TEXT_PLAYBACK_IMPROVEMENT_SPEC.md §5.1-5.2, §6 Phase 1
 ## TRACK H: Text Playback
 
 **Source**: `TEXT_PLAYBACK_IMPROVEMENT_SPEC.md`  
-**Goal**: Open 500MB files, encoding detection, Markdown/code rendering  
-**Risk**: Pagination limits search, Markdown parsing slowness  
+**Goal**: Open files up to 100MB, encoding detection, Markdown/code rendering  
+**Risk**: Low — 100MB limit avoids complex encoding stitch edge cases  
 
-### H.1 — Core IO: Pager + Encoding
+### H.1 — Core IO: Pager + Encoding (up to 100MB)
 
 - [ ] **DONE**
 
@@ -1453,7 +1575,9 @@ Source: TEXT_PLAYBACK_IMPROVEMENT_SPEC.md §5.1-5.2, §6 Phase 1
 3. Add "Encoding" menu option in Player: `Re-open with Encoding...` → charset picker.
 4. Replace `file.readText()` in `TextViewerManager` with `TextFilePager`.
 5. UI: page indicator ("Page X / Total") or `RecyclerView` infinite scroll.
-6. Remove hardcoded `textSizeMax` limit (replaced by paging).
+6. Remove hardcoded `textSizeMax` limit. New limit: 100MB.
+7. Files > 100MB — show warning dialog "Файл слишком большой" + отказ открывать.
+8. Encoding boundary: простая коррекция на границе chunk (backup несколько байт назад до UTF-8 boundary).
 
 **Files**: new `TextFilePager.kt`, new `CharsetDetector.kt`, `TextViewerManager.kt`, player menu  
 **BUILD**: `.\build-debug.PS1`  
@@ -1732,20 +1856,23 @@ Verify no new critical issues across all modified modules.
 
 # SUMMARY TABLE
 
-| Layer | Track | Steps | Source Spec | Priority |
-|-------|-------|-------|-------------|----------|
-| 0 | A: Main Window | 7 | MAIN_WINDOW_OPTIMIZATION | HIGH |
-| 0 | B: Settings | 6 | SETTINGS_IMPROVEMENT_SPEC | HIGH |
-| 0 | C: Resources | 8 | RESOURCE_CREATION + EDITING_COPYING | HIGH |
-| 0 | K: Compatibility | 5 | OLD_DEVICE_AND_SCREEN_COMPAT | HIGH |
-| 1 | D: Static Image | 7 | STATIC_IMAGE_PLAYBACK + CHECKLIST | HIGH |
-| 1 | E: Animated Image | 4 | ANIMATED_IMAGE_PLAYBACK | MEDIUM |
-| 2 | F: Video | 3 | VIDEO_PLAYBACK | MEDIUM |
-| 2 | G: Audio | 4 | AUDIO_PLAYBACK | MEDIUM |
-| 3 | H: Text | 3 | TEXT_PLAYBACK | LOW |
-| 3 | I: PDF | 3 | PDF_PLAYBACK | LOW |
-| 3 | J: EPUB | 3 | EPUB_PLAYBACK | LOW |
-| — | **TOTAL** | **53** | — | — |
+| Порядок | Layer | Track | Steps | Source Spec | Priority |
+|--------|-------|-------|-------|-------------|----------|
+| 1 | 0 | A: Main Window | 7 | MAIN_WINDOW_OPTIMIZATION | 🔴 CRITICAL |
+| 2 | 0 | K: Compatibility | 5 | OLD_DEVICE_AND_SCREEN_COMPAT | 🔴 CRITICAL |
+| 3 | 0 | B: Settings | 6 | SETTINGS_IMPROVEMENT_SPEC | 🔴 CRITICAL |
+| 4 | 0 | C: Resources | 8 | RESOURCE_CREATION + EDITING_COPYING | 🔴 CRITICAL |
+| 5 | 1 | D: Static Image | 8 | STATIC_IMAGE_PLAYBACK + CHECKLIST | 🟠 HIGH |
+| 6 | 2 | G: Audio | 4 | AUDIO_PLAYBACK | 🟠 HIGH |
+| 7 | 2 | F: Video | 3 | VIDEO_PLAYBACK | 🟡 MEDIUM |
+| 8 | 1 | E: Animated Image | 4 | ANIMATED_IMAGE_PLAYBACK | 🟡 MEDIUM |
+| 9 | 3 | H: Text | 3 | TEXT_PLAYBACK | 🟢 LOW |
+| 10 | 3 | I: PDF | 3 | PDF_PLAYBACK | 🟢 LOW |
+| 11 | 3 | J: EPUB | 3 | EPUB_PLAYBACK | 🟢 LOW |
+| — | — | **TOTAL** | **54** | — | — |
+
+**Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
+**Ограничения**: D зависит от A.4 | E зависит от D.1 | F/G зависят от D.5 | H/I/J независимы
 
 ---
 
