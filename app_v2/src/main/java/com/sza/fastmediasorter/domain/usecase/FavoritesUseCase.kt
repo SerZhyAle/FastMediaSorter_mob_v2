@@ -21,6 +21,10 @@ class FavoritesUseCase @Inject constructor(
         return favoritesRepository.isFavoriteSync(uri)
     }
 
+    suspend fun getFavoritesForPaths(paths: List<String>): Map<String, Boolean> {
+        return favoritesRepository.getFavoritesForPaths(paths)
+    }
+
     suspend fun toggleFavorite(mediaFile: MediaFile, resourceId: Long) {
         timber.log.Timber.d("FavoritesUseCase.toggleFavorite: START - file='${mediaFile.name}', path='${mediaFile.path}', resourceId=$resourceId")
         val isFav = favoritesRepository.isFavoriteSync(mediaFile.path)
