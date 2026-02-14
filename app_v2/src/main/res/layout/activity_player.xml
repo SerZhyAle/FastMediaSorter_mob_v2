@@ -70,7 +70,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:visibility="gone"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:contentDescription="@null" />
 
     <LinearLayout
@@ -267,4 +267,5 @@
         android:visibility="gone" />
 
 </FrameLayout>
+
 

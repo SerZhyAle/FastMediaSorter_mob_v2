@@ -3,8 +3,8 @@
     android:id="@+id/audioTouchZonesOverlay"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:columnCount="3"
-    android:rowCount="3"
+    android:columnCount="@integer/grid_columns_small"
+    android:rowCount="@integer/grid_rows_medium"
     android:visibility="gone">
 
     <TextView
@@ -154,3 +154,4 @@
         android:textStyle="@string/text_style_bold"
         android:background="@color/activity_player_unified_zoneBack_background" />
 </GridLayout>
+

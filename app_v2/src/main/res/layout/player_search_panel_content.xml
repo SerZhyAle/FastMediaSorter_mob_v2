@@ -43,7 +43,7 @@
         android:src="@android:drawable/ic_media_previous"
         android:background="?attr/selectableItemBackgroundBorderless"
         app:tint="#FFFFFF"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/previous_match" />
 
@@ -54,7 +54,7 @@
         android:src="@android:drawable/ic_media_next"
         android:background="?attr/selectableItemBackgroundBorderless"
         app:tint="#FFFFFF"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/next_match" />
 
@@ -65,7 +65,8 @@
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:background="?attr/selectableItemBackgroundBorderless"
         app:tint="#FFFFFF"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/close_search" />
 </LinearLayout>
+

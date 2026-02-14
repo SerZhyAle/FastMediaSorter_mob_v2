@@ -43,7 +43,7 @@
         android:ellipsize="end"
         android:gravity="center"
         android:maxLines="2"
-        android:textColor="?android:attr/textColorPrimary"
+        android:textColor="@color/text_color_primary"
         android:textSize="@dimen/text_size_huge"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -116,3 +116,4 @@
         android:visibility="gone" />
 
 </FrameLayout>
+

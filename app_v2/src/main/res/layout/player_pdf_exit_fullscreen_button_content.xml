@@ -10,7 +10,8 @@
     android:src="@drawable/ic_fullscreen_exit"
     android:background="@drawable/bg_circle_dark"
     app:tint="@color/white"
-    android:scaleType="fitCenter"
+    android:scaleType="@string/image_scale_fit_center"
     android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
     android:contentDescription="@string/exit_fullscreen" />
+
 

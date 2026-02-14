@@ -26,7 +26,7 @@
         android:layout_marginTop="@dimen/margin_medium"
         android:layout_marginBottom="@dimen/margin_medium"
         android:contentDescription="@string/welcome_title_3"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:src="@drawable/touch_zones_scheme"
         app:layout_constraintBottom_toTopOf="@id/tvDescription"
         app:layout_constraintEnd_toEndOf="parent"
@@ -47,3 +47,4 @@
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

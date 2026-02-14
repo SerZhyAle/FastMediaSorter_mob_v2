@@ -55,7 +55,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/supported_image_formats"
                     android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/text_color_secondary" />
 
             </LinearLayout>
 
@@ -118,7 +118,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/load_full_size_images_hint"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
 
@@ -153,7 +153,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_crop_images_fullscreen_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
 
@@ -198,7 +198,7 @@
                     android:maxWidth="@dimen/layout_settings_text_field_max_width"
                     android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                     android:inputType="number"
-                    android:maxLength="7" />
+                    android:maxLength="@integer/input_max_length_filesize" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -223,7 +223,7 @@
                     android:maxWidth="@dimen/layout_settings_text_field_max_width"
                     android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                     android:inputType="number"
-                    android:maxLength="7" />
+                    android:maxLength="@integer/input_max_length_filesize" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -260,7 +260,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_slideshow_music_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
         </LinearLayout>
 
         <!-- Select Music Source Resource -->
@@ -278,7 +278,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/music_resource_label"
                 android:textSize="@dimen/resource_card_desc_text_size"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/text_color_primary"
                 android:layout_marginBottom="@dimen/margin_small" />
 
             <TextView
@@ -289,7 +289,7 @@
                 android:text="@string/no_music_source_selected"
                 android:textSize="@dimen/resource_name_text_size"
                 android:gravity="center"
-                android:textColor="?android:textColorSecondary" />
+                android:textColor="@color/text_color_secondary" />
 
             <Button
                 android:id="@+id/btnSelectMusicSource"
@@ -302,3 +302,4 @@
 
     </LinearLayout>
 </ScrollView>
+

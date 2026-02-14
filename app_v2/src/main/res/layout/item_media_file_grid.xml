@@ -30,7 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
-                android:scaleType="centerCrop"
+                android:scaleType="@string/image_scale_center_crop"
                 android:contentDescription="@string/thumbnail"
                 android:background="?android:selectableItemBackground"
                 tools:src="@android:drawable/ic_menu_gallery" />
@@ -70,7 +70,7 @@
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/favorite"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:src="@drawable/ic_star_outline"
         android:padding="0dp" />
 
@@ -96,7 +96,7 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/copy"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:src="@android:drawable/ic_menu_save"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -111,7 +111,7 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/move"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -126,7 +126,7 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/rename"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:src="@android:drawable/ic_menu_edit"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -141,7 +141,7 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:src="@android:drawable/ic_menu_delete"
             android:visibility="gone"
             tools:visibility="visible" />
@@ -149,3 +149,4 @@
     </LinearLayout>
 
 </FrameLayout>
+

@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:text="@string/scanning_local_subnet"
         android:textSize="@dimen/resource_card_desc_text_size"
-        android:textColor="?android:textColorSecondary"
+        android:textColor="@color/text_color_secondary"
         android:layout_marginBottom="@dimen/margin_large" />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -67,3 +67,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

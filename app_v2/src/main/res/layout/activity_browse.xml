@@ -294,7 +294,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/edit"
             android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:src="@drawable/ic_edit_20"
             android:visibility="gone"
             app:tint="?attr/colorControlNormal"
@@ -308,7 +308,7 @@
             android:paddingTop="@dimen/padding_small"
             android:paddingBottom="@dimen/padding_small"
             android:textSize="@dimen/text_size_small"
-            android:textColor="?android:textColorSecondary"
+            android:textColor="@color/text_color_secondary"
             android:gravity="center_vertical"
             tools:text="Downloads • /storage/emulated/0/Download • 0 selected" />
 
@@ -487,7 +487,7 @@
             android:layout_height="@dimen/empty_state_icon_size"
             android:src="@drawable/ic_folder_open_24"
             android:contentDescription="@string/empty_folder"
-            app:tint="?android:attr/textColorSecondary" />
+            app:tint="@color/text_color_secondary" />
 
         <TextView
             android:id="@+id/tvEmptyStateMessage"
@@ -498,7 +498,7 @@
             android:textSize="@dimen/empty_state_text_size"
             android:textAlignment="@string/button_text_alignment_center"
             android:gravity="center"
-            android:textColor="?android:attr/textColorSecondary" />
+            android:textColor="@color/text_color_secondary" />
 
         <TextView
             android:id="@+id/tvEmptyStateHint"
@@ -509,7 +509,7 @@
             android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
             android:textAlignment="@string/button_text_alignment_center"
             android:gravity="center"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/text_color_secondary"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -579,7 +579,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/browse_progress_text_margin_start"
             android:textSize="@dimen/empty_state_text_size"
-            android:textColor="?android:textColorPrimary"
+            android:textColor="@color/text_color_primary"
             android:maxLines="1"
             android:maxWidth="@dimen/browse_progress_max_width"
             tools:text="Loading (12345)" />
@@ -596,3 +596,4 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

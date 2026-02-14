@@ -174,5 +174,10 @@
     <!-- Additional base colors -->
     <color name="white_50_alpha">#80FFFFFF</color>
     <color name="transparent">#00000000</color>
+
+    <!-- System text colors (theme-aware) -->
+    <color name="text_color_primary">?android:textColorPrimary</color>
+    <color name="text_color_secondary">?android:textColorSecondary</color>
+    <color name="text_color_tertiary">?android:textColorTertiary</color>
 </resources>
 

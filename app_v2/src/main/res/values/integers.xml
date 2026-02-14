@@ -17,4 +17,23 @@
     <integer name="default_player_quality">1080</integer>
     <integer name="min_player_quality">480</integer>
     <integer name="short_views_max_lenght" />
+
+    <!-- Input field length limits -->
+    <integer name="input_max_length_tiny">2</integer>
+    <integer name="input_max_length_small">4</integer>
+    <integer name="input_max_length_medium">5</integer>
+    <integer name="input_max_length_pin">6</integer>
+    <integer name="input_max_length_filesize">7</integer>
+
+    <!-- Grid layout dimensions -->
+    <integer name="grid_columns_small">3</integer>
+    <integer name="grid_columns_large">5</integer>
+    <integer name="grid_rows_small">2</integer>
+    <integer name="grid_rows_medium">3</integer>
+
+    <!-- SeekBar/ProgressBar ranges -->
+    <integer name="seekbar_max_percent">100</integer>
+    <integer name="seekbar_max_extended">200</integer>
+    <integer name="seekbar_default_center">100</integer>
+    <integer name="seekbar_default_half">50</integer>
 </resources>

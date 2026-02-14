@@ -19,8 +19,8 @@
         android:layout_marginEnd="@dimen/player_lyrics_close_margin_end"
         android:background="@drawable/bg_circle_themed"
         android:src="@drawable/ic_translate"
-        app:tint="?android:attr/textColorPrimary"
-        android:scaleType="fitCenter"
+        app:tint="@color/text_color_primary"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/player_close_button_padding"
         android:contentDescription="@string/translate"
         android:elevation="@dimen/elevation_player_overlay"
@@ -34,8 +34,8 @@
         android:layout_margin="@dimen/player_close_button_margin"
         android:background="@drawable/bg_circle_themed"
         android:src="@drawable/ic_cancel"
-        app:tint="?android:attr/textColorPrimary"
-        android:scaleType="fitCenter"
+        app:tint="@color/text_color_primary"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/player_close_button_padding"
         android:contentDescription="@string/close"
         android:elevation="@dimen/elevation_player_overlay" />
@@ -52,7 +52,7 @@
             android:id="@+id/tvLyricsContent"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="?android:attr/textColorPrimary"
+            android:textColor="@color/text_color_primary"
             android:textSize="@dimen/empty_state_text_size"
             android:lineSpacingExtra="@dimen/player_lyrics_line_spacing"
             android:textIsSelectable="true"
@@ -60,3 +60,4 @@
     </ScrollView>
 
 </FrameLayout>
+

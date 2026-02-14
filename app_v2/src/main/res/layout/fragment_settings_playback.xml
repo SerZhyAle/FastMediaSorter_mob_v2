@@ -52,7 +52,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/slideshow_interval"
                     android:inputType="number"
-                    android:maxLength="5"
+                    android:maxLength="@integer/input_max_length_medium"
                     android:text="@string/default_slideshow_interval" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -65,7 +65,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_slideshow_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
 
@@ -214,7 +214,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/default_icon_size"
                     android:inputType="number"
-                    android:maxLength="4"
+                    android:maxLength="@integer/input_max_length_small"
                     android:text="@string/default_icon_size_value"/>
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -227,7 +227,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_grid_size_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchGridMode"
@@ -340,7 +340,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_command_panel_title"
                     android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/text_color_secondary" />
 
                 <View
                     android:layout_width="0dp"
@@ -441,7 +441,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_touch_zones_title"
                     android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/text_color_secondary" />
 
                 <View
                     android:layout_width="0dp"
@@ -457,7 +457,7 @@
             android:layout_height="wrap_content"
             android:text="@string/always_show_touch_zones_overlay_description"
             android:textSize="@dimen/text_size_small"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/text_color_secondary"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"/>
@@ -502,7 +502,7 @@
                 android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height"
                 android:layout_weight="1"
                 android:contentDescription="@string/touch_zones_scheme"
-                android:scaleType="fitCenter"
+                android:scaleType="@string/image_scale_fit_center"
                 android:src="@drawable/touch_zones_scheme"
                 android:layout_marginEnd="@dimen/margin_small"/>
 
@@ -582,3 +582,4 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+

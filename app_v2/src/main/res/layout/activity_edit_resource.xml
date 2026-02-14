@@ -739,7 +739,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/show_subfolders_as_items_hint"
                         android:textSize="@dimen/text_size_small"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -782,7 +782,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/read_only_mode_hint"
                         android:textSize="@dimen/text_size_small"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -844,7 +844,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/read_speed"
                                 android:textSize="@dimen/text_size_small"
-                                android:textColor="?android:textColorSecondary" />
+                                android:textColor="@color/text_color_secondary" />
 
                             <TextView
                                 android:id="@+id/tvReadSpeed"
@@ -866,7 +866,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/write_speed"
                                 android:textSize="@dimen/text_size_small"
-                                android:textColor="?android:textColorSecondary" />
+                                android:textColor="@color/text_color_secondary" />
 
                             <TextView
                                 android:id="@+id/tvWriteSpeed"
@@ -888,7 +888,7 @@
                                 android:layout_height="wrap_content"
                                 android:text="@string/rec_threads"
                                 android:textSize="@dimen/text_size_small"
-                                android:textColor="?android:textColorSecondary" />
+                                android:textColor="@color/text_color_secondary" />
 
                             <TextView
                                 android:id="@+id/tvRecThreads"
@@ -908,7 +908,7 @@
                         android:layout_marginTop="@dimen/margin_tiny"
                         android:text="@string/activity_edit_resource_tvLastTestDate_text"
                         android:textSize="@dimen/activity_edit_resource_tvLastTestDate_textSize"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -955,7 +955,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/created_date"
                         android:textSize="@dimen/text_size_small"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                     <TextView
                         android:id="@+id/tvCreatedDate"
@@ -978,7 +978,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/file_count"
                         android:textSize="@dimen/text_size_small"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                     <TextView
                         android:id="@+id/tvFileCount"
@@ -1004,7 +1004,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/last_browse_date"
                     android:textSize="@dimen/text_size_small"
-                    android:textColor="?android:textColorSecondary" />
+                    android:textColor="@color/text_color_secondary" />
 
                 <TextView
                     android:id="@+id/tvLastBrowseDate"
@@ -1050,3 +1050,4 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.core.widget.NestedScrollView>
+

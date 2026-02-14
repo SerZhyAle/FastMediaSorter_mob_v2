@@ -109,7 +109,7 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="@string/tooltip_go_to_next_after_copy_title"
                     android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                    app:tint="@color/text_color_secondary" />
         </LinearLayout>
 
         <!-- Enable Move + Overwrite on Move (One Row) -->
@@ -207,7 +207,7 @@
                     android:layout_height="wrap_content"
                     android:hint="@string/max_recipients"
                     android:inputType="number"
-                    android:maxLength="2" />
+                    android:maxLength="@integer/input_max_length_tiny" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -219,7 +219,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_destinations_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
 
         </LinearLayout>
 
@@ -259,3 +259,4 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+

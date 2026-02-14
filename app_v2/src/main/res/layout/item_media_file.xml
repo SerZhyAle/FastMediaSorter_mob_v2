@@ -24,7 +24,7 @@
         android:layout_width="@dimen/item_icon_size_medium"
         android:layout_height="@dimen/item_icon_size_medium"
         android:layout_marginStart="@dimen/margin_small"
-        android:scaleType="centerCrop"
+        android:scaleType="@string/image_scale_center_crop"
         android:contentDescription="@string/thumbnail"
         android:background="?android:selectableItemBackground"
         app:layout_constraintStart_toEndOf="@id/cbSelect"
@@ -71,7 +71,7 @@
         android:layout_marginEnd="0dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/favorite"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/item_padding_small"
         android:src="@drawable/ic_star_outline"
         app:layout_constraintEnd_toStartOf="@+id/btnCopyItem"
@@ -86,7 +86,7 @@
         android:layout_marginEnd="0dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/copy"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/item_padding_small"
         android:src="@android:drawable/ic_menu_save"
         android:visibility="gone"
@@ -102,7 +102,7 @@
         android:layout_marginEnd="0dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/move"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/item_padding_small"
         android:src="@android:drawable/ic_menu_revert"
         android:visibility="gone"
@@ -118,7 +118,7 @@
         android:layout_marginEnd="0dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/rename"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/item_padding_small"
         android:src="@android:drawable/ic_menu_edit"
         android:visibility="gone"
@@ -134,7 +134,7 @@
         android:layout_marginEnd="0dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/delete"
-        android:scaleType="fitCenter"
+        android:scaleType="@string/image_scale_fit_center"
         android:padding="@dimen/item_padding_small"
         android:src="@android:drawable/ic_menu_delete"
         android:visibility="gone"
@@ -144,3 +144,4 @@
         tools:visibility="visible" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

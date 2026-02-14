@@ -41,7 +41,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/supported_audio_formats"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
         </LinearLayout>
 
         <!-- Search audio covers online -->
@@ -94,7 +94,7 @@
                 android:layout_weight="1"
                 android:text="@string/search_covers_only_on_wifi"
                 android:textSize="@dimen/resource_card_desc_text_size"
-                android:textColor="?android:textColorSecondary" />
+                android:textColor="@color/text_color_secondary" />
         </LinearLayout>
 
         <!-- Audio size limit -->
@@ -121,7 +121,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_audio_size_limits_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
         </LinearLayout>
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -175,7 +175,7 @@
                     android:maxWidth="@dimen/layout_settings_text_field_max_width"
                     android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
                     android:inputType="number"
-                    android:maxLength="7" />
+                    android:maxLength="@integer/input_max_length_filesize" />
             </com.google.android.material.textfield.TextInputLayout>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -211,7 +211,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tooltip_photos_during_audio_title"
                 android:src="@android:drawable/ic_menu_help"
-                app:tint="?android:attr/textColorSecondary" />
+                app:tint="@color/text_color_secondary" />
         </LinearLayout>
 
         <!-- Background photos source selector -->
@@ -229,7 +229,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/audio_background_photos_source_label"
                 android:textSize="@dimen/resource_card_desc_text_size"
-                android:textColor="?android:textColorPrimary"
+                android:textColor="@color/text_color_primary"
                 android:layout_marginBottom="@dimen/margin_small" />
 
             <TextView
@@ -240,7 +240,7 @@
                 android:text="@string/no_photos_source_selected"
                 android:textSize="@dimen/resource_name_text_size"
                 android:gravity="center"
-                android:textColor="?android:textColorSecondary" />
+                android:textColor="@color/text_color_secondary" />
 
             <Button
                 android:id="@+id/btnSelectPhotosSource"
@@ -254,3 +254,4 @@
 
     </LinearLayout>
 </ScrollView>
+

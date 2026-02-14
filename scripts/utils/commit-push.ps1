@@ -4,14 +4,9 @@ param(
     [string]$Message
 )
 
-# Check if a commit message was provided
-if (-not $Message) {
-    $Message = Read-Host "Enter commit message"
-}
-
-if (-not $Message) {
-    Write-Host "No commit message provided. Exiting."
-    exit 1
+# Auto-generate commit message if not provided
+if ([string]::IsNullOrWhiteSpace($Message)) {
+    $Message = Get-Date -Format "yyMMddHHmm"
 }
 
 # Add all changes

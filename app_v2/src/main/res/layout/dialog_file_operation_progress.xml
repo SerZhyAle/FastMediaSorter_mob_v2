@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/operation_progress_indicator"
         android:indeterminate="false"
-        android:max="100"
+        android:max="@integer/seekbar_max_percent"
         android:progress="0"
         android:layout_marginBottom="@dimen/margin_small" />
 
@@ -66,3 +66,4 @@
         style="@style/Widget.Material3.Button.OutlinedButton" />
 
 </LinearLayout>
+

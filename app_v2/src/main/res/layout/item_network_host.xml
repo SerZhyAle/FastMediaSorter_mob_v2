@@ -65,9 +65,10 @@
             android:layout_width="@dimen/item_status_badge_size"
             android:layout_height="@dimen/item_status_badge_size"
             android:src="@drawable/ic_arrow_forward"
-            app:tint="?android:textColorSecondary" 
+            app:tint="@color/text_color_secondary" 
             android:contentDescription="@null" />
 
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>
+

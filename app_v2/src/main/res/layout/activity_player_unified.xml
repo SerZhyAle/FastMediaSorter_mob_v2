@@ -452,7 +452,7 @@
             android:layout_gravity="top|center_horizontal"
             android:adjustViewBounds="true"
             android:visibility="gone"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:background="@color/black"
             android:contentDescription="@string/audio_cover_art" />
 
@@ -479,7 +479,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:contentDescription="@null" />
 
         <!-- Photo path overlay for audio slideshow photo mode -->
@@ -552,7 +552,7 @@
             android:src="@drawable/ic_fullscreen_exit"
             android:background="@drawable/bg_circle_dark"
             app:tint="@color/white"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:padding="@dimen/player_epub_button_padding"
             android:visibility="gone"
             android:contentDescription="@string/exit_fullscreen" />
@@ -732,4 +732,5 @@
     <include layout="@layout/player_bottom_panels_container_content" />
 
 </LinearLayout>
+
 

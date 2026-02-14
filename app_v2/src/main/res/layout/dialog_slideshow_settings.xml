@@ -64,7 +64,7 @@
             android:layout_marginStart="@dimen/dialog_slideshow_settings_tvPlayToEndHint_layout_marginStart"
             android:text="@string/play_to_end_hint"
             android:textSize="@dimen/dialog_slideshow_settings_tvPlayToEndHint_textSize"
-            android:textColor="?android:attr/textColorSecondary"
+            android:textColor="@color/text_color_secondary"
             app:layout_constraintTop_toBottomOf="@id/cbPlayToEnd" />
 
         <!-- Background Music Section -->
@@ -129,3 +129,4 @@
             app:layout_constraintTop_toTopOf="@id/tvTitle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

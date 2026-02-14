@@ -129,7 +129,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            android:scaleType="fitCenter"
+            android:scaleType="@string/image_scale_fit_center"
             android:contentDescription="@null" />
 
         <!-- Touch zones overlay (left half - previous, right half - next) -->
@@ -177,8 +177,8 @@
             android:id="@+id/copyDestinationsGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="5"
-            android:rowCount="2"
+            android:columnCount="@integer/grid_columns_large"
+            android:rowCount="@integer/grid_rows_small"
             android:alignmentMode="alignBounds"
             android:useDefaultMargins="false" />
     </LinearLayout>
@@ -204,8 +204,8 @@
             android:id="@+id/moveDestinationsGrid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:columnCount="5"
-            android:rowCount="2"
+            android:columnCount="@integer/grid_columns_large"
+            android:rowCount="@integer/grid_rows_small"
             android:alignmentMode="alignBounds"
             android:useDefaultMargins="false" />
     </LinearLayout>
@@ -218,4 +218,5 @@
         android:contentDescription="@string/loading_indicator"
         android:visibility="gone" />
 </LinearLayout>
+
 

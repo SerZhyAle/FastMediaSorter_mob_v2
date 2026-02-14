@@ -92,7 +92,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/add_folders_from_device_storage"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -145,7 +145,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/network_folder_description"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -198,7 +198,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/sftp_ftp_folder_description"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -251,7 +251,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/cloud_storage_description"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -379,7 +379,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="numberPassword"
-                android:maxLength="6"
+                android:maxLength="@integer/input_max_length_pin"
                 android:maxLines="1" />
 
         </com.google.android.material.textfield.TextInputLayout>
@@ -584,7 +584,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberPassword"
-                        android:maxLength="6"
+                        android:maxLength="@integer/input_max_length_pin"
                         android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -1268,7 +1268,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:inputType="numberPassword"
-                        android:maxLength="6"
+                        android:maxLength="@integer/input_max_length_pin"
                         android:maxLines="1" />
 
                 </com.google.android.material.textfield.TextInputLayout>
@@ -1528,7 +1528,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/not_connected"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -1575,7 +1575,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/not_connected"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -1622,7 +1622,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/not_connected"
                         android:textSize="@dimen/resource_card_desc_text_size"
-                        android:textColor="?android:textColorSecondary" />
+                        android:textColor="@color/text_color_secondary" />
 
                 </LinearLayout>
 
@@ -1634,7 +1634,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/cloud_storage_info"
                 android:textSize="@dimen/resource_card_desc_text_size"
-                android:textColor="?android:textColorSecondary"
+                android:textColor="@color/text_color_secondary"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- Read-Only Mode checkbox -->
@@ -1661,3 +1661,4 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
