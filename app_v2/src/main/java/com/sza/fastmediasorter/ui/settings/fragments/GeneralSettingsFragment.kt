@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -152,6 +153,16 @@ class GeneralSettingsFragment : Fragment() {
         // Make email clickable
         binding.tvVersionInfo.setOnClickListener {
             openEmailClient()
+        }
+
+        binding.tvVersionInfo.setOnLongClickListener {
+            val intent = DebugToolsBridge.maybeCreateDebugMenuIntent(requireContext())
+            if (intent != null) {
+                startActivity(intent)
+                true
+            } else {
+                false
+            }
         }
     }
     

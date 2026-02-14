@@ -34,6 +34,11 @@ class LocalMediaScanner @Inject constructor(
     private val mediaStoreRepository: MediaStoreRepository
 ) : MediaScanner {
 
+    companion object {
+        const val VIRTUAL_PATH_RECENT = "virtual://recent"
+        private const val RECENT_FILES_LIMIT = 1000
+    }
+
     override suspend fun scanFolder(
         path: String,
         supportedTypes: Set<MediaType>,
@@ -44,6 +49,10 @@ class LocalMediaScanner @Inject constructor(
         onProgress: ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         Timber.d("LocalMediaScanner.scanFolder: START - path='$path'")
+
+        if (path == VIRTUAL_PATH_RECENT) {
+            return@withContext scanRecentFiles(supportedTypes, sizeFilter, showHiddenFiles, onProgress)
+        }
         
         // SAF handling - use fast cursor-based scanning
         if (path.startsWith("content://")) {
@@ -77,6 +86,33 @@ class LocalMediaScanner @Inject constructor(
         val legacyResult = scanFolderLegacy(path, supportedTypes, sizeFilter, scanSubdirectories, showHiddenFiles, onProgress)
         Timber.d("LocalMediaScanner: scanFolderLegacy returned ${legacyResult.size} files")
         legacyResult
+    }
+
+    private suspend fun scanRecentFiles(
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        showHiddenFiles: Boolean,
+        onProgress: ScanProgressCallback?
+    ): List<MediaFile> {
+        return try {
+            val files = mediaStoreRepository.getRecentFiles(RECENT_FILES_LIMIT, supportedTypes)
+            val visibleFiles = if (showHiddenFiles) {
+                files
+            } else {
+                files.filter { !File(it.path).name.startsWith(".") }
+            }
+
+            val filteredFiles = visibleFiles.filter { file ->
+                sizeFilter == null || file.size <= 0L || MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter)
+            }
+
+            onProgress?.onComplete(filteredFiles.size, 0)
+            filteredFiles
+        } catch (e: Exception) {
+            Timber.e(e, "LocalMediaScanner: failed to scan recent files")
+            onProgress?.onComplete(0, 1)
+            emptyList()
+        }
     }
 
     private suspend fun scanFolderLegacy(
@@ -188,6 +224,10 @@ class LocalMediaScanner @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
     ): Int = withContext(Dispatchers.IO) {
+        if (path == VIRTUAL_PATH_RECENT) {
+            return@withContext scanRecentFiles(supportedTypes, sizeFilter, showHiddenFiles, null).size
+        }
+
         if (path.startsWith("content://")) {
             return@withContext getFileCountSAF(path, supportedTypes, sizeFilter)
         }
@@ -222,6 +262,7 @@ class LocalMediaScanner @Inject constructor(
     // I will include the SAF methods from the read output.
 
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
+        if (path == VIRTUAL_PATH_RECENT) return@withContext false
         if (path.startsWith("content://")) return@withContext isWritableSAF(path)
         val folder = File(path)
         folder.exists() && folder.canWrite()

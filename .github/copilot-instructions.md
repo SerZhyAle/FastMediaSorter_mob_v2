@@ -201,6 +201,14 @@ Room DB version 6. Migrations in `AppDatabase.kt`. Always increment version on s
 - **Main**: UI interactions.
 - **Scope**: `viewModelScope` preferred. Check `Job.isActive` for cancellation.
 
+### 4.4 Lint and Canonical Style Compliance
+
+- **LINT_COMPLIANCE**: **MANDATORY**. Always follow lint recommendations and project static-analysis rules.
+  - **ACTION**: Before finalizing changes, remove lint warnings in touched files where feasible and do not introduce new avoidable warnings.
+- **CANONICAL_NAMING**: **MANDATORY**. Use naming patterns from this document and existing project conventions.
+  - **ACTION**: Prefer canonical/classic naming and structure accepted by Kotlin/Android best practices and current project architecture.
+- **NO_STYLE_DRIFT**: **MANDATORY**. Do not invent ad-hoc naming or style patterns when a canonical project pattern exists.
+
 ---
 
 ## 5. FEATURE FLAGS (BuildConfig)

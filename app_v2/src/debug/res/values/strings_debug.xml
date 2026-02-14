@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="debug_crash_title">Debug Crash Report</string>
+    <string name="debug_menu_title">Developer Debug Menu</string>
+
+    <string name="debug_action_copy">Copy</string>
+    <string name="debug_action_share">Share</string>
+    <string name="debug_action_restart">Restart</string>
+    <string name="debug_action_ignore">Ignore</string>
+    <string name="debug_action_refresh">Refresh</string>
+    <string name="debug_action_apply">Apply</string>
+    <string name="debug_action_clear_logs">Clear logs</string>
+    <string name="debug_action_share_logs">Share logs</string>
+    <string name="debug_action_network">Network inspector</string>
+    <string name="debug_action_clear_cache">Clear Glide cache</string>
+    <string name="debug_action_reset_prefs">Reset preferences</string>
+    <string name="debug_leakcanary_toggle">LeakCanary</string>
+
+    <string name="debug_share_report">Share crash report</string>
+    <string name="debug_share_logs">Share log file</string>
+    <string name="debug_copy_done">Copied</string>
+    <string name="debug_search_hint">Search text</string>
+    <string name="debug_logs_empty">No log entries</string>
+    <string name="debug_logs_cleared">Logs cleared</string>
+    <string name="debug_glide_cache_cleared">Glide cache cleared</string>
+    <string name="debug_preferences_reset">Preferences reset</string>
+    <string name="debug_network_inspector_unavailable">Network inspector unavailable</string>
+    <string name="debug_leakcanary_enabled">LeakCanary enabled</string>
+    <string name="debug_leakcanary_disabled">LeakCanary disabled</string>
+
+    <string name="debug_error_prefix">ERROR:</string>
+    <string name="debug_warning_prefix">WARN:</string>
+</resources>

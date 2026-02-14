@@ -7,6 +7,8 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.chuckerteam.chucker.api.ChuckerInterceptor
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -129,12 +131,21 @@ object AppModule {
     
     @Provides
     @Singleton
-    fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
+    fun provideOkHttpClient(@ApplicationContext context: Context): OkHttpClient {
+        val builder = OkHttpClient.Builder()
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(10, TimeUnit.SECONDS)
             .writeTimeout(10, TimeUnit.SECONDS)
-            .build()
+
+        if (BuildConfig.DEBUG) {
+            builder.addInterceptor(
+                ChuckerInterceptor.Builder(context)
+                    .alwaysReadResponseBody(true)
+                    .build()
+            )
+        }
+
+        return builder.build()
     }
     
     @Provides

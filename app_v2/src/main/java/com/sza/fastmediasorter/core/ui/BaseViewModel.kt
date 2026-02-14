@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -36,6 +37,7 @@ abstract class BaseViewModel<State, Event> : ViewModel() {
 
     protected val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Timber.e(throwable, "Coroutine exception in ${this::class.simpleName}")
+        DebugToolsBridge.onCoroutineException(throwable)
         handleError(throwable)
     }
 

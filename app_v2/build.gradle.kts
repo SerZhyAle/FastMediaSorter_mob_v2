@@ -24,8 +24,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260214213
-        versionName = "2.60.2142.130"
+        versionCode = 260214234
+        versionName = "2.60.2142.347"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -163,6 +163,7 @@ android {
             isMinifyEnabled = false
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
+            buildConfigField("boolean", "ENABLE_LEAKCANARY", "false")
         }
         release {
             isMinifyEnabled = true
@@ -306,6 +307,9 @@ dependencies {
     
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
+
+    // Baseline Profiles runtime installer
+    implementation("androidx.profileinstaller:profileinstaller:1.3.1")
     
     // Hilt WorkManager integration
     implementation("androidx.hilt:hilt-work:1.1.0")
@@ -381,6 +385,8 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
+    releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
     
     // Cloud Storage - Dropbox
     implementation("com.dropbox.core:dropbox-core-sdk:5.4.5")
@@ -390,6 +396,7 @@ dependencies {
     
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
     
     // Document Support - EPUB
     implementation("io.documentnode:epub4j-core:4.2") {

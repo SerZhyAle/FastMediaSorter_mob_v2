@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
@@ -20,6 +21,11 @@ class ScanLocalFoldersUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val mediaStoreRepository: MediaStoreRepository
 ) {
+
+    companion object {
+        private const val VIRTUAL_PATH_RECENT = "virtual://recent"
+    }
+
     suspend operator fun invoke(): Result<List<MediaResource>> = withContext(Dispatchers.IO) {
         try {
             val existingResources = repository.getAllResources().first()
@@ -38,6 +44,26 @@ class ScanLocalFoldersUseCase @Inject constructor(
             if (settings.supportPdf) supportedMediaTypes.add(MediaType.PDF)
             
             val resources = mutableListOf<MediaResource>()
+
+            if (VIRTUAL_PATH_RECENT !in existingPaths) {
+                resources.add(
+                    MediaResource(
+                        id = 0,
+                        name = context.getString(R.string.recent_media),
+                        path = VIRTUAL_PATH_RECENT,
+                        type = ResourceType.LOCAL,
+                        createdDate = System.currentTimeMillis(),
+                        fileCount = 0,
+                        isDestination = false,
+                        destinationOrder = null,
+                        isWritable = false,
+                        slideshowInterval = settings.slideshowInterval,
+                        scanSubdirectories = false,
+                        supportedMediaTypes = supportedMediaTypes,
+                        allFiles = settings.allFiles
+                    )
+                )
+            }
             
             // Fetch standard Android folders (always returned, even if empty)
             val standardFolders = mediaStoreRepository.getStandardFolders()

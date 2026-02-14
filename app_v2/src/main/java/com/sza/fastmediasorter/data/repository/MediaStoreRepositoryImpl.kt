@@ -16,6 +16,30 @@ class MediaStoreRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : MediaStoreRepository {
 
+    private fun buildSelectionForAllowedTypes(allowedTypes: Set<MediaType>): String? {
+        val selectionBuilder = StringBuilder()
+
+        val mediaTypeConditions = mutableListOf<String>()
+        if (allowedTypes.contains(MediaType.IMAGE)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}")
+        if (allowedTypes.contains(MediaType.VIDEO)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO}")
+        if (allowedTypes.contains(MediaType.AUDIO)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO}")
+
+        if (mediaTypeConditions.isNotEmpty()) {
+            selectionBuilder.append("(${mediaTypeConditions.joinToString(" OR ")})")
+        }
+
+        val otherTypes = allowedTypes.filter { it !in setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO) }
+        if (otherTypes.isNotEmpty()) {
+            if (selectionBuilder.isNotEmpty()) selectionBuilder.append(" OR ")
+            selectionBuilder.append("(${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_NONE})")
+            if (allowedTypes.contains(MediaType.GIF) && !allowedTypes.contains(MediaType.IMAGE)) {
+                selectionBuilder.append(" OR (${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE})")
+            }
+        }
+
+        return selectionBuilder.takeIf { it.isNotEmpty() }?.toString()
+    }
+
     override suspend fun getFoldersWithMedia(allowedTypes: Set<MediaType>): List<MediaStoreRepository.FolderInfo> = withContext(Dispatchers.IO) {
         val folderMap = mutableMapOf<String, FolderBuilder>()
         
@@ -27,41 +51,10 @@ class MediaStoreRepositoryImpl @Inject constructor(
             MediaStore.Files.FileColumns.MIME_TYPE
         )
         
-        // Build optimized selection
-        val selectionBuilder = StringBuilder()
-        
-        // Always include standard media types if requested
-        val mediaTypeConditions = mutableListOf<String>()
-        if (allowedTypes.contains(MediaType.IMAGE)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}")
-        if (allowedTypes.contains(MediaType.VIDEO)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO}")
-        if (allowedTypes.contains(MediaType.AUDIO)) mediaTypeConditions.add("${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO}")
-        
-        if (mediaTypeConditions.isNotEmpty()) {
-            selectionBuilder.append("(${mediaTypeConditions.joinToString(" OR ")})")
-        }
-        
-        // For non-standard types (PDF, Text, GIF which is Image but maybe explicit check needed, etc)
-        val otherTypes = allowedTypes.filter { it !in setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.AUDIO) }
-        
-        // If we have other types or if we didn't add any conditions yet (only "other" types requested)
-        // We include MEDIA_TYPE_NONE (0) to catch documents, and also include IMAGE for GIF if not already added
-        if (otherTypes.isNotEmpty()) {
-            if (selectionBuilder.isNotEmpty()) selectionBuilder.append(" OR ")
-            
-            // Just grab everything reasonable that isn't already grabbed
-            // We'll rely on strict filtering in the loop
-            selectionBuilder.append("(${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_NONE})")
-             if (allowedTypes.contains(MediaType.GIF) && !allowedTypes.contains(MediaType.IMAGE)) {
-                 selectionBuilder.append(" OR (${MediaStore.Files.FileColumns.MEDIA_TYPE}=${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE})")
-             }
-        } else if (selectionBuilder.isEmpty()) {
-            // No types requested
+        val selection = buildSelectionForAllowedTypes(allowedTypes)
+        if (selection == null) {
             return@withContext emptyList()
         }
-        
-        // Since logic above is a bit loose (OR logic), 
-        // we might query slightly more than needed (e.g. all None types), but we filter in loop.
-        val selection = selectionBuilder.toString()
         
         try {
             context.contentResolver.query(
@@ -103,6 +96,96 @@ class MediaStoreRepositoryImpl @Inject constructor(
         }
         
         folderMap.values.map { it.build() }
+    }
+
+    override suspend fun getRecentFiles(
+        limit: Int,
+        allowedTypes: Set<MediaType>
+    ): List<com.sza.fastmediasorter.domain.model.MediaFile> = withContext(Dispatchers.IO) {
+        val queryLimit = limit.coerceAtLeast(1)
+        val selection = buildSelectionForAllowedTypes(allowedTypes) ?: return@withContext emptyList()
+        val recentFiles = mutableListOf<com.sza.fastmediasorter.domain.model.MediaFile>()
+        val uri = MediaStore.Files.getContentUri("external")
+
+        val projection = mutableListOf(
+            MediaStore.Files.FileColumns.DATA,
+            MediaStore.Files.FileColumns.DISPLAY_NAME,
+            MediaStore.Files.FileColumns.SIZE,
+            MediaStore.Files.FileColumns.DATE_MODIFIED,
+            MediaStore.Files.FileColumns.MIME_TYPE,
+            MediaStore.Files.FileColumns.MEDIA_TYPE,
+            MediaStore.Files.FileColumns.WIDTH,
+            MediaStore.Files.FileColumns.HEIGHT
+        )
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            projection.add(MediaStore.Files.FileColumns.DURATION)
+        }
+
+        try {
+            context.contentResolver.query(
+                uri,
+                projection.toTypedArray(),
+                selection,
+                null,
+                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $queryLimit"
+            )?.use { cursor ->
+                val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
+                val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
+                val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
+                val dateCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATE_MODIFIED)
+                val mimeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE)
+                val typeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
+                val widthCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH)
+                val heightCol = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT)
+                val durCol = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION)
+                } else {
+                    -1
+                }
+
+                while (cursor.moveToNext()) {
+                    val path = cursor.getString(dataCol) ?: continue
+                    val name = cursor.getString(nameCol) ?: File(path).name
+                    val mime = cursor.getString(mimeCol)
+                    val mediaTypeInt = cursor.getInt(typeCol)
+                    val type = resolveType(name, mime, mediaTypeInt) ?: continue
+
+                    if (type !in allowedTypes) continue
+
+                    val size = cursor.getLong(sizeCol)
+                    val createdDate = cursor.getLong(dateCol) * 1000L
+                    val duration = if (durCol != -1) cursor.getLong(durCol) else null
+                    val width = if (widthCol != -1) cursor.getInt(widthCol).let { if (it == 0) null else it } else null
+                    val height = if (heightCol != -1) cursor.getInt(heightCol).let { if (it == 0) null else it } else null
+
+                    recentFiles.add(
+                        com.sza.fastmediasorter.domain.model.MediaFile(
+                            name = name,
+                            path = path,
+                            size = size,
+                            createdDate = createdDate,
+                            type = type,
+                            duration = duration,
+                            width = width,
+                            height = height,
+                            exifOrientation = null,
+                            exifDateTime = null,
+                            exifLatitude = null,
+                            exifLongitude = null,
+                            videoCodec = null,
+                            videoBitrate = null,
+                            videoFrameRate = null,
+                            videoRotation = null
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error querying recent files from MediaStore")
+        }
+
+        recentFiles
     }
     
     private fun resolveType(name: String, mime: String?, mediaTypeInt: Int): MediaType? {

@@ -172,6 +172,7 @@
     <string name="scroll_to_bottom">В конец списка</string>
     <string name="empty_state_message">Добро пожаловать! 🎉\n\nНачните с установки настроек программы и добавления локальных папок устройства на этот экран</string>
     <string name="no_media_files_found">В этой папке нет медиафайлов</string>
+    <string name="recent_media">Недавние медиа</string>
     <string name="no_files_match_criteria">Нет файлов, соответствующих критериям</string>
     <string name="connection_failed">Сбой подключения</string>
     <string name="connecting_to_resource">Подключение к %1$s...</string>

@@ -117,6 +117,7 @@
     <string name="scroll_to_bottom">Scroll to bottom</string>
     <string name="empty_state_message">Welcome! 🎉\n\nStart by configuring app settings and adding local device folders to this screen</string>
     <string name="no_media_files_found">No media files found in this folder</string>
+    <string name="recent_media">Recent Media</string>
     <string name="no_files_match_criteria">No files match your criteria</string>
     <string name="connection_failed">Connection failed</string>
     <string name="connection_ok_starting_speed_test">Connection OK. Starting Speed Test...</string>

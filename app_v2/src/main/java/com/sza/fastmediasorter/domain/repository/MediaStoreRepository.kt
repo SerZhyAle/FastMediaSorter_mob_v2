@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.repository
 
 
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.MediaFile
 
 interface MediaStoreRepository {
     
@@ -19,7 +20,12 @@ interface MediaStoreRepository {
         allowedTypes: Set<MediaType>, 
         recursive: Boolean = false,
         showHiddenFiles: Boolean = false
-    ): List<com.sza.fastmediasorter.domain.model.MediaFile>
+    ): List<MediaFile>
+
+    suspend fun getRecentFiles(
+        limit: Int,
+        allowedTypes: Set<MediaType>
+    ): List<MediaFile>
     
     suspend fun getStandardFolders(): List<FolderInfo>
 }

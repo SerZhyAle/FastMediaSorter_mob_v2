@@ -3,6 +3,7 @@ package com.sza.fastmediasorter
 import android.app.Application
 import android.content.Context
 import android.content.ComponentCallbacks2
+import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
@@ -11,6 +12,7 @@ import androidx.work.Configuration
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.logging.LoggingHelper
+import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.util.CacheStatusHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
@@ -74,6 +76,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        if (BuildConfig.DEBUG) {
+            DebugToolsBridge.install(this)
+        }
+
+        setupDebugStrictMode()
         
         // Initialize static context for Glide ModelLoader
         appContext = applicationContext
@@ -103,8 +111,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
-        // Clear failed video thumbnail cache on app start
-        NetworkFileDataFetcher.clearFailedVideoCache()
+        // Clear failed video thumbnail cache on app start (off main thread)
+        applicationScope.launch(Dispatchers.IO) {
+            NetworkFileDataFetcher.clearFailedVideoCache()
+        }
         
         // Clear translation cache on app start
         com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()
@@ -115,8 +125,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Setup SMB auto-reset callback to show user feedback
         setupSmbAutoReset()
         
-        // Log Glide disk cache status at startup
-        CacheStatusHelper.logGlideDiskCacheStatus(this)
+        // Log Glide disk cache status at startup (off main thread)
+        applicationScope.launch(Dispatchers.IO) {
+            CacheStatusHelper.logGlideDiskCacheStatus(this@FastMediaSorterApp)
+        }
         
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
         
@@ -149,6 +161,27 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         //         Timber.e(e, "Failed to schedule WorkManager in background")
         //     }
         // }
+    }
+
+    private fun setupDebugStrictMode() {
+        if (!BuildConfig.DEBUG) return
+
+        StrictMode.setThreadPolicy(
+            StrictMode.ThreadPolicy.Builder()
+                .detectDiskReads()
+                .detectDiskWrites()
+                .detectNetwork()
+                .penaltyLog()
+                .build()
+        )
+
+            StrictMode.setVmPolicy(
+                StrictMode.VmPolicy.Builder()
+                .detectLeakedClosableObjects()
+                .detectLeakedSqlLiteObjects()
+                .penaltyLog()
+                .build()
+            )
     }
 
     /**

@@ -170,6 +170,7 @@
     <string name="scroll_to_bottom">В кінець списку</string>
     <string name="empty_state_message">Ласкаво просимо! 🎉\n\nПочніть з налаштування програми та додавання локальних тек пристрою на цей екран</string>
     <string name="no_media_files_found">У цій папці немає медіафайлів</string>
+    <string name="recent_media">Нещодавні медіа</string>
     <string name="no_files_match_criteria">Немає файлів, що відповідають критеріям</string>
     <string name="connection_failed">Помилка підключення</string>
     <string name="connecting_to_resource">Підключення до %1$s...</string>

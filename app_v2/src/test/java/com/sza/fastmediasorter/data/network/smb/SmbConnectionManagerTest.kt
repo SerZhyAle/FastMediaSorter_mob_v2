@@ -5,6 +5,7 @@ import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.core.network.NetworkStateMonitor
 import com.sza.fastmediasorter.data.network.SmbConnectionManager
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -26,6 +27,7 @@ class SmbConnectionManagerTest {
     private lateinit var mockConnection: Connection
     private lateinit var mockSession: Session
     private lateinit var mockShare: DiskShare
+    private lateinit var mockNetworkStateMonitor: NetworkStateMonitor
     
     @Before
     fun setup() {
@@ -34,6 +36,7 @@ class SmbConnectionManagerTest {
         mockConnection = mockk(relaxed = true)
         mockSession = mockk(relaxed = true)
         mockShare = mockk(relaxed = true)
+        mockNetworkStateMonitor = mockk(relaxed = true)
         
         // Setup default mock behavior
         every { mockSmbClient.connect(any(), any()) } returns mockConnection
@@ -42,14 +45,19 @@ class SmbConnectionManagerTest {
         every { mockConnection.isConnected } returns true
         every { mockSession.connection.isConnected } returns true
         every { mockShare.isConnected } returns true
+
+        mockkConstructor(SMBClient::class)
+        every { anyConstructed<SMBClient>().connect(any(), any()) } returns mockConnection
+        every { anyConstructed<SMBClient>().close() } just Runs
         
         // Create manager instance
-        connectionManager = SmbConnectionManager()
+        connectionManager = SmbConnectionManager(mockNetworkStateMonitor)
     }
     
     @After
     fun tearDown() {
         connectionManager.close()
+        unmockkConstructor(SMBClient::class)
         clearAllMocks()
     }
     
@@ -84,7 +92,7 @@ class SmbConnectionManagerTest {
             assertTrue("Result should be Success", result is SmbResult.Success)
             
             // Verify connection was created
-            verify(exactly = 1) { mockSmbClient.connect("testserver", 445) }
+            verify(exactly = 1) { anyConstructed<SMBClient>().connect("testserver", 445) }
             verify(exactly = 1) { mockConnection.authenticate(any()) }
             verify(exactly = 1) { mockSession.connectShare("testshare") }
         }
@@ -115,7 +123,7 @@ class SmbConnectionManagerTest {
             }
             
             // Verify connection was created only once
-            verify(exactly = 1) { mockSmbClient.connect("testserver", 445) }
+            verify(exactly = 1) { anyConstructed<SMBClient>().connect("testserver", 445) }
             verify(exactly = 1) { mockConnection.authenticate(any()) }
             verify(exactly = 1) { mockSession.connectShare("testshare") }
         }
@@ -207,7 +215,7 @@ class SmbConnectionManagerTest {
             }
             
             // Verify connection was created twice (once fresh, once after stale)
-            verify(atLeast = 2) { mockSmbClient.connect("testserver", 445) }
+            verify(atLeast = 2) { anyConstructed<SMBClient>().connect("testserver", 445) }
         }
     }
     
@@ -306,7 +314,7 @@ class SmbConnectionManagerTest {
         
         mockkObject(connectionManager) {
             every { connectionManager.getClient(any(), any()) } returns mockSmbClient
-            every { mockSmbClient.connect(any(), any()) } throws 
+            every { anyConstructed<SMBClient>().connect(any(), any()) } throws 
                 java.util.concurrent.TimeoutException("Connection timeout")
             
             val result = connectionManager.withConnection(connectionInfo) { share ->

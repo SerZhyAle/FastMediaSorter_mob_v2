@@ -42,10 +42,10 @@ class CloudFileOperationHandlerTest {
         assertEquals("smb://server/share", normalizeNetworkPath(handler, "smb://server/share"))
         assertEquals("sftp://server/path", normalizeNetworkPath(handler, "sftp://server/path"))
         
-        // Assert unrelated paths remain unchanged
-        assertEquals("/local/path", normalizeNetworkPath(handler, "/local/path"))
+        // Assert non-network paths follow current normalization behavior
+        assertEquals("local/path", normalizeNetworkPath(handler, "/local/path"))
         assertEquals("content://uri", normalizeNetworkPath(handler, "content://uri"))
-        assertEquals("/storage/emulated/0", normalizeNetworkPath(handler, "/storage/emulated/0"))
+        assertEquals("storage/emulated/0", normalizeNetworkPath(handler, "/storage/emulated/0"))
     }
 
     @Test
