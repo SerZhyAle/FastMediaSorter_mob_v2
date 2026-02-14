@@ -61,6 +61,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
+                android:paddingStart="0dp"
                 android:paddingEnd="@dimen/padding_large">
 
                 <TextView
@@ -120,7 +121,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:orientation="vertical"
-                android:paddingStart="@dimen/padding_large">
+                android:paddingStart="@dimen/padding_large"
+                android:paddingEnd="0dp">
 
                 <!-- Image EXIF Section -->
                 <LinearLayout

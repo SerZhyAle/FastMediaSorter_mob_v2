@@ -57,6 +57,8 @@
                 android:id="@+id/etTextContent"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:importantForAutofill="no"
+                android:hint="@string/text_content_hint"
                 android:textColor="?android:attr/textColorPrimary"
                 android:textSize="@dimen/player_audio_info_text_size"
                 android:fontFamily="monospace"

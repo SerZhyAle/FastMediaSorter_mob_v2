@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/widget_favorites_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -23,6 +24,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:divider="@android:color/transparent"
-        android:dividerHeight="@dimen/margin_tiny" />
+        android:dividerHeight="@dimen/margin_tiny"
+        tools:listitem="@layout/widget_favorites_item"
+        tools:itemCount="3" />
 
 </LinearLayout>

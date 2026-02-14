@@ -274,6 +274,7 @@
     <string name="video_size_limits">Video size limits (KB)</string>
     <string name="audio_size_limits">Audio size limits (KB)</string>
     <string name="support_text">Support Text</string>
+    <string name="support_txt">Support TXT</string>
     <string name="support_text_description">Support text files (.txt, .md, .log, .json, .xml)</string>
     <string name="show_text_line_numbers">Number lines</string>
     <string name="supported_text_formats">Supported: TXT, MD, LOG, JSON, XML, CSV</string>
@@ -559,6 +560,7 @@
     <string name="all_files_resource_info">All Files mode is enabled for this resource. All media types are automatically supported.</string>
     <string name="show_hidden_files">Show hidden files</string>
     <string name="tooltip_show_hidden_files_title">Show Hidden Files</string>
+    <string name="help_show_hidden_files">Help: Show hidden files</string>
     <string name="tooltip_show_hidden_files_message">Display hidden files and folders (those starting with a dot). When enabled, all files including system and configuration files will be visible in file listings.</string>
     <string name="tooltip_video_thumbnails_title">Show Video Thumbnails</string>
     <string name="tooltip_video_thumbnails_message">Extracts and displays the first frame of video files as thumbnails. May take 2+ seconds for network files due to download and processing time.</string>
@@ -1565,6 +1567,7 @@
     <string name="network_folder_icon">Network folder icon</string>
     <string name="sftp_folder_icon">S/FTP folder icon</string>
     <string name="cloud_storage_icon">Cloud storage icon</string>
+    <string name="text_content_hint">Text content</string>
 
 </resources>
 

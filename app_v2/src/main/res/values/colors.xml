@@ -69,7 +69,7 @@
     <!-- Text colors -->
     <color name="player_audio_info_text">#666666</color>
     <color name="player_countdown_text">#888888</color>
-    <color name="player_search_hint_text">#999999</color>
+    <color name="player_search_hint_text">#767676</color>
     <color name="player_zone_text">@color/white</color>
     <color name="player_filename_overlay_text">@color/white</color>
     <color name="player_music_track_text">#DDFFFFFF</color>

@@ -288,16 +288,16 @@
 
         <ImageButton
             android:id="@+id/btnResourceAction"
-            android:layout_width="@dimen/activity_browse_btnResourceAction_layout_width"
-            android:layout_height="@dimen/activity_browse_btnResourceAction_layout_height"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
-            android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="fitCenter"
             android:contentDescription="@string/edit"
+            android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_edit_20"
-            app:tint="?attr/colorControlNormal"
             android:visibility="gone"
+            app:tint="?attr/colorControlNormal"
             tools:visibility="visible" />
 
         <TextView
@@ -509,7 +509,7 @@
             android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
             android:textAlignment="@string/button_text_alignment_center"
             android:gravity="center"
-            android:textColor="?android:attr/textColorTertiary"
+            android:textColor="?android:attr/textColorSecondary"
             android:visibility="gone" />
     </LinearLayout>
 

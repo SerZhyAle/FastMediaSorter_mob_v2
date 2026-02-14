@@ -150,6 +150,8 @@
                     android:id="@+id/etAudioSizeMin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -171,6 +173,8 @@
                     android:id="@+id/etAudioSizeMax"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
                     android:inputType="number"
                     android:maxLength="7" />
             </com.google.android.material.textfield.TextInputLayout>

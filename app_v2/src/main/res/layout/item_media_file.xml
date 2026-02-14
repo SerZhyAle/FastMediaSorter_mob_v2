@@ -57,7 +57,7 @@
         android:layout_marginTop="0dp"
         android:textSize="@dimen/item_detail_text_size"
         android:includeFontPadding="false"
-        android:textColor="?android:textColorSecondary"
+        android:textColor="?attr/colorOnSurfaceVariant"
         app:layout_constraintEnd_toStartOf="@+id/btnFavorite"
         app:layout_constraintStart_toStartOf="@+id/tvFileName"
         app:layout_constraintTop_toBottomOf="@+id/tvFileName"

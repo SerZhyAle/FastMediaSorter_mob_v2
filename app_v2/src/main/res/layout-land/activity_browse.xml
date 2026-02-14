@@ -475,7 +475,7 @@
             android:textSize="14sp"
             android:textAlignment="center"
             android:gravity="center"
-            android:textColor="?android:attr/textColorTertiary"
+            android:textColor="?android:attr/textColorSecondary"
             android:visibility="gone" />
     </LinearLayout>
 

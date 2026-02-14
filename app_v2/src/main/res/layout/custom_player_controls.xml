@@ -31,7 +31,7 @@
 
             <androidx.media3.ui.DefaultTimeBar
                 android:id="@id/exo_progress"
-                android:layout_width="@dimen/player_small_button_size"
+                android:layout_width="0dp"
                 android:layout_height="@dimen/player_progress_height"
                 android:layout_weight="1"
                 android:layout_marginHorizontal="@dimen/player_progress_margin_horizontal"

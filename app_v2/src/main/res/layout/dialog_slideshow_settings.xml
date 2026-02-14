@@ -8,11 +8,12 @@
 
         <TextView
             android:id="@+id/tvTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="@string/slideshow_settings"
             android:textSize="@dimen/activity_player_btnInfo_textSize"
             android:textStyle="@string/text_style_bold"
+            app:layout_constraintEnd_toStartOf="@id/btnClose"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
@@ -67,13 +68,6 @@
             app:layout_constraintTop_toBottomOf="@id/cbPlayToEnd" />
 
         <!-- Background Music Section -->
-        <View
-            android:id="@+id/divider"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
-            android:layout_marginTop="@dimen/dialog_slideshow_settings_tvIntervalLabel_layout_marginTop"
-            android:background="?android:attr/listDivider"
-            app:layout_constraintTop_toBottomOf="@id/tvPlayToEndHint" />
 
         <TextView
             android:id="@+id/tvMusicLabel"
@@ -84,7 +78,7 @@
             android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
             android:textStyle="@string/text_style_bold"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/divider" />
+            app:layout_constraintTop_toBottomOf="@id/tvPlayToEndHint" />
 
         <TextView
             android:id="@+id/tvMusicStatus"
@@ -98,12 +92,13 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSelectMusic"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:text="@string/select_music_file"
             icon="@drawable/ic_music_note"
             style="@style/Widget.Material3.Button.OutlinedButton"
+            app:layout_constraintEnd_toStartOf="@id/btnClearMusic"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvMusicStatus" />
 
@@ -116,19 +111,21 @@
             android:text="@string/action_clear"
             style="@style/Widget.Material3.Button.TextButton"
             android:textColor="?android:attr/colorError"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/btnSelectMusic"
             app:layout_constraintTop_toBottomOf="@id/tvMusicStatus"
             app:layout_constraintBottom_toBottomOf="@id/btnSelectMusic" />
 
-        <!-- Footer Buttons -->
+        <!-- Header Action -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/dialog_slideshow_settings_btnClose_layout_marginTop"
             android:text="@string/close"
-            style="@style/Widget.Material3.Button"
+            app:layout_constraintBottom_toBottomOf="@id/tvTitle"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnSelectMusic" />
+            app:layout_constraintStart_toEndOf="@id/tvTitle"
+            app:layout_constraintTop_toTopOf="@id/tvTitle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

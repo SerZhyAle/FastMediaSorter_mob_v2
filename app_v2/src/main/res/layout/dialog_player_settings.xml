@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="@dimen/dialog_padding_large">
+    android:padding="@dimen/padding_normal">
 
     <!-- Title and Buttons at top -->
     <LinearLayout
@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="@dimen/margin_large">
+        android:layout_marginBottom="@dimen/margin_small">
 
         <TextView
             android:id="@+id/tvTitle"
@@ -50,13 +50,13 @@
         android:text="@string/player_speed"
         android:textSize="@dimen/resource_card_title_text_size"
         android:textStyle="@string/text_style_bold"
-        android:layout_marginBottom="@dimen/margin_small" />
+        android:layout_marginBottom="@dimen/margin_tiny" />
 
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipGroupSpeed"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_small"
         app:singleSelection="true"
         app:selectionRequired="true"
         xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -119,16 +119,18 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/button_height"
-        android:layout_marginBottom="@dimen/margin_normal">
+        android:minHeight="@dimen/resource_checkbox_min_height"
+        android:layout_marginBottom="@dimen/margin_tiny">
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/cbRepeatVideo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/dialog_field_spacing"
-            android:minWidth="@dimen/dialog_button_inset"
-            android:minHeight="@dimen/dialog_button_inset" />
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -140,27 +142,24 @@
     </LinearLayout>
 
     <!-- Subtitles Section -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/settings_divider_height"
-        android:background="?android:attr/listDivider"
-        android:layout_marginBottom="@dimen/margin_normal" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/button_height"
-        android:layout_marginBottom="@dimen/margin_small">
+        android:minHeight="@dimen/resource_checkbox_min_height"
+        android:layout_marginBottom="@dimen/margin_tiny">
 
         <com.google.android.material.checkbox.MaterialCheckBox
             android:id="@+id/cbShowSubtitles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="@dimen/dialog_field_spacing"
-            android:minWidth="@dimen/dialog_button_inset"
-            android:minHeight="@dimen/dialog_button_inset" />
+            android:minWidth="0dp"
+            android:minHeight="0dp"
+            android:paddingTop="0dp"
+            android:paddingBottom="0dp" />
 
         <TextView
             android:layout_width="0dp"
@@ -178,23 +177,18 @@
         android:text="@string/player_subtitle_language"
         android:textSize="@dimen/resource_card_desc_text_size"
         android:layout_marginStart="@dimen/margin_xxlarge"
-        android:layout_marginBottom="@dimen/margin_tiny" />
+        android:layout_marginBottom="0dp" />
 
     <Spinner
         android:id="@+id/spinnerSubtitleLanguage"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dialog_color_item_size"
         android:layout_marginStart="@dimen/margin_xxlarge"
-        android:layout_marginBottom="@dimen/margin_large"
+        android:layout_marginBottom="@dimen/margin_small"
         android:background="@drawable/spinner_background"
         android:padding="@dimen/padding_small" />
 
     <!-- Audio Track Section -->
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/settings_divider_height"
-        android:background="?android:attr/listDivider"
-        android:layout_marginBottom="@dimen/margin_large" />
 
     <TextView
         android:layout_width="match_parent"
@@ -202,13 +196,13 @@
         android:text="@string/player_audio_track"
         android:textSize="@dimen/resource_card_title_text_size"
         android:textStyle="@string/text_style_bold"
-        android:layout_marginBottom="@dimen/margin_small" />
+        android:layout_marginBottom="@dimen/margin_tiny" />
 
     <Spinner
         android:id="@+id/spinnerAudioLanguage"
         android:layout_width="match_parent"
         android:layout_height="@dimen/dialog_color_item_size"
-        android:layout_marginBottom="@dimen/margin_huge"
+        android:layout_marginBottom="@dimen/margin_small"
         android:background="@drawable/spinner_background"
         android:padding="@dimen/padding_small" />
 

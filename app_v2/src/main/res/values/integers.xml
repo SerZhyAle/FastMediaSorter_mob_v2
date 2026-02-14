@@ -16,4 +16,5 @@
     <integer name="scroll_threshold_dp">12</integer>
     <integer name="default_player_quality">1080</integer>
     <integer name="min_player_quality">480</integer>
+    <integer name="short_views_max_lenght" />
 </resources>

@@ -51,6 +51,7 @@
             android:id="@+id/tvDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:maxWidth="@dimen/dialog_max_width"
             android:gravity="start|top"
             android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/welcome_description_text_size"

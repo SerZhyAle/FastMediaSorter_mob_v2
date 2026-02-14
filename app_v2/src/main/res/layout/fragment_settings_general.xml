@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="false">
+    android:fillViewport="false"
+    tools:ignore="TooManyViews">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -41,6 +43,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginBottom="@dimen/settings_item_margin_bottom">
 
             <!-- All Files -->
@@ -57,6 +60,7 @@
                     android:id="@+id/switchAllFiles"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/all_files"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -91,6 +95,7 @@
                     android:id="@+id/switchShowHiddenFiles"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/show_hidden_files"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -105,7 +110,7 @@
                     android:layout_height="@dimen/settings_help_icon_size"
                     android:layout_marginStart="@dimen/settings_help_icon_margin"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/tooltip_show_hidden_files_title"
+                    android:contentDescription="@string/help_show_hidden_files"
                     android:src="@android:drawable/ic_menu_help"
                     app:tint="?android:attr/textColorSecondary" />
 
@@ -127,6 +132,7 @@
                 android:id="@+id/switchShowSubfoldersAsItems"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/show_subfolders_as_items"
                 android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
             <TextView
@@ -169,6 +175,7 @@
                     android:id="@+id/switchEnableFavorites"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/enable_favorites"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -203,6 +210,7 @@
                     android:id="@+id/switchPreventSleep"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/prevent_sleep"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end"
                     android:checked="true" />
 
@@ -240,6 +248,7 @@
                 android:id="@+id/switchSmallControls"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/small_controls"
                 android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
             <TextView
@@ -274,6 +283,7 @@
                 android:id="@+id/switchEnableSafeMode"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:contentDescription="@string/enable_safe_mode"
                 android:layout_marginEnd="@dimen/settings_switch_margin_end"
                 android:checked="true" />
 
@@ -309,6 +319,7 @@
                     android:id="@+id/switchConfirmDelete"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/confirm_delete_safe_mode"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end"
                     android:checked="true" />
 
@@ -344,6 +355,7 @@
                     android:id="@+id/switchConfirmMove"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/confirm_move_safe_mode"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end"
                     android:checked="true" />
 
@@ -380,6 +392,7 @@
                 android:id="@+id/actvNetworkParallelism"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:hint="@string/network_parallelism_title"
                 android:inputType="number"
                 android:text="@string/default_network_parallelism"
                 android:textSize="@dimen/resource_card_desc_text_size" />
@@ -408,6 +421,7 @@
                         android:id="@+id/switchEnableBackgroundSync"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:contentDescription="@string/enable_background_sync"
                         android:layout_marginEnd="@dimen/settings_switch_margin_end"
                         android:checked="true" />
 
@@ -450,6 +464,7 @@
                         android:id="@+id/actvSyncInterval"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:hint="@string/sync_interval"
                         android:inputType="number"
                         android:text="@string/default_sync_interval_minutes"
                         android:textSize="@dimen/resource_card_desc_text_size" />
@@ -491,6 +506,8 @@
                     android:id="@+id/etDefaultUser"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/default_user"
                     android:inputType="text" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -512,6 +529,8 @@
                     android:id="@+id/etDefaultPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/default_password"
                     android:inputType="textPassword" />
 
             </com.google.android.material.textfield.TextInputLayout>
@@ -692,6 +711,7 @@
                     android:id="@+id/actvCacheSizeLimit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:hint="@string/cache_size_limit"
                     android:inputType="number"
                     android:text="@string/default_cache_size_limit_mb"
                     android:textSize="@dimen/resource_card_desc_text_size" />

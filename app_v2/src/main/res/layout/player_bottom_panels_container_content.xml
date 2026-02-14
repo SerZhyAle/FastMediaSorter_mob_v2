@@ -32,6 +32,7 @@
                 android:text="@string/activity_player_unified_moveToPanelIndicator_text"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
+                android:paddingStart="0dp"
                 android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
 
             <TextView
@@ -78,6 +79,7 @@
                 android:text="@string/activity_player_unified_moveToPanelIndicator_text"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
+                android:paddingStart="0dp"
                 android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
 
             <TextView

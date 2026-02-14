@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.FastMediaSorter" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors - Blue for better contrast -->
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryVariant">@color/blue_700</item>
@@ -16,7 +16,8 @@
         <item name="colorSurface">@color/white</item>
         <item name="colorOnBackground">@color/black</item>
         <item name="colorOnSurface">@color/black</item>
-        <item name="colorOnSurfaceVariant">#FF6F6875</item>
+        <item name="colorOnSurfaceVariant">#FF655E6A</item>
+        <item name="android:textColorSecondary">#FF655E6A</item>
         <item name="colorOutline">#FF6F6875</item>
         <item name="colorOutlineVariant">#FF8A8391</item>
         
@@ -27,6 +28,8 @@
         <!-- Window background - white for day mode -->
         <item name="android:windowBackground">@color/white</item>
     </style>
+
+    <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
 
     <style name="Theme.FastMediaSorter.FullScreen" parent="Theme.FastMediaSorter">
         <item name="windowActionBar">false</item>

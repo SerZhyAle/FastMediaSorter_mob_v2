@@ -6,7 +6,8 @@
     android:layout_height="match_parent"
     android:fillViewport="true"
     android:fitsSystemWindows="true"
-    tools:context=".ui.editresource.EditResourceActivity">
+    tools:context=".ui.editresource.EditResourceActivity"
+    tools:ignore="TooManyViews">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -33,8 +34,8 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:baselineAligned="false"
-            android:paddingHorizontal="@dimen/padding_large"
-            android:paddingVertical="@dimen/padding_tiny"
+            android:paddingHorizontal="@dimen/padding_small"
+            android:paddingVertical="0dp"
             android:background="?attr/colorSurface"
             android:elevation="@dimen/elevation_button_bar"
             app:layout_constraintTop_toBottomOf="@id/toolbar"
@@ -47,6 +48,11 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:minHeight="40dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
                 android:text="@string/test" />
 
 
@@ -58,6 +64,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
+                android:minHeight="40dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
                 android:text="@string/reset" />
 
             <com.google.android.material.button.MaterialButton
@@ -66,6 +77,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="@dimen/resource_button_margin_start"
+                android:minHeight="40dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
                 android:text="@string/save" />
 
         </LinearLayout>
@@ -75,9 +91,9 @@
             android:layout_width="@dimen/match_constraint"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/padding_large"
-            android:paddingTop="@dimen/padding_small"
-            android:paddingBottom="@dimen/padding_large"
+            android:paddingHorizontal="@dimen/padding_small"
+            android:paddingTop="0dp"
+            android:paddingBottom="@dimen/padding_small"
             app:layout_constraintTop_toBottomOf="@id/layoutButtons"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent">
@@ -94,6 +110,7 @@
                     android:id="@+id/etResourceName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="488dp"
                     android:inputType="text"
                     android:maxLines="1" />
 
@@ -103,7 +120,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_field_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:orientation="horizontal"
                 android:baselineAligned="false">
 
@@ -151,7 +168,7 @@
                 android:id="@+id/layoutSmbCredentials"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:orientation="vertical"
                 android:visibility="gone">
 
@@ -159,7 +176,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:orientation="horizontal"
                     android:baselineAligned="false">
 
@@ -206,7 +223,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:orientation="horizontal"
                     android:baselineAligned="false">
 
@@ -253,7 +270,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:orientation="horizontal"
                     android:baselineAligned="false">
 
@@ -316,7 +333,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:orientation="horizontal"
                     android:baselineAligned="false">
 
@@ -363,7 +380,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:orientation="horizontal"
                     android:baselineAligned="false">
 
@@ -411,7 +428,7 @@
                     android:id="@+id/tilSftpPathEdit"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:hint="@string/sftp_remote_path"
                     app:helperText="@string/sftp_remote_path_hint"
                     app:helperTextEnabled="true"
@@ -438,16 +455,17 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_field_margin_top"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilResourcePath"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginEnd="@dimen/resource_field_margin_end"
+                    android:layout_weight="1"
                     android:hint="@string/resource_path"
                     app:boxBackgroundMode="outline">
 
@@ -455,27 +473,29 @@
                         android:id="@+id/etResourcePath"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="none"
                         android:focusable="false"
+                        android:inputType="none"
+                        android:maxWidth="488dp"
                         android:textSize="@dimen/text_size_small" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/tilSlideshowIntervalForResource"
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                     android:layout_width="@dimen/resource_port_width"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="@dimen/resource_field_margin_start"
-                    android:hint="@string/slideshow_interval_for_resource"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                    android:hint="@string/slideshow_interval_for_resource">
 
                     <AutoCompleteTextView
                         android:id="@+id/etSlideshowInterval"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_height="match_parent"
+                        android:hint="@string/slideshow_interval_for_resource"
                         android:inputType="number"
-                        android:maxLength="5"
-                        android:text="@string/default_slideshow_interval"/>
+                        android:maxLength="@integer/short_views_max_lenght"
+                        android:text="@string/default_slideshow_interval" />
 
                 </com.google.android.material.textfield.TextInputLayout>
 
@@ -488,13 +508,17 @@
                 android:orientation="horizontal"
                 android:baselineAligned="false"
                 android:gravity="center_vertical"
-                android:layout_marginTop="@dimen/resource_section_margin_top">
+                android:layout_marginTop="@dimen/margin_tiny">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbScanSubdirectories"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
                     android:checked="true"
                     android:text="@string/scan_subdirectories" />
 
@@ -503,6 +527,10 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
                     android:text="@string/all_files"
                     android:checked="false"
                     android:visibility="visible" />
@@ -516,7 +544,7 @@
                 android:text="@string/activity_edit_resource_tvAllFilesInfo_text"
                 android:textSize="@dimen/text_size_small"
                 android:textColor="?attr/colorPrimary"
-                android:layout_marginTop="@dimen/resource_field_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom"
                 android:visibility="gone" />
 
@@ -525,7 +553,7 @@
                 android:id="@+id/tvMediaTypesLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:text="@string/supported_media_types"
                 android:textSize="@dimen/resource_card_title_text_size"
                 android:textStyle="@string/text_style_bold" />
@@ -533,7 +561,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_field_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:orientation="vertical">
 
                 <!-- Images and Video in one row -->
@@ -541,13 +569,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:minHeight="@dimen/button_height">
+                    android:minHeight="@dimen/resource_checkbox_min_height">
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportImages"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/images" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
@@ -555,6 +587,10 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/video" />
 
                 </LinearLayout>
@@ -564,13 +600,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:minHeight="@dimen/button_height">
+                    android:minHeight="@dimen/resource_checkbox_min_height">
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportAudio"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/audio" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
@@ -578,6 +618,10 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/gif_animations" />
 
                 </LinearLayout>
@@ -588,21 +632,28 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:minHeight="@dimen/button_height"
-                    android:visibility="gone">
+                    android:minHeight="@dimen/resource_checkbox_min_height">
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportText"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/support_text" />
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
+                        android:text="@string/support_txt" />
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportPdf"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/support_pdf" />
 
                 </LinearLayout>
@@ -613,13 +664,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:minHeight="@dimen/button_height">
+                    android:minHeight="@dimen/resource_checkbox_min_height">
 
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbSupportEpub"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingTop="0dp"
+                        android:paddingBottom="0dp"
                         android:text="@string/support_epub" />
 
                     <!-- Empty space for alignment -->
@@ -637,7 +692,11 @@
                 android:id="@+id/cbDisableThumbnails"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:minWidth="0dp"
+                android:minHeight="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
                 android:text="@string/disable_thumbnails" />
 
             <!-- Show Subfolders As Items (visible only when scanSubdirectories is ON) -->
@@ -645,16 +704,21 @@
                 android:id="@+id/layoutShowSubfoldersAsItems"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:visibility="gone"
-                android:minHeight="@dimen/button_height">
+                android:minHeight="@dimen/resource_checkbox_min_height">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbShowSubfoldersAsItems"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
+                    android:contentDescription="@string/show_subfolders_as_items" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -685,15 +749,20 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height">
+                android:minHeight="@dimen/resource_checkbox_min_height">
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbReadOnlyMode"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
+                    android:layout_height="wrap_content"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp"
+                    android:paddingTop="0dp"
+                    android:paddingBottom="0dp"
+                    android:contentDescription="@string/read_only_mode" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -703,7 +772,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/read_only_mode"
                         android:textSize="@dimen/resource_card_title_text_size" />
@@ -720,30 +789,17 @@
             </LinearLayout>
 
             <!-- Is Destination -->
-            <LinearLayout
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbIsDestination"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height">
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchIsDestination"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/resource_card_icon_margin_end"
-                    android:textOn=""
-                    android:textOff="" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/use_as_destination"
-                    android:textSize="@dimen/resource_card_title_text_size" />
-
-            </LinearLayout>
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:minHeight="@dimen/resource_checkbox_min_height"
+                android:minWidth="0dp"
+                android:paddingTop="0dp"
+                android:paddingBottom="0dp"
+                android:text="@string/use_as_destination"
+                android:textSize="@dimen/resource_card_title_text_size" />
 
             <!-- Speed Test Results (Moved to bottom) -->
             <com.google.android.material.card.MaterialCardView
@@ -761,7 +817,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="@dimen/padding_normal">
+                    android:padding="@dimen/padding_small">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -773,7 +829,7 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_section_margin_top"
+                        android:layout_marginTop="@dimen/margin_tiny"
                         android:orientation="horizontal"
                         android:baselineAligned="false">
 
@@ -849,7 +905,7 @@
                         android:id="@+id/tvLastTestDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_section_margin_top"
+                        android:layout_marginTop="@dimen/margin_tiny"
                         android:text="@string/activity_edit_resource_tvLastTestDate_text"
                         android:textSize="@dimen/activity_edit_resource_tvLastTestDate_textSize"
                         android:textColor="?android:textColorSecondary" />
@@ -883,7 +939,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:orientation="horizontal"
                 android:baselineAligned="false">
 
@@ -905,7 +961,7 @@
                         android:id="@+id/tvCreatedDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:layout_marginTop="@dimen/margin_tiny"
                         android:textSize="@dimen/resource_card_desc_text_size"
                         tools:text="2025-11-07 22:54:19" />
                 </LinearLayout>
@@ -928,7 +984,7 @@
                         android:id="@+id/tvFileCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/resource_field_margin_top"
+                        android:layout_marginTop="@dimen/margin_tiny"
                         android:textSize="@dimen/resource_card_desc_text_size"
                         tools:text="9" />
                 </LinearLayout>
@@ -954,7 +1010,7 @@
                     android:id="@+id/tvLastBrowseDate"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/resource_field_margin_top"
+                    android:layout_marginTop="@dimen/margin_tiny"
                     android:textSize="@dimen/resource_card_desc_text_size"
                     tools:text="2025-11-17 03:21:45" />
             </LinearLayout>
@@ -968,7 +1024,7 @@
             android:orientation="vertical"
             android:gravity="center"
             android:visibility="gone"
-            android:padding="@dimen/padding_large"
+            android:padding="@dimen/padding_normal"
             android:background="@drawable/bg_progress_dialog"
             android:elevation="@dimen/activity_edit_resource_layoutProgress_elevation"
             app:layout_constraintTop_toTopOf="parent"
@@ -985,7 +1041,7 @@
                 android:id="@+id/tvProgressMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/resource_section_margin_top"
+                android:layout_marginTop="@dimen/margin_tiny"
                 android:text="@string/analyzing_speed"
                 android:textColor="?attr/colorOnSurface" />
                 

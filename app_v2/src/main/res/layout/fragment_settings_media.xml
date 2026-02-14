@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    tools:ignore="TooManyViews,NestedWeights">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -143,6 +145,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/margin_small">
@@ -152,6 +155,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
+                app:hintTextColor="@color/settings_textinput_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small">
 
@@ -159,6 +163,8 @@
                     android:id="@+id/etImageSizeMin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 
@@ -169,12 +175,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
+                app:hintTextColor="@color/settings_textinput_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etImageSizeMax"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 
@@ -288,6 +297,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/margin_small">
@@ -297,6 +307,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
+                app:hintTextColor="@color/settings_textinput_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small">
 
@@ -304,6 +315,8 @@
                     android:id="@+id/etVideoSizeMin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 
@@ -314,12 +327,15 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
+                app:hintTextColor="@color/settings_textinput_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etVideoSizeMax"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 
@@ -462,6 +478,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
             android:layout_marginBottom="@dimen/margin_small">
@@ -478,6 +495,8 @@
                     android:id="@+id/etAudioSizeMin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 
@@ -494,6 +513,8 @@
                     android:id="@+id/etAudioSizeMax"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 

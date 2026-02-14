@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    tools:ignore="NestedWeights">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -178,6 +180,7 @@
                 android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
+                app:hintTextColor="@color/settings_textinput_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_marginEnd="@dimen/margin_small"
                 app:layout_constraintStart_toStartOf="parent"
@@ -191,6 +194,8 @@
                     android:id="@+id/etImageSizeMin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 
@@ -201,6 +206,7 @@
                 android:layout_width="@dimen/match_constraint"
                 android:layout_height="wrap_content"
                 android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
+                app:hintTextColor="@color/settings_textinput_hint"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 app:layout_constraintStart_toEndOf="@+id/tilImageSizeMin"
                 app:layout_constraintEnd_toEndOf="parent"
@@ -213,6 +219,8 @@
                     android:id="@+id/etImageSizeMax"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
+                    android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
                     android:inputType="number"
                     android:maxLength="7" />
 

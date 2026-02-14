@@ -23,24 +23,24 @@
             <!-- Exit -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExit"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/exit"
-                app:icon="@android:drawable/ic_menu_close_clear_cancel"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Larger space between Exit and Add Resource -->
             <Space
@@ -50,178 +50,159 @@
             <!-- Add Resource -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddResource"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/add"
-                app:icon="@android:drawable/ic_menu_add"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
+                app:icon="@android:drawable/ic_menu_add"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Filter and Sort -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/filter"
-                app:icon="@android:drawable/ic_menu_search"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
+                app:icon="@android:drawable/ic_menu_search"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Refresh -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRefresh"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/refresh"
-                app:icon="@android:drawable/ic_popup_sync"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
+                app:icon="@android:drawable/ic_popup_sync"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Settings -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettings"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/settings"
-                app:icon="@android:drawable/ic_menu_preferences"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" />
+                app:icon="@android:drawable/ic_menu_preferences"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Toggle List/Grid View -->
+
+            <!-- Favorites -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnToggleView"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/toggle_view"
-                app:icon="@drawable/ic_view_grid"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton"
                 android:visibility="gone"
+                app:icon="@drawable/ic_view_grid"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal"
                 tools:visibility="visible" />
 
-            <!-- Favorites -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFavorites"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tab_favorites"
-                app:icon="@drawable/ic_star_outline"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
+                app:icon="@drawable/ic_star_outline"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Start Player - double sized PLAY icon -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartPlayer"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/start_player"
-                app:icon="@android:drawable/ic_media_play"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="@string/button_icon_alignment_text_start"
-                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                style="@style/Widget.Material3.Button.TextButton" />
+                app:icon="@android:drawable/ic_media_play"
+                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
         </LinearLayout>
 
@@ -270,7 +251,7 @@
             android:gravity="center"
             android:padding="@dimen/empty_state_padding"
             android:visibility="gone"
-            android:drawableTop="@android:drawable/ic_input_add"
+            app:drawableTopCompat="@android:drawable/ic_input_add"
             android:drawablePadding="@dimen/empty_state_text_margin_top"
             android:text="@string/empty_state_message"
             android:textSize="@dimen/empty_state_text_size"
@@ -331,8 +312,8 @@
             android:layout_marginBottom="@dimen/margin_tiny"
             android:padding="@dimen/padding_small"
             android:textSize="@dimen/text_size_small"
-            android:textColor="@android:color/holo_orange_dark"
-            android:background="@android:color/darker_gray"
+            android:textColor="@color/filter_warning_text"
+            android:background="@color/filter_warning_bg"
             android:visibility="gone"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"

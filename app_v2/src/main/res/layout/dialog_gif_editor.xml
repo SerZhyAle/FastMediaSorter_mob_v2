@@ -59,6 +59,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:text="@string/gif_edit_extract_frames" />
 
             <ImageView
@@ -66,7 +68,7 @@
                 android:layout_width="@dimen/settings_help_icon_size"
                 android:layout_height="@dimen/settings_help_icon_size"
                 android:src="@drawable/ic_help_outline_24"
-                android:contentDescription="@string/help"
+                android:contentDescription="@string/gif_edit_extract_help"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true" />
@@ -137,6 +139,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:text="@string/gif_edit_apply_speed" />
 
             <ImageView
@@ -144,7 +148,7 @@
                 android:layout_width="@dimen/settings_help_icon_size"
                 android:layout_height="@dimen/settings_help_icon_size"
                 android:src="@drawable/ic_help_outline_24"
-                android:contentDescription="@string/help"
+                android:contentDescription="@string/gif_edit_speed_help"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true" />
@@ -174,6 +178,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:maxLines="2"
+                android:ellipsize="end"
                 android:text="@string/gif_edit_save_first_frame" />
 
             <ImageView
@@ -181,7 +187,7 @@
                 android:layout_width="@dimen/settings_help_icon_size"
                 android:layout_height="@dimen/settings_help_icon_size"
                 android:src="@drawable/ic_help_outline_24"
-                android:contentDescription="@string/help"
+                android:contentDescription="@string/gif_edit_first_frame_help"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:clickable="true"
                 android:focusable="true" />

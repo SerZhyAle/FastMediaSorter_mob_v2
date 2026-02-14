@@ -53,7 +53,7 @@
             app:tabIndicatorHeight="@dimen/tab_indicator_height"
             app:tabIndicatorFullWidth="false"
             app:tabMode="scrollable"
-            app:tabGravity="fill">
+            app:tabGravity="start">
 
             <com.google.android.material.tabs.TabItem
                 android:layout_width="wrap_content"

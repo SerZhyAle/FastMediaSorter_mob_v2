@@ -203,7 +203,7 @@ class TranslationButtonManager(
             val spinnerSource = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerSourceLanguage)
             val spinnerTarget = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerTargetLanguage)
             val btnSwapLanguages = dialogView.findViewById<android.widget.ImageButton>(R.id.btnSwapLanguages)
-            val switchLensStyle = dialogView.findViewById<com.google.android.material.switchmaterial.SwitchMaterial>(R.id.switchLensStyle)
+            val switchLensStyle = dialogView.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.switchLensStyle)
             val spinnerFontSize = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerFontSize)
             val spinnerFontFamily = dialogView.findViewById<android.widget.Spinner>(R.id.spinnerFontFamily)
             val btnOk = dialogView.findViewById<android.widget.Button>(R.id.btnOk)

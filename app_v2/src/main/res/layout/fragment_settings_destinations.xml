@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    tools:ignore="NestedWeights">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -33,6 +35,7 @@
                     android:id="@+id/switchEnableCopying"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/enable_copying"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -59,6 +62,7 @@
                     android:id="@+id/switchOverwriteOnCopy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/overwrite_on_copy"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -88,6 +92,7 @@
                     android:id="@+id/switchGoToNextAfterCopy"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/go_to_next_after_copy"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -129,6 +134,7 @@
                     android:id="@+id/switchEnableMoving"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/enable_moving"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -155,6 +161,7 @@
                     android:id="@+id/switchOverwriteOnMove"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:contentDescription="@string/overwrite_on_move"
                     android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                 <TextView
@@ -198,6 +205,7 @@
                     android:id="@+id/etMaxRecipients"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:hint="@string/max_recipients"
                     android:inputType="number"
                     android:maxLength="2" />
 

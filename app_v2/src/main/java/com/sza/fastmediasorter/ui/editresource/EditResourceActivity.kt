@@ -165,7 +165,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         })
 
         // Is destination switch
-        binding.switchIsDestination.setOnCheckedChangeListener { _, isChecked ->
+        binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked ->
             Timber.d("Switch isDestination clicked: $isChecked")
             viewModel.updateIsDestination(isChecked)
         }
@@ -218,11 +218,10 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
         // Audio checkbox - only show when SUPPORT_AUDIO is true
         binding.cbSupportAudio.isVisible = BuildConfig.SUPPORT_AUDIO
         
-        // Documents (Text and PDF) - only show when SUPPORT_DOCUMENTS is true
-        if (!BuildConfig.SUPPORT_DOCUMENTS) {
-            binding.cbSupportText.isVisible = false
-            binding.cbSupportPdf.isVisible = false
-        }
+        // Documents (TXT and PDF) - show only when documents are supported by flavor
+        binding.layoutMediaTypesTextPdf.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+        binding.cbSupportText.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+        binding.cbSupportPdf.isVisible = BuildConfig.SUPPORT_DOCUMENTS
         
         // EPUB checkbox - only show when ENABLE_EPUB is true
         binding.cbSupportEpub.isVisible = BuildConfig.ENABLE_EPUB
@@ -232,10 +231,7 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
             binding.layoutMediaTypesEpub.isVisible = false
         }
         
-        // Hide Text/PDF layout row if documents are disabled
-        if (!BuildConfig.SUPPORT_DOCUMENTS) {
-            binding.layoutMediaTypesTextPdf.isVisible = false
-        }
+        // Text/PDF row visibility is already controlled above for flavor capability
     }
     
     private fun addSmbListeners() {
@@ -481,10 +477,10 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
                             binding.cbSupportEpub.isEnabled = true
                         }
                         
-                        // Show/Hide Text and PDF options based on global settings
-                        binding.layoutMediaTypesTextPdf.isVisible = state.isGlobalTextSupportEnabled || state.isGlobalPdfSupportEnabled
-                        binding.cbSupportText.isVisible = state.isGlobalTextSupportEnabled
-                        binding.cbSupportPdf.isVisible = state.isGlobalPdfSupportEnabled
+                        // Keep TXT/PDF options visible for document-capable flavors
+                        binding.layoutMediaTypesTextPdf.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+                        binding.cbSupportText.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+                        binding.cbSupportPdf.isVisible = BuildConfig.SUPPORT_DOCUMENTS
                         
                         // Show/Hide EPUB option based on global settings
                         binding.layoutMediaTypesEpub.isVisible = state.isGlobalEpubSupportEnabled
@@ -527,10 +523,10 @@ class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
 
 
                         // Is destination - use state value for reactivity
-                        binding.switchIsDestination.setOnCheckedChangeListener(null)
-                        binding.switchIsDestination.isEnabled = state.canBeDestination
-                        binding.switchIsDestination.isChecked = resource.isDestination && state.canBeDestination
-                        binding.switchIsDestination.setOnCheckedChangeListener { _, isChecked ->
+                        binding.cbIsDestination.setOnCheckedChangeListener(null)
+                        binding.cbIsDestination.isEnabled = state.canBeDestination
+                        binding.cbIsDestination.isChecked = resource.isDestination && state.canBeDestination
+                        binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked ->
                             viewModel.updateIsDestination(isChecked)
                         }
                         

@@ -290,6 +290,7 @@
     <string name="audio_size_limit">Обмеження розміру аудіо</string>
     <string name="audio_size_range">0 КБ - 100 МБ</string>
     <string name="support_text">Підтримка тексту</string>
+    <string name="support_txt">Підтримка TXT</string>
     <string name="support_text_description">Підтримка текстових файлів (.txt, .md, .log, .json, .xml)</string>
     <string name="supported_text_formats">Підтримуються: TXT, MD, LOG, JSON, XML, CSV</string>
     <string name="support_pdf">Підтримка PDF</string>
@@ -338,6 +339,13 @@
     <string name="stop">Стоп</string>
     <string name="scan_stopped">Сканування зупинено. Працюємо з %d файлами</string>
     <string name="play_video_to_end">Відтворювати відео/аудіо в слайдшоу до кінця</string>
+    <string name="slideshow_settings">Налаштування слайдшоу</string>
+    <string name="play_video_audio_to_end">Відтворювати відео/аудіо до кінця</string>
+    <string name="play_to_end_hint">Перевизначає інтервал для медіа з тривалістю</string>
+    <string name="background_music">Фонова музика</string>
+    <string name="no_music_selected">Музику не вибрано</string>
+    <string name="select_music_file">Вибрати музичний файл</string>
+    <string name="action_clear">Очистити</string>
     <string name="allow_rename">Дозволити перейменування</string>
     <string name="allow_delete">Дозволити видалення</string>
     <string name="confirm_delete">Підтверджувати видалення</string>
@@ -542,6 +550,7 @@
     <string name="all_files_resource_info">Режим усіх файлів увімкнено для цього ресурсу. Усі типи медіа підтримуються автоматично.</string>
     <string name="show_hidden_files">Показувати приховані файли</string>
     <string name="tooltip_show_hidden_files_title">Показувати приховані файли</string>
+    <string name="help_show_hidden_files">Довідка: показувати приховані файли</string>
     <string name="tooltip_show_hidden_files_message">Відображати приховані файли та папки (ті, що починаються з крапки). При увімкненні всі файли, включаючи системні та конфігураційні, будуть видимі в списках файлів.</string>
     <string name="tooltip_video_thumbnails_title">Показувати мініатюри відео</string>
     <string name="tooltip_video_thumbnails_message">Витягує та відображає перший кадр відеофайлів як мініатюри. Може зайняти понад 2 секунди для мережевих файлів через завантаження та обробку.</string>
@@ -1356,5 +1365,6 @@
     <string name="touch_zones_overlay_zonePrevious_text">НАЗАД</string>
     <string name="touch_zones_overlay_zoneRename_text">ПЕРЕЙМЕНУВАТИ</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">СЛАЙДШОУ</string>
+    <string name="text_content_hint">Текстовий вміст</string>
 
 </resources>

@@ -48,7 +48,7 @@
                 android:layout_height="wrap_content"
                 tools:text="192.168.1.105"
                 android:textSize="@dimen/item_subtitle_text_size"
-                android:textColor="?android:textColorSecondary" />
+                android:textColor="?attr/colorOnSurfaceVariant" />
 
             <TextView
                 android:id="@+id/tvServices"

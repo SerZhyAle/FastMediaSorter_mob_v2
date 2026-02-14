@@ -5,6 +5,7 @@
     android:layout_width="0dp"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:baselineAligned="false"
     app:layout_constraintBottom_toBottomOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintEnd_toEndOf="parent">
@@ -37,6 +38,7 @@
                 android:text="@string/panel_indicator_collapsed"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
+                android:paddingStart="0dp"
                 android:paddingEnd="4dp" />
 
             <TextView
@@ -84,6 +86,7 @@
                 android:text="@string/panel_indicator_collapsed"
                 android:textColor="@android:color/white"
                 android:textSize="@dimen/text_size_small"
+                android:paddingStart="0dp"
                 android:paddingEnd="4dp" />
 
             <TextView
