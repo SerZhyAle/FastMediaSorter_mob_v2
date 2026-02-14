@@ -475,24 +475,40 @@ class BrowseViewModel @Inject constructor(
         invalidateDirectoryCache()
     }
 
-    fun reloadFiles(clearList: Boolean = true) {
+    fun reloadFiles(clearList: Boolean = false) {
         // Cancel previous reload if still running to prevent parallel reloads
         reloadFilesJob?.cancel()
         reloadFilesJob = viewModelScope.launch(ioDispatcher) {
             val currentResource = state.value.resource
             
-            // Step 0: CONDITIONAL - Clear current file list only if file visibility settings changed
-            // clearList=true: user changed supportedMediaTypes, scanSubdirectories, etc - old files must disappear
-            // clearList=false: user changed only metadata (name, comment, pin) - keep showing current files
+            // Step 0: CONDITIONAL - Clear current file list only for explicit hard-reset scenarios
+            // clearList=true: resource changed in a way that invalidates visible dataset (media types, scanSubdirectories, etc.)
+            // clearList=false: standard refresh path - keep current files visible until complete snapshot is loaded
             if (clearList) {
                 withContext(Dispatchers.Main) {
-                    Timber.i("BrowseViewModel.reloadFiles: Clearing current file list to force UI refresh (file settings changed)")
-                    updateState { it.copy(mediaFiles = emptyList(), loadingProgress = 0) }
+                    Timber.i("BrowseViewModel.reloadFiles: Hard reset requested - clearing list before reload")
+                    updateState {
+                        it.copy(
+                            mediaFiles = emptyList(),
+                            loadingProgress = 0,
+                            totalFileCount = null,
+                            isScanCancellable = false
+                        )
+                    }
                     // Reset lastEmittedMediaFiles to force adapter submit on next update
                     lastEmittedMediaFiles = null
                 }
             } else {
-                Timber.i("BrowseViewModel.reloadFiles: Keeping current file list (only metadata changed)")
+                withContext(Dispatchers.Main) {
+                    Timber.i("BrowseViewModel.reloadFiles: Standard refresh - keeping current list to prevent flicker")
+                    // Explicit UI-state transition: enter refresh without intermediate empty-list state
+                    updateState {
+                        it.copy(
+                            loadingProgress = 0,
+                            isScanCancellable = false
+                        )
+                    }
+                }
             }
             
             // Step 1: Clean up ALL .trash folders in the resource directory
@@ -2414,8 +2430,8 @@ class BrowseViewModel @Inject constructor(
                 // Update resource in state before reloading
                 updateState { it.copy(resource = updatedResource) }
                 
-                // Reload files with new filter
-                reloadFiles()
+                // Reload files with hard reset because visible dataset changed
+                reloadFiles(clearList = true)
             } else {
                 Timber.d("checkAndReloadIfResourceChanged: No changes detected, syncing with cache")
                 // No settings changed - just sync with PlayerActivity cache (deletions/moves/renames)

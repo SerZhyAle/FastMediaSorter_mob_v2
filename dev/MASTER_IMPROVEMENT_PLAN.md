@@ -26,15 +26,349 @@ FOR EACH step:
 **RULE**: При неочевидном выборе реализации → СПРОСИТЬ пользователя ПЕРЕД написанием кода. Не гадать.  
 **RULE**: Если функция недоступна на старом API → скрыть из UI (graceful degradation). Не делать сложные ветвления.
 
+### BACKUP PROTOCOL
+
+**Перед изменением больших файлов (> 500 строк) — ОБЯЗАТЕЛЬНО делать бэкап:**
+
+```powershell
+# Пример: перед изменением PlayerActivity.kt (1200 строк)
+Copy-Item "app_v2\src\main\java\com\sza\fastmediasorter\ui\player\PlayerActivity.kt" `
+          "temp\backup_PlayerActivity_2026-02-15_16-30.kt"
+```
+
+**Формат имени бэкапа**: `backup_<OriginalFileName>_<YYYY-MM-DD>_<HH-MM>.<ext>`
+
+**Для чего нужен бэкап**:
+
+1. Если билд сломался — сравнить текущую версию с бэкапом (`git diff` не всегда удобен для больших изменений).
+2. Откатить изменения частично (взять рабочие куски из бэкапа).
+3. Проверить, что именно сломалось — diff между бэкапом и текущей версией.
+
+**Инструменты сравнения**:
+
+- VS Code: `code --diff temp\backup_File.kt app_v2\...\File.kt`
+- PowerShell: `Compare-Object (Get-Content temp\backup_File.kt) (Get-Content current_File.kt)`
+- Git: `git diff temp\backup_File.kt current_File.kt`
+
+**Когда НЕ нужен бэкап**:
+
+- Файлы < 500 строк (малые изменения, легко откатить через git)
+- Новые файлы (нечего бэкапить)
+- Layout XML/ресурсы (обычно не ломают билд критично)
+
+**Cleanup**: Бэкапы в `temp/` автоматически игнорируются git. Удалять вручную после успешного коммита шага.
+
+---
+
+## PRE-FLIGHT CHECKLIST
+
+**⚠️ ОБЯЗАТЕЛЬНО выполнить ДО НАЧАЛА Track A, Step A.1:**
+
+```powershell
+# 1. Проверка текущего билда
+.\build-debug.PS1
+# Ожидаемый результат: BUILD SUCCESSFUL, 0 errors
+
+# 2. Проверка git статуса
+git status
+# Ожидаемый результат: working tree clean (или только untracked файлы в temp/)
+
+# 3. Проверка архивации спеков
+Test-Path "temp\archived_specs\MAIN_WINDOW_OPTIMIZATION.md"
+# Ожидаемый результат: True (все 13 спеков перенесены)
+
+# 4. Проверка Java/Android SDK
+java -version    # Java 17+
+$env:ANDROID_HOME   # Должен быть установлен
+```
+
+**Если любая проверка провалилась** — исправить ДО начала разработки. Начинать Track A только при 100% зелёных проверках.
+
+**Дополнительно (рекомендуется)**:
+
+- Создать бранч: `git checkout -b feature/master-improvements`
+- Запустить lint: `.\gradlew.bat lintStandardDebug` (проверить baseline ошибок)
+- Проверить свободное место на диске: минимум 5GB для билдов и бэкапов
+
+---
+
+## DEFINITION OF DONE (для каждого шага)
+
+**Шаг считается завершённым, когда ВСЕ критерии выполнены:**
+
+### ✅ ОБЯЗАТЕЛЬНЫЕ критерии
+
+1. **BUILD SUCCESS**: `.\build-debug.PS1` завершается без ошибок
+2. **ZERO NEW ERRORS**: Количество compile errors = 0 (допустимы только pre-existing)
+3. **ZERO NEW CRITICAL LINT**: Никаких новых Error-level lint проблем
+4. **CODE COMMITTED**: `git commit -m "<COMMIT_MSG>"` выполнен с конкретным сообщением из плана
+5. **TODO UPDATED**: Галочка `[x]` проставлена в MASTER TODO LIST + в детальной секции шага
+
+### 🟡 РАБОТА С WARNING-АМИ
+
+- **Допустимы**: Pre-existing warnings (которые были до шага)
+- **Исправить если возможно**: Новые warnings связанные с изменениями
+- **Игнорировать**: Warnings в сгенерированном коде, библиотеках, legacy коде вне scope шага
+
+### 🧪 ТЕСТИРОВАНИЕ
+
+- **После КАЖДОГО шага**: Quick smoke test — запустить приложение, открыть Browse, открыть 1 файл (видео/аудио/изображение)
+- **Unit tests**: Писать ТОЛЬКО если шаг явно требует (обычно в конце трека, например C.8, D.7)
+- **Регрессия**: Full regression test ТОЛЬКО в конце трека (шаги A.7, B.6, C.8, D.7, etc.)
+
+### 📝 COMMIT MESSAGE FORMAT
+
+```
+<type>(<scope>): <short description>
+
+<optional body explaining WHY and WHAT changed>
+```
+
+Используй type из плана: `feat`, `refactor`, `perf`, `fix`, `test`, `cleanup`, `polish`
+
+---
+
+## ROLLBACK PROCEDURE
+
+**Если BUILD FAILED после изменений:**
+
+### Сценарий 1: Код ещё НЕ закоммичен
+
+```powershell
+# 1. Сравнить с бэкапом
+code --diff temp\backup_MyFile_2026-02-15_14-30.kt app_v2\...\MyFile.kt
+
+# 2. Откатить весь файл из бэкапа
+Copy-Item temp\backup_MyFile_*.kt app_v2\src\...\MyFile.kt -Force
+
+# 3. Перезапустить шаг с корректировками
+.\build-debug.PS1
+```
+
+### Сценарий 2: Код закоммичен, но НЕ запушен
+
+```powershell
+# 1. Откатить последний коммит (изменения вернутся в working tree)
+git reset --soft HEAD~1
+
+# 2. Восстановить из бэкапа нужные файлы
+Copy-Item temp\backup_*.kt app_v2\src\...\
+
+# 3. Исправить и перекоммитить
+# ... fix code ...
+.\build-debug.PS1
+git add -A
+git commit -m "fix(scope): corrected broken build from previous attempt"
+```
+
+### Сценарий 3: Код закоммичен И запушен
+
+```powershell
+# 1. Revert commit (создаёт новый коммит отменяющий изменения)
+git revert HEAD
+
+# 2. Push revert
+git push
+
+# 3. Начать шаг заново в новом коммите
+```
+
+**ПРАВИЛО**: Никогда не делать `git push --force` в `main` бранче. Используй `git revert`.
+
+---
+
+## QUICK REFERENCE CARD
+
+### 📁 Структура проекта
+
+```
+app_v2/src/main/java/com/sza/fastmediasorter/
+├── ui/              # Activities, Fragments, ViewModels
+│   ├── browse/
+│   ├── player/
+│   │   └── helpers/  # PlayerActivity logic ВСЕГДА здесь
+│   └── settings/
+├── domain/          # UseCases, repository interfaces
+│   ├── usecase/
+│   └── repository/
+└── data/            # Repository implementations, Room, network
+    ├── local/
+    ├── network/
+    └── repository/
+```
+
+### 🔨 Build Commands
+
+```powershell
+.\build-debug.PS1                    # Быстрый debug (используй по умолчанию)
+.\dev\build-with-version.ps1         # Debug с auto-version bump
+.\gradlew.bat assembleStandardDebug  # Gradle напрямую
+.\gradlew.bat lintStandardDebug      # Lint check
+.\gradlew.bat testStandardDebugUnitTest  # Unit tests
+```
+
+### 📛 Naming Conventions
+
+| Тип | Pattern | Пример |
+|-----|---------|--------|
+| UseCase | `VerbNounUseCase` | `GetMediaFilesUseCase` |
+| Repository | `NounRepository` | `MediaRepository` |
+| ViewModel | `NounViewModel` | `PlayerViewModel` |
+| Manager (UI) | `NounVerbManager` | `VideoPlayerManager` |
+| Strategy | `NounStrategy` | `SmbOperationStrategy` |
+
+### 🐛 Типичные проблемы
+
+**Hilt не inject-ит**:
+
+- ✅ Проверь `@HiltViewModel` на ViewModel
+- ✅ Проверь `@AndroidEntryPoint` на Activity/Fragment
+- ✅ Проверь `@Inject constructor` на UseCase/Repository
+
+**ExoPlayer не воспроизводит**:
+
+- ✅ Проверь lifecycle: init in `onCreate`, release in `onDestroy`
+- ✅ Проверь permissions (INTERNET, READ_EXTERNAL_STORAGE)
+- ✅ Проверь URL/path encoding (пробелы → `%20`)
+
+**RecyclerView мерцает**:
+
+- ✅ Используй `DiffUtil` или `submitList()` на `ListAdapter`
+- ✅ Проверь stable IDs: `setHasStableIds(true)` + override `getItemId()`
+
+**Room migration failed**:
+
+- ✅ Версия БД увеличена в `@Database(version = X)`?
+- ✅ Migration добавлена в `addMigrations(MIGRATION_X_Y)`?
+
+---
+
+## TESTING STRATEGY
+
+### 🧪 Уровни тестирования
+
+**1. Quick Smoke Test (после КАЖДОГО шага)**:
+
+```
+1. Запустить app на эмуляторе/устройстве
+2. Открыть Browse → выбрать ресурс (Local/SMB)
+3. Открыть 1 файл каждого типа: видео, аудио, изображение
+4. Проверка: открылось без краша, основные контролы работают
+Время: ~2 минуты
+```
+
+**2. Track Regression Test (в конце трека, шаги X.7, X.8)**:
+
+```
+1. Smoke test
+2. Проверить 3-5 основных сценариев трека (из Tasks шагов)
+3. Проверить что старые фичи не сломались (open file, play, delete, etc.)
+Время: ~10 минут
+```
+
+**3. Full Regression (только FINAL VALIDATION перед релизом)**:
+
+```
+1. Все flavors: standard, lite, photos, legacy
+2. Все типы файлов: video, audio, image, GIF, PDF, EPUB, text
+3. Все источники: Local, SMB, FTP, SFTP, Cloud (Drive/OneDrive/Dropbox)
+4. Все основные операции: browse, play, sort, filter, move, copy, delete
+Время: ~2 часа
+```
+
+### 📝 Unit Tests Strategy
+
+**Когда писать**:
+
+- UseCases: если логика нетривиальна (> 10 строк бизнес-логики)
+- ViewModels: если сложные state transitions (D.1, E.1, F.1, G.1)
+- Utilities: всегда (TextFilePager, CharsetDetector, PdfColorConversion)
+
+**Когда НЕ писать**:
+
+- Simple CRUD операции
+- UI-only changes (layout, colors, strings)
+- Glue code (Hilt modules, data classes)
+
+**Coverage target**: 60% на `domain/` layer, 30% на `ui/` ViewModels. Не гнаться за 100%.
+
+---
+
+## DEVELOPMENT LOG
+
+**Рекомендуется (опционально)**: создать файл `temp/DEVELOPMENT_LOG.md` для записи решений и проблем в процессе.
+
+**Формат (пример)**:
+
+```markdown
+# Development Log: Master Improvement Plan
+
+## 2026-02-15 | Track A, Step A.2
+
+**Вопрос**: BrowseViewModel.reloadFiles() вызывается из 3 мест — из какого убрать `emptyList`?  
+**Решение**: Убрал из стандартного refresh path (user pull-to-refresh). Оставил в: ресурс change, фильтр clear.  
+**Commit**: a1b2c3d
+
+**Проблема**: После A.2 тесты падают с NullPointerException в FavoritesDao.  
+**Решение**: Batch query возвращал null для несуществующих путей. Добавил elvis operator `?: false`.  
+**Commit**: d4e5f6g
+
+---
+
+## 2026-02-16 | Track A, Step A.4
+
+**Отклонение от плана**: Вместо `bindingAdapterPosition` использовал `absoluteAdapterPosition` — deprecated, но работает на всех версиях RecyclerView.  
+**Обоснование**: `bindingAdapterPosition` added in RecyclerView 1.2.0, у нас 1.1.0. Апгрейд вне scope шага.  
+**TODO**: Апгрейдить RecyclerView к 1.3.0+ в Track K.5 (compatibility stabilization).
+```
+
+**Зачем нужен лог**:
+
+- Память о решениях через месяц ("Почему мы сделали так?")
+- Передача контекста новому разработчику
+- Audit trail для code review
+
+---
+
+## BRANCH STRATEGY
+
+**Рекомендуемый подход**:
+
+```powershell
+# Перед началом Track A
+git checkout -b feature/master-improvements
+git push -u origin feature/master-improvements
+
+# Работа идёт в feature-бранче
+# Каждый шаг = 1 коммит
+# Push после каждого трека (A.7, K.5, B.6, ...) или ежедневно
+
+# После завершения ВСЕХ 54 шагов + Final Validation
+git checkout main
+git merge feature/master-improvements --no-ff
+git push origin main
+```
+
+**Альтернатива (если работаешь один)**:
+
+```powershell
+# Работать напрямую в main
+# Push после каждого трека
+# Если что-то совсем сломалось — revert последний коммит
+```
+
+**ПРАВИЛО**: Никогда не делать `git push --force` в main или feature-бранчах, которые используют другие разработчики.
+
 ---
 
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 0 / 54 шагов
+**Прогресс**: 1 / 54 шагов
 
 ### TRACK A: Main Window (7 шагов)
-- [ ] 1. A.1 — Browse Anti-Flicker
+
+- [x] 1. A.1 — Browse Anti-Flicker
 - [ ] 2. A.2 — Batch Favorites
 - [ ] 3. A.3 — Directory Hash Optimization
 - [ ] 4. A.4 — Adapter Listener Optimization
@@ -43,6 +377,7 @@ FOR EACH step:
 - [ ] 7. A.7 — StrictMode & Glide Profiling
 
 ### TRACK K: Device Compatibility (5 шагов)
+
 - [ ] 8. K.1 — Memory-Aware Image Loading
 - [ ] 9. K.2 — Storage Permission Unification
 - [ ] 10. K.3 — Tablet, Laptop & Screen Adaptation
@@ -50,6 +385,7 @@ FOR EACH step:
 - [ ] 12. K.5 — Compatibility Stabilization
 
 ### TRACK B: Settings (6 шагов)
+
 - [ ] 13. B.1 — Base Settings Binding Layer
 - [ ] 14. B.2 — Main Thread Safety
 - [ ] 15. B.3 — Media Tab Simplification
@@ -58,6 +394,7 @@ FOR EACH step:
 - [ ] 18. B.6 — Visual Cleanup & Stabilization
 
 ### TRACK C: Resources (8 шагов)
+
 - [ ] 19. C.1 — Domain Contracts & Strategy Interfaces
 - [ ] 20. C.2 — Strategy Implementations
 - [ ] 21. C.3 — Orchestration UseCase
@@ -68,6 +405,7 @@ FOR EACH step:
 - [ ] 26. C.8 — Cleanup & Regression
 
 ### TRACK D: Static Image (8 шагов)
+
 - [ ] 27. D.1 — Renderer Contracts & State Machine
 - [ ] 28. D.2 — Dual-Surface Layout
 - [ ] 29. D.3 — Image Loading Integration (Instant Swap)
@@ -78,38 +416,45 @@ FOR EACH step:
 - [ ] 34. D.8 — Slideshow Keep-Awake
 
 ### TRACK G: Audio (4 шага)
+
 - [ ] 35. G.1 — Audio Service Core (Audio-Only)
 - [ ] 36. G.2 — Background Support & Notifications
 - [ ] 37. G.3 — Audio UI Connection
 - [ ] 38. G.4 — Playback Indicator & Sleep Timer
 
 ### TRACK F: Video (3 шага)
+
 - [ ] 39. F.1 — Gesture Engine
 - [ ] 40. F.2 — Custom Controls & Seeking
 - [ ] 41. F.3 — Picture-in-Picture (Android 12+)
 
 ### TRACK E: Animated Image (4 шага)
+
 - [ ] 42. E.1 — Controller Abstraction
 - [ ] 43. E.2 — Play/Pause Implementation
 - [ ] 44. E.3 — Frame Extraction (Раскадровка)
 - [ ] 45. E.4 — Stabilization & Edge Cases
 
 ### TRACK H: Text (3 шага)
+
 - [ ] 46. H.1 — Core IO: Pager + Encoding (up to 100MB)
 - [ ] 47. H.2 — Rich Rendering & Reader UI
 - [ ] 48. H.3 — Editor Enhancements
 
 ### TRACK I: PDF (3 шага)
+
 - [ ] 49. I.1 — Vertical Scroll Engine
 - [ ] 50. I.2 — Night Mode & Comfort
 - [ ] 51. I.3 — Thumbnail Navigation
 
 ### TRACK J: EPUB (3 шага)
+
 - [ ] 52. J.1 — Table of Contents Navigation
 - [ ] 53. J.2 — Styling Engine
 - [ ] 54. J.3 — Full-Text Search
 
 **Как отмечать прогресс**:
+
 1. После завершения шага: заменить `- [ ]` на `- [x]` в этом TODO-листе
 2. Параллельно: отметить `- [x] **DONE**` в детальной секции шага
 3. Обновить счётчик "Прогресс: X / 54 шагов" в начале этой секции
@@ -209,13 +554,15 @@ LAYER 3: DOCUMENT VIEWERS (independent, parallel)
 
 ## TRACK A: Main Window Optimization
 
+**🔴 ПРИОРИТЕТ: 1 из 11** | **ШАГИ: 1-7 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: K (Device Compatibility)
+
 **Source**: `MAIN_WINDOW_OPTIMIZATION.md`  
 **Goal**: Responsive Browse, no flicker, fast player entry  
 **Risk**: Hidden logic depends on intermediate empty-state  
 
 ### A.1 — Browse Anti-Flicker
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -394,6 +741,9 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.5
 
 ## TRACK B: Settings Improvement
 
+**🔴 ПРИОРИТЕТ: 3 из 11** | **ШАГИ: 13-18 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: C (Resources)  
+**⚠️ ВЫПОЛНЯТЬ ПОСЛЕ**: Track K
+
 **Source**: `SETTINGS_IMPROVEMENT_SPEC.md`  
 **Goal**: Fast setting discovery, no nested tabs, no Main-thread I/O  
 **Risk**: Navigation regression after nested tabs removal  
@@ -565,6 +915,9 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.2
 
 ## TRACK K: Device & Screen Compatibility
 
+**🔴 ПРИОРИТЕТ: 2 из 11** | **ШАГИ: 8-12 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: B (Settings)  
+**⚠️ ВЫПОЛНЯТЬ ПОСЛЕ**: Track A
+
 **Source**: `OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md`  
 **Goal**: Graceful degradation on old devices, tablet/laptop layouts, small screens, permission safety across API 28-35  
 **Risk**: Low — defensive checks, no architectural changes  
@@ -723,6 +1076,9 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §5.1-5.2
 ---
 
 ## TRACK C: Resource Management
+
+**🔴 ПРИОРИТЕТ: 4 из 11** | **ШАГИ: 19-26 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: D (Static Image)  
+**⚠️ ВЫПОЛНЯТЬ ПОСЛЕ**: Track B
 
 **Source**: `RESOURCE_CREATION_IMPROVEMENT_SPEC.md` + `RESOURCE_EDITING_COPYING_SPEC.md`  
 **Goal**: Single form engine for CREATE/EDIT/COPY, strategy-based validation  
@@ -967,6 +1323,8 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §B
 
 ## TRACK D: Static Image Playback
 
+**🟠 ПРИОРИТЕТ: 5 из 11** | **ШАГИ: 27-34 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: G (Audio)
+
 **Source**: `STATIC_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md` + `STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md`  
 **Goal**: Smooth transitions, fast navigation, unified gestures, no OOM  
 **Risk**: Transition artifacts during migration, dual-surface memory  
@@ -1205,6 +1563,9 @@ Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 1
 
 ## TRACK E: Animated Image Playback
 
+**🟡 ПРИОРИТЕТ: 8 из 11** | **ШАГИ: 42-45 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: H (Text)  
+**⚠️ ВЫПОЛНЯТЬ ПОСЛЕ**: Track F
+
 **Source**: `ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md`  
 **Goal**: Play/Pause, GIF frame extraction (raскадровка), unified zoom for GIF/WEBP/APNG  
 **Risk**: Low — no Glide internals hacking, standard Android APIs  
@@ -1330,6 +1691,9 @@ Source: VIDEO_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 
 ## TRACK F: Video Playback
 
+**🟡 ПРИОРИТЕТ: 7 из 11** | **ШАГИ: 39-41 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: E (Animated Image)  
+**⚠️ ВЫПОЛНЯТЬ ПОСЛЕ**: Track G
+
 **Source**: `VIDEO_PLAYBACK_IMPROVEMENT_SPEC.md`  
 **Goal**: MX Player-class gestures, visual consistency, PiP  
 **Risk**: Gesture conflict with PlayerView internals, PiP lifecycle  
@@ -1426,6 +1790,9 @@ Source: AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 ---
 
 ## TRACK G: Audio Playback
+
+**🟠 ПРИОРИТЕТ: 6 из 11** | **ШАГИ: 35-38 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: F (Video)  
+**⚠️ ВЫПОЛНЯТЬ ПОСЛЕ**: Track D
 
 **Source**: `AUDIO_PLAYBACK_IMPROVEMENT_SPEC.md`  
 **Goal**: Background audio playback (optional), system media controls, playback indicator  
@@ -1560,6 +1927,8 @@ Source: TEXT_PLAYBACK_IMPROVEMENT_SPEC.md §5.1-5.2, §6 Phase 1
 
 ## TRACK H: Text Playback
 
+**🟢 ПРИОРИТЕТ: 9 из 11** | **ШАГИ: 46-48 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: I (PDF)
+
 **Source**: `TEXT_PLAYBACK_IMPROVEMENT_SPEC.md`  
 **Goal**: Open files up to 100MB, encoding detection, Markdown/code rendering  
 **Risk**: Low — 100MB limit avoids complex encoding stitch edge cases  
@@ -1653,6 +2022,8 @@ Source: PDF_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 
 ## TRACK I: PDF Playback
 
+**🟢 ПРИОРИТЕТ: 10 из 11** | **ШАГИ: 49-51 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: J (EPUB)
+
 **Source**: `PDF_PLAYBACK_IMPROVEMENT_SPEC.md`  
 **Goal**: Continuous scroll, night mode, thumbnail navigation  
 **Risk**: PdfRenderer thread safety, memory for large pages  
@@ -1744,6 +2115,8 @@ Source: EPUB_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 ---
 
 ## TRACK J: EPUB Playback
+
+**🟢 ПРИОРИТЕТ: 11 из 11** | **ШАГИ: 52-54 из 54** | **СЛЕДУЮЩИЙ ТРЕК**: Final Validation
 
 **Source**: `EPUB_PLAYBACK_IMPROVEMENT_SPEC.md`  
 **Goal**: TOC navigation, full search, reader comfort  
