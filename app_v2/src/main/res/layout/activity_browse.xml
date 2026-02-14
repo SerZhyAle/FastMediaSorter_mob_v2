@@ -126,7 +126,7 @@
                 android:layout_marginEnd="@dimen/margin_tiny"
                 android:background="@drawable/badge_filter_background"
                 android:gravity="center"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/browse_filter_badge_text_size"
                 android:textStyle="@string/text_style_bold"
                 android:visibility="gone" />
@@ -350,7 +350,7 @@
         android:scaleType="centerInside"
         android:visibility="gone"
         android:src="@drawable/ic_arrow_upward"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         app:layout_constraintTop_toTopOf="@id/swipeRefreshLayout"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -367,7 +367,7 @@
         android:scaleType="centerInside"
         android:visibility="gone"
         android:src="@drawable/ic_arrow_downward"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         app:layout_constraintBottom_toBottomOf="@id/swipeRefreshLayout"
         app:layout_constraintEnd_toEndOf="parent" />
 
@@ -532,7 +532,7 @@
             android:layout_height="@dimen/empty_state_icon_size"
             android:src="@android:drawable/stat_notify_error"
             android:contentDescription="@string/error"
-            app:tint="@android:color/holo_red_dark" />
+            app:tint="@color/error_color" />
 
         <TextView
             android:id="@+id/tvErrorMessage"
@@ -543,7 +543,7 @@
             android:textSize="@dimen/empty_state_text_size"
             android:textAlignment="@string/button_text_alignment_center"
             android:gravity="center"
-            android:textColor="@android:color/holo_red_dark" />
+            android:textColor="@color/error_color" />
 
         <Button
             android:id="@+id/btnRetry"

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/black">
+    android:background="@color/black">
 
     <!-- Command Panel Top -->
     <LinearLayout
@@ -26,7 +26,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
             android:src="@drawable/ic_back"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnPreviousCmd"
@@ -36,7 +36,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/previous"
             android:src="@android:drawable/ic_media_previous"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnNextCmd"
@@ -46,7 +46,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/next"
             android:src="@android:drawable/ic_media_next"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnRenameCmd"
@@ -56,7 +56,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/rename"
             android:src="@drawable/ic_rename"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnShareCmd"
@@ -66,7 +66,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/share"
             android:src="@drawable/ic_share"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnDeleteCmd"
@@ -76,7 +76,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/delete"
             android:src="@android:drawable/ic_menu_delete"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnUndoCmd"
@@ -87,7 +87,7 @@
             android:contentDescription="@string/undo"
             android:src="@android:drawable/ic_menu_revert"
             android:visibility="gone"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnFullscreenCmd"
@@ -97,7 +97,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/fullscreen_mode"
             android:src="@drawable/ic_fullscreen"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
 
         <ImageButton
             android:id="@+id/btnSlideshowCmd"
@@ -106,7 +106,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/slideshow"
             android:src="@android:drawable/ic_media_play"
-            app:tint="@android:color/white" />
+            app:tint="@color/white" />
     </LinearLayout>
 
     <!-- Media Content Area with touch zones -->
@@ -169,7 +169,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/panel_copy_to"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom" />
 
@@ -196,7 +196,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/panel_move_to"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             android:paddingBottom="@dimen/player_command_panel_mode_topCommandPanel_paddingBottom" />
 
@@ -218,3 +218,4 @@
         android:contentDescription="@string/loading_indicator"
         android:visibility="gone" />
 </LinearLayout>
+

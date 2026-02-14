@@ -44,6 +44,15 @@ Development utilities and tools for FastMediaSorter v2.
 .\scripts\utils\commit-push.ps1                    # Interactive commit+push
 ```
 
+### Quality Checks
+
+```powershell
+.\scripts\utils\check-typo-lint.ps1                             # typo + lint + Activity checks
+.\scripts\utils\check-typo-lint.ps1 -SkipTypo                  # lint + Activity checks
+.\scripts\utils\check-typo-lint.ps1 -SkipLint                  # typo + Activity checks
+.\scripts\utils\check-typo-lint.ps1 -FailOnActivityWarnings    # non-zero exit on Activity warnings
+```
+
 ### Documentation
 
 ```powershell

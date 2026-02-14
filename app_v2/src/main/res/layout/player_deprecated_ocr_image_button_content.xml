@@ -7,7 +7,7 @@
     android:layout_marginEnd="@dimen/margin_large"
     android:layout_marginBottom="@dimen/activity_player_unified_btnOcrImage_layout_marginBottom"
     android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
-    android:textColor="@android:color/white"
+    android:textColor="@color/white"
     android:textSize="@dimen/player_audio_info_text_size"
     android:textStyle="@string/text_style_bold"
     android:gravity="center"
@@ -15,3 +15,4 @@
     android:elevation="@dimen/elevation_player_overlay"
     android:visibility="gone"
     android:contentDescription="@string/ocr_button_description" />
+

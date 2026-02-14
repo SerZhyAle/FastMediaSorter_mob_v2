@@ -30,6 +30,11 @@
     <color name="unavailable_resource_bg">#FFFFE0E6</color> <!-- Pale pink for unavailable resources -->
     <color name="resource_item_bg_even">#FFFFFFFF</color> <!-- White -->
     <color name="resource_item_bg_odd">#FFF5F5F5</color> <!-- Very light grey -->
+    <color name="error_color">#FFD32F2F</color>
+    <color name="warning_color">#FFF57C00</color>
+    <color name="success_color">#FF2E7D32</color>
+    <color name="info_color">#FF0288D1</color>
+    <color name="scrollbar_thumb">#FF9E9E9E</color>
     
     <!-- Focus and hover colors for keyboard/mouse navigation -->
     <color name="item_focused">#FFBBDEFB</color> <!-- Blue 100 - visible focus highlight -->

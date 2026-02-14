@@ -9,7 +9,7 @@
         android:id="@+id/colorView"
         android:layout_width="@dimen/item_icon_size_medium"
         android:layout_height="@dimen/item_icon_size_medium"
-        android:background="@android:color/holo_blue_light" />
+        android:background="@color/info_color" />
 
     <!-- Selection indicator -->
     <ImageView

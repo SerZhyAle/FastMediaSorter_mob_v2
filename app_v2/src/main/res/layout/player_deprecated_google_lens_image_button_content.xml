@@ -9,9 +9,10 @@
     android:layout_marginBottom="@dimen/activity_player_unified_btnGoogleLensImage_layout_marginBottom"
     android:src="@drawable/ic_google_lens"
     android:background="@drawable/bg_circle_dark"
-    app:tint="@android:color/white"
+    app:tint="@color/white"
     android:scaleType="fitCenter"
     android:padding="@dimen/player_close_button_padding"
     android:elevation="@dimen/elevation_player_overlay"
     android:visibility="gone"
     android:contentDescription="@string/google_lens" />
+

@@ -25,7 +25,7 @@
                 android:id="@id/exo_position"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/player_position_text_size"
                 android:includeFontPadding="false" />
 
@@ -35,8 +35,8 @@
                 android:layout_height="@dimen/player_progress_height"
                 android:layout_weight="1"
                 android:layout_marginHorizontal="@dimen/player_progress_margin_horizontal"
-                app:played_color="@android:color/white"
-                app:scrubber_color="@android:color/white"
+                app:played_color="@color/white"
+                app:scrubber_color="@color/white"
                 app:buffered_color="@color/white_50_alpha"
                 app:unplayed_color="@color/custom_player_controls_exo_bottom_bar_unplayed_color" />
 
@@ -44,7 +44,7 @@
                 android:id="@id/exo_duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/player_position_text_size"
                 android:includeFontPadding="false" />
         </LinearLayout>
@@ -61,7 +61,7 @@
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
                 android:src="@drawable/ic_repeat"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/repeat"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -72,7 +72,7 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
                 android:src="@android:drawable/ic_media_rew"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/rewind_10_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -83,7 +83,7 @@
                 android:layout_height="@dimen/player_medium_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
                 android:src="@drawable/ic_back"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/previous_file"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -93,7 +93,7 @@
                 android:layout_width="@dimen/player_large_button_size"
                 android:layout_height="@dimen/player_large_button_size"
                 android:layout_marginHorizontal="@dimen/player_play_button_margin_horizontal"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/play_pause"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -104,7 +104,7 @@
                 android:layout_height="@dimen/player_medium_button_size"
                 android:src="@drawable/ic_back"
                 android:rotation="180"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/next_file"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -115,7 +115,7 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
                 android:src="@android:drawable/ic_media_ff"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/forward_30_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
@@ -126,9 +126,10 @@
                 android:layout_height="@dimen/player_small_button_size"
                 android:layout_marginStart="@dimen/player_button_margin_start"
                 android:src="@drawable/ic_speed"
-                app:tint="@android:color/white"
+                app:tint="@color/white"
                 android:contentDescription="@string/playback_speed"
                 android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
+

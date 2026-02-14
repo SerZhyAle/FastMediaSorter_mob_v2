@@ -30,7 +30,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/activity_player_unified_moveToPanelIndicator_text"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/text_size_small"
                 android:paddingStart="0dp"
                 android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
@@ -40,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/panel_copy_to"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/text_size_small" />
         </LinearLayout>
 
@@ -77,7 +77,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/activity_player_unified_moveToPanelIndicator_text"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/text_size_small"
                 android:paddingStart="0dp"
                 android:paddingEnd="@dimen/activity_player_unified_moveToPanelIndicator_paddingEnd" />
@@ -87,7 +87,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/panel_move_to"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:textSize="@dimen/text_size_small" />
         </LinearLayout>
 
@@ -100,3 +100,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

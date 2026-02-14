@@ -81,9 +81,9 @@
         android:layout_height="wrap_content"
         android:text="@string/delete"
         android:textAlignment="@string/button_text_alignment_start"
-        android:textColor="@android:color/holo_red_dark"
+        android:textColor="@color/error_color"
         app:icon="@drawable/ic_clear"
         app:iconGravity="@string/button_icon_alignment_start"
-        app:iconTint="@android:color/holo_red_dark" />
+        app:iconTint="@color/error_color" />
 
 </LinearLayout>

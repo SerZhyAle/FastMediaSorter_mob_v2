@@ -33,7 +33,7 @@
             android:id="@+id/colorPreview"
             android:layout_width="@dimen/dialog_color_item_size"
             android:layout_height="@dimen/dialog_color_item_size"
-            android:background="@android:color/holo_green_light" />
+            android:background="@color/success_color" />
 
         <TextView
             android:id="@+id/tvColorName"

@@ -1498,8 +1498,8 @@
     <string name="button_text_alignment_center">center</string>
     
     <!-- Text style -->
-    <string name="text_style_bold">bold</string>
-    <string name="text_style_italic">italic</string>
+    <string name="text_style_bold">1</string>
+    <string name="text_style_italic">2</string>
     
     <!-- Layout gravity patterns -->
     <string name="layout_gravity_bottom">bottom</string>

@@ -259,7 +259,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="@android:color/black"
+        android:background="@color/black"
         android:padding="@dimen/padding_small">
 
         <TextView
@@ -268,7 +268,7 @@
             android:layout_height="wrap_content"
             android:text="@string/dialog_integration_test_tvLog_text"
             android:textSize="@dimen/text_size_small"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:fontFamily="monospace"
             android:textIsSelectable="true" />
     </ScrollView>
@@ -314,3 +314,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

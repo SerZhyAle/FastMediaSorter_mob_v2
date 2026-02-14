@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black">
+    android:background="@color/black">
 
     <!-- Command Panel (Top - Horizontal ScrollView) -->
     <LinearLayout
@@ -27,7 +27,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/back"
             android:src="@drawable/ic_back"
-            app:tint="@android:color/white"
+            app:tint="@color/white"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" />
 
@@ -51,7 +51,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_search"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -63,7 +63,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_translate"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -75,7 +75,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_book"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -87,7 +87,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_save"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -99,7 +99,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_edit"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -112,7 +112,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_search"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -124,7 +124,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_translate"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -136,7 +136,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_book"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -147,7 +147,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="@dimen/text_size_small" 
                     android:textStyle="bold"
                     android:gravity="center"
@@ -161,7 +161,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_google_lens"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -174,7 +174,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_search"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -197,7 +197,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_book"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -209,7 +209,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_ocr"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -222,7 +222,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_translate"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -234,7 +234,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_book"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -245,7 +245,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:text="@string/activity_player_unified_btnOcrImageCmd_text"
-                    android:textColor="@android:color/white"
+                    android:textColor="@color/white"
                     android:textSize="@dimen/text_size_small"
                     android:textStyle="bold"
                     android:gravity="center"
@@ -259,7 +259,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_google_lens"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -271,7 +271,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_microphone"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -282,7 +282,7 @@
                     android:layout_width="@dimen/player_cmd_button_size"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_rename"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -294,7 +294,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_edit"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -306,7 +306,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_revert"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -317,7 +317,7 @@
                     android:layout_width="@dimen/player_cmd_button_size"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_more_vert"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:visibility="gone"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
@@ -329,7 +329,7 @@
                     android:layout_width="@dimen/player_cmd_button_size"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_delete"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -340,7 +340,7 @@
                     android:layout_width="@dimen/player_cmd_button_size"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_star_outline"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -352,7 +352,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_share"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -364,7 +364,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_menu_info_details"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -376,7 +376,7 @@
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@drawable/ic_fullscreen"
                     android:visibility="gone"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -387,7 +387,7 @@
                     android:layout_width="@dimen/player_cmd_button_size"
                     android:layout_height="@dimen/player_cmd_button_size"
                     android:src="@android:drawable/ic_media_play"
-                    app:tint="@android:color/white"
+                    app:tint="@color/white"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:scaleType="centerInside"
                     android:padding="@dimen/player_button_padding" 
@@ -402,7 +402,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:src="@android:drawable/ic_media_previous"
-            app:tint="@android:color/white"
+            app:tint="@color/white"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" 
@@ -413,7 +413,7 @@
             android:layout_width="@dimen/player_cmd_button_size"
             android:layout_height="@dimen/player_cmd_button_size"
             android:src="@android:drawable/ic_media_next"
-            app:tint="@android:color/white"
+            app:tint="@color/white"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:scaleType="centerInside"
             android:padding="@dimen/player_button_padding" 
@@ -535,7 +535,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            android:background="@android:color/white" />
+            android:background="@color/white" />
 
         <ImageButton
             android:id="@+id/btnExitEpubFullscreen"
@@ -546,7 +546,7 @@
             android:layout_marginEnd="@dimen/player_epub_button_margin_end"
             android:src="@drawable/ic_fullscreen_exit"
             android:background="@drawable/bg_circle_dark"
-            app:tint="@android:color/white"
+            app:tint="@color/white"
             android:scaleType="fitCenter"
             android:padding="@dimen/player_epub_button_padding"
             android:visibility="gone"
@@ -609,7 +609,7 @@
             android:elevation="@dimen/toolbar_elevation"
             android:background="?attr/colorPrimary"
             app:navigationIcon="@drawable/ic_back"
-            app:titleTextColor="@android:color/white" />
+            app:titleTextColor="@color/white" />
 
         <View
             android:layout_width="match_parent"
@@ -632,7 +632,7 @@
                 android:minWidth="40dp"
                 android:text="@string/player_volume_down_symbol"
                 android:textSize="24sp"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:visibility="gone"
                 app:backgroundTint="@android:color/transparent" />
 
@@ -643,7 +643,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/player_previous_symbol"
                 android:textSize="24sp"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 app:backgroundTint="@android:color/transparent" />
 
             <com.google.android.material.button.MaterialButton
@@ -654,7 +654,7 @@
                 android:contentDescription="@string/play_pause"
                 android:text="@string/player_play_symbol"
                 android:textSize="32sp"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:layout_marginHorizontal="32dp"
                 app:backgroundTint="@android:color/transparent" />
 
@@ -666,7 +666,7 @@
                 android:contentDescription="@string/next_file"
                 android:text="@string/player_next_symbol"
                 android:textSize="24sp"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 app:backgroundTint="@android:color/transparent" />
 
             <com.google.android.material.button.MaterialButton
@@ -677,7 +677,7 @@
                 android:minWidth="40dp"
                 android:text="@string/player_volume_up_symbol"
                 android:textSize="24sp"
-                android:textColor="@android:color/white"
+                android:textColor="@color/white"
                 android:visibility="gone"
                 app:backgroundTint="@android:color/transparent" />
         </LinearLayout>
@@ -697,7 +697,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/slideshow"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/white" />
 
             <View
                 android:layout_width="0dp"
@@ -710,7 +710,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/delete"
-                android:textColor="@android:color/white" />
+                android:textColor="@color/white" />
         </LinearLayout>
     </LinearLayout>
 
@@ -727,3 +727,4 @@
 
         
 </androidx.constraintlayout.widget.ConstraintLayout>
+

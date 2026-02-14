@@ -97,7 +97,7 @@
         android:layout_height="@dimen/item_icon_size_tiny"
         android:layout_margin="@dimen/item_margin_tiny"
         android:src="@android:drawable/ic_lock_lock"
-        app:tint="@android:color/holo_red_light"
+        app:tint="@color/error_color"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"

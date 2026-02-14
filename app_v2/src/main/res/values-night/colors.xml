@@ -28,6 +28,11 @@
     <!-- Resource item backgrounds for dark theme (zebra striping) -->
     <color name="resource_item_bg_even">#FF1E1E1E</color> <!-- Dark gray for even rows -->
     <color name="resource_item_bg_odd">#FF121212</color> <!-- Darker gray for odd rows -->
+    <color name="error_color">#FFEF5350</color>
+    <color name="warning_color">#FFFFB74D</color>
+    <color name="success_color">#FF81C784</color>
+    <color name="info_color">#FF4FC3F7</color>
+    <color name="scrollbar_thumb">#FF757575</color>
     
     <!-- Focus and hover colors for keyboard/mouse navigation (dark theme) -->
     <color name="item_focused">#FF1E3A5F</color> <!-- Dark blue for focus -->

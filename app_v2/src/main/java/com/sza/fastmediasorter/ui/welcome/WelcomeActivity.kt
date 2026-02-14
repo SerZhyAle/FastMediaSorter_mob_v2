@@ -171,15 +171,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun finishWelcome() {
-        viewModel.setWelcomeCompleted()
-        if (!permissionsGranted) {
-             // If manual finish (e.g. Skip or Finish button), we still try to request? 
-             // Or if we are on the permission page, we naturally requested. 
-             // If we are skipping, we probably just check and go.
-             checkAndFinish()
-        } else {
-             checkAndFinish()
+        // If user skips onboarding pages and storage permission is still missing,
+        // request it immediately before entering the app.
+        if (!PermissionHelper.hasStoragePermission(this)) {
+            requestPermissions()
+            return
         }
+
+        checkAndFinish()
     }
 
     private fun requestPermissions() {
@@ -238,6 +237,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
 
         if (permissionsGranted) {
+            viewModel.setWelcomeCompleted()
             // Permissions were granted, restart app
              // Only show toast if we didn't show it during grant
              // Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
@@ -249,6 +249,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun goToMainActivity() {
+        viewModel.setWelcomeCompleted()
+
         // Check if this is the first run after welcome completion
         if (viewModel.isFirstRunAfterWelcome()) {
             // Mark first run as completed

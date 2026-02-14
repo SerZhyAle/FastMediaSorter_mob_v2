@@ -59,7 +59,7 @@
         android:layout_height="@dimen/player_pdf_button_size"
         android:src="@android:drawable/ic_menu_agenda"
         android:background="@drawable/bg_circle_dark"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -71,7 +71,7 @@
         android:layout_height="@dimen/player_pdf_button_size"
         android:src="@drawable/ic_zoom_out"
         android:background="@drawable/bg_circle_dark"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
@@ -83,7 +83,7 @@
         android:layout_height="@dimen/player_pdf_button_size"
         android:src="@drawable/ic_zoom_in"
         android:background="@drawable/bg_circle_dark"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_button_margin_small"
@@ -106,3 +106,4 @@
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:contentDescription="@string/next_chapter" />
 </LinearLayout>
+

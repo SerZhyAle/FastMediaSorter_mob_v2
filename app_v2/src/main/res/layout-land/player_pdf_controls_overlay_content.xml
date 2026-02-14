@@ -46,7 +46,7 @@
         android:layout_height="@dimen/player_pdf_button_size"
         android:src="@drawable/ic_zoom_out"
         android:background="@drawable/bg_circle_dark"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginEnd="@dimen/player_pdf_button_margin"
@@ -58,7 +58,7 @@
         android:layout_height="@dimen/player_pdf_button_size"
         android:src="@drawable/ic_zoom_in"
         android:background="@drawable/bg_circle_dark"
-        app:tint="@android:color/white"
+        app:tint="@color/white"
         android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/zoom_in" />
@@ -133,3 +133,4 @@
         android:visibility="gone"
         android:contentDescription="@string/search_in_pdf" />
 </LinearLayout>
+
