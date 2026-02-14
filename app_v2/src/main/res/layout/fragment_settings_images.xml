@@ -18,20 +18,21 @@
             android:id="@+id/containerImagesGif"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <!-- Support static images -->
             <LinearLayout
                 android:id="@+id/layoutSupportImages"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/resource_field_margin_end"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginEnd="@dimen/resource_field_margin_end">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchSupportImages"
@@ -63,11 +64,11 @@
                 android:id="@+id/layoutSupportGifs"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="@dimen/settings_help_icon_margin">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchSupportGifs"

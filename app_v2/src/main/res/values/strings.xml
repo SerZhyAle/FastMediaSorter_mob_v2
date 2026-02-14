@@ -1458,14 +1458,7 @@
     <string name="fragment_settings_general_tilDefaultPassword_endIconMode">password_toggle</string>
     <string name="fragment_settings_images_tilImageSizeMax_hint">Max (KB)</string>
     <string name="fragment_settings_images_tilImageSizeMin_hint">Min (KB)</string>
-    <string name="fragment_settings_media_container_tabLayout_tabMode">scrollable</string>
-    <string name="fragment_settings_media_etAudioSizeMin_hint">Max (MB)</string>
-    <string name="fragment_settings_media_etImageSizeMin_hint">Max (KB)</string>
     <string name="fragment_settings_media_etVideoSizeMin_hint">Max (KB)</string>
-    <string name="fragment_settings_media_layoutAudioSizeInputs_hint">Min (MB)</string>
-    <string name="fragment_settings_media_layoutImageSizeInputs_hint">Min (KB)</string>
-    <string name="fragment_settings_media_layoutVideoSizeInputs_hint">Min (KB)</string>
-    <string name="fragment_settings_network_tvSyncIntervalValue_text">4 hours</string>
     <string name="fragment_settings_playback_btnShowHintNow_lineSpacingMultiplier">1.2</string>
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Max (KB)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Min (KB)</string>

@@ -38,116 +38,141 @@
 
         </LinearLayout>
 
-        <!-- All Files + Show Hidden Files Container (Modified for Landscape) -->
+        <!-- File visibility switch rows in two columns -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+            android:layout_marginBottom="@dimen/margin_tiny">
 
-            <!-- All Files -->
             <LinearLayout
-                android:id="@+id/layoutAllFiles"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/settings_item_min_height">
+                android:baselineAligned="false">
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchAllFiles"
-                    android:layout_width="wrap_content"
+                <!-- All Files -->
+                <LinearLayout
+                    android:id="@+id/layoutAllFiles"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/all_files"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/dialog_field_spacing"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/settings_item_min_height">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/all_files"
-                    android:textSize="@dimen/resource_card_title_text_size" />
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchAllFiles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/all_files"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/all_files"
+                        android:textSize="@dimen/resource_card_title_text_size" />
                 
-                <ImageButton
-                    android:id="@+id/iconHelpAllFiles"
-                    android:layout_width="@dimen/settings_help_icon_size"
-                    android:layout_height="@dimen/settings_help_icon_size"
-                    android:layout_marginStart="@dimen/settings_help_icon_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/tooltip_all_files_title"
-                    android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                    <ImageButton
+                        android:id="@+id/iconHelpAllFiles"
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/tooltip_all_files_title"
+                        android:src="@android:drawable/ic_menu_help"
+                        app:tint="?android:attr/textColorSecondary" />
+
+                </LinearLayout>
+
+                <!-- Show Hidden Files -->
+                <LinearLayout
+                    android:id="@+id/layoutShowHiddenFiles"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/dialog_field_spacing"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/settings_item_min_height">
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchShowHiddenFiles"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/show_hidden_files"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_hidden_files"
+                        android:textSize="@dimen/resource_card_title_text_size" />
+                
+                    <ImageButton
+                        android:id="@+id/iconHelpShowHiddenFiles"
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/help_show_hidden_files"
+                        android:src="@android:drawable/ic_menu_help"
+                        app:tint="?android:attr/textColorSecondary" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
-            <!-- Show Hidden Files -->
             <LinearLayout
-                android:id="@+id/layoutShowHiddenFiles"
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/settings_item_min_height">
+                android:baselineAligned="false">
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchShowHiddenFiles"
-                    android:layout_width="wrap_content"
+                <!-- Show Subfolders as Items -->
+                <LinearLayout
+                    android:id="@+id/layoutShowSubfoldersAsItems"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:contentDescription="@string/show_hidden_files"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                    android:layout_weight="1"
+                    android:layout_marginEnd="@dimen/dialog_field_spacing"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:minHeight="@dimen/settings_item_min_height">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/show_hidden_files"
-                    android:textSize="@dimen/resource_card_title_text_size" />
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/switchShowSubfoldersAsItems"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:contentDescription="@string/show_subfolders_as_items"
+                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_subfolders_as_items"
+                        android:textSize="@dimen/resource_card_title_text_size" />
                 
-                <ImageButton
-                    android:id="@+id/iconHelpShowHiddenFiles"
-                    android:layout_width="@dimen/settings_help_icon_size"
-                    android:layout_height="@dimen/settings_help_icon_size"
-                    android:layout_marginStart="@dimen/settings_help_icon_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/help_show_hidden_files"
-                    android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                    <ImageButton
+                        android:id="@+id/iconHelpShowSubfolders"
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/show_subfolders_as_items"
+                        android:src="@android:drawable/ic_menu_help"
+                        app:tint="?android:attr/textColorSecondary" />
 
-            </LinearLayout>
+                </LinearLayout>
 
-            <!-- Show Subfolders as Items (Moved here for Landscape) -->
-            <LinearLayout
-                android:id="@+id/layoutShowSubfoldersAsItems"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/settings_item_min_height">
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchShowSubfoldersAsItems"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@string/show_subfolders_as_items"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/show_subfolders_as_items"
-                    android:textSize="@dimen/resource_card_title_text_size" />
-                
-                <ImageButton
-                    android:id="@+id/iconHelpShowSubfolders"
-                    android:layout_width="@dimen/settings_help_icon_size"
-                    android:layout_height="@dimen/settings_help_icon_size"
-                    android:layout_marginStart="@dimen/settings_help_icon_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/show_subfolders_as_items"
-                    android:src="@android:drawable/ic_menu_help"
-                    app:tint="?android:attr/textColorSecondary" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/dialog_field_spacing" />
 
             </LinearLayout>
 
@@ -158,18 +183,21 @@
             android:id="@+id/containerSleepFavorites"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+            android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:layout_marginBottom="@dimen/margin_tiny">
 
             <!-- Enable Favorites -->
             <LinearLayout
                 android:id="@+id/layoutEnableFavorites"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_item_min_height"
-                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+                android:layout_marginBottom="@dimen/margin_tiny">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchEnableFavorites"
@@ -199,12 +227,14 @@
             <!-- Prevent Sleep -->
             <LinearLayout
                 android:id="@+id/layoutPreventSleep"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/dialog_field_spacing"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_item_min_height"
-                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+                android:layout_marginBottom="@dimen/margin_tiny">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchPreventSleep"
@@ -234,15 +264,24 @@
 
         </LinearLayout>
 
-        <!-- Small Controls (Compact Mode) - independent setting -->
+        <!-- Small Controls + Enable Safe Mode in two columns -->
         <LinearLayout
-            android:id="@+id/layoutSmallControls"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:baselineAligned="false"
+            android:layout_marginBottom="@dimen/margin_tiny">
+
+        <LinearLayout
+            android:id="@+id/layoutSmallControls"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="@dimen/dialog_field_spacing"
+            android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/settings_item_min_height"
-            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+            android:layout_marginBottom="@dimen/margin_tiny">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchSmallControls"
@@ -269,15 +308,16 @@
 
         </LinearLayout>
 
-        <!-- Enable Safe Mode -->
         <LinearLayout
             android:id="@+id/layoutEnableSafeMode"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/dialog_field_spacing"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:minHeight="@dimen/settings_item_min_height"
-            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+            android:layout_marginBottom="@dimen/margin_tiny">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchEnableSafeMode"
@@ -296,24 +336,29 @@
 
         </LinearLayout>
 
+        </LinearLayout>
+
         <!-- Confirm Delete + Move Container - adapts to horizontal in landscape -->
         <LinearLayout
             android:id="@+id/containerConfirm"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
+            android:orientation="horizontal"
+            android:baselineAligned="false"
             android:layout_marginStart="@dimen/settings_nested_margin_start"
-            android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+            android:layout_marginBottom="@dimen/margin_tiny">
 
             <!-- Confirm Delete -->
             <LinearLayout
                 android:id="@+id/layoutConfirmDelete"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_item_min_height"
-                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+                android:layout_marginBottom="@dimen/margin_tiny">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchConfirmDelete"
@@ -344,12 +389,14 @@
             <!-- Confirm Move -->
             <LinearLayout
                 android:id="@+id/layoutConfirmMove"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/dialog_field_spacing"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_item_min_height"
-                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+                android:layout_marginBottom="@dimen/margin_tiny">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchConfirmMove"
@@ -415,7 +462,7 @@
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/settings_item_min_height"
-                android:layout_marginBottom="@dimen/settings_item_margin_bottom">
+                android:layout_marginBottom="@dimen/margin_tiny">
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchEnableBackgroundSync"

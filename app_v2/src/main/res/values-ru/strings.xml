@@ -1340,14 +1340,7 @@
     <string name="fragment_settings_general_tilDefaultPassword_endIconMode">password_toggle</string>
     <string name="fragment_settings_images_tilImageSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_images_tilImageSizeMin_hint">Мин (КБ)</string>
-    <string name="fragment_settings_media_container_tabLayout_tabMode">scrollable</string>
-    <string name="fragment_settings_media_etAudioSizeMin_hint">Макс (МБ)</string>
-    <string name="fragment_settings_media_etImageSizeMin_hint">Макс (КБ)</string>
     <string name="fragment_settings_media_etVideoSizeMin_hint">Макс (КБ)</string>
-    <string name="fragment_settings_media_layoutAudioSizeInputs_hint">Мин (МБ)</string>
-    <string name="fragment_settings_media_layoutImageSizeInputs_hint">Мин (КБ)</string>
-    <string name="fragment_settings_media_layoutVideoSizeInputs_hint">Мин (КБ)</string>
-    <string name="fragment_settings_network_tvSyncIntervalValue_text">4 часа</string>
     <string name="fragment_settings_playback_btnShowHintNow_lineSpacingMultiplier">1.2</string>
     <string name="fragment_settings_video_tilVideoSizeMax_hint">Макс (КБ)</string>
     <string name="fragment_settings_video_tilVideoSizeMin_hint">Мин (КБ)</string>

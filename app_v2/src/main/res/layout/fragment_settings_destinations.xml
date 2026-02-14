@@ -177,29 +177,29 @@
         
         <!-- Header: Destinations List + Max Recipients (One Row) -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginBottom="@dimen/margin_small"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingTop="@dimen/settings_padding_vertical_top_small">
-            
+
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/destinations_list_header"
-                android:textSize="@dimen/resource_card_title_text_size"
                 android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/resource_card_title_text_size"
                 android:textStyle="@string/text_style_bold" />
-            
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilMaxRecipients"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="@dimen/settings_width_input_medium"
                 android:layout_height="wrap_content"
-                android:hint="@string/max_recipients"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                android:layout_marginStart="@dimen/margin_small">
+                android:layout_marginStart="@dimen/margin_small"
+                android:hint="@string/max_recipients">
 
                 <AutoCompleteTextView
                     android:id="@+id/etMaxRecipients"
@@ -210,7 +210,7 @@
                     android:maxLength="2" />
 
             </com.google.android.material.textfield.TextInputLayout>
-            
+
             <ImageButton
                 android:id="@+id/iconHelpDestinations"
                 android:layout_width="@dimen/settings_help_icon_size"
@@ -220,7 +220,7 @@
                 android:contentDescription="@string/tooltip_destinations_title"
                 android:src="@android:drawable/ic_menu_help"
                 app:tint="?android:attr/textColorSecondary" />
-        
+
         </LinearLayout>
 
         <!-- Add Destination Button (before list) -->

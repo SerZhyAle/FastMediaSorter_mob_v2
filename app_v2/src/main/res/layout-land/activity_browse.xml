@@ -166,11 +166,6 @@
             app:icon="@android:drawable/ic_menu_view"
             app:iconTint="?attr/colorControlNormal" />
 
-        <!-- Small space -->
-        <Space
-            android:layout_width="@dimen/control_button_spacing_small"
-            android:layout_height="1dp" />
-
         <!-- Select All -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSelectAll"
@@ -212,10 +207,6 @@
             app:icon="@drawable/ic_deselect_all"
             app:iconTint="?attr/colorControlNormal" />
 
-        <!-- Small space -->
-        <Space
-            android:layout_width="@dimen/control_button_spacing_small"
-            android:layout_height="1dp" />
 
         <!-- Play/Slideshow -->
         <com.google.android.material.button.MaterialButton
@@ -254,16 +245,16 @@
 
         <ImageButton
             android:id="@+id/btnResourceAction"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
             android:layout_marginEnd="8dp"
-            android:padding="6dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="fitCenter"
             android:contentDescription="@string/edit"
+            android:padding="6dp"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_edit_20"
-            app:tint="?attr/colorControlNormal"
             android:visibility="gone"
+            app:tint="?attr/colorControlNormal"
             tools:visibility="visible" />
 
         <TextView

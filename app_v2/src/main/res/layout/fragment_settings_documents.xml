@@ -16,26 +16,27 @@
             android:id="@+id/containerTextPdf"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <!-- Support Text (vertical container for Text + line numbers) -->
             <LinearLayout
                 android:id="@+id/layoutSupportText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/resource_field_margin_end"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginEnd="@dimen/resource_field_margin_end">
+                android:orientation="vertical">
 
                 <!-- Support Text switch -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height">
+                    android:minHeight="@dimen/button_height"
+                    android:orientation="horizontal">
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchSupportText"
@@ -56,10 +57,10 @@
                     android:id="@+id/layoutShowTextLineNumbers"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginStart="@dimen/settings_nested_margin_start"
                     android:gravity="center_vertical"
                     android:minHeight="@dimen/button_height"
-                    android:layout_marginStart="@dimen/settings_nested_margin_start"
+                    android:orientation="horizontal"
                     android:visibility="gone">
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
@@ -91,17 +92,17 @@
                 android:id="@+id/layoutSupportPdf"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
                 android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="@dimen/settings_help_icon_margin">
+                android:orientation="vertical">
 
                 <!-- Support PDF switch -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height">
+                    android:minHeight="@dimen/button_height"
+                    android:orientation="horizontal">
 
                     <com.google.android.material.switchmaterial.SwitchMaterial
                         android:id="@+id/switchSupportPdf"
@@ -122,10 +123,10 @@
                     android:id="@+id/layoutShowPdfThumbnails"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
+                    android:layout_marginStart="@dimen/settings_nested_margin_start"
                     android:gravity="center_vertical"
                     android:minHeight="@dimen/button_height"
-                    android:layout_marginStart="@dimen/settings_nested_margin_start"
+                    android:orientation="horizontal"
                     android:visibility="gone">
 
                     <com.google.android.material.switchmaterial.SwitchMaterial

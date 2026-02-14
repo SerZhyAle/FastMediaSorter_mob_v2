@@ -62,7 +62,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/search_audio_covers_online"
@@ -150,10 +150,9 @@
                     android:id="@+id/etAudioSizeMin"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
                     android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
                     android:inputType="number"
-                    android:maxLength="7" />
+                    android:maxWidth="@dimen/layout_settings_text_field_max_width" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
@@ -182,13 +181,13 @@
 
         <!-- Enable photos during audio playback -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
+            android:layout_marginBottom="@dimen/margin_small"
             android:gravity="center_vertical"
             android:minHeight="@dimen/button_height"
-            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:orientation="horizontal">
 
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchEnablePhotosDuringAudio"
@@ -198,7 +197,7 @@
                 android:checked="false" />
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/enable_photos_during_audio_description"

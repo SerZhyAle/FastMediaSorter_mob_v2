@@ -18,32 +18,33 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="@dimen/margin_small"
-                android:hint="@string/default_sort_mode"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                android:layout_weight="1"
+                android:hint="@string/default_sort_mode">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/spinnerSortMode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="none"/>
+                    android:inputType="none" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilSlideshowInterval"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="@dimen/settings_width_input_small"
                 android:layout_height="wrap_content"
-                android:hint="@string/slideshow_interval"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+                android:hint="@string/slideshow_interval">
 
                 <AutoCompleteTextView
                     android:id="@+id/etSlideshowInterval"
@@ -52,10 +53,10 @@
                     android:hint="@string/slideshow_interval"
                     android:inputType="number"
                     android:maxLength="5"
-                    android:text="@string/default_slideshow_interval"/>
+                    android:text="@string/default_slideshow_interval" />
 
             </com.google.android.material.textfield.TextInputLayout>
-            
+
             <ImageButton
                 android:id="@+id/iconHelpSlideshow"
                 android:layout_width="@dimen/settings_help_icon_size"
@@ -73,19 +74,20 @@
             android:id="@+id/containerRenamePlay"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <LinearLayout
                 android:id="@+id/layoutPlayToEnd"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/resource_field_margin_end"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginEnd="@dimen/resource_field_margin_end">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchPlayToEnd"
@@ -106,11 +108,11 @@
                 android:id="@+id/layoutAllowRename"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/settings_help_icon_margin"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="@dimen/settings_help_icon_margin">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchAllowRename"
@@ -246,20 +248,21 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
             android:paddingStart="@dimen/settings_margin_end_large"
-            android:paddingEnd="@dimen/padding_none"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:paddingEnd="@dimen/padding_none">
 
             <!-- Hide Grid Action Buttons -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginEnd="@dimen/margin_small">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchHideGridActionButtons"
@@ -278,10 +281,10 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginStart="@dimen/margin_small">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchHideSystemUiInFullscreen"
@@ -301,19 +304,20 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <!-- Show Command Panel -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginEnd="@dimen/margin_small">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchShowCommandPanel"
@@ -324,9 +328,9 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
                     android:text="@string/show_command_panel_by_default"
-                    android:textSize="@dimen/resource_card_desc_text_size" 
-                    android:layout_marginEnd="@dimen/margin_small" />
+                    android:textSize="@dimen/resource_card_desc_text_size" />
 
                 <ImageButton
                     android:id="@+id/iconHelpCommandPanel"
@@ -349,11 +353,11 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="@dimen/margin_small">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchDetailedErrors"
@@ -376,19 +380,20 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="@dimen/margin_small"
             android:baselineAligned="false"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <!-- Show Player Hint -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/margin_small"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginEnd="@dimen/margin_small">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchShowPlayerHint"
@@ -409,11 +414,11 @@
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/margin_small"
                 android:layout_weight="1"
-                android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:minHeight="@dimen/button_height"
-                android:layout_marginStart="@dimen/margin_small">
+                android:orientation="horizontal">
 
                 <com.google.android.material.switchmaterial.SwitchMaterial
                     android:id="@+id/switchAlwaysShowTouchZones"
@@ -424,10 +429,10 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_small"
                     android:text="@string/always_show_touch_zones_overlay"
-                    android:textSize="@dimen/resource_card_desc_text_size" 
-                    android:layout_marginEnd="@dimen/margin_small" />
-                
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+
                 <ImageButton
                     android:id="@+id/iconHelpTouchZones"
                     android:layout_width="@dimen/settings_help_icon_size"
