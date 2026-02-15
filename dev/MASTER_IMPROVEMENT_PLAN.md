@@ -387,7 +387,7 @@ git push origin main
 
 - [x] 13. B.1 — Base Settings Binding Layer
 - [x] 14. B.2 — Main Thread Safety
-- [ ] 15. B.3 — Media Tab Simplification
+- [x] 15. B.3 — Media Tab Simplification
 - [ ] 16. B.4 — Global Settings Search
 - [ ] 17. B.5 — Reset Section + Import/Export UX
 - [ ] 18. B.6 — Visual Cleanup & Stabilization
@@ -817,7 +817,7 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.2
 
 ### B.3 — Media Tab Simplification
 
-- [ ] **DONE**
+- [x] **DONE** *(2026-02-15)*
 
 **Tasks**:
 
@@ -828,8 +828,16 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.2
 5. Test swipe conflict resolution.
 
 **Files**: `MediaSettingsFragment.kt`, associated layout XML, child fragment cleanup  
-**BUILD**: `.\build-debug.PS1`  
+**BUILD**: `\.\build-debug.PS1` *(verified after ViewPager removal)*  
 **COMMIT**: `refactor(settings): Media tab — flat sections replace nested ViewPager`  
+
+**NOTES**:
+
+- Removed nested `ViewPager2` + inner tabs from `MediaSettingsFragment`.
+- Replaced with single vertical `NestedScrollView` and expandable sections: `Images`, `Video`, `Audio`, `Documents`, `Other`.
+- Existing child settings fragments are embedded into section containers via `childFragmentManager`.
+- Flavor gating preserved (`BuildConfig.SUPPORT_*`) by hiding unsupported sections.
+- Nested tab swipe conflict eliminated by design.
 **PROMPT**:
 
 ```
