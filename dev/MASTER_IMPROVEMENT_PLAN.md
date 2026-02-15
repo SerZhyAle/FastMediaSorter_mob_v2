@@ -1089,6 +1089,7 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §1, §3
 - Code implementations verified: no obvious issues detected in MemoryTier detection, permission branching, tablet layout, feature degradation
 - Manual testing can be executed by running: `.\scripts\test-compatibility.ps1 -ApiLevel <28|29|30|33|35|all>`
 - Quick smoke test (5 min): API 28 2GB RAM → verify MemoryTier=LOW, RGB_565 active, OCR disabled, permissions correct  
+- Final integration pass completed (`e4356ba3`): unified permission flow wired through existing call sites, LOW-memory PDF/EPUB browse previews disabled, K.5 script emulator detection fixed.
 **PROMPT**:
 
 ```
