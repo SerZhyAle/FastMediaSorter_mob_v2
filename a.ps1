@@ -36,6 +36,7 @@ $scripts = @{
     'c'  = 'scripts\utils\commit-push.ps1'
     'ch' = 'scripts\utils\check-typo-lint.ps1'
     's'  = 'scripts\utils\setup_test_media.ps1'
+    'b'  = 'scripts\builders\build-and-push-all.ps1'
     'bp' = 'scripts\builders\build-and-push-all.ps1'
 }
 
@@ -50,6 +51,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  c   - Commit & Push" -ForegroundColor Cyan
     Write-Host "  ch  - Check Typo/Lint" -ForegroundColor Cyan
     Write-Host "  s   - Setup Test Media" -ForegroundColor Cyan
+    Write-Host "  b   - Build and Push All (same as bp)" -ForegroundColor Cyan
     Write-Host "  bp  - Build and Push All" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "Usage: .\a.ps1 <command>" -ForegroundColor Gray

@@ -6,7 +6,7 @@
 $ErrorActionPreference = "Stop"
 
 $scriptPath = $PSScriptRoot
-$projectRoot = Resolve-Path "$scriptPath\.."
+$projectRoot = Resolve-Path "$scriptPath\..\.."
 $gradlew = "$projectRoot\gradlew.bat"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
@@ -34,7 +34,7 @@ while (-not $buildSuccess -and $retryCount -lt $maxRetries) {
         
         Write-Host "Running Gradle build... Logs saved to build_all_log.txt" -ForegroundColor Yellow
         # Skip clean task to avoid file lock issues, just build
-        & $gradlew assembleDebug assembleRelease | Tee-Object -FilePath "build_all_log.txt"
+        & $gradlew assembleDebug assembleRelease | Tee-Object -FilePath "$projectRoot\build_all_log.txt"
         
         if ($LASTEXITCODE -eq 0) {
             $buildSuccess = $true
