@@ -86,4 +86,11 @@
         android:title="@string/undo"
         app:showAsAction="never" />
 
+    <!-- Sleep Timer (Audio) -->
+    <item
+        android:id="@+id/menu_sleep_timer"
+        android:icon="@drawable/ic_sleep_timer"
+        android:title="@string/menu_sleep_timer"
+        app:showAsAction="never" />
+
 </menu>

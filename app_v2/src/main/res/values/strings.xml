@@ -1661,6 +1661,17 @@
     <string name="background_audio_setting_title">Background Playback</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
 
+    <!-- Vinyl indicator & Sleep timer -->
+    <string name="vinyl_indicator_description">Audio playback indicator</string>
+    <string name="menu_sleep_timer">Sleep Timer</string>
+    <string name="sleep_timer_title">Sleep Timer</string>
+    <string name="sleep_timer_off">Off</string>
+    <string name="sleep_timer_minutes">%d min</string>
+    <string name="sleep_timer_hours">%1$d h %2$d min</string>
+    <string name="sleep_timer_active">Sleep: %s remaining</string>
+    <string name="sleep_timer_cancelled">Sleep timer cancelled</string>
+    <string name="sleep_timer_set">Sleep timer set for %s</string>
+
 </resources>
 
 

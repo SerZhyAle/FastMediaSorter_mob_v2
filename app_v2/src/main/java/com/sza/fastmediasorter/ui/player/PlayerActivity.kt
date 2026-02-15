@@ -113,6 +113,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var imageLoadingManager: ImageLoadingManager
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     private var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
+    private var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
     private val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -1069,6 +1070,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         translationButtonManager.showTranslationSettingsDialog()
                     }
                 }
+
+                override fun onSleepTimerClicked() {
+                    showSleepTimerDialog()
+                }
             }
         )
         // Initialize orientation on startup
@@ -1415,6 +1420,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         // 7. Primary Coordinators (Dependencies on almost everything!)
         audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
+        sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
+            vinylView = binding.vinylIndicator,
+            sleepTimerBadge = binding.sleepTimerBadge,
+            playerProvider = { binding.playerView.player }
+        )
         mediaLoaderManager = com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager(
             activity = this,
             binding = binding,
@@ -1586,6 +1596,41 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     private fun showRenameDialog() {
         dialogAndUiStateManager.showRenameDialog()
+    }
+
+    private fun showSleepTimerDialog() {
+        val manager = sleepTimerManager ?: return
+        val options = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager.SLEEP_TIMER_OPTIONS
+        val labels = options.map { minutes ->
+            if (minutes >= 60) {
+                getString(R.string.sleep_timer_hours, minutes / 60, minutes % 60)
+            } else {
+                getString(R.string.sleep_timer_minutes, minutes)
+            }
+        }.toTypedArray()
+
+        val items = if (manager.isSleepTimerActive) {
+            arrayOf(getString(R.string.sleep_timer_off)) + labels
+        } else {
+            labels
+        }
+
+        val indexOffset = if (manager.isSleepTimerActive) 1 else 0
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.sleep_timer_title)
+            .setItems(items) { _, which ->
+                if (manager.isSleepTimerActive && which == 0) {
+                    manager.cancelSleepTimer()
+                    Timber.d("PlayerActivity: sleep timer cancelled by user")
+                } else {
+                    val selectedMinutes = options[which - indexOffset]
+                    manager.startSleepTimer(selectedMinutes)
+                    Timber.d("PlayerActivity: sleep timer set for $selectedMinutes min")
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun setupToolbar() {
@@ -1794,6 +1839,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun updateUI(state: PlayerViewModel.PlayerState) {
         uiStateCoordinator.updateUI(state)
+        // Stop vinyl animation when switching to non-audio file
+        if (state.currentFile?.type != MediaType.AUDIO) {
+            sleepTimerManager?.stopVinylAnimation()
+        }
         // GUARD: After state observers update views, re-enforce audio slideshow photo mode UI
         if (isAudioSlideshowPhotoMode) {
             enforceAudioSlideshowPhotoModeUI()
@@ -3118,6 +3167,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         audioServiceController?.release()
         audioServiceController = null
         
+        // Release sleep timer manager (stop animations and timer)
+        sleepTimerManager?.release()
+        sleepTimerManager = null
+        
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()
     }
@@ -3317,7 +3370,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
                 playerSettingsManagerProvider = { playerSettingsManager },
                 imageLoadingManagerProvider = { imageLoadingManager },
-                slideshowController = slideshowController
+                slideshowController = slideshowController,
+                sleepTimerManagerProvider = { sleepTimerManager }
             ),
             credentialsRepository = credentialsRepository,
             smbClient = smbClient,

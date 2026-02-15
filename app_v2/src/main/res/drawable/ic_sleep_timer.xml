@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sleep timer icon for player controls -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Moon crescent -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12.43,2.3c-0.24,-0.12 -0.54,0.07 -0.48,0.33 0.96,4.09 -1.98,8.3 -6.07,9.26 -1.37,0.32 -2.75,0.27 -4.01,-0.08 -0.26,-0.07 -0.49,0.17 -0.38,0.42 1.78,3.98 6.24,5.96 10.43,4.36 4.19,-1.6 6.39,-6.17 5.18,-10.35 -0.43,-1.49 -1.3,-2.77 -2.46,-3.68 -0.64,-0.5 -1.48,-0.02 -2.21,0.26z" />
+    <!-- Zz letters -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M18,4h3l-3,3h3M15,1h2l-2,2h2" />
+</vector>

@@ -24,7 +24,8 @@ class PlayerPlaybackCallbackImpl(
     private val showLoadingIndicatorRunnable: Runnable,
     private val playerSettingsManagerProvider: () -> PlayerSettingsManager,
     private val imageLoadingManagerProvider: () -> ImageLoadingManager,
-    private val slideshowController: SlideshowController
+    private val slideshowController: SlideshowController,
+    private val sleepTimerManagerProvider: () -> com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = { null }
 ) : VideoPlayerManager.PlayerCallback {
 
     override fun onPlaybackReady() {
@@ -55,7 +56,9 @@ class PlayerPlaybackCallbackImpl(
     }
     
     override fun onPlaybackStateChanged(isPlaying: Boolean) {
-        // Handled by ViewModel state
+        val currentFile = viewModel.state.value.currentFile
+        val isAudioFile = currentFile?.type == MediaType.AUDIO
+        sleepTimerManagerProvider()?.updateVinylState(isPlaying, isAudioFile)
     }
     
     override fun onPlaybackEnded() {
