@@ -762,18 +762,24 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     private fun showLogDialog(fullLog: Boolean) {
-        val logText = if (fullLog) {
-            getFullLog()
-        } else {
-            getSessionLog()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val logText = withContext(Dispatchers.IO) {
+                if (fullLog) {
+                    getFullLog()
+                } else {
+                    getSessionLog()
+                }
+            }
+
+            if (!isAdded || _binding == null) return@launch
+
+            com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
+                requireContext(),
+                if (fullLog) "Application Log" else "Current Session Log",
+                logText,
+                "Close"
+            )
         }
-        
-        com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-            requireContext(),
-            if (fullLog) "Application Log" else "Current Session Log",
-            logText,
-            "Close" // Positive button (acting as Close/OK)
-        )
     }
 
     private fun getFullLog(): String {

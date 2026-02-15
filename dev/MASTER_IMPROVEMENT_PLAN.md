@@ -386,7 +386,7 @@ git push origin main
 ### TRACK B: Settings (6 шагов)
 
 - [x] 13. B.1 — Base Settings Binding Layer
-- [ ] 14. B.2 — Main Thread Safety
+- [x] 14. B.2 — Main Thread Safety
 - [ ] 15. B.3 — Media Tab Simplification
 - [ ] 16. B.4 — Global Settings Search
 - [ ] 17. B.5 — Reset Section + Import/Export UX
@@ -782,7 +782,7 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.4
 
 ### B.2 — Main Thread Safety
 
-- [ ] **DONE**
+- [x] **DONE** *(2026-02-15)*
 
 **Tasks**:
 
@@ -793,8 +793,16 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.4
 5. Add error state handling for failed loads.
 
 **Files**: All `*SettingsFragment.kt` files  
-**BUILD**: `.\build-debug.PS1`  
+**BUILD**: `\.\build-debug.PS1` *(verified after I/O migration)*  
 **COMMIT**: `perf(settings): all I/O moved off Main Thread`  
+
+**NOTES**:
+
+- Audited all settings fragments for blocking operations.
+- Main-thread I/O hotspot identified in `GeneralSettingsFragment` (`logcat` loading).
+- `showLogDialog()` now loads logs via `withContext(Dispatchers.IO)` and renders dialog on Main thread.
+- Existing SAF file read path for test credentials already uses `Dispatchers.IO` and was kept as-is.
+- No new blocking loads in `onCreateView` introduced.
 **PROMPT**:
 
 ```
