@@ -70,7 +70,7 @@
         android:focusable="true"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/favorite"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_star_outline"
         android:padding="0dp" />
 
@@ -83,4 +83,5 @@
         android:layout="@layout/item_media_file_grid_operations" />
 
 </FrameLayout>
+
 

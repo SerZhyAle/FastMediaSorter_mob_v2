@@ -245,7 +245,7 @@ class FtpClient @Inject constructor() {
             if (!client.login(username, password)) {
                 client.disconnect()
                 return@withContext Result.failure(
-                    IOException("FTP authentication failed for user: $username")
+                    IOException("FTP authentication failed")
                 )
             }
             
@@ -257,7 +257,7 @@ class FtpClient @Inject constructor() {
             
             ftpClient = client
             
-            Timber.d("FTP connected to $host:$port as $username (passive mode)")
+            Timber.d("FTP connected to $host:$port (hasUser=${username.isNotBlank()}, passive mode)")
             Result.success(Unit)
         } catch (e: IOException) {
             Timber.e(e, "FTP connection failed: $host:$port")

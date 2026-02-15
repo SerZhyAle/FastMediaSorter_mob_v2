@@ -363,7 +363,7 @@ git push origin main
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 7 / 54 шагов
+**Прогресс**: 39 / 54 шагов
 
 ### TRACK A: Main Window (7 шагов)
 
@@ -395,24 +395,24 @@ git push origin main
 ### TRACK C: Resources (8 шагов)
 
 - [x] 19. C.1 — Domain Contracts & Strategy Interfaces
-- [ ] 20. C.2 — Strategy Implementations
-- [ ] 21. C.3 — Orchestration UseCase
-- [ ] 22. C.4 — Unified ViewModel
-- [ ] 23. C.5 — Unified Editor UI
-- [ ] 24. C.6 — Edit Mode Features
-- [ ] 25. C.7 — Copy/Duplicate Mode Features
-- [ ] 26. C.8 — Cleanup & Regression
+- [x] 20. C.2 — Strategy Implementations
+- [x] 21. C.3 — Orchestration UseCase
+- [x] 22. C.4 — Unified ViewModel
+- [x] 23. C.5 — Unified Editor UI
+- [x] 24. C.6 — Edit Mode Features
+- [x] 25. C.7 — Copy/Duplicate Mode Features
+- [x] 26. C.8 — Cleanup & Regression
 
 ### TRACK D: Static Image (8 шагов)
 
-- [ ] 27. D.1 — Renderer Contracts & State Machine
-- [ ] 28. D.2 — Dual-Surface Layout
-- [ ] 29. D.3 — Image Loading Integration (Instant Swap)
-- [ ] 30. D.4 — Prefetch Priority & Lookahead
-- [ ] 31. D.5 — Gesture Unification
-- [ ] 32. D.6 — Slideshow Sync
-- [ ] 33. D.7 — Stabilization & Legacy Cleanup
-- [ ] 34. D.8 — Slideshow Keep-Awake
+- [x] 27. D.1 — Renderer Contracts & State Machine
+- [x] 28. D.2 — Dual-Surface Layout
+- [x] 29. D.3 — Image Loading Integration (Instant Swap)
+- [x] 30. D.4 — Prefetch Priority & Lookahead
+- [x] 31. D.5 — Gesture Unification
+- [x] 32. D.6 — Slideshow Sync
+- [x] 33. D.7 — Stabilization & Legacy Cleanup
+- [x] 34. D.8 — Slideshow Keep-Awake
 
 ### TRACK G: Audio (4 шага)
 
@@ -423,16 +423,16 @@ git push origin main
 
 ### TRACK F: Video (3 шага)
 
-- [ ] 39. F.1 — Gesture Engine
+- [x] 39. F.1 — Gesture Engine
 - [ ] 40. F.2 — Custom Controls & Seeking
 - [ ] 41. F.3 — Picture-in-Picture (Android 12+)
 
 ### TRACK E: Animated Image (4 шага)
 
-- [ ] 42. E.1 — Controller Abstraction
-- [ ] 43. E.2 — Play/Pause Implementation
-- [ ] 44. E.3 — Frame Extraction (Раскадровка)
-- [ ] 45. E.4 — Stabilization & Edge Cases
+- [x] 42. E.1 — Controller Abstraction
+- [x] 43. E.2 — Play/Pause Implementation
+- [x] 44. E.3 — Frame Extraction (Раскадровка)
+- [x] 45. E.4 — Stabilization & Edge Cases
 
 ### TRACK H: Text (3 шага)
 
@@ -1163,7 +1163,7 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §5.2
 
 ### C.2 — Strategy Implementations
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1191,7 +1191,7 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §5.3
 
 ### C.3 — Orchestration UseCase
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1221,7 +1221,7 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §6.2-6.3
 
 ### C.4 — Unified ViewModel
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1250,7 +1250,7 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §6.1
 
 ### C.5 — Unified Editor UI
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1281,7 +1281,7 @@ Source: RESOURCE_EDITING_COPYING_SPEC.md §5.1, §6.2
 
 ### C.6 — Edit Mode Features
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1310,7 +1310,7 @@ Source: RESOURCE_EDITING_COPYING_SPEC.md §5.2, §8.1
 
 ### C.7 — Copy/Duplicate Mode Features
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1340,7 +1340,7 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §12.5, RESOURCE_EDITING_COPYING_S
 
 ### C.8 — Cleanup & Regression
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1381,7 +1381,7 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §B
 
 ### D.1 — Renderer Contracts & State Machine
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1409,7 +1409,7 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §C
 
 ### D.2 — Dual-Surface Layout
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1468,7 +1468,7 @@ Source: STATIC_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6, CHECKLIST §A (PlayerView
 
 ### D.4 — Prefetch Priority & Lookahead
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1498,7 +1498,7 @@ Source: STATIC_IMAGE_PLAYBACK_IMPLEMENTATION_CHECKLIST.md §D
 
 ### D.5 — Gesture Unification
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1622,7 +1622,7 @@ Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 1
 
 ### E.1 — Controller Abstraction
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1650,7 +1650,7 @@ Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md §6 Phase 2
 
 ### E.2 — Play/Pause Implementation
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1678,7 +1678,7 @@ Source: User decision 2026-02-15, replaces original speed control
 
 ### E.3 — Frame Extraction (Раскадровка)
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1708,7 +1708,7 @@ Source: ANIMATED_IMAGE_PLAYBACK_IMPROVEMENT_SPEC.md wrap-up
 
 ### E.4 — Stabilization & Edge Cases
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1750,7 +1750,7 @@ Source: VIDEO_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 
 ### F.1 — Gesture Engine
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 

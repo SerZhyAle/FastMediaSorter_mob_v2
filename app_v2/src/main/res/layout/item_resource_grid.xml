@@ -61,7 +61,7 @@
         android:maxLines="1"
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="@dimen/item_detail_text_size_tiny"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -116,4 +116,5 @@
         android:visibility="gone" />
 
 </FrameLayout>
+
 

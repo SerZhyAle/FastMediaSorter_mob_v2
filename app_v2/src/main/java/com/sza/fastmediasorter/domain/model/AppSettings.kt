@@ -43,6 +43,7 @@ data class AppSettings(
     val searchAudioCoversOnlyOnWifi: Boolean = true, // Search for covers only when connected to Wi-Fi
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
+    val enableBackgroundAudio: Boolean = false, // Background audio playback via foreground service (audio-only)
     
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files
@@ -83,6 +84,7 @@ data class AppSettings(
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
     val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
+    val rendererMigrationEnabled: Boolean = true, // Migration flag for new static image renderer pipeline (enabled as default)
     
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations

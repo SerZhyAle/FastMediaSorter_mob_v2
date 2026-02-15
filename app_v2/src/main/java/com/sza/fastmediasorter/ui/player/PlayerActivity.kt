@@ -566,7 +566,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onShowEditDialog() {
                     val currentFile = viewModel.state.value.currentFile
                     when (currentFile?.type) {
-                        MediaType.IMAGE, MediaType.GIF -> showImageEditDialog()
+                        MediaType.IMAGE -> {
+                            if (isAnimatedImagePath(currentFile.path)) showGifEditDialog() else showImageEditDialog()
+                        }
+                        MediaType.GIF -> showGifEditDialog()
                         MediaType.VIDEO, MediaType.AUDIO -> playerSettingsManager.showPlayerSettingsDialog()
                         else -> {}
                     }
@@ -926,7 +929,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     val currentFile = viewModel.state.value.currentFile
                     when (currentFile?.type) {
                         MediaType.VIDEO, MediaType.AUDIO -> playerSettingsManager.showPlayerSettingsDialog()
-                        MediaType.IMAGE -> showImageEditDialog()
+                        MediaType.IMAGE -> {
+                            if (isAnimatedImagePath(currentFile.path)) showGifEditDialog() else showImageEditDialog()
+                        }
                         MediaType.GIF -> showGifEditDialog()
                         MediaType.PDF -> showPdfEditDialog()
                         else -> {}
@@ -1118,6 +1123,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun isShowingCommandPanel(): Boolean = viewModel.state.value.showCommandPanel
                 
                 override fun isSlideshowActive(): Boolean = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
+
+                override fun setAnimatedBadgeVisible(visible: Boolean) {
+                    binding.tvAnimatedBadge?.isVisible = visible
+                }
             }
         )
 
@@ -1899,10 +1908,38 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     internal fun updatePlayPauseButton() {
-        binding.btnPlayPause.text = if (viewModel.state.value.isPaused) "▶" else "⏸"
+        val isAnimatedContent = ::mediaLoaderManager.isInitialized && mediaLoaderManager.isCurrentAnimatedContent()
+        val isPaused = if (isAnimatedContent) {
+            mediaLoaderManager.isAnimatedPlaybackPaused()
+        } else {
+            viewModel.state.value.isPaused
+        }
+
+        binding.btnPlayPause.text = if (isPaused) "▶" else "⏸"
         if (_videoPlayerManager != null) {
             videoPlayerManager.getPlayer()?.playWhenReady = !viewModel.state.value.isPaused
         }
+    }
+
+    internal fun isCurrentAnimatedContent(): Boolean {
+        return ::mediaLoaderManager.isInitialized && mediaLoaderManager.isCurrentAnimatedContent()
+    }
+
+    internal fun toggleAnimatedPlayback(): Boolean? {
+        if (!::mediaLoaderManager.isInitialized) return null
+        return mediaLoaderManager.toggleAnimatedPlayback()
+    }
+
+    internal fun clearUiOverlayForAnimatedPause() {
+        if (viewModel.state.value.showCommandPanel) {
+            viewModel.enterFullscreenMode()
+        }
+
+        if (viewModel.state.value.showControls) {
+            viewModel.toggleControls()
+        }
+
+        hideControlsHandler.removeCallbacks(hideControlsRunnable)
     }
 
     internal fun updateSlideShowButton() {
@@ -1960,6 +1997,42 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         if (::imageLoadingManager.isInitialized) {
             imageLoadingManager.clearMemoryCache()
+        }
+    }
+    
+    /**
+     * Set screen keep-awake state for slideshow (D.8).
+     * @param enabled true to force screen on, false to restore to global preventSleep setting
+     */
+    internal fun setSlideshowKeepAwake(enabled: Boolean) {
+        if (isFinishing || isDestroyed) {
+            return
+        }
+        
+        if (enabled) {
+            // Force keep screen on during slideshow
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            Timber.d("SlideshowKeepAwake: Enabled - screen will stay on during slideshow")
+            
+            // Show user notification (D.8)
+            android.widget.Toast.makeText(
+                this,
+                R.string.slideshow_keep_awake,
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            // Restore to global preventSleep setting
+            lifecycleScope.launch {
+                val settings = settingsRepository.getSettings().first()
+                if (settings.preventSleep) {
+                    // Global setting is ON - keep screen on
+                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    // Global setting is OFF - allow screen sleep
+                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                Timber.d("SlideshowKeepAwake: Disabled - restored to global setting (preventSleep=${settings.preventSleep})")
+            }
         }
     }
 
@@ -2054,6 +2127,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     private fun showGifEditDialog() {
         dialogAndUiStateManager.showGifEditDialog()
+    }
+
+    private fun isAnimatedImagePath(path: String): Boolean {
+        val lowerPath = path.lowercase()
+        return lowerPath.endsWith(".gif") || lowerPath.endsWith(".webp") || lowerPath.endsWith(".apng")
     }
 
 
@@ -2434,6 +2512,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     override fun onPause() {
         super.onPause()
+        lifecycleManager.onPause()
         viewModel.togglePause()
         
         // Save playback position for video/audio

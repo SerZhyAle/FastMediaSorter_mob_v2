@@ -50,6 +50,10 @@ sealed class AddResourceEvent {
 }
 
 @HiltViewModel
+@Deprecated(
+    message = "Legacy ViewModel. Use ResourceFormViewModel + ResourceEditorUseCase for new flows.",
+    replaceWith = ReplaceWith("com.sza.fastmediasorter.ui.resourceeditor.ResourceFormViewModel")
+)
 class AddResourceViewModel @Inject constructor(
     @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val scanLocalFoldersUseCase: ScanLocalFoldersUseCase,

@@ -41,11 +41,11 @@ data class NetworkCredentialsEntity(
             val decrypted = CryptoHelper.decrypt(encryptedPassword)
             if (decrypted.isNullOrEmpty()) {
                 // Decryption returned empty - check if stored value is also empty
-                Timber.w("Password decryption returned empty for credentialId: $credentialId, encryptedPassword='$encryptedPassword' (length=${encryptedPassword.length})")
+                Timber.w("Password decryption returned empty for credentialId: $credentialId (storedLength=${encryptedPassword.length})")
                 // If encryptedPassword is empty, decryption is correct (empty password stored)
                 // If encryptedPassword is not empty, it's plaintext - use it
                 if (encryptedPassword.isEmpty()) {
-                    Timber.e("Empty password stored for user '$username' - SMB authentication will fail!")
+                    Timber.e("Empty password stored for credentialId: $credentialId")
                     ""
                 } else {
                     Timber.i("Using plaintext password fallback")
@@ -56,7 +56,7 @@ data class NetworkCredentialsEntity(
             }
         } catch (e: IllegalArgumentException) {
             // Base64 decode error - password is plaintext (migration case)
-            Timber.i("Password is plaintext for credentialId: $credentialId (migration), password='$encryptedPassword' (length=${encryptedPassword.length})")
+            Timber.i("Password is plaintext for credentialId: $credentialId (migration, storedLength=${encryptedPassword.length})")
             encryptedPassword
         } catch (e: Exception) {
             // Other decryption errors - treat as plaintext fallback

@@ -42,6 +42,10 @@ import java.util.Date
 import java.util.Locale
 
 @AndroidEntryPoint
+@Deprecated(
+    message = "Legacy screen. Use ResourceEditorActivity for new create/edit/copy flows.",
+    replaceWith = ReplaceWith("ResourceEditorActivity")
+)
 class EditResourceActivity : BaseActivity<ActivityEditResourceBinding>() {
 
     companion object {

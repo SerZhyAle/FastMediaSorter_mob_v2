@@ -39,6 +39,10 @@ import java.net.NetworkInterface
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@Deprecated(
+    message = "Legacy screen. Use ResourceEditorActivity for new create/edit/copy flows.",
+    replaceWith = ReplaceWith("ResourceEditorActivity")
+)
 class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val viewModel: AddResourceViewModel by viewModels()

@@ -1,0 +1,402 @@
+package com.sza.fastmediasorter.ui.resourceeditor
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
+import com.sza.fastmediasorter.domain.model.ResourceEditorMode
+import com.sza.fastmediasorter.domain.model.ResourceErrorCode
+import com.sza.fastmediasorter.domain.model.ResourceFieldKey
+import com.sza.fastmediasorter.domain.model.ResourceFormData
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ResourceValidationResult
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
+import com.sza.fastmediasorter.domain.usecase.ResourceEditorSaveResult
+import com.sza.fastmediasorter.domain.usecase.ResourceEditorUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import timber.log.Timber
+import javax.inject.Inject
+
+data class ResourceFieldState(
+    val errorCode: ResourceErrorCode? = null,
+    val isDirty: Boolean = false
+)
+
+enum class ResourceEditorWarning {
+    READ_ONLY_DESTINATION,
+    ENDPOINT_CHANGED_RESCAN,
+    PATH_DUPLICATE_EXISTING
+}
+
+data class ResourceEditorUiState(
+    val formData: ResourceFormData = ResourceFormData(),
+    val originalSnapshot: ResourceFormData? = null,
+    val fieldSchema: List<ResourceFieldSchema> = emptyList(),
+    val fieldStates: Map<ResourceFieldKey, ResourceFieldState> = emptyMap(),
+    val isTestingConnection: Boolean = false,
+    val isSaving: Boolean = false,
+    val hasChanges: Boolean = false,
+    val isFormValid: Boolean = false,
+    val canSave: Boolean = false,
+    val showSaveAsCopy: Boolean = false,
+    val hasNameCollision: Boolean = false,
+    val nameSuggestions: List<String> = emptyList(),
+    val requiresCredentialChoice: Boolean = false,
+    val warnings: Set<ResourceEditorWarning> = emptySet(),
+    val connectionResult: ResourceConnectionTestResult? = null,
+    val saveResult: ResourceEditorSaveResult? = null,
+    val isReadOnlyMode: Boolean = false
+)
+
+sealed interface ResourceEditorUiEvent {
+    data class ShowError(val message: String) : ResourceEditorUiEvent
+    data class ShowInfo(val message: String) : ResourceEditorUiEvent
+    data class Saved(val resourceId: Long) : ResourceEditorUiEvent
+}
+
+@HiltViewModel
+class ResourceFormViewModel @Inject constructor(
+    private val resourceEditorUseCase: ResourceEditorUseCase
+) : ViewModel() {
+
+    private enum class LastAction {
+        NONE,
+        TEST_CONNECTION,
+        SAVE
+    }
+
+    private val _uiState = MutableStateFlow(ResourceEditorUiState())
+    val uiState: StateFlow<ResourceEditorUiState> = _uiState.asStateFlow()
+
+    private val _events = MutableSharedFlow<ResourceEditorUiEvent>()
+    val events: SharedFlow<ResourceEditorUiEvent> = _events.asSharedFlow()
+
+    private var lastAction: LastAction = LastAction.NONE
+    private var existingResourceNames: Set<String> = emptySet()
+    private var existingPathKeys: Set<Pair<ResourceType, String>> = emptySet()
+
+    fun initialize(
+        mode: ResourceEditorMode,
+        resourceType: ResourceType = ResourceType.LOCAL,
+        resourceId: Long? = null
+    ) {
+        viewModelScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                resourceEditorUseCase.initialize(mode, resourceType, resourceId)
+            }
+
+            result.onSuccess { formData ->
+                existingResourceNames = withContext(Dispatchers.IO) {
+                    resourceEditorUseCase.getExistingResourceNames(formData.id)
+                }
+                existingPathKeys = withContext(Dispatchers.IO) {
+                    resourceEditorUseCase.getExistingPathKeys(formData.id)
+                }
+
+                val preparedFormData = if (formData.mode == ResourceEditorMode.COPY) {
+                    formData.copy(
+                        name = resourceEditorUseCase.generateUniqueCopyName(
+                            sourceName = formData.name,
+                            existingNames = existingResourceNames
+                        )
+                    )
+                } else {
+                    formData
+                }
+
+                val initialized = _uiState.value.copy(
+                        formData = preparedFormData,
+                        originalSnapshot = preparedFormData,
+                        fieldSchema = resourceEditorUseCase.fieldSchema(preparedFormData.type),
+                        fieldStates = emptyMap(),
+                        connectionResult = null,
+                        saveResult = null,
+                        isReadOnlyMode = preparedFormData.isReadOnly,
+                        requiresCredentialChoice = preparedFormData.mode == ResourceEditorMode.COPY &&
+                            (preparedFormData.credentialsId != null ||
+                                preparedFormData.username.isNotBlank() ||
+                                preparedFormData.password.isNotBlank())
+                    )
+                _uiState.value = recalculateState(initialized)
+            }.onFailure { error ->
+                Timber.e(error, "ResourceFormViewModel: initialize failed")
+                _events.emit(ResourceEditorUiEvent.ShowError(error.message ?: "Initialization failed"))
+            }
+        }
+    }
+
+    fun onFieldChanged(fieldKey: ResourceFieldKey, value: Any?) {
+        _uiState.update { current ->
+            val updatedForm = when (fieldKey) {
+                ResourceFieldKey.NAME -> current.formData.copy(name = value as? String ?: "")
+                ResourceFieldKey.PATH -> current.formData.copy(path = value as? String ?: "")
+                ResourceFieldKey.TYPE -> current.formData.copy(type = value as? ResourceType ?: current.formData.type)
+                ResourceFieldKey.HOST -> current.formData.copy(host = value as? String ?: "")
+                ResourceFieldKey.PORT -> current.formData.copy(port = (value as? String)?.toIntOrNull() ?: (value as? Int))
+                ResourceFieldKey.USERNAME -> current.formData.copy(username = value as? String ?: "")
+                ResourceFieldKey.PASSWORD -> current.formData.copy(password = value as? String ?: "")
+                ResourceFieldKey.ACCESS_PIN -> current.formData.copy(accessPin = value as? String ?: "")
+                ResourceFieldKey.CLOUD_PROVIDER -> current.formData.copy(cloudProvider = value as? com.sza.fastmediasorter.data.cloud.CloudProvider)
+                ResourceFieldKey.CLOUD_FOLDER -> current.formData.copy(cloudFolderId = value as? String)
+                ResourceFieldKey.MEDIA_TYPES -> current.formData.copy(
+                    supportedMediaTypes = extractMediaTypes(value, current.formData.supportedMediaTypes)
+                )
+                else -> current.formData
+            }
+
+            recalculateState(
+                current.copy(
+                formData = updatedForm,
+                fieldSchema = resourceEditorUseCase.fieldSchema(updatedForm.type),
+                fieldStates = current.fieldStates.toMutableMap().apply {
+                    put(fieldKey, ResourceFieldState(isDirty = true))
+                }
+            )
+            )
+        }
+
+        applyValidation()
+    }
+
+    fun onUseNameSuggestion(suggestedName: String) {
+        onFieldChanged(ResourceFieldKey.NAME, suggestedName)
+    }
+
+    fun onCredentialBehaviorSelected(keepCredentials: Boolean) {
+        _uiState.update {
+            val updatedForm = if (keepCredentials) {
+                it.formData
+            } else {
+                it.formData.copy(
+                    credentialsId = null,
+                    username = "",
+                    password = ""
+                )
+            }
+            recalculateState(
+                it.copy(
+                    formData = updatedForm,
+                    requiresCredentialChoice = false
+                )
+            )
+        }
+    }
+
+    fun onTestConnection() {
+        val currentForm = _uiState.value.formData
+        lastAction = LastAction.TEST_CONNECTION
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isTestingConnection = true, connectionResult = null) }
+            val validation = resourceEditorUseCase.validate(currentForm)
+            if (!validation.isValid) {
+                applyValidation(validation)
+                _uiState.update { it.copy(isTestingConnection = false) }
+                _events.emit(ResourceEditorUiEvent.ShowError("Validation failed before connection test"))
+                return@launch
+            }
+
+            val result = withContext(Dispatchers.IO) {
+                resourceEditorUseCase.testConnection(currentForm)
+            }
+
+            _uiState.update {
+                it.copy(
+                    isTestingConnection = false,
+                    connectionResult = result
+                )
+            }
+        }
+    }
+
+    fun onSave() {
+        val state = _uiState.value
+        val currentForm = state.formData
+        if (!state.canSave) {
+            viewModelScope.launch {
+                _events.emit(ResourceEditorUiEvent.ShowInfo("No changes to save or form is invalid"))
+            }
+            return
+        }
+        lastAction = LastAction.SAVE
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isSaving = true, saveResult = null) }
+
+            val validation = resourceEditorUseCase.validate(currentForm)
+            if (!validation.isValid) {
+                applyValidation(validation)
+                _uiState.update { it.copy(isSaving = false) }
+                _events.emit(ResourceEditorUiEvent.ShowError("Validation failed"))
+                return@launch
+            }
+
+            val saveResult = withContext(Dispatchers.IO) {
+                resourceEditorUseCase.save(currentForm)
+            }
+
+            saveResult.onSuccess { result ->
+                _uiState.update {
+                    recalculateState(
+                        it.copy(
+                        isSaving = false,
+                        saveResult = result,
+                        originalSnapshot = currentForm,
+                        fieldStates = emptyMap()
+                    )
+                    )
+                }
+                _events.emit(ResourceEditorUiEvent.Saved(result.resourceId))
+            }.onFailure { error ->
+                Timber.e(error, "ResourceFormViewModel: save failed")
+                _uiState.update { it.copy(isSaving = false) }
+                _events.emit(ResourceEditorUiEvent.ShowError(error.message ?: "Save failed"))
+            }
+        }
+    }
+
+    fun onSaveAsCopy() {
+        val state = _uiState.value
+        if (state.formData.mode != ResourceEditorMode.EDIT) {
+            viewModelScope.launch {
+                _events.emit(ResourceEditorUiEvent.ShowInfo("Save as Copy is available only in EDIT mode"))
+            }
+            return
+        }
+
+        val copyName = if (state.formData.name.contains("(Copy)")) {
+            state.formData.name
+        } else {
+            "${state.formData.name} (Copy)"
+        }
+
+        _uiState.update {
+            recalculateState(
+                it.copy(
+                    formData = it.formData.copy(
+                        id = null,
+                        mode = ResourceEditorMode.COPY,
+                        name = copyName
+                    )
+                )
+            )
+        }
+        onSave()
+    }
+
+    fun onResetChanges() {
+        val snapshot = _uiState.value.originalSnapshot ?: return
+        _uiState.update {
+            recalculateState(
+                it.copy(
+                    formData = snapshot,
+                    fieldSchema = resourceEditorUseCase.fieldSchema(snapshot.type),
+                    fieldStates = emptyMap(),
+                    connectionResult = null
+                )
+            )
+        }
+    }
+
+    fun onRetry() {
+        when (lastAction) {
+            LastAction.TEST_CONNECTION -> onTestConnection()
+            LastAction.SAVE -> onSave()
+            LastAction.NONE -> {
+                viewModelScope.launch {
+                    _events.emit(ResourceEditorUiEvent.ShowInfo("Nothing to retry"))
+                }
+            }
+        }
+    }
+
+    private fun applyValidation(validation: ResourceValidationResult = resourceEditorUseCase.validate(_uiState.value.formData)) {
+        _uiState.update { current ->
+            val mergedStates = current.fieldStates.toMutableMap()
+
+            validation.fieldErrors.forEach { (key, errorCode) ->
+                val existing = mergedStates[key] ?: ResourceFieldState()
+                mergedStates[key] = existing.copy(errorCode = errorCode)
+            }
+
+            val updated = if (validation.isValid) {
+                current.copy(fieldStates = mergedStates.mapValues { (_, state) -> state.copy(errorCode = null) })
+            } else {
+                current.copy(fieldStates = mergedStates)
+            }
+            recalculateState(updated, validation)
+        }
+    }
+
+    private fun recalculateState(
+        state: ResourceEditorUiState,
+        validation: ResourceValidationResult? = null
+    ): ResourceEditorUiState {
+        val resolvedValidation = validation ?: resourceEditorUseCase.validate(state.formData)
+        val hasChanges = state.originalSnapshot?.let { it != state.formData } ?: false
+        val warnings = buildWarnings(state.formData, state.originalSnapshot)
+        val normalizedName = state.formData.name.trim()
+        val hasNameCollision = normalizedName.isNotBlank() &&
+            existingResourceNames.contains(normalizedName)
+
+        val suggestions = if (hasNameCollision) {
+            resourceEditorUseCase.buildNameSuggestions(normalizedName, existingResourceNames)
+        } else {
+            emptyList()
+        }
+
+        return state.copy(
+            hasChanges = hasChanges,
+            isFormValid = resolvedValidation.isValid,
+            canSave = resolvedValidation.isValid && hasChanges && !hasNameCollision && !state.isSaving && !state.isTestingConnection,
+            showSaveAsCopy = state.formData.mode == ResourceEditorMode.EDIT,
+            hasNameCollision = hasNameCollision,
+            nameSuggestions = suggestions,
+            warnings = warnings
+        )
+    }
+
+    private fun buildWarnings(
+        currentForm: ResourceFormData,
+        snapshot: ResourceFormData?
+    ): Set<ResourceEditorWarning> {
+        val warnings = mutableSetOf<ResourceEditorWarning>()
+
+        if (currentForm.isDestination && currentForm.isReadOnly) {
+            warnings.add(ResourceEditorWarning.READ_ONLY_DESTINATION)
+        }
+
+        if (currentForm.mode == ResourceEditorMode.EDIT && snapshot != null) {
+            val pathChanged = currentForm.path != snapshot.path
+            val endpointChanged = currentForm.host != snapshot.host || currentForm.port != snapshot.port
+            if (pathChanged || endpointChanged) {
+                warnings.add(ResourceEditorWarning.ENDPOINT_CHANGED_RESCAN)
+            }
+        }
+
+        if (currentForm.mode == ResourceEditorMode.COPY) {
+            val key = currentForm.type to currentForm.path.trim()
+            if (key.second.isNotBlank() && existingPathKeys.contains(key)) {
+                warnings.add(ResourceEditorWarning.PATH_DUPLICATE_EXISTING)
+            }
+        }
+
+        return warnings
+    }
+
+    private fun extractMediaTypes(value: Any?, fallback: Set<MediaType>): Set<MediaType> {
+        val rawSet = value as? Set<*> ?: return fallback
+        val typed = rawSet.filterIsInstance<MediaType>().toSet()
+        return if (typed.isEmpty()) fallback else typed
+    }
+}

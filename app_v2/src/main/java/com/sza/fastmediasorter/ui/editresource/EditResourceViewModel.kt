@@ -79,6 +79,10 @@ sealed class EditResourceEvent {
 }
 
 @HiltViewModel
+@Deprecated(
+    message = "Legacy ViewModel. Use ResourceFormViewModel + ResourceEditorUseCase for new flows.",
+    replaceWith = ReplaceWith("com.sza.fastmediasorter.ui.resourceeditor.ResourceFormViewModel")
+)
 class EditResourceViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val getResourcesUseCase: GetResourcesUseCase,

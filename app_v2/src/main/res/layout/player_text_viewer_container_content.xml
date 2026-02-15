@@ -16,7 +16,7 @@
         android:background="@drawable/bg_circle_light"
         android:src="@drawable/ic_cancel"
         app:tint="@color/activity_player_unified_btnCloseTextViewer_tint"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
         android:contentDescription="@string/close"
         android:elevation="@dimen/elevation_player_overlay" />
@@ -95,4 +95,5 @@
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
+
 

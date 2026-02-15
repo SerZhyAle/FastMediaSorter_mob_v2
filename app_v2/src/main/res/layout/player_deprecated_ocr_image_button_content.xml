@@ -9,10 +9,11 @@
     android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
     android:textColor="@color/white"
     android:textSize="@dimen/player_audio_info_text_size"
-    android:textStyle="@string/text_style_bold"
+    android:textStyle="bold"
     android:gravity="center"
     android:background="@drawable/bg_circle_dark"
     android:elevation="@dimen/elevation_player_overlay"
     android:visibility="gone"
     android:contentDescription="@string/ocr_button_description" />
+
 

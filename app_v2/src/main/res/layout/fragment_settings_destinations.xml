@@ -191,7 +191,7 @@
                 android:text="@string/destinations_list_header"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="@string/text_style_bold" />
+                android:textStyle="bold" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilMaxRecipients"
@@ -267,4 +267,5 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+
 

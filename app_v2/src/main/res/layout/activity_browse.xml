@@ -44,7 +44,7 @@
             android:paddingBottom="0dp"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@drawable/ic_arrow_back"
-            app:iconGravity="@string/button_icon_alignment_text_start"
+            app:iconGravity="textStart"
             app:iconPadding="@dimen/spacing_none"
             app:iconTint="?attr/colorControlNormal" />
 
@@ -113,7 +113,7 @@
                 android:paddingBottom="0dp"
                 android:textSize="@dimen/activity_browse_btnSort_textSize"
                 app:icon="@android:drawable/ic_menu_search"
-                app:iconGravity="@string/button_icon_alignment_text_start"
+                app:iconGravity="textStart"
                 app:iconPadding="@dimen/spacing_none"
                 app:iconTint="?attr/colorControlNormal" />
 
@@ -128,7 +128,7 @@
                 android:gravity="center"
                 android:textColor="@color/white"
                 android:textSize="@dimen/browse_filter_badge_text_size"
-                android:textStyle="@string/text_style_bold"
+                android:textStyle="bold"
                 android:visibility="gone" />
         </FrameLayout>
 
@@ -154,7 +154,7 @@
             android:paddingBottom="0dp"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@android:drawable/ic_popup_sync"
-            app:iconGravity="@string/button_icon_alignment_text_start"
+            app:iconGravity="textStart"
             app:iconPadding="@dimen/spacing_none"
             app:iconTint="?attr/colorControlNormal" />
 
@@ -180,7 +180,7 @@
             android:paddingBottom="0dp"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@android:drawable/ic_menu_view"
-            app:iconGravity="@string/button_icon_alignment_text_start"
+            app:iconGravity="textStart"
             app:iconPadding="@dimen/spacing_none"
             app:iconTint="?attr/colorControlNormal" />
 
@@ -211,7 +211,7 @@
             android:paddingBottom="0dp"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@drawable/ic_select_all"
-            app:iconGravity="@string/button_icon_alignment_text_start"
+            app:iconGravity="textStart"
             app:iconPadding="@dimen/spacing_none"
             app:iconTint="?attr/colorControlNormal" />
 
@@ -237,7 +237,7 @@
             android:paddingBottom="0dp"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@drawable/ic_deselect_all"
-            app:iconGravity="@string/button_icon_alignment_text_start"
+            app:iconGravity="textStart"
             app:iconPadding="@dimen/spacing_none"
             app:iconTint="?attr/colorControlNormal" />
 
@@ -266,7 +266,7 @@
             android:paddingBottom="0dp"
             android:textSize="@dimen/activity_browse_btnSort_textSize"
             app:icon="@android:drawable/ic_media_play"
-            app:iconGravity="@string/button_icon_alignment_text_start"
+            app:iconGravity="textStart"
             app:iconPadding="@dimen/spacing_none"
             app:iconTint="?attr/colorControlNormal"
             android:maxHeight="@dimen/activity_browse_btnDeselectAll_maxHeight"
@@ -294,7 +294,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/edit"
             android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
-            android:scaleType="@string/image_scale_fit_center"
+            android:scaleType="fitCenter"
             android:src="@drawable/ic_edit_20"
             android:visibility="gone"
             app:tint="?attr/colorControlNormal"
@@ -496,7 +496,7 @@
             android:layout_marginTop="@dimen/empty_state_text_margin_top"
             android:text="@string/no_files_found"
             android:textSize="@dimen/empty_state_text_size"
-            android:textAlignment="@string/button_text_alignment_center"
+            android:textAlignment="center"
             android:gravity="center"
             android:textColor="@color/text_color_secondary" />
 
@@ -507,7 +507,7 @@
             android:layout_marginTop="@dimen/dialog_slideshow_settings_btnSelectMusic_layout_marginTop"
             android:text="@string/empty_folder_hint"
             android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
-            android:textAlignment="@string/button_text_alignment_center"
+            android:textAlignment="center"
             android:gravity="center"
             android:textColor="@color/text_color_secondary"
             android:visibility="gone" />
@@ -541,7 +541,7 @@
             android:layout_marginTop="@dimen/empty_state_text_margin_top"
             android:text="@string/connection_failed"
             android:textSize="@dimen/empty_state_text_size"
-            android:textAlignment="@string/button_text_alignment_center"
+            android:textAlignment="center"
             android:gravity="center"
             android:textColor="@color/error_color" />
 
@@ -596,4 +596,5 @@
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 

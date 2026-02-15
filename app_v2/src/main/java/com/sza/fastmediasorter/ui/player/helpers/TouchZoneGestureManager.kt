@@ -33,6 +33,38 @@ class TouchZoneGestureManager(
     private val touchZoneDetector: TouchZoneDetector,
     private val callback: TouchZoneCallback
 ) {
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DUAL-SURFACE SUPPORT (D.5 Gesture Unification)
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Check if any PhotoView surface is visible.
+     * Supports both legacy single-surface and dual-surface modes.
+     */
+    private fun isAnyPhotoViewVisible(): Boolean {
+        return binding.photoView.isVisible || (binding.photoViewSurfaceB?.isVisible == true)
+    }
+
+    /**
+     * Get the currently visible PhotoView for scale/zoom queries.
+     * Returns the first visible surface, preferring A (current) over B (prepared).
+     */
+    private fun getVisiblePhotoView(): com.github.chrisbanes.photoview.PhotoView? {
+        return when {
+            binding.photoView.isVisible -> binding.photoView
+            binding.photoViewSurfaceB?.isVisible == true -> binding.photoViewSurfaceB
+            else -> null
+        }
+    }
+
+    /**
+     * Get current zoom scale from visible PhotoView.
+     * Returns 1.0 if no PhotoView is visible.
+     */
+    private fun getCurrentPhotoViewScale(): Float {
+        return getVisiblePhotoView()?.scale ?: 1.0f
+    }
     
     interface TouchZoneCallback {
         fun isOverlayBlocking(): Boolean
@@ -110,7 +142,7 @@ class TouchZoneGestureManager(
                     return false
                 }
                 
-                if (isImage && binding.photoView.isVisible) {
+                if (isImage && isAnyPhotoViewVisible()) {
                     // In fullscreen mode: use 9-zone grid for top area, 3-zone for rest
                     if (isInFullscreenMode) {
                         Timber.d("SingleTap: IMAGE fullscreen mode -> handleTouchZone (9 zones)")
@@ -136,7 +168,7 @@ class TouchZoneGestureManager(
                         }
                         e.x < rightBoundary -> {
                             // Center zone (25-75%): Only unzoom if zoomed, otherwise do nothing (use double tap to zoom)
-                            val currentScale = binding.photoView.scale
+                            val currentScale = getCurrentPhotoViewScale()
                             Timber.d("SingleTap: Center zone, scale=${"%.2f".format(currentScale)}x")
                             
                             if (currentScale > 1.05f) {
@@ -168,7 +200,7 @@ class TouchZoneGestureManager(
                 
                 Timber.d("DoubleTap: pos=(${e.x.toInt()},${e.y.toInt()}), image=$isImage, fullscreen=$isInFullscreenMode")
                 
-                if (isImage && binding.photoView.isVisible) {
+                if (isImage && isAnyPhotoViewVisible()) {
                     // REG-3100 spec: Double tap to Zoom In x2 / Zoom Out x2
                     // Only in command panel mode (REG-3100), middle zone
                     if (!isInFullscreenMode) {
@@ -182,7 +214,7 @@ class TouchZoneGestureManager(
                         
                         if (e.x >= leftBoundary && e.x < rightBoundary) {
                             // Middle zone: Toggle 2x/1x zoom (per REG-3100 spec)
-                            val currentScale = binding.photoView.scale
+                            val currentScale = getCurrentPhotoViewScale()
                             if (currentScale > 1.05f) {
                                 // Already zoomed → Reset to 1x
                                 Timber.d("DoubleTap: Unzoom to 1x (was ${"%.2f".format(currentScale)}x)")
@@ -200,7 +232,7 @@ class TouchZoneGestureManager(
                         }
                     } else {
                         // Fullscreen mode: use old 3x zoom behavior
-                        val currentScale = binding.photoView.scale
+                        val currentScale = getCurrentPhotoViewScale()
                         if (currentScale > 1.05f) {
                             Timber.d("DoubleTap: Unzoom to 1x (was ${"%.2f".format(currentScale)}x)")
                             callback.setPhotoViewZoom(1.0f)
@@ -231,7 +263,7 @@ class TouchZoneGestureManager(
             
             Timber.d("LongPress: pos=(${e.x.toInt()},${e.y.toInt()}), duration=${touchDuration}ms, fullscreen=$isInFullscreenMode")
             
-            if (isImage && binding.photoView.isVisible) {
+            if (isImage && isAnyPhotoViewVisible()) {
                 // In command panel mode (REG-3100): long press zooms to 2x (consistent with double-tap)
                 // In fullscreen mode: long press zooms to 3x (traditional behavior)
                 val zoomLevel = if (!isInFullscreenMode) 2.0f else 3.0f
@@ -257,7 +289,7 @@ class TouchZoneGestureManager(
             val config = TouchZoneConfig.getConfiguration(zoneMap)
             
             // Check if image is zoomed - don't navigate if panning
-            if (binding.photoView.isVisible && binding.photoView.scale > 1.05f) {
+            if (isAnyPhotoViewVisible() && getCurrentPhotoViewScale() > 1.05f) {
                 Timber.d("SWIPE: Image zoomed, allowing PhotoView pan")
                 return false
             }
@@ -338,7 +370,7 @@ class TouchZoneGestureManager(
             return false
         }
 
-        if (isImage && binding.photoView.isVisible) {
+        if (isImage && isAnyPhotoViewVisible()) {
             if (isInFullscreenMode) {
                 Timber.d("handleImageSingleTap: fullscreen -> 9-zone grid")
                 handleTouchZone(e.x, e.y)
@@ -359,7 +391,7 @@ class TouchZoneGestureManager(
                     return true
                 }
                 e.x < rightBoundary -> {
-                    val currentScale = binding.photoView.scale
+                    val currentScale = getCurrentPhotoViewScale()
                     Timber.d("handleImageSingleTap: Center zone, scale=${"%.2f".format(currentScale)}x")
                     if (currentScale > 1.05f) {
                         Timber.d("handleImageSingleTap: Zoomed -> Reset to 1x")
@@ -391,7 +423,7 @@ class TouchZoneGestureManager(
 
         Timber.d("handleImageDoubleTap: pos=(${e.x.toInt()},${e.y.toInt()}), fullscreen=$isInFullscreenMode")
 
-        if (isImage && binding.photoView.isVisible) {
+        if (isImage && isAnyPhotoViewVisible()) {
             if (!isInFullscreenMode) {
                 val screenWidth = binding.root.width
                 val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen = false)
@@ -400,7 +432,7 @@ class TouchZoneGestureManager(
                 val rightBoundary = screenWidth * (config.widthRatios[0] + config.widthRatios[1])
 
                 if (e.x >= leftBoundary && e.x < rightBoundary) {
-                    val currentScale = binding.photoView.scale
+                    val currentScale = getCurrentPhotoViewScale()
                     if (currentScale > 1.05f) {
                         Timber.d("handleImageDoubleTap: Reset to 1x (was ${"%.2f".format(currentScale)}x)")
                         callback.setPhotoViewZoom(1.0f)
@@ -412,7 +444,7 @@ class TouchZoneGestureManager(
                 }
                 return false // Outside middle zone in command panel
             } else {
-                val currentScale = binding.photoView.scale
+                val currentScale = getCurrentPhotoViewScale()
                 if (currentScale > 1.05f) {
                     Timber.d("handleImageDoubleTap: Reset to 1x (was ${"%.2f".format(currentScale)}x)")
                     callback.setPhotoViewZoom(1.0f)
@@ -475,7 +507,7 @@ class TouchZoneGestureManager(
         val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
         val isInFullscreenMode = !viewModel.state.value.showCommandPanel
 
-        if (isImage && binding.photoView.isVisible) {
+        if (isImage && isAnyPhotoViewVisible()) {
             val zoomLevel = if (!isInFullscreenMode) 2.0f else 3.0f
             Timber.d("handleImageLongPress: Zoom to ${zoomLevel}x")
             callback.setPhotoViewZoom(zoomLevel)

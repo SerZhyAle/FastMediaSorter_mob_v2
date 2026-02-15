@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="@string/dialog_file_operation_progress_tvProgressTitle_text"
         android:textSize="@dimen/text_size_large"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginBottom="@dimen/margin_large" />
 
     <TextView
@@ -66,4 +66,5 @@
         style="@style/Widget.Material3.Button.OutlinedButton" />
 
 </LinearLayout>
+
 

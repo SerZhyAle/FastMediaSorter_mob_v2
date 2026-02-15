@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="@string/delete_confirmation"
         android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-        android:textAlignment="@string/button_text_alignment_center"
+        android:textAlignment="center"
         android:paddingBottom="@dimen/margin_large" />
 
     <TextView
@@ -19,7 +19,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
-        android:textAlignment="@string/button_text_alignment_center"
+        android:textAlignment="center"
         android:paddingBottom="@dimen/dialog_padding_large" />
 
     <LinearLayout

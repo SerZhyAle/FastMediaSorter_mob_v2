@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"
         android:maxLines="2"
         android:ellipsize="end"
@@ -25,9 +25,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/share"
-        android:textAlignment="@string/button_text_alignment_start"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_share"
-        app:iconGravity="@string/button_icon_alignment_start" />
+        app:iconGravity="start" />
 
     <!-- Open With Button -->
     <com.google.android.material.button.MaterialButton
@@ -36,9 +36,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/open_with"
-        android:textAlignment="@string/button_text_alignment_start"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_folder_open_24"
-        app:iconGravity="@string/button_icon_alignment_start" />
+        app:iconGravity="start" />
 
     <!-- Copy Button -->
     <com.google.android.material.button.MaterialButton
@@ -47,9 +47,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/copy"
-        android:textAlignment="@string/button_text_alignment_start"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_folder"
-        app:iconGravity="@string/button_icon_alignment_start" />
+        app:iconGravity="start" />
 
     <!-- Move Button -->
     <com.google.android.material.button.MaterialButton
@@ -58,9 +58,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/move"
-        android:textAlignment="@string/button_text_alignment_start"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_folder"
-        app:iconGravity="@string/button_icon_alignment_start" />
+        app:iconGravity="start" />
 
     <!-- Rename Button -->
     <com.google.android.material.button.MaterialButton
@@ -69,9 +69,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/rename"
-        android:textAlignment="@string/button_text_alignment_start"
+        android:textAlignment="viewStart"
         app:icon="@drawable/ic_rename"
-        app:iconGravity="@string/button_icon_alignment_start" />
+        app:iconGravity="start" />
 
     <!-- Delete Button -->
     <com.google.android.material.button.MaterialButton
@@ -80,10 +80,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/delete"
-        android:textAlignment="@string/button_text_alignment_start"
+        android:textAlignment="viewStart"
         android:textColor="@color/error_color"
         app:icon="@drawable/ic_clear"
-        app:iconGravity="@string/button_icon_alignment_start"
+        app:iconGravity="start"
         app:iconTint="@color/error_color" />
 
 </LinearLayout>
+

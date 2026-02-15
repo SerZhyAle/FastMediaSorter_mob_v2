@@ -16,6 +16,49 @@ import java.util.Locale
  */
 object LoggingHelper {
     
+    // Renderer diagnostics tags (D.7 - Stabilization)
+    private const val TAG_RENDERER = "StaticImageRenderer"
+    private const val TAG_PREFETCH = "PrefetchQueue"
+    
+    /**
+     * Log renderer state transition.
+     * @param fromState Previous render state (e.g., "Idle", "Loading")
+     * @param toState New render state
+     * @param trigger What caused the transition (e.g., "render()", "swap()")
+     */
+    fun logRendererStateTransition(fromState: String, toState: String, trigger: String) {
+        Timber.tag(TAG_RENDERER).d("State: $fromState -> $toState [trigger=$trigger]")
+    }
+    
+    /**
+     * Log prefetch queue operation.
+     * @param operation Operation type (e.g., "offer", "poll", "drop")
+     * @param target Target file name or path
+     * @param reason Optional reason for the operation
+     */
+    fun logPrefetch(operation: String, target: String, reason: String? = null) {
+        val msg = if (reason != null) {
+            "$operation: $target (reason: $reason)"
+        } else {
+            "$operation: $target"
+        }
+        Timber.tag(TAG_PREFETCH).d(msg)
+    }
+    
+    /**
+     * Log renderer fallback to legacy path.
+     * @param reason Why fallback occurred
+     * @param context Additional context (file name, state, etc.)
+     */
+    fun logRendererFallback(reason: String, context: String? = null) {
+        val msg = if (context != null) {
+            "Fallback: $reason [context=$context]"
+        } else {
+            "Fallback: $reason"
+        }
+        Timber.tag(TAG_RENDERER).w(msg)
+    }
+    
     /**
      * Initialize Timber logging.
      * DEBUG build: All logs to Logcat + file (for debugging without ADB)

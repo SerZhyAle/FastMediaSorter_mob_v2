@@ -20,6 +20,7 @@
         android:layout_height="wrap_content"
         android:textColor="?attr/colorOnPrimary"
         android:textSize="@dimen/activity_player_btnInfo_textSize"
-        android:textStyle="@string/text_style_bold" />
+        android:textStyle="bold" />
 
 </LinearLayout>
+

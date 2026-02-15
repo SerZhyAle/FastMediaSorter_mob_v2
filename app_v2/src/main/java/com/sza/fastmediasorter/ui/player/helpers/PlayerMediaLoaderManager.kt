@@ -62,12 +62,19 @@ class PlayerMediaLoaderManager(
         imageLoadingManager.displayImage(path)
     }
 
+    fun isCurrentAnimatedContent(): Boolean = imageLoadingManager.isCurrentAnimatedContent()
+
+    fun isAnimatedPlaybackPaused(): Boolean = imageLoadingManager.isAnimatedPlaybackPaused()
+
+    fun toggleAnimatedPlayback(): Boolean? = imageLoadingManager.toggleAnimatedPlayback()
+
     /**
      * Display text file (delegates to TextViewerManager)
      */
     fun displayText(mediaFile: MediaFile) {
         val resource = viewModel.state.value.resource
         Timber.d("PlayerMediaLoaderManager.displayText: file=${mediaFile.name}")
+        imageLoadingManager.hideAnimatedBadge()
         textViewerManager.displayText(mediaFile, isWritable = resource?.isWritable == true)
     }
 
@@ -76,6 +83,7 @@ class PlayerMediaLoaderManager(
      */
     fun playVideo(path: String) {
         Timber.i("PlayerMediaLoaderManager.playVideo: START - path=$path")
+        imageLoadingManager.hideAnimatedBadge()
         
         // Skip if activity is being destroyed
         if (activity.isFinishing || activity.isDestroyed) {

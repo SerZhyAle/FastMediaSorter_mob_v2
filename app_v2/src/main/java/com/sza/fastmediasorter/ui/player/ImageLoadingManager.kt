@@ -29,6 +29,16 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
+import com.sza.fastmediasorter.ui.player.render.DualSurfaceStaticImageRenderer
+import com.sza.fastmediasorter.ui.player.render.PrefetchQueue
+import com.sza.fastmediasorter.ui.player.render.PrefetchQueueConfig
+import com.sza.fastmediasorter.ui.player.render.PriorityPrefetchQueue
+import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
+import com.sza.fastmediasorter.ui.player.render.RenderModeHint
+import com.sza.fastmediasorter.ui.player.render.RenderPriority
+import com.sza.fastmediasorter.ui.player.render.RenderTarget
+import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer
+import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
 import kotlinx.coroutines.Dispatchers
@@ -82,6 +92,7 @@ class ImageLoadingManager(
         fun getString(resId: Int): String
         fun isShowingCommandPanel(): Boolean
         fun isSlideshowActive(): Boolean
+        fun setAnimatedBadgeVisible(visible: Boolean)
     }
     
     // Context for scale type determination (set before loading image)
@@ -90,6 +101,39 @@ class ImageLoadingManager(
     private var currentDeviceWidth: Int = 0
     private var currentDeviceHeight: Int = 0
     private var currentTargetView: android.widget.ImageView? = null
+    private var currentIsAnimatedContent: Boolean = false
+    private val animatedImageController = AnimatedImageController()
+    private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
+        surfaceA = binding.photoView,
+        surfaceB = binding.photoViewSurfaceB
+    )
+    private val prefetchQueue: PriorityPrefetchQueue = PriorityPrefetchQueue(
+        isCongested = { getResourceKey()?.let { ConnectionThrottleManager.isCongested(it) } ?: false }
+    ).apply {
+        updateConfig(PrefetchQueueConfig(maxDepth = 6, throttleMs = 0L))
+    }
+
+    /**
+     * Build resource key for ConnectionThrottleManager from current resource.
+     */
+    private fun getResourceKey(): String? {
+        val resource = callback.getCurrentResource() ?: return null
+        return when {
+            resource.path.startsWith("smb://") -> resource.path.substringBefore("/", resource.path)
+            resource.path.startsWith("ftp://") -> "ftp://" + resource.path.substringAfter("://").substringBefore("/")
+            resource.path.startsWith("sftp://") -> "sftp://" + resource.path.substringAfter("://").substringBefore("/")
+            else -> resource.path
+        }
+    }
+
+    /**
+     * Update prefetch queue slideshow bias.
+     * When slideshow is active, forward targets get higher priority.
+     */
+    fun setSlideshowBias(enabled: Boolean) {
+        prefetchQueue.slideshowBias = enabled
+        Timber.d("ImageLoadingManager: Slideshow bias set to $enabled")
+    }
     
     /**
      * Cleanup all resources - cancel Glide requests and pending handlers.
@@ -114,8 +158,50 @@ class ImageLoadingManager(
         // Cancel all preload jobs
         preloadJobs.forEach { it.cancel() }
         preloadJobs.clear()
+        prefetchQueue.clear()
+        animatedImageController.release()
+        currentIsAnimatedContent = false
+        callback.setAnimatedBadgeVisible(false)
+        staticImageRenderer.release()
         
         Timber.d("ImageLoadingManager: Cleanup complete")
+    }
+    
+    /**
+     * Pause renderer - called from Activity onPause().
+     * Pauses any pending prefetch operations.
+     */
+    fun onPause() {
+        Timber.d("ImageLoadingManager: onPause - pausing renderer")
+        animatedImageController.onPause()
+        staticImageRenderer.onPause()
+    }
+    
+    /**
+     * Resume renderer - called from Activity onResume().
+     * Resumes prefetch operations.
+     */
+    fun onResume() {
+        Timber.d("ImageLoadingManager: onResume - resuming renderer")
+        animatedImageController.onResume()
+        staticImageRenderer.onResume()
+    }
+
+    fun isCurrentAnimatedContent(): Boolean = currentIsAnimatedContent && animatedImageController.hasAnimatedDrawable()
+
+    fun isAnimatedPlaybackPaused(): Boolean = animatedImageController.isPlaybackPaused()
+
+    fun toggleAnimatedPlayback(): Boolean? {
+        val paused = animatedImageController.togglePlayback()
+        if (paused != null) {
+            callback.setAnimatedBadgeVisible(currentIsAnimatedContent)
+        }
+        return paused
+    }
+
+    fun hideAnimatedBadge() {
+        currentIsAnimatedContent = false
+        callback.setAnimatedBadgeVisible(false)
     }
     
     /**
@@ -214,6 +300,7 @@ class ImageLoadingManager(
         }
         
         callback.releasePlayer()
+        animatedImageController.prepareForNewContent()
         binding.playerView.isVisible = false
         
         // Hide audio-related views
@@ -256,9 +343,15 @@ class ImageLoadingManager(
         // Get settings to determine which view to use
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
+            if (settings.rendererMigrationEnabled) {
+                Timber.i("ImageLoadingManager: rendererMigrationEnabled=true (boundary active, legacy rendering path remains in use)")
+            }
             // During slideshow, force size limit to prevent OOM crashes
             val isSlideshowActive = callback.isSlideshowActive()
-            val usePhotoView = settings.loadFullSizeImages && currentFile != null && !isSlideshowActive
+            val isAnimatedContent = animatedImageController.isAnimatedContent(currentFile, path)
+            currentIsAnimatedContent = isAnimatedContent
+            callback.setAnimatedBadgeVisible(isAnimatedContent)
+            val usePhotoView = isAnimatedContent || (settings.loadFullSizeImages && currentFile != null && !isSlideshowActive)
             
             Timber.d("ImageLoadingManager.displayImage: enableTranslation=${settings.enableTranslation}")
             Timber.w("TOUCH_DEBUG: ImageLoadingManager.displayImage - usePhotoView=$usePhotoView, loadFullSizeImages=${settings.loadFullSizeImages}")
@@ -618,6 +711,9 @@ class ImageLoadingManager(
                 isFirstResource: Boolean
             ): Boolean {
                 Timber.e(e, "ImageLoadingManager.GlideListener: onLoadFailed triggered")
+                animatedImageController.onLoadFailed()
+                currentIsAnimatedContent = false
+                callback.setAnimatedBadgeVisible(false)
                 loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
                 if (!callback.isDestroyed()) {
@@ -654,6 +750,7 @@ class ImageLoadingManager(
                 isFirstResource: Boolean
             ): Boolean {
                 Timber.d("ImageLoadingManager.GlideListener: onResourceReady triggered")
+                animatedImageController.onDrawableLoaded(resource, currentTargetView)
                 loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
                 if (!callback.isDestroyed()) {
@@ -692,6 +789,7 @@ class ImageLoadingManager(
      * Preload adjacent images (previous + next) in background for faster navigation.
      * Only preloads IMAGE and GIF files.
      * Supports circular navigation.
+     * Priority order: NEXT (index 0) > PREVIOUS (index 1) > LOOKAHEAD (others).
      */
     fun preloadNextImageIfNeeded() {
         val adjacentFiles = callback.getAdjacentFiles()
@@ -704,141 +802,170 @@ class ImageLoadingManager(
             Timber.d("ImageLoadingManager: Preload skipped - no current resource")
             return
         }
-        
-        Timber.d("ImageLoadingManager: Starting preload for ${adjacentFiles.size} adjacent files")
-        
-        // Preload each adjacent file
-        adjacentFiles.forEach { file ->
-            Timber.d("ImageLoadingManager: Preloading ${file.name} (${file.type})")
-            val job = lifecycleScope.launch {
-                // Determine actual resource type from path prefix (for Favorites with mixed sources)
-                val actualResourceType = when {
-                    file.path.startsWith("cloud://") -> ResourceType.CLOUD
-                    file.path.startsWith("smb://") -> ResourceType.SMB
-                    file.path.startsWith("sftp://") -> ResourceType.SFTP
-                    file.path.startsWith("ftp://") -> ResourceType.FTP
-                    else -> resource.type
+        prefetchQueue.clear()
+        val enqueued = prefetchQueue.offerAll(
+            adjacentFiles.mapIndexed { index, file ->
+                // Priority assignment: NEXT(0), PREVIOUS(1), LOOKAHEAD(2+)
+                val priority = when (index) {
+                    0 -> RenderPriority.NEXT
+                    1 -> RenderPriority.PREVIOUS
+                    else -> RenderPriority.LOOKAHEAD
                 }
-                
-                // Check if this is a network resource
-                if (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP) {
-                    val networkData = NetworkFileData(
-                        path = file.path,
-                        credentialsId = resource.credentialsId,
-                        loadFullImage = true,
-                        size = file.size,
-                        createdDate = file.createdDate
-                    )
-                    val cacheKey = networkData.getCacheKey()
-                    
-                    // Preload with Glide with size limit to prevent OOM
-                    // For LOW tier, use smaller resolution (1280px) instead of 1920px
-                    val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-                    try {
-                        withContext(Dispatchers.IO) {
-                            val request = Glide.with(binding.root.context.applicationContext)
-                                .downloadOnly()
-                                .load(networkData)
-                                .signature(ObjectKey(cacheKey))
-                                .diskCacheStrategy(DiskCacheStrategy.DATA) // Cache source data only (raw bytes)
-                                .override(preloadMaxDimension, preloadMaxDimension)
-                            
-                            // Apply RGB_565 for LOW memory devices
-                            if (memoryTier == MemoryTier.LOW) {
-                                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-                            }
-                            
-                            request.submit().get() // Block until file is actually in cache
-                        }
-                        Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
-                    } catch (e: Exception) {
-                        Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
-                    }
-                } else if (actualResourceType == ResourceType.CLOUD) {
-                    // Preload cloud file - detect provider from path
-                    val fileId = file.path.substringAfterLast('/')
-                    val provider = when {
-                        file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                        file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                        file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
-                        else -> CloudProvider.GOOGLE_DRIVE
-                    }
-                    val cloudData = CloudThumbnailData(
-                        thumbnailUrl = file.thumbnailUrl ?: "",
-                        fileId = fileId,
-                        loadFullImage = true,
-                        cloudProvider = provider
-                    )
-                    val cacheKey = "${file.path}_${file.size}"
-                    
-                    // For LOW tier, use smaller resolution for preload
-                    val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-                    try {
-                        withContext(Dispatchers.IO) {
-                            val request = Glide.with(binding.root.context.applicationContext)
-                                .downloadOnly()
-                                .load(cloudData)
-                                .signature(ObjectKey(cacheKey))
-                                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(preloadMaxDimension, preloadMaxDimension)
-                            
-                            // Apply RGB_565 for LOW memory devices
-                            if (memoryTier == MemoryTier.LOW) {
-                                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-                            }
-                            
-                            request.submit().get()
-                        }
-                        Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
-                    } catch (e: Exception) {
-                        Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
-                    }
-                } else {
-                    // Preload local file
-                    val cacheKey = "${file.path}_${file.size}"
-                    // For LOW tier, use smaller resolution for preload
-                    val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
-                    try {
-                        withContext(Dispatchers.IO) {
-                            val request = Glide.with(binding.root.context.applicationContext)
-                                .downloadOnly()
-                                .load(File(file.path))
-                                .signature(ObjectKey(cacheKey))
-                                .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(preloadMaxDimension, preloadMaxDimension)
-                            
-                            // Apply RGB_565 for LOW memory devices
-                            if (memoryTier == MemoryTier.LOW) {
-                                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
-                            }
-                            
-                            request.submit().get()
-                        }
-                        Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
-                    } catch (e: Exception) {
-                        Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
-                    }
-                }
+                RenderTarget(
+                    mediaFile = file,
+                    path = file.path,
+                    priority = priority,
+                    modeHint = RenderModeHint.KEEP_CURRENT
+                )
             }
-            
-            // Memory leak fix: Remove job from list when completed to prevent accumulation
-            job.invokeOnCompletion {
-                synchronized(preloadJobs) {
-                    preloadJobs.remove(job)
-                }
-            }
-            
-            synchronized(preloadJobs) {
-                preloadJobs.add(job)
-            }
+        )
+
+        Timber.d("ImageLoadingManager: Starting preload for $enqueued/${adjacentFiles.size} adjacent files (queue=${prefetchQueue.size()})")
+
+        while (true) {
+            val target = prefetchQueue.pollNext() ?: break
+            preloadAdjacentTarget(target, resource)
         }
-        Timber.d("ImageLoadingManager: Preload initiated for ${adjacentFiles.size} files")
+        Timber.d("ImageLoadingManager: Preload initiated via queue-shim")
         
         // Log memory stats every 10 preloads to track accumulation patterns
         preloadCounter++
         if (preloadCounter >= 10) {
             logMemoryStats("AFTER preload (every 10)")
             preloadCounter = 0
+        }
+    }
+
+    private fun preloadAdjacentTarget(
+        target: RenderTarget,
+        resource: com.sza.fastmediasorter.domain.model.MediaResource
+    ) {
+        val file = target.mediaFile
+        Timber.d("ImageLoadingManager: Preloading ${file.name} (${file.type}) via queue-shim")
+
+        val job = lifecycleScope.launch {
+            val actualResourceType = when {
+                file.path.startsWith("cloud://") -> ResourceType.CLOUD
+                file.path.startsWith("smb://") -> ResourceType.SMB
+                file.path.startsWith("sftp://") -> ResourceType.SFTP
+                file.path.startsWith("ftp://") -> ResourceType.FTP
+                else -> resource.type
+            }
+
+            if (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP) {
+                preloadNetworkFile(file, resource)
+            } else if (actualResourceType == ResourceType.CLOUD) {
+                preloadCloudFile(file)
+            } else {
+                preloadLocalFile(file)
+            }
+        }
+
+        job.invokeOnCompletion {
+            synchronized(preloadJobs) {
+                preloadJobs.remove(job)
+            }
+        }
+
+        synchronized(preloadJobs) {
+            preloadJobs.add(job)
+        }
+    }
+
+    private suspend fun preloadNetworkFile(
+        file: MediaFile,
+        resource: com.sza.fastmediasorter.domain.model.MediaResource
+    ) {
+        val networkData = NetworkFileData(
+            path = file.path,
+            credentialsId = resource.credentialsId,
+            loadFullImage = true,
+            size = file.size,
+            createdDate = file.createdDate
+        )
+        val cacheKey = networkData.getCacheKey()
+
+        val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
+        try {
+            withContext(Dispatchers.IO) {
+                val request = Glide.with(binding.root.context.applicationContext)
+                    .downloadOnly()
+                    .load(networkData)
+                    .signature(ObjectKey(cacheKey))
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
+                    .override(preloadMaxDimension, preloadMaxDimension)
+
+                if (memoryTier == MemoryTier.LOW) {
+                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                }
+
+                request.submit().get()
+            }
+            Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
+        } catch (e: Exception) {
+            Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
+        }
+    }
+
+    private suspend fun preloadCloudFile(file: MediaFile) {
+        val fileId = file.path.substringAfterLast('/')
+        val provider = when {
+            file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+            file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+            file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+            else -> CloudProvider.GOOGLE_DRIVE
+        }
+        val cloudData = CloudThumbnailData(
+            thumbnailUrl = file.thumbnailUrl ?: "",
+            fileId = fileId,
+            loadFullImage = true,
+            cloudProvider = provider
+        )
+        val cacheKey = "${file.path}_${file.size}"
+
+        val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
+        try {
+            withContext(Dispatchers.IO) {
+                val request = Glide.with(binding.root.context.applicationContext)
+                    .downloadOnly()
+                    .load(cloudData)
+                    .signature(ObjectKey(cacheKey))
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
+                    .override(preloadMaxDimension, preloadMaxDimension)
+
+                if (memoryTier == MemoryTier.LOW) {
+                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                }
+
+                request.submit().get()
+            }
+            Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
+        } catch (e: Exception) {
+            Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
+        }
+    }
+
+    private suspend fun preloadLocalFile(file: MediaFile) {
+        val cacheKey = "${file.path}_${file.size}"
+        val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
+        try {
+            withContext(Dispatchers.IO) {
+                val request = Glide.with(binding.root.context.applicationContext)
+                    .downloadOnly()
+                    .load(File(file.path))
+                    .signature(ObjectKey(cacheKey))
+                    .diskCacheStrategy(DiskCacheStrategy.DATA)
+                    .override(preloadMaxDimension, preloadMaxDimension)
+
+                if (memoryTier == MemoryTier.LOW) {
+                    request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                }
+
+                request.submit().get()
+            }
+            Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
+        } catch (e: Exception) {
+            Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
         }
     }
     

@@ -16,8 +16,8 @@ $ErrorActionPreference = "Stop"
 
 # Configuration
 $ScriptPath = $PSScriptRoot
-$ProjectRoot = Resolve-Path "$ScriptPath\.."
-$LocalMediaDir = Join-Path $ProjectRoot "test_media"
+$ProjectRoot = Resolve-Path "$ScriptPath\..\.."
+$LocalMediaDir = "C:\GIT\FastMediaSorter_mob_v2\test_media"
 $DeviceDestDir = "/sdcard/Download/FastMediaSorter_Test"
 
 Write-Host "--- Android Test Media Setup ---" -ForegroundColor Cyan

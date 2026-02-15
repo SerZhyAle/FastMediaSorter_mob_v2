@@ -12,7 +12,7 @@
             android:layout_height="wrap_content"
             android:text="@string/slideshow_settings"
             android:textSize="@dimen/activity_player_btnInfo_textSize"
-            android:textStyle="@string/text_style_bold"
+            android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/btnClose"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -34,7 +34,7 @@
             android:layout_height="wrap_content"
             android:text="@string/dialog_slideshow_settings_tvIntervalValue_text"
             android:textSize="@dimen/dialog_slideshow_settings_tvIntervalLabel_textSize"
-            android:textStyle="@string/text_style_bold"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tvIntervalLabel" />
 
@@ -76,7 +76,7 @@
             android:layout_marginTop="@dimen/dialog_slideshow_settings_tvMusicLabel_layout_marginTop"
             android:text="@string/background_music"
             android:textSize="@dimen/dialog_slideshow_settings_tvMusicLabel_textSize"
-            android:textStyle="@string/text_style_bold"
+            android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvPlayToEndHint" />
 
@@ -129,4 +129,5 @@
             app:layout_constraintTop_toTopOf="@id/tvTitle" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 

@@ -19,7 +19,7 @@
         android:src="@android:drawable/ic_media_previous"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:contentDescription="@string/previous_chapter" />
 
@@ -30,7 +30,7 @@
         android:src="@android:drawable/ic_media_rew"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/activity_player_unified_btnPdfHome_tint"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:contentDescription="@string/to_begin" />
@@ -49,7 +49,7 @@
         android:paddingVertical="@dimen/player_indicator_padding_vertical_4dp"
         android:textColor="@color/white"
         android:textSize="@dimen/empty_state_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:text="@string/activity_player_unified_tvPdfPageIndicator_text"
         android:layout_marginHorizontal="@dimen/player_epub_chapter_indicator_margin_horizontal" />
 
@@ -60,7 +60,7 @@
         android:src="@android:drawable/ic_menu_agenda"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/white"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:contentDescription="@string/table_of_contents" />
@@ -72,7 +72,7 @@
         android:src="@drawable/ic_zoom_out"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/white"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:contentDescription="@string/decrease_font_size" />
@@ -84,7 +84,7 @@
         android:src="@drawable/ic_zoom_in"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/white"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_button_margin_small"
         android:contentDescription="@string/increase_font_size" />
@@ -101,10 +101,11 @@
         android:src="@android:drawable/ic_media_next"
         android:background="@drawable/bg_circle_dark"
         app:tint="@color/activity_player_unified_btnEpubNextChapter_tint"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_search_panel_padding"
         android:layout_marginStart="@dimen/player_pdf_button_margin"
         android:contentDescription="@string/next_chapter" />
 </LinearLayout>
+
 
 

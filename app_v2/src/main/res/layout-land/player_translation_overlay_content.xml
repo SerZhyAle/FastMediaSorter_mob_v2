@@ -50,7 +50,7 @@
                     android:layout_height="wrap_content"
                     android:textColor="@color/white"
                     android:textSize="@dimen/player_audio_info_text_size"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+                    android:lineSpacingMultiplier="1.2" />
             </ScrollView>
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
@@ -65,3 +65,4 @@
         android:background="@color/transparent" />
 
 </merge>
+

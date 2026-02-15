@@ -24,8 +24,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260215025
-        versionName = "2.60.2150.257"
+        versionCode = 260215115
+        versionName = "2.60.2151.155"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -344,6 +344,7 @@ dependencies {
     implementation("androidx.media3:media3-ui:1.2.1")
     implementation("androidx.media3:media3-common:1.2.1")
     implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
+    implementation("androidx.media3:media3-session:1.2.1") // MediaSession for audio background playback
     
     // Image Loading - Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")

@@ -464,28 +464,28 @@
 
         <!-- Touch Zones Scheme Header and Button -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
             android:layout_marginTop="@dimen/margin_small"
-            android:layout_marginBottom="@dimen/margin_small">
+            android:layout_marginBottom="@dimen/margin_small"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/touch_zones_scheme"
+                android:textColor="?attr/colorPrimary"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="@string/text_style_bold"
-                android:textColor="?attr/colorPrimary" />
+                android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnShowHintNow"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/show_hint_now"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+                android:text="@string/show_hint_now" />
 
         </LinearLayout>
 
@@ -502,7 +502,7 @@
                 android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height"
                 android:layout_weight="1"
                 android:contentDescription="@string/touch_zones_scheme"
-                android:scaleType="@string/image_scale_fit_center"
+                android:scaleType="fitCenter"
                 android:src="@drawable/touch_zones_scheme"
                 android:layout_marginEnd="@dimen/margin_small"/>
 
@@ -517,7 +517,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zones_legend_title"
                     android:textSize="@dimen/text_size_small"
-                    android:textStyle="@string/text_style_bold"
+                    android:textStyle="bold"
                     android:textColor="?attr/colorPrimary"
                     android:layout_marginBottom="@dimen/margin_tiny"/>
 
@@ -526,55 +526,55 @@
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_1_back"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_2_copy"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_3_rename"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_4_previous"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_5_move"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_6_next"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_7_command"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_8_delete"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/touch_zone_9_slideshow"
                     android:textSize="@dimen/activity_browse_btnSort_textSize"
-                    android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"/>
+                    android:lineSpacingMultiplier="1.2"/>
 
             </LinearLayout>
 
@@ -591,4 +591,5 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+
 

@@ -24,7 +24,7 @@
                 android:layout_weight="1"
                 android:text="@string/gif_edit_title"
                 android:textSize="@dimen/text_size_large"
-                android:textStyle="@string/text_style_bold" />
+                android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnClose"
@@ -77,11 +77,12 @@
 
         <!-- Speed Control Section -->
         <TextView
+            android:id="@+id/tvSpeedSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/gif_edit_speed"
             android:textSize="@dimen/resource_card_title_text_size"
-            android:textStyle="@string/text_style_bold"
+            android:textStyle="bold"
             android:layout_marginTop="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_small" />
 
@@ -95,6 +96,7 @@
             android:layout_marginBottom="@dimen/margin_small" />
 
         <LinearLayout
+            android:id="@+id/layoutSpeedSeekRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -126,6 +128,7 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/layoutSpeedApplyRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -157,15 +160,17 @@
 
         <!-- First Frame to Image Section -->
         <TextView
+            android:id="@+id/tvFirstFrameSectionTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/gif_edit_first_frame"
             android:textSize="@dimen/resource_card_title_text_size"
-            android:textStyle="@string/text_style_bold"
+            android:textStyle="bold"
             android:layout_marginTop="@dimen/margin_small"
             android:layout_marginBottom="@dimen/margin_small" />
 
         <LinearLayout
+            android:id="@+id/layoutFirstFrameRow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -197,4 +202,5 @@
     </LinearLayout>
 
 </ScrollView>
+
 

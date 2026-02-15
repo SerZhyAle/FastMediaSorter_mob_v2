@@ -11,11 +11,12 @@ import timber.log.Timber
 /**
  * Controller for slideshow functionality in PlayerActivity.
  * Manages auto-advance timer, countdown display, and play/pause state.
+ * Supports renderer readiness check before slide advance (D.6).
  * 
  * Responsibilities:
  * - Slideshow timer management (start/stop/pause/resume)
  * - Countdown display (3-2-1)
- * - Auto-advance to next media file
+ * - Auto-advance to next media file (with renderer readiness gate)
  * - State tracking (active/paused)
  */
 class SlideshowController(
@@ -31,6 +32,17 @@ class SlideshowController(
         fun onSlideshowStateChanged(isActive: Boolean, isPaused: Boolean)
         fun onCountdownTick(seconds: Int)
         fun onMemoryCacheClear()
+        /**
+         * Check if renderer is ready for next slide (D.6).
+         * Returns true if no renderer migration is active, or renderer state is Ready.
+         * Default returns true for backwards compatibility.
+         */
+        fun isRendererReady(): Boolean = true
+        /**
+         * Set screen keep-awake state during slideshow (D.8).
+         * @param enabled true to force screen on, false to restore to global setting
+         */
+        fun setKeepScreenAwake(enabled: Boolean) = Unit
     }
     
     private val handler = Handler(Looper.getMainLooper())
@@ -48,23 +60,34 @@ class SlideshowController(
                 Timber.w("SlideshowController: Slide advance skipped - lifecycle not STARTED")
                 return
             }
+
+            // D.6: State validation - skip on stale/cancelled state
+            if (!isActive || isPaused) {
+                Timber.d("SlideshowController: Slide advance skipped - state stale (active=$isActive, paused=$isPaused)")
+                return
+            }
+
+            // D.6: Renderer readiness gate - wait if renderer not ready
+            if (!slideshowCallback.isRendererReady()) {
+                Timber.d("SlideshowController: Renderer not ready, delaying slide advance by 100ms")
+                handler.postDelayed(this, 100L) // Retry after short delay
+                return
+            }
             
-            if (isActive && !isPaused) {
-                // Clear countdown display before advancing
-                slideshowCallback.onCountdownTick(0) // Signal to clear countdown
-                
-                val shouldSchedule = slideshowCallback.onSlideAdvance()
-                
-                // Clear memory cache every 5 slides to prevent OOM during long slideshows
-                slideCounter++
-                if (slideCounter >= 5) {
-                    slideshowCallback.onMemoryCacheClear()
-                    slideCounter = 0
-                }
-                
-                if (shouldSchedule) {
-                    scheduleNextSlide()
-                }
+            // Clear countdown display before advancing
+            slideshowCallback.onCountdownTick(0) // Signal to clear countdown
+            
+            val shouldSchedule = slideshowCallback.onSlideAdvance()
+            
+            // Clear memory cache every 5 slides to prevent OOM during long slideshows
+            slideCounter++
+            if (slideCounter >= 5) {
+                slideshowCallback.onMemoryCacheClear()
+                slideCounter = 0
+            }
+            
+            if (shouldSchedule) {
+                scheduleNextSlide()
             }
         }
     }
@@ -101,6 +124,9 @@ class SlideshowController(
         intervalMs = intervalSeconds * 1000L
         isActive = true
         isPaused = false
+        
+        // D.8: Force screen-on during slideshow
+        slideshowCallback.setKeepScreenAwake(true)
         
         // Don't show countdown immediately - it will be shown 3 seconds before file change
         scheduleNextSlide()
@@ -147,6 +173,9 @@ class SlideshowController(
         isPaused = false
         handler.removeCallbacks(slideShowRunnable)
         countdownHandler.removeCallbacks(countdownRunnable)
+        
+        // D.8: Restore screen-on to global setting
+        slideshowCallback.setKeepScreenAwake(false)
         
         slideshowCallback.onSlideshowStateChanged(isActive, isPaused)
     }

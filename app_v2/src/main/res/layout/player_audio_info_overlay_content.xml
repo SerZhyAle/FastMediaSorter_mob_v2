@@ -7,11 +7,11 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:gravity="center"
         android:layout_marginBottom="@dimen/activity_player_unified_audioMetadata_layout_marginBottom"
         android:visibility="gone"
-        android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+        android:lineSpacingMultiplier="1.2" />
 
     <TextView
         android:id="@+id/audioFileName"
@@ -31,6 +31,7 @@
         android:textColor="@color/activity_player_unified_audioFileName_textColor"
         android:textSize="@dimen/player_audio_info_text_size"
         android:gravity="center"
-        android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier" />
+        android:lineSpacingMultiplier="1.2" />
 
 </merge>
+

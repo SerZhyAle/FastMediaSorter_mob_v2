@@ -214,6 +214,7 @@
     <string name="more_actions">More actions</string>
     <string name="slideshow">Slideshow</string>
     <string name="starting_slideshow_for">Starting slideshow for %1$s...</string>
+    <string name="slideshow_keep_awake">Screen will stay on during slideshow</string>
     <string name="google_lens">Google Lens</string>
     
     <!-- Safe Mode (Phase 2.1) -->
@@ -742,6 +743,7 @@
     <string name="image_megapixels_label">Megapixels: %1$s MP</string>
     <string name="image_color_space_label">Color Space: %1$s</string>
     <string name="gif_frames_label">Frames: %1$d</string>
+    <string name="animated_badge_gif">GIF</string>
     <string name="audio_codec_label">Audio Codec: %1$s</string>
     <string name="audio_info_section">Audio Information</string>
     <string name="document_info_section">Document Information</string>
@@ -1033,7 +1035,7 @@
     <string name="gif_edit_title">GIF Editor</string>
     <string name="gif_edit_extract">Extract Frames</string>
     <string name="gif_edit_extract_frames">Extract All Frames</string>
-    <string name="gif_edit_extract_help">Export all animation frames as separate PNG files to Downloads folder. Each frame will be saved as: [filename]_frame_001.png, [filename]_frame_002.png, etc.</string>
+    <string name="gif_edit_extract_help">Export all animation frames (GIF/WEBP/APNG) as separate PNG files. Output goes to the current file folder for local files, or Downloads for network files. Naming: [filename]_frame_001.png, [filename]_frame_002.png, etc.</string>
     <string name="gif_edit_speed">Animation Speed</string>
     <string name="gif_edit_speed_normal">Speed: Normal (1.0x)</string>
     <string name="gif_edit_speed_value">Speed: %1$.1fx</string>
@@ -1048,6 +1050,7 @@
     <string name="msg_gif_extract_started">Extracting %1$d frames...</string>
     <string name="msg_gif_extract_success">%1$d frames saved to Downloads</string>
     <string name="msg_gif_extract_failed">Failed to extract frames: %1$s</string>
+    <string name="msg_gif_extract_api_unavailable">Frame extraction for this format requires Android 9+ (API 28+)</string>
     <string name="msg_gif_speed_success">Speed changed to %1$.1fx</string>
     <string name="msg_gif_speed_failed">Failed to change speed: %1$s</string>
     <string name="msg_gif_first_frame_success">First frame saved to Downloads</string>
@@ -1060,6 +1063,7 @@
     <string name="msg_gif_network_speed_success">Speed changed to %1$.1fx, saved to Downloads</string>
     <string name="msg_gif_network_first_frame_success">First frame saved to Downloads</string>
     <string name="msg_no_file_to_edit">No file to edit</string>
+    <string name="msg_operation_cancelled">Operation cancelled</string>
     <string name="msg_no_file_to_delete">No file to delete</string>
     <string name="msg_error_occurred">Error occurred: %1$s</string>
     <string name="slideshow_enabled_message">Slideshow enabled with %1$d seconds interval</string>
@@ -1593,6 +1597,63 @@
     <!-- Image scaling modes -->
     <string name="image_scale_fit_center">fitCenter</string>
     <string name="image_scale_center_crop">centerCrop</string>
+
+    <!-- Resource Editor -->
+    <string name="title_add_resource">Add Resource</string>
+    <string name="title_edit_resource">Edit Resource</string>
+    <string name="title_copy_resource">Copy Resource</string>
+    
+    <string name="hint_resource_name">Resource Name</string>
+    <string name="hint_folder_path">Folder Path</string>
+    <string name="hint_host">Host / IP Address</string>
+    <string name="hint_port">Port</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_domain">Domain (optional)</string>
+    <string name="hint_share_name">Share Name</string>
+    <string name="hint_server_path">Server Path (optional)</string>
+    <string name="hint_cloud_folder_id">Cloud Folder ID</string>
+    
+    <string name="label_media_types">Media Types</string>
+    <string name="media_type_document">Documents</string>
+    
+    <string name="btn_test_connection">Test Connection</string>
+    <string name="btn_add_resource">Add Resource</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="btn_save_copy">Save as Copy</string>
+    <string name="btn_save_as_copy">Save as Copy</string>
+    <string name="btn_reset_changes">Reset Changes</string>
+    <string name="btn_retry">Retry</string>
+    
+    <string name="connection_success">Connection successful</string>
+    <string name="connection_test_failed_detail">Connection failed: %1$s</string>
+    <string name="connection_test_not_supported">Connection test not supported for this resource type</string>
+    
+    <string name="error_field_required">This field is required</string>
+    <string name="error_invalid_path">Invalid path</string>
+    <string name="error_invalid_host">Invalid host address</string>
+    <string name="error_invalid_port">Invalid port number</string>
+    <string name="error_invalid_username">Invalid username</string>
+    <string name="error_no_media_types">At least one media type must be selected</string>
+    <string name="error_invalid_cloud_provider">Invalid cloud provider</string>
+    <string name="error_invalid_cloud_folder">Invalid cloud folder</string>
+    <string name="error_connection_failed">Connection test failed</string>
+    <string name="error_save_failed">Failed to save resource</string>
+    <string name="error_unknown">An unknown error occurred</string>
+    
+    <string name="resource_saved">Resource saved successfully</string>
+    <string name="warning_title">Warning</string>
+    <string name="warning_read_only_destination">Read-only destination may block move/copy operations.</string>
+    <string name="warning_endpoint_changed_rescan">Path or endpoint changed. Re-scan/re-verification is required.</string>
+    <string name="warning_path_duplicate_existing">A resource with the same path already exists. Duplicate is allowed, but consider editing existing resource.</string>
+    <string name="error_resource_name_exists">Resource name already exists</string>
+    <string name="name_suggestions">Suggestions: %1$s</string>
+    <string name="btn_use_suggested_name">Use suggested name</string>
+    <string name="btn_use_name_format">Use "%1$s"</string>
+    <string name="copy_credentials_title">Copy credentials</string>
+    <string name="copy_credentials_message">Choose credentials behavior for the duplicate resource.</string>
+    <string name="keep_credentials">Keep credentials</string>
+    <string name="use_new_credentials">Use new credentials</string>
 
 </resources>
 

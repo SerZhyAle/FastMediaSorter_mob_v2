@@ -304,7 +304,7 @@ class SmbConnectionManager @Inject constructor(
         Timber.d("SMB connect to ${connectionInfo.server}:${connectionInfo.port} took ${connectTime}ms (degraded=$useDegradedTimeout)")
         
         val finalDomain = connectionInfo.domain.trim().ifEmpty { null }
-        Timber.d("SMB Auth: user='${connectionInfo.username}', domain='$finalDomain', pwdLen=${connectionInfo.password.length}")
+        Timber.d("SMB Auth: hasUser=${connectionInfo.username.isNotEmpty()}, hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=${connectionInfo.password.length}")
         
         val authContext = if (connectionInfo.username.isEmpty()) {
             AuthenticationContext.anonymous()

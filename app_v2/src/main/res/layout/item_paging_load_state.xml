@@ -20,7 +20,7 @@
         android:layout_marginTop="@dimen/margin_small"
         android:textColor="@color/error_color"
         android:textSize="@dimen/item_subtitle_text_size"
-        android:textAlignment="@string/button_text_alignment_center"
+        android:textAlignment="center"
         android:gravity="center"
         android:visibility="gone" />
 

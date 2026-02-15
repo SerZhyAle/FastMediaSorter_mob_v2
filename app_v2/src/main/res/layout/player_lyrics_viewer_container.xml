@@ -20,7 +20,7 @@
         android:background="@drawable/bg_circle_themed"
         android:src="@drawable/ic_translate"
         app:tint="@color/text_color_primary"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
         android:contentDescription="@string/translate"
         android:elevation="@dimen/elevation_player_overlay"
@@ -35,7 +35,7 @@
         android:background="@drawable/bg_circle_themed"
         android:src="@drawable/ic_cancel"
         app:tint="@color/text_color_primary"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:padding="@dimen/player_close_button_padding"
         android:contentDescription="@string/close"
         android:elevation="@dimen/elevation_player_overlay" />
@@ -60,4 +60,5 @@
     </ScrollView>
 
 </FrameLayout>
+
 

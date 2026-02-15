@@ -94,7 +94,7 @@ class SmbClient @Inject constructor(
         while (attemptNumber <= MAX_RETRY_ATTEMPTS) {
             try {
                 if (attemptNumber == 1) {
-                    Timber.d("SMB testConnection to ${connectionInfo.server}/${connectionInfo.shareName} (user: ${connectionInfo.username})")
+                    Timber.d("SMB testConnection to ${connectionInfo.server}/${connectionInfo.shareName} (hasUser=${connectionInfo.username.isNotBlank()})")
                 } else {
                     Timber.d("SMB testConnection retry attempt $attemptNumber/$MAX_RETRY_ATTEMPTS")
                 }
@@ -456,7 +456,7 @@ class SmbClient @Inject constructor(
             val client = connectionManager.getClient(server, port)
             val connection = client.connect(server, port)
             val finalDomain = domain.trim().ifEmpty { null }
-            Timber.d("SMB ListShares Auth: user='$username', domain='$finalDomain' (raw='$domain'), pwdLen=${password.length}")
+            Timber.d("SMB ListShares Auth: hasUser=${username.isNotBlank()}, hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=${password.length}")
 
             val authContext = if (username.isEmpty()) {
                 AuthenticationContext.anonymous()

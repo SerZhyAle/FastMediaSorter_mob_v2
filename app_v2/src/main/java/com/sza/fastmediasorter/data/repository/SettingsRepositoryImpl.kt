@@ -59,6 +59,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI = booleanPreferencesKey("search_audio_covers_only_on_wifi")
         private val KEY_ENABLE_PHOTOS_DURING_AUDIO = booleanPreferencesKey("enable_photos_during_audio")
         private val KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID = stringPreferencesKey("audio_background_photos_resource_id")
+        private val KEY_ENABLE_BACKGROUND_AUDIO = booleanPreferencesKey("enable_background_audio")
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
         private val KEY_SUPPORT_PDF = booleanPreferencesKey("support_pdf")
         private val KEY_SUPPORT_EPUB = booleanPreferencesKey("support_epub")
@@ -98,6 +99,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY = booleanPreferencesKey("always_show_touch_zones_overlay")
         private val KEY_SHOW_VIDEO_THUMBNAILS = booleanPreferencesKey("show_video_thumbnails")
         private val KEY_ENABLE_PLAYER_WARMUP = booleanPreferencesKey("enable_player_warmup")
+        private val KEY_RENDERER_MIGRATION_ENABLED = booleanPreferencesKey("renderer_migration_enabled")
         
         // Safe Mode settings key (Phase 2.1)
         private val KEY_ENABLE_SAFE_MODE = booleanPreferencesKey("enable_safe_mode")
@@ -193,6 +195,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     searchAudioCoversOnlyOnWifi = preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID],
+                    enableBackgroundAudio = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
@@ -238,6 +241,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     alwaysShowTouchZonesOverlay = preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] ?: false,
                     showVideoThumbnails = preferences[KEY_SHOW_VIDEO_THUMBNAILS] ?: true,
                     enablePlayerWarmup = preferences[KEY_ENABLE_PLAYER_WARMUP] ?: false,
+                    rendererMigrationEnabled = preferences[KEY_RENDERER_MIGRATION_ENABLED] ?: false,
                     
                     // Safe Mode (Phase 2.1)
                     enableSafeMode = preferences[KEY_ENABLE_SAFE_MODE] ?: true,
@@ -310,6 +314,7 @@ class SettingsRepositoryImpl @Inject constructor(
             } else {
                 preferences.remove(KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID)
             }
+            preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enableBackgroundAudio
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf
             preferences[KEY_SUPPORT_EPUB] = settings.supportEpub
@@ -359,6 +364,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] = settings.alwaysShowTouchZonesOverlay
             preferences[KEY_SHOW_VIDEO_THUMBNAILS] = settings.showVideoThumbnails
             preferences[KEY_ENABLE_PLAYER_WARMUP] = settings.enablePlayerWarmup
+            preferences[KEY_RENDERER_MIGRATION_ENABLED] = settings.rendererMigrationEnabled
             
             // Safe Mode (Phase 2.1)
             preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode

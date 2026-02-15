@@ -166,4 +166,9 @@
     <!-- Additional base colors -->
     <color name="white_50_alpha">#80FFFFFF</color>
     <color name="transparent">#00000000</color>
+    
+    <!-- System text colors (explicit values for dark theme, API 28+ compatibility) -->
+    <color name="text_color_primary">#DEFFFFFF</color>
+    <color name="text_color_secondary">#99FFFFFF</color>
+    <color name="text_color_tertiary">#61FFFFFF</color>
 </resources>
