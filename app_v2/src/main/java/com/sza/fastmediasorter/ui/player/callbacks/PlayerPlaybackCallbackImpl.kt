@@ -35,6 +35,9 @@ class PlayerPlaybackCallbackImpl(
         // Apply player settings when ready
         playerSettingsManagerProvider().applyPlayerSettings()
         
+        // Update track switcher buttons visibility (audio/subtitle)
+        activity.updateTrackButtonsVisibility()
+        
         // Update audio info and load cover art for audio files
         val currentFile = viewModel.state.value.currentFile
         if (currentFile?.type == MediaType.AUDIO) {

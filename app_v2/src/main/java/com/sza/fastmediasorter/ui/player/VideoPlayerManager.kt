@@ -14,6 +14,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.ExoPlayer
@@ -823,6 +824,143 @@ class VideoPlayerManager(
         }
         
         Timber.d("VideoPlayerManager: Applied subtitle style - fontSize=${fontSize.name}, fontFamily=${fontFamily.name}")
+    }
+
+    // === Track Selection Methods ===
+
+    /**
+     * Track info for display in quick-switcher dialogs.
+     */
+    data class TrackInfo(
+        val groupIndex: Int,
+        val trackIndex: Int,
+        val label: String,
+        val isSelected: Boolean
+    )
+
+    /**
+     * Get available audio tracks with labels.
+     * Returns empty list if no multiple audio tracks available.
+     */
+    fun getAvailableAudioTracks(): List<TrackInfo> {
+        val player = exoPlayer ?: return emptyList()
+        val tracks = player.currentTracks
+        val result = mutableListOf<TrackInfo>()
+        var trackNumber = 1
+
+        for ((groupIndex, group) in tracks.groups.withIndex()) {
+            if (group.type != C.TRACK_TYPE_AUDIO) continue
+            for (trackIndex in 0 until group.length) {
+                val format = group.getTrackFormat(trackIndex)
+                val lang = format.language?.uppercase() ?: ""
+                val codec = format.sampleMimeType?.substringAfter("/") ?: ""
+                val channels = when (format.channelCount) {
+                    1 -> "Mono"
+                    2 -> "Stereo"
+                    6 -> "5.1"
+                    8 -> "7.1"
+                    else -> if (format.channelCount > 0) "${format.channelCount}ch" else ""
+                }
+                val parts = listOfNotNull(
+                    lang.ifEmpty { null },
+                    codec.ifEmpty { null },
+                    channels.ifEmpty { null }
+                )
+                val label = if (parts.isNotEmpty()) {
+                    "Track $trackNumber (${parts.joinToString(", ")})"
+                } else {
+                    "Track $trackNumber"
+                }
+                result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
+                trackNumber++
+            }
+        }
+        return result
+    }
+
+    /**
+     * Get available subtitle tracks with labels.
+     * Returns empty list if no subtitle tracks available.
+     */
+    fun getAvailableSubtitleTracks(): List<TrackInfo> {
+        val player = exoPlayer ?: return emptyList()
+        val tracks = player.currentTracks
+        val result = mutableListOf<TrackInfo>()
+        var trackNumber = 1
+
+        for ((groupIndex, group) in tracks.groups.withIndex()) {
+            if (group.type != C.TRACK_TYPE_TEXT) continue
+            for (trackIndex in 0 until group.length) {
+                val format = group.getTrackFormat(trackIndex)
+                val lang = format.language?.let { java.util.Locale(it).displayLanguage } ?: ""
+                val label = if (lang.isNotEmpty()) {
+                    "$lang (Track $trackNumber)"
+                } else {
+                    "Track $trackNumber"
+                }
+                result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
+                trackNumber++
+            }
+        }
+        return result
+    }
+
+    /**
+     * Select specific audio track by group and track index.
+     */
+    fun selectAudioTrack(groupIndex: Int, trackIndex: Int) {
+        val player = exoPlayer ?: return
+        val tracks = player.currentTracks
+        if (groupIndex >= tracks.groups.size) return
+
+        val group = tracks.groups[groupIndex]
+        val override = TrackSelectionOverride(group.mediaTrackGroup, listOf(trackIndex))
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setOverrideForType(override)
+            .build()
+        Timber.d("VideoPlayerManager: Selected audio track group=$groupIndex, track=$trackIndex")
+    }
+
+    /**
+     * Select specific subtitle track by group and track index.
+     * Pass trackIndex = -1 to disable subtitles.
+     */
+    fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) {
+        val player = exoPlayer ?: return
+
+        if (trackIndex < 0) {
+            // Disable subtitles
+            player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+                .build()
+            Timber.d("VideoPlayerManager: Subtitles disabled")
+            return
+        }
+
+        val tracks = player.currentTracks
+        if (groupIndex >= tracks.groups.size) return
+
+        val group = tracks.groups[groupIndex]
+        val override = TrackSelectionOverride(group.mediaTrackGroup, listOf(trackIndex))
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+            .setOverrideForType(override)
+            .build()
+        Timber.d("VideoPlayerManager: Selected subtitle track group=$groupIndex, track=$trackIndex")
+    }
+
+    /**
+     * Check if current media has multiple audio tracks.
+     */
+    fun hasMultipleAudioTracks(): Boolean {
+        return getAvailableAudioTracks().size > 1
+    }
+
+    /**
+     * Check if current media has subtitle tracks.
+     */
+    fun hasSubtitleTracks(): Boolean {
+        return getAvailableSubtitleTracks().isNotEmpty()
     }
     
     // === Protocol-specific playback methods ===

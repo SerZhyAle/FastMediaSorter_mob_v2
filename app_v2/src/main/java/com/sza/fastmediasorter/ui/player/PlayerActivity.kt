@@ -1353,6 +1353,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onPreviousFile() = navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = navigationManager.navigateNextFromControl()
                 override fun showPlaybackSpeedDialog() = playerSettingsManager.showPlaybackSpeedDialog()
+                override fun showAudioTrackDialog() = this@PlayerActivity.showAudioTrackDialog()
+                override fun showSubtitleTrackDialog() = this@PlayerActivity.showSubtitleTrackDialog()
             }
         )
         
@@ -1628,6 +1630,57 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     manager.startSleepTimer(selectedMinutes)
                     Timber.d("PlayerActivity: sleep timer set for $selectedMinutes min")
                 }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAudioTrackDialog() {
+        val tracks = videoPlayerManager.getAvailableAudioTracks()
+        if (tracks.isEmpty()) return
+
+        val labels = tracks.map { it.label }.toTypedArray()
+        val selectedIndex = tracks.indexOfFirst { it.isSelected }.coerceAtLeast(0)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.select_audio_track)
+            .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
+                val track = tracks[which]
+                videoPlayerManager.selectAudioTrack(track.groupIndex, track.trackIndex)
+                Timber.d("PlayerActivity: selected audio track: ${track.label}")
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showSubtitleTrackDialog() {
+        val tracks = videoPlayerManager.getAvailableSubtitleTracks()
+
+        // Build items: "Off" + available tracks
+        val labels = mutableListOf(getString(R.string.subtitle_off))
+        labels.addAll(tracks.map { it.label })
+
+        val selectedIndex = if (tracks.any { it.isSelected }) {
+            tracks.indexOfFirst { it.isSelected } + 1 // +1 for "Off" at index 0
+        } else {
+            0 // "Off" selected
+        }
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.select_subtitle_track)
+            .setSingleChoiceItems(labels.toTypedArray(), selectedIndex) { dialog, which ->
+                if (which == 0) {
+                    // First valid group index or 0
+                    val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
+                    videoPlayerManager.selectSubtitleTrack(groupIndex, -1)
+                    Timber.d("PlayerActivity: subtitles turned off")
+                } else {
+                    val track = tracks[which - 1]
+                    videoPlayerManager.selectSubtitleTrack(track.groupIndex, track.trackIndex)
+                    Timber.d("PlayerActivity: selected subtitle track: ${track.label}")
+                }
+                dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -2537,6 +2590,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     internal fun updateAudioFormatInfo() {
         imageLoadingManager.updateAudioFormatInfo()
+    }
+
+    internal fun updateTrackButtonsVisibility() {
+        exoPlayerControlsManager.updateTrackButtonsVisibility()
     }
 
     private fun releasePlayer() {

@@ -381,6 +381,12 @@
     <string name="all_resources_unavailable">All resources unavailable</string>
     <string name="resources_checked">Resources checked: %1$d available (%2$d unavailable)</string>
     <string name="playback_speed">Playback Speed</string>
+    <string name="audio_track">Audio Track</string>
+    <string name="subtitle_track">Subtitles</string>
+    <string name="select_audio_track">Select Audio Track</string>
+    <string name="select_subtitle_track">Select Subtitles</string>
+    <string name="subtitle_off">Off</string>
+    <string name="track_unknown">Track %d</string>
     <string name="repeat_mode">Repeat</string>
     <string name="resource_name">Folder Name</string>
     <string name="resource_name_hint">Leave empty to auto-generate from path</string>

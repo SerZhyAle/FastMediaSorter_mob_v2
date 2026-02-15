@@ -129,6 +129,30 @@
                 app:tint="@color/white"
                 android:contentDescription="@string/playback_speed"
                 android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnAudioTrack"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:src="@drawable/ic_audio_track"
+                app:tint="@color/white"
+                android:contentDescription="@string/audio_track"
+                android:visibility="gone"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnSubtitleTrack"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:src="@drawable/ic_closed_caption"
+                app:tint="@color/white"
+                android:contentDescription="@string/subtitle_track"
+                android:visibility="gone"
+                android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

@@ -363,7 +363,7 @@ git push origin main
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 39 / 54 шагов
+**Прогресс**: 43 / 54 шагов
 
 ### TRACK A: Main Window (7 шагов)
 
@@ -416,10 +416,10 @@ git push origin main
 
 ### TRACK G: Audio (4 шага)
 
-- [ ] 35. G.1 — Audio Service Core (Audio-Only)
-- [ ] 36. G.2 — Background Support & Notifications
-- [ ] 37. G.3 — Audio UI Connection
-- [ ] 38. G.4 — Playback Indicator & Sleep Timer
+- [x] 35. G.1 — Audio Service Core (Audio-Only)
+- [x] 36. G.2 — Background Support & Notifications
+- [x] 37. G.3 — Audio UI Connection
+- [x] 38. G.4 — Playback Indicator & Sleep Timer
 
 ### TRACK F: Video (3 шага)
 
