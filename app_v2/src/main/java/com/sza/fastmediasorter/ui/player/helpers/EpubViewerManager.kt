@@ -70,6 +70,11 @@ class EpubViewerManager(
     // Font family for EPUB content (loaded from settings)
     private var currentFontFamily: String = "Georgia, serif"
     
+    // Reader style settings (loaded from AppSettings)
+    private var currentReaderTheme: EpubStyleManager.ReaderTheme = EpubStyleManager.ReaderTheme.LIGHT
+    private var currentLineHeight: Float = 1.6f
+    private var currentHorizontalMargin: Int = 16
+    
     // Translation state
     private var translationEnabled = false
     
@@ -116,6 +121,11 @@ class EpubViewerManager(
             } else {
                 currentFontFamily = "sans-serif"
             }
+            
+            // Load reader style settings
+            currentReaderTheme = EpubStyleManager.ReaderTheme.fromName(settings.textReaderTheme)
+            currentLineHeight = settings.epubLineHeight
+            currentHorizontalMargin = settings.epubHorizontalMargin
         }
         
         // Initialize swipe gesture detector for chapter navigation and font size control
@@ -658,54 +668,17 @@ class EpubViewerManager(
      * Preprocess HTML content: inject custom CSS, sync theme, handle images
      */
     private suspend fun preprocessHtml(htmlContent: String, resource: Resource): String {
-        // Detect system dark mode
-        val context = binding.root.context
-        val nightModeFlags = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-        val isDarkTheme = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        
         // Parse HTML with jsoup
         val doc = Jsoup.parse(htmlContent)
         
-        // Inject custom CSS for theming
-        val css = buildString {
-            append("<style type='text/css'>")
-            
-            // Base styles
-            append("body {")
-            if (isDarkTheme) {
-                append("background-color: #1E1E1E; color: #E0E0E0;")
-            } else {
-                append("background-color: #FFFFFF; color: #000000;")
-            }
-            append("font-family: $currentFontFamily;")
-            append("font-size: ${currentFontSize}px;")
-            append("line-height: 1.6;")
-            append("padding: 16px;")
-            append("margin: 0;")
-            append("}")
-            
-            // Link colors
-            append("a {")
-            if (isDarkTheme) {
-                append("color: #64B5F6;")
-            } else {
-                append("color: #1976D2;")
-            }
-            append("}")
-            
-            // Image handling - preserve aspect ratio, center alignment
-            append("img {")
-            append("max-width: 100%;")
-            append("max-height: 100vh;")
-            append("width: auto;")
-            append("height: auto;")
-            append("object-fit: contain;")
-            append("display: block;")
-            append("margin: 16px auto;")
-            append("}")
-            
-            append("</style>")
-        }
+        // Generate CSS via EpubStyleManager using current settings
+        val css = EpubStyleManager.generateCss(
+            theme = currentReaderTheme,
+            fontSizePx = currentFontSize,
+            fontFamily = currentFontFamily,
+            lineHeight = currentLineHeight,
+            horizontalPaddingPx = currentHorizontalMargin
+        )
         
         doc.head().prepend(css)
         
@@ -1146,6 +1119,128 @@ class EpubViewerManager(
         }
     }
     
+    /**
+     * Show reader settings dialog: theme, font, font size, line height, margin.
+     * Changes are applied immediately and persisted to AppSettings.
+     */
+    fun showReaderSettingsDialog() {
+        val context = binding.root.context
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.dialog_epub_reader_settings, null)
+        
+        // Theme chips
+        val chipLight = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipLight)
+        val chipDark = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipDark)
+        val chipSepia = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipSepia)
+        val chipOled = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipOled)
+        
+        // Font chips
+        val chipSerif = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipSerif)
+        val chipSansSerif = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipSansSerif)
+        val chipMonospace = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipMonospace)
+        
+        // Font size controls
+        val btnFontDecrease = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnFontDecrease)
+        val btnFontIncrease = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnFontIncrease)
+        val tvFontSizeValue = view.findViewById<android.widget.TextView>(R.id.tvFontSizeValue)
+        
+        // Sliders
+        val sliderLineHeight = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderLineHeight)
+        val sliderMargin = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderMargin)
+        
+        // Set current values
+        when (currentReaderTheme) {
+            EpubStyleManager.ReaderTheme.LIGHT -> chipLight.isChecked = true
+            EpubStyleManager.ReaderTheme.DARK -> chipDark.isChecked = true
+            EpubStyleManager.ReaderTheme.SEPIA -> chipSepia.isChecked = true
+            EpubStyleManager.ReaderTheme.OLED_BLACK -> chipOled.isChecked = true
+        }
+        
+        when {
+            currentFontFamily.contains("serif", ignoreCase = true) && 
+                !currentFontFamily.contains("sans", ignoreCase = true) -> chipSerif.isChecked = true
+            currentFontFamily.contains("monospace", ignoreCase = true) -> chipMonospace.isChecked = true
+            else -> chipSansSerif.isChecked = true
+        }
+        
+        tvFontSizeValue.text = currentFontSize.toString()
+        sliderLineHeight.value = currentLineHeight.coerceIn(1.0f, 3.0f)
+        sliderMargin.value = currentHorizontalMargin.toFloat().coerceIn(0f, 48f)
+        
+        // Theme chip listeners
+        val chipGroupTheme = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupTheme)
+        chipGroupTheme.setOnCheckedStateChangeListener { _, checkedIds ->
+            currentReaderTheme = when {
+                checkedIds.contains(R.id.chipLight) -> EpubStyleManager.ReaderTheme.LIGHT
+                checkedIds.contains(R.id.chipDark) -> EpubStyleManager.ReaderTheme.DARK
+                checkedIds.contains(R.id.chipSepia) -> EpubStyleManager.ReaderTheme.SEPIA
+                checkedIds.contains(R.id.chipOled) -> EpubStyleManager.ReaderTheme.OLED_BLACK
+                else -> currentReaderTheme
+            }
+        }
+        
+        // Font chip listeners
+        val chipGroupFont = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupFont)
+        chipGroupFont.setOnCheckedStateChangeListener { _, checkedIds ->
+            currentFontFamily = when {
+                checkedIds.contains(R.id.chipSerif) -> "Georgia, serif"
+                checkedIds.contains(R.id.chipMonospace) -> "Courier New, monospace"
+                else -> "sans-serif"
+            }
+        }
+        
+        // Font size buttons
+        btnFontDecrease.setOnClickListener {
+            if (currentFontSize > MIN_FONT_SIZE) {
+                currentFontSize -= 2
+                tvFontSizeValue.text = currentFontSize.toString()
+            }
+        }
+        btnFontIncrease.setOnClickListener {
+            if (currentFontSize < MAX_FONT_SIZE) {
+                currentFontSize += 2
+                tvFontSizeValue.text = currentFontSize.toString()
+            }
+        }
+        
+        // Show dialog
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.epub_reader_settings)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                // Apply slider values
+                currentLineHeight = sliderLineHeight.value
+                currentHorizontalMargin = sliderMargin.value.toInt()
+                
+                // Save all settings
+                saveFontSize()
+                saveReaderSettings()
+                
+                // Reload chapter with new styles
+                reloadCurrentChapter()
+                
+                Timber.d("EPUB: Reader settings applied — theme=${currentReaderTheme.name}, font=$currentFontFamily, size=$currentFontSize, lh=$currentLineHeight, margin=$currentHorizontalMargin")
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+    
+    /**
+     * Persist reader style settings to AppSettings via repository.
+     */
+    private fun saveReaderSettings() {
+        coroutineScope.launch {
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(
+                current.copy(
+                    textReaderTheme = currentReaderTheme.name,
+                    epubLineHeight = currentLineHeight,
+                    epubHorizontalMargin = currentHorizontalMargin
+                )
+            )
+        }
+    }
+
     /**
      * Show Table of Contents dialog for quick chapter navigation
      */

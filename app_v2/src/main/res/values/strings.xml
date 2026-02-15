@@ -295,6 +295,15 @@
     <string name="epub_font_size">Font size: %1$d</string>
     <string name="epub_controls_hidden">Controls hidden. Swipe up to show.</string>
     <string name="epub_exit_fullscreen">Exited fullscreen mode</string>
+    <string name="epub_reader_settings">Reader Settings</string>
+    <string name="epub_reader_theme">Theme</string>
+    <string name="epub_reader_font">Font</string>
+    <string name="epub_reader_font_size">Font Size</string>
+    <string name="epub_reader_line_height">Line Height</string>
+    <string name="epub_reader_margin">Horizontal Margin</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_sepia">Sepia</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
     <string name="translation_error_no_text">No text to translate</string>
     <string name="translation_started">Translation started...</string>

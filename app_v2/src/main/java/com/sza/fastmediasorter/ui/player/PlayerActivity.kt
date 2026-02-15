@@ -1103,6 +1103,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onPdfThumbnailsClicked() {
                     pdfViewerManager.showThumbnailNavigation()
                 }
+
+                override fun onEpubReaderSettingsClicked() {
+                    epubViewerManager.showReaderSettingsDialog()
+                }
             }
         )
         // Initialize orientation on startup

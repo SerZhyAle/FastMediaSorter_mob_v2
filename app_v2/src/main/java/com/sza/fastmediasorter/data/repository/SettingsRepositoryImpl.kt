@@ -71,6 +71,8 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SYNTAX_HIGHLIGHTING = booleanPreferencesKey("syntax_highlighting")
         private val KEY_PDF_SCROLL_MODE = booleanPreferencesKey("pdf_scroll_mode")
         private val KEY_PDF_COLOR_MODE = stringPreferencesKey("pdf_color_mode")
+        private val KEY_EPUB_LINE_HEIGHT = floatPreferencesKey("epub_line_height")
+        private val KEY_EPUB_HORIZONTAL_MARGIN = intPreferencesKey("epub_horizontal_margin")
         
         // Translation settings keys
         private val KEY_ENABLE_TRANSLATION = booleanPreferencesKey("enable_translation")
@@ -213,6 +215,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     syntaxHighlighting = preferences[KEY_SYNTAX_HIGHLIGHTING] ?: true,
                     pdfScrollMode = preferences[KEY_PDF_SCROLL_MODE] ?: false,
                     pdfColorMode = preferences[KEY_PDF_COLOR_MODE] ?: "NORMAL",
+                    epubLineHeight = preferences[KEY_EPUB_LINE_HEIGHT] ?: 1.6f,
+                    epubHorizontalMargin = preferences[KEY_EPUB_HORIZONTAL_MARGIN] ?: 16,
                     
                     // Translation
                     enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: true,
@@ -338,6 +342,8 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SYNTAX_HIGHLIGHTING] = settings.syntaxHighlighting
             preferences[KEY_PDF_SCROLL_MODE] = settings.pdfScrollMode
             preferences[KEY_PDF_COLOR_MODE] = settings.pdfColorMode
+            preferences[KEY_EPUB_LINE_HEIGHT] = settings.epubLineHeight
+            preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
             
             // Translation
             preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation

@@ -142,4 +142,11 @@
         android:title="@string/pdf_thumbnails"
         app:showAsAction="never" />
 
+    <!-- EPUB Reader Settings -->
+    <item
+        android:id="@+id/menu_epub_reader_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/epub_reader_settings"
+        app:showAsAction="never" />
+
 </menu>

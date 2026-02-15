@@ -310,6 +310,15 @@
     <string name="epub_font_size">Размер шрифта: %1$d</string>
     <string name="epub_controls_hidden">Панель скрыта. Свайп вверх для отображения.</string>
     <string name="epub_exit_fullscreen">Выход из полноэкранного режима</string>
+    <string name="epub_reader_settings">Настройки чтения</string>
+    <string name="epub_reader_theme">Тема</string>
+    <string name="epub_reader_font">Шрифт</string>
+    <string name="epub_reader_font_size">Размер шрифта</string>
+    <string name="epub_reader_line_height">Межстрочный интервал</string>
+    <string name="epub_reader_margin">Горизонтальный отступ</string>
+    <string name="theme_light">Светлая</string>
+    <string name="theme_dark">Тёмная</string>
+    <string name="theme_sepia">Сепия</string>
     <string name="translation_error_no_text">Нет текста для перевода</string>
     <string name="show_pdf_thumbnails">Миниатюры для больших PDF (долго)</string>
     <string name="show_pdf_thumbnails_description">Скачивать и генерировать миниатюры для больших PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Облака (может занять значительное время)</string>
