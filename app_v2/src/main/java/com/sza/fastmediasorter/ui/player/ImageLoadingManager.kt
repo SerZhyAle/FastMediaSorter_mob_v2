@@ -354,12 +354,12 @@ class ImageLoadingManager(
             val usePhotoView = isAnimatedContent || (settings.loadFullSizeImages && currentFile != null && !isSlideshowActive)
             
             Timber.d("ImageLoadingManager.displayImage: enableTranslation=${settings.enableTranslation}")
-            Timber.w("TOUCH_DEBUG: ImageLoadingManager.displayImage - usePhotoView=$usePhotoView, loadFullSizeImages=${settings.loadFullSizeImages}")
+            Timber.d("TOUCH_DEBUG: ImageLoadingManager.displayImage - usePhotoView=$usePhotoView, loadFullSizeImages=${settings.loadFullSizeImages}")
             
             // Switch visibility between ImageView and PhotoView
             binding.imageView.isVisible = !usePhotoView
             binding.photoView.isVisible = usePhotoView
-            Timber.w("TOUCH_DEBUG: View visibility set - imageView.isVisible=${binding.imageView.isVisible}, photoView.isVisible=${binding.photoView.isVisible}")
+            Timber.d("TOUCH_DEBUG: View visibility set - imageView.isVisible=${binding.imageView.isVisible}, photoView.isVisible=${binding.photoView.isVisible}")
             
             // Configure PhotoView gestures based on loadFullSizeImages setting
             if (usePhotoView) {
@@ -388,11 +388,11 @@ class ImageLoadingManager(
                         mediumScale = 1.0f  // Disable zoom on double-tap
                         maximumScale = 1.0f // Disable pinch zoom
                         
-                        Timber.w("GESTURE_CONFIG: PhotoView configured for ROTATION-ONLY mode")
-                        Timber.w("GESTURE_CONFIG: - Zoom: DISABLED (all scales locked to 1.0x)")
-                        Timber.w("GESTURE_CONFIG: - Rotation: ENABLED (two-finger rotate)")
-                        Timber.w("GESTURE_CONFIG: - Pan: DISABLED (no zoom = no pan)")
-                        Timber.w("GESTURE_CONFIG: - Double-tap: DISABLED (mediumScale = 1.0x)")
+                        Timber.d("GESTURE_CONFIG: PhotoView configured for ROTATION-ONLY mode")
+                        Timber.d("GESTURE_CONFIG: - Zoom: DISABLED (all scales locked to 1.0x)")
+                        Timber.d("GESTURE_CONFIG: - Rotation: ENABLED (two-finger rotate)")
+                        Timber.d("GESTURE_CONFIG: - Pan: DISABLED (no zoom = no pan)")
+                        Timber.d("GESTURE_CONFIG: - Double-tap: DISABLED (mediumScale = 1.0x)")
                     }
                     
                     // Add matrix change listener for debug logging

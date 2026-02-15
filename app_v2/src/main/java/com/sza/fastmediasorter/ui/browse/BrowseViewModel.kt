@@ -1031,7 +1031,7 @@ class BrowseViewModel @Inject constructor(
             Timber.i("║ Will filter: ${restoredFilter != null}")
             Timber.i("║ Filter types: ${restoredFilter?.mediaTypes?.map { it.name } ?: "ALL"}")
             Timber.i("╚════════════════════════")
-            Timber.w("🔶 SORT_DEBUG loadResource: RESTORING sortMode=${resource.sortMode} from DATABASE for resource '${resource.name}' (id=${resource.id})")
+            Timber.d("🔶 SORT_DEBUG loadResource: RESTORING sortMode=${resource.sortMode} from DATABASE for resource '${resource.name}' (id=${resource.id})")
             
             // Determine initial subfolder mode based on resource settings
             // Subfolder navigation only makes sense when scanSubdirectories is enabled
@@ -1564,26 +1564,26 @@ class BrowseViewModel @Inject constructor(
     fun setSortMode(sortMode: SortMode) {
         val resource = state.value.resource ?: return
         
-        Timber.w("🔶 SORT_DEBUG setSortMode: START - changing from ${state.value.sortMode} to $sortMode for resource '${resource.name}' (id=${resource.id})")
+        Timber.d("🔶 SORT_DEBUG setSortMode: START - changing from ${state.value.sortMode} to $sortMode for resource '${resource.name}' (id=${resource.id})")
         
         // Create updated resource with new sortMode
         val updatedResource = resource.copy(sortMode = sortMode)
         
         // Update state immediately for UI responsiveness (update BOTH sortMode and resource)
         updateState { it.copy(sortMode = sortMode, resource = updatedResource) }
-        Timber.w("🔶 SORT_DEBUG setSortMode: State updated immediately for UI (sortMode + resource)")
+        Timber.d("🔶 SORT_DEBUG setSortMode: State updated immediately for UI (sortMode + resource)")
         
         // Save to database SYNCHRONOUSLY to ensure it persists
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             // Use NonCancellable to ensure save completes even if user navigates away
             withContext(NonCancellable) {
-                Timber.w("🔶 SORT_DEBUG setSortMode: Calling updateResourceUseCase with sortMode=$sortMode, resource.id=${updatedResource.id}")
+                Timber.d("🔶 SORT_DEBUG setSortMode: Calling updateResourceUseCase with sortMode=$sortMode, resource.id=${updatedResource.id}")
                 updateResourceUseCase(updatedResource)
-                Timber.w("🔶 SORT_DEBUG setSortMode: SAVED sortMode=$sortMode for resource: ${resource.name} (id=${resource.id})")
+                Timber.d("🔶 SORT_DEBUG setSortMode: SAVED sortMode=$sortMode for resource: ${resource.name} (id=${resource.id})")
                 
                 // VERIFICATION: Read back from DB to confirm save
                 val verification = getResourcesUseCase.getById(resource.id)
-                Timber.w("🔶 SORT_DEBUG setSortMode: VERIFICATION - read back sortMode=${verification?.sortMode} from database")
+                Timber.d("🔶 SORT_DEBUG setSortMode: VERIFICATION - read back sortMode=${verification?.sortMode} from database")
             }
         }
         

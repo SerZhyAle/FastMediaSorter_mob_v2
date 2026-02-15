@@ -399,12 +399,12 @@ class CommandPanelController(
         safeViews.copyToPanel.post {
             val location = IntArray(2)
             safeViews.copyToPanel.getLocationOnScreen(location)
-            Timber.w("CommandPanelController: ACTUAL copyToPanel state - visibility=${safeViews.copyToPanel.visibility}, isVisible=${safeViews.copyToPanel.isVisible}, width=${safeViews.copyToPanel.width}, height=${safeViews.copyToPanel.height}, Y=${location[1]}, parent=${safeViews.copyToPanel.parent?.javaClass?.simpleName}, background=${safeViews.copyToPanel.background}")
+            Timber.d("CommandPanelController: ACTUAL copyToPanel state - visibility=${safeViews.copyToPanel.visibility}, isVisible=${safeViews.copyToPanel.isVisible}, width=${safeViews.copyToPanel.width}, height=${safeViews.copyToPanel.height}, Y=${location[1]}, parent=${safeViews.copyToPanel.parent?.javaClass?.simpleName}, background=${safeViews.copyToPanel.background}")
         }
         safeViews.moveToPanel.post {
             val location = IntArray(2)
             safeViews.moveToPanel.getLocationOnScreen(location)
-            Timber.w("CommandPanelController: ACTUAL moveToPanel state - visibility=${safeViews.moveToPanel.visibility}, isVisible=${safeViews.moveToPanel.isVisible}, width=${safeViews.moveToPanel.width}, height=${safeViews.moveToPanel.height}, Y=${location[1]}, parent=${safeViews.moveToPanel.parent?.javaClass?.simpleName}, background=${safeViews.moveToPanel.background}")
+            Timber.d("CommandPanelController: ACTUAL moveToPanel state - visibility=${safeViews.moveToPanel.visibility}, isVisible=${safeViews.moveToPanel.isVisible}, width=${safeViews.moveToPanel.width}, height=${safeViews.moveToPanel.height}, Y=${location[1]}, parent=${safeViews.moveToPanel.parent?.javaClass?.simpleName}, background=${safeViews.moveToPanel.background}")
         }
         
 

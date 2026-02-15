@@ -87,7 +87,7 @@ class PlayerGestureSetupManager(
      * Called once from PlayerActivity.setupViews().
      */
     fun setupGestureDetector() {
-        Timber.w("TOUCH_DEBUG: ========== setupGestureDetector() CALLED ==========")
+        Timber.d("TOUCH_DEBUG: ========== setupGestureDetector() CALLED ==========")
         gestureDetector = touchZoneGestureManager.createGestureDetector(activity)
         imageTouchGestureDetector = touchZoneGestureManager.createImageTouchGestureDetector(activity)
         
@@ -95,7 +95,7 @@ class PlayerGestureSetupManager(
         setupPlayerViewTouchListener()
         setupPhotoViewTouchListener()
         setupImageViewTouchListener()
-        Timber.w("TOUCH_DEBUG: ========== setupGestureDetector() COMPLETE ==========")
+        Timber.d("TOUCH_DEBUG: ========== setupGestureDetector() COMPLETE ==========")
     }
     
     /**

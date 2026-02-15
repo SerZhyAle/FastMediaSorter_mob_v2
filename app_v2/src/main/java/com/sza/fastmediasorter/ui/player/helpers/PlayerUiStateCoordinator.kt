@@ -45,6 +45,9 @@ class PlayerUiStateCoordinator(
         fun getCurrentFilePath(): String?
         fun setCurrentFilePath(path: String?)
 
+        fun isImageVisible(): Boolean
+        fun hasImageDrawable(): Boolean
+
         fun isSlideshowModeRequested(): Boolean
         fun clearSlideshowModeRequested()
 
@@ -162,6 +165,10 @@ class PlayerUiStateCoordinator(
             binding.tvFileNameOverlay?.text = "${file.name} (${state.currentIndex + 1}/${state.files.size})"
 
             val currentFilePath = callback.getCurrentFilePath()
+            val isImageType = file.type == MediaType.IMAGE || file.type == MediaType.GIF
+            val imageVisible = callback.isImageVisible()
+            val hasDrawable = callback.hasImageDrawable()
+            
             if (currentFilePath != file.path) {
                 Timber.w(
                     "updateUI[$updateId]: 📂 FILE CHANGED from '$currentFilePath' to '${file.path}' - reloading media"
@@ -172,6 +179,10 @@ class PlayerUiStateCoordinator(
                 safeViews.translationOverlay.isVisible = false
                 binding.translationLensOverlay.isVisible = false
 
+                mediaDisplayCoordinator.display(file)
+            } else if (isImageType && (!imageVisible || !hasDrawable)) {
+                Timber.w("updateUI[$updateId]: ⚠️ SAME file path BUT image not ready (visible=$imageVisible, hasDrawable=$hasDrawable) - forcing reload")
+                // Force reload if image view is not visible or has no drawable (race condition / loading not complete)
                 mediaDisplayCoordinator.display(file)
             } else {
                 Timber.w("updateUI[$updateId]: 📋 SAME file path - skipping media reload (metadata update only)")

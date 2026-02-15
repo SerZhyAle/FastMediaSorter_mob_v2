@@ -24,7 +24,7 @@
         android:layout_width="@dimen/item_icon_size_medium"
         android:layout_height="@dimen/item_icon_size_medium"
         android:layout_marginStart="@dimen/margin_small"
-        android:scaleType="@string/image_scale_center_crop"
+        android:scaleType="centerCrop"
         android:contentDescription="@string/thumbnail"
         android:background="?android:selectableItemBackground"
         app:layout_constraintStart_toEndOf="@id/cbSelect"

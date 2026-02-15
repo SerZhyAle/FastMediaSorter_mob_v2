@@ -651,6 +651,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     currentFilePath = path
                 }
 
+                override fun isImageVisible(): Boolean = binding.photoView.isVisible || binding.imageView.isVisible
+                override fun hasImageDrawable(): Boolean {
+                    return if (binding.photoView.isVisible) {
+                        binding.photoView.drawable != null
+                    } else if (binding.imageView.isVisible) {
+                        binding.imageView.drawable != null
+                    } else {
+                        false
+                    }
+                }
+
                 override fun isSlideshowModeRequested(): Boolean = slideshowModeRequested
                 override fun clearSlideshowModeRequested() {
                     slideshowModeRequested = false
@@ -1622,11 +1633,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun setupGestureDetector() {
-        Timber.w("TOUCH_DEBUG: PlayerActivity.setupGestureDetector() CALLED - delegating to gestureSetupManager")
+        Timber.d("TOUCH_DEBUG: PlayerActivity.setupGestureDetector() CALLED - delegating to gestureSetupManager")
         // Delegate all gesture detector and touch listener setup to PlayerGestureSetupManager
         // This consolidates 190 lines of complex touch zone logic
         gestureSetupManager.setupGestureDetector()
-        Timber.w("TOUCH_DEBUG: PlayerActivity.setupGestureDetector() COMPLETED")
+        Timber.d("TOUCH_DEBUG: PlayerActivity.setupGestureDetector() COMPLETED")
     }
     
     /**
@@ -2151,7 +2162,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (::commandPanelController.isInitialized) {
             commandPanelController.updateSlideshowButtonColor(isActive)
         } else {
-            Timber.w("updateSlideShowButton: commandPanelController NOT initialized yet")
+            Timber.d("updateSlideShowButton: commandPanelController NOT initialized yet")
         }
         Timber.d("updateSlideShowButton: END")
     }
@@ -2702,7 +2713,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             videoPlayerManager.pause()
             videoPlayerManager.releasePlayer()
         } else {
-             Timber.w("PlayerActivity: videoPlayerManager NOT initialized")
+             Timber.d("PlayerActivity: videoPlayerManager NOT initialized")
         }
     }
 

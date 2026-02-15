@@ -22,7 +22,7 @@ class GetResourcesUseCase @Inject constructor(
 
     suspend fun getById(id: Long): MediaResource? {
         val resource = repository.getResourceById(id)
-        Timber.w("🔶 SORT_DEBUG GetResourcesUseCase.getById($id): sortMode=${resource?.sortMode}, name=${resource?.name}")
+        Timber.d("🔶 SORT_DEBUG GetResourcesUseCase.getById($id): sortMode=${resource?.sortMode}, name=${resource?.name}")
         return resource
     }
     

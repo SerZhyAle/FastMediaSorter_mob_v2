@@ -36,7 +36,6 @@
             android:textSize="@dimen/player_audio_info_text_size"
             android:fontFamily="monospace"
             android:scrollHorizontally="false"
-            android:breakStrategy="@string/activity_player_unified_tvTextContent_breakStrategy"
             android:hyphenationFrequency="none"
             android:textIsSelectable="true" />
     </ScrollView>

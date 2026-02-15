@@ -179,9 +179,9 @@ class ResourceRepositoryImpl @Inject constructor(
     
     override suspend fun updateResource(resource: MediaResource) {
         val entity = resource.toEntity()
-        Timber.w("🔶 SORT_DEBUG Repository.updateResource: id=${entity.id}, name=${entity.name}, sortMode=${entity.sortMode}, displayMode=${entity.displayMode}")
+        Timber.d("🔶 SORT_DEBUG Repository.updateResource: id=${entity.id}, name=${entity.name}, sortMode=${entity.sortMode}, displayMode=${entity.displayMode}")
         resourceDao.update(entity)
-        Timber.w("🔶 SORT_DEBUG Repository.updateResource: COMPLETED for id=${entity.id}, sortMode=${entity.sortMode}")
+        Timber.d("🔶 SORT_DEBUG Repository.updateResource: COMPLETED for id=${entity.id}, sortMode=${entity.sortMode}")
     }
     
     override suspend fun swapResourceDisplayOrders(resource1: MediaResource, resource2: MediaResource) {

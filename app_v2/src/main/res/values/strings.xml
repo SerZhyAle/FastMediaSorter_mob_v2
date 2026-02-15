@@ -1678,10 +1678,6 @@
     <string name="cloud_storage_icon">Cloud storage icon</string>
     <string name="text_content_hint">Text content</string>
 
-    <!-- Image scaling modes -->
-    <string name="image_scale_fit_center">fitCenter</string>
-    <string name="image_scale_center_crop">centerCrop</string>
-
     <!-- Resource Editor -->
     <string name="title_add_resource">Add Resource</string>
     <string name="title_edit_resource">Edit Resource</string>

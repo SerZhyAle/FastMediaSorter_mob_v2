@@ -273,7 +273,7 @@ class TranslationOverlayView @JvmOverloads constructor(
             Timber.d("TRANSLATION_DEBUG: Scale Updated -> Orig: ${originalImageWidth}x${originalImageHeight} -> Scale: $scaleX, $scaleY -> Offset: $offsetX, $offsetY")
             Timber.d("TRANSLATION_DEBUG: Number of blocks to draw: ${translatedBlocks.size}")
         } else {
-            Timber.w("TRANSLATION_DEBUG: Cannot update scale - original image size not set (${originalImageWidth}x${originalImageHeight})")
+            Timber.d("TRANSLATION_DEBUG: Cannot update scale - original image size not set (${originalImageWidth}x${originalImageHeight})")
         }
         invalidate()
     }

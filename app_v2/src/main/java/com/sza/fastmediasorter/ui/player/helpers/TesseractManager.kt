@@ -173,7 +173,7 @@ class TesseractManager(private val context: Context) {
                         if (box != null) {
                             blocks.add(OcrBlock(text, box, confidence))
                         } else {
-                            Timber.w("TRANSLATION_DEBUG: Block $blockCount - box is NULL!")
+                            Timber.d("TRANSLATION_DEBUG: Block $blockCount - box is NULL!")
                         }
                     }
                 } while (iterator.next(TessBaseAPI.PageIteratorLevel.RIL_TEXTLINE))

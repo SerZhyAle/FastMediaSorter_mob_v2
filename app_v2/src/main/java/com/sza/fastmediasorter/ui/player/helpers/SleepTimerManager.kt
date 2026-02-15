@@ -28,7 +28,7 @@ import timber.log.Timber
  */
 class SleepTimerManager(
     private val vinylView: ImageView,
-    private val sleepTimerBadge: TextView,
+    private val sleepTimerBadge: TextView?,
     private val playerProvider: () -> Player?
 ) {
     private var rotationAnimator: ObjectAnimator? = null
@@ -126,7 +126,7 @@ class SleepTimerManager(
 
         Timber.d("SleepTimerManager: starting sleep timer for $durationMinutes min")
 
-        sleepTimerBadge.isVisible = true
+        sleepTimerBadge?.isVisible = true
         updateBadgeText()
 
         sleepTimer = object : CountDownTimer(durationMillis, TIMER_TICK_INTERVAL_MS) {
@@ -150,7 +150,7 @@ class SleepTimerManager(
         sleepTimer?.cancel()
         sleepTimer = null
         remainingMillis = 0
-        sleepTimerBadge.isVisible = false
+        sleepTimerBadge?.isVisible = false
         fadeOutAnimator?.cancel()
         fadeOutAnimator = null
 
@@ -164,7 +164,7 @@ class SleepTimerManager(
      */
     private fun fadeOutAndPause() {
         val player = playerProvider() ?: run {
-            sleepTimerBadge.isVisible = false
+            sleepTimerBadge?.isVisible = false
             return
         }
 
@@ -178,7 +178,7 @@ class SleepTimerManager(
                 override fun onAnimationEnd(animation: android.animation.Animator) {
                     player.pause()
                     player.volume = 1.0f // Restore for next playback
-                    sleepTimerBadge.isVisible = false
+                    sleepTimerBadge?.isVisible = false
                     sleepTimer = null
                     Timber.d("SleepTimerManager: fade out complete, playback paused")
                 }
@@ -189,7 +189,7 @@ class SleepTimerManager(
 
     private fun updateBadgeText() {
         val minutes = remainingMinutes
-        sleepTimerBadge.text = if (minutes >= 60) {
+        sleepTimerBadge?.text = if (minutes >= 60) {
             "${minutes / 60}h ${minutes % 60}m"
         } else {
             "${minutes}m"

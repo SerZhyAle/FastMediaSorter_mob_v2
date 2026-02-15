@@ -36,7 +36,6 @@
             android:textSize="@dimen/player_audio_info_text_size"
             android:fontFamily="monospace"
             android:scrollHorizontally="false"
-            android:breakStrategy="simple"
             android:hyphenationFrequency="none"
             android:textIsSelectable="true" />
     </ScrollView>

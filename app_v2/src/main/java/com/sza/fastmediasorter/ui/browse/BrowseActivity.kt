@@ -1888,7 +1888,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     private fun startMediaStoreObserver() {
         if (!::mediaStoreObserver.isInitialized) {
-            Timber.w("MediaStoreObserver not initialized, skipping start")
+            Timber.d("MediaStoreObserver not initialized, skipping start")
             return
         }
         val resource = viewModel.state.value.resource

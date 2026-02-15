@@ -30,7 +30,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:adjustViewBounds="true"
-                android:scaleType="@string/image_scale_center_crop"
+                android:scaleType="centerCrop"
                 android:contentDescription="@string/thumbnail"
                 android:background="?android:selectableItemBackground"
                 tools:src="@android:drawable/ic_menu_gallery" />
