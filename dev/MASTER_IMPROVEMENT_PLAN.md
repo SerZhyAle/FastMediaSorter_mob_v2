@@ -363,7 +363,7 @@ git push origin main
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 45 / 54 шагов
+**Прогресс**: 54 / 54 шагов ✅ ALL COMPLETE
 
 ### TRACK A: Main Window (7 шагов)
 
@@ -436,21 +436,21 @@ git push origin main
 
 ### TRACK H: Text (3 шага)
 
-- [ ] 46. H.1 — Core IO: Pager + Encoding (up to 100MB)
-- [ ] 47. H.2 — Rich Rendering & Reader UI
-- [ ] 48. H.3 — Editor Enhancements
+- [x] 46. H.1 — Core IO: Pager + Encoding (up to 100MB)
+- [x] 47. H.2 — Rich Rendering & Reader UI
+- [x] 48. H.3 — Editor Enhancements
 
 ### TRACK I: PDF (3 шага)
 
-- [ ] 49. I.1 — Vertical Scroll Engine
-- [ ] 50. I.2 — Night Mode & Comfort
-- [ ] 51. I.3 — Thumbnail Navigation
+- [x] 49. I.1 — Vertical Scroll Engine
+- [x] 50. I.2 — Night Mode & Comfort
+- [x] 51. I.3 — Thumbnail Navigation
 
 ### TRACK J: EPUB (3 шага)
 
-- [ ] 52. J.1 — Table of Contents Navigation
-- [ ] 53. J.2 — Styling Engine
-- [ ] 54. J.3 — Full-Text Search
+- [x] 52. J.1 — Table of Contents Navigation
+- [x] 53. J.2 — Styling Engine
+- [x] 54. J.3 — Full-Text Search
 
 **Как отмечать прогресс**:
 
@@ -2080,7 +2080,7 @@ Source: PDF_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 
 ### I.1 — Vertical Scroll Engine
 
-- [ ] **DONE**
+- [x] **DONE** (commit 9edf65e0)
 
 **Tasks**:
 
@@ -2109,7 +2109,7 @@ Source: PDF_PLAYBACK_IMPROVEMENT_SPEC.md §5.2, §6 Phase 2
 
 ### I.2 — Night Mode & Comfort
 
-- [ ] **DONE**
+- [x] **DONE** (commit 383eb847)
 
 **Tasks**:
 
@@ -2137,7 +2137,7 @@ Source: PDF_PLAYBACK_IMPROVEMENT_SPEC.md §5.3, §6 Phase 3
 
 ### I.3 — Thumbnail Navigation
 
-- [ ] **DONE**
+- [x] **DONE** (commit 361e6832)
 
 **Tasks**:
 
@@ -2174,7 +2174,7 @@ Source: EPUB_PLAYBACK_IMPROVEMENT_SPEC.md §5.1, §6 Phase 1
 
 ### J.1 — Table of Contents Navigation
 
-- [ ] **DONE**
+- [x] **DONE** (commit 49f8bb25)
 
 **Tasks**:
 
@@ -2204,7 +2204,7 @@ Source: EPUB_PLAYBACK_IMPROVEMENT_SPEC.md §5.3, §6 Phase 2
 
 ### J.2 — Styling Engine
 
-- [ ] **DONE**
+- [x] **DONE** (commit cab67b8d)
 
 **Tasks**:
 
@@ -2234,7 +2234,7 @@ Source: EPUB_PLAYBACK_IMPROVEMENT_SPEC.md §5.2, §6 Phase 3
 
 ### J.3 — Full-Text Search
 
-- [ ] **DONE**
+- [x] **DONE** (commit cc9198c4)
 
 **Tasks**:
 
