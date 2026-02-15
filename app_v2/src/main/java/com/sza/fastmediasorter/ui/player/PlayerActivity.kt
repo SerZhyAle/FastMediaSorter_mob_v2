@@ -112,6 +112,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+    private var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
     private val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -1413,6 +1414,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         )
 
         // 7. Primary Coordinators (Dependencies on almost everything!)
+        audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
         mediaLoaderManager = com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager(
             activity = this,
             binding = binding,
@@ -1426,7 +1428,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             lifecycleScope = lifecycleScope,
             loadingIndicatorHandler = loadingIndicatorHandler,
             showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
-            mediaFilesCacheManager = mediaFilesCacheManager
+            mediaFilesCacheManager = mediaFilesCacheManager,
+            audioServiceController = audioServiceController
         )
         
         dialogAndUiStateManager = PlayerDialogAndUiStateManager(
@@ -3110,6 +3113,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Release audio background photos manager
         audioBackgroundPhotosManager.release()
+        
+        // Release audio service controller (disconnect from AudioPlaybackService)
+        audioServiceController?.release()
+        audioServiceController = null
         
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()

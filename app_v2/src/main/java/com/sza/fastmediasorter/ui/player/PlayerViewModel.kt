@@ -53,6 +53,7 @@ class PlayerViewModel @Inject constructor(
         val playToEndInSlideshow: Boolean = false,
         val enablePhotosDuringAudio: Boolean = false,
         val audioBackgroundPhotosResourceId: String? = null,
+        val enableBackgroundAudio: Boolean = false,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = false,
@@ -142,7 +143,8 @@ class PlayerViewModel @Inject constructor(
                             enableSlideshowBackgroundMusic = settings.enableSlideshowBackgroundMusic,
                             playToEndInSlideshow = settings.playToEndInSlideshow,
                             enablePhotosDuringAudio = settings.enablePhotosDuringAudio,
-                            audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId
+                            audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId,
+                            enableBackgroundAudio = settings.enableBackgroundAudio
                         )
                     }
                 }
