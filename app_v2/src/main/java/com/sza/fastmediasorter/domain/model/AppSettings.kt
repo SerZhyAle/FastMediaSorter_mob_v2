@@ -49,7 +49,7 @@ data class AppSettings(
     val supportPdf: Boolean = true, // Optional support for PDF files
     val supportEpub: Boolean = true, // Optional support for EPUB files
     val showPdfThumbnails: Boolean = false, // "Large PDF Thumbnails" - increases size limit for network PDF thumbnails
-    val textSizeMax: Long = 1048576L, // 1MB max for internal text viewer
+    val textSizeMax: Long = 104857600L, // 100MB max for internal text viewer
     val showTextLineNumbers: Boolean = false, // Show line numbers for text files
     
     // Translation settings (always available, works with Images/PDF/TXT)

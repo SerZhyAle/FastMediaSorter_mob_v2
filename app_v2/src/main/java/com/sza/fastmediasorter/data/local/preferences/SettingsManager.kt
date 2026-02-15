@@ -28,7 +28,7 @@ data class AppSettings(
     val maxRecipients: Int = 10, // Maximum number of destination buttons (1-30)
     val supportText: Boolean = false,
     val supportPdf: Boolean = false,
-    val textSizeMax: Long = 1048576L,
+    val textSizeMax: Long = 104857600L,
     val enableTranslation: Boolean = false,
     val translationSourceLanguage: String = "en",
     val translationTargetLanguage: String = "ru",
@@ -98,7 +98,7 @@ class SettingsManager @Inject constructor(
             maxRecipients = preferences[MAX_RECIPIENTS] ?: 10,
             supportText = preferences[SUPPORT_TEXT] ?: false,
             supportPdf = preferences[SUPPORT_PDF] ?: false,
-            textSizeMax = preferences[TEXT_SIZE_MAX] ?: 1048576L,
+            textSizeMax = preferences[TEXT_SIZE_MAX] ?: 104857600L,
             enableTranslation = preferences[ENABLE_TRANSLATION] ?: false,
             translationSourceLanguage = preferences[TRANSLATION_SOURCE_LANGUAGE] ?: "en",
             translationTargetLanguage = preferences[TRANSLATION_TARGET_LANGUAGE] ?: "ru",

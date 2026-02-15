@@ -93,4 +93,11 @@
         android:title="@string/menu_sleep_timer"
         app:showAsAction="never" />
 
+    <!-- Re-open with Encoding (TXT) -->
+    <item
+        android:id="@+id/menu_reopen_encoding"
+        android:icon="@android:drawable/ic_menu_sort_alphabetically"
+        android:title="@string/reopen_with_encoding"
+        app:showAsAction="never" />
+
 </menu>

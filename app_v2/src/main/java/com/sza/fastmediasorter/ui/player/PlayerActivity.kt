@@ -1075,6 +1075,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onSleepTimerClicked() {
                     showSleepTimerDialog()
                 }
+
+                override fun onReopenEncodingClicked() {
+                    showEncodingDialog()
+                }
             }
         )
         // Initialize orientation on startup
@@ -1608,6 +1612,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     private fun showRenameDialog() {
         dialogAndUiStateManager.showRenameDialog()
+    }
+
+    private fun showEncodingDialog() {
+        val manager = textViewerManager
+        val charsets = manager.getSupportedCharsets()
+        val currentCharset = manager.getCurrentCharsetName()
+        val labels = charsets.map { (name, charset) ->
+            if (charset.name() == currentCharset) "✓ $name" else name
+        }.toTypedArray()
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.select_encoding)
+            .setItems(labels) { _, which ->
+                val selectedCharset = charsets[which].second
+                manager.reopenWithEncoding(selectedCharset)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun showSleepTimerDialog() {
@@ -3258,6 +3280,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Release PiP manager (unregister receiver)
         pipManager?.release()
         pipManager = null
+
+        // Release text file pager
+        if (_textViewerManager != null) {
+            textViewerManager.release()
+        }
         
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()
@@ -3589,6 +3616,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
                 override fun setTouchZonesEnabled(enabled: Boolean) {
                     safeViews.touchZonesOverlay.isVisible = enabled && useTouchZones
+                }
+
+                override fun showEncodingDialog() {
+                    this@PlayerActivity.showEncodingDialog()
                 }
             },
             translationManager = translationManager

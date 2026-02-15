@@ -201,7 +201,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
                     showPdfThumbnails = preferences[KEY_SHOW_PDF_THUMBNAILS] ?: false,
-                    textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 1048576L,
+                    textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 104857600L,
                     showTextLineNumbers = preferences[KEY_SHOW_TEXT_LINE_NUMBERS] ?: false,
                     
                     // Translation

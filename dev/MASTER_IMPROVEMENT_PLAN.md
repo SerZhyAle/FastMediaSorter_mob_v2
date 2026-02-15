@@ -363,7 +363,7 @@ git push origin main
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 43 / 54 шагов
+**Прогресс**: 45 / 54 шагов
 
 ### TRACK A: Main Window (7 шагов)
 
@@ -424,8 +424,8 @@ git push origin main
 ### TRACK F: Video (3 шага)
 
 - [x] 39. F.1 — Gesture Engine
-- [ ] 40. F.2 — Custom Controls & Seeking
-- [ ] 41. F.3 — Picture-in-Picture (Android 12+)
+- [x] 40. F.2 — Custom Controls & Seeking
+- [x] 41. F.3 — Picture-in-Picture (Android 12+)
 
 ### TRACK E: Animated Image (4 шага)
 

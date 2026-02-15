@@ -1221,6 +1221,15 @@
     <string name="epub_go_to_chapter_cancel">Cancel</string>
     <string name="epub_invalid_chapter_number">Invalid chapter number. Must be between 1 and %1$d</string>
     <string name="file_is_empty">File is empty</string>
+
+    <!-- Text pager / encoding -->
+    <string name="text_page_indicator">Page %1$d / %2$d</string>
+    <string name="text_page_indicator_estimated">Page %1$d / ~%2$d</string>
+    <string name="text_file_too_large">File is too large (%1$s). Maximum supported size is %2$s.</string>
+    <string name="reopen_with_encoding">Re-open with Encoding…</string>
+    <string name="select_encoding">Select Encoding</string>
+    <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
+
     <plurals name="added_n_resources">
         <item quantity="one">Added %1$d resource</item>
         <item quantity="other">Added %1$d resources</item>

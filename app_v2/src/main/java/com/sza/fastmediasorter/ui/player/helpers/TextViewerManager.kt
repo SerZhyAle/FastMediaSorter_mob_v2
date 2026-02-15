@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.utils.CharsetDetector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -21,8 +22,7 @@ import timber.log.Timber
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.utils.UserActionLogger
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.nio.charset.Charset
 import kotlin.math.abs
 
 /**
@@ -61,11 +61,17 @@ class TextViewerManager(
         fun showTranslationSettingsDialog()
         fun exitFullscreenMode()
         fun setTouchZonesEnabled(enabled: Boolean)
+        fun showEncodingDialog()
     }
 
     private var currentFile: MediaFile? = null
+    private var currentLocalFile: java.io.File? = null
     private var translationEnabled = false
     private var isTranslationExpanded = false
+
+    // Paged reader
+    private var textFilePager: TextFilePager? = null
+    private var currentCharset: Charset = Charsets.UTF_8
     
     // Dynamic font sizes (session-scoped, persist until user exits player)
     private var textFontSizeSp: Float = DEFAULT_TEXT_FONT_SIZE_SP
@@ -91,6 +97,20 @@ class TextViewerManager(
     fun setupControls() {
         // Setup gesture detectors for font size adjustment
         setupGestureDetectors()
+
+        // Page navigation buttons
+        safeViews.btnTextPagePrev.setOnClickListener {
+            UserActionLogger.logButtonClick("TextPagePrev", "TextViewerManager")
+            previousPage()
+        }
+        safeViews.btnTextPageNext.setOnClickListener {
+            UserActionLogger.logButtonClick("TextPageNext", "TextViewerManager")
+            nextPage()
+        }
+        // Long-press encoding indicator to re-open with different encoding
+        safeViews.tvTextEncodingIndicator.setOnClickListener {
+            callback.showEncodingDialog()
+        }
         
         // Close button for text viewer (OCR result or text file)
         safeViews.btnCloseTextViewer.setOnClickListener {
@@ -100,8 +120,10 @@ class TextViewerManager(
                 hideOcrText()
             } else {
                 // Text file - hide and exit fullscreen
+                closePager()
                 safeViews.textViewerContainer.isVisible = false
                 safeViews.textScrollView.isVisible = false
+                safeViews.textPageNavigation.isVisible = false
                 safeViews.tvTextContent.text = ""
                 currentFile = null
                 callback.exitFullscreenMode()
@@ -265,14 +287,25 @@ class TextViewerManager(
                         return false
                     }
                     
-                    // For regular text files, exit fullscreen only when at edge
+                    // For regular text files:
+                    // - Multi-page: navigate pages at edges
+                    // - Single page: exit fullscreen at edges
+                    val pager = textFilePager
                     if (diffY < 0 && isAtBottom) {
-                        // Swipe up from bottom = exit fullscreen
+                        if (pager != null && pager.hasNextPage()) {
+                            Timber.d("Text: Swipe up at bottom - next page")
+                            nextPage()
+                            return true
+                        }
                         Timber.d("Text: Swipe up at bottom - exit fullscreen")
                         callback.exitFullscreenMode()
                         return true
                     } else if (diffY > 0 && isAtTop) {
-                        // Swipe down from top = exit fullscreen
+                        if (pager != null && pager.hasPreviousPage()) {
+                            Timber.d("Text: Swipe down at top - previous page")
+                            previousPage()
+                            return true
+                        }
                         Timber.d("Text: Swipe down at top - exit fullscreen")
                         callback.exitFullscreenMode()
                         return true
@@ -433,6 +466,8 @@ class TextViewerManager(
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
         currentFile = mediaFile
 
+        // Close previous pager
+        closePager()
 
         binding.imageView.isVisible = false
         binding.photoView.isVisible = false
@@ -498,66 +533,70 @@ class TextViewerManager(
                     return@launch
                 }
 
-                val appSettings = settingsRepository.getSettings().first()
-                val maxSize = appSettings.textSizeMax
-
-                if (file.length() > maxSize) {
+                // Check file size against maximum (100MB)
+                if (file.length() > TextFilePager.MAX_FILE_SIZE) {
+                    val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
+                    val maxSizeMb = "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        safeViews.tvTextContent.text =
-                            "File too large to display directly (${file.length() / 1024} KB).\n" +
-                                "Max size: ${maxSize / 1024} KB.\n\n" +
-                                "Please open in external viewer."
+                        safeViews.tvTextContent.text = context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
+                        safeViews.textPageNavigation.isVisible = false
                     }
                     return@launch
                 }
 
-                val text = StringBuilder()
-                try {
-                    // Use UTF-8 encoding for full Cyrillic and multi-charset support
-                    val lines = mutableListOf<String>()
-                    BufferedReader(InputStreamReader(file.inputStream(), Charsets.UTF_8)).use { reader ->
-                        var line = reader.readLine()
-                        while (line != null) {
-                            lines.add(line)
-                            line = reader.readLine()
-                        }
-                    }
-                    
-                    // Store original text without line numbers
-                    originalTextWithoutNumbers = lines.joinToString("\n")
-                    
-                    // Add line numbers if enabled in settings
-                    val showLineNumbers = settings.showTextLineNumbers
-                    if (showLineNumbers && lines.isNotEmpty()) {
-                        val maxLineNum = lines.size
-                        val numWidth = maxLineNum.toString().length
-                        
-                        lines.forEachIndexed { index, line ->
-                            val lineNum = (index + 1).toString().padStart(numWidth, ' ')
-                            text.append("$lineNum │ $line\n")
-                        }
-                    } else {
-                        // No line numbers - just join lines
-                        text.append(originalTextWithoutNumbers)
-                    }
-                } catch (e: Exception) {
-                    Timber.e(e, "Error reading text file")
-                    withContext(Dispatchers.Main) {
-                        safeViews.tvTextContent.text = "Error reading file: ${e.message}"
-                    }
-                }
+                // Detect charset
+                currentCharset = CharsetDetector.detect(file)
+                currentLocalFile = file
+
+                // Create pager and open file
+                val pager = TextFilePager(file, currentCharset)
+                pager.open()
+                textFilePager = pager
+
+                // Read first page
+                val pageText = pager.readPage(0)
+                originalTextWithoutNumbers = pageText
+
+                // Apply line numbers if enabled
+                val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(0))
 
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
-                    val finalString = text.toString()
-                    Timber.d("TextViewerManager: Displaying text, length=${finalString.length}")
-                    
-                    if (finalString.isEmpty()) {
+
+                    if (displayText.isEmpty()) {
                         safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
                     } else {
-                        safeViews.tvTextContent.text = finalString
+                        safeViews.tvTextContent.text = displayText
                     }
+
+                    // Show/hide page navigation
+                    val multiPage = !pager.isSinglePage()
+                    safeViews.textPageNavigation.isVisible = multiPage
+                    if (multiPage) {
+                        updatePageIndicator()
+                        // Add bottom padding to ScrollView so page bar doesn't cover content
+                        safeViews.textScrollView.setPadding(
+                            safeViews.textScrollView.paddingLeft,
+                            safeViews.textScrollView.paddingTop,
+                            safeViews.textScrollView.paddingRight,
+                            (48 * context.resources.displayMetrics.density).toInt()
+                        )
+                        // Disable edit for multi-page files
+                        binding.btnEditTextCmd.isVisible = false
+                    } else {
+                        safeViews.textScrollView.setPadding(
+                            safeViews.textScrollView.paddingLeft,
+                            safeViews.textScrollView.paddingTop,
+                            safeViews.textScrollView.paddingRight,
+                            0
+                        )
+                    }
+
+                    // Show encoding indicator
+                    safeViews.tvTextEncodingIndicator.text = currentCharset.name()
+
+                    Timber.d("TextViewerManager: Displaying page 0, ${displayText.length} chars, charset=$currentCharset")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
@@ -569,7 +608,154 @@ class TextViewerManager(
         }
     }
 
+    /**
+     * Apply line numbers to text content.
+     * @param text Raw text content
+     * @param showLineNumbers Whether to add line numbers
+     * @param startLineNumber Starting line number (1-based)
+     * @return Text with or without line numbers
+     */
+    private fun applyLineNumbers(text: String, showLineNumbers: Boolean, startLineNumber: Int): String {
+        if (!showLineNumbers || text.isEmpty()) return text
+
+        val lines = text.lines()
+        val maxLineNum = startLineNumber + lines.size - 1
+        val numWidth = maxLineNum.toString().length
+
+        return lines.mapIndexed { index, line ->
+            val lineNum = (startLineNumber + index).toString().padStart(numWidth, ' ')
+            "$lineNum │ $line"
+        }.joinToString("\n")
+    }
+
+    /**
+     * Navigate to next page
+     */
+    fun nextPage() {
+        val pager = textFilePager ?: return
+        if (!pager.hasNextPage()) return
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(pager.currentPage + 1)
+            originalTextWithoutNumbers = pageText
+
+            val settings = settingsRepository.getSettings().first()
+            val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(pager.currentPage))
+
+            withContext(Dispatchers.Main) {
+                safeViews.tvTextContent.text = displayText
+                safeViews.textScrollView.scrollTo(0, 0)
+                updatePageIndicator()
+            }
+        }
+    }
+
+    /**
+     * Navigate to previous page
+     */
+    fun previousPage() {
+        val pager = textFilePager ?: return
+        if (!pager.hasPreviousPage()) return
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(pager.currentPage - 1)
+            originalTextWithoutNumbers = pageText
+
+            val settings = settingsRepository.getSettings().first()
+            val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(pager.currentPage))
+
+            withContext(Dispatchers.Main) {
+                safeViews.tvTextContent.text = displayText
+                safeViews.textScrollView.scrollTo(0, 0)
+                updatePageIndicator()
+            }
+        }
+    }
+
+    /**
+     * Reopen current file with a different encoding
+     */
+    fun reopenWithEncoding(charset: Charset) {
+        val file = currentLocalFile ?: return
+        val mediaFile = currentFile ?: return
+
+        closePager()
+        currentCharset = charset
+
+        val pager = TextFilePager(file, charset)
+        pager.open()
+        textFilePager = pager
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(0)
+            originalTextWithoutNumbers = pageText
+
+            val settings = settingsRepository.getSettings().first()
+            val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(0))
+
+            withContext(Dispatchers.Main) {
+                safeViews.tvTextContent.text = displayText
+                safeViews.textScrollView.scrollTo(0, 0)
+                safeViews.tvTextEncodingIndicator.text = charset.name()
+                updatePageIndicator()
+                Timber.d("TextViewerManager: Re-opened with charset=$charset")
+            }
+        }
+    }
+
+    /**
+     * Get the list of supported charsets for the encoding picker
+     */
+    fun getSupportedCharsets(): List<Pair<String, Charset>> = CharsetDetector.SUPPORTED_CHARSETS
+
+    /**
+     * Get current charset name for display
+     */
+    fun getCurrentCharsetName(): String = currentCharset.name()
+
+    /**
+     * Update page indicator and navigation button states
+     */
+    private fun updatePageIndicator() {
+        val pager = textFilePager ?: return
+        val current = pager.currentPage + 1
+        val total = pager.getEstimatedPageCount()
+
+        val indicatorText = if (pager.isFullyIndexed()) {
+            context.getString(R.string.text_page_indicator, current, total)
+        } else {
+            context.getString(R.string.text_page_indicator_estimated, current, total)
+        }
+        safeViews.tvTextPageIndicator.text = indicatorText
+        safeViews.btnTextPagePrev.isEnabled = pager.hasPreviousPage()
+        safeViews.btnTextPageNext.isEnabled = pager.hasNextPage()
+        safeViews.btnTextPagePrev.alpha = if (pager.hasPreviousPage()) 1f else 0.3f
+        safeViews.btnTextPageNext.alpha = if (pager.hasNextPage()) 1f else 0.3f
+    }
+
+    /**
+     * Close the current TextFilePager and release resources
+     */
+    private fun closePager() {
+        textFilePager?.close()
+        textFilePager = null
+        currentLocalFile = null
+    }
+
+    /**
+     * Release all resources. Call from Activity onDestroy.
+     */
+    fun release() {
+        closePager()
+    }
+
     private fun enterEditMode() {
+        val pager = textFilePager
+        if (pager != null && !pager.isSinglePage()) {
+            Toast.makeText(context, R.string.text_editing_large_file, Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Use original text without line numbers for editing
         val textToEdit = originalTextWithoutNumbers.ifBlank { 
             safeViews.tvTextContent.text.toString() 
@@ -646,18 +832,8 @@ class TextViewerManager(
                     originalTextWithoutNumbers = newText
                     
                     val settings = settingsRepository.getSettings().first()
-                    if (settings.showTextLineNumbers && newText.isNotBlank()) {
-                        val lines = newText.lines()
-                        val maxLineNum = lines.size
-                        val numWidth = maxLineNum.toString().length
-                        val numberedText = lines.mapIndexed { index, line ->
-                            val lineNum = (index + 1).toString().padStart(numWidth, ' ')
-                            "$lineNum │ $line"
-                        }.joinToString("\n")
-                        safeViews.tvTextContent.text = numberedText
-                    } else {
-                        safeViews.tvTextContent.text = newText
-                    }
+                    val displayText = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
+                    safeViews.tvTextContent.text = displayText
                     
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()

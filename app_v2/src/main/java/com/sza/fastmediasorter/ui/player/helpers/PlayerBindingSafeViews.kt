@@ -119,6 +119,13 @@ class PlayerBindingSafeViews(
     val btnCancelEdit: MaterialButton get() = required(R.id.btnCancelEdit)
     val btnSaveText: MaterialButton get() = required(R.id.btnSaveText)
 
+    // Page navigation
+    val textPageNavigation: LinearLayout get() = required(R.id.textPageNavigation)
+    val btnTextPagePrev: ImageButton get() = required(R.id.btnTextPagePrev)
+    val btnTextPageNext: ImageButton get() = required(R.id.btnTextPageNext)
+    val tvTextPageIndicator: TextView get() = required(R.id.tvTextPageIndicator)
+    val tvTextEncodingIndicator: TextView get() = required(R.id.tvTextEncodingIndicator)
+
     val pdfControlsLayout: LinearLayout get() = required(R.id.pdfControlsLayout)
     val epubControlsLayout: LinearLayout get() = required(R.id.epubControlsLayout)
     val translationOverlay: CardView get() = required(R.id.translationOverlay)
@@ -196,6 +203,21 @@ val ActivityPlayerUnifiedBinding.btnCancelEdit: MaterialButton
 
 val ActivityPlayerUnifiedBinding.btnSaveText: MaterialButton
     get() = requiredFromRoot(R.id.btnSaveText)
+
+val ActivityPlayerUnifiedBinding.textPageNavigation: LinearLayout
+    get() = requiredFromRoot(R.id.textPageNavigation)
+
+val ActivityPlayerUnifiedBinding.btnTextPagePrev: ImageButton
+    get() = requiredFromRoot(R.id.btnTextPagePrev)
+
+val ActivityPlayerUnifiedBinding.btnTextPageNext: ImageButton
+    get() = requiredFromRoot(R.id.btnTextPageNext)
+
+val ActivityPlayerUnifiedBinding.tvTextPageIndicator: TextView
+    get() = requiredFromRoot(R.id.tvTextPageIndicator)
+
+val ActivityPlayerUnifiedBinding.tvTextEncodingIndicator: TextView
+    get() = requiredFromRoot(R.id.tvTextEncodingIndicator)
 
 val ActivityPlayerUnifiedBinding.pdfControlsLayout: LinearLayout
     get() = requiredFromRoot(R.id.pdfControlsLayout)
