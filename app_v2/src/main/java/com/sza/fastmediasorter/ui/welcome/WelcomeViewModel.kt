@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.welcome
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.ui.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -21,15 +22,19 @@ class WelcomeViewModel @Inject constructor(
     override fun getInitialState(): WelcomeState = WelcomeState()
 
     fun setWelcomeCompleted() {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(KEY_WELCOME_COMPLETED, true)
-            .apply()
+        StrictModeHelper.allowDiskWrites {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_WELCOME_COMPLETED, true)
+                .apply()
+        }
     }
 
     fun isWelcomeCompleted(): Boolean {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getBoolean(KEY_WELCOME_COMPLETED, false)
+        return StrictModeHelper.allowDiskReads {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_WELCOME_COMPLETED, false)
+        }
     }
 
     /**
@@ -37,8 +42,10 @@ class WelcomeViewModel @Inject constructor(
      * Returns true only once - the first time after welcome completion.
      */
     fun isFirstRunAfterWelcome(): Boolean {
-        return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getBoolean(KEY_FIRST_RUN_AFTER_WELCOME, true) // Default true = first run
+        return StrictModeHelper.allowDiskReads {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_FIRST_RUN_AFTER_WELCOME, true) // Default true = first run
+        }
     }
 
     /**
@@ -46,10 +53,12 @@ class WelcomeViewModel @Inject constructor(
      * This ensures Settings opens only once after initial welcome.
      */
     fun setFirstRunCompleted() {
-        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean(KEY_FIRST_RUN_AFTER_WELCOME, false)
-            .apply()
+        StrictModeHelper.allowDiskWrites {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_FIRST_RUN_AFTER_WELCOME, false)
+                .apply()
+        }
     }
 }
 

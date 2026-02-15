@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:text="@string/select_color"
         android:textSize="@dimen/text_size_large"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginBottom="@dimen/margin_large" />
 
     <!-- Color preview -->
@@ -77,3 +77,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

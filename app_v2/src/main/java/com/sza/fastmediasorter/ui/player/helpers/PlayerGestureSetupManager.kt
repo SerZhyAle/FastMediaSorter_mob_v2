@@ -30,9 +30,42 @@ class PlayerGestureSetupManager(
     private val touchZoneGestureManager: TouchZoneGestureManager
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+    private val videoTouchDelegate = VideoTouchDelegate(activity, binding)
     
     private lateinit var gestureDetector: GestureDetector
     private lateinit var imageTouchGestureDetector: GestureDetector
+
+    // ════════════════════════════════════════════════════════════════════════
+    // DUAL-SURFACE SUPPORT (D.5 Gesture Unification)
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Currently active PhotoView surface (A or B).
+     * In legacy mode, always returns binding.photoView.
+     * In renderer mode, returns the surface currently showing content.
+     */
+    val activePhotoView: com.github.chrisbanes.photoview.PhotoView
+        get() = binding.photoView // TODO: Switch based on renderer state when migration enabled
+
+    /**
+     * Check if any PhotoView surface is visible and active.
+     * Supports both legacy single-surface and dual-surface modes.
+     */
+    fun isAnyPhotoViewActive(): Boolean {
+        return binding.photoView.isVisible || (binding.photoViewSurfaceB?.isVisible == true)
+    }
+
+    /**
+     * Get the visible PhotoView (for zoom queries, scale checks, etc.).
+     * Returns the first visible surface, preferring A (current) over B (prepared).
+     */
+    fun getVisiblePhotoView(): com.github.chrisbanes.photoview.PhotoView? {
+        return when {
+            binding.photoView.isVisible -> binding.photoView
+            binding.photoViewSurfaceB?.isVisible == true -> binding.photoViewSurfaceB
+            else -> null
+        }
+    }
     
     /**
      * Get whether touch zones are enabled.
@@ -84,7 +117,7 @@ class PlayerGestureSetupManager(
             if (isText && safeViews.textViewerContainer.isVisible && !isOverlayBlocking()) {
                 return@setOnTouchListener false
             }
-            
+
             // For Audio Slideshow Photo Mode: don't intercept touches - let imageView handle tap-to-exit
             if (activity.isInAudioSlideshowPhotoMode() && binding.imageView.isVisible) {
                 Timber.d("PlayerActivity.root.onTouch: Audio slideshow photo mode - passing touch to imageView")
@@ -162,7 +195,7 @@ class PlayerGestureSetupManager(
             // - Command panel mode: 3-zone navigation (handleCommandPanelTouchZones)
             // This prevents double-processing of touch events which breaks double-tap detection
             if (isImage && useTouchZones && !isOverlayBlocking()) {
-                val isPhotoViewVisible = binding.photoView.isVisible
+                val isPhotoViewVisible = isAnyPhotoViewActive() // D.5: Check both surfaces
                 val isImageViewVisible = binding.imageView.isVisible
                 
                 if (isPhotoViewVisible || isImageViewVisible) {
@@ -193,6 +226,15 @@ class PlayerGestureSetupManager(
             val currentFile = viewModel.state.value.currentFile
             val isInFullscreenMode = !viewModel.state.value.showCommandPanel
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
+            val isVideoOnly = currentFile?.type == MediaType.VIDEO
+
+            // Video gestures (F.1) route: disable default center click handling and use custom toggle.
+            if (isVideoOnly && useTouchZones && !isOverlayBlocking()) {
+                if (videoTouchDelegate.handleTouchEvent(event)) {
+                    return@setOnTouchListener true
+                }
+                return@setOnTouchListener false
+            }
             
             // In fullscreen mode with touch zones enabled, let our gesture detector handle it
             // BUT: allow bottom area to pass through for player controls
@@ -263,6 +305,7 @@ class PlayerGestureSetupManager(
     
     /**
      * Setup PhotoView gesture handling using native PhotoView API listeners.
+     * Configures gestures for BOTH surfaces (A and B) for dual-surface support.
      *
      * CRITICAL: Do NOT call binding.photoView.setOnTouchListener() here!
      * PhotoView 2.3.0 uses PhotoViewAttacher which registers itself as the View's OnTouchListener
@@ -278,29 +321,49 @@ class PlayerGestureSetupManager(
      */
     private fun setupPhotoViewTouchListener() {
         Timber.d("TOUCH_DEBUG: setupPhotoViewTouchListener() called")
+        // Configure gestures for both surfaces (dual-surface D.5)
+        configurePhotoViewGestures(binding.photoView, "A")
+        // Surface B may be null in landscape layout
+        binding.photoViewSurfaceB?.let { surfaceB ->
+            configurePhotoViewGestures(surfaceB, "B")
+        }
+        Timber.d("TOUCH_DEBUG: Gesture listeners configured for PhotoView surfaces")
+    }
+
+    /**
+     * Configure gesture listeners for a single PhotoView surface.
+     * Extracted for dual-surface support (D.5 Gesture Unification).
+     *
+     * @param photoView The PhotoView to configure
+     * @param surfaceId Surface identifier for logging ("A" or "B")
+     */
+    private fun configurePhotoViewGestures(
+        photoView: com.github.chrisbanes.photoview.PhotoView,
+        surfaceId: String
+    ) {
         // Handle single-tap (zone navigation) and double-tap (zoom) via attacher's GestureDetector
-        binding.photoView.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
+        photoView.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                Timber.d("TOUCH_DEBUG: photoView.onSingleTapConfirmed - x=${e.x.toInt()}, y=${e.y.toInt()}")
+                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - x=${e.x.toInt()}, y=${e.y.toInt()}")
                 
                 if (isOverlayBlocking()) {
-                    Timber.d("TOUCH_DEBUG: photoView.onSingleTapConfirmed - overlay blocking, returning false")
+                    Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - overlay blocking, returning false")
                     return false
                 }
                 
                 val isPdf = activity.isPdfActive()
-                Timber.d("TOUCH_DEBUG: photoView.onSingleTapConfirmed - isPdf=$isPdf")
+                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - isPdf=$isPdf")
                 
                 // PDF (REG-DOC): No tap zones, single tap does nothing
                 // IMAGE: Use touch zones (REG-3100 command panel / REG-9100 fullscreen)
                 if (isPdf) {
-                    Timber.d("TOUCH_DEBUG: photoView.onSingleTapConfirmed - PDF active, returning false")
+                    Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - PDF active, returning false")
                     return false // PDF spec: no tap zones
                 }
                 
-                Timber.d("TOUCH_DEBUG: photoView.onSingleTapConfirmed - routing to handleImageSingleTap")
+                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - routing to handleImageSingleTap")
                 val result = touchZoneGestureManager.handleImageSingleTap(e)
-                Timber.d("TOUCH_DEBUG: photoView.onSingleTapConfirmed - handleImageSingleTap returned $result")
+                Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - handleImageSingleTap returned $result")
                 return result
             }
 
@@ -322,7 +385,7 @@ class PlayerGestureSetupManager(
         // Handle fling (swipe) gestures — ONLY for PDF (vertical swipes for page navigation)
         // For IMAGES: fling is DISABLED to avoid conflict with onSingleTapConfirmed
         // (GestureDetector cannot reliably distinguish between quick tap and slow swipe)
-        binding.photoView.setOnSingleFlingListener(
+        photoView.setOnSingleFlingListener(
             OnSingleFlingListener { e1, e2, velocityX, velocityY ->
                 if (isOverlayBlocking()) return@OnSingleFlingListener false
                 
@@ -338,7 +401,7 @@ class PlayerGestureSetupManager(
         )
 
         // Handle long press — route to PDF fullscreen or image zoom
-        binding.photoView.setOnLongClickListener {
+        photoView.setOnLongClickListener {
             if (isOverlayBlocking()) return@setOnLongClickListener false
             
             // Route to PDF handler if PDF is active, else image zoom

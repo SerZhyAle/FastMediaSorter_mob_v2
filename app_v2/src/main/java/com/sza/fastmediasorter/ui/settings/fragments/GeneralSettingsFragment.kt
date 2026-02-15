@@ -1,13 +1,17 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -16,6 +20,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.activity.result.contract.ActivityResultContracts
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -31,6 +36,20 @@ class GeneralSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: SettingsViewModel by activityViewModels()
+    
+    companion object {
+        private const val PREFS_NAME = "general_sections_state"
+        private const val KEY_LANGUAGE_DISPLAY_EXPANDED = "section_language_display_expanded"
+        private const val KEY_BEHAVIOR_EXPANDED = "section_behavior_expanded"
+        private const val KEY_CONFIRMATIONS_EXPANDED = "section_confirmations_expanded"
+        private const val KEY_NETWORK_SYNC_EXPANDED = "section_network_sync_expanded"
+        private const val KEY_CREDENTIALS_EXPANDED = "section_credentials_expanded"
+        private const val KEY_CACHE_EXPANDED = "section_cache_expanded"
+        private const val KEY_PERMISSIONS_EXPANDED = "section_permissions_expanded"
+        private const val KEY_ACTIONS_EXPANDED = "section_actions_expanded"
+    }
+    
+    private val collapsibleSections = mutableListOf<CollapsibleSection>()
     
     private val importCredentialsLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         uri?.let { safeUri ->
@@ -68,6 +87,7 @@ class GeneralSettingsFragment : Fragment() {
         observeData()
         checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
+        setupCollapsibleSections()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -578,6 +598,10 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnResetSettings.setOnClickListener {
             showResetSettingsConfirmation()
         }
+
+        binding.btnResetGeneralSection.setOnClickListener {
+            showResetGeneralSectionConfirmation()
+        }
         
         // Integration Tests Button (DEBUG only)
         if (com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
@@ -599,11 +623,11 @@ class GeneralSettingsFragment : Fragment() {
         
         // Export/Import Settings
         binding.btnExportSettings.setOnClickListener {
-            exportSettings()
+            showExportSettingsConfirmation()
         }
         
         binding.btnImportSettings.setOnClickListener {
-            importSettings()
+            showImportSettingsConfirmation()
         }
         
         binding.btnLocalFilesPermission.setOnClickListener {
@@ -762,18 +786,24 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     private fun showLogDialog(fullLog: Boolean) {
-        val logText = if (fullLog) {
-            getFullLog()
-        } else {
-            getSessionLog()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val logText = withContext(Dispatchers.IO) {
+                if (fullLog) {
+                    getFullLog()
+                } else {
+                    getSessionLog()
+                }
+            }
+
+            if (!isAdded || _binding == null) return@launch
+
+            com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
+                requireContext(),
+                if (fullLog) "Application Log" else "Current Session Log",
+                logText,
+                "Close"
+            )
         }
-        
-        com.sza.fastmediasorter.ui.common.DialogUtils.showScrollableDialog(
-            requireContext(),
-            if (fullLog) "Application Log" else "Current Session Log",
-            logText,
-            "Close" // Positive button (acting as Close/OK)
-        )
     }
 
     private fun getFullLog(): String {
@@ -954,40 +984,13 @@ class GeneralSettingsFragment : Fragment() {
     }
     
     private fun requestStoragePermissions() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            // Android 11+ (API 30+): Request MANAGE_EXTERNAL_STORAGE
-            if (!android.os.Environment.isExternalStorageManager()) {
-                try {
-                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                    intent.data = android.net.Uri.parse("package:${requireContext().packageName}")
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    // Fallback to general settings
-                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    startActivity(intent)
-                }
-            } else {
-                Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            // Android 9-10 (API 28-29): Request READ/WRITE_EXTERNAL_STORAGE
-            val permissions = arrayOf(
-                android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-            
-            val needsPermission = permissions.any { 
-                androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), it) != 
-                android.content.pm.PackageManager.PERMISSION_GRANTED 
-            }
-            
-            if (needsPermission) {
-                @Suppress("DEPRECATION")
-                requestPermissions(permissions, 100)
-            } else {
-                Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
-            }
+        val context = requireContext()
+        if (com.sza.fastmediasorter.core.util.PermissionHelper.checkStoragePermissions(context)) {
+            Toast.makeText(context, R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
+            return
         }
+
+        com.sza.fastmediasorter.core.util.PermissionHelper.requestStoragePermission(requireActivity())
     }
     
     private fun requestManageMediaPermission() {
@@ -1024,6 +1027,17 @@ class GeneralSettingsFragment : Fragment() {
             }
         }
     }
+
+    private fun showExportSettingsConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.export_settings_confirm_title)
+            .setMessage(R.string.export_settings_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                exportSettings()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
     
     private fun importSettings() {
         // Show dialog with two import options
@@ -1037,6 +1051,17 @@ class GeneralSettingsFragment : Fragment() {
                     0 -> importSettingsAuto() // Auto-find in Downloads
                     1 -> importSettingsFileLauncher.launch("*/*") // Browse for file
                 }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showImportSettingsConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.import_settings_confirm_title)
+            .setMessage(R.string.import_settings_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                importSettings()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -1370,6 +1395,37 @@ class GeneralSettingsFragment : Fragment() {
             .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
+
+    private fun showResetGeneralSectionConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.reset_general_section_title)
+            .setMessage(R.string.reset_general_section_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                resetGeneralSection()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun resetGeneralSection() {
+        lifecycleScope.launch {
+            try {
+                viewModel.resetGeneralSection()
+                Toast.makeText(
+                    requireContext(),
+                    R.string.reset_general_section_success,
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to reset general section")
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.reset_general_section_failed, e.message ?: "Unknown error"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
+    }
     
     /**
      * Reset all settings to default values (preserves resources and destinations)
@@ -1579,9 +1635,217 @@ class GeneralSettingsFragment : Fragment() {
             }
         }
     }
+    
+    // ==================== Collapsible Sections ====================
+    
+    private fun setupCollapsibleSections() {
+        // Get the main LinearLayout container from ScrollView
+        val scrollView = binding.root as? androidx.core.widget.NestedScrollView
+        val parentLayout = scrollView?.getChildAt(0) as? LinearLayout
+        if (parentLayout == null) {
+            Timber.e("Could not find parent LinearLayout in ScrollView")
+            return
+        }
+        
+        // Define sections with their content view IDs
+        val sectionsData = listOf(
+            SectionData(
+                titleRes = R.string.settings_general_language_display,
+                contentViewIds = listOf(R.id.spinnerLanguage),
+                prefKey = KEY_LANGUAGE_DISPLAY_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_behavior,
+                contentViewIds = listOf(
+                    R.id.layoutAllFiles,
+                    R.id.layoutShowHiddenFiles,
+                    R.id.layoutShowSubfoldersAsItems,
+                    R.id.layoutSmallControls,
+                    R.id.containerSleepFavorites,
+                    R.id.layoutEnableSafeMode
+                ),
+                prefKey = KEY_BEHAVIOR_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_confirmations,
+                contentViewIds = listOf(R.id.containerConfirm),
+                prefKey = KEY_CONFIRMATIONS_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_network_sync,
+                contentViewIds = listOf(
+                    R.id.tilNetworkParallelism,
+                    R.id.containerSync
+                ),
+                prefKey = KEY_NETWORK_SYNC_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_credentials,
+                contentViewIds = listOf(
+                    R.id.tilDefaultUser,
+                    R.id.tilDefaultPassword,
+                    R.id.iconHelpDefaultCredentials
+                ),
+                prefKey = KEY_CREDENTIALS_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_cache,
+                contentViewIds = listOf(R.id.containerCache),
+                prefKey = KEY_CACHE_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_permissions,
+                contentViewIds = listOf(
+                    R.id.containerPermissions,
+                    R.id.btnManageMediaPermission
+                ),
+                prefKey = KEY_PERMISSIONS_EXPANDED
+            ),
+            SectionData(
+                titleRes = R.string.settings_general_actions,
+                contentViewIds = listOf(
+                    R.id.btnExportSettings,
+                    R.id.btnImportSettings,
+                    R.id.btnHelpExportImport,
+                    R.id.btnShowLog,
+                    R.id.btnShowSessionLog,
+                    R.id.containerDocLinks,
+                    R.id.containerIntegrationTests,
+                    R.id.btnResetGeneralSection,
+                    R.id.btnResetSettings
+                ),
+                prefKey = KEY_ACTIONS_EXPANDED
+            )
+        )
+        
+        // Find version view to keep it at the bottom
+        val versionView = binding.root.findViewById<View>(R.id.tvVersionInfo)
+        if (versionView != null && versionView.parent == parentLayout) {
+            parentLayout.removeView(versionView)
+        }
+        
+        // Get saved states
+        val savedStates = getSavedSectionStates()
+        
+        // Create sections
+        for (sectionData in sectionsData) {
+            val header = createSectionHeader(sectionData.titleRes)
+            val container = LinearLayout(requireContext()).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
+            }
+            
+            // Move content views to container
+            for (viewId in sectionData.contentViewIds) {
+                val contentView = binding.root.findViewById<View>(viewId)
+                if (contentView != null) {
+                    val parent = contentView.parent as? ViewGroup
+                    parent?.removeView(contentView)
+                    container.addView(contentView)
+                }
+            }
+            
+            // Add header and container to parent
+            parentLayout.addView(header)
+            parentLayout.addView(container)
+            
+            // Setup toggle
+            val isExpanded = savedStates[sectionData.prefKey] ?: false
+            container.isVisible = isExpanded
+            updateHeaderIndicator(header, isExpanded)
+            
+            header.setOnClickListener {
+                val newState = !container.isVisible
+                container.isVisible = newState
+                updateHeaderIndicator(header, newState)
+                saveSectionState(sectionData.prefKey, newState)
+            }
+            
+            collapsibleSections.add(CollapsibleSection(header, container, sectionData.prefKey))
+        }
+        
+        // Add version view back at the end
+        if (versionView != null) {
+            parentLayout.addView(versionView)
+        }
+    }
+    
+    private fun createSectionHeader(titleRes: Int): TextView {
+        return TextView(requireContext()).apply {
+            text = getString(titleRes)
+            textSize = 18f
+            val typedValue = android.util.TypedValue()
+            requireContext().theme.resolveAttribute(
+                com.google.android.material.R.attr.colorPrimary,
+                typedValue,
+                true
+            )
+            setTextColor(typedValue.data)
+            setPadding(16.dpToPx(), 16.dpToPx(), 16.dpToPx(), 8.dpToPx())
+            layoutParams = LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+            setCompoundDrawablesRelativeWithIntrinsicBounds(
+                0, 0, R.drawable.ic_arrow_downward, 0
+            )
+            compoundDrawablePadding = 8.dpToPx()
+        }
+    }
+    
+    private fun updateHeaderIndicator(header: TextView, isExpanded: Boolean) {
+        val iconRes = if (isExpanded) R.drawable.ic_arrow_upward else R.drawable.ic_arrow_downward
+        header.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, iconRes, 0)
+    }
+    
+    private fun Int.dpToPx(): Int {
+        return (this * resources.displayMetrics.density).toInt()
+    }
+    
+    private fun getSavedSectionStates(): Map<String, Boolean> {
+        val prefs = StrictModeHelper.allowDiskReads {
+            requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        }
+        return mapOf(
+            KEY_LANGUAGE_DISPLAY_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_LANGUAGE_DISPLAY_EXPANDED, false) },
+            KEY_BEHAVIOR_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_BEHAVIOR_EXPANDED, false) },
+            KEY_CONFIRMATIONS_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_CONFIRMATIONS_EXPANDED, false) },
+            KEY_NETWORK_SYNC_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_NETWORK_SYNC_EXPANDED, false) },
+            KEY_CREDENTIALS_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_CREDENTIALS_EXPANDED, false) },
+            KEY_CACHE_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_CACHE_EXPANDED, false) },
+            KEY_PERMISSIONS_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_PERMISSIONS_EXPANDED, false) },
+            KEY_ACTIONS_EXPANDED to StrictModeHelper.allowDiskReads { prefs.getBoolean(KEY_ACTIONS_EXPANDED, false) }
+        )
+    }
+    
+    private fun saveSectionState(key: String, isExpanded: Boolean) {
+        val prefs = StrictModeHelper.allowDiskReads {
+            requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        }
+        StrictModeHelper.allowDiskWrites {
+            prefs.edit().putBoolean(key, isExpanded).apply()
+        }
+    }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
     }
 }
+
+// ==================== Data Classes ====================
+
+data class CollapsibleSection(
+    val header: TextView,
+    val container: LinearLayout,
+    val prefKey: String
+)
+
+data class SectionData(
+    val titleRes: Int,
+    val contentViewIds: List<Int>,
+    val prefKey: String
+)

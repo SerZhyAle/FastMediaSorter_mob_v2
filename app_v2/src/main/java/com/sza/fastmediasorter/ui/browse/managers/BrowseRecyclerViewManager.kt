@@ -66,11 +66,20 @@ class BrowseRecyclerViewManager(
         
         val newLayoutManager = when (mode) {
             DisplayMode.LIST -> {
-                // Use 2 columns when screen is wide enough (landscape or wide portrait on tablets)
+                // Use multi-column grid for tablets and landscape
+                // Tablets (sw600dp+): minimum 3 columns for better space utilization
+                // Landscape: 2 columns
                 val useMultiColumn = isLandscape || screenWidthDp >= 600f
                 if (useMultiColumn) {
-                    Timber.d("updateDisplayMode: Using 2-column Grid for LIST mode (landscape=$isLandscape, widthDp=$screenWidthDp)")
-                    GridLayoutManager(recyclerView.context, 2)
+                    val columnCount = if (screenWidthDp >= 600f) {
+                        // Tablet: 3 columns minimum (from integers.xml: grid_column_count_list = 3)
+                        resources.getInteger(R.integer.grid_column_count_list)
+                    } else {
+                        // Landscape phone: 2 columns
+                        2
+                    }
+                    Timber.d("updateDisplayMode: Using $columnCount-column Grid for LIST mode (landscape=$isLandscape, widthDp=$screenWidthDp)")
+                    GridLayoutManager(recyclerView.context, columnCount)
                 } else {
                     Timber.d("updateDisplayMode: Using Linear for LIST mode (widthDp=$screenWidthDp)")
                     LinearLayoutManager(recyclerView.context)
@@ -89,9 +98,17 @@ class BrowseRecyclerViewManager(
                     iconSize.toFloat() + cardPaddingDp
                 }
                 
-                val spanCount = (screenWidthDp / itemWidthDp).toInt().coerceAtLeast(1)
+                // Calculate span count with minimum for tablets
+                val calculatedSpanCount = (screenWidthDp / itemWidthDp).toInt()
+                val spanCount = if (screenWidthDp >= 600f) {
+                    // Tablet: minimum 3 columns for better space utilization
+                    calculatedSpanCount.coerceAtLeast(3)
+                } else {
+                    // Phone: minimum 1 column
+                    calculatedSpanCount.coerceAtLeast(1)
+                }
                 
-                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, showThumbnails=$showVideoThumbnails, itemWidth=${itemWidthDp}dp, spanCount=$spanCount")
+                Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, showThumbnails=$showVideoThumbnails, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (calculated=$calculatedSpanCount)")
                 GridLayoutManager(recyclerView.context, spanCount)
             }
         }

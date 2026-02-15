@@ -1,14 +1,13 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.Context
-import android.content.Intent
 import android.view.LayoutInflater
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaResource
-import com.sza.fastmediasorter.ui.editresource.EditResourceActivity
+import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import timber.log.Timber
 
 /**
@@ -50,7 +49,7 @@ class ResourcePasswordManager(
     
     /**
      * Check PIN before editing resource.
-     * Opens EditResourceActivity on success.
+        * Opens ResourceEditorActivity on success.
      * 
      * @param resource The resource to edit
      */
@@ -60,10 +59,7 @@ class ResourcePasswordManager(
             correctPin = resource.accessPin ?: "",
             onSuccess = {
                 Timber.d("PIN validated for editing resource: ${resource.name}")
-                val intent = Intent(context, EditResourceActivity::class.java).apply {
-                    putExtra("resourceId", resource.id)
-                }
-                context.startActivity(intent)
+                context.startActivity(ResourceEditorActivity.createEditIntent(context, resource.id))
             }
         )
     }

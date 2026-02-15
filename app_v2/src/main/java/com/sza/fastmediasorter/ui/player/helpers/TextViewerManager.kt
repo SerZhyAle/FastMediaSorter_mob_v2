@@ -12,6 +12,9 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.utils.CharsetDetector
+import com.sza.fastmediasorter.utils.SyntaxHighlighter
+import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -21,8 +24,7 @@ import timber.log.Timber
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.utils.UserActionLogger
-import java.io.BufferedReader
-import java.io.InputStreamReader
+import java.nio.charset.Charset
 import kotlin.math.abs
 
 /**
@@ -61,11 +63,36 @@ class TextViewerManager(
         fun showTranslationSettingsDialog()
         fun exitFullscreenMode()
         fun setTouchZonesEnabled(enabled: Boolean)
+        fun showEncodingDialog()
     }
 
     private var currentFile: MediaFile? = null
+    private var currentLocalFile: java.io.File? = null
     private var translationEnabled = false
     private var isTranslationExpanded = false
+
+    // Paged reader
+    private var textFilePager: TextFilePager? = null
+    private var currentCharset: Charset = Charsets.UTF_8
+
+    // Markwon renderer (lazy init)
+    private val markwon: Markwon by lazy { Markwon.create(context) }
+    private var markdownRendered = true
+    private var syntaxHighlightingEnabled = true
+
+    // Reader theme
+    private var currentReaderTheme = TextReaderTheme.LIGHT
+
+    // TTS
+    private var ttsManager: TtsReadAloudManager? = null
+
+    // Editor: undo/redo + auto-save
+    private var undoRedoManager: TextUndoRedoManager? = null
+    private var autoSaveManager: TextEditorAutoSaveManager? = null
+
+    // Find & Replace state
+    private var findMatches = mutableListOf<IntRange>()
+    private var findCurrentIndex = -1
     
     // Dynamic font sizes (session-scoped, persist until user exits player)
     private var textFontSizeSp: Float = DEFAULT_TEXT_FONT_SIZE_SP
@@ -91,6 +118,20 @@ class TextViewerManager(
     fun setupControls() {
         // Setup gesture detectors for font size adjustment
         setupGestureDetectors()
+
+        // Page navigation buttons
+        safeViews.btnTextPagePrev.setOnClickListener {
+            UserActionLogger.logButtonClick("TextPagePrev", "TextViewerManager")
+            previousPage()
+        }
+        safeViews.btnTextPageNext.setOnClickListener {
+            UserActionLogger.logButtonClick("TextPageNext", "TextViewerManager")
+            nextPage()
+        }
+        // Long-press encoding indicator to re-open with different encoding
+        safeViews.tvTextEncodingIndicator.setOnClickListener {
+            callback.showEncodingDialog()
+        }
         
         // Close button for text viewer (OCR result or text file)
         safeViews.btnCloseTextViewer.setOnClickListener {
@@ -100,8 +141,10 @@ class TextViewerManager(
                 hideOcrText()
             } else {
                 // Text file - hide and exit fullscreen
+                closePager()
                 safeViews.textViewerContainer.isVisible = false
                 safeViews.textScrollView.isVisible = false
+                safeViews.textPageNavigation.isVisible = false
                 safeViews.tvTextContent.text = ""
                 currentFile = null
                 callback.exitFullscreenMode()
@@ -163,6 +206,9 @@ class TextViewerManager(
         safeViews.btnSaveText.setOnClickListener {
             saveEditedText()
         }
+
+        // Editor toolbar buttons
+        setupEditorToolbar()
         
         binding.btnTranslateTextCmd.setOnClickListener {
             toggleTranslation()
@@ -265,14 +311,25 @@ class TextViewerManager(
                         return false
                     }
                     
-                    // For regular text files, exit fullscreen only when at edge
+                    // For regular text files:
+                    // - Multi-page: navigate pages at edges
+                    // - Single page: exit fullscreen at edges
+                    val pager = textFilePager
                     if (diffY < 0 && isAtBottom) {
-                        // Swipe up from bottom = exit fullscreen
+                        if (pager != null && pager.hasNextPage()) {
+                            Timber.d("Text: Swipe up at bottom - next page")
+                            nextPage()
+                            return true
+                        }
                         Timber.d("Text: Swipe up at bottom - exit fullscreen")
                         callback.exitFullscreenMode()
                         return true
                     } else if (diffY > 0 && isAtTop) {
-                        // Swipe down from top = exit fullscreen
+                        if (pager != null && pager.hasPreviousPage()) {
+                            Timber.d("Text: Swipe down at top - previous page")
+                            previousPage()
+                            return true
+                        }
                         Timber.d("Text: Swipe down at top - exit fullscreen")
                         callback.exitFullscreenMode()
                         return true
@@ -433,6 +490,8 @@ class TextViewerManager(
     fun displayText(mediaFile: MediaFile, isWritable: Boolean) {
         currentFile = mediaFile
 
+        // Close previous pager
+        closePager()
 
         binding.imageView.isVisible = false
         binding.photoView.isVisible = false
@@ -498,66 +557,71 @@ class TextViewerManager(
                     return@launch
                 }
 
-                val appSettings = settingsRepository.getSettings().first()
-                val maxSize = appSettings.textSizeMax
-
-                if (file.length() > maxSize) {
+                // Check file size against maximum (100MB)
+                if (file.length() > TextFilePager.MAX_FILE_SIZE) {
+                    val fileSizeMb = "%.1f MB".format(file.length().toDouble() / (1024 * 1024))
+                    val maxSizeMb = "%.0f MB".format(TextFilePager.MAX_FILE_SIZE.toDouble() / (1024 * 1024))
                     withContext(Dispatchers.Main) {
                         binding.progressBar.isVisible = false
-                        safeViews.tvTextContent.text =
-                            "File too large to display directly (${file.length() / 1024} KB).\n" +
-                                "Max size: ${maxSize / 1024} KB.\n\n" +
-                                "Please open in external viewer."
+                        safeViews.tvTextContent.text = context.getString(R.string.text_file_too_large, fileSizeMb, maxSizeMb)
+                        safeViews.textPageNavigation.isVisible = false
                     }
                     return@launch
                 }
 
-                val text = StringBuilder()
-                try {
-                    // Use UTF-8 encoding for full Cyrillic and multi-charset support
-                    val lines = mutableListOf<String>()
-                    BufferedReader(InputStreamReader(file.inputStream(), Charsets.UTF_8)).use { reader ->
-                        var line = reader.readLine()
-                        while (line != null) {
-                            lines.add(line)
-                            line = reader.readLine()
-                        }
-                    }
-                    
-                    // Store original text without line numbers
-                    originalTextWithoutNumbers = lines.joinToString("\n")
-                    
-                    // Add line numbers if enabled in settings
-                    val showLineNumbers = settings.showTextLineNumbers
-                    if (showLineNumbers && lines.isNotEmpty()) {
-                        val maxLineNum = lines.size
-                        val numWidth = maxLineNum.toString().length
-                        
-                        lines.forEachIndexed { index, line ->
-                            val lineNum = (index + 1).toString().padStart(numWidth, ' ')
-                            text.append("$lineNum │ $line\n")
-                        }
-                    } else {
-                        // No line numbers - just join lines
-                        text.append(originalTextWithoutNumbers)
-                    }
-                } catch (e: Exception) {
-                    Timber.e(e, "Error reading text file")
-                    withContext(Dispatchers.Main) {
-                        safeViews.tvTextContent.text = "Error reading file: ${e.message}"
-                    }
-                }
+                // Detect charset
+                currentCharset = CharsetDetector.detect(file)
+                currentLocalFile = file
+
+                // Create pager and open file
+                val pager = TextFilePager(file, currentCharset)
+                pager.open()
+                textFilePager = pager
+
+                // Read first page
+                val pageText = pager.readPage(0)
+                originalTextWithoutNumbers = pageText
+
+                // Load H.2 rendering settings
+                markdownRendered = settings.markdownRendered
+                syntaxHighlightingEnabled = settings.syntaxHighlighting
+                currentReaderTheme = TextReaderTheme.fromName(settings.textReaderTheme)
+
+                val startLine = pager.getStartLineNumber(0)
 
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
-                    val finalString = text.toString()
-                    Timber.d("TextViewerManager: Displaying text, length=${finalString.length}")
-                    
-                    if (finalString.isEmpty()) {
-                        safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
+
+                    // Render with Markwon/syntax/theme support
+                    renderPageContent(pageText, settings.showTextLineNumbers, startLine)
+
+                    // Show/hide page navigation
+                    val multiPage = !pager.isSinglePage()
+                    safeViews.textPageNavigation.isVisible = multiPage
+                    if (multiPage) {
+                        updatePageIndicator()
+                        // Add bottom padding to ScrollView so page bar doesn't cover content
+                        safeViews.textScrollView.setPadding(
+                            safeViews.textScrollView.paddingLeft,
+                            safeViews.textScrollView.paddingTop,
+                            safeViews.textScrollView.paddingRight,
+                            (48 * context.resources.displayMetrics.density).toInt()
+                        )
+                        // Disable edit for multi-page files
+                        binding.btnEditTextCmd.isVisible = false
                     } else {
-                        safeViews.tvTextContent.text = finalString
+                        safeViews.textScrollView.setPadding(
+                            safeViews.textScrollView.paddingLeft,
+                            safeViews.textScrollView.paddingTop,
+                            safeViews.textScrollView.paddingRight,
+                            0
+                        )
                     }
+
+                    // Show encoding indicator
+                    safeViews.tvTextEncodingIndicator.text = currentCharset.name()
+
+                    Timber.d("TextViewerManager: Displaying page 0, ${pageText.length} chars, charset=$currentCharset")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
@@ -569,11 +633,513 @@ class TextViewerManager(
         }
     }
 
+    /**
+     * Apply line numbers to text content.
+     * @param text Raw text content
+     * @param showLineNumbers Whether to add line numbers
+     * @param startLineNumber Starting line number (1-based)
+     * @return Text with or without line numbers
+     */
+    private fun applyLineNumbers(text: String, showLineNumbers: Boolean, startLineNumber: Int): String {
+        if (!showLineNumbers || text.isEmpty()) return text
+
+        val lines = text.lines()
+        val maxLineNum = startLineNumber + lines.size - 1
+        val numWidth = maxLineNum.toString().length
+
+        return lines.mapIndexed { index, line ->
+            val lineNum = (startLineNumber + index).toString().padStart(numWidth, ' ')
+            "$lineNum │ $line"
+        }.joinToString("\n")
+    }
+
+    /**
+     * Navigate to next page
+     */
+    fun nextPage() {
+        val pager = textFilePager ?: return
+        if (!pager.hasNextPage()) return
+
+        // Stop TTS when changing pages
+        ttsManager?.stop()
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(pager.currentPage + 1)
+            originalTextWithoutNumbers = pageText
+
+            val settings = settingsRepository.getSettings().first()
+            val startLine = pager.getStartLineNumber(pager.currentPage)
+
+            withContext(Dispatchers.Main) {
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
+                safeViews.textScrollView.scrollTo(0, 0)
+                updatePageIndicator()
+            }
+        }
+    }
+
+    /**
+     * Navigate to previous page
+     */
+    fun previousPage() {
+        val pager = textFilePager ?: return
+        if (!pager.hasPreviousPage()) return
+
+        // Stop TTS when changing pages
+        ttsManager?.stop()
+
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(pager.currentPage - 1)
+            originalTextWithoutNumbers = pageText
+
+            val settings = settingsRepository.getSettings().first()
+            val startLine = pager.getStartLineNumber(pager.currentPage)
+
+            withContext(Dispatchers.Main) {
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
+                safeViews.textScrollView.scrollTo(0, 0)
+                updatePageIndicator()
+            }
+        }
+    }
+
+    /**
+     * Reopen current file with a different encoding
+     */
+    fun reopenWithEncoding(charset: Charset) {
+        val file = currentLocalFile ?: return
+        currentFile ?: return
+
+        closePager()
+        currentCharset = charset
+
+        try {
+            val pager = TextFilePager(file, charset)
+            pager.open()
+            textFilePager = pager
+        } catch (e: Exception) {
+            Timber.e(e, "TextViewerManager: Failed to reopen with charset=$charset")
+            callback.showError("Error reopening file: ${e.message}")
+            return
+        }
+
+        val activePager = textFilePager ?: return
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = activePager.readPage(0)
+            originalTextWithoutNumbers = pageText
+
+            val settings = settingsRepository.getSettings().first()
+            val startLine = activePager.getStartLineNumber(0)
+
+            withContext(Dispatchers.Main) {
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
+                safeViews.textScrollView.scrollTo(0, 0)
+                safeViews.tvTextEncodingIndicator.text = charset.name()
+                updatePageIndicator()
+                Timber.d("TextViewerManager: Re-opened with charset=$charset")
+            }
+        }
+    }
+
+    /**
+     * Get the list of supported charsets for the encoding picker
+     */
+    fun getSupportedCharsets(): List<Pair<String, Charset>> = CharsetDetector.SUPPORTED_CHARSETS
+
+    /**
+     * Get current charset name for display
+     */
+    fun getCurrentCharsetName(): String = currentCharset.name()
+
+    /**
+     * Update page indicator and navigation button states
+     */
+    private fun updatePageIndicator() {
+        val pager = textFilePager ?: return
+        val current = pager.currentPage + 1
+        val total = pager.getEstimatedPageCount()
+
+        val indicatorText = if (pager.isFullyIndexed()) {
+            context.getString(R.string.text_page_indicator, current, total)
+        } else {
+            context.getString(R.string.text_page_indicator_estimated, current, total)
+        }
+        safeViews.tvTextPageIndicator.text = indicatorText
+        safeViews.btnTextPagePrev.isEnabled = pager.hasPreviousPage()
+        safeViews.btnTextPageNext.isEnabled = pager.hasNextPage()
+        safeViews.btnTextPagePrev.alpha = if (pager.hasPreviousPage()) 1f else 0.3f
+        safeViews.btnTextPageNext.alpha = if (pager.hasNextPage()) 1f else 0.3f
+    }
+
+    /**
+     * Close the current TextFilePager and release resources
+     */
+    private fun closePager() {
+        textFilePager?.close()
+        textFilePager = null
+        currentLocalFile = null
+    }
+
+    /**
+     * Release all resources. Call from Activity onDestroy.
+     */
+    fun release() {
+        closePager()
+        ttsManager?.release()
+        ttsManager = null
+        undoRedoManager?.detach()
+        undoRedoManager = null
+        autoSaveManager?.stopAutoSave()
+        autoSaveManager = null
+    }
+
+    // ===== H.2: Rich rendering & reader UI methods =====
+
+    /**
+     * Toggle markdown rendering for .md files.
+     * Switches between raw text and Markwon-rendered view, then reloads current page.
+     */
+    fun toggleMarkdownRendering() {
+        markdownRendered = !markdownRendered
+        coroutineScope.launch(Dispatchers.IO) {
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(markdownRendered = markdownRendered))
+        }
+        reloadCurrentPage()
+        Timber.d("TextViewerManager: Markdown rendering toggled to $markdownRendered")
+    }
+
+    /**
+     * Apply reader theme (background & text color) to the text viewer.
+     * Saves preference to settings.
+     */
+    fun applyReaderTheme(theme: TextReaderTheme) {
+        currentReaderTheme = theme
+        coroutineScope.launch(Dispatchers.IO) {
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(textReaderTheme = theme.name))
+        }
+        applyThemeToViews()
+        Timber.d("TextViewerManager: Reader theme changed to ${theme.name}")
+    }
+
+    /**
+     * Get current reader theme.
+     */
+    fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
+
+    /**
+     * Toggle TTS read-aloud for current page text.
+     */
+    fun toggleReadAloud() {
+        if (ttsManager == null) {
+            ttsManager = TtsReadAloudManager(context) { state ->
+                Timber.d("TextViewerManager: TTS state changed to $state")
+            }
+        }
+        ttsManager?.toggle(originalTextWithoutNumbers)
+    }
+
+    /**
+     * Check if current file is a markdown file.
+     */
+    private fun isMarkdownFile(): Boolean {
+        val ext = currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
+        return ext == "md" || ext == "markdown" || ext == "mdown"
+    }
+
+    /**
+     * Get file extension for syntax highlighting.
+     */
+    private fun getFileExtension(): String {
+        return currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
+    }
+
+    /**
+     * Apply current theme colors to text viewer views.
+     */
+    private fun applyThemeToViews() {
+        safeViews.tvTextContent.setBackgroundColor(currentReaderTheme.bgColor)
+        safeViews.tvTextContent.setTextColor(currentReaderTheme.textColor)
+        safeViews.textScrollView.setBackgroundColor(currentReaderTheme.bgColor)
+    }
+
+    /**
+     * Render page content with Markwon, syntax highlighting, and theme applied.
+     * @param pageText Raw page text (without line numbers)
+     * @param showLineNumbers Whether to apply line numbers
+     * @param startLineNumber Starting line number for this page
+     */
+    private fun renderPageContent(pageText: String, showLineNumbers: Boolean, startLineNumber: Int) {
+        if (pageText.isEmpty()) {
+            safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
+            return
+        }
+
+        val ext = getFileExtension()
+
+        // 1. Markdown rendering (raw text, no line numbers)
+        if (isMarkdownFile() && markdownRendered) {
+            markwon.setMarkdown(safeViews.tvTextContent, pageText)
+            applyThemeToViews()
+            return
+        }
+
+        // 2. Syntax highlighting for code files
+        if (syntaxHighlightingEnabled && SyntaxHighlighter.isSupported(ext)) {
+            val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
+            val highlighted = SyntaxHighlighter.highlight(displayText, ext)
+            if (highlighted != null) {
+                safeViews.tvTextContent.text = highlighted
+                applyThemeToViews()
+                return
+            }
+        }
+
+        // 3. Plain text with line numbers
+        val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
+        safeViews.tvTextContent.text = displayText
+        applyThemeToViews()
+    }
+
+    /**
+     * Reload the current page with updated rendering settings.
+     */
+    private fun reloadCurrentPage() {
+        val pager = textFilePager ?: return
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(pager.currentPage)
+            originalTextWithoutNumbers = pageText
+            val settings = settingsRepository.getSettings().first()
+            val startLine = pager.getStartLineNumber(pager.currentPage)
+            withContext(Dispatchers.Main) {
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
+            }
+        }
+    }
+
+    // ===== H.3: Editor toolbar, find & replace, cursor position =====
+
+    /**
+     * Setup editor toolbar buttons (undo/redo/find/find-replace)
+     */
+    private fun setupEditorToolbar() {
+        safeViews.btnUndo.setOnClickListener {
+            undoRedoManager?.undo()
+        }
+        safeViews.btnRedo.setOnClickListener {
+            undoRedoManager?.redo()
+        }
+        safeViews.btnEditorFind.setOnClickListener {
+            showFindPanel(withReplace = false)
+        }
+        safeViews.btnEditorFindReplace.setOnClickListener {
+            showFindPanel(withReplace = true)
+        }
+
+        // Find panel buttons
+        safeViews.btnFindClose.setOnClickListener { closeFindPanel() }
+        safeViews.btnFindNext.setOnClickListener { navigateFind(forward = true) }
+        safeViews.btnFindPrev.setOnClickListener { navigateFind(forward = false) }
+        safeViews.btnReplace.setOnClickListener { replaceCurrent() }
+        safeViews.btnReplaceAll.setOnClickListener { replaceAll() }
+
+        // Live search on query text change
+        safeViews.etFindQuery.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable) {
+                performFindInEditor(s.toString())
+            }
+        })
+    }
+
+    /**
+     * Track cursor line/column in EditText and update status bar.
+     */
+    private fun setupCursorPositionTracking() {
+        safeViews.etTextContent.setAccessibilityDelegate(null)
+        safeViews.etTextContent.post {
+            updateCursorPosition()
+        }
+        safeViews.etTextContent.setOnClickListener { updateCursorPosition() }
+        safeViews.etTextContent.accessibilityLiveRegion = android.view.View.ACCESSIBILITY_LIVE_REGION_NONE
+    }
+
+    private fun updateCursorPosition() {
+        val text = safeViews.etTextContent.text ?: return
+        val pos = safeViews.etTextContent.selectionStart.coerceIn(0, text.length)
+        val textBefore = text.subSequence(0, pos)
+        val line = textBefore.count { it == '\n' } + 1
+        val lastNewline = textBefore.lastIndexOf('\n')
+        val col = if (lastNewline >= 0) pos - lastNewline else pos + 1
+        safeViews.tvEditorCursorPos.text = context.getString(R.string.cursor_position, line, col)
+    }
+
+    /**
+     * Show the find (and optionally replace) panel.
+     */
+    private fun showFindPanel(withReplace: Boolean) {
+        safeViews.textFindReplacePanel.isVisible = true
+        safeViews.replaceRow.isVisible = withReplace
+        safeViews.etFindQuery.requestFocus()
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(safeViews.etFindQuery, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    /**
+     * Close find/replace panel and clear highlights.
+     */
+    private fun closeFindPanel() {
+        safeViews.textFindReplacePanel.isVisible = false
+        safeViews.etFindQuery.setText("")
+        safeViews.etReplaceQuery.setText("")
+        safeViews.tvFindCounter.text = ""
+        findMatches.clear()
+        findCurrentIndex = -1
+        // Remove highlight spans
+        clearEditorHighlights()
+    }
+
+    /**
+     * Find all occurrences of query in the EditText content.
+     */
+    private fun performFindInEditor(query: String) {
+        findMatches.clear()
+        findCurrentIndex = -1
+        clearEditorHighlights()
+
+        if (query.isEmpty()) {
+            safeViews.tvFindCounter.text = ""
+            return
+        }
+
+        val text = safeViews.etTextContent.text?.toString() ?: return
+        val lowerQuery = query.lowercase()
+        val lowerText = text.lowercase()
+
+        var startIndex = 0
+        while (true) {
+            val found = lowerText.indexOf(lowerQuery, startIndex)
+            if (found < 0) break
+            findMatches.add(found until found + query.length)
+            startIndex = found + 1
+        }
+
+        if (findMatches.isEmpty()) {
+            safeViews.tvFindCounter.text = context.getString(R.string.find_no_results)
+        } else {
+            findCurrentIndex = 0
+            highlightFindMatch()
+            updateFindCounter()
+        }
+    }
+
+    /**
+     * Navigate to next/previous find match.
+     */
+    private fun navigateFind(forward: Boolean) {
+        if (findMatches.isEmpty()) return
+        findCurrentIndex = if (forward) {
+            (findCurrentIndex + 1) % findMatches.size
+        } else {
+            (findCurrentIndex - 1 + findMatches.size) % findMatches.size
+        }
+        highlightFindMatch()
+        updateFindCounter()
+    }
+
+    /**
+     * Highlight current find match in EditText by selecting it.
+     */
+    private fun highlightFindMatch() {
+        if (findCurrentIndex < 0 || findCurrentIndex >= findMatches.size) return
+        val range = findMatches[findCurrentIndex]
+        val editText = safeViews.etTextContent
+        editText.setSelection(range.first.coerceAtMost(editText.text.length), range.last.coerceAtMost(editText.text.length))
+        // Scroll to selection
+        val layout = editText.layout ?: return
+        val line = layout.getLineForOffset(range.first)
+        val y = layout.getLineTop(line)
+        (editText.parent as? android.widget.ScrollView)?.smoothScrollTo(0, y)
+    }
+
+    private fun updateFindCounter() {
+        if (findMatches.isEmpty()) {
+            safeViews.tvFindCounter.text = context.getString(R.string.find_no_results)
+        } else {
+            safeViews.tvFindCounter.text = context.getString(R.string.find_counter, findCurrentIndex + 1, findMatches.size)
+        }
+    }
+
+    /**
+     * Replace current match with replacement text.
+     */
+    private fun replaceCurrent() {
+        if (findCurrentIndex < 0 || findCurrentIndex >= findMatches.size) return
+        val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
+        val range = findMatches[findCurrentIndex]
+        val editable = safeViews.etTextContent.text ?: return
+
+        editable.replace(range.first, range.last, replacement)
+
+        // Re-run find to update matches after replacement
+        performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
+    }
+
+    /**
+     * Replace all matches.
+     */
+    private fun replaceAll() {
+        if (findMatches.isEmpty()) return
+        val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
+        val editable = safeViews.etTextContent.text ?: return
+        val count = findMatches.size
+
+        // Replace in reverse order to preserve indices
+        for (range in findMatches.asReversed()) {
+            editable.replace(range.first, range.last, replacement)
+        }
+
+        Toast.makeText(context, context.getString(R.string.replaced_n_occurrences, count), Toast.LENGTH_SHORT).show()
+        performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
+    }
+
+    /**
+     * Clear any find-highlight spans from EditText.
+     */
+    private fun clearEditorHighlights() {
+        // With selection-based highlighting, just deselect
+        val et = safeViews.etTextContent
+        if (et.hasSelection()) {
+            et.setSelection(et.selectionEnd)
+        }
+    }
+
     private fun enterEditMode() {
+        val pager = textFilePager
+        if (pager != null && !pager.isSinglePage()) {
+            Toast.makeText(context, R.string.text_editing_large_file, Toast.LENGTH_SHORT).show()
+            return
+        }
+
         // Use original text without line numbers for editing
-        val textToEdit = originalTextWithoutNumbers.ifBlank { 
+        var textToEdit = originalTextWithoutNumbers.ifBlank { 
             safeViews.tvTextContent.text.toString() 
         }
+
+        // Check for auto-save draft
+        val filePath = currentFile?.path ?: ""
+        if (autoSaveManager == null) {
+            val tempDir = java.io.File(context.filesDir.parentFile, "temp")
+            autoSaveManager = TextEditorAutoSaveManager(tempDir, coroutineScope)
+        }
+        val draft = autoSaveManager?.restoreDraft(filePath)
+        if (draft != null && draft != textToEdit) {
+            textToEdit = draft
+            Toast.makeText(context, R.string.draft_restored, Toast.LENGTH_LONG).show()
+        }
+
         safeViews.etTextContent.setText(textToEdit)
 
         safeViews.textScrollView.isVisible = false
@@ -585,6 +1151,24 @@ class TextViewerManager(
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
 
+        // Detach previous undo/redo manager if exists (M-10 fix)
+        undoRedoManager?.detach()
+        
+        // Attach undo/redo
+        undoRedoManager = TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
+            safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
+            safeViews.btnUndo.isEnabled = canUndo
+            safeViews.btnRedo.alpha = if (canRedo) 1f else 0.3f
+            safeViews.btnRedo.isEnabled = canRedo
+        }
+        undoRedoManager?.attach()
+
+        // Start auto-save
+        autoSaveManager?.startAutoSave(safeViews.etTextContent, filePath)
+
+        // Setup cursor position tracking
+        setupCursorPositionTracking()
+
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
     }
@@ -592,6 +1176,14 @@ class TextViewerManager(
     private fun exitEditMode() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
+
+        // Detach undo/redo and stop auto-save
+        undoRedoManager?.detach()
+        undoRedoManager = null
+        autoSaveManager?.stopAutoSave()
+
+        // Close find panel if open
+        closeFindPanel()
 
         safeViews.textEditContainer.isVisible = false
         safeViews.textScrollView.isVisible = true
@@ -644,20 +1236,17 @@ class TextViewerManager(
                     binding.progressBar.isVisible = false
                     // Update original text and re-display with line numbers if enabled
                     originalTextWithoutNumbers = newText
+                }
                     
-                    val settings = settingsRepository.getSettings().first()
-                    if (settings.showTextLineNumbers && newText.isNotBlank()) {
-                        val lines = newText.lines()
-                        val maxLineNum = lines.size
-                        val numWidth = maxLineNum.toString().length
-                        val numberedText = lines.mapIndexed { index, line ->
-                            val lineNum = (index + 1).toString().padStart(numWidth, ' ')
-                            "$lineNum │ $line"
-                        }.joinToString("\n")
-                        safeViews.tvTextContent.text = numberedText
-                    } else {
-                        safeViews.tvTextContent.text = newText
-                    }
+                // Read settings on IO, not Main (C-3 fix)
+                val settings = settingsRepository.getSettings().first()
+                
+                withContext(Dispatchers.Main) {
+                    val displayText = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
+                    safeViews.tvTextContent.text = displayText
+
+                    // Delete auto-save draft after successful save
+                    autoSaveManager?.stopAutoSave(deleteDraft = true)
                     
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()

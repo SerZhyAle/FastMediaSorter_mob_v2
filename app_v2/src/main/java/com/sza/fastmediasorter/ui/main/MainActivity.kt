@@ -24,8 +24,8 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
-import com.sza.fastmediasorter.ui.editresource.EditResourceActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
@@ -172,10 +172,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 if (!resource.accessPin.isNullOrBlank()) {
                     passwordManager.checkResourcePinForEdit(resource)
                 } else {
-                    val intent = Intent(this, EditResourceActivity::class.java).apply {
-                        putExtra("resourceId", resource.id)
-                    }
-                    startActivity(intent)
+                    startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
                 }
             },
             onEditClick = { resource ->
@@ -183,10 +180,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 if (!resource.accessPin.isNullOrBlank()) {
                     passwordManager.checkResourcePinForEdit(resource)
                 } else {
-                    val intent = Intent(this, EditResourceActivity::class.java).apply {
-                        putExtra("resourceId", resource.id)
-                    }
-                    startActivity(intent)
+                    startActivity(ResourceEditorActivity.createEditIntent(this, resource.id))
                 }
             },
             onCopyFromClick = { resource ->
@@ -456,17 +450,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             if (resource != null && !resource.accessPin.isNullOrBlank()) {
                                 passwordManager.checkResourcePinForEdit(resource)
                             } else {
-                                val intent = Intent(this@MainActivity, EditResourceActivity::class.java).apply {
-                                    putExtra("resourceId", event.resourceId)
-                                }
-                                startActivity(intent)
+                                startActivity(ResourceEditorActivity.createEditIntent(this@MainActivity, event.resourceId))
                             }
                         }
                         is MainEvent.NavigateToAddResource -> {
                             startActivity(AddResourceActivity.createIntent(this@MainActivity, preselectedTab = event.preselectedTab))
                         }
                         is MainEvent.NavigateToAddResourceCopy -> {
-                            startActivity(AddResourceActivity.createIntent(this@MainActivity, event.copyResourceId))
+                            startActivity(ResourceEditorActivity.createCopyIntent(this@MainActivity, event.copyResourceId))
                         }
                         MainEvent.NavigateToSettings -> {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))

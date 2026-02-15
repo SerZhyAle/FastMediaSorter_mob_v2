@@ -1,0 +1,70 @@
+package com.sza.fastmediasorter.domain.strategy
+
+import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
+import com.sza.fastmediasorter.domain.model.ResourceErrorCode
+import com.sza.fastmediasorter.domain.model.ResourceFieldKey
+import com.sza.fastmediasorter.domain.model.ResourceFormData
+import com.sza.fastmediasorter.domain.model.ResourceValidationResult
+
+class SmbResourceStrategy(
+    private val connectionTester: (suspend (ResourceFormData) -> ResourceConnectionTestResult)? = null
+) : ResourceStrategy {
+
+    override fun validate(formData: ResourceFormData): ResourceValidationResult {
+        val errors = mutableMapOf<ResourceFieldKey, ResourceErrorCode>()
+
+        if (formData.name.isBlank()) {
+            errors[ResourceFieldKey.NAME] = ResourceErrorCode.EMPTY
+        }
+        if (formData.host.isBlank()) {
+            errors[ResourceFieldKey.HOST] = ResourceErrorCode.EMPTY
+        }
+        if (formData.path.isBlank()) {
+            errors[ResourceFieldKey.PATH] = ResourceErrorCode.EMPTY
+        }
+        if (formData.port != null && formData.port !in 1..65535) {
+            errors[ResourceFieldKey.PORT] = ResourceErrorCode.OUT_OF_RANGE
+        }
+
+        return if (errors.isEmpty()) {
+            ResourceValidationResult.valid()
+        } else {
+            ResourceValidationResult.invalid(fieldErrors = errors)
+        }
+    }
+
+    override suspend fun testConnection(formData: ResourceFormData): ResourceConnectionTestResult {
+        val tester = connectionTester
+            ?: return ResourceConnectionTestResult(
+                status = com.sza.fastmediasorter.domain.model.ResourceConnectionStatus.NOT_SUPPORTED,
+                diagnosticMessage = "SMB connection tester is not configured"
+            )
+        return tester(formData)
+    }
+
+    override fun normalizeBeforeSave(formData: ResourceFormData): ResourceFormData {
+        val normalizedHost = formData.host.trim().replace(',', '.')
+        val normalizedSharePath = formData.path
+            .trim()
+            .replace('\\', '/')
+            .trim('/')
+
+        return formData.copy(
+            name = formData.name.trim(),
+            host = normalizedHost,
+            path = normalizedSharePath,
+            port = formData.port ?: 445
+        )
+    }
+
+    override fun fieldSchema(): List<ResourceFieldSchema> {
+        return listOf(
+            ResourceFieldSchema(ResourceFieldKey.NAME, required = true),
+            ResourceFieldSchema(ResourceFieldKey.HOST, required = true),
+            ResourceFieldSchema(ResourceFieldKey.PORT, required = false),
+            ResourceFieldSchema(ResourceFieldKey.PATH, required = true),
+            ResourceFieldSchema(ResourceFieldKey.USERNAME, required = false),
+            ResourceFieldSchema(ResourceFieldKey.PASSWORD, required = false)
+        )
+    }
+}

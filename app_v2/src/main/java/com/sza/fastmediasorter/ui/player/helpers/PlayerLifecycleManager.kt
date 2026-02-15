@@ -82,6 +82,13 @@ class PlayerLifecycleManager(
         
         // Clear expired undo operations (5 minutes timeout)
         viewModel.clearExpiredUndoOperation()
+        
+        // Resume image renderer (resumes prefetch operations)
+        try {
+            activity.imageLoadingManager.onResume()
+        } catch (e: UninitializedPropertyAccessException) {
+            // imageLoadingManager not yet initialized
+        }
     }
     
     /**
@@ -108,6 +115,13 @@ class PlayerLifecycleManager(
         // VideoPlayerManager handles its own pause/resume
         // SlideshowController observes lifecycle automatically
         Timber.d("PlayerLifecycleManager.onPause")
+        
+        // Pause image renderer (stops prefetch operations)
+        try {
+            activity.imageLoadingManager.onPause()
+        } catch (e: UninitializedPropertyAccessException) {
+            // imageLoadingManager not yet initialized
+        }
     }
     
     /**

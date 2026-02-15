@@ -112,6 +112,22 @@ class DestinationsSettingsFragment : Fragment() {
         binding.btnAddDestination.setOnClickListener {
             showAddDestinationDialog()
         }
+
+        binding.btnResetDestinationsSection.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.reset_destinations_section_title)
+                .setMessage(R.string.reset_destinations_section_message)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    viewModel.resetDestinationsSection()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.reset_destinations_section_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
         
         // Max Recipients
         val maxRecipientsOptions = arrayOf("5", "10", "15", "20", "25", "30")

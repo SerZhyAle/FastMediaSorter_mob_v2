@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -61,6 +62,7 @@ class EpubViewerManager(
     private var currentFontSize: Int = 18
     private val MIN_FONT_SIZE = 6
     private val MAX_FONT_SIZE = 144 // Increased max size for "HUGE" setting
+    private val MAX_SEARCH_RESULTS = 500 // Limit cross-chapter search results to prevent OOM (M-3 fix)
     
     // Translation font size (separate from EPUB font size)
     private var translationFontSize: Int = 16
@@ -70,11 +72,19 @@ class EpubViewerManager(
     // Font family for EPUB content (loaded from settings)
     private var currentFontFamily: String = "Georgia, serif"
     
+    // Reader style settings (loaded from AppSettings)
+    private var currentReaderTheme: EpubStyleManager.ReaderTheme = EpubStyleManager.ReaderTheme.LIGHT
+    private var currentLineHeight: Float = 1.6f
+    private var currentHorizontalMargin: Int = 16
+    
     // Translation state
     private var translationEnabled = false
     
     // Fullscreen mode state
     private var isFullscreenMode = false
+    
+    // Settings loading gate — await before first chapter render (C-3 fix)
+    private val settingsReady = CompletableDeferred<Unit>()
     
     // WebView for HTML rendering
     private var webView: WebView? = null
@@ -116,6 +126,14 @@ class EpubViewerManager(
             } else {
                 currentFontFamily = "sans-serif"
             }
+            
+            // Load reader style settings
+            currentReaderTheme = EpubStyleManager.ReaderTheme.fromName(settings.textReaderTheme)
+            currentLineHeight = settings.epubLineHeight
+            currentHorizontalMargin = settings.epubHorizontalMargin
+            
+            // Signal that settings are loaded (C-3 fix)
+            settingsReady.complete(Unit)
         }
         
         // Initialize swipe gesture detector for chapter navigation and font size control
@@ -584,6 +602,9 @@ class EpubViewerManager(
      * Show specific chapter by index
      */
     private suspend fun showChapter(chapterIndex: Int) {
+        // Wait for settings to be loaded before first render (C-3 fix)
+        settingsReady.await()
+        
         val book = currentBook ?: return
         val spine = book.spine
         
@@ -658,54 +679,20 @@ class EpubViewerManager(
      * Preprocess HTML content: inject custom CSS, sync theme, handle images
      */
     private suspend fun preprocessHtml(htmlContent: String, resource: Resource): String {
-        // Detect system dark mode
-        val context = binding.root.context
-        val nightModeFlags = context.resources.configuration.uiMode and android.content.res.Configuration.UI_MODE_NIGHT_MASK
-        val isDarkTheme = nightModeFlags == android.content.res.Configuration.UI_MODE_NIGHT_YES
-        
         // Parse HTML with jsoup
         val doc = Jsoup.parse(htmlContent)
         
-        // Inject custom CSS for theming
-        val css = buildString {
-            append("<style type='text/css'>")
-            
-            // Base styles
-            append("body {")
-            if (isDarkTheme) {
-                append("background-color: #1E1E1E; color: #E0E0E0;")
-            } else {
-                append("background-color: #FFFFFF; color: #000000;")
-            }
-            append("font-family: $currentFontFamily;")
-            append("font-size: ${currentFontSize}px;")
-            append("line-height: 1.6;")
-            append("padding: 16px;")
-            append("margin: 0;")
-            append("}")
-            
-            // Link colors
-            append("a {")
-            if (isDarkTheme) {
-                append("color: #64B5F6;")
-            } else {
-                append("color: #1976D2;")
-            }
-            append("}")
-            
-            // Image handling - preserve aspect ratio, center alignment
-            append("img {")
-            append("max-width: 100%;")
-            append("max-height: 100vh;")
-            append("width: auto;")
-            append("height: auto;")
-            append("object-fit: contain;")
-            append("display: block;")
-            append("margin: 16px auto;")
-            append("}")
-            
-            append("</style>")
-        }
+        // Remove script tags to prevent XSS from untrusted EPUB content (M-6 fix)
+        doc.select("script").remove()
+        
+        // Generate CSS via EpubStyleManager using current settings
+        val css = EpubStyleManager.generateCss(
+            theme = currentReaderTheme,
+            fontSizePx = currentFontSize,
+            fontFamily = currentFontFamily,
+            lineHeight = currentLineHeight,
+            horizontalPaddingPx = currentHorizontalMargin
+        )
         
         doc.head().prepend(css)
         
@@ -1147,6 +1134,146 @@ class EpubViewerManager(
     }
     
     /**
+     * Show reader settings dialog: theme, font, font size, line height, margin.
+     * Changes are applied immediately and persisted to AppSettings.
+     */
+    fun showReaderSettingsDialog() {
+        val context = binding.root.context
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.dialog_epub_reader_settings, null)
+        
+        // Snapshot current values for Cancel rollback (C-1 fix)
+        var pendingTheme = currentReaderTheme
+        var pendingFontFamily = currentFontFamily
+        var pendingFontSize = currentFontSize
+        
+        // Theme chips
+        val chipLight = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipLight)
+        val chipDark = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipDark)
+        val chipSepia = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipSepia)
+        val chipOled = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipOled)
+        
+        // Font chips
+        val chipSerif = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipSerif)
+        val chipSansSerif = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipSansSerif)
+        val chipMonospace = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipMonospace)
+        
+        // Font size controls
+        val btnFontDecrease = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnFontDecrease)
+        val btnFontIncrease = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnFontIncrease)
+        val tvFontSizeValue = view.findViewById<android.widget.TextView>(R.id.tvFontSizeValue)
+        
+        // Sliders
+        val sliderLineHeight = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderLineHeight)
+        val sliderMargin = view.findViewById<com.google.android.material.slider.Slider>(R.id.sliderMargin)
+        
+        // Set current values
+        when (currentReaderTheme) {
+            EpubStyleManager.ReaderTheme.LIGHT -> chipLight.isChecked = true
+            EpubStyleManager.ReaderTheme.DARK -> chipDark.isChecked = true
+            EpubStyleManager.ReaderTheme.SEPIA -> chipSepia.isChecked = true
+            EpubStyleManager.ReaderTheme.OLED_BLACK -> chipOled.isChecked = true
+        }
+        
+        when {
+            currentFontFamily.contains("serif", ignoreCase = true) && 
+                !currentFontFamily.contains("sans", ignoreCase = true) -> chipSerif.isChecked = true
+            currentFontFamily.contains("monospace", ignoreCase = true) -> chipMonospace.isChecked = true
+            else -> chipSansSerif.isChecked = true
+        }
+        
+        tvFontSizeValue.text = currentFontSize.toString()
+        sliderLineHeight.value = currentLineHeight.coerceIn(1.0f, 3.0f)
+        sliderMargin.value = currentHorizontalMargin.toFloat().coerceIn(0f, 48f)
+        
+        // Theme chip listeners — write to local pending vars, not to class fields (C-1 fix)
+        val chipGroupTheme = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupTheme)
+        chipGroupTheme.setOnCheckedStateChangeListener { _, checkedIds ->
+            pendingTheme = when {
+                checkedIds.contains(R.id.chipLight) -> EpubStyleManager.ReaderTheme.LIGHT
+                checkedIds.contains(R.id.chipDark) -> EpubStyleManager.ReaderTheme.DARK
+                checkedIds.contains(R.id.chipSepia) -> EpubStyleManager.ReaderTheme.SEPIA
+                checkedIds.contains(R.id.chipOled) -> EpubStyleManager.ReaderTheme.OLED_BLACK
+                else -> pendingTheme
+            }
+        }
+        
+        // Font chip listeners — write to local pending vars (C-1 fix)
+        val chipGroupFont = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupFont)
+        chipGroupFont.setOnCheckedStateChangeListener { _, checkedIds ->
+            pendingFontFamily = when {
+                checkedIds.contains(R.id.chipSerif) -> "Georgia, serif"
+                checkedIds.contains(R.id.chipMonospace) -> "Courier New, monospace"
+                else -> "sans-serif"
+            }
+        }
+        
+        // Font size buttons — use pending var (C-1 fix)
+        btnFontDecrease.setOnClickListener {
+            if (pendingFontSize > MIN_FONT_SIZE) {
+                pendingFontSize -= 2
+                tvFontSizeValue.text = pendingFontSize.toString()
+            }
+        }
+        btnFontIncrease.setOnClickListener {
+            if (pendingFontSize < MAX_FONT_SIZE) {
+                pendingFontSize += 2
+                tvFontSizeValue.text = pendingFontSize.toString()
+            }
+        }
+        
+        // Show dialog
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(context)
+            .setTitle(R.string.epub_reader_settings)
+            .setView(view)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                // Apply pending values to class fields on OK (C-1 fix)
+                currentReaderTheme = pendingTheme
+                currentFontFamily = pendingFontFamily
+                currentFontSize = pendingFontSize
+                
+                // Apply slider values
+                currentLineHeight = sliderLineHeight.value
+                currentHorizontalMargin = sliderMargin.value.toInt()
+                
+                // Save all settings
+                saveFontSize()
+                saveReaderSettings()
+                
+                // Reload chapter with new styles
+                reloadCurrentChapter()
+                
+                Timber.d("EPUB: Reader settings applied — theme=${currentReaderTheme.name}, font=$currentFontFamily, size=$currentFontSize, lh=$currentLineHeight, margin=$currentHorizontalMargin")
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+    
+    /**
+     * Persist reader style settings to AppSettings via repository.
+     */
+    private fun saveReaderSettings() {
+        coroutineScope.launch {
+            val current = settingsRepository.getSettings().first()
+            // Map fontFamily CSS value back to AppSettings key (M-7 fix: persist font choice)
+            val fontFamilySetting = when {
+                currentFontFamily.contains("monospace", ignoreCase = true) -> "MONOSPACE"
+                currentFontFamily.contains("serif", ignoreCase = true) && 
+                    !currentFontFamily.contains("sans", ignoreCase = true) -> "SERIF"
+                else -> "DEFAULT"
+            }
+            settingsRepository.updateSettings(
+                current.copy(
+                    textReaderTheme = currentReaderTheme.name,
+                    epubLineHeight = currentLineHeight,
+                    epubHorizontalMargin = currentHorizontalMargin,
+                    ocrDefaultFontFamily = fontFamilySetting
+                )
+            )
+        }
+    }
+
+    /**
      * Show Table of Contents dialog for quick chapter navigation
      */
     fun showTableOfContents() {
@@ -1181,32 +1308,42 @@ class EpubViewerManager(
             return
         }
         
-        // Create styled chapter titles (with bullet points and link color)
-        val chapterTitles = chapters.map { 
-            val spannable = android.text.SpannableString(it.first)
-            spannable.setSpan(
-                android.text.style.ForegroundColorSpan(0xFF0066CC.toInt()), // Blue link color
-                0, spannable.length,
-                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            spannable
-        }.toTypedArray()
+        // Show as BottomSheetDialog with RecyclerView
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_epub_toc, null)
         
-        android.app.AlertDialog.Builder(context)
-            .setTitle("${book.title ?: "EPUB"} - ${context.getString(R.string.epub_table_of_contents)}")
-            .setItems(chapterTitles) { dialog, which ->
-                val selectedChapterIndex = chapters[which].second
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvTocTitle)
+        val tvProgress = view.findViewById<android.widget.TextView>(R.id.tvChapterProgress)
+        val rvChapters = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvTocChapters)
+        
+        tvTitle.text = book.title ?: context.getString(R.string.epub_table_of_contents)
+        tvProgress.text = context.getString(R.string.epub_chapter_progress, currentChapterIndex + 1, chapterCount)
+        
+        val adapter = EpubTocAdapter(
+            chapters = chapters,
+            currentChapterSpineIndex = currentChapterIndex,
+            onChapterSelected = { spineIndex ->
+                bottomSheet.dismiss()
                 coroutineScope.launch {
-                    showChapter(selectedChapterIndex)
+                    showChapter(spineIndex)
                 }
-                dialog.dismiss()
             }
-            .setNegativeButton(context.getString(R.string.cancel)) { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        )
         
-        Timber.d("EPUB: TOC dialog shown with ${chapters.size} entries")
+        rvChapters.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        rvChapters.adapter = adapter
+        
+        // Scroll to current chapter position
+        val currentPos = adapter.findCurrentChapterPosition()
+        if (currentPos > 0) {
+            rvChapters.scrollToPosition(currentPos)
+        }
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.show()
+        
+        Timber.d("EPUB: TOC BottomSheet shown with ${chapters.size} entries")
     }
     
     /**
@@ -1245,9 +1382,11 @@ class EpubViewerManager(
         
         val spine = currentBook?.spine ?: return -1
         val spineRefs = spine.spineReferences
+        val resourceHref = resource.href ?: return -1
         
         for (i in spineRefs.indices) {
-            if (spineRefs[i].resource == resource) {
+            // Compare by href to handle different Resource object instances for same file (M-5 fix)
+            if (spineRefs[i].resource?.href == resourceHref) {
                 return i
             }
         }
@@ -1272,30 +1411,51 @@ class EpubViewerManager(
             return
         }
         
-        // Generate chapter list from spine
-        val chapterTitles = spine.spineReferences.mapIndexed { index, spineRef ->
+        // Generate chapter list from spine as Pair<Title, SpineIndex>
+        val chapters = spine.spineReferences.mapIndexed { index, spineRef ->
             val title = spineRef.resource.title
-            if (title.isNullOrBlank()) {
+            val displayTitle = if (title.isNullOrBlank()) {
                 "Chapter ${index + 1}"
             } else {
                 title
             }
-        }.toTypedArray()
+            Pair(displayTitle, index)
+        }
         
-        android.app.AlertDialog.Builder(context)
-            .setTitle("${book.title ?: "EPUB"} - Chapters")
-            .setItems(chapterTitles) { dialog, which ->
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_epub_toc, null)
+        
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvTocTitle)
+        val tvProgress = view.findViewById<android.widget.TextView>(R.id.tvChapterProgress)
+        val rvChapters = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvTocChapters)
+        
+        tvTitle.text = book.title ?: context.getString(R.string.epub_table_of_contents)
+        tvProgress.text = context.getString(R.string.epub_chapter_progress, currentChapterIndex + 1, chapterCount)
+        
+        val adapter = EpubTocAdapter(
+            chapters = chapters,
+            currentChapterSpineIndex = currentChapterIndex,
+            onChapterSelected = { spineIndex ->
+                bottomSheet.dismiss()
                 coroutineScope.launch {
-                    showChapter(which)
+                    showChapter(spineIndex)
                 }
-                dialog.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        )
         
-        Timber.d("EPUB: Spine-based TOC shown with ${chapterTitles.size} chapters")
+        rvChapters.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        rvChapters.adapter = adapter
+        
+        val currentPos = adapter.findCurrentChapterPosition()
+        if (currentPos > 0) {
+            rvChapters.scrollToPosition(currentPos)
+        }
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.show()
+        
+        Timber.d("EPUB: Spine-based TOC BottomSheet shown with ${chapters.size} chapters")
     }
     
     /**
@@ -1318,18 +1478,17 @@ class EpubViewerManager(
             return
         }
         
-        // WebView.findAllAsync() is deprecated in API 16+ but still functional
-        // Modern alternative: WebView.setFindListener + findAllAsync
-        @Suppress("DEPRECATION")
-        webView.findAllAsync(query)
-        
-        // Set listener to get match count
+        // Set listener BEFORE triggering search (M-1 fix: listener must be set before findAllAsync)
         webView.setFindListener { _, numberOfMatches, isDoneCounting ->
             if (isDoneCounting) {
                 onResult(numberOfMatches)
                 Timber.d("EPUB search for '$query': $numberOfMatches matches in current chapter")
             }
         }
+        
+        // WebView.findAllAsync() is deprecated in API 16+ but still functional
+        @Suppress("DEPRECATION")
+        webView.findAllAsync(query)
     }
     
     /**
@@ -1346,6 +1505,179 @@ class EpubViewerManager(
     fun previousSearchMatch() {
         webView?.findNext(false) // forward = false
         Timber.d("EPUB: Previous search match")
+    }
+    
+    /**
+     * Show cross-chapter search BottomSheet dialog.
+     * Scans all spine chapters for matches, displays results with context snippets.
+     * Tapping a result navigates to that chapter and highlights the match in-page.
+     */
+    fun showCrossChapterSearch() {
+        val book = currentBook
+        if (book == null) {
+            Timber.w("EPUB: Cannot search - no book loaded")
+            return
+        }
+        
+        val context = binding.root.context
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_epub_search, null)
+        
+        val etQuery = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etSearchAllQuery)
+        val searchProgress = view.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.searchProgress)
+        val tvStatus = view.findViewById<android.widget.TextView>(R.id.tvSearchStatus)
+        val rvResults = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvSearchResults)
+        
+        rvResults.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        
+        var searchJob: kotlinx.coroutines.Job? = null
+        
+        // Handle IME search action
+        etQuery.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = etQuery.text?.toString()?.trim() ?: ""
+                if (query.length >= 2) {
+                    searchJob?.cancel()
+                    searchJob = performCrossChapterSearch(
+                        book, query, context, bottomSheet,
+                        searchProgress, tvStatus, rvResults
+                    )
+                }
+                true
+            } else false
+        }
+        
+        bottomSheet.setContentView(view)
+        
+        // Cancel search coroutine when BottomSheet is dismissed (C-2 fix)
+        bottomSheet.setOnDismissListener { searchJob?.cancel() }
+        
+        bottomSheet.show()
+        
+        // Focus input
+        etQuery.requestFocus()
+        val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        etQuery.postDelayed({ imm.showSoftInput(etQuery, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT) }, 200)
+        
+        Timber.d("EPUB: Cross-chapter search dialog shown")
+    }
+    
+    /**
+     * Execute cross-chapter search in background coroutine.
+     */
+    private fun performCrossChapterSearch(
+        book: io.documentnode.epub4j.domain.Book,
+        query: String,
+        context: android.content.Context,
+        bottomSheet: com.google.android.material.bottomsheet.BottomSheetDialog,
+        searchProgress: com.google.android.material.progressindicator.LinearProgressIndicator,
+        tvStatus: android.widget.TextView,
+        rvResults: androidx.recyclerview.widget.RecyclerView
+    ): kotlinx.coroutines.Job {
+        return coroutineScope.launch {
+            // Show progress
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                searchProgress.visibility = android.view.View.VISIBLE
+                tvStatus.visibility = android.view.View.VISIBLE
+                tvStatus.text = context.getString(R.string.epub_searching)
+                rvResults.adapter = null
+            }
+            
+            // Scan all chapters on IO
+            val results = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val allResults = mutableListOf<EpubSearchResult>()
+                val spine = book.spine
+                val contextWindow = 60 // chars around match
+                
+                for (i in 0 until spine.spineReferences.size) {
+                    kotlinx.coroutines.yield() // Check cancellation
+                    
+                    val spineRef = spine.spineReferences[i]
+                    val resource = spineRef.resource
+                    val title = resource.title?.takeIf { it.isNotBlank() } ?: "Chapter ${i + 1}"
+                    
+                    try {
+                        val htmlContent = String(resource.data, Charsets.UTF_8)
+                        // Strip HTML tags to get plain text
+                        val plainText = org.jsoup.Jsoup.parse(htmlContent).text()
+                        
+                        // Find all occurrences (case-insensitive)
+                        var searchFrom = 0
+                        val lowerText = plainText.lowercase()
+                        val lowerQuery = query.lowercase()
+                        
+                        while (searchFrom < lowerText.length) {
+                            val pos = lowerText.indexOf(lowerQuery, searchFrom)
+                            if (pos < 0) break
+                            
+                            // Limit total results to prevent OOM (M-3 fix)
+                            if (allResults.size >= MAX_SEARCH_RESULTS) break
+                            
+                            // Extract context snippet
+                            val snippetStart = (pos - contextWindow).coerceAtLeast(0)
+                            val snippetEnd = (pos + query.length + contextWindow).coerceAtMost(plainText.length)
+                            val snippet = buildString {
+                                if (snippetStart > 0) append("…")
+                                append(plainText.substring(snippetStart, snippetEnd))
+                                if (snippetEnd < plainText.length) append("…")
+                            }
+                            
+                            allResults.add(
+                                EpubSearchResult(
+                                    chapterIndex = i,
+                                    chapterTitle = title,
+                                    contextSnippet = snippet,
+                                    matchStartInText = pos,
+                                    matchedText = plainText.substring(pos, pos + query.length)
+                                )
+                            )
+                            
+                            searchFrom = pos + query.length
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "EPUB: Error searching chapter $i")
+                    }
+                    
+                    // Stop scanning more chapters if limit reached (M-3 fix)
+                    if (allResults.size >= MAX_SEARCH_RESULTS) break
+                }
+                
+                allResults
+            }
+            
+            // Show results on Main
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                searchProgress.visibility = android.view.View.GONE
+                
+                if (results.isEmpty()) {
+                    tvStatus.text = context.getString(R.string.epub_search_no_results)
+                } else {
+                    val chaptersWithMatches = results.map { it.chapterIndex }.distinct().size
+                    val statusText = if (results.size >= MAX_SEARCH_RESULTS) {
+                        "${context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)} (max)"
+                    } else {
+                        context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)
+                    }
+                    tvStatus.text = statusText
+                    
+                    rvResults.adapter = EpubSearchResultAdapter(results) { result ->
+                        bottomSheet.dismiss()
+                        // Navigate to chapter and highlight using onPageFinished (M-2 fix)
+                        coroutineScope.launch {
+                            showChapter(result.chapterIndex)
+                            // Trigger in-page highlight after WebView finishes loading
+                            // showChapter uses loadDataWithBaseURL → WebViewClient.onPageFinished fires
+                            // We use a short delay as fallback since we need the search query context
+                            kotlinx.coroutines.delay(300)
+                            searchInEpub(query) {}
+                        }
+                    }
+                }
+                
+                Timber.d("EPUB: Cross-chapter search for '$query': ${results.size} results")
+            }
+        }
     }
     
     /**

@@ -175,9 +175,14 @@
     <color name="white_50_alpha">#80FFFFFF</color>
     <color name="transparent">#00000000</color>
 
-    <!-- System text colors (theme-aware) -->
-    <color name="text_color_primary">?android:textColorPrimary</color>
-    <color name="text_color_secondary">?android:textColorSecondary</color>
-    <color name="text_color_tertiary">?android:textColorTertiary</color>
+    <!-- System text colors (explicit values for API 28+ compatibility) -->
+    <color name="text_color_primary">#DE000000</color>
+    <color name="text_color_secondary">#99000000</color>
+    <color name="text_color_tertiary">#61000000</color>
+    
+    <!-- Status colors (aliases for resource editor) -->
+    <color name="success_green">@color/success_color</color>
+    <color name="error_red">@color/error_color</color>
 </resources>
+
 

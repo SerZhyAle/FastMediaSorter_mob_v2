@@ -30,7 +30,7 @@
         android:paddingBottom="@dimen/resource_padding_zero"
         android:text="@string/select_resource_type"
         android:textSize="@dimen/add_resource_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:visibility="visible"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/toolbar"
@@ -85,7 +85,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/local_folder"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -138,7 +138,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/network_folder"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -191,7 +191,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/sftp_ftp_folder"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -244,7 +244,7 @@
                         android:layout_height="wrap_content"
                         android:text="@string/cloud_storage"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -310,7 +310,7 @@
             android:layout_height="wrap_content"
             android:text="@string/resources_to_add"
             android:textSize="@dimen/resource_card_title_text_size"
-            android:textStyle="@string/text_style_bold"
+            android:textStyle="bold"
             android:layout_marginTop="@dimen/resource_padding_zero"
             android:visibility="gone" />
 
@@ -656,7 +656,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/supported_media_types"
                 android:textAppearance="?attr/textAppearanceBody2"
-                android:textStyle="@string/text_style_bold"
+                android:textStyle="bold"
                 android:layout_marginTop="@dimen/resource_field_margin_top"
                 android:layout_marginBottom="@dimen/resource_margin_4dp" />
 
@@ -920,7 +920,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/resources_to_add"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="@string/text_style_bold"
+                android:textStyle="bold"
                 android:layout_marginTop="@dimen/resource_section_margin_top"
                 android:visibility="gone" />
 
@@ -970,7 +970,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/protocol_selection"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="@string/text_style_bold"
+                android:textStyle="bold"
                 android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <RadioGroup
@@ -1335,7 +1335,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/supported_media_types"
                 android:textAppearance="?attr/textAppearanceBody2"
-                android:textStyle="@string/text_style_bold"
+                android:textStyle="bold"
                 android:layout_marginTop="@dimen/resource_field_margin_top"
                 android:layout_marginBottom="@dimen/resource_margin_4dp" />
 
@@ -1484,7 +1484,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/select_cloud_provider"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="@string/text_style_bold"
+                android:textStyle="bold"
                 android:layout_marginBottom="@dimen/resource_margin_16dp" />
 
             <!-- Google Drive Card -->
@@ -1520,7 +1520,7 @@
                         android:layout_weight="1"
                         android:text="@string/google_drive"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvGoogleDriveStatus"
@@ -1567,7 +1567,7 @@
                         android:layout_weight="1"
                         android:text="@string/onedrive"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvOneDriveStatus"
@@ -1614,7 +1614,7 @@
                         android:layout_weight="1"
                         android:text="@string/dropbox"
                         android:textSize="@dimen/resource_card_title_text_size"
-                        android:textStyle="@string/text_style_bold" />
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvDropboxStatus"
@@ -1661,4 +1661,5 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 

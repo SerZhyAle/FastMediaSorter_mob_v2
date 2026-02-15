@@ -191,7 +191,7 @@
                 android:text="@string/destinations_list_header"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="@dimen/resource_card_title_text_size"
-                android:textStyle="@string/text_style_bold" />
+                android:textStyle="bold" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilMaxRecipients"
@@ -236,6 +236,14 @@
             android:layout_marginBottom="@dimen/margin_small"
             android:visibility="gone"/>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetDestinationsSection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/reset_destinations_section"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_marginBottom="@dimen/margin_small"/>
+
         <!-- Message when no resources available -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/tvNoResourcesMessage"
@@ -259,4 +267,5 @@
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
+
 

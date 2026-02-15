@@ -23,7 +23,7 @@
             android:layout_weight="1"
             android:text="@string/image_edit_title"
             android:textSize="@dimen/text_size_large"
-            android:textStyle="@string/text_style_bold" />
+            android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnClose"
@@ -49,7 +49,7 @@
         android:layout_height="wrap_content"
         android:text="@string/image_edit_rotation"
         android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
     <LinearLayout
@@ -93,7 +93,7 @@
         android:layout_height="wrap_content"
         android:text="@string/image_edit_flip"
         android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginTop="@dimen/margin_small"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
@@ -127,7 +127,7 @@
         android:layout_height="wrap_content"
         android:text="@string/image_edit_filters"
         android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginTop="@dimen/margin_small"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
@@ -173,7 +173,7 @@
         android:layout_height="wrap_content"
         android:text="@string/image_edit_adjustments"
         android:textSize="@dimen/resource_card_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginTop="@dimen/margin_small"
         android:layout_marginBottom="@dimen/margin_tiny" />
 
@@ -301,4 +301,5 @@
 
 </LinearLayout>
 </ScrollView>
+
 

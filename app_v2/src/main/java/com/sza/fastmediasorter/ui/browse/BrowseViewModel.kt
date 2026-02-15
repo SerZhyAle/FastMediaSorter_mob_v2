@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import android.app.PendingIntent
+import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -216,6 +217,10 @@ class BrowseViewModel @Inject constructor(
     
     // Job for delayed STOP button visibility (10 seconds after scan start)
     private var stopButtonTimerJob: Job? = null
+
+    // Optional player warm-up job (feature-flagged)
+    private var playerWarmupJob: Job? = null
+    private var lastWarmupSignature: String? = null
     
     // Track last emitted list to avoid redundant UI updates (survives Activity recreation)
     var lastEmittedMediaFiles: List<MediaFile>? = null
@@ -385,6 +390,7 @@ class BrowseViewModel @Inject constructor(
         reloadFilesJob?.cancel()
         reloadDebounceJob?.cancel()
         stopButtonTimerJob?.cancel()
+        playerWarmupJob?.cancel()
         cancelScan() // Set flag for graceful stop
         
         stopFileObserver()
@@ -475,24 +481,40 @@ class BrowseViewModel @Inject constructor(
         invalidateDirectoryCache()
     }
 
-    fun reloadFiles(clearList: Boolean = true) {
+    fun reloadFiles(clearList: Boolean = false) {
         // Cancel previous reload if still running to prevent parallel reloads
         reloadFilesJob?.cancel()
         reloadFilesJob = viewModelScope.launch(ioDispatcher) {
             val currentResource = state.value.resource
             
-            // Step 0: CONDITIONAL - Clear current file list only if file visibility settings changed
-            // clearList=true: user changed supportedMediaTypes, scanSubdirectories, etc - old files must disappear
-            // clearList=false: user changed only metadata (name, comment, pin) - keep showing current files
+            // Step 0: CONDITIONAL - Clear current file list only for explicit hard-reset scenarios
+            // clearList=true: resource changed in a way that invalidates visible dataset (media types, scanSubdirectories, etc.)
+            // clearList=false: standard refresh path - keep current files visible until complete snapshot is loaded
             if (clearList) {
                 withContext(Dispatchers.Main) {
-                    Timber.i("BrowseViewModel.reloadFiles: Clearing current file list to force UI refresh (file settings changed)")
-                    updateState { it.copy(mediaFiles = emptyList(), loadingProgress = 0) }
+                    Timber.i("BrowseViewModel.reloadFiles: Hard reset requested - clearing list before reload")
+                    updateState {
+                        it.copy(
+                            mediaFiles = emptyList(),
+                            loadingProgress = 0,
+                            totalFileCount = null,
+                            isScanCancellable = false
+                        )
+                    }
                     // Reset lastEmittedMediaFiles to force adapter submit on next update
                     lastEmittedMediaFiles = null
                 }
             } else {
-                Timber.i("BrowseViewModel.reloadFiles: Keeping current file list (only metadata changed)")
+                withContext(Dispatchers.Main) {
+                    Timber.i("BrowseViewModel.reloadFiles: Standard refresh - keeping current list to prevent flicker")
+                    // Explicit UI-state transition: enter refresh without intermediate empty-list state
+                    updateState {
+                        it.copy(
+                            loadingProgress = 0,
+                            isScanCancellable = false
+                        )
+                    }
+                }
             }
             
             // Step 1: Clean up ALL .trash folders in the resource directory
@@ -567,9 +589,47 @@ class BrowseViewModel @Inject constructor(
         // Setting graceful stop flag
         // Set flag to signal scanner to stop gracefully and return partial results
         shouldStopScan.set(true)
+        playerWarmupJob?.cancel()
         
         // Don't cancel the job - let it complete gracefully
         // loadFilesJob will finish and emit partial results
+    }
+
+    private suspend fun schedulePlayerWarmupIfEligible(mediaFiles: List<MediaFile>) {
+        val settings = getSettings()
+        if (!settings.enablePlayerWarmup) {
+            return
+        }
+
+        val regularFiles = mediaFiles.filter { !it.isDirectory }
+        if (regularFiles.isEmpty()) return
+
+        val videoCount = regularFiles.count { it.type == MediaType.VIDEO }
+        val videoRatio = videoCount.toDouble() / regularFiles.size.toDouble()
+        if (videoRatio < 0.8) return
+
+        val warmupSignature = "${regularFiles.size}:$videoCount:${regularFiles.first().path}:${regularFiles.last().path}"
+        if (warmupSignature == lastWarmupSignature) {
+            return
+        }
+
+        lastWarmupSignature = warmupSignature
+        playerWarmupJob?.cancel()
+        playerWarmupJob = viewModelScope.launch {
+            try {
+                withContext(Dispatchers.Main) {
+                    Timber.d("BrowseViewModel: Player warm-up started (videoRatio=${"%.2f".format(videoRatio)}, files=${regularFiles.size})")
+                    val warmupPlayer = ExoPlayer.Builder(context).build()
+                    warmupPlayer.release()
+                }
+                Timber.d("BrowseViewModel: Player warm-up completed")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                Timber.d("BrowseViewModel: Player warm-up cancelled")
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "BrowseViewModel: Player warm-up failed (non-critical)")
+            }
+        }
     }
     
     // ===== SUBFOLDER NAVIGATION =====
@@ -640,6 +700,26 @@ class BrowseViewModel @Inject constructor(
         return true
     }
     
+    private fun mix64(value: Long): ULong {
+        var x = value.toULong() + 0x9E3779B97F4A7C15uL
+        x = (x xor (x shr 30)) * 0xBF58476D1CE4E5B9uL
+        x = (x xor (x shr 27)) * 0x94D049BB133111EBuL
+        return x xor (x shr 31)
+    }
+
+    private suspend fun computeContentHash(files: List<MediaFile>): String = withContext(Dispatchers.Default) {
+        var hash = 0x9E3779B97F4A7C15uL
+        files.sortedBy { it.name }.forEach { file ->
+            val itemMix = mix64(file.name.hashCode().toLong()) xor
+                mix64(file.size) xor
+                mix64(file.createdDate) xor
+                if (file.isDirectory) 0xD6E8FEB86659FD93uL else 0uL
+
+            hash = java.lang.Long.rotateLeft((hash xor itemMix).toLong(), 11).toULong() * 0x9E3779B185EBCA87uL
+        }
+        hash.toString(16)
+    }
+
     /**
      * Computes a hash of directory contents based on file names, sizes, and modification dates.
      * Used to detect if directory contents changed without full comparison.
@@ -662,13 +742,7 @@ class BrowseViewModel @Inject constructor(
                 showHiddenFiles = false
             )
             
-            // Compute hash from sorted file metadata (name + size + date)
-            val metadataString = contents
-                .sortedBy { it.name }
-                .joinToString("|") { "${it.name}:${it.size}:${it.createdDate}:${it.isDirectory}" }
-            
-            // Use simple hash (hashCode is deterministic for same string)
-            metadataString.hashCode().toString()
+            computeContentHash(contents)
         } catch (e: Exception) {
             Timber.w(e, "Failed to compute directory hash for '$path'")
             null
@@ -773,10 +847,7 @@ class BrowseViewModel @Inject constructor(
             Timber.d("BrowseViewModel.loadDirectoryContents: Found ${contents.size} items (${contents.count { it.isDirectory }} folders), after filter: ${filteredContents.size} items")
             
             // Compute and cache hash for future use
-            val metadataString = filteredContents
-                .sortedBy { it.name }
-                .joinToString("|") { "${it.name}:${it.size}:${it.createdDate}:${it.isDirectory}" }
-            val contentHash = metadataString.hashCode().toString()
+            val contentHash = computeContentHash(filteredContents)
             
             directoryCache[path] = DirectoryCacheEntry(
                 files = filteredContents,
@@ -1059,6 +1130,7 @@ class BrowseViewModel @Inject constructor(
                     
                     // Update totalFileCount from actual filtered files count
                     updateState { it.copy(mediaFiles = filteredFiles, totalFileCount = filteredFiles.size) }
+                    schedulePlayerWarmupIfEligible(filteredFiles)
                     setLoading(false)
                     
                     // Update resource metadata (lastBrowseDate) even when loading from cache
@@ -1121,6 +1193,7 @@ class BrowseViewModel @Inject constructor(
                     loadingProgress = mediaFiles.size,
                     usePagination = false // No pagination for favorites for now
                 ) }
+                schedulePlayerWarmupIfEligible(mediaFiles)
                 setLoading(false)
                 Timber.d("BrowseViewModel.loadFavorites: COMPLETE - updated UI state")
             }
@@ -1283,6 +1356,7 @@ class BrowseViewModel @Inject constructor(
                     totalFileCount = totalFileCount,
                     isScanCancellable = isScanCancellable
                 ) }
+                schedulePlayerWarmupIfEligible(mediaFiles)
             }
             
             override fun setLoading(loading: Boolean) {
@@ -2414,8 +2488,8 @@ class BrowseViewModel @Inject constructor(
                 // Update resource in state before reloading
                 updateState { it.copy(resource = updatedResource) }
                 
-                // Reload files with new filter
-                reloadFiles()
+                // Reload files with hard reset because visible dataset changed
+                reloadFiles(clearList = true)
             } else {
                 Timber.d("checkAndReloadIfResourceChanged: No changes detected, syncing with cache")
                 // No settings changed - just sync with PlayerActivity cache (deletions/moves/renames)

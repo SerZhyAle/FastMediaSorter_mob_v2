@@ -312,7 +312,7 @@ class PlayerDialogHelper(
      * Show GIF editing dialog (extract frames, change speed, save first frame)
      */
     fun showGifEditDialog(currentFile: MediaFile) {
-        if (currentFile.type != MediaType.GIF) {
+        if (!isAnimatedImagePath(currentFile.path)) {
             Toast.makeText(activity, R.string.gif_editing_only_for_gif_files, Toast.LENGTH_SHORT).show()
             return
         }
@@ -329,6 +329,11 @@ class PlayerDialogHelper(
             }
         )
         dialog.show()
+    }
+
+    private fun isAnimatedImagePath(path: String): Boolean {
+        val lowerPath = path.lowercase()
+        return lowerPath.endsWith(".gif") || lowerPath.endsWith(".webp") || lowerPath.endsWith(".apng")
     }
     
     /**

@@ -39,6 +39,10 @@ import java.net.NetworkInterface
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@Deprecated(
+    message = "Legacy screen. Use ResourceEditorActivity for new create/edit/copy flows.",
+    replaceWith = ReplaceWith("ResourceEditorActivity")
+)
 class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val viewModel: AddResourceViewModel by viewModels()
@@ -441,6 +445,39 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.cbSftpSupportPdf,
                 binding.cbSftpSupportEpub
             )
+        }
+        
+        // Apply device capability restrictions (hide features unavailable on current device)
+        applyDeviceCapabilityRestrictions()
+    }
+    
+    /**
+     * Hide UI elements for features that require Google Play Services or other system dependencies.
+     * Google Drive requires Play Services to be available.
+     */
+    private fun applyDeviceCapabilityRestrictions() {
+        // Check Google Play Services availability for Google Drive
+        try {
+            val googleApiAvailability = com.google.android.gms.common.GoogleApiAvailability.getInstance()
+            val resultCode = googleApiAvailability.isGooglePlayServicesAvailable(this)
+            
+            if (resultCode != com.google.android.gms.common.ConnectionResult.SUCCESS) {
+                // Hide Google Drive card if Play Services unavailable
+                binding.cardGoogleDrive.visibility = android.view.View.GONE
+                timber.log.Timber.i("AddResourceActivity: Google Drive hidden - Play Services unavailable (code: $resultCode)")
+                
+                // Optionally show a message
+                if (resultCode == com.google.android.gms.common.ConnectionResult.SERVICE_MISSING ||
+                    resultCode == com.google.android.gms.common.ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED) {
+                    timber.log.Timber.w("AddResourceActivity: Google Play Services missing or outdated")
+                }
+            } else {
+                timber.log.Timber.i("AddResourceActivity: Google Play Services available - Google Drive enabled")
+            }
+        } catch (e: Exception) {
+            // If GoogleApiAvailability check fails, hide Google Drive as safety fallback
+            timber.log.Timber.e(e, "AddResourceActivity: Failed to check Play Services, hiding Google Drive")
+            binding.cardGoogleDrive.visibility = android.view.View.GONE
         }
     }
     

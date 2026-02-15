@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.os.Build
 import android.os.LocaleList
 import androidx.core.os.LocaleListCompat
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import timber.log.Timber
 import java.util.Locale
 
@@ -25,7 +26,7 @@ object LocaleHelper {
     /**
      * Get saved language code from preferences
      */
-    fun getLanguage(context: Context): String {
+    fun getLanguage(context: Context): String = StrictModeHelper.allowDiskReads {
         // Android 13+ (API 33): Try reading from LocaleManager first
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {
@@ -34,7 +35,7 @@ object LocaleHelper {
                 if (locales != null && !locales.isEmpty) {
                     val languageCode = locales[0].language
                     Timber.d("LocaleHelper: Read language from LocaleManager: $languageCode")
-                    return languageCode
+                    return@allowDiskReads languageCode
                 }
             } catch (e: Exception) {
                 Timber.w(e, "LocaleHelper: Failed to read from LocaleManager, fallback to SharedPreferences")
@@ -45,13 +46,13 @@ object LocaleHelper {
         val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
         val languageCode = prefs.getString(PREF_SELECTED_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
         Timber.d("LocaleHelper: Read language from SharedPreferences: $languageCode")
-        return languageCode
+        return@allowDiskReads languageCode
     }
 
     /**
      * Save language code to preferences and LocaleManager (Android 13+)
      */
-    fun saveLanguage(context: Context, languageCode: String) {
+    fun saveLanguage(context: Context, languageCode: String) = StrictModeHelper.allowDiskWrites {
         Timber.d("LocaleHelper: Saving language: $languageCode")
         
         // Save to SharedPreferences (backward compatibility + for attachBaseContext)

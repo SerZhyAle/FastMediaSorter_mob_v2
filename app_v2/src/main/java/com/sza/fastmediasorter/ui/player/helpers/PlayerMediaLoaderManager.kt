@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.net.Uri
 import android.os.Handler
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
@@ -46,7 +47,8 @@ class PlayerMediaLoaderManager(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val loadingIndicatorHandler: Handler,
     private val showLoadingIndicatorRunnable: Runnable,
-    private val mediaFilesCacheManager: MediaFilesCacheManager
+    private val mediaFilesCacheManager: MediaFilesCacheManager,
+    private val audioServiceController: AudioServiceController? = null
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
 
@@ -62,12 +64,19 @@ class PlayerMediaLoaderManager(
         imageLoadingManager.displayImage(path)
     }
 
+    fun isCurrentAnimatedContent(): Boolean = imageLoadingManager.isCurrentAnimatedContent()
+
+    fun isAnimatedPlaybackPaused(): Boolean = imageLoadingManager.isAnimatedPlaybackPaused()
+
+    fun toggleAnimatedPlayback(): Boolean? = imageLoadingManager.toggleAnimatedPlayback()
+
     /**
      * Display text file (delegates to TextViewerManager)
      */
     fun displayText(mediaFile: MediaFile) {
         val resource = viewModel.state.value.resource
         Timber.d("PlayerMediaLoaderManager.displayText: file=${mediaFile.name}")
+        imageLoadingManager.hideAnimatedBadge()
         textViewerManager.displayText(mediaFile, isWritable = resource?.isWritable == true)
     }
 
@@ -76,6 +85,7 @@ class PlayerMediaLoaderManager(
      */
     fun playVideo(path: String) {
         Timber.i("PlayerMediaLoaderManager.playVideo: START - path=$path")
+        imageLoadingManager.hideAnimatedBadge()
         
         // Skip if activity is being destroyed
         if (activity.isFinishing || activity.isDestroyed) {
@@ -119,6 +129,14 @@ class PlayerMediaLoaderManager(
         // Schedule loading indicator to show after 1 second
         loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
         
+        // Route audio to background service when enabled
+        val isBackgroundAudioEnabled = viewModel.state.value.enableBackgroundAudio
+        if (isAudioFile && isBackgroundAudioEnabled && audioServiceController != null) {
+            Timber.d("PlayerMediaLoaderManager.playVideo: routing AUDIO through AudioPlaybackService")
+            playAudioViaService(path)
+            return
+        }
+        
         // Determine resource type from path prefix (for Favorites with mixed sources)
         val actualResourceType = determineResourceType(path, resource?.type)
         
@@ -127,6 +145,38 @@ class PlayerMediaLoaderManager(
         
         Timber.d("PlayerMediaLoaderManager.playVideo: END")
     }
+
+    /**
+     * Route audio playback through AudioPlaybackService.
+     * Connects via MediaController, sets it as PlayerView's player.
+     * Only called when enableBackgroundAudio is ON and file is AUDIO.
+     * Local files only for now — network audio files use the standard VideoPlayerManager path.
+     */
+    private fun playAudioViaService(path: String) {
+        val controller = audioServiceController ?: return
+        val uri = Uri.parse(path).let { parsed ->
+            if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
+        }
+
+        controller.playAudio(uri) { player ->
+            activity.runOnUiThread {
+                // Set MediaController as PlayerView's player — controls work automatically
+                binding.playerView.player = player
+
+                // Cancel loading indicator
+                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                binding.progressBar.isVisible = false
+
+                Timber.d("PlayerMediaLoaderManager.playAudioViaService: service player bound to PlayerView")
+            }
+        }
+    }
+
+    /** Whether audio is currently playing through the background service */
+    val isServiceAudioActive: Boolean
+        get() = audioServiceController?.isConnected == true
+                && viewModel.state.value.enableBackgroundAudio
+                && viewModel.state.value.currentFile?.type == MediaType.AUDIO
 
     /**
      * Play local video file (legacy method for compatibility)

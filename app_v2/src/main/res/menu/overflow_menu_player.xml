@@ -86,4 +86,74 @@
         android:title="@string/undo"
         app:showAsAction="never" />
 
+    <!-- Sleep Timer (Audio) -->
+    <item
+        android:id="@+id/menu_sleep_timer"
+        android:icon="@drawable/ic_sleep_timer"
+        android:title="@string/menu_sleep_timer"
+        app:showAsAction="never" />
+
+    <!-- Re-open with Encoding (TXT) -->
+    <item
+        android:id="@+id/menu_reopen_encoding"
+        android:icon="@android:drawable/ic_menu_sort_alphabetically"
+        android:title="@string/reopen_with_encoding"
+        app:showAsAction="never" />
+
+    <!-- Toggle Markdown rendering (TXT .md only) -->
+    <item
+        android:id="@+id/menu_toggle_markdown"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="@string/toggle_markdown"
+        app:showAsAction="never" />
+
+    <!-- Reader Settings (TXT) -->
+    <item
+        android:id="@+id/menu_reader_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/reader_settings"
+        app:showAsAction="never" />
+
+    <!-- Read Aloud TTS (TXT) -->
+    <item
+        android:id="@+id/menu_read_aloud"
+        android:icon="@android:drawable/ic_lock_silent_mode_off"
+        android:title="@string/read_aloud"
+        app:showAsAction="never" />
+
+    <!-- PDF Scroll Mode Toggle -->
+    <item
+        android:id="@+id/menu_pdf_scroll_mode"
+        android:icon="@drawable/ic_view_list"
+        android:title="@string/pdf_scroll_mode"
+        app:showAsAction="never" />
+
+    <!-- PDF Color Mode (Night/Sepia) -->
+    <item
+        android:id="@+id/menu_pdf_color_mode"
+        android:icon="@drawable/ic_night_mode"
+        android:title="@string/pdf_night_mode"
+        app:showAsAction="never" />
+
+    <!-- PDF Thumbnail Navigation -->
+    <item
+        android:id="@+id/menu_pdf_thumbnails"
+        android:icon="@drawable/ic_view_list"
+        android:title="@string/pdf_thumbnails"
+        app:showAsAction="never" />
+
+    <!-- EPUB Reader Settings -->
+    <item
+        android:id="@+id/menu_epub_reader_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/epub_reader_settings"
+        app:showAsAction="never" />
+
+    <!-- EPUB Cross-Chapter Search -->
+    <item
+        android:id="@+id/menu_epub_search_all"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/epub_search_all_chapters"
+        app:showAsAction="never" />
+
 </menu>

@@ -38,6 +38,10 @@ class BrowseLoadingManager(
     private val pageSize: Int = 50,
     private val paginationThreshold: Int = 500
 ) {
+    companion object {
+        private const val FAVORITES_FIRST_FRAME_TARGET_MS = 120L
+    }
+
     /**
      * Callbacks for communication with ViewModel.
      */
@@ -166,36 +170,47 @@ class BrowseLoadingManager(
                     files  // Already sorted by GetMediaFilesUseCase
                 }
                 
-                // OPTIMIZATION: Show files immediately, check favorites in background
-                Timber.d("BrowseLoadingManager: Showing ${sortedFiles.size} files immediately (favorites will load in background)")
-                callbacks.updateState(sortedFiles, false, 0, sortedFiles.size, false)
-                progressJob?.cancel()
-                callbacks.setLoading(false)
-                
-                // BACKGROUND: Check favorite status asynchronously and update UI incrementally
-                val filesCount = sortedFiles.size
-                viewModelScope.launch(ioDispatcher) {
-                    Timber.d("BrowseLoadingManager: BACKGROUND - Checking favorite status for $filesCount files")
-                    val finalFiles = sortedFiles.map { file ->
-                        val isFav = favoritesUseCase.isFavoriteSync(file.path)
-                        if (isFav) {
-                            file.copy(isFavorite = true)
-                        } else {
-                            file
-                        }
+                val paths = sortedFiles.map { it.path }
+                val favoritesLookupStart = System.currentTimeMillis()
+                val favoritesMap = favoritesUseCase.getFavoritesForPaths(paths)
+                val favoritesLookupDuration = System.currentTimeMillis() - favoritesLookupStart
+                val hasFavoriteFlags = favoritesMap.values.any { it }
+
+                val finalFiles = if (hasFavoriteFlags) {
+                    sortedFiles.map { file ->
+                        if (favoritesMap[file.path] == true) file.copy(isFavorite = true) else file
                     }
-                    
-                    Timber.d("BrowseLoadingManager: BACKGROUND - Caching ${finalFiles.size} files")
+                } else {
+                    sortedFiles
+                }
+
+                val shouldUseTwoPhaseFallback = favoritesLookupDuration > FAVORITES_FIRST_FRAME_TARGET_MS && sortedFiles.isNotEmpty()
+
+                if (!shouldUseTwoPhaseFallback) {
+                    Timber.d(
+                        "BrowseLoadingManager: Single-phase render with batch favorites (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
+                    )
+                    callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+                    progressJob?.cancel()
+                    callbacks.setLoading(false)
                     MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
-                    
-                    // Update UI with favorite icons if any changed
-                    if (finalFiles.any { it.isFavorite }) {
-                        Timber.d("BrowseLoadingManager: BACKGROUND - Updating UI with favorite icons")
-                        callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+                } else {
+                    Timber.d(
+                        "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target ${FAVORITES_FIRST_FRAME_TARGET_MS}ms, using two-phase fallback"
+                    )
+                    callbacks.updateState(sortedFiles, false, 0, sortedFiles.size, false)
+                    progressJob?.cancel()
+                    callbacks.setLoading(false)
+
+                    viewModelScope.launch(ioDispatcher) {
+                        MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
+                        if (hasFavoriteFlags) {
+                            callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+                        }
                     }
                 }
                 
-                Timber.d("BrowseLoadingManager: COMPLETE - ${sortedFiles.size} files loaded and displayed")
+                Timber.d("BrowseLoadingManager: COMPLETE - ${finalFiles.size} files loaded and displayed")
                 
                 // Update resource metadata (fileCount and lastBrowseDate) after successful load
                 callbacks.updateResourceMetadata(resource, sortedFiles.size)

@@ -27,6 +27,11 @@
     <!-- Keep screen on -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!-- Audio background playback service -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Screen sizes and densities supported -->
     <!-- Supports phones, tablets, and compact devices (480x480+) -->
     <supports-screens
@@ -90,7 +95,8 @@
             android:name=".ui.player.PlayerActivity"
             android:exported="false"
             android:screenOrientation="sensor"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
             android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <activity
@@ -102,6 +108,12 @@
 
         <activity
             android:name=".ui.editresource.EditResourceActivity"
+            android:exported="false"
+            android:screenOrientation="sensor"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
+
+        <activity
+            android:name=".ui.resourceeditor.ResourceEditorActivity"
             android:exported="false"
             android:screenOrientation="sensor"
             android:configChanges="orientation|screenSize|keyboardHidden" />
@@ -188,6 +200,16 @@
             android:name=".widget.FavoritesWidgetService"
             android:permission="android.permission.BIND_REMOTEVIEWS"
             android:exported="false" />
+
+        <!-- Audio background playback service (Media3 MediaSessionService) -->
+        <service
+            android:name=".ui.player.AudioPlaybackService"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
 
         <!-- Resource Launch Widget -->
         <receiver

@@ -129,7 +129,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            android:scaleType="@string/image_scale_fit_center"
+            android:scaleType="fitCenter"
             android:contentDescription="@null" />
 
         <!-- Touch zones overlay (left half - previous, right half - next) -->
@@ -218,5 +218,6 @@
         android:contentDescription="@string/loading_indicator"
         android:visibility="gone" />
 </LinearLayout>
+
 
 

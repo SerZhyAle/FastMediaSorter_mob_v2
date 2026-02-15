@@ -23,10 +23,11 @@
         android:layout_marginTop="@dimen/margin_tiny"
         android:textColor="@color/white"
         android:textSize="@dimen/item_detail_text_size_small"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:gravity="center"
         android:maxLines="1"
         android:ellipsize="end"
         android:text="@string/continue_reading" />
 
 </LinearLayout>
+

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
+import android.os.Environment
 import android.widget.SeekBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -15,8 +16,10 @@ import com.sza.fastmediasorter.ui.dialog.helpers.GifEditorHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.io.File
 
 /**
  * Dialog for GIF editing operations:
@@ -40,6 +43,8 @@ class GifEditorDialog(
     private lateinit var binding: DialogGifEditorBinding
     private var progressDialog: MaterialProgressDialog? = null
     private var currentSpeedMultiplier = 1.0f
+    private var extractFramesJob: Job? = null
+    private val isGifInput: Boolean = gifPath.lowercase().endsWith(".gif")
     
     // Coroutine scope tied to dialog lifecycle
     private val dialogJob = Job()
@@ -64,8 +69,20 @@ class GifEditorDialog(
             btnClose.setOnClickListener { dismiss() }
             
             // Extract frames button + help
+            val extractionSupported = extractFramesUseCase.isExtractionSupported(gifPath)
+            btnExtractFrames.visibility = if (extractionSupported) android.view.View.VISIBLE else android.view.View.GONE
+            ivHelpExtractFrames.visibility = if (extractionSupported) android.view.View.VISIBLE else android.view.View.GONE
             btnExtractFrames.setOnClickListener { performExtractFrames() }
             ivHelpExtractFrames.setOnClickListener { showHelpDialog(context.getString(R.string.gif_edit_extract_help)) }
+
+            // Speed and first-frame operations are GIF-only
+            val gifOnlyVisibility = if (isGifInput) android.view.View.VISIBLE else android.view.View.GONE
+            tvSpeedSectionTitle.visibility = gifOnlyVisibility
+            tvSpeedValue.visibility = gifOnlyVisibility
+            layoutSpeedSeekRow.visibility = gifOnlyVisibility
+            layoutSpeedApplyRow.visibility = gifOnlyVisibility
+            tvFirstFrameSectionTitle.visibility = gifOnlyVisibility
+            layoutFirstFrameRow.visibility = gifOnlyVisibility
             
             // Speed control
             seekSpeed.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -120,31 +137,45 @@ class GifEditorDialog(
     }
     
     private fun performExtractFrames() {
+        if (!extractFramesUseCase.isExtractionSupported(gifPath)) {
+            Toast.makeText(context, context.getString(R.string.msg_gif_extract_api_unavailable), Toast.LENGTH_LONG).show()
+            return
+        }
+
         val isNetwork = gifHelper.isNetworkPath(gifPath)
-        showProgress(gifHelper.getPreparingMessage(com.sza.fastmediasorter.ui.dialog.helpers.GifOperation.EXTRACT_FRAMES, isNetwork))
+        showProgress(
+            gifHelper.getPreparingMessage(com.sza.fastmediasorter.ui.dialog.helpers.GifOperation.EXTRACT_FRAMES, isNetwork),
+            cancelable = true,
+            onCancel = {
+                extractFramesJob?.cancel()
+            }
+        )
         setButtonsEnabled(false)
-        
-        dialogScope.launch {
-            // Prepare file (download if network)
-            val localPath = gifHelper.prepareGifFile(gifPath) { _ ->
-                // Update progress if needed
-            }
-            
-            if (localPath == null) {
-                launch(kotlinx.coroutines.Dispatchers.Main) {
-                    hideProgress()
-                    setButtonsEnabled(true)
-                    Toast.makeText(context, context.getString(R.string.msg_gif_prepare_failed), Toast.LENGTH_LONG).show()
+
+        extractFramesJob = dialogScope.launch {
+            try {
+                // Prepare file (download if network)
+                val localPath = gifHelper.prepareGifFile(gifPath) { _ ->
+                    // Update progress if needed
                 }
-                return@launch
-            }
-            
-            val result = extractFramesUseCase.execute(localPath)
-            
-            launch(kotlinx.coroutines.Dispatchers.Main) {
-                hideProgress()
-                setButtonsEnabled(true)
-                
+
+                if (localPath == null) {
+                    Toast.makeText(context, context.getString(R.string.msg_gif_prepare_failed), Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                val targetOutputDirectory = if (isNetwork) {
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).absolutePath
+                } else {
+                    File(localPath).parentFile?.absolutePath
+                }
+
+                val result = extractFramesUseCase.execute(
+                    animatedPath = localPath,
+                    targetDirectoryPath = targetOutputDirectory,
+                    isActive = { this.isActive }
+                )
+
                 result.fold(
                     onSuccess = { frameCount ->
                         Toast.makeText(
@@ -156,6 +187,14 @@ class GifEditorDialog(
                         dismiss()
                     },
                     onFailure = { error ->
+                        if (error is kotlinx.coroutines.CancellationException) {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.msg_operation_cancelled),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            return@fold
+                        }
                         Timber.e(error, "Failed to extract frames")
                         Toast.makeText(
                             context,
@@ -164,6 +203,16 @@ class GifEditorDialog(
                         ).show()
                     }
                 )
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.msg_operation_cancelled),
+                    Toast.LENGTH_SHORT
+                ).show()
+                throw e
+            } finally {
+                hideProgress()
+                setButtonsEnabled(true)
             }
         }
     }
@@ -285,8 +334,16 @@ class GifEditorDialog(
         }
     }
     
-    private fun showProgress(message: String) {
-        progressDialog = MaterialProgressDialog.show(context, null, message, true, false)
+    private fun showProgress(
+        message: String,
+        cancelable: Boolean = false,
+        onCancel: (() -> Unit)? = null
+    ) {
+        progressDialog = MaterialProgressDialog.show(context, null, message, true, cancelable).apply {
+            if (cancelable && onCancel != null) {
+                setOnCancelListener { onCancel.invoke() }
+            }
+        }
     }
     
     private fun hideProgress() {
@@ -296,6 +353,7 @@ class GifEditorDialog(
     
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
+        extractFramesJob?.cancel()
         dialogJob.cancel() // Cancel all running coroutines
         hideProgress()
         

@@ -43,13 +43,21 @@ data class AppSettings(
     val searchAudioCoversOnlyOnWifi: Boolean = true, // Search for covers only when connected to Wi-Fi
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
+    val enableBackgroundAudio: Boolean = false, // Background audio playback via foreground service (audio-only)
     
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files
     val supportEpub: Boolean = true, // Optional support for EPUB files
     val showPdfThumbnails: Boolean = false, // "Large PDF Thumbnails" - increases size limit for network PDF thumbnails
-    val textSizeMax: Long = 1048576L, // 1MB max for internal text viewer
+    val textSizeMax: Long = 104857600L, // 100MB max for internal text viewer
     val showTextLineNumbers: Boolean = false, // Show line numbers for text files
+    val textReaderTheme: String = "LIGHT", // Reader theme: LIGHT, DARK, SEPIA, OLED_BLACK (independent of system)
+    val markdownRendered: Boolean = true, // Render Markdown (.md) or show raw text
+    val syntaxHighlighting: Boolean = true, // Enable syntax highlighting for code files
+    val pdfScrollMode: Boolean = false, // PDF vertical scroll mode (true) vs page mode (false)
+    val pdfColorMode: String = "NORMAL", // PDF color mode: NORMAL, NIGHT, SEPIA
+    val epubLineHeight: Float = 1.6f, // EPUB line height multiplier (1.0 - 3.0)
+    val epubHorizontalMargin: Int = 16, // EPUB horizontal margin in px (0 - 48)
     
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = true, // Enable translation feature using ML Kit OCR + Translate
@@ -82,6 +90,8 @@ data class AppSettings(
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
+    val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
+    val rendererMigrationEnabled: Boolean = true, // Migration flag for new static image renderer pipeline (enabled as default)
     
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
@@ -99,6 +109,7 @@ data class AppSettings(
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
+    val enablePictureInPicture: Boolean = false,
     
     // Last used resource for quick slideshow
     val lastUsedResourceId: Long = -1L

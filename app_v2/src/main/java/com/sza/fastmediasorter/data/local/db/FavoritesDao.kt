@@ -22,6 +22,9 @@ interface FavoritesDao {
     
     @Query("SELECT EXISTS(SELECT 1 FROM favorites WHERE uri = :uri LIMIT 1)")
     suspend fun isFavoriteSync(uri: String): Boolean
+
+    @Query("SELECT uri FROM favorites WHERE uri IN (:paths)")
+    suspend fun getFavoriteUrisForPaths(paths: List<String>): List<String>
     
     @Query("DELETE FROM favorites WHERE id = :id")
     suspend fun deleteById(id: Long)

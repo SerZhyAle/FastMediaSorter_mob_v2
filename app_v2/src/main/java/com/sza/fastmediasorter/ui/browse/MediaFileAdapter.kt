@@ -8,6 +8,7 @@ import android.net.Uri
 import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
@@ -18,6 +19,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.Priority
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
@@ -31,6 +33,7 @@ import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
@@ -71,6 +74,7 @@ class MediaFileAdapter(
     
     // Binary file thumbnail generator (Task 6)
     private var binaryThumbnailGenerator: BinaryFileThumbnailGenerator? = null
+    private var disableDocumentPreviewsOnLowMemory: Boolean? = null
     
     init {
         Timber.i("=== MediaFileAdapter CREATED with refreshVersion=$refreshVersion ===")
@@ -78,6 +82,14 @@ class MediaFileAdapter(
     
     fun setBinaryThumbnailGenerator(generator: BinaryFileThumbnailGenerator) {
         binaryThumbnailGenerator = generator
+    }
+
+    private fun shouldDisableDocumentPreviews(context: android.content.Context): Boolean {
+        if (disableDocumentPreviewsOnLowMemory == null) {
+            disableDocumentPreviewsOnLowMemory = MemoryTier.detect(context) == MemoryTier.LOW
+            Timber.i("MediaFileAdapter: disableDocumentPreviewsOnLowMemory=$disableDocumentPreviewsOnLowMemory")
+        }
+        return disableDocumentPreviewsOnLowMemory == true
     }
     
     fun incrementRefreshVersion() {
@@ -389,6 +401,94 @@ class MediaFileAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         
         private var lastLoadedKey: String? = null
+        private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+            val file = getItemByPosition() ?: return@OnCheckedChangeListener
+            if (!file.isDirectory) {
+                onSelectionChanged(file, isChecked)
+            }
+        }
+
+        private fun getItemByPosition(): MediaFile? {
+            val position = bindingAdapterPosition
+            return if (position != RecyclerView.NO_POSITION) {
+                this@MediaFileAdapter.getItem(position)
+            } else {
+                null
+            }
+        }
+
+        init {
+            binding.ivThumbnail.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                if (file.isDirectory) {
+                    onFolderClick(file)
+                } else if (file.type.isBinaryFile()) {
+                    onBinaryFileClick(file)
+                } else {
+                    onFileClick(file)
+                }
+            }
+
+            binding.root.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                if (file.isDirectory) {
+                    onFolderClick(file)
+                } else if (file.type.isBinaryFile()) {
+                    onBinaryFileClick(file)
+                } else {
+                    onFileClick(file)
+                }
+            }
+
+            binding.root.setOnGenericMotionListener { _, event ->
+                if (event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
+                    val file = getItemByPosition() ?: return@setOnGenericMotionListener false
+                    Timber.d("Right-click on ${file.name}")
+                    onFileLongClick(file)
+                    return@setOnGenericMotionListener true
+                }
+                false
+            }
+
+            binding.root.setOnLongClickListener {
+                val file = getItemByPosition() ?: return@setOnLongClickListener false
+                if (!file.isDirectory) {
+                    onFileLongClick(file)
+                }
+                true
+            }
+
+            binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+
+            binding.btnFavorite.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onFavoriteClick(file)
+            }
+
+            binding.btnCopyItem.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onCopyClick(file)
+            }
+
+            binding.btnMoveItem.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onMoveClick(file)
+            }
+
+            binding.btnRenameItem.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onRenameClick(file)
+            }
+
+            binding.btnDeleteItem.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onDeleteClick(file)
+            }
+
+            // Task 8: Make item focusable for keyboard navigation
+            binding.root.isFocusable = true
+            binding.root.isFocusableInTouchMode = false
+        }
 
         fun clearImage() {
             // Check if the context (activity) is still valid before clearing Glide request
@@ -452,9 +552,7 @@ class MediaFileAdapter(
                 if (!isFolder) {
                     cbSelect.setOnCheckedChangeListener(null)
                     cbSelect.isChecked = isSelected
-                    cbSelect.setOnCheckedChangeListener { _, isChecked ->
-                        onSelectionChanged(file, isChecked)
-                    }
+                    cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
                 }
                 
                 // Highlight selected items
@@ -487,74 +585,24 @@ class MediaFileAdapter(
                     }
                 }
                 
-                // Click handling for folders vs files
-                val clickHandler = android.view.View.OnClickListener {
-                    if (isFolder) {
-                        onFolderClick(file)
-                    } else if (file.type.isBinaryFile()) {
-                        // Task 6: Binary files use special handler
-                        onBinaryFileClick(file)
-                    } else {
-                        onFileClick(file)
-                    }
-                }
-                ivThumbnail.setOnClickListener(clickHandler)
-                root.setOnClickListener(clickHandler)
-                
-                // Task 8: Mouse right-click shows context menu
-                root.setOnGenericMotionListener { _, event ->
-                    if (event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
-                        Timber.d("Right-click on ${file.name}")
-                        onFileLongClick(file)
-                        return@setOnGenericMotionListener true
-                    }
-                    false
-                }
-                
-                // Task 8: Make item focusable for keyboard navigation
-                root.isFocusable = true
-                root.isFocusableInTouchMode = false
-                
-                root.setOnLongClickListener {
-                    if (!isFolder) {
-                        onFileLongClick(file)
-                    }
-                    true
-                }
-                
                 // Favorite button (hide for folders)
                 btnFavorite.isVisible = showFavoriteButton && !isFolder
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled
                     else R.drawable.ic_star_outline
                 )
-                btnFavorite.setOnClickListener {
-                    onFavoriteClick(file)
-                }
 
                 // Setup operation buttons with visibility checks
                 // HIDE buttons if: (It's Grid Mode AND HideGridActions is ON) OR it's a folder
                 val shouldHideActions = (isGridMode && hideGridActionButtons) || isFolder
                 
                 btnCopyItem.isVisible = hasDestinations && !shouldHideActions
-                btnCopyItem.setOnClickListener {
-                    onCopyClick(file)
-                }
                 
                 btnMoveItem.isVisible = hasDestinations && isWritable && !shouldHideActions
-                btnMoveItem.setOnClickListener {
-                    onMoveClick(file)
-                }
                 
                 btnRenameItem.isVisible = isWritable && !shouldHideActions
-                btnRenameItem.setOnClickListener {
-                    onRenameClick(file)
-                }
                 
                 btnDeleteItem.isVisible = isWritable && !shouldHideActions
-                btnDeleteItem.setOnClickListener {
-                    onDeleteClick(file)
-                }
             }
         }
         
@@ -658,6 +706,23 @@ class MediaFileAdapter(
             val isCloudPath = file.path.startsWith("cloud://")
             // Check if this is a network path (SMB/SFTP/FTP)
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+
+            if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
+                Timber.d("THUMBNAIL_DEBUG: Document preview disabled on LOW memory for ${file.name}")
+                when (file.type) {
+                    MediaType.PDF -> {
+                        imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        applyPlaceholderStyle(imageView, file.type, true)
+                    }
+                    MediaType.EPUB -> {
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        imageView.setImageBitmap(createExtensionBitmap(extension))
+                        applyPlaceholderStyle(imageView, file.type, true)
+                    }
+                    else -> Unit
+                }
+                return
+            }
             
             // Check if file exists before loading thumbnail
             if (!isNetworkPath && !isCloudPath) {
@@ -867,6 +932,12 @@ class MediaFileAdapter(
                                         size = file.size,
                                         createdDate = file.createdDate
                                     ))
+                                    .apply(
+                                        RequestOptions().set(
+                                            com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
+                                            largePdfThumbnails
+                                        )
+                                    )
                                     .listener(object : RequestListener<Bitmap> {
                                         override fun onLoadFailed(
                                             e: GlideException?,
@@ -1246,6 +1317,115 @@ class MediaFileAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         
         private var lastLoadedKey: String? = null
+        private var operationsContainer: android.widget.LinearLayout? = null
+        private var btnCopyItem: android.widget.ImageButton? = null
+        private var btnMoveItem: android.widget.ImageButton? = null
+        private var btnRenameItem: android.widget.ImageButton? = null
+        private var btnDeleteItem: android.widget.ImageButton? = null
+        private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
+            val file = getItemByPosition() ?: return@OnCheckedChangeListener
+            if (!file.isDirectory) {
+                onSelectionChanged(file, isChecked)
+            }
+        }
+
+        private fun getItemByPosition(): MediaFile? {
+            val position = bindingAdapterPosition
+            return if (position != RecyclerView.NO_POSITION) {
+                this@MediaFileAdapter.getItem(position)
+            } else {
+                null
+            }
+        }
+
+        private fun ensureOperationsInflated() {
+            if (operationsContainer != null) return
+
+            val inflated = binding.stubOperations.inflate()
+            operationsContainer = inflated as? android.widget.LinearLayout
+            btnCopyItem = inflated.findViewById(R.id.btnCopyItem)
+            btnMoveItem = inflated.findViewById(R.id.btnMoveItem)
+            btnRenameItem = inflated.findViewById(R.id.btnRenameItem)
+            btnDeleteItem = inflated.findViewById(R.id.btnDeleteItem)
+
+            btnCopyItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onCopyClick(file)
+            }
+
+            btnMoveItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onMoveClick(file)
+            }
+
+            btnRenameItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onRenameClick(file)
+            }
+
+            btnDeleteItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onDeleteClick(file)
+            }
+        }
+
+        init {
+            binding.ivThumbnail.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                if (file.isDirectory) {
+                    onFolderClick(file)
+                } else if (file.type.isBinaryFile()) {
+                    onBinaryFileClick(file)
+                } else {
+                    onFileClick(file)
+                }
+            }
+
+            binding.root.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                if (file.isDirectory) {
+                    onFolderClick(file)
+                } else if (file.type.isBinaryFile()) {
+                    onBinaryFileClick(file)
+                } else {
+                    onFileClick(file)
+                }
+            }
+
+            binding.root.setOnGenericMotionListener { _, event ->
+                if (event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
+                    val file = getItemByPosition() ?: return@setOnGenericMotionListener false
+                    Timber.d("Right-click on ${file.name}")
+                    onFileLongClick(file)
+                    return@setOnGenericMotionListener true
+                }
+                false
+            }
+
+            binding.root.setOnLongClickListener {
+                val file = getItemByPosition() ?: return@setOnLongClickListener false
+                onFileLongClick(file)
+                true
+            }
+
+            binding.cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
+            binding.cbSelect.setOnLongClickListener {
+                val file = getItemByPosition() ?: return@setOnLongClickListener false
+                if (!file.isDirectory && !binding.cbSelect.isChecked) {
+                    onSelectionRangeRequested(file)
+                }
+                true
+            }
+
+            binding.btnFavorite.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onFavoriteClick(file)
+            }
+
+            // Task 8: Make item focusable for keyboard navigation
+            binding.root.isFocusable = true
+            binding.root.isFocusableInTouchMode = false
+        }
         
         fun clearImage() {
             // Check if the context (activity) is still valid before clearing Glide request
@@ -1293,18 +1473,7 @@ class MediaFileAdapter(
                     // Setup checkbox
                     cbSelect.setOnCheckedChangeListener(null)
                     cbSelect.isChecked = isSelected
-                    cbSelect.setOnCheckedChangeListener { _, isChecked ->
-                        onSelectionChanged(file, isChecked)
-                    }
-                    
-                    // Long click on checkbox: select range from last selected to this file
-                    cbSelect.setOnLongClickListener {
-                        if (!isSelected) {
-                            // Only handle long click on unchecked checkbox
-                            onSelectionRangeRequested(file)
-                        }
-                        true // Consume the event
-                    }
+                    cbSelect.setOnCheckedChangeListener(selectionCheckedChangeListener)
                 }
                 
                 // Set dynamic thumbnail size (height only - width is match_parent)
@@ -1349,69 +1518,24 @@ class MediaFileAdapter(
                     }
                 }
                 
-                // Click handling for folders vs files
-                val clickHandler = android.view.View.OnClickListener {
-                    if (isFolder) {
-                        onFolderClick(file)
-                    } else if (file.type.isBinaryFile()) {
-                        // Task 6: Binary files use special handler
-                        onBinaryFileClick(file)
-                    } else {
-                        onFileClick(file)
-                    }
-                }
-                ivThumbnail.setOnClickListener(clickHandler)
-                root.setOnClickListener(clickHandler)
-                
-                // Task 8: Mouse right-click shows context menu
-                root.setOnGenericMotionListener { _, event ->
-                    if (event.buttonState == android.view.MotionEvent.BUTTON_SECONDARY) {
-                        Timber.d("Right-click on ${file.name}")
-                        onFileLongClick(file)
-                        return@setOnGenericMotionListener true
-                    }
-                    false
-                }
-                
-                // Task 8: Make item focusable for keyboard navigation
-                root.isFocusable = true
-                root.isFocusableInTouchMode = false
-                
-                root.setOnLongClickListener {
-                    onFileLongClick(file)
-                    true
-                }
-                
                 // Favorite button
                 btnFavorite.isVisible = showFavoriteButton
                 btnFavorite.setImageResource(
                     if (file.isFavorite) R.drawable.ic_star_filled 
                     else R.drawable.ic_star_outline
                 )
-                btnFavorite.setOnClickListener {
-                    onFavoriteClick(file)
-                }
 
                 // Setup operation buttons with visibility
-                btnCopyItem.isVisible = hasDestinations && !hideGridActionButtons
-                btnCopyItem.setOnClickListener {
-                    onCopyClick(file)
+                val shouldShowAnyOperation = hasDestinations || isWritable
+                if (shouldShowAnyOperation) {
+                    ensureOperationsInflated()
                 }
-                
-                btnMoveItem.isVisible = hasDestinations && isWritable && !hideGridActionButtons
-                btnMoveItem.setOnClickListener {
-                    onMoveClick(file)
-                }
-                
-                btnRenameItem.isVisible = isWritable && !hideGridActionButtons
-                btnRenameItem.setOnClickListener {
-                    onRenameClick(file)
-                }
-                
-                btnDeleteItem.isVisible = isWritable && !hideGridActionButtons
-                btnDeleteItem.setOnClickListener {
-                    onDeleteClick(file)
-                }
+
+                operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
+                btnCopyItem?.isVisible = hasDestinations && !hideGridActionButtons
+                btnMoveItem?.isVisible = hasDestinations && isWritable && !hideGridActionButtons
+                btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
+                btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
             }
         }
         
@@ -1498,6 +1622,19 @@ class MediaFileAdapter(
             val isCloudPath = file.path.startsWith("cloud://")
             // Check if this is a network path (SMB/SFTP/FTP)
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+
+            if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
+                Timber.d("THUMBNAIL_DEBUG: Grid document preview disabled on LOW memory for ${file.name}")
+                when (file.type) {
+                    MediaType.PDF -> imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                    MediaType.EPUB -> {
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        imageView.setImageBitmap(createExtensionBitmap(extension))
+                    }
+                    else -> Unit
+                }
+                return
+            }
             
             // For local files, check if file exists (skip for content:// URIs)
             if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
@@ -1874,6 +2011,12 @@ class MediaFileAdapter(
                                     size = file.size,
                                     createdDate = file.createdDate
                                 ))
+                                .apply(
+                                    RequestOptions().set(
+                                        com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
+                                        largePdfThumbnails
+                                    )
+                                )
                                 .placeholder(R.drawable.ic_image_placeholder)
                                 .error(R.drawable.ic_image_error)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap

@@ -74,6 +74,115 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetGeneralSection() {
+        val defaults = AppSettings()
+        val current = settings.value
+        updateSettings(
+            current.copy(
+                language = defaults.language,
+                preventSleep = defaults.preventSleep,
+                showSmallControls = defaults.showSmallControls,
+                defaultUser = defaults.defaultUser,
+                defaultPassword = defaults.defaultPassword,
+                networkParallelism = defaults.networkParallelism,
+                cacheSizeMb = defaults.cacheSizeMb,
+                isCacheSizeUserModified = defaults.isCacheSizeUserModified,
+                enableBackgroundSync = defaults.enableBackgroundSync,
+                backgroundSyncIntervalHours = defaults.backgroundSyncIntervalHours,
+                allFiles = defaults.allFiles,
+                showHiddenFiles = defaults.showHiddenFiles,
+                showSubfoldersAsItems = defaults.showSubfoldersAsItems,
+                enableSafeMode = defaults.enableSafeMode,
+                confirmDelete = defaults.confirmDelete,
+                confirmMove = defaults.confirmMove,
+                enableFavorites = defaults.enableFavorites
+            )
+        )
+    }
+
+    fun resetMediaSection() {
+        val defaults = AppSettings()
+        val current = settings.value
+        updateSettings(
+            current.copy(
+                supportImages = defaults.supportImages,
+                imageSizeMin = defaults.imageSizeMin,
+                imageSizeMax = defaults.imageSizeMax,
+                loadFullSizeImages = defaults.loadFullSizeImages,
+                cropImagesToFullscreen = defaults.cropImagesToFullscreen,
+                supportGifs = defaults.supportGifs,
+                supportVideos = defaults.supportVideos,
+                videoSizeMin = defaults.videoSizeMin,
+                videoSizeMax = defaults.videoSizeMax,
+                supportAudio = defaults.supportAudio,
+                audioSizeMin = defaults.audioSizeMin,
+                audioSizeMax = defaults.audioSizeMax,
+                searchAudioCoversOnline = defaults.searchAudioCoversOnline,
+                searchAudioCoversOnlyOnWifi = defaults.searchAudioCoversOnlyOnWifi,
+                enablePhotosDuringAudio = defaults.enablePhotosDuringAudio,
+                audioBackgroundPhotosResourceId = defaults.audioBackgroundPhotosResourceId,
+                supportText = defaults.supportText,
+                supportPdf = defaults.supportPdf,
+                supportEpub = defaults.supportEpub,
+                showPdfThumbnails = defaults.showPdfThumbnails,
+                textSizeMax = defaults.textSizeMax,
+                showTextLineNumbers = defaults.showTextLineNumbers,
+                enableTranslation = defaults.enableTranslation,
+                translationSourceLanguage = defaults.translationSourceLanguage,
+                translationTargetLanguage = defaults.translationTargetLanguage,
+                translationLensStyle = defaults.translationLensStyle,
+                enableGoogleLens = defaults.enableGoogleLens,
+                enableOcr = defaults.enableOcr,
+                ocrDefaultFontSize = defaults.ocrDefaultFontSize,
+                ocrDefaultFontFamily = defaults.ocrDefaultFontFamily,
+                showVideoThumbnails = defaults.showVideoThumbnails
+            )
+        )
+    }
+
+    fun resetPlaybackSection() {
+        val defaults = AppSettings()
+        val current = settings.value
+        updateSettings(
+            current.copy(
+                defaultSortMode = defaults.defaultSortMode,
+                slideshowInterval = defaults.slideshowInterval,
+                slideshowMusicUri = defaults.slideshowMusicUri,
+                enableSlideshowBackgroundMusic = defaults.enableSlideshowBackgroundMusic,
+                slideshowMusicResourceId = defaults.slideshowMusicResourceId,
+                playToEndInSlideshow = defaults.playToEndInSlideshow,
+                allowRename = defaults.allowRename,
+                allowDelete = defaults.allowDelete,
+                useTrash = defaults.useTrash,
+                defaultGridMode = defaults.defaultGridMode,
+                hideGridActionButtons = defaults.hideGridActionButtons,
+                hideSystemUiInFullscreen = defaults.hideSystemUiInFullscreen,
+                defaultIconSize = defaults.defaultIconSize,
+                defaultShowCommandPanel = defaults.defaultShowCommandPanel,
+                showDetailedErrors = defaults.showDetailedErrors,
+                showPlayerHintOnFirstRun = defaults.showPlayerHintOnFirstRun,
+                alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay,
+                isResourceGridMode = defaults.isResourceGridMode
+            )
+        )
+    }
+
+    fun resetDestinationsSection() {
+        val defaults = AppSettings()
+        val current = settings.value
+        updateSettings(
+            current.copy(
+                enableCopying = defaults.enableCopying,
+                goToNextAfterCopy = defaults.goToNextAfterCopy,
+                overwriteOnCopy = defaults.overwriteOnCopy,
+                enableMoving = defaults.enableMoving,
+                overwriteOnMove = defaults.overwriteOnMove,
+                enableUndo = defaults.enableUndo,
+                maxRecipients = defaults.maxRecipients
+            )
+        )
+    }
     
     fun resetPlayerFirstRun() {
         viewModelScope.launch {

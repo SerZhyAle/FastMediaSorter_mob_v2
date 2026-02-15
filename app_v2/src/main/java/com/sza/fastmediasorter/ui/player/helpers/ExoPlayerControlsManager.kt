@@ -36,6 +36,8 @@ class ExoPlayerControlsManager(
         fun onPreviousFile()
         fun onNextFile()
         fun showPlaybackSpeedDialog()
+        fun showAudioTrackDialog()
+        fun showSubtitleTrackDialog()
     }
     
     /**
@@ -73,6 +75,18 @@ class ExoPlayerControlsManager(
         // Setup playback speed button
         binding.playerView.findViewById<ImageButton>(R.id.exo_speed)?.setOnClickListener {
             callback.showPlaybackSpeedDialog()
+        }
+
+        // Setup audio track quick-switcher button
+        binding.playerView.findViewById<ImageButton>(R.id.btnAudioTrack)?.setOnClickListener {
+            UserActionLogger.logButtonClick("AudioTrack", "ExoPlayerControlsManager")
+            callback.showAudioTrackDialog()
+        }
+
+        // Setup subtitle track quick-switcher button
+        binding.playerView.findViewById<ImageButton>(R.id.btnSubtitleTrack)?.setOnClickListener {
+            UserActionLogger.logButtonClick("SubtitleTrack", "ExoPlayerControlsManager")
+            callback.showSubtitleTrackDialog()
         }
         
         // Setup rewind/forward buttons for audiobook mode
@@ -120,5 +134,23 @@ class ExoPlayerControlsManager(
             val alpha = if (player.repeatMode == Player.REPEAT_MODE_OFF) 0.5f else 1.0f
             repeatButton?.alpha = alpha
         }
+    }
+
+    /**
+     * Update visibility of audio track and subtitle track buttons
+     * based on available tracks in current media.
+     * Call after media is loaded and tracks are available.
+     */
+    fun updateTrackButtonsVisibility() {
+        val btnAudioTrack = binding.playerView.findViewById<ImageButton>(R.id.btnAudioTrack)
+        val btnSubtitleTrack = binding.playerView.findViewById<ImageButton>(R.id.btnSubtitleTrack)
+
+        val hasMultipleAudio = videoPlayerManager.hasMultipleAudioTracks()
+        val hasSubtitles = videoPlayerManager.hasSubtitleTracks()
+
+        btnAudioTrack?.visibility = if (hasMultipleAudio) android.view.View.VISIBLE else android.view.View.GONE
+        btnSubtitleTrack?.visibility = if (hasSubtitles) android.view.View.VISIBLE else android.view.View.GONE
+
+        Timber.d("ExoPlayerControlsManager: track buttons updated — audio=$hasMultipleAudio, subtitles=$hasSubtitles")
     }
 }

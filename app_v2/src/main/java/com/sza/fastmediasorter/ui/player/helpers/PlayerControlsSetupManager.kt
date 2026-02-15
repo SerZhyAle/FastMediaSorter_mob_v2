@@ -86,6 +86,23 @@ class PlayerControlsSetupManager(
     private fun setupPlaybackControls() {
         binding.btnPlayPause.setOnClickListener {
             UserActionLogger.logButtonClick("PlayPause", "PlayerActivity")
+
+            if (activity.isCurrentAnimatedContent()) {
+                val paused = activity.toggleAnimatedPlayback()
+                if (paused != null) {
+                    viewModel.setPaused(paused)
+                    if (paused) {
+                        slideshowController.pauseSlideshow()
+                        activity.clearUiOverlayForAnimatedPause()
+                    } else {
+                        slideshowController.resumeSlideshow()
+                    }
+                    activity.updatePlayPauseButton()
+                    activity.scheduleHideControls()
+                    return@setOnClickListener
+                }
+            }
+
             viewModel.togglePause()
             
             // Update slideshow controller

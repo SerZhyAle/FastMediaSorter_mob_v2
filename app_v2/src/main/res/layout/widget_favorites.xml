@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:text="@string/favorites"
         android:textSize="@dimen/item_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:textColor="@color/white"
         android:padding="@dimen/padding_small"
         android:gravity="center_horizontal" />
@@ -29,3 +29,4 @@
         tools:itemCount="3" />
 
 </LinearLayout>
+

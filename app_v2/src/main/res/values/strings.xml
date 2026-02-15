@@ -214,6 +214,7 @@
     <string name="more_actions">More actions</string>
     <string name="slideshow">Slideshow</string>
     <string name="starting_slideshow_for">Starting slideshow for %1$s...</string>
+    <string name="slideshow_keep_awake">Screen will stay on during slideshow</string>
     <string name="google_lens">Google Lens</string>
     
     <!-- Safe Mode (Phase 2.1) -->
@@ -290,9 +291,24 @@
     <string name="support_epub_description">Support EPUB e-books</string>
     <string name="epub_table_of_contents">Table of Contents</string>
     <string name="epub_no_toc">No table of contents available</string>
+    <string name="epub_chapter_progress">Chapter %1$d of %2$d</string>
     <string name="epub_font_size">Font size: %1$d</string>
     <string name="epub_controls_hidden">Controls hidden. Swipe up to show.</string>
     <string name="epub_exit_fullscreen">Exited fullscreen mode</string>
+    <string name="epub_reader_settings">Reader Settings</string>
+    <string name="epub_reader_theme">Theme</string>
+    <string name="epub_reader_font">Font</string>
+    <string name="epub_reader_font_size">Font Size</string>
+    <string name="epub_reader_line_height">Line Height</string>
+    <string name="epub_reader_margin">Horizontal Margin</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_sepia">Sepia</string>
+    <string name="epub_search_all_chapters">Search All Chapters</string>
+    <string name="epub_search_hint">Search text…</string>
+    <string name="epub_search_results">%1$d results in %2$d chapters</string>
+    <string name="epub_search_no_results">No results found</string>
+    <string name="epub_searching">Searching…</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
     <string name="translation_error_no_text">No text to translate</string>
     <string name="translation_started">Translation started...</string>
@@ -380,6 +396,12 @@
     <string name="all_resources_unavailable">All resources unavailable</string>
     <string name="resources_checked">Resources checked: %1$d available (%2$d unavailable)</string>
     <string name="playback_speed">Playback Speed</string>
+    <string name="audio_track">Audio Track</string>
+    <string name="subtitle_track">Subtitles</string>
+    <string name="select_audio_track">Select Audio Track</string>
+    <string name="select_subtitle_track">Select Subtitles</string>
+    <string name="subtitle_off">Off</string>
+    <string name="track_unknown">Track %d</string>
     <string name="repeat_mode">Repeat</string>
     <string name="resource_name">Folder Name</string>
     <string name="resource_name_hint">Leave empty to auto-generate from path</string>
@@ -742,6 +764,7 @@
     <string name="image_megapixels_label">Megapixels: %1$s MP</string>
     <string name="image_color_space_label">Color Space: %1$s</string>
     <string name="gif_frames_label">Frames: %1$d</string>
+    <string name="animated_badge_gif">GIF</string>
     <string name="audio_codec_label">Audio Codec: %1$s</string>
     <string name="audio_info_section">Audio Information</string>
     <string name="document_info_section">Document Information</string>
@@ -1033,7 +1056,7 @@
     <string name="gif_edit_title">GIF Editor</string>
     <string name="gif_edit_extract">Extract Frames</string>
     <string name="gif_edit_extract_frames">Extract All Frames</string>
-    <string name="gif_edit_extract_help">Export all animation frames as separate PNG files to Downloads folder. Each frame will be saved as: [filename]_frame_001.png, [filename]_frame_002.png, etc.</string>
+    <string name="gif_edit_extract_help">Export all animation frames (GIF/WEBP/APNG) as separate PNG files. Output goes to the current file folder for local files, or Downloads for network files. Naming: [filename]_frame_001.png, [filename]_frame_002.png, etc.</string>
     <string name="gif_edit_speed">Animation Speed</string>
     <string name="gif_edit_speed_normal">Speed: Normal (1.0x)</string>
     <string name="gif_edit_speed_value">Speed: %1$.1fx</string>
@@ -1048,6 +1071,7 @@
     <string name="msg_gif_extract_started">Extracting %1$d frames...</string>
     <string name="msg_gif_extract_success">%1$d frames saved to Downloads</string>
     <string name="msg_gif_extract_failed">Failed to extract frames: %1$s</string>
+    <string name="msg_gif_extract_api_unavailable">Frame extraction for this format requires Android 9+ (API 28+)</string>
     <string name="msg_gif_speed_success">Speed changed to %1$.1fx</string>
     <string name="msg_gif_speed_failed">Failed to change speed: %1$s</string>
     <string name="msg_gif_first_frame_success">First frame saved to Downloads</string>
@@ -1060,6 +1084,7 @@
     <string name="msg_gif_network_speed_success">Speed changed to %1$.1fx, saved to Downloads</string>
     <string name="msg_gif_network_first_frame_success">First frame saved to Downloads</string>
     <string name="msg_no_file_to_edit">No file to edit</string>
+    <string name="msg_operation_cancelled">Operation cancelled</string>
     <string name="msg_no_file_to_delete">No file to delete</string>
     <string name="msg_error_occurred">Error occurred: %1$s</string>
     <string name="slideshow_enabled_message">Slideshow enabled with %1$d seconds interval</string>
@@ -1156,6 +1181,7 @@
     <!-- OCR Feature -->
     <string name="enable_ocr">Enable text recognition (OCR)</string>
     <string name="enable_ocr_summary">Extract text from images and PDF for copying</string>
+    <string name="ocr_requires_newer_device">OCR requires newer device (Memory: %1$s, API: %2$d). Requires API 26+ and 4GB+ RAM.</string>
     <string name="ocr_font_size">OCR Font Size</string>
     <string name="ocr_font_family">OCR Font Family</string>
     <string name="ocr_button_description">Extract Text</string>
@@ -1210,6 +1236,48 @@
     <string name="epub_go_to_chapter_cancel">Cancel</string>
     <string name="epub_invalid_chapter_number">Invalid chapter number. Must be between 1 and %1$d</string>
     <string name="file_is_empty">File is empty</string>
+
+    <!-- Text pager / encoding -->
+    <string name="text_page_indicator">Page %1$d / %2$d</string>
+    <string name="text_page_indicator_estimated">Page %1$d / ~%2$d</string>
+    <string name="text_file_too_large">File is too large (%1$s). Maximum supported size is %2$s.</string>
+    <string name="reopen_with_encoding">Re-open with Encoding…</string>
+    <string name="select_encoding">Select Encoding</string>
+    <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
+
+    <!-- Text reader settings -->
+    <string name="reader_settings">Reader Settings</string>
+    <string name="reader_theme">Theme</string>
+    <string name="reader_theme_light">Light</string>
+    <string name="reader_theme_dark">Dark</string>
+    <string name="reader_theme_sepia">Sepia</string>
+    <string name="toggle_markdown">Toggle Markdown</string>
+    <string name="read_aloud">Read Aloud</string>
+    <string name="read_aloud_stop">Stop Reading</string>
+    <string name="tts_reading">Reading aloud…</string>
+    <string name="syntax_highlighting">Syntax Highlighting</string>
+
+    <!-- H.3: Editor enhancements -->
+    <string name="redo">Redo</string>
+    <string name="find_hint">Find…</string>
+    <string name="replace_hint">Replace with…</string>
+    <string name="replace">Replace</string>
+    <string name="replace_all">Replace All</string>
+    <string name="find_and_replace">Find and Replace</string>
+    <string name="find_no_results">No results</string>
+    <string name="find_counter">%1$d / %2$d</string>
+    <string name="replaced_n_occurrences">Replaced %1$d occurrences</string>
+    <string name="draft_restored">Draft restored. Tap Save to keep changes.</string>
+    <string name="cursor_position">Ln %1$d, Col %2$d</string>
+
+    <!-- I.1: PDF vertical scroll -->
+    <string name="pdf_page">PDF page</string>
+    <string name="pdf_scroll_mode">Scroll Mode</string>
+    <string name="pdf_page_mode">Page Mode</string>
+    <string name="pdf_night_mode">Night Mode</string>
+    <string name="pdf_color_mode">Color Mode: %s</string>
+    <string name="pdf_thumbnails">Page Thumbnails</string>
+
     <plurals name="added_n_resources">
         <item quantity="one">Added %1$d resource</item>
         <item quantity="other">Added %1$d resources</item>
@@ -1250,6 +1318,16 @@
     <string name="settings_category_audio">Audio</string>
     <string name="settings_category_documents">Documents</string>
     <string name="settings_category_other">Other</string>
+    
+    <!-- General Settings Categories -->
+    <string name="settings_general_language_display">Language and Display</string>
+    <string name="settings_general_behavior">App Behavior</string>
+    <string name="settings_general_confirmations">Confirmations and Safety</string>
+    <string name="settings_general_network_sync">Network Sync</string>
+    <string name="settings_general_credentials">Credentials</string>
+    <string name="settings_general_cache">Cache</string>
+    <string name="settings_general_permissions">Permissions</string>
+    <string name="settings_general_actions">Actions</string>
 
     <!-- Audio Background Photos -->
     <string name="enable_photos_during_audio">Photos during audio</string>
@@ -1557,6 +1635,32 @@
     <string name="play_pause">Play/Pause</string>
     <string name="next_file">Next file</string>
     <string name="add_resource">Add resource</string>
+    <string name="settings_search_open">Open settings search</string>
+    <string name="settings_search_close">Close settings search</string>
+    <string name="settings_search_hint">Search settings</string>
+    <string name="settings_search_no_results">No settings found</string>
+    <string name="settings_search_section_format">Section: %1$s</string>
+    <string name="reset_general_section">Reset General section</string>
+    <string name="reset_media_section">Reset Media section</string>
+    <string name="reset_playback_section">Reset Playback section</string>
+    <string name="reset_destinations_section">Reset Destinations section</string>
+    <string name="reset_general_section_title">Reset General section</string>
+    <string name="reset_general_section_message">Reset only General settings to default values?</string>
+    <string name="reset_general_section_success">General section reset completed</string>
+    <string name="reset_general_section_failed">Failed to reset General section: %1$s</string>
+    <string name="reset_media_section_title">Reset Media section</string>
+    <string name="reset_media_section_message">Reset only Media settings to default values?</string>
+    <string name="reset_media_section_success">Media section reset completed</string>
+    <string name="reset_playback_section_title">Reset Playback section</string>
+    <string name="reset_playback_section_message">Reset only Playback settings to default values?</string>
+    <string name="reset_playback_section_success">Playback section reset completed</string>
+    <string name="reset_destinations_section_title">Reset Destinations section</string>
+    <string name="reset_destinations_section_message">Reset only Destinations settings to default values?</string>
+    <string name="reset_destinations_section_success">Destinations section reset completed</string>
+    <string name="export_settings_confirm_title">Export settings</string>
+    <string name="export_settings_confirm_message">Create an export file with current settings?</string>
+    <string name="import_settings_confirm_title">Import settings</string>
+    <string name="import_settings_confirm_message">Import will overwrite current settings values. Continue?</string>
     <string name="local_folder_icon">Local folder icon</string>
     <string name="network_folder_icon">Network folder icon</string>
     <string name="sftp_folder_icon">S/FTP folder icon</string>
@@ -1566,6 +1670,85 @@
     <!-- Image scaling modes -->
     <string name="image_scale_fit_center">fitCenter</string>
     <string name="image_scale_center_crop">centerCrop</string>
+
+    <!-- Resource Editor -->
+    <string name="title_add_resource">Add Resource</string>
+    <string name="title_edit_resource">Edit Resource</string>
+    <string name="title_copy_resource">Copy Resource</string>
+    
+    <string name="hint_resource_name">Resource Name</string>
+    <string name="hint_folder_path">Folder Path</string>
+    <string name="hint_host">Host / IP Address</string>
+    <string name="hint_port">Port</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_password">Password</string>
+    <string name="hint_domain">Domain (optional)</string>
+    <string name="hint_share_name">Share Name</string>
+    <string name="hint_server_path">Server Path (optional)</string>
+    <string name="hint_cloud_folder_id">Cloud Folder ID</string>
+    
+    <string name="label_media_types">Media Types</string>
+    <string name="media_type_document">Documents</string>
+    
+    <string name="btn_test_connection">Test Connection</string>
+    <string name="btn_add_resource">Add Resource</string>
+    <string name="btn_save_changes">Save Changes</string>
+    <string name="btn_save_copy">Save as Copy</string>
+    <string name="btn_save_as_copy">Save as Copy</string>
+    <string name="btn_reset_changes">Reset Changes</string>
+    <string name="btn_retry">Retry</string>
+    
+    <string name="connection_success">Connection successful</string>
+    <string name="connection_test_failed_detail">Connection failed: %1$s</string>
+    <string name="connection_test_not_supported">Connection test not supported for this resource type</string>
+    
+    <string name="error_field_required">This field is required</string>
+    <string name="error_invalid_path">Invalid path</string>
+    <string name="error_invalid_host">Invalid host address</string>
+    <string name="error_invalid_port">Invalid port number</string>
+    <string name="error_invalid_username">Invalid username</string>
+    <string name="error_no_media_types">At least one media type must be selected</string>
+    <string name="error_invalid_cloud_provider">Invalid cloud provider</string>
+    <string name="error_invalid_cloud_folder">Invalid cloud folder</string>
+    <string name="error_connection_failed">Connection test failed</string>
+    <string name="error_save_failed">Failed to save resource</string>
+    <string name="error_unknown">An unknown error occurred</string>
+    
+    <string name="resource_saved">Resource saved successfully</string>
+    <string name="warning_title">Warning</string>
+    <string name="warning_read_only_destination">Read-only destination may block move/copy operations.</string>
+    <string name="warning_endpoint_changed_rescan">Path or endpoint changed. Re-scan/re-verification is required.</string>
+    <string name="warning_path_duplicate_existing">A resource with the same path already exists. Duplicate is allowed, but consider editing existing resource.</string>
+    <string name="error_resource_name_exists">Resource name already exists</string>
+    <string name="name_suggestions">Suggestions: %1$s</string>
+    <string name="btn_use_suggested_name">Use suggested name</string>
+    <string name="btn_use_name_format">Use "%1$s"</string>
+    <string name="copy_credentials_title">Copy credentials</string>
+    <string name="copy_credentials_message">Choose credentials behavior for the duplicate resource.</string>
+    <string name="keep_credentials">Keep credentials</string>
+    <string name="use_new_credentials">Use new credentials</string>
+
+    <!-- Audio background playback -->
+    <string name="notification_channel_audio_playback">Audio Playback</string>
+    <string name="notification_channel_audio_description">Controls for background audio playback</string>
+    <string name="background_audio_setting_title">Background Playback</string>
+    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+
+    <!-- Vinyl indicator & Sleep timer -->
+    <string name="vinyl_indicator_description">Audio playback indicator</string>
+    <string name="menu_sleep_timer">Sleep Timer</string>
+    <string name="sleep_timer_title">Sleep Timer</string>
+    <string name="sleep_timer_off">Off</string>
+    <string name="sleep_timer_minutes">%d min</string>
+    <string name="sleep_timer_hours">%1$d h %2$d min</string>
+    <string name="sleep_timer_active">Sleep: %s remaining</string>
+    <string name="sleep_timer_cancelled">Sleep timer cancelled</string>
+    <string name="sleep_timer_set">Sleep timer set for %s</string>
+
+    <!-- Picture-in-Picture -->
+    <string name="picture_in_picture">Picture in Picture</string>
+    <string name="pip_play">Play</string>
+    <string name="pip_pause">Pause</string>
 
 </resources>
 

@@ -175,6 +175,22 @@ class PlaybackSettingsFragment : Fragment() {
                 Toast.LENGTH_SHORT
             ).show()
         }
+
+        binding.btnResetPlaybackSection.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.reset_playback_section_title)
+                .setMessage(R.string.reset_playback_section_message)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    viewModel.resetPlaybackSection()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.reset_playback_section_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
         
         // Icon size dropdown (24-1024px)
         val iconSizeOptions = arrayOf("24", "32", "48", "64", "96", "128", "160", "192", "256", "320", "384", "512", "768", "1024")

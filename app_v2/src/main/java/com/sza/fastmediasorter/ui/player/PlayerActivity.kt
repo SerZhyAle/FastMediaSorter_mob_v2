@@ -112,6 +112,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
+    private var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
+    private var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
+    private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     private val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -566,7 +569,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onShowEditDialog() {
                     val currentFile = viewModel.state.value.currentFile
                     when (currentFile?.type) {
-                        MediaType.IMAGE, MediaType.GIF -> showImageEditDialog()
+                        MediaType.IMAGE -> {
+                            if (isAnimatedImagePath(currentFile.path)) showGifEditDialog() else showImageEditDialog()
+                        }
+                        MediaType.GIF -> showGifEditDialog()
                         MediaType.VIDEO, MediaType.AUDIO -> playerSettingsManager.showPlayerSettingsDialog()
                         else -> {}
                     }
@@ -926,7 +932,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     val currentFile = viewModel.state.value.currentFile
                     when (currentFile?.type) {
                         MediaType.VIDEO, MediaType.AUDIO -> playerSettingsManager.showPlayerSettingsDialog()
-                        MediaType.IMAGE -> showImageEditDialog()
+                        MediaType.IMAGE -> {
+                            if (isAnimatedImagePath(currentFile.path)) showGifEditDialog() else showImageEditDialog()
+                        }
                         MediaType.GIF -> showGifEditDialog()
                         MediaType.PDF -> showPdfEditDialog()
                         else -> {}
@@ -1063,6 +1071,46 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         translationButtonManager.showTranslationSettingsDialog()
                     }
                 }
+
+                override fun onSleepTimerClicked() {
+                    showSleepTimerDialog()
+                }
+
+                override fun onReopenEncodingClicked() {
+                    showEncodingDialog()
+                }
+
+                override fun onToggleMarkdownClicked() {
+                    textViewerManager.toggleMarkdownRendering()
+                }
+
+                override fun onReaderSettingsClicked() {
+                    showReaderSettingsDialog()
+                }
+
+                override fun onReadAloudClicked() {
+                    textViewerManager.toggleReadAloud()
+                }
+
+                override fun onPdfScrollModeClicked() {
+                    pdfViewerManager.toggleScrollMode()
+                }
+
+                override fun onPdfColorModeClicked() {
+                    pdfViewerManager.toggleColorMode()
+                }
+
+                override fun onPdfThumbnailsClicked() {
+                    pdfViewerManager.showThumbnailNavigation()
+                }
+
+                override fun onEpubReaderSettingsClicked() {
+                    epubViewerManager.showReaderSettingsDialog()
+                }
+
+                override fun onEpubSearchAllClicked() {
+                    epubViewerManager.showCrossChapterSearch()
+                }
             }
         )
         // Initialize orientation on startup
@@ -1118,6 +1166,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun isShowingCommandPanel(): Boolean = viewModel.state.value.showCommandPanel
                 
                 override fun isSlideshowActive(): Boolean = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
+
+                override fun setAnimatedBadgeVisible(visible: Boolean) {
+                    binding.tvAnimatedBadge?.isVisible = visible
+                }
             }
         )
 
@@ -1338,6 +1390,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onPreviousFile() = navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = navigationManager.navigateNextFromControl()
                 override fun showPlaybackSpeedDialog() = playerSettingsManager.showPlaybackSpeedDialog()
+                override fun showAudioTrackDialog() = this@PlayerActivity.showAudioTrackDialog()
+                override fun showSubtitleTrackDialog() = this@PlayerActivity.showSubtitleTrackDialog()
             }
         )
         
@@ -1404,6 +1458,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         )
 
         // 7. Primary Coordinators (Dependencies on almost everything!)
+        audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
+        sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
+            vinylView = binding.vinylIndicator,
+            sleepTimerBadge = binding.sleepTimerBadge,
+            playerProvider = { binding.playerView.player }
+        )
+        pipManager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
+            activity = this,
+            binding = binding,
+            videoPlayerManager = videoPlayerManager,
+            isVideoPlaying = {
+                val currentFile = viewModel.state.value.currentFile
+                currentFile?.type == MediaType.VIDEO && videoPlayerManager.getPlayer()?.isPlaying == true
+            }
+        )
         mediaLoaderManager = com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager(
             activity = this,
             binding = binding,
@@ -1417,7 +1486,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             lifecycleScope = lifecycleScope,
             loadingIndicatorHandler = loadingIndicatorHandler,
             showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
-            mediaFilesCacheManager = mediaFilesCacheManager
+            mediaFilesCacheManager = mediaFilesCacheManager,
+            audioServiceController = audioServiceController
         )
         
         dialogAndUiStateManager = PlayerDialogAndUiStateManager(
@@ -1574,6 +1644,130 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     private fun showRenameDialog() {
         dialogAndUiStateManager.showRenameDialog()
+    }
+
+    private fun showEncodingDialog() {
+        val manager = textViewerManager
+        val charsets = manager.getSupportedCharsets()
+        val currentCharset = manager.getCurrentCharsetName()
+        val labels = charsets.map { (name, charset) ->
+            if (charset.name() == currentCharset) "✓ $name" else name
+        }.toTypedArray()
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.select_encoding)
+            .setItems(labels) { _, which ->
+                val selectedCharset = charsets[which].second
+                manager.reopenWithEncoding(selectedCharset)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showReaderSettingsDialog() {
+        val themes = com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme.entries
+        val themeLabels = arrayOf(
+            getString(R.string.reader_theme_light),
+            getString(R.string.reader_theme_dark),
+            getString(R.string.reader_theme_sepia)
+        )
+        val currentTheme = textViewerManager.getCurrentTheme()
+        val currentIndex = themes.indexOf(currentTheme).coerceAtLeast(0)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.reader_settings)
+            .setSingleChoiceItems(themeLabels, currentIndex) { dialog, which ->
+                textViewerManager.applyReaderTheme(themes[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showSleepTimerDialog() {
+        val manager = sleepTimerManager ?: return
+        val options = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager.SLEEP_TIMER_OPTIONS
+        val labels = options.map { minutes ->
+            if (minutes >= 60) {
+                getString(R.string.sleep_timer_hours, minutes / 60, minutes % 60)
+            } else {
+                getString(R.string.sleep_timer_minutes, minutes)
+            }
+        }.toTypedArray()
+
+        val items = if (manager.isSleepTimerActive) {
+            arrayOf(getString(R.string.sleep_timer_off)) + labels
+        } else {
+            labels
+        }
+
+        val indexOffset = if (manager.isSleepTimerActive) 1 else 0
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.sleep_timer_title)
+            .setItems(items) { _, which ->
+                if (manager.isSleepTimerActive && which == 0) {
+                    manager.cancelSleepTimer()
+                    Timber.d("PlayerActivity: sleep timer cancelled by user")
+                } else {
+                    val selectedMinutes = options[which - indexOffset]
+                    manager.startSleepTimer(selectedMinutes)
+                    Timber.d("PlayerActivity: sleep timer set for $selectedMinutes min")
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAudioTrackDialog() {
+        val tracks = videoPlayerManager.getAvailableAudioTracks()
+        if (tracks.isEmpty()) return
+
+        val labels = tracks.map { it.label }.toTypedArray()
+        val selectedIndex = tracks.indexOfFirst { it.isSelected }.coerceAtLeast(0)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.select_audio_track)
+            .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
+                val track = tracks[which]
+                videoPlayerManager.selectAudioTrack(track.groupIndex, track.trackIndex)
+                Timber.d("PlayerActivity: selected audio track: ${track.label}")
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showSubtitleTrackDialog() {
+        val tracks = videoPlayerManager.getAvailableSubtitleTracks()
+
+        // Build items: "Off" + available tracks
+        val labels = mutableListOf(getString(R.string.subtitle_off))
+        labels.addAll(tracks.map { it.label })
+
+        val selectedIndex = if (tracks.any { it.isSelected }) {
+            tracks.indexOfFirst { it.isSelected } + 1 // +1 for "Off" at index 0
+        } else {
+            0 // "Off" selected
+        }
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.select_subtitle_track)
+            .setSingleChoiceItems(labels.toTypedArray(), selectedIndex) { dialog, which ->
+                if (which == 0) {
+                    // First valid group index or 0
+                    val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
+                    videoPlayerManager.selectSubtitleTrack(groupIndex, -1)
+                    Timber.d("PlayerActivity: subtitles turned off")
+                } else {
+                    val track = tracks[which - 1]
+                    videoPlayerManager.selectSubtitleTrack(track.groupIndex, track.trackIndex)
+                    Timber.d("PlayerActivity: selected subtitle track: ${track.label}")
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun setupToolbar() {
@@ -1763,6 +1957,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         currentSettings = settings
                         loadFullSizeImages = settings.loadFullSizeImages
                         
+                        // Setup PiP button visibility based on settings
+                        pipManager?.setupPipButton(settings.enablePictureInPicture)
+                        
                         // Show favorite button if:
                         // 1. enableFavorites setting is on, OR
                         // 2. Currently viewing Favorites resource (id = -100)
@@ -1782,6 +1979,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private fun updateUI(state: PlayerViewModel.PlayerState) {
         uiStateCoordinator.updateUI(state)
+        // Stop vinyl animation when switching to non-audio file
+        if (state.currentFile?.type != MediaType.AUDIO) {
+            sleepTimerManager?.stopVinylAnimation()
+        }
         // GUARD: After state observers update views, re-enforce audio slideshow photo mode UI
         if (isAudioSlideshowPhotoMode) {
             enforceAudioSlideshowPhotoModeUI()
@@ -1899,10 +2100,38 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     internal fun updatePlayPauseButton() {
-        binding.btnPlayPause.text = if (viewModel.state.value.isPaused) "▶" else "⏸"
+        val isAnimatedContent = ::mediaLoaderManager.isInitialized && mediaLoaderManager.isCurrentAnimatedContent()
+        val isPaused = if (isAnimatedContent) {
+            mediaLoaderManager.isAnimatedPlaybackPaused()
+        } else {
+            viewModel.state.value.isPaused
+        }
+
+        binding.btnPlayPause.text = if (isPaused) "▶" else "⏸"
         if (_videoPlayerManager != null) {
             videoPlayerManager.getPlayer()?.playWhenReady = !viewModel.state.value.isPaused
         }
+    }
+
+    internal fun isCurrentAnimatedContent(): Boolean {
+        return ::mediaLoaderManager.isInitialized && mediaLoaderManager.isCurrentAnimatedContent()
+    }
+
+    internal fun toggleAnimatedPlayback(): Boolean? {
+        if (!::mediaLoaderManager.isInitialized) return null
+        return mediaLoaderManager.toggleAnimatedPlayback()
+    }
+
+    internal fun clearUiOverlayForAnimatedPause() {
+        if (viewModel.state.value.showCommandPanel) {
+            viewModel.enterFullscreenMode()
+        }
+
+        if (viewModel.state.value.showControls) {
+            viewModel.toggleControls()
+        }
+
+        hideControlsHandler.removeCallbacks(hideControlsRunnable)
     }
 
     internal fun updateSlideShowButton() {
@@ -1960,6 +2189,42 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         if (::imageLoadingManager.isInitialized) {
             imageLoadingManager.clearMemoryCache()
+        }
+    }
+    
+    /**
+     * Set screen keep-awake state for slideshow (D.8).
+     * @param enabled true to force screen on, false to restore to global preventSleep setting
+     */
+    internal fun setSlideshowKeepAwake(enabled: Boolean) {
+        if (isFinishing || isDestroyed) {
+            return
+        }
+        
+        if (enabled) {
+            // Force keep screen on during slideshow
+            window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            Timber.d("SlideshowKeepAwake: Enabled - screen will stay on during slideshow")
+            
+            // Show user notification (D.8)
+            android.widget.Toast.makeText(
+                this,
+                R.string.slideshow_keep_awake,
+                android.widget.Toast.LENGTH_SHORT
+            ).show()
+        } else {
+            // Restore to global preventSleep setting
+            lifecycleScope.launch {
+                val settings = settingsRepository.getSettings().first()
+                if (settings.preventSleep) {
+                    // Global setting is ON - keep screen on
+                    window.addFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    // Global setting is OFF - allow screen sleep
+                    window.clearFlags(android.view.WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                Timber.d("SlideshowKeepAwake: Disabled - restored to global setting (preventSleep=${settings.preventSleep})")
+            }
         }
     }
 
@@ -2054,6 +2319,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     private fun showGifEditDialog() {
         dialogAndUiStateManager.showGifEditDialog()
+    }
+
+    private fun isAnimatedImagePath(path: String): Boolean {
+        val lowerPath = path.lowercase()
+        return lowerPath.endsWith(".gif") || lowerPath.endsWith(".webp") || lowerPath.endsWith(".apng")
     }
 
 
@@ -2409,6 +2679,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         imageLoadingManager.updateAudioFormatInfo()
     }
 
+    internal fun updateTrackButtonsVisibility() {
+        exoPlayerControlsManager.updateTrackButtonsVisibility()
+    }
+
     private fun releasePlayer() {
         // Deprecated: delegated to VideoPlayerManager
         if (_videoPlayerManager != null) {
@@ -2434,10 +2708,25 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     override fun onPause() {
         super.onPause()
+        // Skip pause logic when entering PiP (video should keep playing)
+        if (isInPictureInPictureMode) return
+        lifecycleManager.onPause()
         viewModel.togglePause()
         
         // Save playback position for video/audio
         saveCurrentPlaybackPosition()
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val enablePip = currentSettings?.enablePictureInPicture == true
+        pipManager?.onUserLeaveHint(enablePip)
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
     }
     
     // Removed: showLoadingDialog/dismissLoadingDialog/updateLoadingProgress
@@ -3032,6 +3321,23 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Release audio background photos manager
         audioBackgroundPhotosManager.release()
         
+        // Release audio service controller (disconnect from AudioPlaybackService)
+        audioServiceController?.release()
+        audioServiceController = null
+        
+        // Release sleep timer manager (stop animations and timer)
+        sleepTimerManager?.release()
+        sleepTimerManager = null
+        
+        // Release PiP manager (unregister receiver)
+        pipManager?.release()
+        pipManager = null
+
+        // Release text file pager
+        if (_textViewerManager != null) {
+            textViewerManager.release()
+        }
+        
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()
     }
@@ -3231,7 +3537,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
                 playerSettingsManagerProvider = { playerSettingsManager },
                 imageLoadingManagerProvider = { imageLoadingManager },
-                slideshowController = slideshowController
+                slideshowController = slideshowController,
+                sleepTimerManagerProvider = { sleepTimerManager }
             ),
             credentialsRepository = credentialsRepository,
             smbClient = smbClient,
@@ -3361,6 +3668,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
                 override fun setTouchZonesEnabled(enabled: Boolean) {
                     safeViews.touchZonesOverlay.isVisible = enabled && useTouchZones
+                }
+
+                override fun showEncodingDialog() {
+                    this@PlayerActivity.showEncodingDialog()
                 }
             },
             translationManager = translationManager

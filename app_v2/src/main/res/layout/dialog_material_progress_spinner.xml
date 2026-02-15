@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="@dimen/text_size_large"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         android:layout_marginBottom="@dimen/margin_small"
         android:visibility="gone" />
 
@@ -30,3 +30,4 @@
         android:indeterminate="true" />
 
 </LinearLayout>
+

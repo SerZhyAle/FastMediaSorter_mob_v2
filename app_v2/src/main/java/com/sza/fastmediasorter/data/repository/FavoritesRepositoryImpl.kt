@@ -11,6 +11,10 @@ import javax.inject.Singleton
 class FavoritesRepositoryImpl @Inject constructor(
     private val favoritesDao: FavoritesDao
 ) : FavoritesRepository {
+    companion object {
+        private const val SQLITE_IN_CLAUSE_LIMIT = 900
+    }
+
     override fun getAllFavorites(): Flow<List<FavoritesEntity>> {
         return favoritesDao.getAllFavorites()
     }
@@ -21,6 +25,17 @@ class FavoritesRepositoryImpl @Inject constructor(
 
     override suspend fun isFavoriteSync(uri: String): Boolean {
         return favoritesDao.isFavoriteSync(uri)
+    }
+
+    override suspend fun getFavoritesForPaths(paths: List<String>): Map<String, Boolean> {
+        if (paths.isEmpty()) return emptyMap()
+
+        val favoriteUris = mutableSetOf<String>()
+        paths.distinct().chunked(SQLITE_IN_CLAUSE_LIMIT).forEach { chunk ->
+            favoriteUris += favoritesDao.getFavoriteUrisForPaths(chunk)
+        }
+
+        return paths.associateWith { it in favoriteUris }
     }
 
     override suspend fun addFavorite(entity: FavoritesEntity) {

@@ -89,6 +89,10 @@ class PlayerNavigationManager(
                 override fun onMemoryCacheClear() {
                     activity.clearImageMemoryCache()
                 }
+                
+                override fun setKeepScreenAwake(enabled: Boolean) {
+                    activity.setSlideshowKeepAwake(enabled)
+                }
             }
         )
     }

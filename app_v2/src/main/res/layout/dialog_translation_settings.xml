@@ -24,7 +24,7 @@
             android:layout_weight="1"
             android:text="@string/translation_settings"
             android:textSize="@dimen/text_size_title_dialog"
-            android:textStyle="@string/text_style_bold" />
+            android:textStyle="bold" />
 
         <Button
             android:id="@+id/btnCancel"
@@ -154,3 +154,4 @@
 </LinearLayout>
 
 </ScrollView>
+

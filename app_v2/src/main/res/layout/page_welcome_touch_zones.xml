@@ -14,7 +14,7 @@
         android:text="@string/welcome_title_3"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/welcome_title_text_size"
-        android:textStyle="@string/text_style_bold"
+        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -26,7 +26,7 @@
         android:layout_marginTop="@dimen/margin_medium"
         android:layout_marginBottom="@dimen/margin_medium"
         android:contentDescription="@string/welcome_title_3"
-        android:scaleType="@string/image_scale_fit_center"
+        android:scaleType="fitCenter"
         android:src="@drawable/touch_zones_scheme"
         app:layout_constraintBottom_toTopOf="@id/tvDescription"
         app:layout_constraintEnd_toEndOf="parent"
@@ -41,10 +41,11 @@
         android:text="@string/welcome_description_3"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/welcome_description_text_size"
-        android:lineSpacingMultiplier="@string/dialog_file_info_tvExifExposure_lineSpacingMultiplier"
+        android:lineSpacingMultiplier="1.2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+
 

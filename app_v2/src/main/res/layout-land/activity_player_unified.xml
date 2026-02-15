@@ -456,6 +456,34 @@
             android:background="#000000"
             android:contentDescription="@string/audio_cover_art" />
 
+        <!-- Vinyl record playback indicator (rotating during audio playback) -->
+        <ImageView
+            android:id="@+id/vinylIndicator"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="top|end"
+            android:layout_margin="16dp"
+            android:elevation="8dp"
+            android:src="@drawable/ic_vinyl_record"
+            android:visibility="gone"
+            android:contentDescription="@string/vinyl_indicator_description" />
+
+        <!-- Sleep timer remaining time badge -->
+        <TextView
+            android:id="@+id/sleepTimerBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="68dp"
+            android:layout_marginEnd="12dp"
+            android:elevation="8dp"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:background="@drawable/bg_rounded_badge"
+            android:textColor="@android:color/white"
+            android:textSize="11sp"
+            android:visibility="gone" />
+
         <!-- Audio file info overlay -->
         <LinearLayout
             android:id="@+id/audioInfoOverlay"
@@ -508,6 +536,16 @@
             android:layout_height="match_parent"
             android:visibility="gone"
             android:contentDescription="@null" />
+
+        <!-- PDF Vertical Scroll Mode RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pdfScrollRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:background="@color/activity_player_unified_topCommandPanel_background"
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
 
         <!-- Translation Overlay -->
         <com.sza.fastmediasorter.ui.player.views.TranslationOverlayView

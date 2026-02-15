@@ -37,7 +37,7 @@ class FtpMediaScanner @Inject constructor(
         onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("FTP scanFolder: path=$path, credentialsId=$credentialsId")
+            Timber.d("FTP scanFolder start: hasCredentials=${!credentialsId.isNullOrBlank()}")
             
             // Parse path format: ftp://server:port/remotePath
             val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
@@ -45,7 +45,7 @@ class FtpMediaScanner @Inject constructor(
                 return@withContext emptyList()
             }
 
-            Timber.d("FTP connection info: host=${connectionInfo.host}, port=${connectionInfo.port}, user=${connectionInfo.username}, remotePath=${connectionInfo.remotePath}")
+            Timber.d("FTP connection info: host=${connectionInfo.host}, port=${connectionInfo.port}, hasUser=${connectionInfo.username.isNotBlank()}, remotePath=${connectionInfo.remotePath}")
 
             // Connect and list files with metadata
             val connectResult = ftpClient.connect(

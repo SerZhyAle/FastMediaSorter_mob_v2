@@ -53,6 +53,7 @@ class PlayerViewModel @Inject constructor(
         val playToEndInSlideshow: Boolean = false,
         val enablePhotosDuringAudio: Boolean = false,
         val audioBackgroundPhotosResourceId: String? = null,
+        val enableBackgroundAudio: Boolean = false,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = false,
@@ -142,7 +143,8 @@ class PlayerViewModel @Inject constructor(
                             enableSlideshowBackgroundMusic = settings.enableSlideshowBackgroundMusic,
                             playToEndInSlideshow = settings.playToEndInSlideshow,
                             enablePhotosDuringAudio = settings.enablePhotosDuringAudio,
-                            audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId
+                            audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId,
+                            enableBackgroundAudio = settings.enableBackgroundAudio
                         )
                     }
                 }
@@ -373,6 +375,69 @@ class PlayerViewModel @Inject constructor(
                 setLoading(false)
             }
         }
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // LOOKAHEAD MODEL for prefetch
+    // ════════════════════════════════════════════════════════════════════════
+
+    /**
+     * Lookahead file info for prefetch system.
+     */
+    data class LookaheadItem(
+        val file: MediaFile,
+        val index: Int,
+        val priority: com.sza.fastmediasorter.ui.player.render.RenderPriority
+    )
+
+    /**
+     * Returns adjacent files for prefetch with assigned priorities.
+     * Order: NEXT, PREV, then forward lookahead (+2, +3).
+     * Does not include current file.
+     *
+     * @param maxLookahead Maximum lookahead depth (default 2 means +2 and +3 indices)
+     * @return List of LookaheadItem for prefetch queue
+     */
+    fun getLookaheadTargets(maxLookahead: Int = 2): List<LookaheadItem> {
+        val currentState = state.value
+        val files = currentState.files
+        val currentIndex = currentState.currentIndex
+
+        if (files.size <= 1) return emptyList()
+
+        val result = mutableListOf<LookaheadItem>()
+
+        // Next file (highest priority)
+        val nextIndex = (currentIndex + 1) % files.size
+        result.add(LookaheadItem(
+            file = files[nextIndex],
+            index = nextIndex,
+            priority = com.sza.fastmediasorter.ui.player.render.RenderPriority.NEXT
+        ))
+
+        // Previous file
+        val prevIndex = if (currentIndex == 0) files.size - 1 else currentIndex - 1
+        if (prevIndex != nextIndex) { // Avoid duplicate if only 2 files
+            result.add(LookaheadItem(
+                file = files[prevIndex],
+                index = prevIndex,
+                priority = com.sza.fastmediasorter.ui.player.render.RenderPriority.PREVIOUS
+            ))
+        }
+
+        // Forward lookahead (+2, +3, etc.)
+        for (offset in 2..maxLookahead + 1) {
+            val lookaheadIndex = (currentIndex + offset) % files.size
+            // Skip if it wraps around to already included indices
+            if (lookaheadIndex == currentIndex || lookaheadIndex == nextIndex || lookaheadIndex == prevIndex) continue
+            result.add(LookaheadItem(
+                file = files[lookaheadIndex],
+                index = lookaheadIndex,
+                priority = com.sza.fastmediasorter.ui.player.render.RenderPriority.LOOKAHEAD
+            ))
+        }
+
+        return result
     }
     
     /**

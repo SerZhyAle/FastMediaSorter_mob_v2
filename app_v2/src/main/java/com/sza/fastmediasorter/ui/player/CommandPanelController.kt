@@ -63,6 +63,16 @@ class CommandPanelController(
         fun onEditTextClicked()
         fun onOcrSettingsClicked()
         fun onTranslationSettingsClicked()
+        fun onSleepTimerClicked()
+        fun onReopenEncodingClicked()
+        fun onToggleMarkdownClicked()
+        fun onReaderSettingsClicked()
+        fun onReadAloudClicked()
+        fun onPdfScrollModeClicked()
+        fun onPdfColorModeClicked()
+        fun onPdfThumbnailsClicked()
+        fun onEpubReaderSettingsClicked()
+        fun onEpubSearchAllClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -659,6 +669,11 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_copy_text)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_edit_text)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_undo)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_sleep_timer)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_reopen_encoding)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_toggle_markdown)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_reader_settings)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_read_aloud)?.icon?.setTint(iconColor)
         
         // Configure menu items visibility based on file type and state
         val isPdf = currentFile.type == MediaType.PDF
@@ -691,6 +706,16 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_copy_text)?.isVisible = isText
         popup.menu.findItem(R.id.menu_edit_text)?.isVisible = isText && !isReadOnly
         popup.menu.findItem(R.id.menu_undo)?.isVisible = state.lastOperation != null && !isReadOnly
+        popup.menu.findItem(R.id.menu_sleep_timer)?.isVisible = currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO
+        popup.menu.findItem(R.id.menu_reopen_encoding)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_toggle_markdown)?.isVisible = isText && currentFile.name.endsWith(".md", ignoreCase = true)
+        popup.menu.findItem(R.id.menu_reader_settings)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_read_aloud)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_pdf_scroll_mode)?.isVisible = isPdf
+        popup.menu.findItem(R.id.menu_pdf_color_mode)?.isVisible = isPdf
+        popup.menu.findItem(R.id.menu_pdf_thumbnails)?.isVisible = isPdf
+        popup.menu.findItem(R.id.menu_epub_reader_settings)?.isVisible = isEpub
+        popup.menu.findItem(R.id.menu_epub_search_all)?.isVisible = isEpub
         
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -708,6 +733,16 @@ class CommandPanelController(
                 R.id.menu_copy_text -> callback.onCopyTextClicked()
                 R.id.menu_edit_text -> callback.onEditTextClicked()
                 R.id.menu_undo -> callback.onUndoClicked()
+                R.id.menu_sleep_timer -> callback.onSleepTimerClicked()
+                R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()
+                R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
+                R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
+                R.id.menu_read_aloud -> callback.onReadAloudClicked()
+                R.id.menu_pdf_scroll_mode -> callback.onPdfScrollModeClicked()
+                R.id.menu_pdf_color_mode -> callback.onPdfColorModeClicked()
+                R.id.menu_pdf_thumbnails -> callback.onPdfThumbnailsClicked()
+                R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
+                R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
             }
             true
         }

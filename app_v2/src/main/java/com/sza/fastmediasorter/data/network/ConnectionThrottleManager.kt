@@ -153,6 +153,31 @@ object ConnectionThrottleManager {
      */
     fun isVideoPlayerActive(): Boolean = videoPlayerActive
 
+    /**
+     * Check if the connection is congested (degraded state or high active task count).
+     * Used by prefetch systems to reduce lookahead depth under pressure.
+     *
+     * @param resourceKey Resource identifier (e.g., "smb://192.168.1.10:445")
+     * @return true if network pressure is high and prefetch should be conservative
+     */
+    fun isCongested(resourceKey: String): Boolean {
+        val state = protocolStates[resourceKey] ?: return false
+        // Congested if: degraded OR active tasks >= 80% of limit
+        val threshold = (state.currentLimit * 0.8).toInt().coerceAtLeast(1)
+        return state.isDegraded || state.activeTasks.get() >= threshold
+    }
+
+    /**
+     * Check if any network resource is congested.
+     * Convenience method for global congestion check.
+     */
+    fun isAnyCongested(): Boolean {
+        return protocolStates.values.any { state ->
+            val threshold = (state.currentLimit * 0.8).toInt().coerceAtLeast(1)
+            state.isDegraded || state.activeTasks.get() >= threshold
+        }
+    }
+
     private fun getMaxLimit(protocol: ProtocolLimits, resourceKey: String): Int {
         return when (protocol) {
             ProtocolLimits.SMB, ProtocolLimits.SFTP, ProtocolLimits.FTP, ProtocolLimits.CLOUD -> {

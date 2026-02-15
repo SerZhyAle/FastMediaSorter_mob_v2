@@ -7,12 +7,17 @@ import android.os.ParcelFileDescriptor
 import android.view.GestureDetector
 import android.view.MotionEvent
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.github.chrisbanes.photoview.PhotoView
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -72,6 +77,21 @@ class PdfViewerManager(
     
     // Fullscreen mode state
     private var isFullscreenMode = false
+    
+    // Scroll mode state
+    private var isScrollMode = false
+    private var pdfPageAdapter: PdfPageAdapter? = null
+    private var bitmapCache: PdfBitmapCache? = null
+    private var rendererWrapper: PdfRendererWrapper? = null
+    
+    // Color mode state (night/sepia)
+    private var currentColorMode = PdfColorConversion.PdfColorMode.NORMAL
+    
+    // Page render job for cancellation on rapid navigation (C2 fix)
+    private var pageRenderJob: Job? = null
+    
+    // Single-thread dispatcher for PdfRenderer (non-thread-safe API)
+    private val pdfDispatcher = Dispatchers.IO.limitedParallelism(1)
     
     init {
         
@@ -308,6 +328,12 @@ class PdfViewerManager(
                         currentPdfFile = file
                         currentPdfPath = mediaFile.path // Store original path for position saving
                         
+                        // Create thread-safe wrapper and cache for scroll mode
+                        rendererWrapper = PdfRendererWrapper(pdfRenderer!!)
+                        bitmapCache = PdfBitmapCache()
+                        isScrollMode = settings.pdfScrollMode
+                        currentColorMode = PdfColorConversion.fromName(settings.pdfColorMode)
+                        
                         // Restore last viewed page position
                         val savedPage = playbackPositionRepository.getPosition(mediaFile.path)
                         val startPage = if (savedPage != null && savedPage > 0 && savedPage < pdfPageCount) {
@@ -318,10 +344,12 @@ class PdfViewerManager(
                         
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            // DON'T hide progressBar here - showPdfPage() will handle it after rendering
-                            // binding.progressBar.isVisible = false
                             if (pdfPageCount > 0) {
-                                showPdfPage(startPage)
+                                if (isScrollMode) {
+                                    setupScrollMode(startPage)
+                                } else {
+                                    setupPageMode(startPage)
+                                }
                                 if (startPage > 0) {
                                     Timber.d("PDF: Restored to page ${startPage + 1}/$pdfPageCount")
                                 }
@@ -419,6 +447,211 @@ class PdfViewerManager(
         }
     }
     
+    // ========== Scroll Mode ==========
+    
+    /**
+     * Setup page mode (single-page PhotoView with fling navigation).
+     * This is the legacy/default mode.
+     */
+    private fun setupPageMode(startPage: Int) {
+        binding.photoView.isVisible = true
+        safeViews.pdfScrollRecyclerView.isVisible = false
+        binding.btnPdfPrevPage.isVisible = pdfPageCount > 1
+        binding.btnPdfNextPage.isVisible = pdfPageCount > 1
+        binding.progressBar.isVisible = true
+        showPdfPage(startPage)
+        Timber.d("PDF: Page mode activated, startPage=${startPage + 1}/$pdfPageCount")
+    }
+    
+    /**
+     * Setup scroll mode (vertical RecyclerView with all pages).
+     * Uses PdfPageAdapter with PdfRendererWrapper for thread-safe rendering.
+     */
+    private fun setupScrollMode(startPage: Int) {
+        binding.photoView.isVisible = false
+        safeViews.pdfScrollRecyclerView.isVisible = true
+        binding.progressBar.isVisible = false
+        
+        // Hide page navigation buttons in scroll mode (scroll replaces them)
+        binding.btnPdfPrevPage.isVisible = false
+        binding.btnPdfNextPage.isVisible = false
+        
+        val wrapper = rendererWrapper ?: return
+        val cache = bitmapCache ?: return
+        val screenWidth = binding.root.resources.displayMetrics.widthPixels
+        
+        val adapter = PdfPageAdapter(
+            rendererWrapper = wrapper,
+            bitmapCache = cache,
+            coroutineScope = coroutineScope,
+            renderWidth = screenWidth
+        )
+        pdfPageAdapter = adapter
+        
+        // Apply current color filter to adapter
+        adapter.setColorFilter(PdfColorConversion.getColorFilter(currentColorMode))
+        
+        val layoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
+        safeViews.pdfScrollRecyclerView.layoutManager = layoutManager
+        safeViews.pdfScrollRecyclerView.adapter = adapter
+        
+        // Clear existing scroll listeners to prevent accumulation (M5 fix)
+        safeViews.pdfScrollRecyclerView.clearOnScrollListeners()
+        
+        // Add scroll listener to update page indicator
+        safeViews.pdfScrollRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val firstVisible = layoutManager.findFirstCompletelyVisibleItemPosition()
+                val visiblePage = if (firstVisible >= 0) firstVisible else layoutManager.findFirstVisibleItemPosition()
+                if (visiblePage >= 0 && visiblePage != currentPdfPageIndex) {
+                    currentPdfPageIndex = visiblePage
+                    binding.tvPdfPageIndicator?.text = "${visiblePage + 1} / $pdfPageCount"
+                    saveCurrentPagePosition()
+                }
+            }
+        })
+        
+        // Scroll to restored page
+        if (startPage > 0) {
+            layoutManager.scrollToPositionWithOffset(startPage, 0)
+        }
+        currentPdfPageIndex = startPage
+        binding.tvPdfPageIndicator?.text = "${startPage + 1} / $pdfPageCount"
+        binding.tvPdfPageIndicator?.isVisible = pdfPageCount > 1
+        
+        Timber.d("PDF: Scroll mode activated, startPage=${startPage + 1}/$pdfPageCount")
+    }
+    
+    /**
+     * Toggle between page mode and scroll mode.
+     * Persists preference to settings.
+     */
+    fun toggleScrollMode() {
+        isScrollMode = !isScrollMode
+        Timber.d("PDF: Toggling to ${if (isScrollMode) "scroll" else "page"} mode")
+        
+        // Persist preference
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val current = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(current.copy(pdfScrollMode = isScrollMode))
+            } catch (e: Exception) {
+                Timber.e(e, "PDF: Failed to persist scroll mode preference")
+            }
+        }
+        
+        // Clean up current adapter if switching away from scroll mode
+        if (!isScrollMode) {
+            pdfPageAdapter?.invalidateCache()
+            pdfPageAdapter = null
+            safeViews.pdfScrollRecyclerView.adapter = null
+            setupPageMode(currentPdfPageIndex)
+        } else {
+            // Close current page before switching (PdfRenderer requires it)
+            currentPdfPage?.close()
+            currentPdfPage = null
+            // Clear PhotoView reference BEFORE recycling bitmap (M3 fix)
+            binding.photoView.setImageBitmap(null)
+            currentPageBitmap?.recycle()
+            currentPageBitmap = null
+            bitmapCache?.clear()
+            setupScrollMode(currentPdfPageIndex)
+        }
+    }
+    
+    /**
+     * Check if currently in scroll mode.
+     */
+    fun isInScrollMode(): Boolean = isScrollMode
+    
+    /**
+     * Toggle PDF color mode: NORMAL → NIGHT → SEPIA → NORMAL.
+     * Applies ColorMatrixColorFilter to both page mode (PhotoView) and scroll mode (adapter).
+     * Persists preference to settings.
+     */
+    fun toggleColorMode() {
+        currentColorMode = PdfColorConversion.nextMode(currentColorMode)
+        val filter = PdfColorConversion.getColorFilter(currentColorMode)
+        
+        Timber.d("PDF: Color mode changed to $currentColorMode")
+        
+        // Apply to PhotoView (page mode)
+        binding.photoView.colorFilter = filter
+        
+        // Apply to adapter (scroll mode)
+        pdfPageAdapter?.setColorFilter(filter)
+        
+        // Persist preference
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val current = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(current.copy(pdfColorMode = currentColorMode.name))
+            } catch (e: Exception) {
+                Timber.e(e, "PDF: Failed to persist color mode preference")
+            }
+        }
+    }
+    
+    /**
+     * Get current color mode name for UI display.
+     */
+    fun getCurrentColorModeName(): String = currentColorMode.name
+    
+    /**
+     * Show thumbnail navigation BottomSheet.
+     * Displays a grid of low-res page thumbnails for quick page jumping.
+     */
+    fun showThumbnailNavigation() {
+        val wrapper = rendererWrapper ?: return
+        if (pdfPageCount <= 1) return
+        
+        val context = binding.root.context
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_pdf_thumbnails, null)
+        
+        val rvThumbnails = view.findViewById<RecyclerView>(R.id.rvThumbnails)
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvThumbnailTitle)
+        tvTitle.text = context.getString(R.string.pdf_thumbnails) + " (${pdfPageCount})"
+        
+        val adapter = PdfThumbnailAdapter(
+            rendererWrapper = wrapper,
+            pageCount = pdfPageCount,
+            coroutineScope = coroutineScope,
+            currentPage = currentPdfPageIndex,
+            onPageSelected = { page ->
+                bottomSheet.dismiss()
+                if (isScrollMode) {
+                    val layoutManager = safeViews.pdfScrollRecyclerView.layoutManager as? LinearLayoutManager
+                    layoutManager?.scrollToPositionWithOffset(page, 0)
+                    currentPdfPageIndex = page
+                    binding.tvPdfPageIndicator?.text = "${page + 1} / $pdfPageCount"
+                    saveCurrentPagePosition()
+                } else {
+                    showPdfPage(page)
+                }
+                Timber.d("PDF: Thumbnail navigation jump to page ${page + 1}")
+            }
+        )
+        
+        // 3 columns grid
+        val spanCount = 3
+        rvThumbnails.layoutManager = GridLayoutManager(context, spanCount)
+        rvThumbnails.adapter = adapter
+        
+        // Scroll to current page position
+        val targetRow = currentPdfPageIndex / spanCount
+        rvThumbnails.scrollToPosition(targetRow * spanCount)
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.setOnDismissListener {
+            adapter.clearCache()
+        }
+        bottomSheet.show()
+        
+        Timber.d("PDF: Thumbnail navigation opened, ${pdfPageCount} pages")
+    }
+    
     /**
      * Toggle translation on/off for current PDF page
      */
@@ -472,8 +705,8 @@ class PdfViewerManager(
             // Get source language for OCR
             val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
             
-            // Perform OCR on current page bitmap
-            val originalBitmap = currentPageBitmap!!
+            // Perform OCR on current page bitmap (M4 fix: safe access after async gap)
+            val originalBitmap = currentPageBitmap ?: return@launch
             val shouldScale = originalBitmap.width >= 1500 && originalBitmap.height >= 1500
             
             val ocrBitmap = if (shouldScale) {
@@ -549,7 +782,7 @@ class PdfViewerManager(
         
         // Decide if bitmap should be scaled for OCR
         // For small images (width or height < 1500px), use original resolution for better OCR accuracy
-        val originalBitmap = currentPageBitmap!!
+        val originalBitmap = currentPageBitmap ?: return // M4 fix: safe access after async gap
         val shouldScale = originalBitmap.width >= 1500 && originalBitmap.height >= 1500
         
         val ocrBitmap = if (shouldScale) {
@@ -646,7 +879,7 @@ class PdfViewerManager(
         
         // Decide if bitmap should be scaled for OCR
         // For small images (width or height < 1500px), use original resolution for better OCR accuracy
-        val originalBitmap = currentPageBitmap!!
+        val originalBitmap = currentPageBitmap ?: return // M4 fix: safe access after async gap
         val shouldScale = originalBitmap.width >= 1500 && originalBitmap.height >= 1500
         
         // Store OCR bitmap dimensions BEFORE potential recycle
@@ -740,6 +973,21 @@ class PdfViewerManager(
         // Save position before closing
         saveCurrentPagePosition()
         
+        // Cancel any in-flight page render (C2 fix)
+        pageRenderJob?.cancel()
+        pageRenderJob = null
+        
+        // Detach adapter BEFORE closing renderer to trigger onViewRecycled → cancel render jobs (C1 fix)
+        safeViews.pdfScrollRecyclerView.adapter = null
+        pdfPageAdapter?.invalidateCache()
+        pdfPageAdapter = null
+        bitmapCache?.clear()
+        bitmapCache = null
+        // Don't call rendererWrapper.close() — closePdfRenderer() closes the underlying PdfRenderer
+        rendererWrapper = null
+        
+        // Clear PhotoView reference to bitmap BEFORE recycling (M3 fix)
+        binding.photoView.setImageBitmap(null)
         closePdfRenderer()
         currentPageBitmap?.recycle()
         currentPageBitmap = null
@@ -776,6 +1024,9 @@ class PdfViewerManager(
         if (pdfRenderer == null || pdfPageCount == 0) return
         if (index < 0 || index >= pdfPageCount) return
         
+        // Cancel previous render job to prevent race condition (C2 fix)
+        pageRenderJob?.cancel()
+        
         // Show progress bar while rendering page (prevents "frozen" UI during heavy rendering)
         binding.progressBar.isVisible = true
         
@@ -783,79 +1034,84 @@ class PdfViewerManager(
         // This prevents old translations from briefly showing during page transition
         clearTranslationOverlays()
         
-        // Perform page rendering in background thread to avoid blocking UI
-        coroutineScope.launch(Dispatchers.IO) {
+        // Perform page rendering on single-thread dispatcher (M7 fix: PdfRenderer is not thread-safe)
+        pageRenderJob = coroutineScope.launch(pdfDispatcher) {
             try {
-                // Close previous page and open new one
+                // Close previous page before opening new one (C3 fix: sequential on single thread)
                 currentPdfPage?.close()
-                currentPdfPage = pdfRenderer?.openPage(index)
+                currentPdfPage = null
                 
-                currentPdfPage?.let { page ->
-                    // Calculate render size with safety limits to prevent OOM crashes
-                    // Base: 2x screen width for zoom quality, but cap at 2560px max dimension
-                    val screenWidth = binding.root.resources.displayMetrics.widthPixels
-                    val desiredWidth = screenWidth * 2
-                    val aspectRatio = page.height.toFloat() / page.width.toFloat()
+                val page = pdfRenderer?.openPage(index) ?: return@launch
+                currentPdfPage = page
+                
+                // Calculate render size with safety limits to prevent OOM crashes
+                // Base: 2x screen width for zoom quality, but cap at 2560px max dimension
+                val screenWidth = binding.root.resources.displayMetrics.widthPixels
+                val desiredWidth = screenWidth * 2
+                val aspectRatio = page.height.toFloat() / page.width.toFloat()
+                
+                // Calculate dimensions respecting aspect ratio
+                var width = desiredWidth
+                var height = (width * aspectRatio).toInt()
+                
+                // Safety limit: max 2560px on longest side (prevents 100MB+ bitmaps)
+                val MAX_DIMENSION = 2560
+                if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                    if (width > height) {
+                        width = MAX_DIMENSION
+                        height = (width * aspectRatio).toInt()
+                    } else {
+                        height = MAX_DIMENSION
+                        width = (height / aspectRatio).toInt()
+                    }
+                }
+                
+                Timber.d("PDF: Rendering page $index at ${width}x${height} (screen=${screenWidth}px, page=${page.width}x${page.height})")
+                
+                // Create new bitmap (in background thread to avoid UI freeze)
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                // White background for PDF pages
+                bitmap.eraseColor(Color.WHITE)
+                
+                // CRITICAL: Render page in background (this is the heavy operation)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                
+                // Switch to main thread to update UI
+                withContext(Dispatchers.Main) {
+                    // Clear PhotoView BEFORE recycling old bitmap (M3 fix)
+                    binding.photoView.setImageBitmap(null)
+                    currentPageBitmap?.recycle()
                     
-                    // Calculate dimensions respecting aspect ratio
-                    var width = desiredWidth
-                    var height = (width * aspectRatio).toInt()
+                    binding.photoView.setImageBitmap(bitmap)
                     
-                    // Safety limit: max 2560px on longest side (prevents 100MB+ bitmaps)
-                    val MAX_DIMENSION = 2560
-                    if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
-                        if (width > height) {
-                            width = MAX_DIMENSION
-                            height = (width * aspectRatio).toInt()
-                        } else {
-                            height = MAX_DIMENSION
-                            width = (height / aspectRatio).toInt()
-                        }
+                    // Apply color filter (night mode / sepia)
+                    binding.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
+                    
+                    // Store bitmap for translation
+                    currentPageBitmap = bitmap
+                    
+                    currentPdfPageIndex = index
+                    binding.tvPdfPageIndicator?.text = "${index + 1} / $pdfPageCount"
+                    
+                    // Hide progress bar AFTER page is fully rendered and displayed
+                    // Use post() to ensure bitmap is actually drawn before hiding progress
+                    binding.photoView.post {
+                        binding.progressBar.isVisible = false
                     }
                     
-                    Timber.d("PDF: Rendering page $index at ${width}x${height} (screen=${screenWidth}px, page=${page.width}x${page.height})")
+                    // Save current page position
+                    saveCurrentPagePosition()
                     
-                    // Create new bitmap (in background thread to avoid UI freeze)
-                    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    // White background for PDF pages
-                    bitmap.eraseColor(Color.WHITE)
+                    // Update navigation buttons
+                    binding.btnPdfPrevPage.isEnabled = index > 0
+                    binding.btnPdfPrevPage.alpha = if (index > 0) 1.0f else 0.5f
                     
-                    // CRITICAL: Render page in background (this is the heavy operation)
-                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    binding.btnPdfNextPage.isEnabled = index < pdfPageCount - 1
+                    binding.btnPdfNextPage.alpha = if (index < pdfPageCount - 1) 1.0f else 0.5f
                     
-                    // Switch to main thread to update UI
-                    withContext(Dispatchers.Main) {
-                        // Recycle old bitmap AFTER rendering new one (prevents brief blank screen)
-                        currentPageBitmap?.recycle()
-                        
-                        binding.photoView.setImageBitmap(bitmap)
-                        
-                        // Store bitmap for translation
-                        currentPageBitmap = bitmap
-                        
-                        currentPdfPageIndex = index
-                        binding.tvPdfPageIndicator?.text = "${index + 1} / $pdfPageCount"
-                        
-                        // Hide progress bar AFTER page is fully rendered and displayed
-                        // Use post() to ensure bitmap is actually drawn before hiding progress
-                        binding.photoView.post {
-                            binding.progressBar.isVisible = false
-                        }
-                        
-                        // Save current page position
-                        saveCurrentPagePosition()
-                        
-                        // Update navigation buttons
-                        binding.btnPdfPrevPage.isEnabled = index > 0
-                        binding.btnPdfPrevPage.alpha = if (index > 0) 1.0f else 0.5f
-                        
-                        binding.btnPdfNextPage.isEnabled = index < pdfPageCount - 1
-                        binding.btnPdfNextPage.alpha = if (index < pdfPageCount - 1) 1.0f else 0.5f
-                        
-                        // Auto-translate new page if translation is enabled
-                        if (translationEnabled) {
-                            translateCurrentPage()
-                        }
+                    // Auto-translate new page if translation is enabled
+                    if (translationEnabled) {
+                        translateCurrentPage()
                     }
                 }
             } catch (e: Exception) {
@@ -923,6 +1179,9 @@ class PdfViewerManager(
     fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
         // Only handle when PDF is active
         if (pdfRenderer == null || e1 == null) return false
+        
+        // Disable fling page navigation in scroll mode (RecyclerView handles scrolling)
+        if (isScrollMode) return false
         
         // Check if PhotoView is zoomed - don't navigate when panning
         if (binding.photoView.scale > 1.05f) return false
