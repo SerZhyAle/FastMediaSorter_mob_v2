@@ -192,6 +192,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         showPlayerHintOnFirstRun = data["showPlayerHintOnFirstRun"]?.toBoolean() ?: true,
                                         alwaysShowTouchZonesOverlay = data["alwaysShowTouchZonesOverlay"]?.toBoolean() ?: false,
                                         showVideoThumbnails = data["showVideoThumbnails"]?.toBoolean() ?: false,
+                                        enablePlayerWarmup = data["enablePlayerWarmup"]?.toBoolean() ?: false,
                                         enableSafeMode = data["enableSafeMode"]?.toBoolean() ?: true,
                                         enableFavorites = data["enableFavorites"]?.toBoolean() ?: false,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,

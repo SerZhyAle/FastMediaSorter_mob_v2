@@ -97,6 +97,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
         private val KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY = booleanPreferencesKey("always_show_touch_zones_overlay")
         private val KEY_SHOW_VIDEO_THUMBNAILS = booleanPreferencesKey("show_video_thumbnails")
+        private val KEY_ENABLE_PLAYER_WARMUP = booleanPreferencesKey("enable_player_warmup")
         
         // Safe Mode settings key (Phase 2.1)
         private val KEY_ENABLE_SAFE_MODE = booleanPreferencesKey("enable_safe_mode")
@@ -236,6 +237,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
                     alwaysShowTouchZonesOverlay = preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] ?: false,
                     showVideoThumbnails = preferences[KEY_SHOW_VIDEO_THUMBNAILS] ?: true,
+                    enablePlayerWarmup = preferences[KEY_ENABLE_PLAYER_WARMUP] ?: false,
                     
                     // Safe Mode (Phase 2.1)
                     enableSafeMode = preferences[KEY_ENABLE_SAFE_MODE] ?: true,
@@ -356,6 +358,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun
             preferences[KEY_ALWAYS_SHOW_TOUCH_ZONES_OVERLAY] = settings.alwaysShowTouchZonesOverlay
             preferences[KEY_SHOW_VIDEO_THUMBNAILS] = settings.showVideoThumbnails
+            preferences[KEY_ENABLE_PLAYER_WARMUP] = settings.enablePlayerWarmup
             
             // Safe Mode (Phase 2.1)
             preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode

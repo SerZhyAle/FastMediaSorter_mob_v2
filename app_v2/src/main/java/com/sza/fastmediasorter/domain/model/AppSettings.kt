@@ -82,6 +82,7 @@ data class AppSettings(
     val showPlayerHintOnFirstRun: Boolean = true, // Show touch zones hint overlay on first PlayerActivity launch
     val alwaysShowTouchZonesOverlay: Boolean = false, // Always show semi-transparent touch zones overlay in fullscreen mode
     val showVideoThumbnails: Boolean = true, // Extract and show first frame for video thumbnails (may be slow for network files)
+    val enablePlayerWarmup: Boolean = false, // Optional Browse-side player infrastructure warm-up (no media preload)
     
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations

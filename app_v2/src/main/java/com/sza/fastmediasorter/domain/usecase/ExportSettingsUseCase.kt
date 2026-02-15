@@ -111,6 +111,7 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <showPlayerHintOnFirstRun>${settings.showPlayerHintOnFirstRun}</showPlayerHintOnFirstRun>")
                 appendLine("    <alwaysShowTouchZonesOverlay>${settings.alwaysShowTouchZonesOverlay}</alwaysShowTouchZonesOverlay>")
                 appendLine("    <showVideoThumbnails>${settings.showVideoThumbnails}</showVideoThumbnails>")
+                appendLine("    <enablePlayerWarmup>${settings.enablePlayerWarmup}</enablePlayerWarmup>")
                 appendLine("    <enableSafeMode>${settings.enableSafeMode}</enableSafeMode>")
                 appendLine("    <enableFavorites>${settings.enableFavorites}</enableFavorites>")
                 appendLine("    <enableCopying>${settings.enableCopying}</enableCopying>")

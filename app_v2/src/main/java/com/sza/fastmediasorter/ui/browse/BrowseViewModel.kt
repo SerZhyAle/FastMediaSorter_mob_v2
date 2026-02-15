@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import android.app.PendingIntent
+import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.R
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
@@ -216,6 +217,10 @@ class BrowseViewModel @Inject constructor(
     
     // Job for delayed STOP button visibility (10 seconds after scan start)
     private var stopButtonTimerJob: Job? = null
+
+    // Optional player warm-up job (feature-flagged)
+    private var playerWarmupJob: Job? = null
+    private var lastWarmupSignature: String? = null
     
     // Track last emitted list to avoid redundant UI updates (survives Activity recreation)
     var lastEmittedMediaFiles: List<MediaFile>? = null
@@ -385,6 +390,7 @@ class BrowseViewModel @Inject constructor(
         reloadFilesJob?.cancel()
         reloadDebounceJob?.cancel()
         stopButtonTimerJob?.cancel()
+        playerWarmupJob?.cancel()
         cancelScan() // Set flag for graceful stop
         
         stopFileObserver()
@@ -583,9 +589,47 @@ class BrowseViewModel @Inject constructor(
         // Setting graceful stop flag
         // Set flag to signal scanner to stop gracefully and return partial results
         shouldStopScan.set(true)
+        playerWarmupJob?.cancel()
         
         // Don't cancel the job - let it complete gracefully
         // loadFilesJob will finish and emit partial results
+    }
+
+    private suspend fun schedulePlayerWarmupIfEligible(mediaFiles: List<MediaFile>) {
+        val settings = getSettings()
+        if (!settings.enablePlayerWarmup) {
+            return
+        }
+
+        val regularFiles = mediaFiles.filter { !it.isDirectory }
+        if (regularFiles.isEmpty()) return
+
+        val videoCount = regularFiles.count { it.type == MediaType.VIDEO }
+        val videoRatio = videoCount.toDouble() / regularFiles.size.toDouble()
+        if (videoRatio < 0.8) return
+
+        val warmupSignature = "${regularFiles.size}:$videoCount:${regularFiles.first().path}:${regularFiles.last().path}"
+        if (warmupSignature == lastWarmupSignature) {
+            return
+        }
+
+        lastWarmupSignature = warmupSignature
+        playerWarmupJob?.cancel()
+        playerWarmupJob = viewModelScope.launch {
+            try {
+                withContext(Dispatchers.Main) {
+                    Timber.d("BrowseViewModel: Player warm-up started (videoRatio=${"%.2f".format(videoRatio)}, files=${regularFiles.size})")
+                    val warmupPlayer = ExoPlayer.Builder(context).build()
+                    warmupPlayer.release()
+                }
+                Timber.d("BrowseViewModel: Player warm-up completed")
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                Timber.d("BrowseViewModel: Player warm-up cancelled")
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "BrowseViewModel: Player warm-up failed (non-critical)")
+            }
+        }
     }
     
     // ===== SUBFOLDER NAVIGATION =====
@@ -1086,6 +1130,7 @@ class BrowseViewModel @Inject constructor(
                     
                     // Update totalFileCount from actual filtered files count
                     updateState { it.copy(mediaFiles = filteredFiles, totalFileCount = filteredFiles.size) }
+                    schedulePlayerWarmupIfEligible(filteredFiles)
                     setLoading(false)
                     
                     // Update resource metadata (lastBrowseDate) even when loading from cache
@@ -1148,6 +1193,7 @@ class BrowseViewModel @Inject constructor(
                     loadingProgress = mediaFiles.size,
                     usePagination = false // No pagination for favorites for now
                 ) }
+                schedulePlayerWarmupIfEligible(mediaFiles)
                 setLoading(false)
                 Timber.d("BrowseViewModel.loadFavorites: COMPLETE - updated UI state")
             }
@@ -1310,6 +1356,7 @@ class BrowseViewModel @Inject constructor(
                     totalFileCount = totalFileCount,
                     isScanCancellable = isScanCancellable
                 ) }
+                schedulePlayerWarmupIfEligible(mediaFiles)
             }
             
             override fun setLoading(loading: Boolean) {
