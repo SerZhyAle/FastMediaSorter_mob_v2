@@ -7,6 +7,8 @@ import android.os.ParcelFileDescriptor
 import android.view.GestureDetector
 import android.view.MotionEvent
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.github.chrisbanes.photoview.PhotoView
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -72,6 +74,12 @@ class PdfViewerManager(
     
     // Fullscreen mode state
     private var isFullscreenMode = false
+    
+    // Scroll mode state
+    private var isScrollMode = false
+    private var pdfPageAdapter: PdfPageAdapter? = null
+    private var bitmapCache: PdfBitmapCache? = null
+    private var rendererWrapper: PdfRendererWrapper? = null
     
     init {
         
@@ -308,6 +316,11 @@ class PdfViewerManager(
                         currentPdfFile = file
                         currentPdfPath = mediaFile.path // Store original path for position saving
                         
+                        // Create thread-safe wrapper and cache for scroll mode
+                        rendererWrapper = PdfRendererWrapper(pdfRenderer!!)
+                        bitmapCache = PdfBitmapCache()
+                        isScrollMode = settings.pdfScrollMode
+                        
                         // Restore last viewed page position
                         val savedPage = playbackPositionRepository.getPosition(mediaFile.path)
                         val startPage = if (savedPage != null && savedPage > 0 && savedPage < pdfPageCount) {
@@ -318,10 +331,12 @@ class PdfViewerManager(
                         
                         withContext(Dispatchers.Main) {
                             loadingToastJob.cancel()
-                            // DON'T hide progressBar here - showPdfPage() will handle it after rendering
-                            // binding.progressBar.isVisible = false
                             if (pdfPageCount > 0) {
-                                showPdfPage(startPage)
+                                if (isScrollMode) {
+                                    setupScrollMode(startPage)
+                                } else {
+                                    setupPageMode(startPage)
+                                }
                                 if (startPage > 0) {
                                     Timber.d("PDF: Restored to page ${startPage + 1}/$pdfPageCount")
                                 }
@@ -418,6 +433,115 @@ class PdfViewerManager(
             }
         }
     }
+    
+    // ========== Scroll Mode ==========
+    
+    /**
+     * Setup page mode (single-page PhotoView with fling navigation).
+     * This is the legacy/default mode.
+     */
+    private fun setupPageMode(startPage: Int) {
+        binding.photoView.isVisible = true
+        safeViews.pdfScrollRecyclerView.isVisible = false
+        binding.btnPdfPrevPage.isVisible = pdfPageCount > 1
+        binding.btnPdfNextPage.isVisible = pdfPageCount > 1
+        binding.progressBar.isVisible = true
+        showPdfPage(startPage)
+        Timber.d("PDF: Page mode activated, startPage=${startPage + 1}/$pdfPageCount")
+    }
+    
+    /**
+     * Setup scroll mode (vertical RecyclerView with all pages).
+     * Uses PdfPageAdapter with PdfRendererWrapper for thread-safe rendering.
+     */
+    private fun setupScrollMode(startPage: Int) {
+        binding.photoView.isVisible = false
+        safeViews.pdfScrollRecyclerView.isVisible = true
+        binding.progressBar.isVisible = false
+        
+        // Hide page navigation buttons in scroll mode (scroll replaces them)
+        binding.btnPdfPrevPage.isVisible = false
+        binding.btnPdfNextPage.isVisible = false
+        
+        val wrapper = rendererWrapper ?: return
+        val cache = bitmapCache ?: return
+        val screenWidth = binding.root.resources.displayMetrics.widthPixels
+        
+        val adapter = PdfPageAdapter(
+            rendererWrapper = wrapper,
+            bitmapCache = cache,
+            coroutineScope = coroutineScope,
+            renderWidth = screenWidth
+        )
+        pdfPageAdapter = adapter
+        
+        val layoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
+        safeViews.pdfScrollRecyclerView.layoutManager = layoutManager
+        safeViews.pdfScrollRecyclerView.adapter = adapter
+        
+        // Add scroll listener to update page indicator
+        safeViews.pdfScrollRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val firstVisible = layoutManager.findFirstCompletelyVisibleItemPosition()
+                val visiblePage = if (firstVisible >= 0) firstVisible else layoutManager.findFirstVisibleItemPosition()
+                if (visiblePage >= 0 && visiblePage != currentPdfPageIndex) {
+                    currentPdfPageIndex = visiblePage
+                    binding.tvPdfPageIndicator?.text = "${visiblePage + 1} / $pdfPageCount"
+                    saveCurrentPagePosition()
+                }
+            }
+        })
+        
+        // Scroll to restored page
+        if (startPage > 0) {
+            layoutManager.scrollToPositionWithOffset(startPage, 0)
+        }
+        currentPdfPageIndex = startPage
+        binding.tvPdfPageIndicator?.text = "${startPage + 1} / $pdfPageCount"
+        binding.tvPdfPageIndicator?.isVisible = pdfPageCount > 1
+        
+        Timber.d("PDF: Scroll mode activated, startPage=${startPage + 1}/$pdfPageCount")
+    }
+    
+    /**
+     * Toggle between page mode and scroll mode.
+     * Persists preference to settings.
+     */
+    fun toggleScrollMode() {
+        isScrollMode = !isScrollMode
+        Timber.d("PDF: Toggling to ${if (isScrollMode) "scroll" else "page"} mode")
+        
+        // Persist preference
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val current = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(current.copy(pdfScrollMode = isScrollMode))
+            } catch (e: Exception) {
+                Timber.e(e, "PDF: Failed to persist scroll mode preference")
+            }
+        }
+        
+        // Clean up current adapter if switching away from scroll mode
+        if (!isScrollMode) {
+            pdfPageAdapter?.invalidateCache()
+            pdfPageAdapter = null
+            safeViews.pdfScrollRecyclerView.adapter = null
+            setupPageMode(currentPdfPageIndex)
+        } else {
+            // Close current page before switching (PdfRenderer requires it)
+            currentPdfPage?.close()
+            currentPdfPage = null
+            currentPageBitmap?.recycle()
+            currentPageBitmap = null
+            bitmapCache?.clear()
+            setupScrollMode(currentPdfPageIndex)
+        }
+    }
+    
+    /**
+     * Check if currently in scroll mode.
+     */
+    fun isInScrollMode(): Boolean = isScrollMode
     
     /**
      * Toggle translation on/off for current PDF page
@@ -740,6 +864,14 @@ class PdfViewerManager(
         // Save position before closing
         saveCurrentPagePosition()
         
+        // Clean up scroll mode resources
+        pdfPageAdapter?.invalidateCache()
+        pdfPageAdapter = null
+        bitmapCache?.clear()
+        bitmapCache = null
+        // Don't call rendererWrapper.close() — closePdfRenderer() closes the underlying PdfRenderer
+        rendererWrapper = null
+        
         closePdfRenderer()
         currentPageBitmap?.recycle()
         currentPageBitmap = null
@@ -923,6 +1055,9 @@ class PdfViewerManager(
     fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
         // Only handle when PDF is active
         if (pdfRenderer == null || e1 == null) return false
+        
+        // Disable fling page navigation in scroll mode (RecyclerView handles scrolling)
+        if (isScrollMode) return false
         
         // Check if PhotoView is zoomed - don't navigate when panning
         if (binding.photoView.scale > 1.05f) return false

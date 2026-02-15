@@ -1091,6 +1091,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onReadAloudClicked() {
                     textViewerManager.toggleReadAloud()
                 }
+
+                override fun onPdfScrollModeClicked() {
+                    pdfViewerManager.toggleScrollMode()
+                }
             }
         )
         // Initialize orientation on startup

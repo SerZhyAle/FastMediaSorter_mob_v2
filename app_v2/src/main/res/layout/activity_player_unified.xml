@@ -554,6 +554,16 @@
 
         </FrameLayout>
 
+        <!-- PDF Vertical Scroll Mode RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/pdfScrollRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:background="@color/activity_player_unified_topCommandPanel_background"
+            android:clipToPadding="false"
+            android:scrollbars="vertical" />
+
         <!-- Google Lens Style Translation Overlay (drawn on top of PDF/images) -->
         <com.sza.fastmediasorter.ui.player.views.TranslationOverlayView
             android:id="@+id/translationLensOverlay"

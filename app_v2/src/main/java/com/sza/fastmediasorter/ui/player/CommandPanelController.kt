@@ -68,6 +68,7 @@ class CommandPanelController(
         fun onToggleMarkdownClicked()
         fun onReaderSettingsClicked()
         fun onReadAloudClicked()
+        fun onPdfScrollModeClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -706,6 +707,7 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_toggle_markdown)?.isVisible = isText && currentFile.name.endsWith(".md", ignoreCase = true)
         popup.menu.findItem(R.id.menu_reader_settings)?.isVisible = isText
         popup.menu.findItem(R.id.menu_read_aloud)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_pdf_scroll_mode)?.isVisible = isPdf
         
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -728,6 +730,7 @@ class CommandPanelController(
                 R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
                 R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
                 R.id.menu_read_aloud -> callback.onReadAloudClicked()
+                R.id.menu_pdf_scroll_mode -> callback.onPdfScrollModeClicked()
             }
             true
         }

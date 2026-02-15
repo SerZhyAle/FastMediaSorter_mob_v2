@@ -1255,6 +1255,11 @@
     <string name="draft_restored">Draft restored. Tap Save to keep changes.</string>
     <string name="cursor_position">Ln %1$d, Col %2$d</string>
 
+    <!-- I.1: PDF vertical scroll -->
+    <string name="pdf_page">PDF page</string>
+    <string name="pdf_scroll_mode">Scroll Mode</string>
+    <string name="pdf_page_mode">Page Mode</string>
+
     <plurals name="added_n_resources">
         <item quantity="one">Added %1$d resource</item>
         <item quantity="other">Added %1$d resources</item>

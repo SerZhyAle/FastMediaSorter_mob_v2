@@ -146,6 +146,8 @@ class PlayerBindingSafeViews(
     val btnReplace: MaterialButton get() = required(R.id.btnReplace)
     val btnReplaceAll: MaterialButton get() = required(R.id.btnReplaceAll)
 
+    val pdfScrollRecyclerView: androidx.recyclerview.widget.RecyclerView
+        get() = required(R.id.pdfScrollRecyclerView)
     val pdfControlsLayout: LinearLayout get() = required(R.id.pdfControlsLayout)
     val epubControlsLayout: LinearLayout get() = required(R.id.epubControlsLayout)
     val translationOverlay: CardView get() = required(R.id.translationOverlay)

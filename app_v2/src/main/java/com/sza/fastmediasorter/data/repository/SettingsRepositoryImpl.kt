@@ -69,6 +69,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_TEXT_READER_THEME = stringPreferencesKey("text_reader_theme")
         private val KEY_MARKDOWN_RENDERED = booleanPreferencesKey("markdown_rendered")
         private val KEY_SYNTAX_HIGHLIGHTING = booleanPreferencesKey("syntax_highlighting")
+        private val KEY_PDF_SCROLL_MODE = booleanPreferencesKey("pdf_scroll_mode")
         
         // Translation settings keys
         private val KEY_ENABLE_TRANSLATION = booleanPreferencesKey("enable_translation")
@@ -209,6 +210,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     textReaderTheme = preferences[KEY_TEXT_READER_THEME] ?: "LIGHT",
                     markdownRendered = preferences[KEY_MARKDOWN_RENDERED] ?: true,
                     syntaxHighlighting = preferences[KEY_SYNTAX_HIGHLIGHTING] ?: true,
+                    pdfScrollMode = preferences[KEY_PDF_SCROLL_MODE] ?: false,
                     
                     // Translation
                     enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: true,
@@ -332,6 +334,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_TEXT_READER_THEME] = settings.textReaderTheme
             preferences[KEY_MARKDOWN_RENDERED] = settings.markdownRendered
             preferences[KEY_SYNTAX_HIGHLIGHTING] = settings.syntaxHighlighting
+            preferences[KEY_PDF_SCROLL_MODE] = settings.pdfScrollMode
             
             // Translation
             preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation
