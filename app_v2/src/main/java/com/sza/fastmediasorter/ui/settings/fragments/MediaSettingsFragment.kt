@@ -5,15 +5,19 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.core.view.isVisible
+import android.widget.Toast
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
+import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 
 class MediaSettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsMediaContainerBinding? = null
     private val binding get() = _binding!!
+    private val viewModel: SettingsViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -30,6 +34,25 @@ class MediaSettingsFragment : Fragment() {
         setupSectionTitles()
         attachChildFragments()
         setupExpandableSections()
+        setupResetSection()
+    }
+
+    private fun setupResetSection() {
+        binding.btnResetMediaSection.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.reset_media_section_title)
+                .setMessage(R.string.reset_media_section_message)
+                .setPositiveButton(android.R.string.ok) { _, _ ->
+                    viewModel.resetMediaSection()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.reset_media_section_success,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
     }
 
     private fun setupSectionTitles() {
@@ -83,6 +106,27 @@ class MediaSettingsFragment : Fragment() {
         bindSectionToggle(binding.headerAudio, binding.containerAudio, getString(R.string.settings_category_audio))
         bindSectionToggle(binding.headerDocuments, binding.containerDocuments, getString(R.string.settings_category_documents))
         bindSectionToggle(binding.headerOther, binding.containerOther, getString(R.string.settings_category_other))
+    }
+
+    fun ensureSectionExpanded(sectionId: String) {
+        when (sectionId) {
+            "images" -> expandSection(binding.headerImages, binding.containerImages, getString(R.string.settings_category_images))
+            "video" -> expandSection(binding.headerVideo, binding.containerVideo, getString(R.string.settings_category_video))
+            "audio" -> expandSection(binding.headerAudio, binding.containerAudio, getString(R.string.settings_category_audio))
+            "documents" -> expandSection(binding.headerDocuments, binding.containerDocuments, getString(R.string.settings_category_documents))
+            "other" -> expandSection(binding.headerOther, binding.containerOther, getString(R.string.settings_category_other))
+        }
+    }
+
+    private fun expandSection(header: android.widget.TextView, content: View, title: String) {
+        if (!header.isVisible) {
+            return
+        }
+
+        if (!content.isVisible) {
+            content.isVisible = true
+            updateHeader(header, title, true)
+        }
     }
 
     private fun bindSectionToggle(header: android.widget.TextView, content: View, title: String) {

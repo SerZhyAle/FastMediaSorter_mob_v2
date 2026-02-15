@@ -1,25 +1,43 @@
 package com.sza.fastmediasorter.ui.settings
 
+import android.animation.ValueAnimator
+import android.graphics.Rect
+import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
 import androidx.activity.viewModels
+import androidx.activity.OnBackPressedCallback
+import androidx.core.view.isVisible
+import androidx.core.widget.doAfterTextChanged
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
+import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import timber.log.Timber
 
 @AndroidEntryPoint
 class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     private val viewModel: SettingsViewModel by viewModels()
+    private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
+    private var searchDebounceJob: Job? = null
+    private var setupStartUptimeMs: Long = 0L
     
     override fun getViewBinding(): ActivitySettingsBinding {
         return ActivitySettingsBinding.inflate(layoutInflater)
     }
 
     override fun setupViews() {
+        setupStartUptimeMs = SystemClock.uptimeMillis()
+
         binding.backButton.setOnClickListener {
             finish()
         }
@@ -44,10 +62,23 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 else -> ""
             }
         }.attach()
+
+        setupGlobalSearch()
+
+        binding.root.post {
+            val startupDurationMs = SystemClock.uptimeMillis() - setupStartUptimeMs
+            Timber.i("SettingsActivity ready in ${startupDurationMs}ms")
+        }
     }
 
     override fun observeData() {
         // Settings are observed in individual fragments
+    }
+
+    override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {
+        if (binding.searchOverlay.isVisible) {
+            closeSearchOverlay()
+        }
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -73,6 +104,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             
             // Exit settings
             KeyEvent.KEYCODE_ESCAPE -> {
+                if (binding.searchOverlay.isVisible) {
+                    closeSearchOverlay()
+                    return true
+                }
                 finish()
                 return true
             }
@@ -113,5 +148,109 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }
         
         return super.onKeyDown(keyCode, event)
+    }
+
+    private fun setupGlobalSearch() {
+        binding.searchResultsRecycler.layoutManager = LinearLayoutManager(this)
+        binding.searchResultsRecycler.adapter = searchAdapter
+
+        binding.searchButton.setOnClickListener {
+            openSearchOverlay()
+        }
+
+        binding.searchCloseButton.setOnClickListener {
+            closeSearchOverlay()
+        }
+
+        binding.searchInput.doAfterTextChanged { editable ->
+            val query = editable?.toString().orEmpty()
+            searchDebounceJob?.cancel()
+            searchDebounceJob = lifecycleScope.launch {
+                delay(250)
+                updateSearchResults(SettingsSearchRegistry.search(query))
+            }
+        }
+
+        updateSearchResults(SettingsSearchRegistry.entries)
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (binding.searchOverlay.isVisible) {
+                    closeSearchOverlay()
+                    return
+                }
+                isEnabled = false
+                onBackPressedDispatcher.onBackPressed()
+            }
+        })
+    }
+
+    private fun openSearchOverlay() {
+        binding.searchOverlay.isVisible = true
+        if (binding.searchInput.text?.isNotEmpty() == true) {
+            binding.searchInput.setText("")
+        }
+        updateSearchResults(SettingsSearchRegistry.entries)
+        binding.searchInput.requestFocus()
+    }
+
+    private fun closeSearchOverlay() {
+        searchDebounceJob?.cancel()
+        binding.searchOverlay.isVisible = false
+        binding.searchInput.clearFocus()
+    }
+
+    private fun updateSearchResults(results: List<SettingsSearchIndex>) {
+        searchAdapter.submitList(results)
+        binding.searchEmptyText.isVisible = results.isEmpty()
+    }
+
+    private fun onSearchResultSelected(item: SettingsSearchIndex) {
+        closeSearchOverlay()
+        binding.viewPager.currentItem = item.destination.tabIndex
+
+        binding.viewPager.post {
+            if (item.destination == SettingsSearchDestination.MEDIA) {
+                (getSettingsFragment(item.destination.tabIndex) as? MediaSettingsFragment)
+                    ?.ensureSectionExpanded(item.sectionId)
+            }
+            navigateToTarget(item.viewId, retryCount = 0)
+        }
+    }
+
+    private fun navigateToTarget(viewId: Int, retryCount: Int) {
+        val targetView = findViewById<View>(viewId)
+        if (targetView == null) {
+            if (retryCount < 25) {
+                binding.viewPager.postDelayed(
+                    { navigateToTarget(viewId, retryCount + 1) },
+                    80L
+                )
+            }
+            return
+        }
+
+        targetView.post {
+            targetView.requestFocus()
+            val rect = Rect()
+            targetView.getDrawingRect(rect)
+            targetView.requestRectangleOnScreen(rect, true)
+            highlightView(targetView)
+        }
+    }
+
+    private fun highlightView(view: View) {
+        ValueAnimator.ofFloat(1f, 0.4f, 1f).apply {
+            duration = 700L
+            repeatCount = 1
+            addUpdateListener { animator ->
+                view.alpha = animator.animatedValue as Float
+            }
+            start()
+        }
+    }
+
+    private fun getSettingsFragment(position: Int): androidx.fragment.app.Fragment? {
+        return supportFragmentManager.findFragmentByTag("f$position")
     }
 }

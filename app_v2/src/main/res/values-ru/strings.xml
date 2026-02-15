@@ -1370,5 +1370,31 @@
     <string name="touch_zones_overlay_zoneRename_text">ПЕРЕИМЕНОВАТЬ</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">СЛАЙДШОУ</string>
     <string name="text_content_hint">Текстовое содержимое</string>
+    <string name="settings_search_open">Открыть поиск по настройкам</string>
+    <string name="settings_search_close">Закрыть поиск по настройкам</string>
+    <string name="settings_search_hint">Поиск в настройках</string>
+    <string name="settings_search_no_results">Совпадений не найдено</string>
+    <string name="settings_search_section_format">Раздел: %1$s</string>
+    <string name="reset_general_section">Сбросить раздел Общие</string>
+    <string name="reset_media_section">Сбросить раздел Медиа</string>
+    <string name="reset_playback_section">Сбросить раздел Воспроизведение</string>
+    <string name="reset_destinations_section">Сбросить раздел Назначения</string>
+    <string name="reset_general_section_title">Сброс раздела Общие</string>
+    <string name="reset_general_section_message">Сбросить только настройки раздела Общие к значениям по умолчанию?</string>
+    <string name="reset_general_section_success">Раздел Общие сброшен</string>
+    <string name="reset_general_section_failed">Не удалось сбросить раздел Общие: %1$s</string>
+    <string name="reset_media_section_title">Сброс раздела Медиа</string>
+    <string name="reset_media_section_message">Сбросить только настройки раздела Медиа к значениям по умолчанию?</string>
+    <string name="reset_media_section_success">Раздел Медиа сброшен</string>
+    <string name="reset_playback_section_title">Сброс раздела Воспроизведение</string>
+    <string name="reset_playback_section_message">Сбросить только настройки раздела Воспроизведение к значениям по умолчанию?</string>
+    <string name="reset_playback_section_success">Раздел Воспроизведение сброшен</string>
+    <string name="reset_destinations_section_title">Сброс раздела Назначения</string>
+    <string name="reset_destinations_section_message">Сбросить только настройки раздела Назначения к значениям по умолчанию?</string>
+    <string name="reset_destinations_section_success">Раздел Назначения сброшен</string>
+    <string name="export_settings_confirm_title">Экспорт настроек</string>
+    <string name="export_settings_confirm_message">Создать файл экспорта с текущими настройками?</string>
+    <string name="import_settings_confirm_title">Импорт настроек</string>
+    <string name="import_settings_confirm_message">Импорт перезапишет текущие значения настроек. Продолжить?</string>
 
 </resources>

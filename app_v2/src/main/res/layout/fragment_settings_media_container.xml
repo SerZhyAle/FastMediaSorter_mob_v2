@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="@dimen/settings_padding">
 
         <TextView
             android:id="@+id/headerImages"
@@ -17,14 +17,15 @@
             android:background="?attr/colorSurfaceVariant"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:padding="@dimen/settings_padding_vertical"
+            android:textSize="@dimen/text_size_normal"
             android:textStyle="bold" />
 
         <FrameLayout
             android:id="@+id/containerImages"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/margin_small" />
 
         <TextView
             android:id="@+id/headerVideo"
@@ -33,14 +34,15 @@
             android:background="?attr/colorSurfaceVariant"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:padding="@dimen/settings_padding_vertical"
+            android:textSize="@dimen/text_size_normal"
             android:textStyle="bold" />
 
         <FrameLayout
             android:id="@+id/containerVideo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/margin_small" />
 
         <TextView
             android:id="@+id/headerAudio"
@@ -49,14 +51,15 @@
             android:background="?attr/colorSurfaceVariant"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:padding="@dimen/settings_padding_vertical"
+            android:textSize="@dimen/text_size_normal"
             android:textStyle="bold" />
 
         <FrameLayout
             android:id="@+id/containerAudio"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/margin_small" />
 
         <TextView
             android:id="@+id/headerDocuments"
@@ -65,14 +68,15 @@
             android:background="?attr/colorSurfaceVariant"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:padding="@dimen/settings_padding_vertical"
+            android:textSize="@dimen/text_size_normal"
             android:textStyle="bold" />
 
         <FrameLayout
             android:id="@+id/containerDocuments"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/margin_small" />
 
         <TextView
             android:id="@+id/headerOther"
@@ -81,14 +85,24 @@
             android:background="?attr/colorSurfaceVariant"
             android:clickable="true"
             android:focusable="true"
-            android:padding="12dp"
+            android:padding="@dimen/settings_padding_vertical"
+            android:textSize="@dimen/text_size_normal"
             android:textStyle="bold" />
 
         <FrameLayout
             android:id="@+id/containerOther"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetMediaSection"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="@dimen/margin_small"
+            android:text="@string/reset_media_section"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
     </LinearLayout>
 

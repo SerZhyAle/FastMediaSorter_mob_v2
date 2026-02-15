@@ -1360,5 +1360,31 @@
     <string name="touch_zones_overlay_zoneRename_text">ПЕРЕЙМЕНУВАТИ</string>
     <string name="touch_zones_overlay_zoneSlideshow_text">СЛАЙДШОУ</string>
     <string name="text_content_hint">Текстовий вміст</string>
+    <string name="settings_search_open">Відкрити пошук у налаштуваннях</string>
+    <string name="settings_search_close">Закрити пошук у налаштуваннях</string>
+    <string name="settings_search_hint">Пошук у налаштуваннях</string>
+    <string name="settings_search_no_results">Збігів не знайдено</string>
+    <string name="settings_search_section_format">Розділ: %1$s</string>
+    <string name="reset_general_section">Скинути розділ Загальні</string>
+    <string name="reset_media_section">Скинути розділ Медіа</string>
+    <string name="reset_playback_section">Скинути розділ Відтворення</string>
+    <string name="reset_destinations_section">Скинути розділ Призначення</string>
+    <string name="reset_general_section_title">Скидання розділу Загальні</string>
+    <string name="reset_general_section_message">Скинути лише налаштування розділу Загальні до значень за замовчуванням?</string>
+    <string name="reset_general_section_success">Розділ Загальні скинуто</string>
+    <string name="reset_general_section_failed">Не вдалося скинути розділ Загальні: %1$s</string>
+    <string name="reset_media_section_title">Скидання розділу Медіа</string>
+    <string name="reset_media_section_message">Скинути лише налаштування розділу Медіа до значень за замовчуванням?</string>
+    <string name="reset_media_section_success">Розділ Медіа скинуто</string>
+    <string name="reset_playback_section_title">Скидання розділу Відтворення</string>
+    <string name="reset_playback_section_message">Скинути лише налаштування розділу Відтворення до значень за замовчуванням?</string>
+    <string name="reset_playback_section_success">Розділ Відтворення скинуто</string>
+    <string name="reset_destinations_section_title">Скидання розділу Призначення</string>
+    <string name="reset_destinations_section_message">Скинути лише налаштування розділу Призначення до значень за замовчуванням?</string>
+    <string name="reset_destinations_section_success">Розділ Призначення скинуто</string>
+    <string name="export_settings_confirm_title">Експорт налаштувань</string>
+    <string name="export_settings_confirm_message">Створити файл експорту з поточними налаштуваннями?</string>
+    <string name="import_settings_confirm_title">Імпорт налаштувань</string>
+    <string name="import_settings_confirm_message">Імпорт перезапише поточні значення налаштувань. Продовжити?</string>
 
 </resources>

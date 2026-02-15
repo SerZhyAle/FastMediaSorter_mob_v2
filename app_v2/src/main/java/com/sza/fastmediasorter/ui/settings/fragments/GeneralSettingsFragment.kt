@@ -578,6 +578,10 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnResetSettings.setOnClickListener {
             showResetSettingsConfirmation()
         }
+
+        binding.btnResetGeneralSection.setOnClickListener {
+            showResetGeneralSectionConfirmation()
+        }
         
         // Integration Tests Button (DEBUG only)
         if (com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
@@ -599,11 +603,11 @@ class GeneralSettingsFragment : Fragment() {
         
         // Export/Import Settings
         binding.btnExportSettings.setOnClickListener {
-            exportSettings()
+            showExportSettingsConfirmation()
         }
         
         binding.btnImportSettings.setOnClickListener {
-            importSettings()
+            showImportSettingsConfirmation()
         }
         
         binding.btnLocalFilesPermission.setOnClickListener {
@@ -1003,6 +1007,17 @@ class GeneralSettingsFragment : Fragment() {
             }
         }
     }
+
+    private fun showExportSettingsConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.export_settings_confirm_title)
+            .setMessage(R.string.export_settings_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                exportSettings()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
     
     private fun importSettings() {
         // Show dialog with two import options
@@ -1016,6 +1031,17 @@ class GeneralSettingsFragment : Fragment() {
                     0 -> importSettingsAuto() // Auto-find in Downloads
                     1 -> importSettingsFileLauncher.launch("*/*") // Browse for file
                 }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showImportSettingsConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.import_settings_confirm_title)
+            .setMessage(R.string.import_settings_confirm_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                importSettings()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
@@ -1348,6 +1374,37 @@ class GeneralSettingsFragment : Fragment() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun showResetGeneralSectionConfirmation() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.reset_general_section_title)
+            .setMessage(R.string.reset_general_section_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                resetGeneralSection()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun resetGeneralSection() {
+        lifecycleScope.launch {
+            try {
+                viewModel.resetGeneralSection()
+                Toast.makeText(
+                    requireContext(),
+                    R.string.reset_general_section_success,
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to reset general section")
+                Toast.makeText(
+                    requireContext(),
+                    getString(R.string.reset_general_section_failed, e.message ?: "Unknown error"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
     
     /**

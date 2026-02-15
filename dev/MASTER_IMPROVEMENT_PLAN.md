@@ -388,13 +388,13 @@ git push origin main
 - [x] 13. B.1 — Base Settings Binding Layer
 - [x] 14. B.2 — Main Thread Safety
 - [x] 15. B.3 — Media Tab Simplification
-- [ ] 16. B.4 — Global Settings Search
-- [ ] 17. B.5 — Reset Section + Import/Export UX
-- [ ] 18. B.6 — Visual Cleanup & Stabilization
+- [x] 16. B.4 — Global Settings Search
+- [x] 17. B.5 — Reset Section + Import/Export UX
+- [x] 18. B.6 — Visual Cleanup & Stabilization
 
 ### TRACK C: Resources (8 шагов)
 
-- [ ] 19. C.1 — Domain Contracts & Strategy Interfaces
+- [x] 19. C.1 — Domain Contracts & Strategy Interfaces
 - [ ] 20. C.2 — Strategy Implementations
 - [ ] 21. C.3 — Orchestration UseCase
 - [ ] 22. C.4 — Unified ViewModel
@@ -853,7 +853,7 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.1
 
 ### B.4 — Global Settings Search
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -882,7 +882,7 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.6
 
 ### B.5 — Reset Section + Import/Export UX
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -909,7 +909,7 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.3
 
 ### B.6 — Visual Cleanup & Stabilization
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
@@ -1136,7 +1136,7 @@ Source: RESOURCE_CREATION_IMPROVEMENT_SPEC.md §5.1-5.2
 
 ### C.1 — Domain Contracts & Strategy Interfaces
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
