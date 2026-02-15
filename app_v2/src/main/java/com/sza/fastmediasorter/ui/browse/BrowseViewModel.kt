@@ -656,6 +656,26 @@ class BrowseViewModel @Inject constructor(
         return true
     }
     
+    private fun mix64(value: Long): ULong {
+        var x = value.toULong() + 0x9E3779B97F4A7C15uL
+        x = (x xor (x shr 30)) * 0xBF58476D1CE4E5B9uL
+        x = (x xor (x shr 27)) * 0x94D049BB133111EBuL
+        return x xor (x shr 31)
+    }
+
+    private suspend fun computeContentHash(files: List<MediaFile>): String = withContext(Dispatchers.Default) {
+        var hash = 0x9E3779B97F4A7C15uL
+        files.sortedBy { it.name }.forEach { file ->
+            val itemMix = mix64(file.name.hashCode().toLong()) xor
+                mix64(file.size) xor
+                mix64(file.createdDate) xor
+                if (file.isDirectory) 0xD6E8FEB86659FD93uL else 0uL
+
+            hash = java.lang.Long.rotateLeft((hash xor itemMix).toLong(), 11).toULong() * 0x9E3779B185EBCA87uL
+        }
+        hash.toString(16)
+    }
+
     /**
      * Computes a hash of directory contents based on file names, sizes, and modification dates.
      * Used to detect if directory contents changed without full comparison.
@@ -678,13 +698,7 @@ class BrowseViewModel @Inject constructor(
                 showHiddenFiles = false
             )
             
-            // Compute hash from sorted file metadata (name + size + date)
-            val metadataString = contents
-                .sortedBy { it.name }
-                .joinToString("|") { "${it.name}:${it.size}:${it.createdDate}:${it.isDirectory}" }
-            
-            // Use simple hash (hashCode is deterministic for same string)
-            metadataString.hashCode().toString()
+            computeContentHash(contents)
         } catch (e: Exception) {
             Timber.w(e, "Failed to compute directory hash for '$path'")
             null
@@ -789,10 +803,7 @@ class BrowseViewModel @Inject constructor(
             Timber.d("BrowseViewModel.loadDirectoryContents: Found ${contents.size} items (${contents.count { it.isDirectory }} folders), after filter: ${filteredContents.size} items")
             
             // Compute and cache hash for future use
-            val metadataString = filteredContents
-                .sortedBy { it.name }
-                .joinToString("|") { "${it.name}:${it.size}:${it.createdDate}:${it.isDirectory}" }
-            val contentHash = metadataString.hashCode().toString()
+            val contentHash = computeContentHash(filteredContents)
             
             directoryCache[path] = DirectoryCacheEntry(
                 files = filteredContents,

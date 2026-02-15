@@ -364,13 +364,13 @@ git push origin main
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 2 / 54 шагов
+**Прогресс**: 3 / 54 шагов
 
 ### TRACK A: Main Window (7 шагов)
 
 - [x] 1. A.1 — Browse Anti-Flicker
 - [x] 2. A.2 — Batch Favorites
-- [ ] 3. A.3 — Directory Hash Optimization
+- [x] 3. A.3 — Directory Hash Optimization
 - [ ] 4. A.4 — Adapter Listener Optimization
 - [ ] 5. A.5 — ViewStub Audit
 - [ ] 6. A.6 — Player Warm-up (Feature-Flagged)
@@ -613,7 +613,7 @@ Source: MAIN_WINDOW_OPTIMIZATION.md §4.3
 
 ### A.3 — Directory Hash Optimization
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
