@@ -1318,6 +1318,16 @@
     <string name="settings_category_audio">Audio</string>
     <string name="settings_category_documents">Documents</string>
     <string name="settings_category_other">Other</string>
+    
+    <!-- General Settings Categories -->
+    <string name="settings_general_language_display">Language and Display</string>
+    <string name="settings_general_behavior">App Behavior</string>
+    <string name="settings_general_confirmations">Confirmations and Safety</string>
+    <string name="settings_general_network_sync">Network Sync</string>
+    <string name="settings_general_credentials">Credentials</string>
+    <string name="settings_general_cache">Cache</string>
+    <string name="settings_general_permissions">Permissions</string>
+    <string name="settings_general_actions">Actions</string>
 
     <!-- Audio Background Photos -->
     <string name="enable_photos_during_audio">Photos during audio</string>

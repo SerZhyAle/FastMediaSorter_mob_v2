@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.logging
 
 import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import timber.log.Timber
 import java.io.File
 import java.io.FileWriter
@@ -131,66 +132,74 @@ object LoggingHelper {
         private var printWriter: PrintWriter? = null
         
         init {
-            try {
-                if (!logDir.exists()) {
-                    logDir.mkdirs()
+            // Wrap file I/O operations in StrictModeHelper
+            StrictModeHelper.allowDiskIO {
+                try {
+                    if (!logDir.exists()) {
+                        logDir.mkdirs()
+                    }
+                    rotateLogFilesIfNeeded()
+                    openNewLogFile()
+                } catch (e: Exception) {
+                    android.util.Log.e("FileLoggingTree", "Failed to initialize file logging", e)
                 }
-                rotateLogFilesIfNeeded()
-                openNewLogFile()
-            } catch (e: Exception) {
-                android.util.Log.e("FileLoggingTree", "Failed to initialize file logging", e)
             }
         }
         
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-            try {
-                // Downgrade "unimportant" errors to WARN
-                var effectivePriority = priority
-                if (priority == android.util.Log.ERROR && isUnimportantError(t)) {
-                    effectivePriority = android.util.Log.WARN
-                }
+            // Wrap file I/O in StrictModeHelper to avoid violations
+            // File logging is an expected debug operation, not a bug
+            // Use allowDiskIO (not just allowDiskWrites) because we also check file.exists() and file.length()
+            StrictModeHelper.allowDiskIO {
+                try {
+                    // Downgrade "unimportant" errors to WARN
+                    var effectivePriority = priority
+                    if (priority == android.util.Log.ERROR && isUnimportantError(t)) {
+                        effectivePriority = android.util.Log.WARN
+                    }
 
-                val priorityChar = when (effectivePriority) {
-                    android.util.Log.VERBOSE -> 'V'
-                    android.util.Log.DEBUG -> 'D'
-                    android.util.Log.INFO -> 'I'
-                    android.util.Log.WARN -> 'W'
-                    android.util.Log.ERROR -> 'E'
-                    android.util.Log.ASSERT -> 'A'
-                    else -> '?'
-                }
-                
-                val timestamp = dateFormat.format(Date())
-                
-                synchronized(this) {
-                    // Check if file needs rotation
-                    currentLogFile?.let { file ->
-                        if (file.exists() && file.length() > maxFileSize) {
-                            closeCurrentFile()
-                            rotateLogFilesIfNeeded()
-                            openNewLogFile()
-                        }
+                    val priorityChar = when (effectivePriority) {
+                        android.util.Log.VERBOSE -> 'V'
+                        android.util.Log.DEBUG -> 'D'
+                        android.util.Log.INFO -> 'I'
+                        android.util.Log.WARN -> 'W'
+                        android.util.Log.ERROR -> 'E'
+                        android.util.Log.ASSERT -> 'A'
+                        else -> '?'
                     }
                     
-                    if (effectivePriority == android.util.Log.WARN) {
-                        // Warnings: single line, compact exception info
-                        var logLine = "$timestamp $priorityChar/${tag ?: "App"}: $message"
-                        if (t != null) {
-                            logLine += " [${t.javaClass.simpleName}: ${t.message}]"
+                    val timestamp = dateFormat.format(Date())
+                    
+                    synchronized(this) {
+                        // Check if file needs rotation
+                        currentLogFile?.let { file ->
+                            if (file.exists() && file.length() > maxFileSize) {
+                                closeCurrentFile()
+                                rotateLogFilesIfNeeded()
+                                openNewLogFile()
+                            }
                         }
-                        printWriter?.println(logLine)
-                    } else {
-                        // Other levels: standard format with stacktrace for errors
-                        val logLine = "$timestamp $priorityChar/${tag ?: "App"}: $message"
-                        printWriter?.println(logLine)
-                        t?.let { throwable ->
-                            printWriter?.println(getCompactStackTrace(throwable))
+                        
+                        if (effectivePriority == android.util.Log.WARN) {
+                            // Warnings: single line, compact exception info
+                            var logLine = "$timestamp $priorityChar/${tag ?: "App"}: $message"
+                            if (t != null) {
+                                logLine += " [${t.javaClass.simpleName}: ${t.message}]"
+                            }
+                            printWriter?.println(logLine)
+                        } else {
+                            // Other levels: standard format with stacktrace for errors
+                            val logLine = "$timestamp $priorityChar/${tag ?: "App"}: $message"
+                            printWriter?.println(logLine)
+                            t?.let { throwable ->
+                                printWriter?.println(getCompactStackTrace(throwable))
+                            }
                         }
+                        printWriter?.flush()
                     }
-                    printWriter?.flush()
+                } catch (e: Exception) {
+                    // Silently fail - don't cause app crash due to logging
                 }
-            } catch (e: Exception) {
-                // Silently fail - don't cause app crash due to logging
             }
         }
 

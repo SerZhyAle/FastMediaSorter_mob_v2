@@ -107,7 +107,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // No external PDF library needed - Android's PdfRenderer handles PDF rendering natively
         // PDFBox was removed to avoid BouncyCastle conflicts and reduce APK size
         
-        // Apply saved locale (fast)
+        // Apply saved locale - SharedPreferences read already wrapped in StrictModeHelper
         LocaleHelper.applyLocale(this)
         // Note: logging initialized early in attachBaseContext to capture startup crashes
         
@@ -166,11 +166,15 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     private fun setupDebugStrictMode() {
         if (!BuildConfig.DEBUG) return
 
+        // Configure StrictMode to detect issues while allowing necessary startup operations
+        // Note: Early initialization (attachBaseContext, onCreate) wrapped in StrictModeHelper
         StrictMode.setThreadPolicy(
             StrictMode.ThreadPolicy.Builder()
                 .detectDiskReads()
                 .detectDiskWrites()
                 .detectNetwork()
+                // Use penaltyLog() instead of penaltyDeath() to log violations without crashing
+                // This allows development to continue while identifying real issues
                 .penaltyLog()
                 .build()
         )
@@ -240,13 +244,20 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     }
 
     override fun attachBaseContext(base: Context) {
-        super.attachBaseContext(LocaleHelper.applyLocale(base))
+        // StrictMode is not yet configured here, but wrap in helper for consistency
+        val contextWithLocale = com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskReads {
+            LocaleHelper.applyLocale(base)
+        }
+        super.attachBaseContext(contextWithLocale)
+        
         // Initialize logging as early as possible so file logging exists even if app
         // crashes during or before onCreate(). Fail-safe: don't throw if logging fails.
-        try {
-            LoggingHelper.initialize(base)
-        } catch (e: Exception) {
-            android.util.Log.e("FastMediaSorterApp", "Early logging init failed", e)
+        com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskIO {
+            try {
+                LoggingHelper.initialize(base)
+            } catch (e: Exception) {
+                android.util.Log.e("FastMediaSorterApp", "Early logging init failed", e)
+            }
         }
     }
     

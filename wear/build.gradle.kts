@@ -10,11 +10,14 @@ plugins {
 
 android {
     namespace = "com.sza.fastmediasorter.wear"
+    // CRITICAL: Do not change - required for latest Wear OS features
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.sza.fastmediasorter.wear"
+        // CRITICAL: Do not change - minimum Wear OS 2.0+ (API 28) support
         minSdk = 28  // Wear OS 2.0+ support
+        // CRITICAL: Do not change - required for Wear OS Play Store compliance
         targetSdk = 35
         // Use timestamp-based version code: yyMMddHH (same formula as main app)
         versionCode = run {
@@ -60,11 +63,13 @@ android {
     }
 
     compileOptions {
+        // CRITICAL: Do not change - Java 17 required for Kotlin 1.9.24 and modern Wear OS libraries
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
+        // CRITICAL: Do not change - must match compileOptions.targetCompatibility
         jvmTarget = "17"
     }
 
@@ -74,6 +79,7 @@ android {
     }
 
     composeOptions {
+        // CRITICAL: Do not change - version 1.5.14 is matched to Kotlin 1.9.24 for Compose compatibility
         kotlinCompilerExtensionVersion = "1.5.14"
         // Suppress ViewTranslationCallback compatibility warning for Wear OS 2.x
         // This class doesn't exist on Android < 31, but we're targeting API 28+

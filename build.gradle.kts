@@ -4,7 +4,9 @@ buildscript {
         mavenCentral()
     }
     dependencies {
+    // CRITICAL: Do not change - AGP 8.7.3 tested and stable for this project
     classpath("com.android.tools.build:gradle:8.7.3")
+        // CRITICAL: Do not change - Kotlin 1.9.24 required for project stability
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
         classpath("com.google.dagger:hilt-android-gradle-plugin:2.50")
         classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.7.6")

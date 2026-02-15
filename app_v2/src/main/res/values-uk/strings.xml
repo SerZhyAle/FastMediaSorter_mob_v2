@@ -1126,6 +1126,16 @@
     <string name="settings_category_audio">Аудіо</string>
     <string name="settings_category_documents">Документи</string>
     <string name="settings_category_other">Інше</string>
+    
+    <!-- General Settings Categories -->
+    <string name="settings_general_language_display">Мова та відображення</string>
+    <string name="settings_general_behavior">Поведінка додатку</string>
+    <string name="settings_general_confirmations">Підтвердження та безпека</string>
+    <string name="settings_general_network_sync">Мережева синхронізація</string>
+    <string name="settings_general_credentials">Облікові дані</string>
+    <string name="settings_general_cache">Кеш</string>
+    <string name="settings_general_permissions">Дозволи</string>
+    <string name="settings_general_actions">Дії</string>
 
     <!-- Photos during audio playback -->
     <string name="enable_photos_during_audio_description">Показувати випадкові фото під час відтворення аудіо</string>

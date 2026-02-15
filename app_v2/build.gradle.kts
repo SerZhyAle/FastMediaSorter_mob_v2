@@ -13,19 +13,22 @@ plugins {
 
 android {
     namespace = "com.sza.fastmediasorter"
+    // CRITICAL: Do not change - required for latest Android features and Play Store requirements
     compileSdk = 35
 
     defaultConfig {
         applicationId = "com.sza.fastmediasorter"
+        // CRITICAL: Do not change - minimum supported Android 9 (API 28). Lowering breaks core features.
         minSdk = 28
         // Keep targetSdk aligned with compileSdk
+        // CRITICAL: Do not change - required for Play Store compliance and latest Android behavior
         targetSdk = 35
         // Version is auto-updated by build scripts
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260215135
-        versionName = "2.60.2151.356"
+        versionCode = 260215162
+        versionName = "2.60.2151.627"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -115,6 +118,7 @@ android {
         // ===== LEGACY (Full Features, Android 6.0+) =====
         create("legacy") {
             dimension = "version"
+            // CRITICAL: Do not change - legacy flavor specifically for Android 6+ (API 23-27) devices
             minSdk = 23  // Android 6.0 (Marshmallow) instead of 28
             applicationIdSuffix = ".legacy"
             versionNameSuffix = "-Legacy"
@@ -197,11 +201,13 @@ android {
     }
 
     compileOptions {
+        // CRITICAL: Do not change - Java 17 required for Kotlin 1.9.24 and modern Android libraries
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
+        // CRITICAL: Do not change - must match compileOptions.targetCompatibility
         jvmTarget = "17"
     }
 
@@ -212,6 +218,7 @@ android {
     }
 
     composeOptions {
+        // CRITICAL: Do not change - version 1.5.14 is matched to Kotlin 1.9.24 for Compose compatibility
         kotlinCompilerExtensionVersion = "1.5.14"
     }
     
@@ -397,7 +404,9 @@ dependencies {
     
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+    // Required by LeakCanary for background heap analysis (RemoteListenableWorker)
+    debugImplementation("androidx.work:work-multiprocess:2.9.0")
     
     // Document Support - EPUB
     implementation("io.documentnode:epub4j-core:4.2") {

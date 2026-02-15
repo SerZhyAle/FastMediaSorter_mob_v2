@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings
 
 import android.animation.ValueAnimator
+import android.content.Context
 import android.graphics.Rect
 import android.os.SystemClock
 import android.view.KeyEvent
@@ -14,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivitySettingsBinding
 import com.sza.fastmediasorter.ui.settings.fragments.MediaSettingsFragment
@@ -30,6 +32,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private val searchAdapter = SettingsSearchAdapter(::onSearchResultSelected)
     private var searchDebounceJob: Job? = null
     private var setupStartUptimeMs: Long = 0L
+    
+    companion object {
+        private const val PREFS_NAME = "settings_state"
+        private const val KEY_LAST_TAB_POSITION = "last_tab_position"
+    }
     
     override fun getViewBinding(): ActivitySettingsBinding {
         return ActivitySettingsBinding.inflate(layoutInflater)
@@ -62,6 +69,22 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 else -> ""
             }
         }.attach()
+        
+        // Restore last opened tab position
+        val lastTabPosition = getLastTabPosition()
+        if (lastTabPosition in 0 until (adapter.itemCount)) {
+            binding.viewPager.post {
+                binding.viewPager.setCurrentItem(lastTabPosition, false)
+            }
+        }
+        
+        // Save tab position when changed
+        binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                saveLastTabPosition(position)
+            }
+        })
 
         setupGlobalSearch()
 
@@ -252,5 +275,29 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     private fun getSettingsFragment(position: Int): androidx.fragment.app.Fragment? {
         return supportFragmentManager.findFragmentByTag("f$position")
+    }
+    
+    /**
+     * Get last opened tab position from SharedPreferences.
+     * Wrapped in StrictModeHelper to avoid violations.
+     */
+    private fun getLastTabPosition(): Int {
+        return StrictModeHelper.allowDiskReads {
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getInt(KEY_LAST_TAB_POSITION, 0) // Default to first tab (General)
+        }
+    }
+    
+    /**
+     * Save current tab position to SharedPreferences.
+     * Wrapped in StrictModeHelper to avoid violations.
+     */
+    private fun saveLastTabPosition(position: Int) {
+        StrictModeHelper.allowDiskWrites {
+            getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putInt(KEY_LAST_TAB_POSITION, position)
+                .apply()
+        }
     }
 }
