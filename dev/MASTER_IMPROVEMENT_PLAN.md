@@ -56,8 +56,7 @@ Copy-Item "app_v2\src\main\java\com\sza\fastmediasorter\ui\player\PlayerActivity
 - Новые файлы (нечего бэкапить)
 - Layout XML/ресурсы (обычно не ломают билд критично)
 
-**Cleanup**: Бэкапы в `temp/` автоматически игнорируются git. Удалять вручную после успешного коммита шага.
-
+**Cleanup**: Бэкапы в `temp/` автоматически игнорируются git.
 ---
 
 ## PRE-FLIGHT CHECKLIST
@@ -956,7 +955,7 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.1
 
 ### K.2 — Storage Permission Unification
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
