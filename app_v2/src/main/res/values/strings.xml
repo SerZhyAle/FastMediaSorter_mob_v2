@@ -304,6 +304,11 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_sepia">Sepia</string>
+    <string name="epub_search_all_chapters">Search All Chapters</string>
+    <string name="epub_search_hint">Search text…</string>
+    <string name="epub_search_results">%1$d results in %2$d chapters</string>
+    <string name="epub_search_no_results">No results found</string>
+    <string name="epub_searching">Searching…</string>
     <string name="exit_fullscreen">Exit fullscreen</string>
     <string name="translation_error_no_text">No text to translate</string>
     <string name="translation_started">Translation started...</string>

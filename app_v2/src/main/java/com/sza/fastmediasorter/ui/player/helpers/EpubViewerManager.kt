@@ -1475,6 +1475,162 @@ class EpubViewerManager(
     }
     
     /**
+     * Show cross-chapter search BottomSheet dialog.
+     * Scans all spine chapters for matches, displays results with context snippets.
+     * Tapping a result navigates to that chapter and highlights the match in-page.
+     */
+    fun showCrossChapterSearch() {
+        val book = currentBook
+        if (book == null) {
+            Timber.w("EPUB: Cannot search - no book loaded")
+            return
+        }
+        
+        val context = binding.root.context
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_epub_search, null)
+        
+        val etQuery = view.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etSearchAllQuery)
+        val searchProgress = view.findViewById<com.google.android.material.progressindicator.LinearProgressIndicator>(R.id.searchProgress)
+        val tvStatus = view.findViewById<android.widget.TextView>(R.id.tvSearchStatus)
+        val rvResults = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvSearchResults)
+        
+        rvResults.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        
+        var searchJob: kotlinx.coroutines.Job? = null
+        
+        // Handle IME search action
+        etQuery.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_SEARCH) {
+                val query = etQuery.text?.toString()?.trim() ?: ""
+                if (query.length >= 2) {
+                    searchJob?.cancel()
+                    searchJob = performCrossChapterSearch(
+                        book, query, context, bottomSheet,
+                        searchProgress, tvStatus, rvResults
+                    )
+                }
+                true
+            } else false
+        }
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.show()
+        
+        // Focus input
+        etQuery.requestFocus()
+        val imm = context.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+        etQuery.postDelayed({ imm.showSoftInput(etQuery, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT) }, 200)
+        
+        Timber.d("EPUB: Cross-chapter search dialog shown")
+    }
+    
+    /**
+     * Execute cross-chapter search in background coroutine.
+     */
+    private fun performCrossChapterSearch(
+        book: io.documentnode.epub4j.domain.Book,
+        query: String,
+        context: android.content.Context,
+        bottomSheet: com.google.android.material.bottomsheet.BottomSheetDialog,
+        searchProgress: com.google.android.material.progressindicator.LinearProgressIndicator,
+        tvStatus: android.widget.TextView,
+        rvResults: androidx.recyclerview.widget.RecyclerView
+    ): kotlinx.coroutines.Job {
+        return coroutineScope.launch {
+            // Show progress
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                searchProgress.visibility = android.view.View.VISIBLE
+                tvStatus.visibility = android.view.View.VISIBLE
+                tvStatus.text = context.getString(R.string.epub_searching)
+                rvResults.adapter = null
+            }
+            
+            // Scan all chapters on IO
+            val results = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val allResults = mutableListOf<EpubSearchResult>()
+                val spine = book.spine
+                val contextWindow = 60 // chars around match
+                
+                for (i in 0 until spine.spineReferences.size) {
+                    kotlinx.coroutines.yield() // Check cancellation
+                    
+                    val spineRef = spine.spineReferences[i]
+                    val resource = spineRef.resource
+                    val title = resource.title?.takeIf { it.isNotBlank() } ?: "Chapter ${i + 1}"
+                    
+                    try {
+                        val htmlContent = String(resource.data, Charsets.UTF_8)
+                        // Strip HTML tags to get plain text
+                        val plainText = org.jsoup.Jsoup.parse(htmlContent).text()
+                        
+                        // Find all occurrences (case-insensitive)
+                        var searchFrom = 0
+                        val lowerText = plainText.lowercase()
+                        val lowerQuery = query.lowercase()
+                        
+                        while (searchFrom < lowerText.length) {
+                            val pos = lowerText.indexOf(lowerQuery, searchFrom)
+                            if (pos < 0) break
+                            
+                            // Extract context snippet
+                            val snippetStart = (pos - contextWindow).coerceAtLeast(0)
+                            val snippetEnd = (pos + query.length + contextWindow).coerceAtMost(plainText.length)
+                            val snippet = buildString {
+                                if (snippetStart > 0) append("…")
+                                append(plainText.substring(snippetStart, snippetEnd))
+                                if (snippetEnd < plainText.length) append("…")
+                            }
+                            
+                            allResults.add(
+                                EpubSearchResult(
+                                    chapterIndex = i,
+                                    chapterTitle = title,
+                                    contextSnippet = snippet,
+                                    matchStartInText = pos,
+                                    matchedText = plainText.substring(pos, pos + query.length)
+                                )
+                            )
+                            
+                            searchFrom = pos + query.length
+                        }
+                    } catch (e: Exception) {
+                        Timber.w(e, "EPUB: Error searching chapter $i")
+                    }
+                }
+                
+                allResults
+            }
+            
+            // Show results on Main
+            kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                searchProgress.visibility = android.view.View.GONE
+                
+                if (results.isEmpty()) {
+                    tvStatus.text = context.getString(R.string.epub_search_no_results)
+                } else {
+                    val chaptersWithMatches = results.map { it.chapterIndex }.distinct().size
+                    tvStatus.text = context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)
+                    
+                    rvResults.adapter = EpubSearchResultAdapter(results) { result ->
+                        bottomSheet.dismiss()
+                        // Navigate to chapter and highlight
+                        coroutineScope.launch {
+                            showChapter(result.chapterIndex)
+                            // After chapter loads, trigger in-page search for highlighting
+                            kotlinx.coroutines.delay(500) // Wait for WebView to render
+                            searchInEpub(query) {}
+                        }
+                    }
+                }
+                
+                Timber.d("EPUB: Cross-chapter search for '$query': ${results.size} results")
+            }
+        }
+    }
+    
+    /**
      * Clear search highlighting in WebView
      */
     fun clearSearch() {

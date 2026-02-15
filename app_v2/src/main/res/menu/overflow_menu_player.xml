@@ -149,4 +149,11 @@
         android:title="@string/epub_reader_settings"
         app:showAsAction="never" />
 
+    <!-- EPUB Cross-Chapter Search -->
+    <item
+        android:id="@+id/menu_epub_search_all"
+        android:icon="@android:drawable/ic_menu_search"
+        android:title="@string/epub_search_all_chapters"
+        app:showAsAction="never" />
+
 </menu>

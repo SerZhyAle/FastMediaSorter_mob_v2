@@ -1107,6 +1107,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onEpubReaderSettingsClicked() {
                     epubViewerManager.showReaderSettingsDialog()
                 }
+
+                override fun onEpubSearchAllClicked() {
+                    epubViewerManager.showCrossChapterSearch()
+                }
             }
         )
         // Initialize orientation on startup

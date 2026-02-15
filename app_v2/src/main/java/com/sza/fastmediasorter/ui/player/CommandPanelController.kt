@@ -72,6 +72,7 @@ class CommandPanelController(
         fun onPdfColorModeClicked()
         fun onPdfThumbnailsClicked()
         fun onEpubReaderSettingsClicked()
+        fun onEpubSearchAllClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -714,6 +715,7 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_pdf_color_mode)?.isVisible = isPdf
         popup.menu.findItem(R.id.menu_pdf_thumbnails)?.isVisible = isPdf
         popup.menu.findItem(R.id.menu_epub_reader_settings)?.isVisible = isEpub
+        popup.menu.findItem(R.id.menu_epub_search_all)?.isVisible = isEpub
         
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -740,6 +742,7 @@ class CommandPanelController(
                 R.id.menu_pdf_color_mode -> callback.onPdfColorModeClicked()
                 R.id.menu_pdf_thumbnails -> callback.onPdfThumbnailsClicked()
                 R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
+                R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
             }
             true
         }

@@ -313,6 +313,11 @@
     <string name="theme_light">Світла</string>
     <string name="theme_dark">Темна</string>
     <string name="theme_sepia">Сепія</string>
+    <string name="epub_search_all_chapters">Пошук по всіх главах</string>
+    <string name="epub_search_hint">Пошук тексту…</string>
+    <string name="epub_search_results">%1$d результатів у %2$d главах</string>
+    <string name="epub_search_no_results">Результатів не знайдено</string>
+    <string name="epub_searching">Пошук…</string>
     <string name="translation_error_no_text">Немає тексту для перекладу</string>
     <string name="show_pdf_thumbnails">Мініатюри для великих PDF (довго)</string>
     <string name="show_pdf_thumbnails_description">Завантажувати та генерувати мініатюри для великих PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Хмари (може зайняти значний час)</string>
