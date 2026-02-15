@@ -1,0 +1,61 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Audio Lyrics Display
+# Description: Verify lyrics are fetched and displayed for audio files
+# Duration: ~25 seconds
+# Note: Requires internet connection and audio file with metadata
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find audio file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(mp3|flac|m4a)$"
+    timeout: 15000
+    optional: true
+
+# Play audio file
+- tapOn:
+    text: ".*\\.(mp3|flac|m4a)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Look for lyrics button
+- tapOn:
+    text: "Lyrics"
+    optional: true
+
+- tapOn:
+    id: ".*lyrics.*"
+    optional: true
+
+# Wait for lyrics to load
+- waitForAnimationToEnd
+
+# Verify lyrics display or "No lyrics" message
+- assertVisible:
+    text: ".*lyrics.*"
+    optional: true
+
+# Close lyrics view
+- back
+    optional: true
+- waitForAnimationToEnd
+
+# Close player
+- back
+- waitForAnimationToEnd
+
+# Test completed

@@ -1,0 +1,61 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: EPUB In-Book Search
+# Description: Verify search functionality within EPUB files
+# Duration: ~25 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find and open EPUB
+- scrollUntilVisible:
+    element:
+      text: ".*\\.epub$"
+    optional: true
+
+- tapOn:
+    text: ".*\\.epub$"
+    optional: true
+- waitForAnimationToEnd
+
+# Open search
+- tapOn:
+    id: ".*search.*"
+    optional: true
+
+- tapOn:
+    text: "Search"
+    optional: true
+- waitForAnimationToEnd
+
+# Type search term (common word likely in any book)
+- inputText: "the"
+- waitForAnimationToEnd
+
+# Select first search result
+- tapOn:
+    index: 0
+    optional: true
+- waitForAnimationToEnd
+
+# Close search
+- back
+    optional: true
+- waitForAnimationToEnd
+
+# Close reader
+- back
+- waitForAnimationToEnd
+
+# Test completed

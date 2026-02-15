@@ -304,7 +304,7 @@ class ImageLoadingManager(
         binding.playerView.isVisible = false
         
         // Hide audio-related views
-        Timber.w("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
+        Timber.d("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
         binding.audioCoverArtView.isVisible = false
         safeViews.audioTouchZonesOverlay.isVisible = false
         binding.audioInfoOverlay.isVisible = false
@@ -358,8 +358,15 @@ class ImageLoadingManager(
             
             // Switch visibility between ImageView and PhotoView
             binding.imageView.isVisible = !usePhotoView
+                binding.photoDualSurfaceContainer?.isVisible = usePhotoView
             binding.photoView.isVisible = usePhotoView
-            Timber.d("TOUCH_DEBUG: View visibility set - imageView.isVisible=${binding.imageView.isVisible}, photoView.isVisible=${binding.photoView.isVisible}")
+            binding.photoViewSurfaceB?.isVisible = false
+            Timber.d(
+                "TOUCH_DEBUG: View visibility set - imageView.isVisible=${binding.imageView.isVisible}, " +
+                    "photoDualSurfaceContainer.isVisible=${binding.photoDualSurfaceContainer?.isVisible == true}, " +
+                    "photoView.isVisible=${binding.photoView.isVisible}, " +
+                    "photoViewSurfaceB.isVisible=${binding.photoViewSurfaceB?.isVisible == true}"
+            )
             
             // Configure PhotoView gestures based on loadFullSizeImages setting
             if (usePhotoView) {
@@ -371,13 +378,13 @@ class ImageLoadingManager(
                         mediumScale = 2.0f   // Not used (we override tap gestures)
                         maximumScale = 5.0f  // Maximum zoom
                         
-                        Timber.w("GESTURE_CONFIG: PhotoView configured for CUSTOM GESTURES mode")
-                        Timber.w("GESTURE_CONFIG: - Zoom: ENABLED (min=1.0x, max=5.0x)")
-                        Timber.w("GESTURE_CONFIG: - Double-tap: Command Panel=2x (REG-3100), Fullscreen=3x")
-                        Timber.w("GESTURE_CONFIG: - Long press: Command Panel=2x, Fullscreen=3x")
-                        Timber.w("GESTURE_CONFIG: - Rotation: ENABLED (two-finger rotate)")
-                        Timber.w("GESTURE_CONFIG: - Pan: ENABLED (after zoom)")
-                        Timber.w("GESTURE_CONFIG: - Pinch zoom: ENABLED (gradual zoom)")
+                        Timber.d("GESTURE_CONFIG: PhotoView configured for CUSTOM GESTURES mode")
+                        Timber.d("GESTURE_CONFIG: - Zoom: ENABLED (min=1.0x, max=5.0x)")
+                        Timber.d("GESTURE_CONFIG: - Double-tap: Command Panel=2x (REG-3100), Fullscreen=3x")
+                        Timber.d("GESTURE_CONFIG: - Long press: Command Panel=2x, Fullscreen=3x")
+                        Timber.d("GESTURE_CONFIG: - Rotation: ENABLED (two-finger rotate)")
+                        Timber.d("GESTURE_CONFIG: - Pan: ENABLED (after zoom)")
+                        Timber.d("GESTURE_CONFIG: - Pinch zoom: ENABLED (gradual zoom)")
                         
                         // NOTE: OnDoubleTapListener is set once in setupGestureDetector()
                         // Do NOT reset it here - it handles touch zones + custom zoom logic
@@ -1083,12 +1090,12 @@ class ImageLoadingManager(
             "${it.className}.${it.methodName}():${it.lineNumber}"
         } ?: "Unknown"
         
-        Timber.w("╔════════════════════════════════════════════════════════════════")
-        Timber.w("║ loadAudioCoverArt() CALLED [ID=$callId]")
-        Timber.w("╚════════════════════════════════════════════════════════════════")
-        Timber.w("loadAudioCoverArt[$callId]: file=${file.name}")
-        Timber.w("loadAudioCoverArt[$callId]: caller=$caller")
-        Timber.w("loadAudioCoverArt[$callId]: audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
+        Timber.d("╔════════════════════════════════════════════════════════════════")
+        Timber.d("║ loadAudioCoverArt() CALLED [ID=$callId]")
+        Timber.d("╚════════════════════════════════════════════════════════════════")
+        Timber.d("loadAudioCoverArt[$callId]: file=${file.name}")
+        Timber.d("loadAudioCoverArt[$callId]: caller=$caller")
+        Timber.d("loadAudioCoverArt[$callId]: audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
         
         val isNetworkFile = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
         
@@ -1159,11 +1166,11 @@ class ImageLoadingManager(
                 withContext(Dispatchers.Main) {
                     if (coverBitmap != null) {
                         // Show embedded cover
-                        Timber.w("loadAudioCoverArt[$callId]: ✅ EMBEDDED cover found, displaying")
-                        Timber.w("loadAudioCoverArt[$callId]: BEFORE setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
+                        Timber.d("loadAudioCoverArt[$callId]: ✅ EMBEDDED cover found, displaying")
+                        Timber.d("loadAudioCoverArt[$callId]: BEFORE setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                         binding.audioCoverArtView.setImageBitmap(coverBitmap)
                         binding.audioCoverArtView.isVisible = true
-                        Timber.w("loadAudioCoverArt[$callId]: AFTER setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
+                        Timber.d("loadAudioCoverArt[$callId]: AFTER setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                     } else {
                         // No embedded cover, check if online search is enabled
                         val settings = settingsRepository.getSettings().first()
@@ -1175,10 +1182,10 @@ class ImageLoadingManager(
                         }
                         
                         // Online search enabled, try it
-                        Timber.w("loadAudioCoverArt[$callId]: ❌ NO embedded cover, searching online")
+                        Timber.d("loadAudioCoverArt[$callId]: ❌ NO embedded cover, searching online")
                         
                         val metadata = withContext(Dispatchers.IO) {
-                            Timber.w("loadAudioCoverArt[$callId]: Calling searchAudioCoverUseCase")
+                            Timber.d("loadAudioCoverArt[$callId]: Calling searchAudioCoverUseCase")
                             searchAudioCoverUseCase(file.name)
                         }
                         
@@ -1187,11 +1194,11 @@ class ImageLoadingManager(
                             // Save metadata for display
                             callback.onAudioMetadataLoaded(metadata)
                             
-                            Timber.w("loadAudioCoverArt[$callId]: ✅ ONLINE cover found: $coverUrl")
-                            Timber.w("loadAudioCoverArt[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
+                            Timber.d("loadAudioCoverArt[$callId]: ✅ ONLINE cover found: $coverUrl")
+                            Timber.d("loadAudioCoverArt[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                             // Show view now, load without placeholder to prevent flicker
                             binding.audioCoverArtView.isVisible = true
-                            Timber.w("loadAudioCoverArt[$callId]: AFTER isVisible=true - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
+                            Timber.d("loadAudioCoverArt[$callId]: AFTER isVisible=true - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                             
                             val request = Glide.with(binding.audioCoverArtView.context)
                                 .load(coverUrl)

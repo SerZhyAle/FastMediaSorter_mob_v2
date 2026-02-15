@@ -176,7 +176,7 @@
                 android:minHeight="0dp"
                 android:padding="0dp"
                 android:text=""
-                app:icon="@drawable/ic_star_outline"
+                app:icon="@drawable/ic_star_filled"
                 app:iconGravity="textStart"
                 app:iconPadding="@dimen/activity_main_btnFilter_iconPadding"
                 app:iconSize="@dimen/icon_size_normal"
@@ -186,7 +186,7 @@
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartPlayer"
                 style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/start_player"

@@ -1,0 +1,68 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Image Basic View and Zoom
+# Description: Verify image viewing with various formats and zoom gestures
+# Duration: ~25 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find image file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|gif|webp|heic|heif)$"
+    optional: true
+
+# Open image
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+-  waitForAnimationToEnd
+
+# Test swipe to next image
+- swipe:
+    direction: LEFT
+- waitForAnimationToEnd
+
+# Swipe back to previous
+- swipe:
+    direction: RIGHT
+- waitForAnimationToEnd
+
+# Test zoom (double tap for 2x)
+- tapOn:
+    point: "50%, 50%"
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Test zoom levels (tap for 3x, 4x)
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Reset zoom (tap to return to fit)
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Close image viewer
+- back
+- waitForAnimationToEnd
+
+# Test completed

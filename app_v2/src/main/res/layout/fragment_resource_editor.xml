@@ -276,29 +276,41 @@
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textStyle="bold" />
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbVideo"
+            <GridLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/media_type_video" />
+                android:columnCount="2"
+                android:rowCount="2">
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbAudio"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/media_type_audio" />
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cbVideo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/media_type_video" />
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbImage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/media_type_image" />
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cbAudio"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/media_type_audio" />
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbDocument"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/media_type_document" />
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cbImage"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/media_type_image" />
+
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cbDocument"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_columnWeight="1"
+                    android:text="@string/media_type_document" />
+
+            </GridLayout>
 
             <!-- Connection test section -->
             <LinearLayout

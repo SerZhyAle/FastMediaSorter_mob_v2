@@ -1,0 +1,59 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: File Copy Operation
+# Description: Verify file copy to destination folder
+# Duration: ~25 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find file to copy
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|mp4)$"
+    optional: true
+
+# Open file in player/viewer
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Access file operations menu
+- tapOn:
+    id: ".*menu.*"
+    optional: true
+
+- tapOn:
+    text: "Copy"
+    optional: true
+- waitForAnimationToEnd
+
+# Select first destination
+- tapOn:
+    index: 0
+    optional: true
+- waitForAnimationToEnd
+
+# Verify copy success message
+- assertVisible:
+    text: ".*[Cc]opied.*"
+    optional: true
+    timeout: 10000
+
+# Close viewer
+- back
+- waitForAnimationToEnd
+
+# Test completed

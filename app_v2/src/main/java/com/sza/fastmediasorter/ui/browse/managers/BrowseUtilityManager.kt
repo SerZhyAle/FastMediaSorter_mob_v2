@@ -60,13 +60,28 @@ class BrowseUtilityManager(
             SortMode.RANDOM -> context.getString(R.string.sort_by_random)
         }
         
-        // Show breadcrumb in subfolder mode, otherwise show resource path
+        // Show breadcrumb in subfolder mode, otherwise show normalized resource path
         val pathDisplay = state.currentPath?.takeIf { state.isSubfolderMode }?.let { currentPath ->
             // Build breadcrumb: "Root > Folder1 > Folder2"
             buildBreadcrumb(resource.path, currentPath)
-        } ?: resource.path
+        } ?: buildRootPathDisplay(resource.path, resource.name)
         
         return "${resource.name}$fileCount • $pathDisplay • $sortMode$selected"
+    }
+
+    private fun buildRootPathDisplay(resourcePath: String, resourceName: String): String {
+        val normalizedPath = resourcePath.trimEnd('/', '\\')
+        if (normalizedPath.isEmpty()) {
+            return resourcePath
+        }
+
+        val lastSegment = normalizedPath.substringAfterLast('/').substringAfterLast('\\')
+        if (!lastSegment.equals(resourceName, ignoreCase = true)) {
+            return resourcePath
+        }
+
+        val parentPath = normalizedPath.substringBeforeLast('/', "").substringBeforeLast('\\', "")
+        return if (parentPath.isNotBlank()) parentPath else resourcePath
     }
     
     /**

@@ -101,12 +101,12 @@
     <dimen name="elevation_operations_bar">4dp</dimen>
     
     <!-- Player Activity -->
-    <dimen name="player_cmd_button_size">48dp</dimen>
-    <dimen name="player_cmd_overflow_width">72dp</dimen>
+    <dimen name="player_cmd_button_size">40dp</dimen>
+    <dimen name="player_cmd_overflow_width">40dp</dimen>
     <dimen name="player_cmd_padding_vertical">2dp</dimen>
     <dimen name="player_cmd_padding_top">2dp</dimen>
     <dimen name="player_cmd_padding_horizontal">0dp</dimen>
-    <dimen name="player_button_padding">4dp</dimen>
+    <dimen name="player_button_padding">2dp</dimen>
     <dimen name="player_audio_overlay_padding">24dp</dimen>
     <dimen name="player_audio_overlay_margin_bottom">80dp</dimen>
     <dimen name="player_audio_filename_text_size">20sp</dimen>

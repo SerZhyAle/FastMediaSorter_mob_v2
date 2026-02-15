@@ -1,0 +1,86 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Image Filters
+# Description: Verify grayscale, sepia, and negative filters with undo
+# Duration: ~40 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find and open image
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Open edit or filter menu
+- tapOn:
+    text: "Edit"
+    optional: true
+
+- tapOn:
+    id: ".*filter.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Apply grayscale filter
+- tapOn:
+    text: ".*[Gg]rayscale.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Undo grayscale
+- tapOn:
+    text: "Undo"
+    optional: true
+
+- tapOn:
+    id: ".*undo.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Apply sepia filter
+- tapOn:
+    text: ".*[Ss]epia.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Undo sepia
+- tapOn:
+    text: "Undo"
+    optional: true
+- waitForAnimationToEnd
+
+# Apply negative filter
+- tapOn:
+    text: ".*[Nn]egative.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Undo negative
+- tapOn:
+    text: "Undo"
+    optional: true
+- waitForAnimationToEnd
+
+# Close viewer
+- back
+- waitForAnimationToEnd
+
+# Test completed

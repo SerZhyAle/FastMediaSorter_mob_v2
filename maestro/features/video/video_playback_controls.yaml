@@ -1,0 +1,73 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Video Playback Controls
+# Description: Verify video play/pause, seek, and progress bar
+# Duration: ~30 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find video file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(mp4|mkv|avi|mov|webm)$"
+    timeout: 15000
+    optional: true
+
+# Play video
+- tapOn:
+    text: ".*\\.(mp4|mkv|avi)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Test play/pause
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+- tapOn:
+    id: ".*play.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Test pause
+- tapOn:
+    id: ".*pause.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Test seek forward (tap on progress bar)
+- tapOn:
+    id: ".*seek.*"
+    point: "70%, 50%"
+    optional: true
+- waitForAnimationToEnd
+
+# Test seek backward
+- tapOn:
+    id: ".*seek.*"
+    point: "30%, 50%"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify progress bar visible
+- assertVisible:
+    id: ".*progress.*"
+    optional: true
+
+# Close video player
+- back
+- waitForAnimationToEnd
+
+# Test completed

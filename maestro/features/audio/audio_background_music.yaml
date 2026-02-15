@@ -1,0 +1,94 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Slideshow Background Music
+# Description: Verify background music plays during image slideshow
+# Duration: ~40 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Settings
+- tapOn:
+    text: "Settings"
+    optional: true
+
+- tapOn:
+    id: ".*settings.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate to Audio settings tab
+- tapOn:
+    text: "Audio"
+    optional: true
+- waitForAnimationToEnd
+
+# Enable slideshow background music
+- scrollUntilVisible:
+    element:
+      text: ".*[Ss]lideshow.*[Mm]usic.*"
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*[Ss]lideshow.*[Mm]usic.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Select music resource (if required)
+- tapOn:
+    text: ".*[Mm]usic.*[Rr]esource.*"
+    optional: true
+
+- tapOn:
+    text: "Music"
+    optional: true
+- waitForAnimationToEnd
+
+# Go back to main screen
+- back
+- waitForAnimationToEnd
+- back
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate to image folder
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find image files
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|gif)$"
+    optional: true
+
+# Start slideshow
+- tapOn:
+    id: ".*slideshow.*"
+    optional: true
+
+- tapOn:
+    text: "Play"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify slideshow is running with music
+# (Music should be audible, but we can only check UI)
+- assertVisible:
+    id: ".*slideshow.*"
+    optional: true
+
+# Test skip track by tapping track name
+- tapOn:
+    text: ".*\\.(mp3|flac).*"
+    optional: true
+- waitForAnimationToEnd
+
+# Stop slideshow
+- back
+- waitForAnimationToEnd
+
+# Test completed

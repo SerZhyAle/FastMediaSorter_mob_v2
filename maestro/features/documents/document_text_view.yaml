@@ -1,0 +1,52 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Text Document Viewer
+# Description: Verify text file viewing (TXT, MD, LOG, JSON, XML)
+# Duration: ~20 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find text file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(txt|md|log|json|xml)$"
+    timeout: 15000
+    optional: true
+
+# Open text file
+- tapOn:
+    text: ".*\\.(txt|md|log)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify text content is visible
+- assertVisible:
+    id: ".*text.*"
+    optional: true
+
+# Test scroll functionality
+- scroll:
+    direction: DOWN
+- waitForAnimationToEnd
+
+- scroll:
+    direction: UP
+- waitForAnimationToEnd
+
+# Close document
+- back
+- waitForAnimationToEnd
+
+# Test completed

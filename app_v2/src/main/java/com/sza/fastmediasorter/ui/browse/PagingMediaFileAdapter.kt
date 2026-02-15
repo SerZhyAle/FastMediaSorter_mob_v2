@@ -147,6 +147,10 @@ class PagingMediaFileAdapter(
             binding.apply {
                 val isSelected = file.path in selectedPaths
 
+                val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()
+                ivThumbnail.layoutParams.width = sizeInPx
+                ivThumbnail.layoutParams.height = sizeInPx
+
                 cbSelect.setOnCheckedChangeListener(null)
                 cbSelect.isChecked = isSelected
                 cbSelect.setOnCheckedChangeListener { _, isChecked ->

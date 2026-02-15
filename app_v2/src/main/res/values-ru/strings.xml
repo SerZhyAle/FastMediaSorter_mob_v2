@@ -49,7 +49,7 @@
     <string name="settings_tab_media">Медиа</string>
     <string name="settings_tab_playback">Воспроизведение</string>
     <string name="settings_tab_network">Сеть</string>
-    <string name="settings_tab_destinations">Быстрая сортировка</string>
+    <string name="settings_tab_destinations">Сортировка</string>
     
     <!-- Copy Dialog -->
     <string name="copying_files">Копирование файлов</string>

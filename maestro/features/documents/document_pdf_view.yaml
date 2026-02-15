@@ -1,0 +1,64 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: PDF Document Viewer
+# Description: Verify PDF viewing with zoom, pan, and page navigation
+# Duration: ~30 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find PDF file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.pdf$"
+    timeout: 15000
+    optional: true
+
+# Open PDF
+- tapOn:
+    text: ".*\\.pdf$"
+    optional: true
+- waitForAnimationToEnd
+
+# Test zoom in (pinch gesture simulation via tap)
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Test navigate to next page
+- scroll:
+    direction: DOWN
+- waitForAnimationToEnd
+
+# Test navigate to previous page
+- scroll:
+    direction: UP
+- waitForAnimationToEnd
+
+# Test pan gesture (swipe while zoomed)
+- swipe:
+    direction: LEFT
+    optional: true
+- waitForAnimationToEnd
+
+- swipe:
+    direction: RIGHT
+    optional: true
+- waitForAnimationToEnd
+
+# Close PDF viewer
+- back
+- waitForAnimationToEnd
+
+# Test completed

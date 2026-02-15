@@ -4,7 +4,7 @@ import android.annotation.SuppressLint
 import android.content.res.Configuration
 import android.net.Uri
 import android.view.View
-import android.widget.PopupMenu
+import androidx.appcompat.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.documentfile.provider.DocumentFile
 import com.sza.fastmediasorter.R

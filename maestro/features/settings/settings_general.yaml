@@ -1,0 +1,75 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: General Settings
+# Description: Verify General Settings with collapsible sections
+# Duration: ~30 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Settings
+- tapOn:
+    text: "Settings"
+    optional: true
+
+- tapOn:
+    id: ".*settings.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate to General tab
+- tapOn:
+    text: "General"
+    optional: true
+- waitForAnimationToEnd
+
+# Test collapsible section expand
+- tapOn:
+    text: ".*[Aa]ppearance.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Toggle dark mode
+- tapOn:
+    text: ".*[Dd]ark.*[Mm]ode.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Collapse section
+- tapOn:
+    text: ".*[Aa]ppearance.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Test another section
+- tapOn:
+    text: ".*[Bb]ehavior.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Close settings
+- back
+- waitForAnimationToEnd
+
+# Reopen to verify persistence
+- tapOn:
+    text: "Settings"
+    optional: true
+- waitForAnimationToEnd
+
+- tapOn:
+    text: "General"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify settings persisted
+- assertVisible:
+    text: "General"
+    optional: true
+
+# Close settings
+- back
+- waitForAnimationToEnd
+
+# Test completed

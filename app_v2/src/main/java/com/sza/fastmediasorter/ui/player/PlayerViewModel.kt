@@ -305,8 +305,22 @@ class PlayerViewModel @Inject constructor(
                     Timber.d("All types supported (${resource.supportedMediaTypes.size}), filtered directories: ${allFiles.size} → ${filtered.size}")
                     filtered
                 }
+
+                val filesWithFavorites = try {
+                    if (files.isEmpty()) {
+                        files
+                    } else {
+                        val favoriteMap = favoritesUseCase.getFavoritesForPaths(files.map { it.path })
+                        files.map { file ->
+                            file.copy(isFavorite = favoriteMap[file.path] == true)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e, "PlayerViewModel.loadMediaFiles: Failed to reconcile favorites, using existing flags")
+                    files
+                }
                 
-                if (files.isEmpty()) {
+                if (filesWithFavorites.isEmpty()) {
                     sendEvent(PlayerEvent.ShowError("No media files found"))
                     sendEvent(PlayerEvent.FinishActivity)
                 } else {
@@ -315,21 +329,21 @@ class PlayerViewModel @Inject constructor(
                     // 2. Initial file path (if provided from BrowseActivity - pagination mode)
                     // 3. Initial index (default fallback)
                     val safeIndex = if (currentFilePath != null) {
-                        val foundIndex = files.indexOfFirst { it.path == currentFilePath }
+                        val foundIndex = filesWithFavorites.indexOfFirst { it.path == currentFilePath }
                         if (foundIndex >= 0) {
                             Timber.d("Restored position to current file: $currentFilePath at index $foundIndex")
                             foundIndex
                         } else {
                             Timber.w("Current file not found: $currentFilePath, trying initialFilePath")
                             if (initialFilePath != null) {
-                                val initialFoundIndex = files.indexOfFirst { it.path == initialFilePath }
+                                val initialFoundIndex = filesWithFavorites.indexOfFirst { it.path == initialFilePath }
                                 if (initialFoundIndex >= 0) initialFoundIndex else 0
                             } else {
-                                initialIndex.coerceIn(0, files.size - 1)
+                                initialIndex.coerceIn(0, filesWithFavorites.size - 1)
                             }
                         }
                     } else if (initialFilePath != null) {
-                        val foundIndex = files.indexOfFirst { it.path == initialFilePath }
+                        val foundIndex = filesWithFavorites.indexOfFirst { it.path == initialFilePath }
                         if (foundIndex >= 0) {
                             // Found file by path at index
                             foundIndex
@@ -360,7 +374,7 @@ class PlayerViewModel @Inject constructor(
                     // Update state with resource first
                     updateState { 
                         it.copy(
-                            files = files, 
+                            files = filesWithFavorites,
                             currentIndex = safeIndex, 
                             resource = resource,
                             slideShowInterval = intervalToUse,

@@ -230,7 +230,9 @@ class PdfViewerManager(
         Timber.d("PDF PROGRESS: displayPdf() START - ${mediaFile.name}")
         // Reset views
         binding.imageView.isVisible = false
+        binding.photoDualSurfaceContainer?.isVisible = true
         binding.photoView.isVisible = true // Reuse PhotoView for PDF pages
+        binding.photoViewSurfaceB?.isVisible = false
         binding.playerView.isVisible = false
         
         // Hide EPUB viewer when displaying PDF
@@ -454,7 +456,9 @@ class PdfViewerManager(
      * This is the legacy/default mode.
      */
     private fun setupPageMode(startPage: Int) {
+        binding.photoDualSurfaceContainer?.isVisible = true
         binding.photoView.isVisible = true
+        binding.photoViewSurfaceB?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = false
         binding.btnPdfPrevPage.isVisible = pdfPageCount > 1
         binding.btnPdfNextPage.isVisible = pdfPageCount > 1
@@ -468,7 +472,9 @@ class PdfViewerManager(
      * Uses PdfPageAdapter with PdfRendererWrapper for thread-safe rendering.
      */
     private fun setupScrollMode(startPage: Int) {
+        binding.photoDualSurfaceContainer?.isVisible = false
         binding.photoView.isVisible = false
+        binding.photoViewSurfaceB?.isVisible = false
         safeViews.pdfScrollRecyclerView.isVisible = true
         binding.progressBar.isVisible = false
         

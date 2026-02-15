@@ -1,0 +1,56 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Touch Zones Navigation
+# Description: Verify left/right touch zones for file navigation
+# Duration: ~25 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find and open file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|mp4)$"
+    optional: true
+
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Test left touch zone (previous file)
+- tapOn:
+    point: "10%, 50%"
+- waitForAnimationToEnd
+
+# Test right touch zone (next file)
+- tapOn:
+    point: "90%, 50%"
+- waitForAnimationToEnd
+
+# Test swipe left (next)
+- swipe:
+    direction: LEFT
+- waitForAnimationToEnd
+
+# Test swipe right (previous)
+- swipe:
+    direction: RIGHT
+- waitForAnimationToEnd
+
+# Close viewer
+- back
+- waitForAnimationToEnd
+
+# Test completed

@@ -82,9 +82,8 @@ object DebugNotificationCenter : Application.ActivityLifecycleCallbacks {
 
 class UiNotificationTree : Timber.Tree() {
     override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
-        when {
-            priority >= android.util.Log.ERROR -> DebugNotificationCenter.showError(message, t)
-            priority >= android.util.Log.WARN -> DebugNotificationCenter.showWarning(message, t)
+        if (priority >= android.util.Log.ERROR) {
+            DebugNotificationCenter.showError(message, t)
         }
     }
 }

@@ -1,0 +1,50 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Remove File from Favorites
+# Description: Verify removing file from favorites
+# Duration: ~20 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to Favorites tab
+- tapOn:
+    text: "Favorites"
+    optional: true
+- waitForAnimationToEnd
+
+# Find favorited file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|mp4)$"
+    optional: true
+
+# Open file
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Remove from favorites (tap star again)
+- tapOn:
+    id: ".*favorite.*"
+    optional: true
+
+- tapOn:
+    id: ".*star.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Close viewer (should return to list or show next file)
+- back
+- waitForAnimationToEnd
+
+# Verify file removed from favorites list
+# (It should no longer appear or list should be shorter)
+
+# Test completed

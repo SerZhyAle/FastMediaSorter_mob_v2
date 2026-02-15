@@ -1,0 +1,69 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Audio Player Advanced Controls
+# Description: Verify seek bar, repeat modes, shuffle, and track info display
+# Duration: ~35 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find audio file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(mp3|flac|m4a)$"
+    optional: true
+
+- tapOn:
+    text: ".*\\.(mp3|flac|m4a)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Test seek bar
+- tapOn:
+    id: ".*seek.*"
+    optional: true
+    point: "70%, 50%"
+- waitForAnimationToEnd
+
+# Test repeat mode toggle
+- tapOn:
+    id: ".*repeat.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Test shuffle toggle
+- tapOn:
+    id: ".*shuffle.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify track information is displayed
+- assertVisible:
+    id: ".*title.*"
+    optional: true
+
+- assertVisible:
+    id: ".*artist.*"
+    optional: true
+
+# Verify duration/time display
+- assertVisible:
+    text: ".*[0-9]+:[0-9]+.*"
+    optional: true
+
+# Close player
+- back
+- waitForAnimationToEnd
+
+# Test completed

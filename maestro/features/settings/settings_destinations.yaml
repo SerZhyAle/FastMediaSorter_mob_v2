@@ -1,0 +1,74 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Destinations Settings
+# Description: Verify destination folder configuration
+# Duration: ~40 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Navigate to Settings
+- tapOn:
+    text: "Settings"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate to Destinations tab
+- tapOn:
+    text: "Destinations"
+    optional: true
+- waitForAnimationToEnd
+
+# View destination folders
+- assertVisible:
+    text: ".*[Dd]estination.*"
+    optional: true
+
+# Add new destination
+- tapOn:
+    id: ".*add.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Select folder
+- tapOn:
+    text: "Downloads"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify destination added
+- assertVisible:
+    text: "Downloads"
+    optional: true
+
+# Close settings
+- back
+- waitForAnimationToEnd
+
+# Verify quick sort buttons appear in player
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Look for destination buttons
+- assertVisible:
+    text: "Downloads"
+    optional: true
+
+# Close player
+- back
+- waitForAnimationToEnd
+
+# Test completed

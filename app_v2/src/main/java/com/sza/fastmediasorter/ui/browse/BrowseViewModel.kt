@@ -1127,15 +1127,40 @@ class BrowseViewModel @Inject constructor(
                     }
                     
                     Timber.d("BrowseViewModel.loadResource: Cache files filtered - original=${cacheResult.files.size}, after scanSubdirectories filter=${filteredFiles.size}, scanSubdirectories=${resource.scanSubdirectories}")
+
+                    // Reconcile favorite flags from DB for cached files.
+                    // Cache may be stale (e.g., favorite toggled in Player/Browse and cache not refreshed yet).
+                    val reconciledFiles = try {
+                        val filePaths = filteredFiles.asSequence()
+                            .filter { !it.isDirectory }
+                            .map { it.path }
+                            .toList()
+
+                        if (filePaths.isEmpty()) {
+                            filteredFiles
+                        } else {
+                            val favoriteMap = favoritesUseCase.getFavoritesForPaths(filePaths)
+                            filteredFiles.map { file ->
+                                if (file.isDirectory) {
+                                    file
+                                } else {
+                                    file.copy(isFavorite = favoriteMap[file.path] == true)
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Timber.e(e, "BrowseViewModel.loadResource: Failed to reconcile favorites for cached files")
+                        filteredFiles
+                    }
                     
                     // Update totalFileCount from actual filtered files count
-                    updateState { it.copy(mediaFiles = filteredFiles, totalFileCount = filteredFiles.size) }
-                    schedulePlayerWarmupIfEligible(filteredFiles)
+                    updateState { it.copy(mediaFiles = reconciledFiles, totalFileCount = reconciledFiles.size) }
+                    schedulePlayerWarmupIfEligible(reconciledFiles)
                     setLoading(false)
                     
                     // Update resource metadata (lastBrowseDate) even when loading from cache
                     Timber.d("BrowseViewModel.loadResource: Cache hit, updating metadata for ${resource.name}")
-                    updateResourceMetadataAfterBrowse(resource, filteredFiles.size)
+                    updateResourceMetadataAfterBrowse(resource, reconciledFiles.size)
                     
                     return@launch
                 }

@@ -47,7 +47,7 @@
     <string name="settings_tab_media">Медіа</string>
     <string name="settings_tab_playback">Відтворення</string>
     <string name="settings_tab_network">Мережа</string>
-    <string name="settings_tab_destinations">Швидке сортування</string>
+    <string name="settings_tab_destinations">Сортування</string>
     
     <!-- Copy Dialog -->
     <string name="copying_files">Копіювання файлів</string>
@@ -55,7 +55,7 @@
     <string name="copied_n_files">Скопійовано %1$d файлів</string>
     <string name="copied_n_of_m_files">Скопійовано %1$d з %2$d файлів</string>
     <string name="copy_failed">Помилка копіювання: %1$s</string>
-    <string name="no_destinations_available">Немає тек швидкого сортування</string>
+    <string name="no_destinations_available">Немає тек для сортування</string>
     
     <!-- Move Dialog -->
     <string name="moving_files">Переміщення файлів</string>

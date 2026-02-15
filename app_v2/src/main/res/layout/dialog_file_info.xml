@@ -31,14 +31,6 @@
             android:text="@string/download_and_open"
             android:visibility="gone"
             style="@style/Widget.Material3.Button.TonalButton" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnClose"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:minWidth="@dimen/dialog_button_min_width_small"
-            android:text="@android:string/ok"
-            style="@style/Widget.Material3.Button" />
     </LinearLayout>
 
     <ScrollView
@@ -540,6 +532,22 @@
 
         </LinearLayout>
     </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_large"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnClose"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="@dimen/dialog_button_min_width_small"
+            android:text="@android:string/ok"
+            style="@style/Widget.Material3.Button" />
+    </LinearLayout>
 
 </LinearLayout>
 

@@ -213,7 +213,8 @@ class MediaFileAdapter(
         /**
          * Apply placeholder style (background color + reduced size for list)
          */
-        private fun applyPlaceholderStyle(imageView: android.widget.ImageView, type: MediaType, isListMode: Boolean) {
+        @Suppress("UNUSED_PARAMETER")
+        private fun applyPlaceholderStyle(imageView: android.widget.ImageView, type: MediaType, _isListMode: Boolean = false) {
             val context = imageView.context
             val colorRes = when (type) {
                 MediaType.VIDEO -> R.color.thumbnail_video_bg
@@ -222,33 +223,12 @@ class MediaFileAdapter(
                 else -> R.color.thumbnail_image_bg
             }
             imageView.setBackgroundColor(ContextCompat.getColor(context, colorRes))
-            
-            if (isListMode) {
-                val density = context.resources.displayMetrics.density
-                val smallSize = (32 * density).toInt()
-                val params = imageView.layoutParams
-                if (params.width != smallSize) {
-                    params.width = smallSize
-                    params.height = smallSize
-                    imageView.layoutParams = params
-                }
-            }
         }
         
         private fun resetThumbnailStyle(imageView: android.widget.ImageView) {
             imageView.background = null
             // Reset scaleType to CENTER_CROP for proper thumbnail display (may have been CENTER_INSIDE for folder icons)
             imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
-            // Restore normal thumbnail size (64dp for List mode)
-            val context = imageView.context
-            val density = context.resources.displayMetrics.density
-            val normalSize = (64 * density).toInt()
-            val params = imageView.layoutParams
-            if (params.width != normalSize) {
-                params.width = normalSize
-                params.height = normalSize
-                imageView.layoutParams = params
-            }
         }
 
     
@@ -538,11 +518,11 @@ class MediaFileAdapter(
                 val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
                 
-                // Adjust thumbnail size for disableThumbnails mode
+                // Apply thumbnail size from settings for list mode
                 val thumbnailSizePx = if (this@MediaFileAdapter.disableThumbnails) {
                     (32 * root.resources.displayMetrics.density).toInt() // 32dp for list when disabled
                 } else {
-                    (64 * root.resources.displayMetrics.density).toInt() // 64dp standard
+                    (thumbnailSize * root.resources.displayMetrics.density).toInt()
                 }
                 ivThumbnail.layoutParams.width = thumbnailSizePx
                 ivThumbnail.layoutParams.height = thumbnailSizePx
@@ -625,7 +605,7 @@ class MediaFileAdapter(
             if (file.type.isBinaryFile()) {
                 val extension = file.name.substringAfterLast('.', "").ifEmpty { "BIN" }
                 binaryThumbnailGenerator?.let { generator ->
-                    val thumbnailSize = (64 * binding.root.resources.displayMetrics.density).toInt()
+                    val thumbnailSize = (this@MediaFileAdapter.thumbnailSize * binding.root.resources.displayMetrics.density).toInt()
                     val thumbnail = generator.generateThumbnail(extension, file.type, thumbnailSize)
                     binding.ivThumbnail.setImageBitmap(thumbnail)
                     resetThumbnailStyle(binding.ivThumbnail)

@@ -228,8 +228,9 @@ class PlayerGestureSetupManager(
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
             val isVideoOnly = currentFile?.type == MediaType.VIDEO
 
-            // Video gestures (F.1) route: disable default center click handling and use custom toggle.
-            if (isVideoOnly && useTouchZones && !isOverlayBlocking()) {
+            // Video gestures (F.1) route: only in fullscreen mode.
+            // In command panel mode, use TouchZoneGestureManager 3-zone actions (PREV/PAUSE/NEXT).
+            if (isVideoOnly && useTouchZones && !isOverlayBlocking() && isInFullscreenMode) {
                 if (videoTouchDelegate.handleTouchEvent(event)) {
                     return@setOnTouchListener true
                 }
@@ -279,18 +280,6 @@ class PlayerGestureSetupManager(
                 // If touch is in bottom 30%, let PlayerView handle it (show controls)
                 if (event.y > effectiveHeight) {
                     return@setOnTouchListener false // Don't consume - let PlayerView handle controls
-                }
-                
-                // Check for center zone tap (Video/Audio only) - consistent with Fullscreen logic
-                // If tap is in the middle 20% (40% to 60%), let PlayerView handle it (Toggle Controls)
-                // Using 40-60 split to match TouchZoneGestureManager.handleCommandPanelTouchZones
-                val screenWidth = binding.root.width
-                val leftBoundary = screenWidth * 0.40f
-                val rightBoundary = screenWidth * 0.60f
-                
-                if (event.x > leftBoundary && event.x < rightBoundary) {
-                     Timber.d("PlayerGestureSetupManager: Center tap/touch detected (${event.x}) - Letting PlayerView handle toggle")
-                     return@setOnTouchListener false
                 }
                 
                 // Otherwise, use our gesture detector for simplified touch zones

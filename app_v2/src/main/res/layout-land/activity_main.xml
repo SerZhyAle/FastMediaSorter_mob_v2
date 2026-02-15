@@ -17,235 +17,211 @@
             android:id="@+id/layoutControlButtons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="@dimen/control_bar_padding">
 
             <!-- Exit -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExit"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/exit"
-                app:icon="@android:drawable/ic_menu_close_clear_cancel"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
                 android:text="@string/exit"
-                android:textSize="16sp"
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Larger space between Exit and Add Resource -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_large"
-                android:layout_height="1dp" />
+                android:textSize="16sp"
+                app:icon="@android:drawable/ic_menu_close_clear_cancel"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Add Resource -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddResource"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/add"
-                app:icon="@android:drawable/ic_menu_add"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
                 android:text="@string/add"
-                android:textSize="16sp"
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:textSize="16sp"
+                app:icon="@android:drawable/ic_menu_add"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Filter and Sort -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFilter"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/filter"
-                app:icon="@android:drawable/ic_menu_search"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
-                android:text="@string/search"
-                android:textSize="16sp"
+                android:text=""
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:textSize="16sp"
+                app:icon="@android:drawable/ic_menu_search"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Refresh -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRefresh"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/refresh"
-                app:icon="@android:drawable/ic_popup_sync"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
-                android:text="@string/refresh"
-                android:textSize="16sp"
+                android:text=""
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:textSize="16sp"
+                app:icon="@android:drawable/ic_popup_sync"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Settings -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSettings"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/settings"
-                app:icon="@android:drawable/ic_menu_preferences"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
                 android:text="@string/settings"
-                android:textSize="16sp"
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
-
-            <!-- Small space -->
-            <Space
-                android:layout_width="@dimen/control_button_spacing_small"
-                android:layout_height="1dp" />
+                android:textSize="16sp"
+                app:icon="@android:drawable/ic_menu_preferences"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Toggle List/Grid View -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnToggleView"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/toggle_view"
-                app:icon="@drawable/ic_view_grid"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
                 android:text="@string/toggle_view"
-                android:textSize="16sp"
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton"
+                android:textSize="16sp"
                 android:visibility="gone"
+                app:icon="@drawable/ic_view_grid"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal"
                 tools:visibility="visible" />
 
             <!-- Favorites -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnFavorites"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/tab_favorites"
-                app:icon="@drawable/ic_star_outline"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
                 android:text="@string/favorites"
-                android:textSize="16sp"
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:textSize="16sp"
+                app:icon="@drawable/ic_star_filled"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
             <!-- Start Player - double sized PLAY icon -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartPlayer"
+                style="@style/Widget.Material3.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/control_button_size"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/start_player"
-                app:icon="@android:drawable/ic_media_play"
-                app:iconTint="?attr/colorControlNormal"
-                app:iconSize="@dimen/icon_size_normal"
-                app:iconGravity="textStart"
-                app:iconPadding="4dp"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
                 android:insetLeft="0dp"
+                android:insetTop="0dp"
                 android:insetRight="0dp"
+                android:insetBottom="0dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:paddingStart="4dp"
                 android:paddingEnd="8dp"
-                android:text="@string/slideshow"
-                android:textSize="16sp"
+                android:text=""
                 android:textColor="?attr/colorControlNormal"
-                style="@style/Widget.Material3.Button.TextButton" />
+                android:textSize="16sp"
+                app:icon="@android:drawable/ic_media_play"
+                app:iconGravity="textStart"
+                app:iconPadding="4dp"
+                app:iconSize="@dimen/icon_size_normal"
+                app:iconTint="?attr/colorControlNormal" />
 
         </LinearLayout>
 

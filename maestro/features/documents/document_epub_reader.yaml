@@ -1,0 +1,92 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: EPUB E-Book Reader
+# Description: Verify EPUB reader with chapter navigation, TOC, font size, and theme
+# Duration: ~40 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find EPUB file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.epub$"
+    timeout: 15000
+    optional: true
+
+# Open EPUB
+- tapOn:
+    text: ".*\\.epub$"
+    optional: true
+- waitForAnimationToEnd
+
+# Wait for book to load
+- waitForAnimationToEnd
+
+# Test chapter navigation (swipe to next page)
+- swipe:
+    direction: LEFT
+- waitForAnimationToEnd
+
+# Swipe back
+- swipe:
+    direction: RIGHT
+- waitForAnimationToEnd
+
+# Open table of contents
+- tapOn:
+    text: ".*[Cc]ontents.*"
+    optional: true
+
+- tapOn:
+    id: ".*toc.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Close TOC
+- back
+    optional: true
+- waitForAnimationToEnd
+
+# Test font size adjustment
+- tapOn:
+    id: ".*menu.*"
+    optional: true
+
+- tapOn:
+    text: ".*[Ff]ont.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Increase font size
+- tapOn:
+    text: ".*\\+.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Test theme toggle
+- tapOn:
+    text: ".*[Tt]heme.*"
+    optional: true
+
+- tapOn:
+    id: ".*theme.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Close reader
+- back
+- waitForAnimationToEnd
+
+# Test completed

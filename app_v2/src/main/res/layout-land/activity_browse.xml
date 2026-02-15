@@ -53,12 +53,6 @@
             android:layout_weight="1"
             android:visibility="gone" />
 
-        <!-- Small space after Back (only visible when breadcrumb is hidden) -->
-        <Space
-            android:id="@+id/spaceAfterBack"
-            android:layout_width="@dimen/control_button_spacing_small"
-            android:layout_height="1dp" />
-
         <!-- Sort Button (shows current mode, popup menu on click) -->
         <TextView
             android:id="@+id/btnSort"

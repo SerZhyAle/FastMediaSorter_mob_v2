@@ -14,7 +14,7 @@
         android:textSize="@dimen/resource_card_desc_text_size"
         android:textIsSelectable="true"
         android:lineSpacingMultiplier="1.2"
-        android:breakStrategy="@string/dialog_log_view_tvLogText_breakStrategy"
+        android:breakStrategy="simple"
         android:paddingEnd="@dimen/dialog_button_icon_padding"
         android:paddingStart="@dimen/dialog_button_icon_padding" />
 

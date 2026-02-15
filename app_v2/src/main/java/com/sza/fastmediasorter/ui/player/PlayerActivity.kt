@@ -651,15 +651,29 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     currentFilePath = path
                 }
 
-                override fun isImageVisible(): Boolean = binding.photoView.isVisible || binding.imageView.isVisible
+                override fun isImageVisible(): Boolean {
+                    val imageViewVisible = binding.imageView.isVisible
+                    val photoSurfaceVisible =
+                        (binding.photoDualSurfaceContainer?.isVisible == true) &&
+                            (binding.photoView.isVisible || (binding.photoViewSurfaceB?.isVisible == true))
+                    return imageViewVisible || photoSurfaceVisible
+                }
+
                 override fun hasImageDrawable(): Boolean {
-                    return if (binding.photoView.isVisible) {
-                        binding.photoView.drawable != null
-                    } else if (binding.imageView.isVisible) {
-                        binding.imageView.drawable != null
-                    } else {
-                        false
+                    if (binding.imageView.isVisible && binding.imageView.drawable != null) {
+                        return true
                     }
+
+                    if (binding.photoDualSurfaceContainer?.isVisible == true) {
+                        if (binding.photoView.isVisible && binding.photoView.drawable != null) {
+                            return true
+                        }
+                        if (binding.photoViewSurfaceB?.isVisible == true && binding.photoViewSurfaceB?.drawable != null) {
+                            return true
+                        }
+                    }
+
+                    return false
                 }
 
                 override fun isSlideshowModeRequested(): Boolean = slideshowModeRequested
@@ -1473,7 +1487,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
             vinylView = binding.vinylIndicator,
             sleepTimerBadge = binding.sleepTimerBadge,
-            playerProvider = { binding.playerView.player }
+            playerProvider = { videoPlayerManager.getPlayer() }
         )
         pipManager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
             activity = this,
@@ -3324,8 +3338,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
-        
         // Release background music manager
         backgroundMusicManager.release()
         
@@ -3351,6 +3363,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()
+
+        super.onDestroy()
     }
     
     /**

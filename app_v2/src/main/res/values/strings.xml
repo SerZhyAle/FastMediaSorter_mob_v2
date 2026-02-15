@@ -43,7 +43,7 @@
     <string name="settings_tab_media">Media</string>
     <string name="settings_tab_playback">Playback</string>
     <string name="settings_tab_network">Network</string>
-    <string name="settings_tab_destinations">Quick Sort</string>
+    <string name="settings_tab_destinations">Sort</string>
     
     <!-- General Settings -->
     <string name="documentation">Documentation Portal</string>

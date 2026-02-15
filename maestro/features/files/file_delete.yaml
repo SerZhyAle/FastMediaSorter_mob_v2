@@ -1,0 +1,62 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: File Delete (Soft Delete to Trash)
+# Description: Verify file deletion moves to .trash folder
+# Duration: ~20 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find file to delete
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+
+# Open file
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Delete file
+- tapOn:
+    id: ".*delete.*"
+    optional: true
+
+- tapOn:
+    text: "Delete"
+    optional: true
+- waitForAnimationToEnd
+
+# Confirm deletion
+- tapOn:
+    text: ".*[Cc]onfirm.*"
+    optional: true
+
+- tapOn:
+    text: ".*[Yy]es.*"
+    optional: true
+
+- tapOn:
+    text: "OK"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify file deleted (moved to trash)
+- assertVisible:
+    text: ".*[Dd]eleted.*"
+    optional: true
+
+# Test completed

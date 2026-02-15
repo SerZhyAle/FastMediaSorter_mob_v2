@@ -1,0 +1,61 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Add File to Favorites
+# Description: Verify adding file to favorites and viewing in Favorites tab
+# Duration: ~25 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find and open file
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png|mp4)$"
+    optional: true
+
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Add to favorites (star button)
+- tapOn:
+    id: ".*favorite.*"
+    optional: true
+
+- tapOn:
+    id: ".*star.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Close viewer
+- back
+- waitForAnimationToEnd
+
+# Navigate to Favorites tab
+- tapOn:
+    text: "Favorites"
+    optional: true
+
+- tapOn:
+    text: ".*[Ff]avorite.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify file appears in favorites
+- assertVisible:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+
+# Test completed

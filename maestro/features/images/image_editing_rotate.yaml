@@ -1,0 +1,77 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Image Editing - Rotate
+# Description: Verify image rotation (left/right) and save functionality
+# Duration: ~30 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Find image
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+
+# Open image
+- tapOn:
+    text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+- waitForAnimationToEnd
+
+# Open edit menu
+- tapOn:
+    text: "Edit"
+    optional: true
+
+- tapOn:
+    id: ".*edit.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Rotate left
+- tapOn:
+    text: ".*[Rr]otate.*[Ll]eft.*"
+    optional: true
+
+- tapOn:
+    id: ".*rotate.*left.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Rotate right
+- tapOn:
+    text: ".*[Rr]otate.*[Rr]ight.*"
+    optional: true
+
+- tapOn:
+    id: ".*rotate.*right.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Save changes
+- tapOn:
+    text: "Save"
+    optional: true
+
+- tapOn:
+    id: ".*save.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Close image viewer
+- back
+- waitForAnimationToEnd
+
+# Test completed

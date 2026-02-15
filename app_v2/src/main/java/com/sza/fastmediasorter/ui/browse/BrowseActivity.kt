@@ -1493,7 +1493,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (state.isSubfolderMode && state.currentPath != null) {
             // Show interactive breadcrumb in subfolder mode
             binding.breadcrumbView.isVisible = true
-            binding.spaceAfterBack.isVisible = false
+            binding.spaceAfterBack?.isVisible = false
             
             // Get breadcrumb parts and set in view
             val (resourceName, folders) = viewModel.getBreadcrumbParts()
@@ -1508,7 +1508,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             // Hide breadcrumb at root level
             binding.breadcrumbView.isVisible = false
             binding.breadcrumbView.clear()
-            binding.spaceAfterBack.isVisible = true
+            binding.spaceAfterBack?.isVisible = true
         }
     }
 

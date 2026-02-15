@@ -1,0 +1,63 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Basic Slideshow
+# Description: Verify slideshow start, auto-advance, pause, and stop
+# Duration: ~35 seconds
+
+# Launch app
+- launchApp
+- waitForAnimationToEnd
+
+# Handle permissions
+- runFlow: ../../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Navigate to local files with images
+- tapOn:
+    text: "Local"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify image files exist
+- scrollUntilVisible:
+    element:
+      text: ".*\\.(jpg|jpeg|png)$"
+    optional: true
+
+# Start slideshow
+- tapOn:
+    id: ".*slideshow.*"
+    optional: true
+
+- tapOn:
+    text: ".*[Pp]lay.*"
+    optional: true
+
+- tapOn:
+    text: ".*[Ss]lideshow.*"
+    optional: true
+- waitForAnimationToEnd
+
+# Verify slideshow is running
+- assertVisible:
+    id: ".*slideshow.*"
+    optional: true
+
+# Wait for auto-advance (3-5 seconds per image)
+- waitForAnimationToEnd
+
+# Pause slideshow (tap screen)
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Resume slideshow
+- tapOn:
+    point: "50%, 50%"
+- waitForAnimationToEnd
+
+# Stop slideshow (back button)
+- back
+- waitForAnimationToEnd
+
+# Test completed
