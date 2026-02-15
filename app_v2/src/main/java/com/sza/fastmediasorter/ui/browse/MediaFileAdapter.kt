@@ -1283,6 +1283,11 @@ class MediaFileAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         
         private var lastLoadedKey: String? = null
+        private var operationsContainer: android.widget.LinearLayout? = null
+        private var btnCopyItem: android.widget.ImageButton? = null
+        private var btnMoveItem: android.widget.ImageButton? = null
+        private var btnRenameItem: android.widget.ImageButton? = null
+        private var btnDeleteItem: android.widget.ImageButton? = null
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
             if (!file.isDirectory) {
@@ -1296,6 +1301,37 @@ class MediaFileAdapter(
                 this@MediaFileAdapter.getItem(position)
             } else {
                 null
+            }
+        }
+
+        private fun ensureOperationsInflated() {
+            if (operationsContainer != null) return
+
+            val inflated = binding.stubOperations.inflate()
+            operationsContainer = inflated as? android.widget.LinearLayout
+            btnCopyItem = inflated.findViewById(R.id.btnCopyItem)
+            btnMoveItem = inflated.findViewById(R.id.btnMoveItem)
+            btnRenameItem = inflated.findViewById(R.id.btnRenameItem)
+            btnDeleteItem = inflated.findViewById(R.id.btnDeleteItem)
+
+            btnCopyItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onCopyClick(file)
+            }
+
+            btnMoveItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onMoveClick(file)
+            }
+
+            btnRenameItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onRenameClick(file)
+            }
+
+            btnDeleteItem?.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onDeleteClick(file)
             }
         }
 
@@ -1350,26 +1386,6 @@ class MediaFileAdapter(
             binding.btnFavorite.setOnClickListener {
                 val file = getItemByPosition() ?: return@setOnClickListener
                 onFavoriteClick(file)
-            }
-
-            binding.btnCopyItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onCopyClick(file)
-            }
-
-            binding.btnMoveItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onMoveClick(file)
-            }
-
-            binding.btnRenameItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onRenameClick(file)
-            }
-
-            binding.btnDeleteItem.setOnClickListener {
-                val file = getItemByPosition() ?: return@setOnClickListener
-                onDeleteClick(file)
             }
 
             // Task 8: Make item focusable for keyboard navigation
@@ -1476,13 +1492,16 @@ class MediaFileAdapter(
                 )
 
                 // Setup operation buttons with visibility
-                btnCopyItem.isVisible = hasDestinations && !hideGridActionButtons
-                
-                btnMoveItem.isVisible = hasDestinations && isWritable && !hideGridActionButtons
-                
-                btnRenameItem.isVisible = isWritable && !hideGridActionButtons
-                
-                btnDeleteItem.isVisible = isWritable && !hideGridActionButtons
+                val shouldShowAnyOperation = hasDestinations || isWritable
+                if (shouldShowAnyOperation) {
+                    ensureOperationsInflated()
+                }
+
+                operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
+                btnCopyItem?.isVisible = hasDestinations && !hideGridActionButtons
+                btnMoveItem?.isVisible = hasDestinations && isWritable && !hideGridActionButtons
+                btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
+                btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
             }
         }
         

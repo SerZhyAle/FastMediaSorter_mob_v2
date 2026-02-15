@@ -364,7 +364,7 @@ git push origin main
 ## MASTER TODO LIST
 
 **Порядок выполнения**: A → K → B → C → D → G → F → E → H → I → J  
-**Прогресс**: 4 / 54 шагов
+**Прогресс**: 5 / 54 шагов
 
 ### TRACK A: Main Window (7 шагов)
 
@@ -372,7 +372,7 @@ git push origin main
 - [x] 2. A.2 — Batch Favorites
 - [x] 3. A.3 — Directory Hash Optimization
 - [x] 4. A.4 — Adapter Listener Optimization
-- [ ] 5. A.5 — ViewStub Audit
+- [x] 5. A.5 — ViewStub Audit
 - [ ] 6. A.6 — Player Warm-up (Feature-Flagged)
 - [ ] 7. A.7 — StrictMode & Glide Profiling
 
@@ -664,7 +664,7 @@ Source: MAIN_WINDOW_OPTIMIZATION.md §4.5
 
 ### A.5 — ViewStub Audit
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
