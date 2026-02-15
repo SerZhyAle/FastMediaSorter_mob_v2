@@ -15,6 +15,7 @@ import com.bumptech.glide.load.data.DataFetcher
 import com.bumptech.glide.load.model.ModelLoader
 import com.bumptech.glide.load.model.ModelLoaderFactory
 import com.bumptech.glide.load.model.MultiModelLoaderFactory
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -126,6 +127,9 @@ private class NetworkPdfDataFetcher(
     override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in Bitmap>) {
         val fileName = data.path.substringAfterLast('/')
         Timber.d("NetworkPdfDataFetcher.loadData: Starting PDF download for $fileName")
+        val totalStartMs = System.currentTimeMillis()
+        var usedCache = false
+        val downloadStartMs = System.currentTimeMillis()
         
         if (isCancelled) {
             callback.onLoadFailed(Exception("Cancelled before start"))
@@ -138,6 +142,7 @@ private class NetworkPdfDataFetcher(
             if (cachedFile != null) {
                 Timber.d("NetworkPdfDataFetcher: Using cached PDF from UnifiedFileCache: $fileName")
                 tempFile = cachedFile
+                usedCache = true
             } else {
                 // Legacy check: pdf_thumbnails cache (for backward compatibility)
                 val legacyCacheDir = File(context.cacheDir, "pdf_thumbnails")
@@ -148,6 +153,7 @@ private class NetworkPdfDataFetcher(
                     Timber.d("NetworkPdfDataFetcher: Migrating PDF from legacy cache to UnifiedFileCache: $fileName")
                     unifiedCache.putFile(data.path, data.size, legacyFile)
                     tempFile = legacyFile
+                    usedCache = true
                 } else {
                     // Not in cache - download to UnifiedFileCache
                     tempFile = unifiedCache.getCacheFile(data.path, data.size)
@@ -155,6 +161,7 @@ private class NetworkPdfDataFetcher(
                     downloadPdfToFile(tempFile!!)
                 }
             }
+            val downloadDurationMs = System.currentTimeMillis() - downloadStartMs
             
             if (isCancelled) {
                 callback.onLoadFailed(Exception("Cancelled after download"))
@@ -162,7 +169,16 @@ private class NetworkPdfDataFetcher(
             }
             
             // Render first page to bitmap
+            val renderStartMs = System.currentTimeMillis()
             val bitmap = renderPdfPage(tempFile!!)
+            val renderDurationMs = System.currentTimeMillis() - renderStartMs
+            val totalDurationMs = System.currentTimeMillis() - totalStartMs
+
+            if (BuildConfig.DEBUG && downloadFullPdf) {
+                Timber.i(
+                    "GLIDE_PDF_PROFILE: file=$fileName, protocol=${data.path.substringBefore("://")}, bytes=${data.size}, cache=$usedCache, downloadMs=$downloadDurationMs, renderMs=$renderDurationMs, totalMs=$totalDurationMs, target=${width}x$height"
+                )
+            }
             
             if (bitmap != null) {
                 Timber.d("NetworkPdfDataFetcher: Successfully rendered PDF thumbnail for $fileName")

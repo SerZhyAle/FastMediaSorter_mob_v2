@@ -19,6 +19,7 @@ import com.bumptech.glide.load.DataSource
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.Priority
+import com.bumptech.glide.request.RequestOptions
 import com.bumptech.glide.request.RequestListener
 import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
@@ -904,6 +905,12 @@ class MediaFileAdapter(
                                         size = file.size,
                                         createdDate = file.createdDate
                                     ))
+                                    .apply(
+                                        RequestOptions().set(
+                                            com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
+                                            largePdfThumbnails
+                                        )
+                                    )
                                     .listener(object : RequestListener<Bitmap> {
                                         override fun onLoadFailed(
                                             e: GlideException?,
@@ -1964,6 +1971,12 @@ class MediaFileAdapter(
                                     size = file.size,
                                     createdDate = file.createdDate
                                 ))
+                                .apply(
+                                    RequestOptions().set(
+                                        com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD,
+                                        largePdfThumbnails
+                                    )
+                                )
                                 .placeholder(R.drawable.ic_image_placeholder)
                                 .error(R.drawable.ic_image_error)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
