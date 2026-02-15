@@ -926,7 +926,7 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §4.2
 
 ### K.1 — Memory-Aware Image Loading
 
-- [ ] **DONE**
+- [x] **DONE**
 
 **Tasks**:
 
