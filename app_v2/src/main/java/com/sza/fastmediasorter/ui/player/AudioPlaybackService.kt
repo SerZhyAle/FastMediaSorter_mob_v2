@@ -7,6 +7,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
@@ -25,6 +26,7 @@ import timber.log.Timber
  * Lifecycle: starts on audio play (when background setting is ON),
  * survives Activity destruction, stops when playback ends or user stops.
  */
+@UnstableApi
 class AudioPlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
@@ -33,6 +35,14 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onCreate() {
         super.onCreate()
         Timber.d("AudioPlaybackService: onCreate")
+
+        // Create notification channel (required for Android 8+)
+        MediaNotificationManager.createNotificationChannel(this)
+
+        // Set custom notification provider
+        setMediaNotificationProvider(
+            MediaNotificationManager.createNotificationProvider(this)
+        )
 
         val audioAttributes = AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)

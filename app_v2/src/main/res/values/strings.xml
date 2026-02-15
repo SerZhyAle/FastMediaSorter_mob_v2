@@ -1655,6 +1655,12 @@
     <string name="keep_credentials">Keep credentials</string>
     <string name="use_new_credentials">Use new credentials</string>
 
+    <!-- Audio background playback -->
+    <string name="notification_channel_audio_playback">Audio Playback</string>
+    <string name="notification_channel_audio_description">Controls for background audio playback</string>
+    <string name="background_audio_setting_title">Background Playback</string>
+    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+
 </resources>
 
 
