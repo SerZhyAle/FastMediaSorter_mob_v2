@@ -954,40 +954,13 @@ class GeneralSettingsFragment : Fragment() {
     }
     
     private fun requestStoragePermissions() {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-            // Android 11+ (API 30+): Request MANAGE_EXTERNAL_STORAGE
-            if (!android.os.Environment.isExternalStorageManager()) {
-                try {
-                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-                    intent.data = android.net.Uri.parse("package:${requireContext().packageName}")
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    // Fallback to general settings
-                    val intent = Intent(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
-                    startActivity(intent)
-                }
-            } else {
-                Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            // Android 9-10 (API 28-29): Request READ/WRITE_EXTERNAL_STORAGE
-            val permissions = arrayOf(
-                android.Manifest.permission.READ_EXTERNAL_STORAGE,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-            )
-            
-            val needsPermission = permissions.any { 
-                androidx.core.content.ContextCompat.checkSelfPermission(requireContext(), it) != 
-                android.content.pm.PackageManager.PERMISSION_GRANTED 
-            }
-            
-            if (needsPermission) {
-                @Suppress("DEPRECATION")
-                requestPermissions(permissions, 100)
-            } else {
-                Toast.makeText(requireContext(), R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
-            }
+        val context = requireContext()
+        if (com.sza.fastmediasorter.core.util.PermissionHelper.checkStoragePermissions(context)) {
+            Toast.makeText(context, R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
+            return
         }
+
+        com.sza.fastmediasorter.core.util.PermissionHelper.requestStoragePermission(requireActivity())
     }
     
     private fun requestManageMediaPermission() {

@@ -63,8 +63,9 @@ function Start-EmulatorIfNeeded {
     param([string]$EmulatorName)
     
     $runningEmulators = Get-ConnectedDevices
+    $hasRunningEmulator = ($runningEmulators | Where-Object { $_ -like "emulator-*" }).Count -gt 0
     
-    if ($runningEmulators -notcontains "emulator-*") {
+    if (-not $hasRunningEmulator) {
         Write-Info "Starting emulator: $EmulatorName"
         Start-Process -FilePath "emulator" -ArgumentList "@$EmulatorName" -NoNewWindow
         

@@ -62,21 +62,7 @@ object PermissionHelper {
      * For Android 6-9 (API 23-28), check READ_EXTERNAL_STORAGE.
      */
     fun hasStoragePermission(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= 33) {
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) == PackageManager.PERMISSION_GRANTED &&
-            ContextCompat.checkSelfPermission(context, Manifest.permission.READ_MEDIA_AUDIO) == PackageManager.PERMISSION_GRANTED
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        } else {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        }
+        return checkStoragePermissions(context)
     }
 
     /**
@@ -95,17 +81,15 @@ object PermissionHelper {
      * Request storage permission based on Android version.
      */
     fun requestStoragePermission(activity: Activity) {
-        if (Build.VERSION.SDK_INT >= 33) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            routeToStorageSettings(activity)
+        } else if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q) {
             ActivityCompat.requestPermissions(
                 activity,
-                arrayOf(
-                    Manifest.permission.READ_MEDIA_IMAGES,
-                    Manifest.permission.READ_MEDIA_VIDEO,
-                    Manifest.permission.READ_MEDIA_AUDIO
-                ),
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
                 REQUEST_CODE_STORAGE
             )
-        } else {
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ActivityCompat.requestPermissions(
                 activity,
                 arrayOf(

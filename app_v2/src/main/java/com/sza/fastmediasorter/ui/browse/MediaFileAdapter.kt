@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
@@ -73,6 +74,7 @@ class MediaFileAdapter(
     
     // Binary file thumbnail generator (Task 6)
     private var binaryThumbnailGenerator: BinaryFileThumbnailGenerator? = null
+    private var disableDocumentPreviewsOnLowMemory: Boolean? = null
     
     init {
         Timber.i("=== MediaFileAdapter CREATED with refreshVersion=$refreshVersion ===")
@@ -80,6 +82,14 @@ class MediaFileAdapter(
     
     fun setBinaryThumbnailGenerator(generator: BinaryFileThumbnailGenerator) {
         binaryThumbnailGenerator = generator
+    }
+
+    private fun shouldDisableDocumentPreviews(context: android.content.Context): Boolean {
+        if (disableDocumentPreviewsOnLowMemory == null) {
+            disableDocumentPreviewsOnLowMemory = MemoryTier.detect(context) == MemoryTier.LOW
+            Timber.i("MediaFileAdapter: disableDocumentPreviewsOnLowMemory=$disableDocumentPreviewsOnLowMemory")
+        }
+        return disableDocumentPreviewsOnLowMemory == true
     }
     
     fun incrementRefreshVersion() {
@@ -696,6 +706,23 @@ class MediaFileAdapter(
             val isCloudPath = file.path.startsWith("cloud://")
             // Check if this is a network path (SMB/SFTP/FTP)
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+
+            if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
+                Timber.d("THUMBNAIL_DEBUG: Document preview disabled on LOW memory for ${file.name}")
+                when (file.type) {
+                    MediaType.PDF -> {
+                        imageView.setImageResource(R.drawable.ic_image_placeholder)
+                        applyPlaceholderStyle(imageView, file.type, true)
+                    }
+                    MediaType.EPUB -> {
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        imageView.setImageBitmap(createExtensionBitmap(extension))
+                        applyPlaceholderStyle(imageView, file.type, true)
+                    }
+                    else -> Unit
+                }
+                return
+            }
             
             // Check if file exists before loading thumbnail
             if (!isNetworkPath && !isCloudPath) {
@@ -1595,6 +1622,19 @@ class MediaFileAdapter(
             val isCloudPath = file.path.startsWith("cloud://")
             // Check if this is a network path (SMB/SFTP/FTP)
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+
+            if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
+                Timber.d("THUMBNAIL_DEBUG: Grid document preview disabled on LOW memory for ${file.name}")
+                when (file.type) {
+                    MediaType.PDF -> imageView.setImageBitmap(createExtensionBitmap("PDF"))
+                    MediaType.EPUB -> {
+                        val extension = file.name.substringAfterLast('.', "").uppercase()
+                        imageView.setImageBitmap(createExtensionBitmap(extension))
+                    }
+                    else -> Unit
+                }
+                return
+            }
             
             // For local files, check if file exists (skip for content:// URIs)
             if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
