@@ -15,13 +15,12 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsDocumentsBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
-class DocumentsSettingsFragment : Fragment() {
+class DocumentsSettingsFragment : BaseSettingsFragment() {
 
     private var _binding: FragmentSettingsDocumentsBinding? = null
     private val binding get() = _binding!!
     
     private val viewModel: SettingsViewModel by activityViewModels()
-    private var isUpdatingFromSettings = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,45 +52,35 @@ class DocumentsSettingsFragment : Fragment() {
 
     private fun setupViews() {
         // Support Text
-        binding.switchSupportText.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportText = isChecked))
-                binding.layoutShowTextLineNumbers.isVisible = isChecked
-            }
+        bindSwitch(binding.switchSupportText) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportText = isChecked))
+            binding.layoutShowTextLineNumbers.isVisible = isChecked
         }
 
         // Show Text Line Numbers
-        binding.switchShowTextLineNumbers.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(showTextLineNumbers = isChecked))
-            }
+        bindSwitch(binding.switchShowTextLineNumbers) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showTextLineNumbers = isChecked))
         }
 
         // Support PDF
-        binding.switchSupportPdf.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportPdf = isChecked))
-                binding.layoutShowPdfThumbnails.isVisible = isChecked
-            }
+        bindSwitch(binding.switchSupportPdf) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportPdf = isChecked))
+            binding.layoutShowPdfThumbnails.isVisible = isChecked
         }
 
         // Show PDF Thumbnails
-        binding.switchShowPdfThumbnails.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(showPdfThumbnails = isChecked))
-            }
+        bindSwitch(binding.switchShowPdfThumbnails) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(showPdfThumbnails = isChecked))
         }
 
         // Support EPUB
-        binding.switchSupportEpub.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(supportEpub = isChecked))
-            }
+        bindSwitch(binding.switchSupportEpub) { isChecked ->
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(supportEpub = isChecked))
         }
 
         // Help button click handler
@@ -108,27 +97,24 @@ class DocumentsSettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.settings.collect { settings ->
-                    isUpdatingFromSettings = true
-                    
-                    val isAllFilesEnabled = settings.allFiles
-                    
-                    // When All Files is enabled, force switches ON and disable them
-                    binding.switchSupportText.isChecked = isAllFilesEnabled || settings.supportText
-                    binding.switchSupportText.isEnabled = !isAllFilesEnabled
-                    
-                    binding.switchSupportPdf.isChecked = isAllFilesEnabled || settings.supportPdf
-                    binding.switchSupportPdf.isEnabled = !isAllFilesEnabled
-                    
-                    binding.switchSupportEpub.isChecked = isAllFilesEnabled || settings.supportEpub
-                    binding.switchSupportEpub.isEnabled = !isAllFilesEnabled
-                    
-                    binding.switchShowTextLineNumbers.isChecked = settings.showTextLineNumbers
-                    binding.switchShowPdfThumbnails.isChecked = settings.showPdfThumbnails
-                    
-                    binding.layoutShowTextLineNumbers.isVisible = settings.supportText
-                    binding.layoutShowPdfThumbnails.isVisible = settings.supportPdf
-                    
-                    isUpdatingFromSettings = false
+                    withSettingsUpdate {
+                        val isAllFilesEnabled = settings.allFiles
+
+                        setSwitchChecked(binding.switchSupportText, isAllFilesEnabled || settings.supportText)
+                        binding.switchSupportText.isEnabled = !isAllFilesEnabled
+
+                        setSwitchChecked(binding.switchSupportPdf, isAllFilesEnabled || settings.supportPdf)
+                        binding.switchSupportPdf.isEnabled = !isAllFilesEnabled
+
+                        setSwitchChecked(binding.switchSupportEpub, isAllFilesEnabled || settings.supportEpub)
+                        binding.switchSupportEpub.isEnabled = !isAllFilesEnabled
+
+                        setSwitchChecked(binding.switchShowTextLineNumbers, settings.showTextLineNumbers)
+                        setSwitchChecked(binding.switchShowPdfThumbnails, settings.showPdfThumbnails)
+
+                        binding.layoutShowTextLineNumbers.isVisible = settings.supportText
+                        binding.layoutShowPdfThumbnails.isVisible = settings.supportPdf
+                    }
                 }
             }
         }

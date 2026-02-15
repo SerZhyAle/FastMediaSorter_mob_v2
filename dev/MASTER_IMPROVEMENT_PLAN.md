@@ -385,7 +385,7 @@ git push origin main
 
 ### TRACK B: Settings (6 шагов)
 
-- [ ] 13. B.1 — Base Settings Binding Layer
+- [x] 13. B.1 — Base Settings Binding Layer
 - [ ] 14. B.2 — Main Thread Safety
 - [ ] 15. B.3 — Media Tab Simplification
 - [ ] 16. B.4 — Global Settings Search
@@ -749,7 +749,7 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.5
 
 ### B.1 — Base Settings Binding Layer
 
-- [ ] **DONE**
+- [x] **DONE** *(2026-02-15)*
 
 **Tasks**:
 
@@ -760,8 +760,14 @@ Source: SETTINGS_IMPROVEMENT_SPEC.md §4.5
 5. Migrate one existing settings fragment to validate pattern.
 
 **Files**: new `BaseSettingsFragment.kt`, one pilot fragment  
-**BUILD**: `.\build-debug.PS1`  
+**BUILD**: `\.\build-debug.PS1` *(verified after pilot migration)*  
 **COMMIT**: `refactor(settings): BaseSettingsFragment — unified control binding with cycle guard`  
+
+**NOTES**:
+
+- Added `BaseSettingsFragment` with reusable guarded bindings: Switch, Spinner, input field.
+- Pilot migration completed: `DocumentsSettingsFragment` now uses base bindings + `withSettingsUpdate` cycle guard.
+- Behavior preserved: all-files override logic and document-related visibility toggles.
 **PROMPT**:
 
 ```
@@ -1090,6 +1096,7 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §1, §3
 - Manual testing can be executed by running: `.\scripts\test-compatibility.ps1 -ApiLevel <28|29|30|33|35|all>`
 - Quick smoke test (5 min): API 28 2GB RAM → verify MemoryTier=LOW, RGB_565 active, OCR disabled, permissions correct  
 - Final integration pass completed (`e4356ba3`): unified permission flow wired through existing call sites, LOW-memory PDF/EPUB browse previews disabled, K.5 script emulator detection fixed.
+- TODO (future): run full emulator matrix (API 28/29/30/33/35) and close checklist in `temp/K5_COMPATIBILITY_TEST_CHECKLIST.md`.
 **PROMPT**:
 
 ```
