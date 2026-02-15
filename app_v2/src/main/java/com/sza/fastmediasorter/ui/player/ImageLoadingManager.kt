@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.Glide
 import com.bumptech.glide.Priority
 import com.bumptech.glide.load.DataSource
+import com.bumptech.glide.load.DecodeFormat
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.engine.GlideException
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
@@ -18,6 +19,7 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
+import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.data.cloud.glide.CloudThumbnailData
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudPathParser
@@ -56,6 +58,13 @@ class ImageLoadingManager(
     private val callback: ImageLoadingCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+    
+    // Detect memory tier for optimization strategy
+    private val memoryTier: MemoryTier = MemoryTier.detect(binding.root.context)
+    
+    init {
+        Timber.i("ImageLoadingManager: Initialized with memoryTier=$memoryTier")
+    }
     
     interface ImageLoadingCallback {
         fun isFinishing(): Boolean
@@ -429,14 +438,26 @@ class ImageLoadingManager(
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded image, not source stream
             .priority(Priority.IMMEDIATE)
         
+        // Apply memory-aware optimizations for LOW tier devices
+        val optimizedRequest = if (memoryTier == MemoryTier.LOW) {
+            Timber.d("ImageLoadingManager: Applying LOW memory tier optimizations - RGB_565, no animation, reduced resolution")
+            glideRequest
+                .format(DecodeFormat.PREFER_RGB_565)  // 50% memory per pixel
+                .dontAnimate()  // Disable animations to save memory
+        } else {
+            glideRequest
+        }
+        
         // Apply size limit if loadFullSizeImages is false (limit to 1920px max dimension)
-        val finalRequest = if (!loadFullSize) {
-            Timber.d("ImageLoadingManager: Loading cloud image with size limit: 1920px max dimension")
-            glideRequest.override(1920, 1920)
+        // For LOW tier, always limit size regardless of loadFullSize setting
+        val finalRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
+            val maxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
+            Timber.d("ImageLoadingManager: Loading cloud image with size limit: ${maxDimension}px max dimension")
+            optimizedRequest.override(maxDimension, maxDimension)
         } else {
             // Load original size for zooming
             Timber.d("ImageLoadingManager: Loading cloud image at original size (no limit)")
-            glideRequest
+            optimizedRequest
         }
         
         finalRequest
@@ -470,18 +491,35 @@ class ImageLoadingManager(
             .signature(ObjectKey(cacheKey))
             .diskCacheStrategy(DiskCacheStrategy.ALL) // Cache both source and decoded for persistence
         
+        // Apply memory-aware optimizations for LOW tier devices
+        val optimizedRequest = if (memoryTier == MemoryTier.LOW) {
+            Timber.d("ImageLoadingManager: Applying LOW memory tier optimizations - RGB_565, no animation")
+            glideRequest
+                .format(DecodeFormat.PREFER_RGB_565)  // 50% memory per pixel
+                .dontAnimate()  // Disable animations to save memory
+        } else {
+            glideRequest
+        }
+        
         // Apply size limit if loadFullSizeImages is false
-        val finalRequest = if (!loadFullSize) {
+        // For LOW tier, always limit size regardless of loadFullSize setting
+        val finalRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
             // Limit to screen size to save memory (API 28+ compatible)
             val (screenWidth, screenHeight) = WindowMetricsCompat.getScreenSize(
                 callback.getWindowManager()
             )
-            Timber.d("ImageLoadingManager: Loading image with screen size limit: ${screenWidth}x${screenHeight}")
-            glideRequest.override(screenWidth, screenHeight)
+            // For LOW tier, reduce resolution by 25%
+            val (targetWidth, targetHeight) = if (memoryTier == MemoryTier.LOW) {
+                Pair((screenWidth * 0.75).toInt(), (screenHeight * 0.75).toInt())
+            } else {
+                Pair(screenWidth, screenHeight)
+            }
+            Timber.d("ImageLoadingManager: Loading image with size limit: ${targetWidth}x${targetHeight}")
+            optimizedRequest.override(targetWidth, targetHeight)
         } else {
             // Load original size for zooming
             Timber.d("ImageLoadingManager: Loading image at original size (no limit)")
-            glideRequest
+            optimizedRequest
         }
         
         finalRequest
@@ -534,18 +572,35 @@ class ImageLoadingManager(
             .signature(ObjectKey(cacheKey))
             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
         
+        // Apply memory-aware optimizations for LOW tier devices
+        val optimizedRequest = if (memoryTier == MemoryTier.LOW) {
+            Timber.d("ImageLoadingManager: Applying LOW memory tier optimizations - RGB_565, no animation")
+            glideRequest
+                .format(DecodeFormat.PREFER_RGB_565)  // 50% memory per pixel
+                .dontAnimate()  // Disable animations to save memory
+        } else {
+            glideRequest
+        }
+        
         // Apply size limit if loadFullSizeImages is false
-        val finalRequest = if (!loadFullSize) {
+        // For LOW tier, always limit size regardless of loadFullSize setting
+        val finalRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
             // Limit to screen size to save memory (API 28+ compatible)
             val (screenWidth, screenHeight) = WindowMetricsCompat.getScreenSize(
                 callback.getWindowManager()
             )
-            Timber.d("ImageLoadingManager: Loading local image with screen size limit: ${screenWidth}x${screenHeight}")
-            glideRequest.override(screenWidth, screenHeight)
+            // For LOW tier, reduce resolution by 25%
+            val (targetWidth, targetHeight) = if (memoryTier == MemoryTier.LOW) {
+                Pair((screenWidth * 0.75).toInt(), (screenHeight * 0.75).toInt())
+            } else {
+                Pair(screenWidth, screenHeight)
+            }
+            Timber.d("ImageLoadingManager: Loading local image with size limit: ${targetWidth}x${targetHeight}")
+            optimizedRequest.override(targetWidth, targetHeight)
         } else {
             // Load original size for zooming
             Timber.d("ImageLoadingManager: Loading local image at original size (no limit)")
-            glideRequest
+            optimizedRequest
         }
         
         finalRequest
@@ -677,17 +732,23 @@ class ImageLoadingManager(
                     val cacheKey = networkData.getCacheKey()
                     
                     // Preload with Glide with size limit to prevent OOM
-                    // Limit to 1920px max dimension during preload
+                    // For LOW tier, use smaller resolution (1280px) instead of 1920px
+                    val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
                     try {
                         withContext(Dispatchers.IO) {
-                            Glide.with(binding.root.context.applicationContext)
+                            val request = Glide.with(binding.root.context.applicationContext)
                                 .downloadOnly()
                                 .load(networkData)
                                 .signature(ObjectKey(cacheKey))
                                 .diskCacheStrategy(DiskCacheStrategy.DATA) // Cache source data only (raw bytes)
-                                .override(1920, 1920) // Limit preload size to prevent OOM
-                                .submit()
-                                .get() // Block until file is actually in cache
+                                .override(preloadMaxDimension, preloadMaxDimension)
+                            
+                            // Apply RGB_565 for LOW memory devices
+                            if (memoryTier == MemoryTier.LOW) {
+                                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                            }
+                            
+                            request.submit().get() // Block until file is actually in cache
                         }
                         Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
                     } catch (e: Exception) {
@@ -710,16 +771,23 @@ class ImageLoadingManager(
                     )
                     val cacheKey = "${file.path}_${file.size}"
                     
+                    // For LOW tier, use smaller resolution for preload
+                    val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
                     try {
                         withContext(Dispatchers.IO) {
-                            Glide.with(binding.root.context.applicationContext)
+                            val request = Glide.with(binding.root.context.applicationContext)
                                 .downloadOnly()
                                 .load(cloudData)
                                 .signature(ObjectKey(cacheKey))
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(1920, 1920) // Limit preload size to prevent OOM
-                                .submit()
-                                .get()
+                                .override(preloadMaxDimension, preloadMaxDimension)
+                            
+                            // Apply RGB_565 for LOW memory devices
+                            if (memoryTier == MemoryTier.LOW) {
+                                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                            }
+                            
+                            request.submit().get()
                         }
                         Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
                     } catch (e: Exception) {
@@ -728,16 +796,23 @@ class ImageLoadingManager(
                 } else {
                     // Preload local file
                     val cacheKey = "${file.path}_${file.size}"
+                    // For LOW tier, use smaller resolution for preload
+                    val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
                     try {
                         withContext(Dispatchers.IO) {
-                            Glide.with(binding.root.context.applicationContext)
+                            val request = Glide.with(binding.root.context.applicationContext)
                                 .downloadOnly()
                                 .load(File(file.path))
                                 .signature(ObjectKey(cacheKey))
                                 .diskCacheStrategy(DiskCacheStrategy.DATA)
-                                .override(1920, 1920) // Limit preload size to prevent OOM
-                                .submit()
-                                .get()
+                                .override(preloadMaxDimension, preloadMaxDimension)
+                            
+                            // Apply RGB_565 for LOW memory devices
+                            if (memoryTier == MemoryTier.LOW) {
+                                request.set(com.bumptech.glide.load.Option.memory("decodeFormat"), DecodeFormat.PREFER_RGB_565)
+                            }
+                            
+                            request.submit().get()
                         }
                         Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
                     } catch (e: Exception) {
@@ -990,10 +1065,21 @@ class ImageLoadingManager(
                             // Show view now, load without placeholder to prevent flicker
                             binding.audioCoverArtView.isVisible = true
                             Timber.w("loadAudioCoverArt[$callId]: AFTER isVisible=true - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
-                            Glide.with(binding.audioCoverArtView.context)
+                            
+                            val request = Glide.with(binding.audioCoverArtView.context)
                                 .load(coverUrl)
                                 .error(R.drawable.ic_music_note)
                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
+                            
+                            // Apply memory-aware optimizations for LOW tier devices
+                            if (memoryTier == MemoryTier.LOW) {
+                                request
+                                    .format(DecodeFormat.PREFER_RGB_565)
+                                    .dontAnimate()
+                                    .override(512, 512) // Limit audio cover size for LOW memory
+                            }
+                            
+                            request
                                 .listener(object : RequestListener<Drawable> {
                                     override fun onLoadFailed(
                                         e: GlideException?,
@@ -1054,10 +1140,20 @@ class ImageLoadingManager(
                         Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ Found URL: $coverUrl")
                         Timber.w("searchOnlineAndDisplayCover[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                         // Load without placeholder to avoid flicker
-                        Glide.with(binding.audioCoverArtView.context)
+                        val request = Glide.with(binding.audioCoverArtView.context)
                             .load(coverUrl)
                             .error(R.drawable.ic_music_note)
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        
+                        // Apply memory-aware optimizations for LOW tier devices
+                        if (memoryTier == MemoryTier.LOW) {
+                            request
+                                .format(DecodeFormat.PREFER_RGB_565)
+                                .dontAnimate()
+                                .override(512, 512) // Limit audio cover size for LOW memory
+                        }
+                        
+                        request
                             .listener(object : RequestListener<Drawable> {
                                 override fun onLoadFailed(
                                     e: GlideException?,
