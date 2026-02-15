@@ -95,7 +95,8 @@
             android:name=".ui.player.PlayerActivity"
             android:exported="false"
             android:screenOrientation="sensor"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:supportsPictureInPicture="true"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden"
             android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <activity

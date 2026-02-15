@@ -102,6 +102,7 @@ data class AppSettings(
     // Player UI settings
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
+    val enablePictureInPicture: Boolean = false,
     
     // Last used resource for quick slideshow
     val lastUsedResourceId: Long = -1L

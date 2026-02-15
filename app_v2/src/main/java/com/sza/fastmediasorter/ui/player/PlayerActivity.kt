@@ -114,6 +114,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     private var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
     private var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
+    private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     private val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
@@ -1427,6 +1428,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             sleepTimerBadge = binding.sleepTimerBadge,
             playerProvider = { binding.playerView.player }
         )
+        pipManager = com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager(
+            activity = this,
+            binding = binding,
+            videoPlayerManager = videoPlayerManager,
+            isVideoPlaying = {
+                val currentFile = viewModel.state.value.currentFile
+                currentFile?.type == MediaType.VIDEO && videoPlayerManager.getPlayer()?.isPlaying == true
+            }
+        )
         mediaLoaderManager = com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager(
             activity = this,
             binding = binding,
@@ -1872,6 +1882,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         // Cache settings for overlay visibility and touch zones
                         currentSettings = settings
                         loadFullSizeImages = settings.loadFullSizeImages
+                        
+                        // Setup PiP button visibility based on settings
+                        pipManager?.setupPipButton(settings.enablePictureInPicture)
                         
                         // Show favorite button if:
                         // 1. enableFavorites setting is on, OR
@@ -2621,11 +2634,25 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     override fun onPause() {
         super.onPause()
+        // Skip pause logic when entering PiP (video should keep playing)
+        if (isInPictureInPictureMode) return
         lifecycleManager.onPause()
         viewModel.togglePause()
         
         // Save playback position for video/audio
         saveCurrentPlaybackPosition()
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        val enablePip = currentSettings?.enablePictureInPicture == true
+        pipManager?.onUserLeaveHint(enablePip)
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode)
+        pipManager?.onPictureInPictureModeChanged(isInPictureInPictureMode)
     }
     
     // Removed: showLoadingDialog/dismissLoadingDialog/updateLoadingProgress
@@ -3227,6 +3254,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Release sleep timer manager (stop animations and timer)
         sleepTimerManager?.release()
         sleepTimerManager = null
+        
+        // Release PiP manager (unregister receiver)
+        pipManager?.release()
+        pipManager = null
         
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()

@@ -153,6 +153,18 @@
                 android:contentDescription="@string/subtitle_track"
                 android:visibility="gone"
                 android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnPictureInPicture"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:src="@drawable/ic_picture_in_picture"
+                app:tint="@color/white"
+                android:contentDescription="@string/picture_in_picture"
+                android:visibility="gone"
+                android:background="?attr/selectableItemBackgroundBorderless" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>

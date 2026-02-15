@@ -1678,6 +1678,11 @@
     <string name="sleep_timer_cancelled">Sleep timer cancelled</string>
     <string name="sleep_timer_set">Sleep timer set for %s</string>
 
+    <!-- Picture-in-Picture -->
+    <string name="picture_in_picture">Picture in Picture</string>
+    <string name="pip_play">Play</string>
+    <string name="pip_pause">Pause</string>
+
 </resources>
 
 

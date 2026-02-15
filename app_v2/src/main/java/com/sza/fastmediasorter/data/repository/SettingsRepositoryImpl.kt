@@ -118,6 +118,7 @@ class SettingsRepositoryImpl @Inject constructor(
         // Player UI settings keys
         private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
         private val KEY_MOVE_PANEL_COLLAPSED = booleanPreferencesKey("move_panel_collapsed")
+        private val KEY_ENABLE_PICTURE_IN_PICTURE = booleanPreferencesKey("enable_picture_in_picture")
         
         // Last used resource key
         private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
@@ -262,6 +263,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Player UI
                     copyPanelCollapsed = preferences[KEY_COPY_PANEL_COLLAPSED] ?: false,
                     movePanelCollapsed = preferences[KEY_MOVE_PANEL_COLLAPSED] ?: false,
+                    enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: false,
                     
                     // Last used resource
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L
@@ -382,6 +384,7 @@ class SettingsRepositoryImpl @Inject constructor(
             // Player UI
             preferences[KEY_COPY_PANEL_COLLAPSED] = settings.copyPanelCollapsed
             preferences[KEY_MOVE_PANEL_COLLAPSED] = settings.movePanelCollapsed
+            preferences[KEY_ENABLE_PICTURE_IN_PICTURE] = settings.enablePictureInPicture
             
             // Last used resource
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
