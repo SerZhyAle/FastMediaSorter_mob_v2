@@ -127,9 +127,9 @@ class TtsReadAloudManager(
     fun getState(): TtsState = state
 
     private fun speakInternal(text: String) {
-        // Split long text into chunks (TTS has a limit of ~4000 chars per utterance)
+        // Split long text into chunks at sentence/paragraph boundaries (M-8 fix: don't break words)
         val maxChunk = 3500
-        val chunks = text.chunked(maxChunk)
+        val chunks = splitTextAtBoundaries(text, maxChunk)
 
         tts?.speak(chunks.first(), TextToSpeech.QUEUE_FLUSH, null, "tts_chunk_0")
         chunks.drop(1).forEachIndexed { index, chunk ->
@@ -138,6 +138,43 @@ class TtsReadAloudManager(
 
         updateState(TtsState.READING)
         Timber.d("TTS: Started reading ${text.length} chars in ${chunks.size} chunks")
+    }
+    
+    /**
+     * Split text into chunks at word/sentence boundaries to avoid breaking words mid-utterance.
+     */
+    private fun splitTextAtBoundaries(text: String, maxChunk: Int): List<String> {
+        if (text.length <= maxChunk) return listOf(text)
+        
+        val chunks = mutableListOf<String>()
+        var start = 0
+        while (start < text.length) {
+            if (start + maxChunk >= text.length) {
+                chunks.add(text.substring(start))
+                break
+            }
+            // Search backward from max boundary for a sentence-end or whitespace
+            var splitAt = start + maxChunk
+            // Try sentence boundary (. ! ? followed by space/newline)
+            for (i in splitAt downTo start + maxChunk / 2) {
+                if (i < text.length && (text[i] == '\n' || (i > 0 && text[i - 1] in ".!?" && text[i] == ' '))) {
+                    splitAt = i
+                    break
+                }
+            }
+            // If no sentence boundary found, at least split at whitespace
+            if (splitAt == start + maxChunk) {
+                for (i in splitAt downTo start + maxChunk / 2) {
+                    if (i < text.length && text[i].isWhitespace()) {
+                        splitAt = i + 1
+                        break
+                    }
+                }
+            }
+            chunks.add(text.substring(start, splitAt))
+            start = splitAt
+        }
+        return chunks
     }
 
     private fun updateState(newState: TtsState) {

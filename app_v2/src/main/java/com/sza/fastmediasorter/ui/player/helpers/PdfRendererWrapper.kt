@@ -17,7 +17,10 @@ class PdfRendererWrapper(
     private val renderer: PdfRenderer
 ) {
     private val mutex = Mutex()
-    val pageCount: Int get() = renderer.pageCount
+    @Volatile
+    var isClosed = false
+        private set
+    val pageCount: Int = renderer.pageCount // Cached at creation to avoid access after close
 
     /**
      * Render a specific page to a Bitmap.
@@ -29,9 +32,10 @@ class PdfRendererWrapper(
      * @return Rendered Bitmap, or null on error
      */
     suspend fun renderPage(pageIndex: Int, width: Int, maxDimension: Int = MAX_DIMENSION): Bitmap? {
-        if (pageIndex < 0 || pageIndex >= pageCount) return null
+        if (pageIndex < 0 || pageIndex >= pageCount || isClosed) return null
 
         return mutex.withLock {
+            if (isClosed) return@withLock null
             try {
                 val page = renderer.openPage(pageIndex)
                 try {
@@ -63,13 +67,16 @@ class PdfRendererWrapper(
      * Get page dimensions (width x height in points) without rendering.
      */
     suspend fun getPageDimensions(pageIndex: Int): Pair<Int, Int>? {
-        if (pageIndex < 0 || pageIndex >= pageCount) return null
+        if (pageIndex < 0 || pageIndex >= pageCount || isClosed) return null
         return mutex.withLock {
+            if (isClosed) return@withLock null
             try {
                 val page = renderer.openPage(pageIndex)
-                val dims = page.width to page.height
-                page.close()
-                dims
+                try {
+                    page.width to page.height
+                } finally {
+                    page.close()
+                }
             } catch (e: Exception) {
                 Timber.e(e, "PdfRendererWrapper: Error getting dimensions for page $pageIndex")
                 null
@@ -81,6 +88,7 @@ class PdfRendererWrapper(
      * Close the PdfRenderer. Must be called from main thread context.
      */
     fun close() {
+        isClosed = true
         try {
             renderer.close()
             Timber.d("PdfRendererWrapper: Closed")

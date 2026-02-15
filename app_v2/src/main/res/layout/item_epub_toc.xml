@@ -16,7 +16,7 @@
         android:layout_width="4dp"
         android:layout_height="match_parent"
         android:layout_marginEnd="8dp"
-        android:background="#2196F3"
+        android:background="?attr/colorPrimary"
         android:visibility="invisible" />
 
     <!-- Chapter number badge -->
@@ -26,8 +26,8 @@
         android:layout_height="32dp"
         android:gravity="center"
         android:textSize="12sp"
-        android:textColor="#757575"
-        android:background="#F0F0F0" />
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:background="?attr/colorSurfaceVariant" />
 
     <!-- Chapter title -->
     <TextView

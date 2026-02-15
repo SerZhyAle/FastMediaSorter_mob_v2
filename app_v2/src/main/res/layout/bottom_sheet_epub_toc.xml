@@ -21,7 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="12sp"
-        android:textColor="#757575"
+        android:textColor="?attr/colorOnSurfaceVariant"
         android:paddingStart="12dp"
         android:paddingEnd="12dp"
         android:paddingBottom="8dp" />
@@ -29,7 +29,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvTocChapters"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:maxHeight="500dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:clipToPadding="false" />
 </LinearLayout>

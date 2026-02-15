@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.graphics.Bitmap
+import android.util.LruCache
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -34,7 +35,15 @@ class PdfThumbnailAdapter(
     private val onPageSelected: (Int) -> Unit
 ) : RecyclerView.Adapter<PdfThumbnailAdapter.ThumbnailViewHolder>() {
 
-    private val thumbnailCache = mutableMapOf<Int, Bitmap>()
+    // Bounded cache to prevent OOM on large PDFs (M6 fix)
+    private val thumbnailCache = object : LruCache<Int, Bitmap>(MAX_CACHED_THUMBNAILS) {
+        override fun entryRemoved(evicted: Boolean, key: Int, oldValue: Bitmap, newValue: Bitmap?) {
+            if (!oldValue.isRecycled && oldValue != newValue) {
+                oldValue.recycle()
+            }
+        }
+        override fun sizeOf(key: Int, value: Bitmap): Int = 1
+    }
 
     class ThumbnailViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.ivThumbnail)
@@ -59,7 +68,7 @@ class PdfThumbnailAdapter(
             if (position == currentPage) R.drawable.bg_thumbnail_selected else 0
         )
 
-        val cached = thumbnailCache[position]
+        val cached = thumbnailCache.get(position)
         if (cached != null) {
             holder.imageView.setImageBitmap(cached)
             holder.progressBar.visibility = View.GONE
@@ -72,12 +81,12 @@ class PdfThumbnailAdapter(
                 val bitmap = rendererWrapper.renderPage(position, THUMBNAIL_WIDTH, THUMBNAIL_MAX_DIM)
                 withContext(Dispatchers.Main) {
                     if (bitmap != null && holder.bindingAdapterPosition == position) {
-                        thumbnailCache[position] = bitmap
+                        thumbnailCache.put(position, bitmap)
                         holder.imageView.setImageBitmap(bitmap)
                         holder.progressBar.visibility = View.GONE
                         holder.imageView.visibility = View.VISIBLE
                     } else if (bitmap != null) {
-                        thumbnailCache[position] = bitmap
+                        thumbnailCache.put(position, bitmap)
                     }
                 }
             }
@@ -114,12 +123,12 @@ class PdfThumbnailAdapter(
      * Release all cached thumbnails.
      */
     fun clearCache() {
-        thumbnailCache.values.forEach { it.recycle() }
-        thumbnailCache.clear()
+        thumbnailCache.evictAll()
     }
 
     companion object {
         const val THUMBNAIL_WIDTH = 100
         const val THUMBNAIL_MAX_DIM = 200
+        const val MAX_CACHED_THUMBNAILS = 50
     }
 }

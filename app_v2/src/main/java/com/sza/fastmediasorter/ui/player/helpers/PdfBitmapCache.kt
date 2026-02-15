@@ -18,9 +18,10 @@ class PdfBitmapCache(private val maxBitmaps: Int = MAX_CACHED_PAGES) {
 
     private val cache = object : LruCache<Int, Bitmap>(maxBitmaps) {
         override fun entryRemoved(evicted: Boolean, key: Int, oldValue: Bitmap, newValue: Bitmap?) {
-            if (evicted && !oldValue.isRecycled) {
+            // Recycle on eviction AND on replacement (when put() replaces existing key)
+            if (!oldValue.isRecycled && oldValue != newValue) {
                 oldValue.recycle()
-                Timber.d("PdfBitmapCache: Evicted and recycled page $key")
+                Timber.d("PdfBitmapCache: Recycled page $key (evicted=$evicted)")
             }
         }
 

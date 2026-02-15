@@ -713,16 +713,23 @@ class TextViewerManager(
         closePager()
         currentCharset = charset
 
-        val pager = TextFilePager(file, charset)
-        pager.open()
-        textFilePager = pager
+        try {
+            val pager = TextFilePager(file, charset)
+            pager.open()
+            textFilePager = pager
+        } catch (e: Exception) {
+            Timber.e(e, "TextViewerManager: Failed to reopen with charset=$charset")
+            callback.showError("Error reopening file: ${e.message}")
+            return
+        }
 
+        val activePager = textFilePager ?: return
         coroutineScope.launch(Dispatchers.IO) {
-            val pageText = pager.readPage(0)
+            val pageText = activePager.readPage(0)
             originalTextWithoutNumbers = pageText
 
             val settings = settingsRepository.getSettings().first()
-            val startLine = pager.getStartLineNumber(0)
+            val startLine = activePager.getStartLineNumber(0)
 
             withContext(Dispatchers.Main) {
                 renderPageContent(pageText, settings.showTextLineNumbers, startLine)
@@ -1144,6 +1151,9 @@ class TextViewerManager(
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
 
+        // Detach previous undo/redo manager if exists (M-10 fix)
+        undoRedoManager?.detach()
+        
         // Attach undo/redo
         undoRedoManager = TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
             safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
@@ -1226,8 +1236,12 @@ class TextViewerManager(
                     binding.progressBar.isVisible = false
                     // Update original text and re-display with line numbers if enabled
                     originalTextWithoutNumbers = newText
+                }
                     
-                    val settings = settingsRepository.getSettings().first()
+                // Read settings on IO, not Main (C-3 fix)
+                val settings = settingsRepository.getSettings().first()
+                
+                withContext(Dispatchers.Main) {
                     val displayText = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
                     safeViews.tvTextContent.text = displayText
 

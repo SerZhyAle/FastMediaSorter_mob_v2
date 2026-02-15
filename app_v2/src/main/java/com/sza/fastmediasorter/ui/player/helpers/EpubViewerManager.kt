@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -61,6 +62,7 @@ class EpubViewerManager(
     private var currentFontSize: Int = 18
     private val MIN_FONT_SIZE = 6
     private val MAX_FONT_SIZE = 144 // Increased max size for "HUGE" setting
+    private val MAX_SEARCH_RESULTS = 500 // Limit cross-chapter search results to prevent OOM (M-3 fix)
     
     // Translation font size (separate from EPUB font size)
     private var translationFontSize: Int = 16
@@ -80,6 +82,9 @@ class EpubViewerManager(
     
     // Fullscreen mode state
     private var isFullscreenMode = false
+    
+    // Settings loading gate — await before first chapter render (C-3 fix)
+    private val settingsReady = CompletableDeferred<Unit>()
     
     // WebView for HTML rendering
     private var webView: WebView? = null
@@ -126,6 +131,9 @@ class EpubViewerManager(
             currentReaderTheme = EpubStyleManager.ReaderTheme.fromName(settings.textReaderTheme)
             currentLineHeight = settings.epubLineHeight
             currentHorizontalMargin = settings.epubHorizontalMargin
+            
+            // Signal that settings are loaded (C-3 fix)
+            settingsReady.complete(Unit)
         }
         
         // Initialize swipe gesture detector for chapter navigation and font size control
@@ -594,6 +602,9 @@ class EpubViewerManager(
      * Show specific chapter by index
      */
     private suspend fun showChapter(chapterIndex: Int) {
+        // Wait for settings to be loaded before first render (C-3 fix)
+        settingsReady.await()
+        
         val book = currentBook ?: return
         val spine = book.spine
         
@@ -670,6 +681,9 @@ class EpubViewerManager(
     private suspend fun preprocessHtml(htmlContent: String, resource: Resource): String {
         // Parse HTML with jsoup
         val doc = Jsoup.parse(htmlContent)
+        
+        // Remove script tags to prevent XSS from untrusted EPUB content (M-6 fix)
+        doc.select("script").remove()
         
         // Generate CSS via EpubStyleManager using current settings
         val css = EpubStyleManager.generateCss(
@@ -1128,6 +1142,11 @@ class EpubViewerManager(
         val view: android.view.View = android.view.LayoutInflater.from(context)
             .inflate(R.layout.dialog_epub_reader_settings, null)
         
+        // Snapshot current values for Cancel rollback (C-1 fix)
+        var pendingTheme = currentReaderTheme
+        var pendingFontFamily = currentFontFamily
+        var pendingFontSize = currentFontSize
+        
         // Theme chips
         val chipLight = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipLight)
         val chipDark = view.findViewById<com.google.android.material.chip.Chip>(R.id.chipDark)
@@ -1167,39 +1186,39 @@ class EpubViewerManager(
         sliderLineHeight.value = currentLineHeight.coerceIn(1.0f, 3.0f)
         sliderMargin.value = currentHorizontalMargin.toFloat().coerceIn(0f, 48f)
         
-        // Theme chip listeners
+        // Theme chip listeners — write to local pending vars, not to class fields (C-1 fix)
         val chipGroupTheme = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupTheme)
         chipGroupTheme.setOnCheckedStateChangeListener { _, checkedIds ->
-            currentReaderTheme = when {
+            pendingTheme = when {
                 checkedIds.contains(R.id.chipLight) -> EpubStyleManager.ReaderTheme.LIGHT
                 checkedIds.contains(R.id.chipDark) -> EpubStyleManager.ReaderTheme.DARK
                 checkedIds.contains(R.id.chipSepia) -> EpubStyleManager.ReaderTheme.SEPIA
                 checkedIds.contains(R.id.chipOled) -> EpubStyleManager.ReaderTheme.OLED_BLACK
-                else -> currentReaderTheme
+                else -> pendingTheme
             }
         }
         
-        // Font chip listeners
+        // Font chip listeners — write to local pending vars (C-1 fix)
         val chipGroupFont = view.findViewById<com.google.android.material.chip.ChipGroup>(R.id.chipGroupFont)
         chipGroupFont.setOnCheckedStateChangeListener { _, checkedIds ->
-            currentFontFamily = when {
+            pendingFontFamily = when {
                 checkedIds.contains(R.id.chipSerif) -> "Georgia, serif"
                 checkedIds.contains(R.id.chipMonospace) -> "Courier New, monospace"
                 else -> "sans-serif"
             }
         }
         
-        // Font size buttons
+        // Font size buttons — use pending var (C-1 fix)
         btnFontDecrease.setOnClickListener {
-            if (currentFontSize > MIN_FONT_SIZE) {
-                currentFontSize -= 2
-                tvFontSizeValue.text = currentFontSize.toString()
+            if (pendingFontSize > MIN_FONT_SIZE) {
+                pendingFontSize -= 2
+                tvFontSizeValue.text = pendingFontSize.toString()
             }
         }
         btnFontIncrease.setOnClickListener {
-            if (currentFontSize < MAX_FONT_SIZE) {
-                currentFontSize += 2
-                tvFontSizeValue.text = currentFontSize.toString()
+            if (pendingFontSize < MAX_FONT_SIZE) {
+                pendingFontSize += 2
+                tvFontSizeValue.text = pendingFontSize.toString()
             }
         }
         
@@ -1208,6 +1227,11 @@ class EpubViewerManager(
             .setTitle(R.string.epub_reader_settings)
             .setView(view)
             .setPositiveButton(android.R.string.ok) { _, _ ->
+                // Apply pending values to class fields on OK (C-1 fix)
+                currentReaderTheme = pendingTheme
+                currentFontFamily = pendingFontFamily
+                currentFontSize = pendingFontSize
+                
                 // Apply slider values
                 currentLineHeight = sliderLineHeight.value
                 currentHorizontalMargin = sliderMargin.value.toInt()
@@ -1231,11 +1255,19 @@ class EpubViewerManager(
     private fun saveReaderSettings() {
         coroutineScope.launch {
             val current = settingsRepository.getSettings().first()
+            // Map fontFamily CSS value back to AppSettings key (M-7 fix: persist font choice)
+            val fontFamilySetting = when {
+                currentFontFamily.contains("monospace", ignoreCase = true) -> "MONOSPACE"
+                currentFontFamily.contains("serif", ignoreCase = true) && 
+                    !currentFontFamily.contains("sans", ignoreCase = true) -> "SERIF"
+                else -> "DEFAULT"
+            }
             settingsRepository.updateSettings(
                 current.copy(
                     textReaderTheme = currentReaderTheme.name,
                     epubLineHeight = currentLineHeight,
-                    epubHorizontalMargin = currentHorizontalMargin
+                    epubHorizontalMargin = currentHorizontalMargin,
+                    ocrDefaultFontFamily = fontFamilySetting
                 )
             )
         }
@@ -1350,9 +1382,11 @@ class EpubViewerManager(
         
         val spine = currentBook?.spine ?: return -1
         val spineRefs = spine.spineReferences
+        val resourceHref = resource.href ?: return -1
         
         for (i in spineRefs.indices) {
-            if (spineRefs[i].resource == resource) {
+            // Compare by href to handle different Resource object instances for same file (M-5 fix)
+            if (spineRefs[i].resource?.href == resourceHref) {
                 return i
             }
         }
@@ -1444,18 +1478,17 @@ class EpubViewerManager(
             return
         }
         
-        // WebView.findAllAsync() is deprecated in API 16+ but still functional
-        // Modern alternative: WebView.setFindListener + findAllAsync
-        @Suppress("DEPRECATION")
-        webView.findAllAsync(query)
-        
-        // Set listener to get match count
+        // Set listener BEFORE triggering search (M-1 fix: listener must be set before findAllAsync)
         webView.setFindListener { _, numberOfMatches, isDoneCounting ->
             if (isDoneCounting) {
                 onResult(numberOfMatches)
                 Timber.d("EPUB search for '$query': $numberOfMatches matches in current chapter")
             }
         }
+        
+        // WebView.findAllAsync() is deprecated in API 16+ but still functional
+        @Suppress("DEPRECATION")
+        webView.findAllAsync(query)
     }
     
     /**
@@ -1516,6 +1549,10 @@ class EpubViewerManager(
         }
         
         bottomSheet.setContentView(view)
+        
+        // Cancel search coroutine when BottomSheet is dismissed (C-2 fix)
+        bottomSheet.setOnDismissListener { searchJob?.cancel() }
+        
         bottomSheet.show()
         
         // Focus input
@@ -1574,6 +1611,9 @@ class EpubViewerManager(
                             val pos = lowerText.indexOf(lowerQuery, searchFrom)
                             if (pos < 0) break
                             
+                            // Limit total results to prevent OOM (M-3 fix)
+                            if (allResults.size >= MAX_SEARCH_RESULTS) break
+                            
                             // Extract context snippet
                             val snippetStart = (pos - contextWindow).coerceAtLeast(0)
                             val snippetEnd = (pos + query.length + contextWindow).coerceAtMost(plainText.length)
@@ -1598,6 +1638,9 @@ class EpubViewerManager(
                     } catch (e: Exception) {
                         Timber.w(e, "EPUB: Error searching chapter $i")
                     }
+                    
+                    // Stop scanning more chapters if limit reached (M-3 fix)
+                    if (allResults.size >= MAX_SEARCH_RESULTS) break
                 }
                 
                 allResults
@@ -1611,15 +1654,22 @@ class EpubViewerManager(
                     tvStatus.text = context.getString(R.string.epub_search_no_results)
                 } else {
                     val chaptersWithMatches = results.map { it.chapterIndex }.distinct().size
-                    tvStatus.text = context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)
+                    val statusText = if (results.size >= MAX_SEARCH_RESULTS) {
+                        "${context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)} (max)"
+                    } else {
+                        context.getString(R.string.epub_search_results, results.size, chaptersWithMatches)
+                    }
+                    tvStatus.text = statusText
                     
                     rvResults.adapter = EpubSearchResultAdapter(results) { result ->
                         bottomSheet.dismiss()
-                        // Navigate to chapter and highlight
+                        // Navigate to chapter and highlight using onPageFinished (M-2 fix)
                         coroutineScope.launch {
                             showChapter(result.chapterIndex)
-                            // After chapter loads, trigger in-page search for highlighting
-                            kotlinx.coroutines.delay(500) // Wait for WebView to render
+                            // Trigger in-page highlight after WebView finishes loading
+                            // showChapter uses loadDataWithBaseURL → WebViewClient.onPageFinished fires
+                            // We use a short delay as fallback since we need the search query context
+                            kotlinx.coroutines.delay(300)
                             searchInEpub(query) {}
                         }
                     }

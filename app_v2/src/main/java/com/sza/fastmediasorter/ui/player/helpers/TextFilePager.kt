@@ -27,6 +27,7 @@ class TextFilePager(
     }
 
     private var raf: RandomAccessFile? = null
+    private val rafLock = Any() // Shared lock for read/close synchronization
     val fileSize: Long = file.length()
 
     // Lazily built index of byte offsets for each page start
@@ -49,8 +50,10 @@ class TextFilePager(
     }
 
     override fun close() {
-        raf?.close()
-        raf = null
+        synchronized(rafLock) {
+            raf?.close()
+            raf = null
+        }
         Timber.d("TextFilePager: closed")
     }
 
@@ -93,9 +96,10 @@ class TextFilePager(
         if (length <= 0) return ""
 
         val buffer = ByteArray(length)
-        synchronized(reader) {
-            reader.seek(startOffset)
-            reader.readFully(buffer)
+        synchronized(rafLock) {
+            val r = raf ?: throw IllegalStateException("TextFilePager closed during read")
+            r.seek(startOffset)
+            r.readFully(buffer)
         }
 
         val text = String(buffer, charset)
@@ -190,9 +194,10 @@ class TextFilePager(
         val searchStart = tentativeEnd - searchSize
         val searchBuffer = ByteArray(searchSize)
 
-        synchronized(reader) {
-            reader.seek(searchStart)
-            reader.readFully(searchBuffer)
+        synchronized(rafLock) {
+            val r = raf ?: return tentativeEnd
+            r.seek(searchStart)
+            r.readFully(searchBuffer)
         }
 
         // Find last newline in search buffer
@@ -226,10 +231,11 @@ class TextFilePager(
         val reader = raf ?: return offset
         var pos = offset
 
-        synchronized(reader) {
+        synchronized(rafLock) {
+            val r = raf ?: return offset
             while (pos > 0 && offset - pos < MAX_UTF8_CHAR_BYTES) {
-                reader.seek(pos)
-                val b = reader.read()
+                r.seek(pos)
+                val b = r.read()
                 if (b and 0xC0 != 0x80) {
                     // Not a continuation byte — safe boundary
                     return pos

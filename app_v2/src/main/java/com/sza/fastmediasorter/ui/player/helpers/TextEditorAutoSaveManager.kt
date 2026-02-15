@@ -31,6 +31,7 @@ class TextEditorAutoSaveManager(
 
     private var autoSaveJob: Job? = null
     private var currentDraftFile: File? = null
+    @Volatile  // Accessed from multiple threads (C-4 fix)
     private var lastSavedHash: Int = 0
 
     /**
@@ -53,7 +54,7 @@ class TextEditorAutoSaveManager(
                 } ?: continue
 
                 val currentHash = text.hashCode()
-                if (currentHash != lastSavedHash) {
+                if (currentHash != lastSavedHash && isActive) { // Check isActive before saving (C-4 fix)
                     saveDraft(text)
                     lastSavedHash = currentHash
                 }

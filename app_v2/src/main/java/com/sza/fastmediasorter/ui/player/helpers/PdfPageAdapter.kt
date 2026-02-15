@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.graphics.Bitmap
+import android.graphics.ColorFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -32,7 +33,7 @@ class PdfPageAdapter(
     private val renderWidth: Int
 ) : RecyclerView.Adapter<PdfPageAdapter.PageViewHolder>() {
 
-    private var colorFilter: android.graphics.ColorFilter? = null
+    private var colorFilter: ColorFilter? = null
 
     class PageViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.ivPdfPage)
@@ -92,7 +93,7 @@ class PdfPageAdapter(
     /**
      * Apply a color filter to all page ImageViews (for night mode, sepia).
      */
-    fun setColorFilter(filter: android.graphics.ColorFilter?) {
+    fun setColorFilter(filter: ColorFilter?) {
         this.colorFilter = filter
         notifyDataSetChanged()
     }
