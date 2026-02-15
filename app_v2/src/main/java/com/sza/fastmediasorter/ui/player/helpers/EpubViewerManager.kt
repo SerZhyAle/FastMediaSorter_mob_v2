@@ -1181,32 +1181,42 @@ class EpubViewerManager(
             return
         }
         
-        // Create styled chapter titles (with bullet points and link color)
-        val chapterTitles = chapters.map { 
-            val spannable = android.text.SpannableString(it.first)
-            spannable.setSpan(
-                android.text.style.ForegroundColorSpan(0xFF0066CC.toInt()), // Blue link color
-                0, spannable.length,
-                android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-            )
-            spannable
-        }.toTypedArray()
+        // Show as BottomSheetDialog with RecyclerView
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_epub_toc, null)
         
-        android.app.AlertDialog.Builder(context)
-            .setTitle("${book.title ?: "EPUB"} - ${context.getString(R.string.epub_table_of_contents)}")
-            .setItems(chapterTitles) { dialog, which ->
-                val selectedChapterIndex = chapters[which].second
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvTocTitle)
+        val tvProgress = view.findViewById<android.widget.TextView>(R.id.tvChapterProgress)
+        val rvChapters = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvTocChapters)
+        
+        tvTitle.text = book.title ?: context.getString(R.string.epub_table_of_contents)
+        tvProgress.text = context.getString(R.string.epub_chapter_progress, currentChapterIndex + 1, chapterCount)
+        
+        val adapter = EpubTocAdapter(
+            chapters = chapters,
+            currentChapterSpineIndex = currentChapterIndex,
+            onChapterSelected = { spineIndex ->
+                bottomSheet.dismiss()
                 coroutineScope.launch {
-                    showChapter(selectedChapterIndex)
+                    showChapter(spineIndex)
                 }
-                dialog.dismiss()
             }
-            .setNegativeButton(context.getString(R.string.cancel)) { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        )
         
-        Timber.d("EPUB: TOC dialog shown with ${chapters.size} entries")
+        rvChapters.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        rvChapters.adapter = adapter
+        
+        // Scroll to current chapter position
+        val currentPos = adapter.findCurrentChapterPosition()
+        if (currentPos > 0) {
+            rvChapters.scrollToPosition(currentPos)
+        }
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.show()
+        
+        Timber.d("EPUB: TOC BottomSheet shown with ${chapters.size} entries")
     }
     
     /**
@@ -1272,30 +1282,51 @@ class EpubViewerManager(
             return
         }
         
-        // Generate chapter list from spine
-        val chapterTitles = spine.spineReferences.mapIndexed { index, spineRef ->
+        // Generate chapter list from spine as Pair<Title, SpineIndex>
+        val chapters = spine.spineReferences.mapIndexed { index, spineRef ->
             val title = spineRef.resource.title
-            if (title.isNullOrBlank()) {
+            val displayTitle = if (title.isNullOrBlank()) {
                 "Chapter ${index + 1}"
             } else {
                 title
             }
-        }.toTypedArray()
+            Pair(displayTitle, index)
+        }
         
-        android.app.AlertDialog.Builder(context)
-            .setTitle("${book.title ?: "EPUB"} - Chapters")
-            .setItems(chapterTitles) { dialog, which ->
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_epub_toc, null)
+        
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvTocTitle)
+        val tvProgress = view.findViewById<android.widget.TextView>(R.id.tvChapterProgress)
+        val rvChapters = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvTocChapters)
+        
+        tvTitle.text = book.title ?: context.getString(R.string.epub_table_of_contents)
+        tvProgress.text = context.getString(R.string.epub_chapter_progress, currentChapterIndex + 1, chapterCount)
+        
+        val adapter = EpubTocAdapter(
+            chapters = chapters,
+            currentChapterSpineIndex = currentChapterIndex,
+            onChapterSelected = { spineIndex ->
+                bottomSheet.dismiss()
                 coroutineScope.launch {
-                    showChapter(which)
+                    showChapter(spineIndex)
                 }
-                dialog.dismiss()
             }
-            .setNegativeButton("Cancel") { dialog, _ ->
-                dialog.dismiss()
-            }
-            .show()
+        )
         
-        Timber.d("EPUB: Spine-based TOC shown with ${chapterTitles.size} chapters")
+        rvChapters.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        rvChapters.adapter = adapter
+        
+        val currentPos = adapter.findCurrentChapterPosition()
+        if (currentPos > 0) {
+            rvChapters.scrollToPosition(currentPos)
+        }
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.show()
+        
+        Timber.d("EPUB: Spine-based TOC BottomSheet shown with ${chapters.size} chapters")
     }
     
     /**

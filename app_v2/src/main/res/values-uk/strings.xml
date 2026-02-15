@@ -300,6 +300,7 @@
     <string name="support_epub_description">Підтримка EPUB електронних книг</string>
     <string name="epub_table_of_contents">Зміст</string>
     <string name="epub_no_toc">Зміст недоступний</string>
+    <string name="epub_chapter_progress">Глава %1$d з %2$d</string>
     <string name="epub_font_size">Розмір шрифту: %1$d</string>
     <string name="epub_controls_hidden">Панель схована. Свайп вгору для відображення.</string>
     <string name="epub_exit_fullscreen">Вихід з повноекранного режиму</string>
