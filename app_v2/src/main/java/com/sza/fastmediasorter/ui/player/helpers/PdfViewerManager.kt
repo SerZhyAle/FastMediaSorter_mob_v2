@@ -81,6 +81,9 @@ class PdfViewerManager(
     private var bitmapCache: PdfBitmapCache? = null
     private var rendererWrapper: PdfRendererWrapper? = null
     
+    // Color mode state (night/sepia)
+    private var currentColorMode = PdfColorConversion.PdfColorMode.NORMAL
+    
     init {
         
         // Listen for scale/position changes on PhotoView to update translation overlay
@@ -320,6 +323,7 @@ class PdfViewerManager(
                         rendererWrapper = PdfRendererWrapper(pdfRenderer!!)
                         bitmapCache = PdfBitmapCache()
                         isScrollMode = settings.pdfScrollMode
+                        currentColorMode = PdfColorConversion.fromName(settings.pdfColorMode)
                         
                         // Restore last viewed page position
                         val savedPage = playbackPositionRepository.getPosition(mediaFile.path)
@@ -475,6 +479,9 @@ class PdfViewerManager(
         )
         pdfPageAdapter = adapter
         
+        // Apply current color filter to adapter
+        adapter.setColorFilter(PdfColorConversion.getColorFilter(currentColorMode))
+        
         val layoutManager = LinearLayoutManager(binding.root.context, LinearLayoutManager.VERTICAL, false)
         safeViews.pdfScrollRecyclerView.layoutManager = layoutManager
         safeViews.pdfScrollRecyclerView.adapter = adapter
@@ -542,6 +549,39 @@ class PdfViewerManager(
      * Check if currently in scroll mode.
      */
     fun isInScrollMode(): Boolean = isScrollMode
+    
+    /**
+     * Toggle PDF color mode: NORMAL → NIGHT → SEPIA → NORMAL.
+     * Applies ColorMatrixColorFilter to both page mode (PhotoView) and scroll mode (adapter).
+     * Persists preference to settings.
+     */
+    fun toggleColorMode() {
+        currentColorMode = PdfColorConversion.nextMode(currentColorMode)
+        val filter = PdfColorConversion.getColorFilter(currentColorMode)
+        
+        Timber.d("PDF: Color mode changed to $currentColorMode")
+        
+        // Apply to PhotoView (page mode)
+        binding.photoView.colorFilter = filter
+        
+        // Apply to adapter (scroll mode)
+        pdfPageAdapter?.setColorFilter(filter)
+        
+        // Persist preference
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val current = settingsRepository.getSettings().first()
+                settingsRepository.updateSettings(current.copy(pdfColorMode = currentColorMode.name))
+            } catch (e: Exception) {
+                Timber.e(e, "PDF: Failed to persist color mode preference")
+            }
+        }
+    }
+    
+    /**
+     * Get current color mode name for UI display.
+     */
+    fun getCurrentColorModeName(): String = currentColorMode.name
     
     /**
      * Toggle translation on/off for current PDF page
@@ -961,6 +1001,9 @@ class PdfViewerManager(
                         currentPageBitmap?.recycle()
                         
                         binding.photoView.setImageBitmap(bitmap)
+                        
+                        // Apply color filter (night mode / sepia)
+                        binding.photoView.colorFilter = PdfColorConversion.getColorFilter(currentColorMode)
                         
                         // Store bitmap for translation
                         currentPageBitmap = bitmap

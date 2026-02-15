@@ -55,6 +55,7 @@ data class AppSettings(
     val markdownRendered: Boolean = true, // Render Markdown (.md) or show raw text
     val syntaxHighlighting: Boolean = true, // Enable syntax highlighting for code files
     val pdfScrollMode: Boolean = false, // PDF vertical scroll mode (true) vs page mode (false)
+    val pdfColorMode: String = "NORMAL", // PDF color mode: NORMAL, NIGHT, SEPIA
     
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = true, // Enable translation feature using ML Kit OCR + Translate

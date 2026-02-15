@@ -1095,6 +1095,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onPdfScrollModeClicked() {
                     pdfViewerManager.toggleScrollMode()
                 }
+
+                override fun onPdfColorModeClicked() {
+                    pdfViewerManager.toggleColorMode()
+                }
             }
         )
         // Initialize orientation on startup

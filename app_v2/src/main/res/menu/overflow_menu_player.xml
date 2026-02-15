@@ -128,4 +128,11 @@
         android:title="@string/pdf_scroll_mode"
         app:showAsAction="never" />
 
+    <!-- PDF Color Mode (Night/Sepia) -->
+    <item
+        android:id="@+id/menu_pdf_color_mode"
+        android:icon="@drawable/ic_night_mode"
+        android:title="@string/pdf_night_mode"
+        app:showAsAction="never" />
+
 </menu>
