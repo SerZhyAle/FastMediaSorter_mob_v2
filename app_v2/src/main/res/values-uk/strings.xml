@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMediaSorter</string>
+    <string name="settings_category_interface">Інтерфейс</string>
+    <string name="settings_category_files">Файли та дані</string>
+    <string name="settings_category_system">Система</string>
+    <string name="settings_category_sorting_slideshow">Сортування і слайдшоу</string>
+    <string name="settings_category_file_operations">Операції з файлами</string>
+    <string name="settings_category_grid_view">Сітка</string>
+    <string name="settings_category_player_ui">Інтерфейс плеєра</string>
+    <string name="settings_category_touch_zones">Сенсорні зони</string>
     <string name="start_player">Запустити плеєр</string>
     <string name="add">Додати</string>
     <string name="settings">Налаштування</string>
@@ -1136,6 +1144,9 @@
     <string name="settings_general_cache">Кеш</string>
     <string name="settings_general_permissions">Дозволи</string>
     <string name="settings_general_actions">Дії</string>
+    <string name="settings_general_interface">Інтерфейс</string>
+    <string name="settings_general_files">Робота з файлами</string>
+    <string name="settings_general_system">Мережа та система</string>
 
     <!-- Photos during audio playback -->
     <string name="enable_photos_during_audio_description">Показувати випадкові фото під час відтворення аудіо</string>

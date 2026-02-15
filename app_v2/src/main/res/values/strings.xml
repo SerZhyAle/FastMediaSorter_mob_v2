@@ -47,6 +47,14 @@
     
     <!-- General Settings -->
     <string name="documentation">Documentation Portal</string>
+    <string name="settings_category_interface">Interface</string>
+    <string name="settings_category_files">Files &amp; Data</string>
+    <string name="settings_category_system">System</string>
+    <string name="settings_category_sorting_slideshow">Sorting &amp; Slideshow</string>
+    <string name="settings_category_file_operations">File Operations</string>
+    <string name="settings_category_grid_view">Grid View</string>
+    <string name="settings_category_player_ui">Player UI</string>
+    <string name="settings_category_touch_zones">Touch Zones</string>
     
     <!-- Copy Dialog -->
     <string name="copying_files">Copying Files</string>
@@ -1328,6 +1336,9 @@
     <string name="settings_general_cache">Cache</string>
     <string name="settings_general_permissions">Permissions</string>
     <string name="settings_general_actions">Actions</string>
+    <string name="settings_general_interface">Interface and Display</string>
+    <string name="settings_general_files">Working with Files</string>
+    <string name="settings_general_system">Network and System</string>
 
     <!-- Audio Background Photos -->
     <string name="enable_photos_during_audio">Photos during audio</string>

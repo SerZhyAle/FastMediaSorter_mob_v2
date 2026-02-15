@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMediaSorter</string>
+    <string name="settings_category_interface">Интерфейс</string>
+    <string name="settings_category_files">Файлы и данные</string>
+    <string name="settings_category_system">Система</string>
+    <string name="settings_category_sorting_slideshow">Сортировка и слайдшоу</string>
+    <string name="settings_category_file_operations">Операции с файлами</string>
+    <string name="settings_category_grid_view">Сетка</string>
+    <string name="settings_category_player_ui">Интерфейс плеера</string>
+    <string name="settings_category_touch_zones">Сенсорные зоны</string>
     <string name="start_player">Запустить плеер</string>
     <string name="add">Добавить</string>
     <string name="settings">Настройки</string>
