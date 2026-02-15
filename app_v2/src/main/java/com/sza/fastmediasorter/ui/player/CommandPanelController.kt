@@ -65,6 +65,9 @@ class CommandPanelController(
         fun onTranslationSettingsClicked()
         fun onSleepTimerClicked()
         fun onReopenEncodingClicked()
+        fun onToggleMarkdownClicked()
+        fun onReaderSettingsClicked()
+        fun onReadAloudClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -663,6 +666,9 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_undo)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_sleep_timer)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_reopen_encoding)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_toggle_markdown)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_reader_settings)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_read_aloud)?.icon?.setTint(iconColor)
         
         // Configure menu items visibility based on file type and state
         val isPdf = currentFile.type == MediaType.PDF
@@ -697,6 +703,9 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_undo)?.isVisible = state.lastOperation != null && !isReadOnly
         popup.menu.findItem(R.id.menu_sleep_timer)?.isVisible = currentFile.type == MediaType.AUDIO || currentFile.type == MediaType.VIDEO
         popup.menu.findItem(R.id.menu_reopen_encoding)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_toggle_markdown)?.isVisible = isText && currentFile.name.endsWith(".md", ignoreCase = true)
+        popup.menu.findItem(R.id.menu_reader_settings)?.isVisible = isText
+        popup.menu.findItem(R.id.menu_read_aloud)?.isVisible = isText
         
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -716,6 +725,9 @@ class CommandPanelController(
                 R.id.menu_undo -> callback.onUndoClicked()
                 R.id.menu_sleep_timer -> callback.onSleepTimerClicked()
                 R.id.menu_reopen_encoding -> callback.onReopenEncodingClicked()
+                R.id.menu_toggle_markdown -> callback.onToggleMarkdownClicked()
+                R.id.menu_reader_settings -> callback.onReaderSettingsClicked()
+                R.id.menu_read_aloud -> callback.onReadAloudClicked()
             }
             true
         }

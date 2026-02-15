@@ -1079,6 +1079,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onReopenEncodingClicked() {
                     showEncodingDialog()
                 }
+
+                override fun onToggleMarkdownClicked() {
+                    textViewerManager.toggleMarkdownRendering()
+                }
+
+                override fun onReaderSettingsClicked() {
+                    showReaderSettingsDialog()
+                }
+
+                override fun onReadAloudClicked() {
+                    textViewerManager.toggleReadAloud()
+                }
             }
         )
         // Initialize orientation on startup
@@ -1627,6 +1639,26 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             .setItems(labels) { _, which ->
                 val selectedCharset = charsets[which].second
                 manager.reopenWithEncoding(selectedCharset)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showReaderSettingsDialog() {
+        val themes = com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme.entries
+        val themeLabels = arrayOf(
+            getString(R.string.reader_theme_light),
+            getString(R.string.reader_theme_dark),
+            getString(R.string.reader_theme_sepia)
+        )
+        val currentTheme = textViewerManager.getCurrentTheme()
+        val currentIndex = themes.indexOf(currentTheme).coerceAtLeast(0)
+
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.reader_settings)
+            .setSingleChoiceItems(themeLabels, currentIndex) { dialog, which ->
+                textViewerManager.applyReaderTheme(themes[which])
+                dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()

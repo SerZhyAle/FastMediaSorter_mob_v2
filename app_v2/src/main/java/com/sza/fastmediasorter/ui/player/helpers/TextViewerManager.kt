@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.utils.CharsetDetector
+import com.sza.fastmediasorter.utils.SyntaxHighlighter
+import io.noties.markwon.Markwon
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -72,6 +74,17 @@ class TextViewerManager(
     // Paged reader
     private var textFilePager: TextFilePager? = null
     private var currentCharset: Charset = Charsets.UTF_8
+
+    // Markwon renderer (lazy init)
+    private val markwon: Markwon by lazy { Markwon.create(context) }
+    private var markdownRendered = true
+    private var syntaxHighlightingEnabled = true
+
+    // Reader theme
+    private var currentReaderTheme = TextReaderTheme.LIGHT
+
+    // TTS
+    private var ttsManager: TtsReadAloudManager? = null
     
     // Dynamic font sizes (session-scoped, persist until user exits player)
     private var textFontSizeSp: Float = DEFAULT_TEXT_FONT_SIZE_SP
@@ -558,17 +571,18 @@ class TextViewerManager(
                 val pageText = pager.readPage(0)
                 originalTextWithoutNumbers = pageText
 
-                // Apply line numbers if enabled
-                val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(0))
+                // Load H.2 rendering settings
+                markdownRendered = settings.markdownRendered
+                syntaxHighlightingEnabled = settings.syntaxHighlighting
+                currentReaderTheme = TextReaderTheme.fromName(settings.textReaderTheme)
+
+                val startLine = pager.getStartLineNumber(0)
 
                 withContext(Dispatchers.Main) {
                     binding.progressBar.isVisible = false
 
-                    if (displayText.isEmpty()) {
-                        safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
-                    } else {
-                        safeViews.tvTextContent.text = displayText
-                    }
+                    // Render with Markwon/syntax/theme support
+                    renderPageContent(pageText, settings.showTextLineNumbers, startLine)
 
                     // Show/hide page navigation
                     val multiPage = !pager.isSinglePage()
@@ -596,7 +610,7 @@ class TextViewerManager(
                     // Show encoding indicator
                     safeViews.tvTextEncodingIndicator.text = currentCharset.name()
 
-                    Timber.d("TextViewerManager: Displaying page 0, ${displayText.length} chars, charset=$currentCharset")
+                    Timber.d("TextViewerManager: Displaying page 0, ${pageText.length} chars, charset=$currentCharset")
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Error loading text file")
@@ -635,15 +649,18 @@ class TextViewerManager(
         val pager = textFilePager ?: return
         if (!pager.hasNextPage()) return
 
+        // Stop TTS when changing pages
+        ttsManager?.stop()
+
         coroutineScope.launch(Dispatchers.IO) {
             val pageText = pager.readPage(pager.currentPage + 1)
             originalTextWithoutNumbers = pageText
 
             val settings = settingsRepository.getSettings().first()
-            val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(pager.currentPage))
+            val startLine = pager.getStartLineNumber(pager.currentPage)
 
             withContext(Dispatchers.Main) {
-                safeViews.tvTextContent.text = displayText
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
                 safeViews.textScrollView.scrollTo(0, 0)
                 updatePageIndicator()
             }
@@ -657,15 +674,18 @@ class TextViewerManager(
         val pager = textFilePager ?: return
         if (!pager.hasPreviousPage()) return
 
+        // Stop TTS when changing pages
+        ttsManager?.stop()
+
         coroutineScope.launch(Dispatchers.IO) {
             val pageText = pager.readPage(pager.currentPage - 1)
             originalTextWithoutNumbers = pageText
 
             val settings = settingsRepository.getSettings().first()
-            val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(pager.currentPage))
+            val startLine = pager.getStartLineNumber(pager.currentPage)
 
             withContext(Dispatchers.Main) {
-                safeViews.tvTextContent.text = displayText
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
                 safeViews.textScrollView.scrollTo(0, 0)
                 updatePageIndicator()
             }
@@ -677,7 +697,7 @@ class TextViewerManager(
      */
     fun reopenWithEncoding(charset: Charset) {
         val file = currentLocalFile ?: return
-        val mediaFile = currentFile ?: return
+        currentFile ?: return
 
         closePager()
         currentCharset = charset
@@ -691,10 +711,10 @@ class TextViewerManager(
             originalTextWithoutNumbers = pageText
 
             val settings = settingsRepository.getSettings().first()
-            val displayText = applyLineNumbers(pageText, settings.showTextLineNumbers, pager.getStartLineNumber(0))
+            val startLine = pager.getStartLineNumber(0)
 
             withContext(Dispatchers.Main) {
-                safeViews.tvTextContent.text = displayText
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
                 safeViews.textScrollView.scrollTo(0, 0)
                 safeViews.tvTextEncodingIndicator.text = charset.name()
                 updatePageIndicator()
@@ -747,6 +767,133 @@ class TextViewerManager(
      */
     fun release() {
         closePager()
+        ttsManager?.release()
+        ttsManager = null
+    }
+
+    // ===== H.2: Rich rendering & reader UI methods =====
+
+    /**
+     * Toggle markdown rendering for .md files.
+     * Switches between raw text and Markwon-rendered view, then reloads current page.
+     */
+    fun toggleMarkdownRendering() {
+        markdownRendered = !markdownRendered
+        coroutineScope.launch(Dispatchers.IO) {
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(markdownRendered = markdownRendered))
+        }
+        reloadCurrentPage()
+        Timber.d("TextViewerManager: Markdown rendering toggled to $markdownRendered")
+    }
+
+    /**
+     * Apply reader theme (background & text color) to the text viewer.
+     * Saves preference to settings.
+     */
+    fun applyReaderTheme(theme: TextReaderTheme) {
+        currentReaderTheme = theme
+        coroutineScope.launch(Dispatchers.IO) {
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(textReaderTheme = theme.name))
+        }
+        applyThemeToViews()
+        Timber.d("TextViewerManager: Reader theme changed to ${theme.name}")
+    }
+
+    /**
+     * Get current reader theme.
+     */
+    fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
+
+    /**
+     * Toggle TTS read-aloud for current page text.
+     */
+    fun toggleReadAloud() {
+        if (ttsManager == null) {
+            ttsManager = TtsReadAloudManager(context) { state ->
+                Timber.d("TextViewerManager: TTS state changed to $state")
+            }
+        }
+        ttsManager?.toggle(originalTextWithoutNumbers)
+    }
+
+    /**
+     * Check if current file is a markdown file.
+     */
+    private fun isMarkdownFile(): Boolean {
+        val ext = currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
+        return ext == "md" || ext == "markdown" || ext == "mdown"
+    }
+
+    /**
+     * Get file extension for syntax highlighting.
+     */
+    private fun getFileExtension(): String {
+        return currentFile?.path?.substringAfterLast('.', "")?.lowercase() ?: ""
+    }
+
+    /**
+     * Apply current theme colors to text viewer views.
+     */
+    private fun applyThemeToViews() {
+        safeViews.tvTextContent.setBackgroundColor(currentReaderTheme.bgColor)
+        safeViews.tvTextContent.setTextColor(currentReaderTheme.textColor)
+        safeViews.textScrollView.setBackgroundColor(currentReaderTheme.bgColor)
+    }
+
+    /**
+     * Render page content with Markwon, syntax highlighting, and theme applied.
+     * @param pageText Raw page text (without line numbers)
+     * @param showLineNumbers Whether to apply line numbers
+     * @param startLineNumber Starting line number for this page
+     */
+    private fun renderPageContent(pageText: String, showLineNumbers: Boolean, startLineNumber: Int) {
+        if (pageText.isEmpty()) {
+            safeViews.tvTextContent.text = context.getString(R.string.file_is_empty)
+            return
+        }
+
+        val ext = getFileExtension()
+
+        // 1. Markdown rendering (raw text, no line numbers)
+        if (isMarkdownFile() && markdownRendered) {
+            markwon.setMarkdown(safeViews.tvTextContent, pageText)
+            applyThemeToViews()
+            return
+        }
+
+        // 2. Syntax highlighting for code files
+        if (syntaxHighlightingEnabled && SyntaxHighlighter.isSupported(ext)) {
+            val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
+            val highlighted = SyntaxHighlighter.highlight(displayText, ext)
+            if (highlighted != null) {
+                safeViews.tvTextContent.text = highlighted
+                applyThemeToViews()
+                return
+            }
+        }
+
+        // 3. Plain text with line numbers
+        val displayText = applyLineNumbers(pageText, showLineNumbers, startLineNumber)
+        safeViews.tvTextContent.text = displayText
+        applyThemeToViews()
+    }
+
+    /**
+     * Reload the current page with updated rendering settings.
+     */
+    private fun reloadCurrentPage() {
+        val pager = textFilePager ?: return
+        coroutineScope.launch(Dispatchers.IO) {
+            val pageText = pager.readPage(pager.currentPage)
+            originalTextWithoutNumbers = pageText
+            val settings = settingsRepository.getSettings().first()
+            val startLine = pager.getStartLineNumber(pager.currentPage)
+            withContext(Dispatchers.Main) {
+                renderPageContent(pageText, settings.showTextLineNumbers, startLine)
+            }
+        }
     }
 
     private fun enterEditMode() {

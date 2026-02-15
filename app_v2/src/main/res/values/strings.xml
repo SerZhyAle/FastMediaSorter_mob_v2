@@ -1230,6 +1230,18 @@
     <string name="select_encoding">Select Encoding</string>
     <string name="text_editing_large_file">Editing is not available for files with multiple pages</string>
 
+    <!-- Text reader settings -->
+    <string name="reader_settings">Reader Settings</string>
+    <string name="reader_theme">Theme</string>
+    <string name="reader_theme_light">Light</string>
+    <string name="reader_theme_dark">Dark</string>
+    <string name="reader_theme_sepia">Sepia</string>
+    <string name="toggle_markdown">Toggle Markdown</string>
+    <string name="read_aloud">Read Aloud</string>
+    <string name="read_aloud_stop">Stop Reading</string>
+    <string name="tts_reading">Reading aloud…</string>
+    <string name="syntax_highlighting">Syntax Highlighting</string>
+
     <plurals name="added_n_resources">
         <item quantity="one">Added %1$d resource</item>
         <item quantity="other">Added %1$d resources</item>

@@ -66,6 +66,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SHOW_PDF_THUMBNAILS = booleanPreferencesKey("show_pdf_thumbnails")
         private val KEY_TEXT_SIZE_MAX = longPreferencesKey("text_size_max")
         private val KEY_SHOW_TEXT_LINE_NUMBERS = booleanPreferencesKey("show_text_line_numbers")
+        private val KEY_TEXT_READER_THEME = stringPreferencesKey("text_reader_theme")
+        private val KEY_MARKDOWN_RENDERED = booleanPreferencesKey("markdown_rendered")
+        private val KEY_SYNTAX_HIGHLIGHTING = booleanPreferencesKey("syntax_highlighting")
         
         // Translation settings keys
         private val KEY_ENABLE_TRANSLATION = booleanPreferencesKey("enable_translation")
@@ -203,6 +206,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     showPdfThumbnails = preferences[KEY_SHOW_PDF_THUMBNAILS] ?: false,
                     textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 104857600L,
                     showTextLineNumbers = preferences[KEY_SHOW_TEXT_LINE_NUMBERS] ?: false,
+                    textReaderTheme = preferences[KEY_TEXT_READER_THEME] ?: "LIGHT",
+                    markdownRendered = preferences[KEY_MARKDOWN_RENDERED] ?: true,
+                    syntaxHighlighting = preferences[KEY_SYNTAX_HIGHLIGHTING] ?: true,
                     
                     // Translation
                     enableTranslation = preferences[KEY_ENABLE_TRANSLATION] ?: true,
@@ -323,6 +329,9 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_SHOW_PDF_THUMBNAILS] = settings.showPdfThumbnails
             preferences[KEY_TEXT_SIZE_MAX] = settings.textSizeMax
             preferences[KEY_SHOW_TEXT_LINE_NUMBERS] = settings.showTextLineNumbers
+            preferences[KEY_TEXT_READER_THEME] = settings.textReaderTheme
+            preferences[KEY_MARKDOWN_RENDERED] = settings.markdownRendered
+            preferences[KEY_SYNTAX_HIGHLIGHTING] = settings.syntaxHighlighting
             
             // Translation
             preferences[KEY_ENABLE_TRANSLATION] = settings.enableTranslation

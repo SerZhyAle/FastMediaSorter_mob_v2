@@ -100,4 +100,25 @@
         android:title="@string/reopen_with_encoding"
         app:showAsAction="never" />
 
+    <!-- Toggle Markdown rendering (TXT .md only) -->
+    <item
+        android:id="@+id/menu_toggle_markdown"
+        android:icon="@android:drawable/ic_menu_view"
+        android:title="@string/toggle_markdown"
+        app:showAsAction="never" />
+
+    <!-- Reader Settings (TXT) -->
+    <item
+        android:id="@+id/menu_reader_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:title="@string/reader_settings"
+        app:showAsAction="never" />
+
+    <!-- Read Aloud TTS (TXT) -->
+    <item
+        android:id="@+id/menu_read_aloud"
+        android:icon="@android:drawable/ic_lock_silent_mode_off"
+        android:title="@string/read_aloud"
+        app:showAsAction="never" />
+
 </menu>

@@ -51,6 +51,9 @@ data class AppSettings(
     val showPdfThumbnails: Boolean = false, // "Large PDF Thumbnails" - increases size limit for network PDF thumbnails
     val textSizeMax: Long = 104857600L, // 100MB max for internal text viewer
     val showTextLineNumbers: Boolean = false, // Show line numbers for text files
+    val textReaderTheme: String = "LIGHT", // Reader theme: LIGHT, DARK, SEPIA (independent of system)
+    val markdownRendered: Boolean = true, // Render Markdown (.md) or show raw text
+    val syntaxHighlighting: Boolean = true, // Enable syntax highlighting for code files
     
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = true, // Enable translation feature using ML Kit OCR + Translate

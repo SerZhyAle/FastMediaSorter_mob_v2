@@ -24,8 +24,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260215124
-        versionName = "2.60.2151.248"
+        versionCode = 260215125
+        versionName = "2.60.2151.259"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -405,6 +405,9 @@ dependencies {
         exclude(group = "net.sf.kxml", module = "kxml2")
     }
     implementation("org.jsoup:jsoup:1.17.2")
+
+    // Markdown Rendering (for .md text files)
+    implementation("io.noties.markwon:core:4.6.2")
     
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
