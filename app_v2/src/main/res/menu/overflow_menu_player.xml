@@ -135,4 +135,11 @@
         android:title="@string/pdf_night_mode"
         app:showAsAction="never" />
 
+    <!-- PDF Thumbnail Navigation -->
+    <item
+        android:id="@+id/menu_pdf_thumbnails"
+        android:icon="@drawable/ic_view_list"
+        android:title="@string/pdf_thumbnails"
+        app:showAsAction="never" />
+
 </menu>

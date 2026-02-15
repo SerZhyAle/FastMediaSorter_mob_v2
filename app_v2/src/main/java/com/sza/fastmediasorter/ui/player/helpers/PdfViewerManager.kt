@@ -7,9 +7,11 @@ import android.os.ParcelFileDescriptor
 import android.view.GestureDetector
 import android.view.MotionEvent
 import androidx.core.view.isVisible
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.github.chrisbanes.photoview.PhotoView
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -582,6 +584,61 @@ class PdfViewerManager(
      * Get current color mode name for UI display.
      */
     fun getCurrentColorModeName(): String = currentColorMode.name
+    
+    /**
+     * Show thumbnail navigation BottomSheet.
+     * Displays a grid of low-res page thumbnails for quick page jumping.
+     */
+    fun showThumbnailNavigation() {
+        val wrapper = rendererWrapper ?: return
+        if (pdfPageCount <= 1) return
+        
+        val context = binding.root.context
+        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(context)
+        val view: android.view.View = android.view.LayoutInflater.from(context)
+            .inflate(R.layout.bottom_sheet_pdf_thumbnails, null)
+        
+        val rvThumbnails = view.findViewById<RecyclerView>(R.id.rvThumbnails)
+        val tvTitle = view.findViewById<android.widget.TextView>(R.id.tvThumbnailTitle)
+        tvTitle.text = context.getString(R.string.pdf_thumbnails) + " (${pdfPageCount})"
+        
+        val adapter = PdfThumbnailAdapter(
+            rendererWrapper = wrapper,
+            pageCount = pdfPageCount,
+            coroutineScope = coroutineScope,
+            currentPage = currentPdfPageIndex,
+            onPageSelected = { page ->
+                bottomSheet.dismiss()
+                if (isScrollMode) {
+                    val layoutManager = safeViews.pdfScrollRecyclerView.layoutManager as? LinearLayoutManager
+                    layoutManager?.scrollToPositionWithOffset(page, 0)
+                    currentPdfPageIndex = page
+                    binding.tvPdfPageIndicator?.text = "${page + 1} / $pdfPageCount"
+                    saveCurrentPagePosition()
+                } else {
+                    showPdfPage(page)
+                }
+                Timber.d("PDF: Thumbnail navigation jump to page ${page + 1}")
+            }
+        )
+        
+        // 3 columns grid
+        val spanCount = 3
+        rvThumbnails.layoutManager = GridLayoutManager(context, spanCount)
+        rvThumbnails.adapter = adapter
+        
+        // Scroll to current page position
+        val targetRow = currentPdfPageIndex / spanCount
+        rvThumbnails.scrollToPosition(targetRow * spanCount)
+        
+        bottomSheet.setContentView(view)
+        bottomSheet.setOnDismissListener {
+            adapter.clearCache()
+        }
+        bottomSheet.show()
+        
+        Timber.d("PDF: Thumbnail navigation opened, ${pdfPageCount} pages")
+    }
     
     /**
      * Toggle translation on/off for current PDF page

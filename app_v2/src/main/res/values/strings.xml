@@ -1261,6 +1261,7 @@
     <string name="pdf_page_mode">Page Mode</string>
     <string name="pdf_night_mode">Night Mode</string>
     <string name="pdf_color_mode">Color Mode: %s</string>
+    <string name="pdf_thumbnails">Page Thumbnails</string>
 
     <plurals name="added_n_resources">
         <item quantity="one">Added %1$d resource</item>

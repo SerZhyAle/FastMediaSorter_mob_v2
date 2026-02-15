@@ -1099,6 +1099,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onPdfColorModeClicked() {
                     pdfViewerManager.toggleColorMode()
                 }
+
+                override fun onPdfThumbnailsClicked() {
+                    pdfViewerManager.showThumbnailNavigation()
+                }
             }
         )
         // Initialize orientation on startup
