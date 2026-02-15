@@ -1156,6 +1156,7 @@
     <!-- OCR Feature -->
     <string name="enable_ocr">Enable text recognition (OCR)</string>
     <string name="enable_ocr_summary">Extract text from images and PDF for copying</string>
+    <string name="ocr_requires_newer_device">OCR requires newer device (Memory: %1$s, API: %2$d). Requires API 26+ and 4GB+ RAM.</string>
     <string name="ocr_font_size">OCR Font Size</string>
     <string name="ocr_font_family">OCR Font Family</string>
     <string name="ocr_button_description">Extract Text</string>

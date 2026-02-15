@@ -986,7 +986,12 @@ Source: OLD_DEVICE_AND_SCREEN_COMPATIBILITY_SPEC.md §2
 
 ### K.3 — Tablet, Laptop & Screen Adaptation
 
-- [ ] **DONE**
+- [x] **DONE**
+
+**Notes**: 
+- Tablet layout (3+ columns for sw600dp) implemented in `BrowseRecyclerViewManager`
+- Input screens (`AddResourceActivity`, `EditResourceActivity`) already have ScrollView/NestedScrollView wrappers
+- Small screen audit (240×240, 480×480) deferred to K.5 (requires emulator testing)
 
 **Tasks**:
 

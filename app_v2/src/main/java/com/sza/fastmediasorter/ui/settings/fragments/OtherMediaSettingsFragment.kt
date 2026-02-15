@@ -41,6 +41,45 @@ class OtherMediaSettingsFragment : Fragment() {
     }
     
     /**
+     * Hide UI elements that are not supported by the current device hardware/Android version.
+     * OCR requires API 26+ and sufficient RAM (>= 4GB recommended).
+     */
+    private fun applyDeviceCapabilityRestrictions() {
+        // OCR/Text Analysis feature requires modern device
+        val memoryTier = com.sza.fastmediasorter.core.util.MemoryTier.detect(requireContext())
+        val apiLevel = android.os.Build.VERSION.SDK_INT
+        
+        // Hide OCR if device is too old or has insufficient memory
+        if (memoryTier == com.sza.fastmediasorter.core.util.MemoryTier.LOW || apiLevel < 26) {
+            val ocrContainer = binding.switchEnableOcr.parent as? View
+            ocrContainer?.let {
+                // Disable OCR switch and show explanation
+                binding.switchEnableOcr.isEnabled = false
+                binding.switchEnableOcr.isChecked = false
+                binding.tvOcrSummary.isVisible = true
+                binding.tvOcrSummary.text = getString(
+                    com.sza.fastmediasorter.R.string.ocr_requires_newer_device,
+                    memoryTier.name,
+                    apiLevel
+                )
+                binding.tvOcrSummary.alpha = 0.6f // Gray out text
+                
+                // Update settings to disable OCR
+                val current = viewModel.settings.value
+                if (current.enableOcr) {
+                    viewModel.updateSettings(current.copy(enableOcr = false))
+                }
+                
+                timber.log.Timber.i("OtherMediaSettingsFragment: OCR disabled - memoryTier=$memoryTier, API=$apiLevel")
+            }
+            
+            // Hide OCR font settings
+            binding.layoutOcrFontSize?.isVisible = false
+            binding.layoutOcrFontFamily?.isVisible = false
+        }
+    }
+    
+    /**
      * Hide UI elements that are not supported by the current product flavor.
      * Translation and OCR features require ENABLE_TRANSLATION=true.
      */
@@ -60,6 +99,9 @@ class OtherMediaSettingsFragment : Fragment() {
             binding.tvOcrSummary.isVisible = false
             binding.layoutOcrFontSize?.isVisible = false
             binding.layoutOcrFontFamily?.isVisible = false
+        } else {
+            // Flavor supports OCR, but check device capability
+            applyDeviceCapabilityRestrictions()
         }
     }
 
