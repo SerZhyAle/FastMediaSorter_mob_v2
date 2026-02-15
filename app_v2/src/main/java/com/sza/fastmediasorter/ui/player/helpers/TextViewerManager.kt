@@ -85,6 +85,14 @@ class TextViewerManager(
 
     // TTS
     private var ttsManager: TtsReadAloudManager? = null
+
+    // Editor: undo/redo + auto-save
+    private var undoRedoManager: TextUndoRedoManager? = null
+    private var autoSaveManager: TextEditorAutoSaveManager? = null
+
+    // Find & Replace state
+    private var findMatches = mutableListOf<IntRange>()
+    private var findCurrentIndex = -1
     
     // Dynamic font sizes (session-scoped, persist until user exits player)
     private var textFontSizeSp: Float = DEFAULT_TEXT_FONT_SIZE_SP
@@ -198,6 +206,9 @@ class TextViewerManager(
         safeViews.btnSaveText.setOnClickListener {
             saveEditedText()
         }
+
+        // Editor toolbar buttons
+        setupEditorToolbar()
         
         binding.btnTranslateTextCmd.setOnClickListener {
             toggleTranslation()
@@ -769,6 +780,10 @@ class TextViewerManager(
         closePager()
         ttsManager?.release()
         ttsManager = null
+        undoRedoManager?.detach()
+        undoRedoManager = null
+        autoSaveManager?.stopAutoSave()
+        autoSaveManager = null
     }
 
     // ===== H.2: Rich rendering & reader UI methods =====
@@ -896,6 +911,204 @@ class TextViewerManager(
         }
     }
 
+    // ===== H.3: Editor toolbar, find & replace, cursor position =====
+
+    /**
+     * Setup editor toolbar buttons (undo/redo/find/find-replace)
+     */
+    private fun setupEditorToolbar() {
+        safeViews.btnUndo.setOnClickListener {
+            undoRedoManager?.undo()
+        }
+        safeViews.btnRedo.setOnClickListener {
+            undoRedoManager?.redo()
+        }
+        safeViews.btnEditorFind.setOnClickListener {
+            showFindPanel(withReplace = false)
+        }
+        safeViews.btnEditorFindReplace.setOnClickListener {
+            showFindPanel(withReplace = true)
+        }
+
+        // Find panel buttons
+        safeViews.btnFindClose.setOnClickListener { closeFindPanel() }
+        safeViews.btnFindNext.setOnClickListener { navigateFind(forward = true) }
+        safeViews.btnFindPrev.setOnClickListener { navigateFind(forward = false) }
+        safeViews.btnReplace.setOnClickListener { replaceCurrent() }
+        safeViews.btnReplaceAll.setOnClickListener { replaceAll() }
+
+        // Live search on query text change
+        safeViews.etFindQuery.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable) {
+                performFindInEditor(s.toString())
+            }
+        })
+    }
+
+    /**
+     * Track cursor line/column in EditText and update status bar.
+     */
+    private fun setupCursorPositionTracking() {
+        safeViews.etTextContent.setAccessibilityDelegate(null)
+        safeViews.etTextContent.post {
+            updateCursorPosition()
+        }
+        safeViews.etTextContent.setOnClickListener { updateCursorPosition() }
+        safeViews.etTextContent.accessibilityLiveRegion = android.view.View.ACCESSIBILITY_LIVE_REGION_NONE
+    }
+
+    private fun updateCursorPosition() {
+        val text = safeViews.etTextContent.text ?: return
+        val pos = safeViews.etTextContent.selectionStart.coerceIn(0, text.length)
+        val textBefore = text.subSequence(0, pos)
+        val line = textBefore.count { it == '\n' } + 1
+        val lastNewline = textBefore.lastIndexOf('\n')
+        val col = if (lastNewline >= 0) pos - lastNewline else pos + 1
+        safeViews.tvEditorCursorPos.text = context.getString(R.string.cursor_position, line, col)
+    }
+
+    /**
+     * Show the find (and optionally replace) panel.
+     */
+    private fun showFindPanel(withReplace: Boolean) {
+        safeViews.textFindReplacePanel.isVisible = true
+        safeViews.replaceRow.isVisible = withReplace
+        safeViews.etFindQuery.requestFocus()
+        val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(safeViews.etFindQuery, InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    /**
+     * Close find/replace panel and clear highlights.
+     */
+    private fun closeFindPanel() {
+        safeViews.textFindReplacePanel.isVisible = false
+        safeViews.etFindQuery.setText("")
+        safeViews.etReplaceQuery.setText("")
+        safeViews.tvFindCounter.text = ""
+        findMatches.clear()
+        findCurrentIndex = -1
+        // Remove highlight spans
+        clearEditorHighlights()
+    }
+
+    /**
+     * Find all occurrences of query in the EditText content.
+     */
+    private fun performFindInEditor(query: String) {
+        findMatches.clear()
+        findCurrentIndex = -1
+        clearEditorHighlights()
+
+        if (query.isEmpty()) {
+            safeViews.tvFindCounter.text = ""
+            return
+        }
+
+        val text = safeViews.etTextContent.text?.toString() ?: return
+        val lowerQuery = query.lowercase()
+        val lowerText = text.lowercase()
+
+        var startIndex = 0
+        while (true) {
+            val found = lowerText.indexOf(lowerQuery, startIndex)
+            if (found < 0) break
+            findMatches.add(found until found + query.length)
+            startIndex = found + 1
+        }
+
+        if (findMatches.isEmpty()) {
+            safeViews.tvFindCounter.text = context.getString(R.string.find_no_results)
+        } else {
+            findCurrentIndex = 0
+            highlightFindMatch()
+            updateFindCounter()
+        }
+    }
+
+    /**
+     * Navigate to next/previous find match.
+     */
+    private fun navigateFind(forward: Boolean) {
+        if (findMatches.isEmpty()) return
+        findCurrentIndex = if (forward) {
+            (findCurrentIndex + 1) % findMatches.size
+        } else {
+            (findCurrentIndex - 1 + findMatches.size) % findMatches.size
+        }
+        highlightFindMatch()
+        updateFindCounter()
+    }
+
+    /**
+     * Highlight current find match in EditText by selecting it.
+     */
+    private fun highlightFindMatch() {
+        if (findCurrentIndex < 0 || findCurrentIndex >= findMatches.size) return
+        val range = findMatches[findCurrentIndex]
+        val editText = safeViews.etTextContent
+        editText.setSelection(range.first.coerceAtMost(editText.text.length), range.last.coerceAtMost(editText.text.length))
+        // Scroll to selection
+        val layout = editText.layout ?: return
+        val line = layout.getLineForOffset(range.first)
+        val y = layout.getLineTop(line)
+        (editText.parent as? android.widget.ScrollView)?.smoothScrollTo(0, y)
+    }
+
+    private fun updateFindCounter() {
+        if (findMatches.isEmpty()) {
+            safeViews.tvFindCounter.text = context.getString(R.string.find_no_results)
+        } else {
+            safeViews.tvFindCounter.text = context.getString(R.string.find_counter, findCurrentIndex + 1, findMatches.size)
+        }
+    }
+
+    /**
+     * Replace current match with replacement text.
+     */
+    private fun replaceCurrent() {
+        if (findCurrentIndex < 0 || findCurrentIndex >= findMatches.size) return
+        val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
+        val range = findMatches[findCurrentIndex]
+        val editable = safeViews.etTextContent.text ?: return
+
+        editable.replace(range.first, range.last, replacement)
+
+        // Re-run find to update matches after replacement
+        performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
+    }
+
+    /**
+     * Replace all matches.
+     */
+    private fun replaceAll() {
+        if (findMatches.isEmpty()) return
+        val replacement = safeViews.etReplaceQuery.text?.toString() ?: ""
+        val editable = safeViews.etTextContent.text ?: return
+        val count = findMatches.size
+
+        // Replace in reverse order to preserve indices
+        for (range in findMatches.asReversed()) {
+            editable.replace(range.first, range.last, replacement)
+        }
+
+        Toast.makeText(context, context.getString(R.string.replaced_n_occurrences, count), Toast.LENGTH_SHORT).show()
+        performFindInEditor(safeViews.etFindQuery.text?.toString() ?: "")
+    }
+
+    /**
+     * Clear any find-highlight spans from EditText.
+     */
+    private fun clearEditorHighlights() {
+        // With selection-based highlighting, just deselect
+        val et = safeViews.etTextContent
+        if (et.hasSelection()) {
+            et.setSelection(et.selectionEnd)
+        }
+    }
+
     private fun enterEditMode() {
         val pager = textFilePager
         if (pager != null && !pager.isSinglePage()) {
@@ -904,9 +1117,22 @@ class TextViewerManager(
         }
 
         // Use original text without line numbers for editing
-        val textToEdit = originalTextWithoutNumbers.ifBlank { 
+        var textToEdit = originalTextWithoutNumbers.ifBlank { 
             safeViews.tvTextContent.text.toString() 
         }
+
+        // Check for auto-save draft
+        val filePath = currentFile?.path ?: ""
+        if (autoSaveManager == null) {
+            val tempDir = java.io.File(context.filesDir.parentFile, "temp")
+            autoSaveManager = TextEditorAutoSaveManager(tempDir, coroutineScope)
+        }
+        val draft = autoSaveManager?.restoreDraft(filePath)
+        if (draft != null && draft != textToEdit) {
+            textToEdit = draft
+            Toast.makeText(context, R.string.draft_restored, Toast.LENGTH_LONG).show()
+        }
+
         safeViews.etTextContent.setText(textToEdit)
 
         safeViews.textScrollView.isVisible = false
@@ -918,6 +1144,21 @@ class TextViewerManager(
         safeViews.textEditContainer.isVisible = true
         safeViews.etTextContent.requestFocus()
 
+        // Attach undo/redo
+        undoRedoManager = TextUndoRedoManager(safeViews.etTextContent) { canUndo, canRedo ->
+            safeViews.btnUndo.alpha = if (canUndo) 1f else 0.3f
+            safeViews.btnUndo.isEnabled = canUndo
+            safeViews.btnRedo.alpha = if (canRedo) 1f else 0.3f
+            safeViews.btnRedo.isEnabled = canRedo
+        }
+        undoRedoManager?.attach()
+
+        // Start auto-save
+        autoSaveManager?.startAutoSave(safeViews.etTextContent, filePath)
+
+        // Setup cursor position tracking
+        setupCursorPositionTracking()
+
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.showSoftInput(safeViews.etTextContent, InputMethodManager.SHOW_IMPLICIT)
     }
@@ -925,6 +1166,14 @@ class TextViewerManager(
     private fun exitEditMode() {
         val imm = context.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(safeViews.etTextContent.windowToken, 0)
+
+        // Detach undo/redo and stop auto-save
+        undoRedoManager?.detach()
+        undoRedoManager = null
+        autoSaveManager?.stopAutoSave()
+
+        // Close find panel if open
+        closeFindPanel()
 
         safeViews.textEditContainer.isVisible = false
         safeViews.textScrollView.isVisible = true
@@ -981,6 +1230,9 @@ class TextViewerManager(
                     val settings = settingsRepository.getSettings().first()
                     val displayText = applyLineNumbers(newText, settings.showTextLineNumbers, 1)
                     safeViews.tvTextContent.text = displayText
+
+                    // Delete auto-save draft after successful save
+                    autoSaveManager?.stopAutoSave(deleteDraft = true)
                     
                     exitEditMode()
                     Toast.makeText(context, R.string.toast_text_saved, Toast.LENGTH_SHORT).show()

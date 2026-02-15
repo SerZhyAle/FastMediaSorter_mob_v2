@@ -126,6 +126,26 @@ class PlayerBindingSafeViews(
     val tvTextPageIndicator: TextView get() = required(R.id.tvTextPageIndicator)
     val tvTextEncodingIndicator: TextView get() = required(R.id.tvTextEncodingIndicator)
 
+    // Editor toolbar
+    val editorToolbar: LinearLayout get() = required(R.id.editorToolbar)
+    val btnUndo: ImageButton get() = required(R.id.btnUndo)
+    val btnRedo: ImageButton get() = required(R.id.btnRedo)
+    val btnEditorFind: ImageButton get() = required(R.id.btnEditorFind)
+    val btnEditorFindReplace: ImageButton get() = required(R.id.btnEditorFindReplace)
+    val tvEditorCursorPos: TextView get() = required(R.id.tvEditorCursorPos)
+
+    // Find & Replace panel
+    val textFindReplacePanel: LinearLayout get() = required(R.id.textFindReplacePanel)
+    val etFindQuery: EditText get() = required(R.id.etFindQuery)
+    val tvFindCounter: TextView get() = required(R.id.tvFindCounter)
+    val btnFindPrev: ImageButton get() = required(R.id.btnFindPrev)
+    val btnFindNext: ImageButton get() = required(R.id.btnFindNext)
+    val btnFindClose: ImageButton get() = required(R.id.btnFindClose)
+    val replaceRow: LinearLayout get() = required(R.id.replaceRow)
+    val etReplaceQuery: EditText get() = required(R.id.etReplaceQuery)
+    val btnReplace: MaterialButton get() = required(R.id.btnReplace)
+    val btnReplaceAll: MaterialButton get() = required(R.id.btnReplaceAll)
+
     val pdfControlsLayout: LinearLayout get() = required(R.id.pdfControlsLayout)
     val epubControlsLayout: LinearLayout get() = required(R.id.epubControlsLayout)
     val translationOverlay: CardView get() = required(R.id.translationOverlay)
@@ -218,6 +238,42 @@ val ActivityPlayerUnifiedBinding.tvTextPageIndicator: TextView
 
 val ActivityPlayerUnifiedBinding.tvTextEncodingIndicator: TextView
     get() = requiredFromRoot(R.id.tvTextEncodingIndicator)
+
+// Editor toolbar
+val ActivityPlayerUnifiedBinding.editorToolbar: LinearLayout
+    get() = requiredFromRoot(R.id.editorToolbar)
+val ActivityPlayerUnifiedBinding.btnUndo: ImageButton
+    get() = requiredFromRoot(R.id.btnUndo)
+val ActivityPlayerUnifiedBinding.btnRedo: ImageButton
+    get() = requiredFromRoot(R.id.btnRedo)
+val ActivityPlayerUnifiedBinding.btnEditorFind: ImageButton
+    get() = requiredFromRoot(R.id.btnEditorFind)
+val ActivityPlayerUnifiedBinding.btnEditorFindReplace: ImageButton
+    get() = requiredFromRoot(R.id.btnEditorFindReplace)
+val ActivityPlayerUnifiedBinding.tvEditorCursorPos: TextView
+    get() = requiredFromRoot(R.id.tvEditorCursorPos)
+
+// Find & Replace panel
+val ActivityPlayerUnifiedBinding.textFindReplacePanel: LinearLayout
+    get() = requiredFromRoot(R.id.textFindReplacePanel)
+val ActivityPlayerUnifiedBinding.etFindQuery: EditText
+    get() = requiredFromRoot(R.id.etFindQuery)
+val ActivityPlayerUnifiedBinding.tvFindCounter: TextView
+    get() = requiredFromRoot(R.id.tvFindCounter)
+val ActivityPlayerUnifiedBinding.btnFindPrev: ImageButton
+    get() = requiredFromRoot(R.id.btnFindPrev)
+val ActivityPlayerUnifiedBinding.btnFindNext: ImageButton
+    get() = requiredFromRoot(R.id.btnFindNext)
+val ActivityPlayerUnifiedBinding.btnFindClose: ImageButton
+    get() = requiredFromRoot(R.id.btnFindClose)
+val ActivityPlayerUnifiedBinding.replaceRow: LinearLayout
+    get() = requiredFromRoot(R.id.replaceRow)
+val ActivityPlayerUnifiedBinding.etReplaceQuery: EditText
+    get() = requiredFromRoot(R.id.etReplaceQuery)
+val ActivityPlayerUnifiedBinding.btnReplace: MaterialButton
+    get() = requiredFromRoot(R.id.btnReplace)
+val ActivityPlayerUnifiedBinding.btnReplaceAll: MaterialButton
+    get() = requiredFromRoot(R.id.btnReplaceAll)
 
 val ActivityPlayerUnifiedBinding.pdfControlsLayout: LinearLayout
     get() = requiredFromRoot(R.id.pdfControlsLayout)

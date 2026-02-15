@@ -98,12 +98,202 @@
             android:singleLine="true" />
     </LinearLayout>
 
+    <!-- Find & Replace panel (shown during search in text viewer) -->
+    <LinearLayout
+        android:id="@+id/textFindReplacePanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:orientation="vertical"
+        android:background="#E0303030"
+        android:paddingHorizontal="8dp"
+        android:paddingVertical="4dp"
+        android:elevation="6dp"
+        android:visibility="gone">
+
+        <!-- Find row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <EditText
+                android:id="@+id/etFindQuery"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_rounded_input"
+                android:hint="@string/find_hint"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingHorizontal="8dp"
+                android:textColor="@android:color/white"
+                android:textColorHint="#80FFFFFF"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvFindCounter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="4dp"
+                android:textColor="#B0FFFFFF"
+                android:textSize="11sp"
+                android:minWidth="32dp"
+                android:gravity="center" />
+
+            <ImageButton
+                android:id="@+id/btnFindPrev"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/previous"
+                android:src="@drawable/ic_arrow_back"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btnFindNext"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/next"
+                android:src="@drawable/ic_arrow_forward"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btnFindClose"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/close"
+                android:src="@drawable/ic_cancel"
+                app:tint="@android:color/white" />
+        </LinearLayout>
+
+        <!-- Replace row -->
+        <LinearLayout
+            android:id="@+id/replaceRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone">
+
+            <EditText
+                android:id="@+id/etReplaceQuery"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_rounded_input"
+                android:hint="@string/replace_hint"
+                android:importantForAutofill="no"
+                android:inputType="text"
+                android:maxLines="1"
+                android:paddingHorizontal="8dp"
+                android:textColor="@android:color/white"
+                android:textColorHint="#80FFFFFF"
+                android:textSize="13sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReplace"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/replace"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnReplaceAll"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:minWidth="0dp"
+                android:paddingHorizontal="8dp"
+                android:text="@string/replace_all"
+                android:textColor="@android:color/white"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
     <LinearLayout
         android:id="@+id/textEditContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:visibility="gone">
+
+        <!-- Editor toolbar: undo/redo/find -->
+        <LinearLayout
+            android:id="@+id/editorToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="4dp"
+            android:background="@color/activity_player_unified_topCommandPanel_background">
+
+            <ImageButton
+                android:id="@+id/btnUndo"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/undo"
+                android:src="@drawable/ic_undo"
+                app:tint="@android:color/white"
+                android:alpha="0.3" />
+
+            <ImageButton
+                android:id="@+id/btnRedo"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/redo"
+                android:src="@drawable/ic_redo"
+                app:tint="@android:color/white"
+                android:alpha="0.3" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="24dp"
+                android:layout_marginHorizontal="4dp"
+                android:background="#40FFFFFF" />
+
+            <ImageButton
+                android:id="@+id/btnEditorFind"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/search"
+                android:src="@android:drawable/ic_menu_search"
+                app:tint="@android:color/white" />
+
+            <ImageButton
+                android:id="@+id/btnEditorFindReplace"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/find_and_replace"
+                android:src="@drawable/ic_find_replace"
+                app:tint="@android:color/white" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvEditorCursorPos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="#B0FFFFFF"
+                android:textSize="11sp"
+                android:paddingHorizontal="8dp" />
+        </LinearLayout>
 
         <ScrollView
             android:layout_width="match_parent"

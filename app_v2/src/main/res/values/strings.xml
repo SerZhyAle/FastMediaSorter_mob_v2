@@ -1242,6 +1242,19 @@
     <string name="tts_reading">Reading aloud…</string>
     <string name="syntax_highlighting">Syntax Highlighting</string>
 
+    <!-- H.3: Editor enhancements -->
+    <string name="redo">Redo</string>
+    <string name="find_hint">Find…</string>
+    <string name="replace_hint">Replace with…</string>
+    <string name="replace">Replace</string>
+    <string name="replace_all">Replace All</string>
+    <string name="find_and_replace">Find and Replace</string>
+    <string name="find_no_results">No results</string>
+    <string name="find_counter">%1$d / %2$d</string>
+    <string name="replaced_n_occurrences">Replaced %1$d occurrences</string>
+    <string name="draft_restored">Draft restored. Tap Save to keep changes.</string>
+    <string name="cursor_position">Ln %1$d, Col %2$d</string>
+
     <plurals name="added_n_resources">
         <item quantity="one">Added %1$d resource</item>
         <item quantity="other">Added %1$d resources</item>
