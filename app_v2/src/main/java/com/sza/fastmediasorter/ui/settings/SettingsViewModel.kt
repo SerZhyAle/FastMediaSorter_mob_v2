@@ -346,80 +346,94 @@ class SettingsViewModel @Inject constructor(
                             val disableThumbnails = parser.getAttributeValue(null, "disableThumbnails")?.toBoolean() ?: false
                             val showHidden = parser.getAttributeValue(null, "showHiddenFiles")?.toBoolean() ?: false
                             
-                            // Check if resource exists
-                            if (existingResources.any { it.path == path }) {
-                                Timber.d("Resource already exists: $path")
-                            } else {
-                                val type = try {
-                                    com.sza.fastmediasorter.domain.model.ResourceType.valueOf(typeStr)
-                                } catch (e: Exception) {
-                                    com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
-                                }
-                                
-                                // Handle Credentials
-                                var credId: String? = null
-                                if (!username.isNullOrEmpty() && (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB || type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP || type == com.sza.fastmediasorter.domain.model.ResourceType.FTP)) {
-                                    // Parse server from URI
-                                    // java.net.URI can be strict, so we parse manually or use utils
-                                    val server = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
-                                        com.sza.fastmediasorter.utils.SmbPathUtils.extractServer(path) ?: ""
-                                    } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) {
-                                        com.sza.fastmediasorter.utils.FtpPathUtils.parseFtpPath(path)?.host ?: ""
-                                    } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) {
-                                        com.sza.fastmediasorter.utils.SftpPathUtils.parseSftpPath(path)?.host ?: ""
-                                    } else {
-                                        // Fallback
-                                        try {
-                                            java.net.URI(path).host ?: ""
-                                        } catch (e: Exception) { "" }
-                                    }
-                                    
-                                    // Check existing credentials
-                                    // Filter existing credentials list for match
-                                    val existingCred = existingCredentials.find { 
-                                        it.server == server && it.username == username && it.type == typeStr
-                                    }
-                                    
-                                    if (existingCred != null) {
-                                        credId = existingCred.credentialId
-                                    } else {
-                                        // Create new
-                                        val newCredId = java.util.UUID.randomUUID().toString()
-                                        val port = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) 22 else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) 21 else 445
-                                        val newCred = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
-                                            credentialId = newCredId,
-                                            type = typeStr,
-                                            server = server,
-                                            port = port,
-                                            username = username,
-                                            plaintextPassword = password ?: ""
-                                        )
-                                        credentialsRepository.insert(newCred)
-                                        credId = newCredId
-                                        Timber.d("Created credential for $username@$server")
-                                    }
-                                }
-                                
-                                // Parse other fields
-                                val mediaTypes = if (supportedTypesStr != null) {
-                                    supportedTypesStr.split(",").mapNotNull { 
-                                        try {
-                                            com.sza.fastmediasorter.domain.model.MediaType.valueOf(it.trim())
-                                        } catch (e: Exception) { null }
-                                    }.toSet()
+                            val type = try {
+                                com.sza.fastmediasorter.domain.model.ResourceType.valueOf(typeStr)
+                            } catch (e: Exception) {
+                                com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
+                            }
+                            
+                            // Handle Credentials - UPDATE existing or CREATE new
+                            var credId: String? = null
+                            if (!username.isNullOrEmpty() && (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB || type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP || type == com.sza.fastmediasorter.domain.model.ResourceType.FTP)) {
+                                // Parse server from URI
+                                val server = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SMB) {
+                                    com.sza.fastmediasorter.utils.SmbPathUtils.extractServer(path) ?: ""
+                                } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) {
+                                    com.sza.fastmediasorter.utils.FtpPathUtils.parseFtpPath(path)?.host ?: ""
+                                } else if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) {
+                                    com.sza.fastmediasorter.utils.SftpPathUtils.parseSftpPath(path)?.host ?: ""
                                 } else {
-                                    setOf(com.sza.fastmediasorter.domain.model.MediaType.IMAGE, com.sza.fastmediasorter.domain.model.MediaType.VIDEO)
+                                    try {
+                                        java.net.URI(path).host ?: ""
+                                    } catch (e: Exception) { "" }
                                 }
                                 
-                                val sortMode = try {
-                                    com.sza.fastmediasorter.domain.model.SortMode.valueOf(sortModeStr ?: "NAME_ASC")
-                                } catch (e: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
+                                // Check existing credentials
+                                val existingCred = existingCredentials.find { 
+                                    it.server == server && it.username == username && it.type == typeStr
+                                }
                                 
-                                val displayMode = try {
-                                    com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(displayModeStr ?: "LIST")
-                                } catch (e: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
-                                
-                                // Destination logic
+                                if (existingCred != null) {
+                                    credId = existingCred.credentialId
+                                    // UPDATE password from XML
+                                    if (!password.isNullOrEmpty()) {
+                                        val updatedCred = existingCred.copy(
+                                            encryptedPassword = com.sza.fastmediasorter.data.local.db.CryptoHelper.encrypt(password) ?: ""
+                                        )
+                                        credentialsRepository.update(updatedCred)
+                                        Timber.d("Updated password for credential $username@$server from XML")
+                                    }
+                                } else {
+                                    // Create new
+                                    val newCredId = java.util.UUID.randomUUID().toString()
+                                    val port = if (type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP) 22 else if (type == com.sza.fastmediasorter.domain.model.ResourceType.FTP) 21 else 445
+                                    val newCred = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
+                                        credentialId = newCredId,
+                                        type = typeStr,
+                                        server = server,
+                                        port = port,
+                                        username = username,
+                                        plaintextPassword = password ?: ""
+                                    )
+                                    credentialsRepository.insert(newCred)
+                                    credId = newCredId
+                                    Timber.d("Created credential for $username@$server from XML")
+                                }
+                            }
+                            
+                            // Parse other fields
+                            val mediaTypes = if (supportedTypesStr != null) {
+                                supportedTypesStr.split(",").mapNotNull { 
+                                    try {
+                                        com.sza.fastmediasorter.domain.model.MediaType.valueOf(it.trim())
+                                    } catch (e: Exception) { null }
+                                }.toSet()
+                            } else {
+                                setOf(com.sza.fastmediasorter.domain.model.MediaType.IMAGE, com.sza.fastmediasorter.domain.model.MediaType.VIDEO)
+                            }
+                            
+                            val sortMode = try {
+                                com.sza.fastmediasorter.domain.model.SortMode.valueOf(sortModeStr ?: "NAME_ASC")
+                            } catch (e: Exception) { com.sza.fastmediasorter.domain.model.SortMode.NAME_ASC }
+                            
+                            val displayMode = try {
+                                com.sza.fastmediasorter.domain.model.DisplayMode.valueOf(displayModeStr ?: "LIST")
+                            } catch (e: Exception) { com.sza.fastmediasorter.domain.model.DisplayMode.LIST }
+                            
+                            // Check if resource exists - UPDATE or INSERT
+                            val existingResource = existingResources.find { it.path == path }
+                            
+                            if (existingResource != null) {
+                                // UPDATE existing resource - preserve local changes, apply XML credentials
+                                val updatedResource = existingResource.copy(
+                                    name = name,
+                                    credentialsId = credId ?: existingResource.credentialsId,
+                                    accessPin = pin ?: existingResource.accessPin
+                                )
+                                resourceRepository.updateResource(updatedResource)
+                                Timber.d("Updated SZA resource from XML: $name (path: $path)")
+                            } else {
+                                // Destination logic for NEW resources only
                                 var isDest = false
                                 var destOrder: Int? = null
                                 var destColor = 0
@@ -454,7 +468,7 @@ class SettingsViewModel @Inject constructor(
                                 )
                                 
                                 resourceRepository.addResource(newResource)
-                                Timber.d("Added SZA resource: $name")
+                                Timber.d("Added SZA resource from XML: $name (path: $path)")
                             }
                         } catch (e: Exception) {
                             Timber.e(e, "Error parsing resource entry")
