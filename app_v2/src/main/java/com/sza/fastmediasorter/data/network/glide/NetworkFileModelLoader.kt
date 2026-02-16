@@ -15,8 +15,10 @@ import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
@@ -63,9 +65,9 @@ class NetworkFileModelLoader(
         val extension = model.path.substringAfterLast('.', "").lowercase()
         val isVideo = extension in VIDEO_EXTENSIONS
         
-        val result = (model.path.startsWith("smb://") || 
-                model.path.startsWith("sftp://") || 
-                model.path.startsWith("ftp://")) && !isPdf && !isEpub && !isVideo
+        val result = (model.path.startsWith("smb://", ignoreCase = true) || 
+            model.path.startsWith("sftp://", ignoreCase = true) || 
+            model.path.startsWith("ftp://", ignoreCase = true)) && !isPdf && !isEpub && !isVideo
         
         // Debug logging to track video filtering
         if (isVideo) {
@@ -191,9 +193,9 @@ class NetworkFileDataFetcher(
                 val maxBytes = if (data.loadFullImage) Long.MAX_VALUE else THUMBNAIL_MAX_BYTES
                 
                 val bytes = when {
-                    data.path.startsWith("smb://") -> fetchBytesFromSmb(maxBytes)
-                    data.path.startsWith("sftp://") -> fetchBytesFromSftp(maxBytes)
-                    data.path.startsWith("ftp://") -> fetchBytesFromFtp(maxBytes)
+                    data.path.startsWith("smb://", ignoreCase = true) -> fetchBytesFromSmb(maxBytes)
+                    data.path.startsWith("sftp://", ignoreCase = true) -> fetchBytesFromSftp(maxBytes)
+                    data.path.startsWith("ftp://", ignoreCase = true) -> fetchBytesFromFtp(maxBytes)
                     else -> null
                 }
 
@@ -214,12 +216,19 @@ class NetworkFileDataFetcher(
                 // Return ByteArrayInputStream to Glide (fully buffered, no synchronization issues)
                 callback.onDataReady(ByteArrayInputStream(bytes))
             } catch (e: Exception) {
-                if (!isCancelled) {
-                    Timber.e(e, "NetworkFileDataFetcher: Exception while loading $fileName")
-                    callback.onLoadFailed(e)
-                } else {
-                    Timber.d("NetworkFileDataFetcher: Exception after cancel for $fileName")
-                    callback.onLoadFailed(Exception("Request cancelled"))
+                when {
+                    e is CancellationException || e.cause is CancellationException -> {
+                        Timber.d("NetworkFileDataFetcher: Loading cancelled for $fileName (video priority throttle)")
+                        callback.onLoadFailed(e)
+                    }
+                    !isCancelled -> {
+                        Timber.e(e, "NetworkFileDataFetcher: Exception while loading $fileName")
+                        callback.onLoadFailed(e)
+                    }
+                    else -> {
+                        Timber.d("NetworkFileDataFetcher: Exception after cancel for $fileName")
+                        callback.onLoadFailed(Exception("Request cancelled"))
+                    }
                 }
             }
         }
@@ -228,7 +237,7 @@ class NetworkFileDataFetcher(
     private suspend fun fetchBytesFromSmb(maxBytes: Long): ByteArray? {
         val fileName = data.path.substringAfterLast('/')
         Timber.d("fetchBytesFromSmb START: $fileName, maxBytes=${maxBytes / 1024}KB")
-        val uri = data.path.removePrefix("smb://")
+        val uri = data.path.replaceFirst(Regex("^smb://", RegexOption.IGNORE_CASE), "")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) return null
 
@@ -306,7 +315,7 @@ class NetworkFileDataFetcher(
     private suspend fun fetchBytesFromSftp(maxBytes: Long): ByteArray? {
         val fileName = data.path.substringAfterLast('/')
         Timber.d("fetchBytesFromSftp START: $fileName, maxBytes=${maxBytes / 1024}KB")
-        val uri = data.path.removePrefix("sftp://")
+        val uri = data.path.replaceFirst(Regex("^sftp://", RegexOption.IGNORE_CASE), "")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) return null
 
@@ -358,8 +367,13 @@ class NetworkFileDataFetcher(
                 result.getOrNull()?.also {
                     Timber.d("fetchBytesFromSftp SUCCESS: $fileName, ${it.size / 1024}KB")
                 }
-            } catch (e: Exception) {
+            } catch (e: TimeoutCancellationException) {
                 Timber.w("fetchBytesFromSftp TIMEOUT: $fileName - ${e.message}")
+                null
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "fetchBytesFromSftp FAILED: $fileName")
                 null
             }
         }
@@ -368,7 +382,7 @@ class NetworkFileDataFetcher(
     private suspend fun fetchBytesFromFtp(maxBytes: Long): ByteArray? {
         val fileName = data.path.substringAfterLast('/')
         Timber.d("fetchBytesFromFtp START: $fileName, maxBytes=${maxBytes / 1024}KB")
-        val uri = data.path.removePrefix("ftp://")
+        val uri = data.path.replaceFirst(Regex("^ftp://", RegexOption.IGNORE_CASE), "")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) return null
 
@@ -421,8 +435,13 @@ class NetworkFileDataFetcher(
                 result.getOrNull()?.also {
                     Timber.d("fetchBytesFromFtp SUCCESS: $fileName, ${it.size / 1024}KB")
                 }
-            } catch (e: Exception) {
+            } catch (e: TimeoutCancellationException) {
                 Timber.w("fetchBytesFromFtp TIMEOUT: $fileName - ${e.message}")
+                null
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.w(e, "fetchBytesFromFtp FAILED: $fileName")
                 null
             }
         }

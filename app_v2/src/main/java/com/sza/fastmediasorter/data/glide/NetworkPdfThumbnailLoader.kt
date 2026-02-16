@@ -76,9 +76,9 @@ class NetworkPdfThumbnailLoader(
 
     override fun handles(model: NetworkFileData): Boolean {
         return model.path.endsWith(".pdf", ignoreCase = true) &&
-               (model.path.startsWith("smb://") || 
-                model.path.startsWith("sftp://") || 
-                model.path.startsWith("ftp://"))
+               (model.path.startsWith("smb://", ignoreCase = true) || 
+                model.path.startsWith("sftp://", ignoreCase = true) || 
+                model.path.startsWith("ftp://", ignoreCase = true))
     }
 
     class Factory(
@@ -197,16 +197,16 @@ private class NetworkPdfDataFetcher(
     private fun downloadPdfToFile(file: File) {
         runBlocking {
             when {
-                data.path.startsWith("smb://") -> downloadFromSmb(file)
-                data.path.startsWith("sftp://") -> downloadFromSftp(file)
-                data.path.startsWith("ftp://") -> downloadFromFtp(file)
+                data.path.startsWith("smb://", ignoreCase = true) -> downloadFromSmb(file)
+                data.path.startsWith("sftp://", ignoreCase = true) -> downloadFromSftp(file)
+                data.path.startsWith("ftp://", ignoreCase = true) -> downloadFromFtp(file)
                 else -> throw IllegalArgumentException("Unsupported protocol: ${data.path}")
             }
         }
     }
     
     private suspend fun downloadFromSmb(file: File) {
-        val uri = data.path.removePrefix("smb://")
+        val uri = data.path.replaceFirst(Regex("^smb://", RegexOption.IGNORE_CASE), "")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) throw IOException("Invalid SMB path")
         
@@ -283,7 +283,7 @@ private class NetworkPdfDataFetcher(
     }
     
     private suspend fun downloadFromSftp(file: File) {
-        val uri = data.path.removePrefix("sftp://")
+        val uri = data.path.replaceFirst(Regex("^sftp://", RegexOption.IGNORE_CASE), "")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) throw IOException("Invalid SFTP path")
         
@@ -345,7 +345,7 @@ private class NetworkPdfDataFetcher(
     }
     
     private suspend fun downloadFromFtp(file: File) {
-        val uri = data.path.removePrefix("ftp://")
+        val uri = data.path.replaceFirst(Regex("^ftp://", RegexOption.IGNORE_CASE), "")
         val parts = uri.split("/", limit = 2)
         if (parts.isEmpty()) throw IOException("Invalid FTP path")
         

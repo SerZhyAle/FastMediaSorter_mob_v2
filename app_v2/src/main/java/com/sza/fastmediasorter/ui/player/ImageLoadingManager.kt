@@ -1136,8 +1136,8 @@ class ImageLoadingManager(
                 // Try to extract embedded cover art using MediaMetadataRetriever
                 Timber.d("Extracting embedded cover art for ${file.name}")
                 val coverBitmap = withContext(Dispatchers.IO) {
+                    val retriever = android.media.MediaMetadataRetriever()
                     try {
-                        val retriever = android.media.MediaMetadataRetriever()
                         retriever.setDataSource(file.path)
                         
                         // Try to get embedded picture
@@ -1147,8 +1147,6 @@ class ImageLoadingManager(
                         val hasAudio = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_HAS_AUDIO)
                         val mimeType = retriever.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
                         Timber.d("MediaMetadataRetriever: hasAudio=$hasAudio, mimeType=$mimeType, embeddedPicture=${embeddedPicture?.size} bytes")
-                        
-                        retriever.release()
                         
                         if (embeddedPicture != null) {
                             Timber.d("Found embedded cover art, decoding bitmap (${embeddedPicture.size} bytes)")
@@ -1160,6 +1158,8 @@ class ImageLoadingManager(
                     } catch (e: Exception) {
                         Timber.w(e, "Failed to extract embedded cover art")
                         null
+                    } finally {
+                        retriever.release()
                     }
                 }
                 

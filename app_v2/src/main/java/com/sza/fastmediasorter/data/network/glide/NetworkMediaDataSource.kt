@@ -219,7 +219,20 @@ class NetworkMediaDataSource(
         )
 
         val result = sftpClient.readFileBytesRange(connectionInfo, remotePath, offset, length)
-        result.getOrNull() ?: throw IOException("SFTP read failed")
+        result.getOrNull() ?: run {
+            val cause = result.exceptionOrNull()
+            Timber.e(
+                cause,
+                "SFTP range read failed [path=%s, offset=%d, length=%d]",
+                remotePath,
+                offset,
+                length
+            )
+            throw IOException(
+                "SFTP read failed [path=$remotePath, offset=$offset, length=$length, cause=${cause?.message}]",
+                cause
+            )
+        }
     }
 
     private fun readFromFtp(offset: Long, length: Long): ByteArray = runBlocking {
@@ -280,7 +293,7 @@ class NetworkMediaDataSource(
             // Read bytes using pooled connection directly
             val client = connection.client
             val bytes = synchronized(client) {
-                val readInCurrentMode: () -> ByteArray = {
+                val readInCurrentMode: (modeLabel: String) -> ByteArray = { modeLabel ->
                     client.setRestartOffset(offset)
 
                     client.retrieveFileStream(remotePath)?.use { inputStream ->
@@ -294,7 +307,17 @@ class NetworkMediaDataSource(
                         }
 
                         if (!client.completePendingCommand()) {
-                            throw IOException("FTP completePendingCommand failed")
+                            val replyCode = runCatching { client.replyCode }.getOrDefault(-1)
+                            val replyString = runCatching { client.replyString }.getOrNull().orEmpty().trim()
+                            Timber.e(
+                                "FTP range read completePendingCommand failed " +
+                                    "[mode=$modeLabel, path=$remotePath, offset=$offset, length=$length, " +
+                                    "replyCode=$replyCode, reply='$replyString']"
+                            )
+                            throw IOException(
+                                "FTP completePendingCommand failed " +
+                                    "(mode=$modeLabel, replyCode=$replyCode, reply=$replyString)"
+                            )
                         }
 
                         if (totalRead < length) {
@@ -302,11 +325,23 @@ class NetworkMediaDataSource(
                         } else {
                             buffer
                         }
-                    } ?: throw IOException("Failed to open FTP stream: $remotePath")
+                    } ?: run {
+                        val replyCode = runCatching { client.replyCode }.getOrDefault(-1)
+                        val replyString = runCatching { client.replyString }.getOrNull().orEmpty().trim()
+                        Timber.e(
+                            "FTP retrieveFileStream returned null " +
+                                "[mode=$modeLabel, path=$remotePath, offset=$offset, length=$length, " +
+                                "replyCode=$replyCode, reply='$replyString']"
+                        )
+                        throw IOException(
+                            "Failed to open FTP stream: $remotePath " +
+                                "(mode=$modeLabel, replyCode=$replyCode, reply=$replyString)"
+                        )
+                    }
                 }
 
                 try {
-                    readInCurrentMode()
+                    readInCurrentMode("passive")
                 } catch (e: Exception) {
                     val shouldRetryInActiveMode = e is SocketTimeoutException ||
                         (e.cause is SocketTimeoutException) ||
@@ -320,7 +355,7 @@ class NetworkMediaDataSource(
                     client.enterLocalActiveMode()
 
                     try {
-                        readInCurrentMode()
+                        readInCurrentMode("active")
                     } finally {
                         try {
                             client.enterLocalPassiveMode()

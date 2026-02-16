@@ -105,7 +105,7 @@ class ImageEditDialog(
     }
     
     private fun performFilter(filterType: ApplyImageFilterUseCase.FilterType) {
-        showProgress("Applying filter...")
+        showProgress(context.getString(R.string.progress_applying_filter))
         setButtonsEnabled(false)
         
         dialogScope.launch {
@@ -146,7 +146,7 @@ class ImageEditDialog(
         val contrast = binding.seekContrast.progress / 100f // 0.0 to 2.0
         val saturation = binding.seekSaturation.progress / 100f // 0.0 to 2.0
         
-        showProgress("Applying adjustments...")
+        showProgress(context.getString(R.string.progress_applying_adjustments))
         setButtonsEnabled(false)
         
         dialogScope.launch {
@@ -188,7 +188,7 @@ class ImageEditDialog(
     }
 
     private fun performRotation(angle: Float) {
-        showProgress("Rotating image...")
+        showProgress(context.getString(R.string.progress_rotating_image))
         setButtonsEnabled(false)
         
         dialogScope.launch {
@@ -226,7 +226,7 @@ class ImageEditDialog(
 
     private fun performFlip(direction: FlipImageUseCase.FlipDirection) {
         val directionText = if (direction == FlipImageUseCase.FlipDirection.HORIZONTAL) "horizontally" else "vertically"
-        showProgress("Flipping image $directionText...")
+        showProgress(context.getString(R.string.progress_flipping_image, directionText))
         setButtonsEnabled(false)
         
         dialogScope.launch {

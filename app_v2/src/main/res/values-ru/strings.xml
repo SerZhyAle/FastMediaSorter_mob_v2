@@ -1082,6 +1082,13 @@
     <string name="toast_image_flipped">Изображение отражено</string>
     <string name="toast_flip_failed">Не удалось отразить: %1$s</string>
     <string name="toast_filter_active">Фильтр активен…</string>
+    
+    <!-- Прогресс-сообщения для редактирования изображений -->
+    <string name="progress_applying_filter">Применение фильтра…</string>
+    <string name="progress_applying_adjustments">Применение настроек…</string>
+    <string name="progress_rotating_image">Поворот изображения…</string>
+    <string name="progress_flipping_image">Отражение изображения %1$s…</string>
+    
     <string name="toast_no_files_to_play">Нет файлов для воспроизведения</string>
     <string name="toast_file_unavailable">Этот файл сейчас недоступен, выберите ресурс для проигрывания</string>
     <string name="toast_resource_not_loaded">Ресурс не загружен</string>

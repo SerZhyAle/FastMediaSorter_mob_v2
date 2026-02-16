@@ -57,7 +57,7 @@ class TouchZoneDetector {
         // Get action based on zone map type
         return when (zoneMap) {
             TouchZoneMap.REG_9100, TouchZoneMap.REG_975 -> {
-                TouchZoneConfig.get9ZoneTapAction(row, column)
+                TouchZoneConfig.get9ZoneTapAction(row, column, zoneMap)
             }
             TouchZoneMap.REG_3100 -> {
                 TouchZoneConfig.get3ZoneImageTapAction(column)

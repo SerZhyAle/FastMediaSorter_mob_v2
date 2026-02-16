@@ -1072,6 +1072,13 @@
     <string name="toast_image_flipped">Зображення відображено</string>
     <string name="toast_flip_failed">Не вдалося відобразити: %1$s</string>
     <string name="toast_filter_active">Фільтр активний…</string>
+    
+    <!-- Повідомлення прогресу для редагування зображень -->
+    <string name="progress_applying_filter">Застосування фільтра…</string>
+    <string name="progress_applying_adjustments">Застосування налаштувань…</string>
+    <string name="progress_rotating_image">Поворот зображення…</string>
+    <string name="progress_flipping_image">Відображення зображення %1$s…</string>
+    
     <string name="toast_no_files_to_play">Немає файлів для відтворення</string>
     <string name="toast_file_unavailable">Цей файл зараз недоступний, виберіть ресурс для відтворення</string>
     <string name="toast_resource_not_loaded">Ресурс не завантажено</string>

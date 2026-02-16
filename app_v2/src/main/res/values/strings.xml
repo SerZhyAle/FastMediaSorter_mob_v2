@@ -1231,6 +1231,13 @@
     <string name="toast_image_flipped">Image flipped successfully</string>
     <string name="toast_flip_failed">Failed to flip: %1$s</string>
     <string name="toast_filter_active">Filter active…</string>
+    
+    <!-- Progress messages for image editing -->
+    <string name="progress_applying_filter">Applying filter…</string>
+    <string name="progress_applying_adjustments">Applying adjustments…</string>
+    <string name="progress_rotating_image">Rotating image…</string>
+    <string name="progress_flipping_image">Flipping image %1$s…</string>
+    
     <string name="toast_no_files_to_play">No files to play</string>
     <string name="toast_file_unavailable">This file is currently unavailable, please select a resource to play</string>
     <string name="toast_resource_not_loaded">Resource not loaded</string>

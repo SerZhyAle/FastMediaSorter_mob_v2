@@ -607,6 +607,7 @@ class TouchZoneGestureManager(
             TouchZoneAction.RENAME -> callback.onRename()
             TouchZoneAction.PREVIOUS -> callback.onPrevious()
             TouchZoneAction.MOVE -> callback.onMove()
+            TouchZoneAction.PAUSE_RESUME -> callback.onPauseResume()
             TouchZoneAction.NEXT -> {
                 if (viewModel.state.value.isSlideShowActive) {
                     callback.updateSlideShow()

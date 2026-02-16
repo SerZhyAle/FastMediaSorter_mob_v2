@@ -23,6 +23,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.InputStream
 import java.security.MessageDigest
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
@@ -124,7 +125,15 @@ class NetworkVideoFrameDecoder(
                 credentialsRepository = credentialsRepository
             )
 
-            val bitmap = extractVideoFrame(mediaDataSource, source.path)
+            val bitmap = try {
+                extractVideoFrame(mediaDataSource, source.path)
+            } finally {
+                try {
+                    mediaDataSource.close()
+                } catch (closeError: Exception) {
+                    Timber.w(closeError, "Failed to close NetworkMediaDataSource")
+                }
+            }
 
             if (bitmap == null) {
                 // Cache this failure using unified cache (shared with NetworkFileDataFetcher)
@@ -163,9 +172,12 @@ class NetworkVideoFrameDecoder(
     }
 
     private fun extractVideoFrame(mediaDataSource: NetworkMediaDataSource, path: String): Bitmap? {
+        val retrieverRef = AtomicReference<MediaMetadataRetriever?>(null)
+
         // Use executor with timeout to prevent hanging on slow network connections
         val future = extractionExecutor.submit<Bitmap?> {
             val retriever = MediaMetadataRetriever()
+            retrieverRef.set(retriever)
             try {
                 retriever.setDataSource(mediaDataSource)
 
@@ -181,6 +193,8 @@ class NetworkVideoFrameDecoder(
                     retriever.release()
                 } catch (e: Exception) {
                     Timber.w(e, "Failed to release MediaMetadataRetriever")
+                } finally {
+                    retrieverRef.compareAndSet(retriever, null)
                 }
             }
         }
@@ -190,11 +204,27 @@ class NetworkVideoFrameDecoder(
         } catch (e: TimeoutException) {
             // Expected behavior for slow network videos - log without stack trace
             Timber.w("Video thumbnail extraction TIMEOUT after ${VIDEO_THUMBNAIL_EXTRACTION_TIMEOUT_MS}ms for ${path.substringAfterLast('/')} - cancelling")
+            retrieverRef.get()?.let { retriever ->
+                try {
+                    retriever.release()
+                    Timber.d("MediaMetadataRetriever force-released after timeout")
+                } catch (releaseError: Exception) {
+                    Timber.w(releaseError, "Failed to force-release MediaMetadataRetriever after timeout")
+                }
+            }
             future.cancel(true)
             null
         } catch (e: InterruptedException) {
             // Expected during cancellation - log at debug level without stack trace
             Timber.d("Video thumbnail extraction INTERRUPTED - cancelling: ${path.substringAfterLast('/')}")
+            retrieverRef.get()?.let { retriever ->
+                try {
+                    retriever.release()
+                    Timber.d("MediaMetadataRetriever force-released after interruption")
+                } catch (releaseError: Exception) {
+                    Timber.w(releaseError, "Failed to force-release MediaMetadataRetriever after interruption")
+                }
+            }
             future.cancel(true)
             Thread.currentThread().interrupt()
             null

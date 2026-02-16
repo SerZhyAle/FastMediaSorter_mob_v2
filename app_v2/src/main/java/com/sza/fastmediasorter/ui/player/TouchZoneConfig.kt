@@ -222,9 +222,10 @@ object TouchZoneConfig {
      * 
      * @param row Row index (0=top, 1=middle, 2=bottom)
      * @param column Column index (0=left, 1=center, 2=right)
+     * @param zoneMap The zone map to differentiate between image and video layouts
      * @return The action for that zone
      */
-    fun get9ZoneTapAction(row: Int, column: Int): TouchZoneAction {
+    fun get9ZoneTapAction(row: Int, column: Int, zoneMap: TouchZoneMap): TouchZoneAction {
         return when (row) {
             0 -> when (column) {
                 0 -> TouchZoneAction.BACK
@@ -234,7 +235,14 @@ object TouchZoneConfig {
             }
             1 -> when (column) {
                 0 -> TouchZoneAction.PREVIOUS
-                1 -> TouchZoneAction.MOVE
+                1 -> {
+                    // Center zone: PAUSE_RESUME for video (REG-975), MOVE for images (REG-9100)
+                    if (zoneMap == TouchZoneMap.REG_975) {
+                        TouchZoneAction.PAUSE_RESUME
+                    } else {
+                        TouchZoneAction.MOVE
+                    }
+                }
                 2 -> TouchZoneAction.NEXT
                 else -> TouchZoneAction.NONE
             }

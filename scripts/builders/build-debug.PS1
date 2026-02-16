@@ -36,17 +36,61 @@ $content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName
 Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process (Debug only for speed)
-& "$PSScriptRoot\..\..\\gradlew.bat" assembleStandardDebug
+$projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 
-if ($LASTEXITCODE -ne 0) {
+function Invoke-DebugBuild {
+    param(
+        [switch]$DisableBuildCache
+    )
+
+    $gradleArgs = @("assembleStandardDebug")
+    if ($DisableBuildCache) {
+        $gradleArgs += "--no-build-cache"
+        $gradleArgs += "--rerun-tasks"
+    }
+
+    $output = & "$PSScriptRoot\..\..\\gradlew.bat" @gradleArgs 2>&1
+    $output | ForEach-Object { Write-Host $_ }
+
+    return [PSCustomObject]@{
+        ExitCode = $LASTEXITCODE
+        Output = ($output | Out-String)
+    }
+}
+
+$buildResult = Invoke-DebugBuild
+
+if ($buildResult.ExitCode -ne 0) {
+    $isKotlinCachePackError =
+        ($buildResult.Output -match "Failed to store cache entry") -and
+        ($buildResult.Output -match "Could not pack tree") -and
+        ($buildResult.Output -match "lookups\.tab\.values")
+
+    if ($isKotlinCachePackError) {
+        Write-Host "`nDetected Kotlin/Gradle cache packing issue. Cleaning local caches and retrying once..." -ForegroundColor Yellow
+
+        $localGradleCachePath = Join-Path $projectRoot ".gradle"
+        $moduleKotlinCachePath = Join-Path $projectRoot "app_v2\build\kotlin"
+
+        if (Test-Path -Path $localGradleCachePath) {
+            Remove-Item -Path $localGradleCachePath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+        if (Test-Path -Path $moduleKotlinCachePath) {
+            Remove-Item -Path $moduleKotlinCachePath -Recurse -Force -ErrorAction SilentlyContinue
+        }
+
+        $buildResult = Invoke-DebugBuild -DisableBuildCache
+    }
+}
+
+if ($buildResult.ExitCode -ne 0) {
     Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
-    exit $LASTEXITCODE
+    exit $buildResult.ExitCode
 }
 
 Write-Host "`nBuild Successful!" -ForegroundColor Green
 
 # Copy to DOWNLOADS folder
-$projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $downloadsDir = "$projectRoot\DOWNLOADS"
 
 # Resolve actual APK path from AGP output metadata (fallback to newest .apk)

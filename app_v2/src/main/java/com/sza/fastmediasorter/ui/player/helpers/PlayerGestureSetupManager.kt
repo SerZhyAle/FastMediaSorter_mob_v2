@@ -226,11 +226,11 @@ class PlayerGestureSetupManager(
             val currentFile = viewModel.state.value.currentFile
             val isInFullscreenMode = !viewModel.state.value.showCommandPanel
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
-            val isVideoOnly = currentFile?.type == MediaType.VIDEO
 
-            // Video gestures (F.1) route: only in fullscreen mode.
-            // In command panel mode, use TouchZoneGestureManager 3-zone actions (PREV/PAUSE/NEXT).
-            if (isVideoOnly && useTouchZones && !isOverlayBlocking() && isInFullscreenMode) {
+            // DISABLED: Video gestures (F.1) - using 9-zone touch zones instead (per specification)
+            // Previously: videoTouchDelegate handled brightness/volume/seek gestures for video
+            // Now: using TouchZoneGestureManager with 9-zone grid (REG-975) for video navigation
+            if (false) { // Disabled VideoTouchDelegate to enable 9-zone touch zones for video
                 if (videoTouchDelegate.handleTouchEvent(event)) {
                     return@setOnTouchListener true
                 }
@@ -252,21 +252,12 @@ class PlayerGestureSetupManager(
                     return@setOnTouchListener false // Don't consume - let PlayerView handle controls
                 }
 
-                // Check for center zone tap (Video/Audio only)
-                // If tap is in the middle 30% (35% to 65%), let PlayerView handle it (Toggle Controls)
-                val isVideoOrAudio = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
-                if (isVideoOrAudio) {
-                    val screenWidth = binding.root.width
-                    val leftBoundary = screenWidth * 0.35f
-                    val rightBoundary = screenWidth * 0.65f
-                    
-                    if (event.x > leftBoundary && event.x < rightBoundary) {
-                         Timber.d("PlayerGestureSetupManager: Center tap/touch detected (${event.x}) - Letting PlayerView handle toggle")
-                         return@setOnTouchListener false
-                    }
-                }
+                // For video/audio in fullscreen mode with 9-zone layout:
+                // - Let TouchZoneGestureManager handle ALL taps in upper area (9 zones)
+                // - Center zone action (Pause/Resume) is handled by TouchZoneGestureManager
+                // - Do NOT pass center taps to PlayerView to avoid conflict with 9-zone layout
                 
-                // Otherwise, use our gesture detector for touch zones
+                // Use our gesture detector for touch zones
                 gestureDetector.onTouchEvent(event)
                 return@setOnTouchListener true // Consume event to prevent PlayerView from handling it
             }

@@ -1944,9 +1944,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     viewModel.state
                         .distinctUntilChangedBy { 
                             // Track showCommandPanel to trigger UI updates on fullscreen/panel mode changes
-                            Pair(
+                            // Also track isFavorite to update star icon
+                            Triple(
                                 Triple(it.currentIndex, it.currentFile?.path, it.isSlideShowActive),
-                                it.showCommandPanel
+                                it.showCommandPanel,
+                                it.currentFile?.isFavorite
                             )
                         }
                         .collect { state ->
