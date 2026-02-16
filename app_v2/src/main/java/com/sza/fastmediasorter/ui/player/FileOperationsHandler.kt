@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.app.PendingIntent
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
@@ -12,7 +13,11 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -273,41 +278,7 @@ class FileOperationsHandler(
                                    currentFile.path.startsWith("cloud://")
                 
                 if (isNetworkFile) {
-                    // Download network file to cache first
-                    Toast.makeText(context, com.sza.fastmediasorter.R.string.msg_download_share, Toast.LENGTH_SHORT).show()
-                    
-                    val cacheDir = File(context.cacheDir, "share_temp")
-                    if (!cacheDir.exists()) {
-                        cacheDir.mkdirs()
-                    }
-                    
-                    val tempFile = File(cacheDir, currentFile.name)
-                    
-                    // Create download operation
-                    val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
-                    // Destination should be the directory, not the full file path
-                    val destDir = File(cacheDir.absolutePath)
-                    
-                    val operation = FileOperation.Copy(
-                        sources = listOf(sourceFile),
-                        destination = destDir,
-                        overwrite = true,
-                        sourceCredentialsId = currentResource?.credentialsId
-                    )
-                    
-                    val result = fileOperationUseCase.execute(operation)
-                    
-                    when (result) {
-                        is FileOperationResult.Success -> {
-                            shareLocalFile(tempFile)
-                        }
-                        is FileOperationResult.Failure -> {
-                            callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_download_failed, result.error), null)
-                        }
-                        else -> {
-                            callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_unexpected))
-                        }
-                    }
+                    shareNetworkFileWithProgress(currentFile, currentResource)
                 } else {
                     // Local file - share directly
                     shareLocalFile(File(currentFile.path))
@@ -315,6 +286,116 @@ class FileOperationsHandler(
             } catch (e: Exception) {
                 Timber.e(e, "FileOperationsHandler: Share operation failed")
                 callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_failed, e.message), e)
+            }
+        }
+    }
+
+    private suspend fun shareNetworkFileWithProgress(currentFile: MediaFile, currentResource: MediaResource?) {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, com.sza.fastmediasorter.R.string.msg_download_share, Toast.LENGTH_SHORT).show()
+        }
+
+        val cacheDir = File(context.cacheDir, "share_temp")
+        if (!cacheDir.exists()) {
+            cacheDir.mkdirs()
+        }
+        cleanupOldShareTempFiles(cacheDir)
+
+        val tempFile = File(cacheDir, currentFile.name)
+        if (tempFile.exists()) {
+            tempFile.delete()
+        }
+
+        val sourceFile = createNetworkAwareFile(currentFile.path, currentFile.name)
+        val destDir = File(cacheDir.absolutePath)
+
+        val operation = FileOperation.Copy(
+            sources = listOf(sourceFile),
+            destination = destDir,
+            overwrite = true,
+            sourceCredentialsId = currentResource?.credentialsId
+        )
+
+        val totalBytes = currentFile.size.coerceAtLeast(0L)
+
+        val copyDeferred = lifecycleScope.async(Dispatchers.IO) {
+            fileOperationUseCase.execute(operation)
+        }
+
+        val progressDialog = if (context is Activity && !context.isFinishing && !context.isDestroyed) {
+            FileCopyProgressDialog(
+                context = context,
+                fileName = currentFile.name,
+                onCancelRequested = {
+                    copyDeferred.cancel(CancellationException("User cancelled network share copy"))
+                }
+            )
+        } else {
+            null
+        }
+
+        val monitorJob = lifecycleScope.launch {
+            var lastTime = System.currentTimeMillis()
+            var lastBytes = 0L
+
+            if (progressDialog != null) {
+                progressDialog.show()
+                progressDialog.showIndeterminate()
+            }
+
+            while (copyDeferred.isActive) {
+                val copiedBytes = tempFile.length().coerceAtLeast(0L)
+                val now = System.currentTimeMillis()
+                val elapsedMs = (now - lastTime).coerceAtLeast(1L)
+                val bytesDelta = (copiedBytes - lastBytes).coerceAtLeast(0L)
+                val speedBytesPerSec = (bytesDelta * 1000L) / elapsedMs
+
+                progressDialog?.updateProgress(copiedBytes, totalBytes, speedBytesPerSec)
+
+                lastTime = now
+                lastBytes = copiedBytes
+                delay(200)
+            }
+        }
+
+        try {
+            when (val result = copyDeferred.await()) {
+                is FileOperationResult.Success -> {
+                    if (tempFile.exists()) {
+                        shareLocalFile(tempFile)
+                    } else {
+                        callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_unexpected))
+                    }
+                }
+                is FileOperationResult.Failure -> {
+                    callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_download_failed, result.error), null)
+                }
+                else -> {
+                    callback.onOperationError(context.getString(com.sza.fastmediasorter.R.string.error_share_unexpected))
+                }
+            }
+        } catch (_: CancellationException) {
+            if (tempFile.exists()) {
+                tempFile.delete()
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, com.sza.fastmediasorter.R.string.toast_copy_cancelled, Toast.LENGTH_SHORT).show()
+            }
+        } finally {
+            monitorJob.cancel()
+            withContext(Dispatchers.Main) {
+                progressDialog?.dismiss()
+            }
+        }
+    }
+
+    private fun cleanupOldShareTempFiles(cacheDir: File) {
+        val now = System.currentTimeMillis()
+        cacheDir.listFiles()?.forEach { file ->
+            if (!file.isFile) return@forEach
+            val age = now - file.lastModified()
+            if (age > 60 * 60 * 1000L) {
+                file.delete()
             }
         }
     }
