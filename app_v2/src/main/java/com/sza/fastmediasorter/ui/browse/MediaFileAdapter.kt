@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.text.format.DateFormat
 import android.view.LayoutInflater
@@ -37,6 +38,7 @@ import com.sza.fastmediasorter.core.util.MemoryTier
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
+import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import java.io.File
 import java.util.Date
 
@@ -68,6 +70,7 @@ class MediaFileAdapter(
     private var skipInitialThumbnailLoad = false // Control initial thumbnail loading
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
+    private var isAudioOnlyMode: Boolean = false
     
     // Fast scroll detection to skip thumbnail loading during rapid scrolling
     private var isScrolling: Boolean = false
@@ -154,6 +157,13 @@ class MediaFileAdapter(
             notifyDataSetChanged()
         }
     }
+
+    fun setAudioOnlyMode(isAudioOnly: Boolean) {
+        if (isAudioOnlyMode != isAudioOnly) {
+            isAudioOnlyMode = isAudioOnly
+            notifyDataSetChanged()
+        }
+    }
     
     /**
      * Enable/disable initial thumbnail loading in bind().
@@ -171,6 +181,7 @@ class MediaFileAdapter(
         private const val VIEW_TYPE_GRID = 1
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
         private const val CACHED_THUMBNAIL_SIZE = 300 // Fixed size for cache stability across List/Grid modes
+        private const val AUDIO_ONLY_THUMBNAIL_DP = 48
         
         // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
         private const val SMB_PDF_LARGE_MAX_SIZE = 50 * 1024 * 1024L // 50 MB for SMB
@@ -520,9 +531,14 @@ class MediaFileAdapter(
                 
                 // Apply thumbnail size from settings for list mode
                 val thumbnailSizePx = if (this@MediaFileAdapter.disableThumbnails) {
-                    (32 * root.resources.displayMetrics.density).toInt() // 32dp for list when disabled
+                    if (isAudioOnlyMode) {
+                        (AUDIO_ONLY_THUMBNAIL_DP * root.resources.displayMetrics.density).toInt()
+                    } else {
+                        (32 * root.resources.displayMetrics.density).toInt() // 32dp for list when disabled
+                    }
                 } else {
-                    (thumbnailSize * root.resources.displayMetrics.density).toInt()
+                    val sizeDp = if (isAudioOnlyMode) AUDIO_ONLY_THUMBNAIL_DP else thumbnailSize
+                    (sizeDp * root.resources.displayMetrics.density).toInt()
                 }
                 ivThumbnail.layoutParams.width = thumbnailSizePx
                 ivThumbnail.layoutParams.height = thumbnailSizePx
@@ -633,6 +649,8 @@ class MediaFileAdapter(
 
             val imageView = binding.ivThumbnail
             val context = imageView.context
+            val generatedPlaceholder = createPlaceholderDrawable(file)
+            val generatedPlaceholder = createPlaceholderDrawable(file)
             
             // Reset scaleType to CENTER_CROP (may have been CENTER_INSIDE for folder icons due to view recycling)
             imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
@@ -642,12 +660,10 @@ class MediaFileAdapter(
                 Timber.d("THUMBNAIL_DEBUG: Skipping thumbnail load for ${file.name} - disableThumbnails=true")
                 when (file.type) {
                     MediaType.IMAGE -> {
-                        imageView.setImageResource(R.drawable.ic_image_placeholder)
-                        applyPlaceholderStyle(imageView, file.type, true)
+                        showGeneratedPlaceholder(imageView, file)
                     }
                     MediaType.VIDEO -> {
-                        imageView.setImageResource(R.drawable.ic_video_placeholder)
-                        applyPlaceholderStyle(imageView, file.type, true)
+                        showGeneratedPlaceholder(imageView, file)
                     }
                     MediaType.AUDIO -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
@@ -655,8 +671,7 @@ class MediaFileAdapter(
                         applyPlaceholderStyle(imageView, file.type, true)
                     }
                     MediaType.GIF -> {
-                        imageView.setImageResource(R.drawable.ic_image_placeholder)
-                        applyPlaceholderStyle(imageView, file.type, true)
+                        showGeneratedPlaceholder(imageView, file)
                     }
                     MediaType.TEXT -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
@@ -664,8 +679,7 @@ class MediaFileAdapter(
                         applyPlaceholderStyle(imageView, file.type, true)
                     }
                     MediaType.PDF -> {
-                        imageView.setImageResource(R.drawable.ic_image_placeholder)
-                        applyPlaceholderStyle(imageView, file.type, true)
+                        showGeneratedPlaceholder(imageView, file)
                     }
                     MediaType.EPUB -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
@@ -691,8 +705,7 @@ class MediaFileAdapter(
                 Timber.d("THUMBNAIL_DEBUG: Document preview disabled on LOW memory for ${file.name}")
                 when (file.type) {
                     MediaType.PDF -> {
-                        imageView.setImageResource(R.drawable.ic_image_placeholder)
-                        applyPlaceholderStyle(imageView, file.type, true)
+                        showGeneratedPlaceholder(imageView, file)
                     }
                     MediaType.EPUB -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
@@ -726,12 +739,10 @@ class MediaFileAdapter(
                     // Show error placeholder for deleted files
                     when (file.type) {
                         MediaType.IMAGE, MediaType.GIF -> {
-                            imageView.setImageResource(R.drawable.ic_image_error)
-                            applyPlaceholderStyle(imageView, file.type, true)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                         MediaType.VIDEO -> {
-                            imageView.setImageResource(R.drawable.ic_video_error)
-                            applyPlaceholderStyle(imageView, file.type, true)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                         MediaType.AUDIO -> {
                             val extension = file.name.substringAfterLast('.', "").uppercase()
@@ -744,8 +755,7 @@ class MediaFileAdapter(
                             applyPlaceholderStyle(imageView, file.type, true)
                         }
                         MediaType.PDF -> {
-                            imageView.setImageResource(R.drawable.ic_image_error)
-                            applyPlaceholderStyle(imageView, file.type, true)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                         MediaType.EPUB -> {
                             val extension = file.name.substringAfterLast('.', "").uppercase()
@@ -781,12 +791,12 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(epubFile)
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(createExtensionBitmap("EPUB")) // Fallback to extension bitmap if no cover
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
                                 .into(imageView)
                         } else {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
@@ -795,14 +805,12 @@ class MediaFileAdapter(
                         
                         if (file.size > maxSize) {
                             // File too large - show placeholder without downloading
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
-                            applyPlaceholderStyle(imageView, file.type, true)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
                                 Timber.d("Skipping EPUB cover load for ${file.name} (cached as failed)")
-                                imageView.setImageBitmap(createExtensionBitmap("EPUB"))
-                                applyPlaceholderStyle(imageView, file.type, true)
+                                showGeneratedPlaceholder(imageView, file)
                             } else {
                                 // File size OK - use NetworkEpubCoverLoader
                                 val networkData = NetworkFileData(
@@ -840,8 +848,8 @@ class MediaFileAdapter(
                                             return false
                                         }
                                     })
-                                    .placeholder(R.drawable.ic_image_placeholder)
-                                    .error(createExtensionBitmap("EPUB"))
+                                    .placeholder(generatedPlaceholder)
+                                    .error(generatedPlaceholder)
                                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                     .into(imageView)
                             }
@@ -849,10 +857,10 @@ class MediaFileAdapter(
                     } else {
                         // Cloud EPUB - check size limit (same as PDF)
                         if (file.size > NETWORK_EPUB_MAX_SIZE) {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Cloud EPUB implementation would go here
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     }
                 }
@@ -870,12 +878,12 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(pdfFile)
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
                                 .into(imageView)
                         } else {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         // Network PDF (SMB/SFTP/FTP) - check size limits based on setting
@@ -892,14 +900,12 @@ class MediaFileAdapter(
                         if (file.size > maxSize) {
                             // File too large - show placeholder icon without downloading
                             Timber.d("PDF_THUMB_DEBUG: PDF too large, showing placeholder for ${file.name}")
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
-                            applyPlaceholderStyle(imageView, file.type, true)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
                                 Timber.d("Skipping PDF thumbnail load for ${file.name} (cached as failed)")
-                                imageView.setImageResource(R.drawable.ic_image_placeholder)
-                                applyPlaceholderStyle(imageView, file.type, true)
+                                showGeneratedPlaceholder(imageView, file)
                             } else {
                                 // File size OK - use NetworkPdfThumbnailLoader
                                 Timber.d("PDF_THUMB_DEBUG: Loading network PDF thumbnail via Glide for ${file.name}")
@@ -943,8 +949,8 @@ class MediaFileAdapter(
                                             return false
                                         }
                                     })
-                                    .placeholder(R.drawable.ic_image_placeholder)
-                                    .error(R.drawable.ic_image_error)
+                                    .placeholder(generatedPlaceholder)
+                                    .error(generatedPlaceholder)
                                     .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
                                     .into(imageView)
                             }
@@ -958,10 +964,10 @@ class MediaFileAdapter(
                         }
                         
                         if (file.size > maxSize) {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Cloud PDF implementation would go here
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     }
                 }
@@ -997,16 +1003,15 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.HIGH)  // High priority for images
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded, not source stream
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         isNetworkPath -> {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
                                 Timber.d("Skipping thumbnail load for ${file.name} (cached as failed)")
-                                imageView.setImageResource(R.drawable.ic_image_placeholder)
-                                applyPlaceholderStyle(imageView, file.type, true)
+                                showGeneratedPlaceholder(imageView, file)
                                 return
                             }
                             
@@ -1052,8 +1057,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         else -> {
@@ -1098,8 +1103,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                     }
@@ -1136,14 +1141,14 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.NORMAL)  // Normal priority for videos
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)  // Cache decoded, not source stream
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         isNetworkPath -> {
                             // Check if video thumbnails are enabled
                             if (!getShowVideoThumbnails()) {
-                                imageView.setImageResource(R.drawable.ic_video_placeholder)
+                                showGeneratedPlaceholder(imageView, file)
                                 return
                             }
                             
@@ -1193,14 +1198,14 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         else -> {
                             // Check if video thumbnails are enabled
                             if (!getShowVideoThumbnails()) {
-                                imageView.setImageResource(R.drawable.ic_video_placeholder)
+                                showGeneratedPlaceholder(imageView, file)
                                 return
                             }
                             
@@ -1218,8 +1223,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                     }
@@ -1240,29 +1245,35 @@ class MediaFileAdapter(
         }
         
         private fun createExtensionBitmap(extension: String): Bitmap {
-            val size = 200
-            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            
-            // Background
-            val bgPaint = Paint().apply {
-                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
-                style = Paint.Style.FILL
+            return ExtensionThumbnailGenerator.generate(extension, 200)
+        }
+
+        private fun getPlaceholderExtension(file: MediaFile): String {
+            val extension = file.name.substringAfterLast('.', "").uppercase()
+            if (extension.isNotBlank()) return extension
+            return when (file.type) {
+                MediaType.IMAGE, MediaType.GIF -> "IMG"
+                MediaType.VIDEO -> "VID"
+                MediaType.PDF -> "PDF"
+                MediaType.EPUB -> "EPUB"
+                MediaType.AUDIO -> "AUD"
+                MediaType.TEXT -> "TXT"
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
             }
-            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
-            
-            // Text
-            val textPaint = Paint().apply {
-                color = Color.WHITE
-                textSize = 60f
-                textAlign = Paint.Align.CENTER
-                isAntiAlias = true
-            }
-            val xPos = size / 2f
-            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
-            canvas.drawText(extension, xPos, yPos, textPaint)
-            
-            return bitmap
+        }
+
+        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
+            return createExtensionBitmap(getPlaceholderExtension(file))
+        }
+
+        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
+            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
+        }
+
+        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
+            imageView.setImageBitmap(createPlaceholderBitmap(file))
+            applyPlaceholderStyle(imageView, file.type, true)
         }
         
         private fun buildFileInfo(file: MediaFile): String {
@@ -1458,9 +1469,14 @@ class MediaFileAdapter(
                 
                 // Set dynamic thumbnail size (height only - width is match_parent)
                 val sizeInPx = if (this@MediaFileAdapter.disableThumbnails) {
-                    (64 * root.context.resources.displayMetrics.density).toInt() // 64dp when disabled
+                    if (isAudioOnlyMode) {
+                        (AUDIO_ONLY_THUMBNAIL_DP * root.context.resources.displayMetrics.density).toInt()
+                    } else {
+                        (64 * root.context.resources.displayMetrics.density).toInt() // 64dp when disabled
+                    }
                 } else {
-                    (thumbnailSize * root.context.resources.displayMetrics.density).toInt() // User preference
+                    val sizeDp = if (isAudioOnlyMode) AUDIO_ONLY_THUMBNAIL_DP else thumbnailSize
+                    (sizeDp * root.context.resources.displayMetrics.density).toInt() // User preference
                 }
                 
                 // Set fixed height for consistent grid appearance
@@ -1573,18 +1589,18 @@ class MediaFileAdapter(
             // If thumbnails disabled, show only extension-based icons (no Glide loading)
             if (this@MediaFileAdapter.disableThumbnails) {
                 when (file.type) {
-                    MediaType.IMAGE -> imageView.setImageResource(R.drawable.ic_image_placeholder)
-                    MediaType.VIDEO -> imageView.setImageResource(R.drawable.ic_video_placeholder)
+                    MediaType.IMAGE -> showGeneratedPlaceholder(imageView, file)
+                    MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
                     MediaType.AUDIO -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
                         imageView.setImageBitmap(createExtensionBitmap(extension))
                     }
-                    MediaType.GIF -> imageView.setImageResource(R.drawable.ic_image_placeholder)
+                    MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
                     MediaType.TEXT -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
                         imageView.setImageBitmap(createExtensionBitmap(extension))
                     }
-                    MediaType.PDF -> imageView.setImageResource(R.drawable.ic_image_placeholder)
+                    MediaType.PDF -> showGeneratedPlaceholder(imageView, file)
                     MediaType.EPUB -> {
                         val extension = file.name.substringAfterLast('.', "").uppercase()
                         imageView.setImageBitmap(createExtensionBitmap(extension))
@@ -1622,8 +1638,8 @@ class MediaFileAdapter(
                 if (!localFile.exists()) {
                     Timber.w("File no longer exists: ${file.path}")
                     when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> imageView.setImageResource(R.drawable.ic_image_error)
-                        MediaType.VIDEO -> imageView.setImageResource(R.drawable.ic_video_error)
+                        MediaType.IMAGE, MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
+                        MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
                         MediaType.AUDIO -> {
                             val extension = file.name.substringAfterLast('.', "").uppercase()
                             imageView.setImageBitmap(createExtensionBitmap(extension))
@@ -1632,7 +1648,7 @@ class MediaFileAdapter(
                             val extension = file.name.substringAfterLast('.', "").uppercase()
                             imageView.setImageBitmap(createExtensionBitmap(extension))
                         }
-                        MediaType.PDF -> imageView.setImageResource(R.drawable.ic_image_error)
+                        MediaType.PDF -> showGeneratedPlaceholder(imageView, file)
                         MediaType.EPUB -> {
                             val extension = file.name.substringAfterLast('.', "").uppercase()
                             imageView.setImageBitmap(createExtensionBitmap(extension))
@@ -1679,15 +1695,15 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.HIGH)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         isNetworkPath -> {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
                                 Timber.d("Skipping thumbnail load for ${file.name} (cached as failed)")
-                                imageView.setImageResource(R.drawable.ic_image_placeholder)
+                                showGeneratedPlaceholder(imageView, file)
                                 return
                             }
                             
@@ -1732,8 +1748,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         else -> {
@@ -1776,8 +1792,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                     }
@@ -1812,8 +1828,8 @@ class MediaFileAdapter(
                                 ))
                                 .priority(Priority.NORMAL)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         isNetworkPath -> {
@@ -1861,8 +1877,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                         else -> {
@@ -1880,8 +1896,8 @@ class MediaFileAdapter(
                                 .override(CACHED_THUMBNAIL_SIZE, CACHED_THUMBNAIL_SIZE) // Fixed size for cache stability
                                 .centerCrop()
                                 .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         }
                     }
@@ -1904,12 +1920,12 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(epubFile)
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(createExtensionBitmap("EPUB")) // Fallback to extension bitmap if no cover
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
                                 .into(imageView)
                         } else {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
@@ -1918,7 +1934,7 @@ class MediaFileAdapter(
                         
                         if (file.size > maxSize) {
                             // File too large - show placeholder without downloading
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // File size OK - use NetworkEpubCoverLoader
                             val networkData = NetworkFileData(
@@ -1931,18 +1947,18 @@ class MediaFileAdapter(
                                 .asBitmap()
                                 .load(networkData)
                                 .signature(cacheKey)
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(createExtensionBitmap("EPUB"))
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .into(imageView)
                         }
                     } else {
                         // Cloud EPUB - check size limit (same as PDF)
                         if (file.size > NETWORK_EPUB_MAX_SIZE) {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Cloud EPUB implementation would go here
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     }
                 }
@@ -1959,8 +1975,8 @@ class MediaFileAdapter(
                             Glide.with(context)
                                 .asBitmap()
                                 .load(pdfFile)
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
                                 .into(imageView)
                         } else {
@@ -1997,8 +2013,8 @@ class MediaFileAdapter(
                                         largePdfThumbnails
                                     )
                                 )
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache rendered bitmap
                                 .into(imageView)
                         }
@@ -2027,27 +2043,34 @@ class MediaFileAdapter(
         }
         
         private fun createExtensionBitmap(extension: String): Bitmap {
-            val size = 200
-            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
-            
-            val bgPaint = Paint().apply {
-                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
-                style = Paint.Style.FILL
+            return ExtensionThumbnailGenerator.generate(extension, 200)
+        }
+
+        private fun getPlaceholderExtension(file: MediaFile): String {
+            val extension = file.name.substringAfterLast('.', "").uppercase()
+            if (extension.isNotBlank()) return extension
+            return when (file.type) {
+                MediaType.IMAGE, MediaType.GIF -> "IMG"
+                MediaType.VIDEO -> "VID"
+                MediaType.PDF -> "PDF"
+                MediaType.EPUB -> "EPUB"
+                MediaType.AUDIO -> "AUD"
+                MediaType.TEXT -> "TXT"
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
             }
-            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
-            
-            val textPaint = Paint().apply {
-                color = Color.WHITE
-                textSize = 60f
-                textAlign = Paint.Align.CENTER
-                isAntiAlias = true
-            }
-            val xPos = size / 2f
-            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
-            canvas.drawText(extension, xPos, yPos, textPaint)
-            
-            return bitmap
+        }
+
+        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
+            return createExtensionBitmap(getPlaceholderExtension(file))
+        }
+
+        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
+            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
+        }
+
+        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
+            imageView.setImageBitmap(createPlaceholderBitmap(file))
         }
     }
 

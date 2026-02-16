@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.text.format.DateFormat
 import android.view.LayoutInflater
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.data.cloud.glide.GoogleDriveThumbnailData
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 import timber.log.Timber
@@ -197,6 +199,7 @@ class PagingMediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             val imageView = binding.ivThumbnail
             val context = imageView.context
+            val generatedPlaceholder = createPlaceholderDrawable(file)
             val isCloudPath = file.path.startsWith("cloud://") || file.path.startsWith("cloud:/")
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
             val cacheKey = "${file.path}_${file.size}"
@@ -206,8 +209,8 @@ class PagingMediaFileAdapter(
                 if (!localFile.exists()) {
                     Timber.w("File no longer exists: ${file.path}")
                     when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> imageView.setImageResource(R.drawable.ic_image_error)
-                        MediaType.VIDEO -> imageView.setImageResource(R.drawable.ic_video_error)
+                        MediaType.IMAGE, MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
+                        MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
                         MediaType.AUDIO -> {
                             val extension = file.name.substringAfterLast('.', "").uppercase()
                             imageView.setImageBitmap(createExtensionBitmap(extension))
@@ -249,12 +252,12 @@ class PagingMediaFileAdapter(
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
                                 .transition(DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         } else {
                             Timber.w("No thumbnailUrl for cloud file: ${file.name}")
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         Glide.with(context)
@@ -264,8 +267,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .error(R.drawable.ic_image_placeholder)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
                         val data = if (file.path.startsWith("content://")) {
@@ -281,8 +284,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .error(R.drawable.ic_image_error)
+                            .placeholder(generatedPlaceholder)
+                            .error(generatedPlaceholder)
                             .into(imageView)
                     }
                 }
@@ -301,12 +304,12 @@ class PagingMediaFileAdapter(
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
                                 .transition(DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         } else {
                             Timber.w("No thumbnailUrl for cloud video: ${file.name}")
-                            imageView.setImageResource(R.drawable.ic_video_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         Glide.with(context)
@@ -316,8 +319,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_video_placeholder)
-                            .error(R.drawable.ic_video_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
                         val data = if (file.path.startsWith("content://")) {
@@ -333,8 +336,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_video_placeholder)
-                            .error(R.drawable.ic_video_error)
+                            .placeholder(generatedPlaceholder)
+                            .error(generatedPlaceholder)
                             .into(imageView)
                     }
                 }
@@ -365,8 +368,8 @@ class PagingMediaFileAdapter(
                                 .set(com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD, getShowPdfThumbnails()))
                             .signature(ObjectKey(cacheKey))
                             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .error(R.drawable.ic_image_error)
+                            .placeholder(generatedPlaceholder)
+                            .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
                         // Local PDF or cloud - show extension bitmap
@@ -386,11 +389,11 @@ class PagingMediaFileAdapter(
                                 .load(epubFile)
                                 .signature(ObjectKey(cacheKey))
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE) // Cache extracted cover
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(createExtensionBitmap("EPUB")) // Fallback to extension bitmap if no cover
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         } else {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         // Network EPUB (SMB/SFTP/FTP) - check size limits (same as PDF logic)
@@ -399,7 +402,7 @@ class PagingMediaFileAdapter(
                         
                         if (file.size > maxSize) {
                             // File too large - show placeholder without downloading
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // File size OK - use NetworkEpubCoverLoader
                             val networkData = NetworkFileData(
@@ -411,18 +414,18 @@ class PagingMediaFileAdapter(
                                 .asBitmap()
                                 .load(networkData)
                                 .signature(ObjectKey(cacheKey))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(createExtensionBitmap("EPUB"))
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                                 .into(imageView)
                         }
                     } else {
                         // Cloud EPUB - check size limit (same as PDF)
                         if (file.size > NETWORK_EPUB_MAX_SIZE) {
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Cloud EPUB implementation would go here
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     }
                 }
@@ -435,27 +438,34 @@ class PagingMediaFileAdapter(
         }
 
         private fun createExtensionBitmap(extension: String): Bitmap {
-            val size = 200
-            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
+            return ExtensionThumbnailGenerator.generate(extension, 200)
+        }
 
-            val bgPaint = Paint().apply {
-                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
-                style = Paint.Style.FILL
+        private fun getPlaceholderExtension(file: MediaFile): String {
+            val extension = file.name.substringAfterLast('.', "").uppercase()
+            if (extension.isNotBlank()) return extension
+            return when (file.type) {
+                MediaType.IMAGE, MediaType.GIF -> "IMG"
+                MediaType.VIDEO -> "VID"
+                MediaType.PDF -> "PDF"
+                MediaType.EPUB -> "EPUB"
+                MediaType.AUDIO -> "AUD"
+                MediaType.TEXT -> "TXT"
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
             }
-            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+        }
 
-            val textPaint = Paint().apply {
-                color = Color.WHITE
-                textSize = 60f
-                textAlign = Paint.Align.CENTER
-                isAntiAlias = true
-            }
-            val xPos = size / 2f
-            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
-            canvas.drawText(extension, xPos, yPos, textPaint)
+        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
+            return createExtensionBitmap(getPlaceholderExtension(file))
+        }
 
-            return bitmap
+        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
+            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
+        }
+
+        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
+            imageView.setImageBitmap(createPlaceholderBitmap(file))
         }
 
         private fun buildFileInfo(file: MediaFile): String {
@@ -535,6 +545,7 @@ class PagingMediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             val imageView = binding.ivThumbnail
             val context = imageView.context
+            val generatedPlaceholder = createPlaceholderDrawable(file)
             val isCloudPath = file.path.startsWith("cloud://") || file.path.startsWith("cloud:/")
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
             val cacheKey = "${file.path}_${file.size}"
@@ -544,8 +555,8 @@ class PagingMediaFileAdapter(
                 if (!localFile.exists()) {
                     Timber.w("File no longer exists: ${file.path}")
                     when (file.type) {
-                        MediaType.IMAGE, MediaType.GIF -> imageView.setImageResource(R.drawable.ic_image_error)
-                        MediaType.VIDEO -> imageView.setImageResource(R.drawable.ic_video_error)
+                        MediaType.IMAGE, MediaType.GIF -> showGeneratedPlaceholder(imageView, file)
+                        MediaType.VIDEO -> showGeneratedPlaceholder(imageView, file)
                         MediaType.AUDIO -> {
                             val extension = file.name.substringAfterLast('.', "").uppercase()
                             imageView.setImageBitmap(createExtensionBitmap(extension))
@@ -587,12 +598,12 @@ class PagingMediaFileAdapter(
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
                                 .transition(DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_image_placeholder)
-                                .error(R.drawable.ic_image_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         } else {
                             Timber.w("No thumbnailUrl for cloud file: ${file.name}")
-                            imageView.setImageResource(R.drawable.ic_image_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         Glide.with(context)
@@ -602,8 +613,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .error(R.drawable.ic_image_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
                         val data = if (file.path.startsWith("content://")) {
@@ -619,8 +630,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .error(R.drawable.ic_image_error)
+                            .placeholder(generatedPlaceholder)
+                            .error(generatedPlaceholder)
                             .into(imageView)
                     }
                 }
@@ -639,12 +650,12 @@ class PagingMediaFileAdapter(
                                 .centerCrop()
                                 .transform(RoundedCorners(8))
                                 .transition(DrawableTransitionOptions.withCrossFade(100))
-                                .placeholder(R.drawable.ic_video_placeholder)
-                                .error(R.drawable.ic_video_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                                 .into(imageView)
                         } else {
                             Timber.w("No thumbnailUrl for cloud video: ${file.name}")
-                            imageView.setImageResource(R.drawable.ic_video_placeholder)
+                            showGeneratedPlaceholder(imageView, file)
                         }
                     } else if (isNetworkPath) {
                         Glide.with(context)
@@ -654,8 +665,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_video_placeholder)
-                            .error(R.drawable.ic_video_error)
+                                .placeholder(generatedPlaceholder)
+                                .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
                         val data = if (file.path.startsWith("content://")) {
@@ -671,8 +682,8 @@ class PagingMediaFileAdapter(
                             .centerCrop()
                             .transform(RoundedCorners(8))
                             .transition(DrawableTransitionOptions.withCrossFade(100))
-                            .placeholder(R.drawable.ic_video_placeholder)
-                            .error(R.drawable.ic_video_error)
+                            .placeholder(generatedPlaceholder)
+                            .error(generatedPlaceholder)
                             .into(imageView)
                     }
                 }
@@ -701,8 +712,8 @@ class PagingMediaFileAdapter(
                                 .set(com.sza.fastmediasorter.data.glide.NetworkPdfThumbnailLoader.OPTION_FULL_PDF_DOWNLOAD, getShowPdfThumbnails()))
                             .signature(ObjectKey(cacheKey))
                             .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-                            .placeholder(R.drawable.ic_image_placeholder)
-                            .error(R.drawable.ic_image_error)
+                            .placeholder(generatedPlaceholder)
+                            .error(generatedPlaceholder)
                             .into(imageView)
                     } else {
                         // Local PDF or cloud - show extension bitmap
@@ -725,27 +736,34 @@ class PagingMediaFileAdapter(
         }
 
         private fun createExtensionBitmap(extension: String): Bitmap {
-            val size = 200
-            val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(bitmap)
+            return ExtensionThumbnailGenerator.generate(extension, 200)
+        }
 
-            val bgPaint = Paint().apply {
-                color = ContextCompat.getColor(binding.root.context, R.color.audio_icon_bg)
-                style = Paint.Style.FILL
+        private fun getPlaceholderExtension(file: MediaFile): String {
+            val extension = file.name.substringAfterLast('.', "").uppercase()
+            if (extension.isNotBlank()) return extension
+            return when (file.type) {
+                MediaType.IMAGE, MediaType.GIF -> "IMG"
+                MediaType.VIDEO -> "VID"
+                MediaType.PDF -> "PDF"
+                MediaType.EPUB -> "EPUB"
+                MediaType.AUDIO -> "AUD"
+                MediaType.TEXT -> "TXT"
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
+                MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> "BIN"
             }
-            canvas.drawRect(0f, 0f, size.toFloat(), size.toFloat(), bgPaint)
+        }
 
-            val textPaint = Paint().apply {
-                color = Color.WHITE
-                textSize = 60f
-                textAlign = Paint.Align.CENTER
-                isAntiAlias = true
-            }
-            val xPos = size / 2f
-            val yPos = (size / 2f - (textPaint.descent() + textPaint.ascent()) / 2)
-            canvas.drawText(extension, xPos, yPos, textPaint)
+        private fun createPlaceholderBitmap(file: MediaFile): Bitmap {
+            return createExtensionBitmap(getPlaceholderExtension(file))
+        }
 
-            return bitmap
+        private fun createPlaceholderDrawable(file: MediaFile): BitmapDrawable {
+            return BitmapDrawable(binding.root.resources, createPlaceholderBitmap(file))
+        }
+
+        private fun showGeneratedPlaceholder(imageView: android.widget.ImageView, file: MediaFile) {
+            imageView.setImageBitmap(createPlaceholderBitmap(file))
         }
     }
 }
