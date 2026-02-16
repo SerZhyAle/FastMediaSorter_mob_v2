@@ -101,6 +101,9 @@ class NetworkMediaDataSource(
             if (e is InterruptedException || e.cause is InterruptedException || 
                 e is java.util.concurrent.CancellationException || e.cause is java.util.concurrent.CancellationException) {
                 Timber.d("Network read interrupted at position $position (expected during cancellation)")
+            } else if (e is SocketTimeoutException || e.cause is SocketTimeoutException ||
+                e.message?.contains("timed out", ignoreCase = true) == true) {
+                Timber.w("Network read timeout at position $position, size $size")
             } else {
                 // Unexpected errors get full stack trace
                 Timber.e(e, "Error reading from network at position $position, size $size")
@@ -294,7 +297,11 @@ class NetworkMediaDataSource(
             val client = connection.client
             val bytes = synchronized(client) {
                 val readInCurrentMode: (modeLabel: String) -> ByteArray = { modeLabel ->
-                    client.setRestartOffset(offset)
+                    // Some FTP servers reject REST 0 with 501.
+                    // Initial reads (offset=0) must start without restart command.
+                    if (offset > 0L) {
+                        client.setRestartOffset(offset)
+                    }
 
                     client.retrieveFileStream(remotePath)?.use { inputStream ->
                         val buffer = ByteArray(length.toInt())
@@ -343,9 +350,19 @@ class NetworkMediaDataSource(
                 try {
                     readInCurrentMode("passive")
                 } catch (e: Exception) {
+                    val timeoutInCompletePendingCommand = e is SocketTimeoutException &&
+                        e.stackTrace.any { element ->
+                            element.className.contains("FTPClient") &&
+                                element.methodName == "completePendingCommand"
+                        }
+
                     val shouldRetryInActiveMode = e is SocketTimeoutException ||
-                        (e.cause is SocketTimeoutException) ||
-                        (e.message?.contains("completePendingCommand", ignoreCase = true) == true)
+                        (e.cause is SocketTimeoutException)
+
+                    if (timeoutInCompletePendingCommand) {
+                        Timber.w(e, "NetworkMediaDataSource: FTP timeout in completePendingCommand, skipping active-mode retry")
+                        throw e
+                    }
 
                     if (!shouldRetryInActiveMode) {
                         throw e

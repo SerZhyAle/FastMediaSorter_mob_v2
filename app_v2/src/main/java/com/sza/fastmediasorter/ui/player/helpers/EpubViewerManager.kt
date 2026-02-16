@@ -93,13 +93,23 @@ class EpubViewerManager(
     private var swipeGestureDetector: android.view.GestureDetector
     
     init {
-        // Load saved font size from SharedPreferences
-        val prefs = binding.root.context.getSharedPreferences("epub_settings", android.content.Context.MODE_PRIVATE)
-        currentFontSize = prefs.getInt("font_size", 18)
-        translationFontSize = prefs.getInt("translation_font_size", 16)
-        
         // Load font settings from repository (apply if not AUTO/DEFAULT)
         coroutineScope.launch {
+            val savedFontSettings = withContext(Dispatchers.IO) {
+                val prefs = binding.root.context.applicationContext
+                    .getSharedPreferences("epub_settings", android.content.Context.MODE_PRIVATE)
+                Pair(
+                    prefs.getInt("font_size", 18),
+                    prefs.getInt("translation_font_size", 16)
+                )
+            }
+
+            currentFontSize = savedFontSettings.first.coerceIn(MIN_FONT_SIZE, MAX_FONT_SIZE)
+            translationFontSize = savedFontSettings.second.coerceIn(
+                MIN_TRANSLATION_FONT_SIZE,
+                MAX_TRANSLATION_FONT_SIZE
+            )
+
             val settings = settingsRepository.getSettings().first()
             
             // Apply font size from settings if not AUTO

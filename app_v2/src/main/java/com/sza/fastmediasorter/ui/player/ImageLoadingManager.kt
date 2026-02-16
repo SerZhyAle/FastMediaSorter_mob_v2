@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudPathParser
 import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
@@ -530,6 +531,30 @@ class ImageLoadingManager(
             loadFullImage = true,  // Always load full image in player
             cloudProvider = provider
         )
+
+        val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
+
+        if (isGif) {
+            Timber.d("ImageLoadingManager: Loading GIF via explicit asGif() pipeline")
+
+            val gifRequest = Glide.with(binding.root.context)
+                .asGif()
+                .load(thumbnailData)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .priority(Priority.IMMEDIATE)
+
+            val finalGifRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
+                val maxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
+                gifRequest.override(maxDimension, maxDimension)
+            } else {
+                gifRequest
+            }
+
+            finalGifRequest
+                .listener(createGifGlideListener())
+                .into(targetView)
+            return
+        }
         
         Timber.d("ImageLoadingManager: Created CloudThumbnailData with provider=$provider, loadFullImage=true")
         
@@ -585,6 +610,37 @@ class ImageLoadingManager(
             createdDate = currentFile.createdDate
         )
         val cacheKey = networkData.getCacheKey()
+
+        val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
+
+        if (isGif) {
+            Timber.d("ImageLoadingManager: Loading network GIF via explicit asGif() pipeline")
+
+            val gifRequest = Glide.with(binding.root.context)
+                .asGif()
+                .load(networkData)
+                .signature(ObjectKey(cacheKey))
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+
+            val finalGifRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
+                val (screenWidth, screenHeight) = WindowMetricsCompat.getScreenSize(
+                    callback.getWindowManager()
+                )
+                val (targetWidth, targetHeight) = if (memoryTier == MemoryTier.LOW) {
+                    Pair((screenWidth * 0.75).toInt(), (screenHeight * 0.75).toInt())
+                } else {
+                    Pair(screenWidth, screenHeight)
+                }
+                gifRequest.override(targetWidth, targetHeight)
+            } else {
+                gifRequest
+            }
+
+            finalGifRequest
+                .listener(createGifGlideListener())
+                .into(targetView)
+            return
+        }
         
         val glideRequest = Glide.with(binding.root.context)
             .load(networkData)
@@ -666,6 +722,37 @@ class ImageLoadingManager(
             File(path)
         }
         val cacheKey = "${path}_${currentFile?.size}"
+
+        val isGif = currentFile?.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
+
+        if (isGif) {
+            Timber.d("ImageLoadingManager: Loading local GIF via explicit asGif() pipeline")
+
+            val gifRequest = Glide.with(binding.root.context)
+                .asGif()
+                .load(data)
+                .signature(ObjectKey(cacheKey))
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+
+            val finalGifRequest = if (!loadFullSize || memoryTier == MemoryTier.LOW) {
+                val (screenWidth, screenHeight) = WindowMetricsCompat.getScreenSize(
+                    callback.getWindowManager()
+                )
+                val (targetWidth, targetHeight) = if (memoryTier == MemoryTier.LOW) {
+                    Pair((screenWidth * 0.75).toInt(), (screenHeight * 0.75).toInt())
+                } else {
+                    Pair(screenWidth, screenHeight)
+                }
+                gifRequest.override(targetWidth, targetHeight)
+            } else {
+                gifRequest
+            }
+
+            finalGifRequest
+                .listener(createGifGlideListener())
+                .into(targetView)
+            return
+        }
         
         val glideRequest = Glide.with(binding.root.context)
             .load(data)
@@ -785,6 +872,67 @@ class ImageLoadingManager(
                     // Log memory state AFTER successful image load
                     logMemoryStats("AFTER onResourceReady")
                     
+                    preloadNextImageIfNeeded()
+                }
+                return false
+            }
+        }
+    }
+
+    private fun createGifGlideListener(): RequestListener<com.bumptech.glide.load.resource.gif.GifDrawable> {
+        return object : RequestListener<com.bumptech.glide.load.resource.gif.GifDrawable> {
+            override fun onLoadFailed(
+                e: GlideException?,
+                model: Any?,
+                target: Target<com.bumptech.glide.load.resource.gif.GifDrawable>,
+                isFirstResource: Boolean
+            ): Boolean {
+                Timber.e(e, "ImageLoadingManager.GifListener: onLoadFailed triggered")
+                animatedImageController.onLoadFailed()
+                currentIsAnimatedContent = false
+                callback.setAnimatedBadgeVisible(false)
+                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+                if (!callback.isDestroyed()) {
+                    binding.progressBar.isVisible = false
+                    callback.showError("Failed to load GIF: ${e?.message}", e)
+                }
+                return false
+            }
+
+            override fun onResourceReady(
+                resource: com.bumptech.glide.load.resource.gif.GifDrawable,
+                model: Any,
+                target: Target<com.bumptech.glide.load.resource.gif.GifDrawable>?,
+                dataSource: DataSource,
+                isFirstResource: Boolean
+            ): Boolean {
+                Timber.d("ImageLoadingManager.GifListener: onResourceReady triggered")
+                animatedImageController.onDrawableLoaded(resource, currentTargetView)
+                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+                loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+                if (!callback.isDestroyed()) {
+                    binding.progressBar.isVisible = false
+
+                    currentTargetView?.let { view ->
+                        val imageWidth = resource.intrinsicWidth
+                        val imageHeight = resource.intrinsicHeight
+
+                        if (imageWidth > 0 && imageHeight > 0) {
+                            val scaleType = ImageDisplayUtils.determineImageScaleType(
+                                cropImagesToFullscreen = currentCropSetting,
+                                isFullscreenOrSlideshow = currentIsFullscreenOrSlideshow,
+                                imageWidth = imageWidth,
+                                imageHeight = imageHeight,
+                                deviceWidth = currentDeviceWidth,
+                                deviceHeight = currentDeviceHeight
+                            )
+                            view.scaleType = scaleType
+                            Timber.d("ImageLoadingManager: Applied GIF scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${currentDeviceWidth}x${currentDeviceHeight})")
+                        }
+                    }
+
+                    logMemoryStats("AFTER GIF onResourceReady")
                     preloadNextImageIfNeeded()
                 }
                 return false

@@ -195,9 +195,25 @@ class TranslationOverlayView @JvmOverloads constructor(
      * Load font size multiplier from SharedPreferences
      */
     init {
-        val prefs = context.getSharedPreferences("translation_settings", Context.MODE_PRIVATE)
-        fontSizeMultiplier = prefs.getFloat("font_size_multiplier", 1.0f)
-            .coerceIn(minFontSizeMultiplier, maxFontSizeMultiplier)
+        loadFontSizeMultiplierAsync()
+    }
+
+    private fun loadFontSizeMultiplierAsync() {
+        Thread {
+            try {
+                val prefs = context.applicationContext
+                    .getSharedPreferences("translation_settings", Context.MODE_PRIVATE)
+                val loadedMultiplier = prefs.getFloat("font_size_multiplier", 1.0f)
+                    .coerceIn(minFontSizeMultiplier, maxFontSizeMultiplier)
+
+                post {
+                    fontSizeMultiplier = loadedMultiplier
+                    invalidate()
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "TranslationOverlay: Failed to load font size multiplier")
+            }
+        }.start()
     }
     
     /**
