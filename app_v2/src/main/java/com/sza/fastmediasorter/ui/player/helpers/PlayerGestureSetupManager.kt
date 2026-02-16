@@ -331,7 +331,7 @@ class PlayerGestureSetupManager(
                     return false
                 }
                 
-                val isPdf = activity.isPdfActive()
+                val isPdf = viewModel.state.value.currentFile?.type == MediaType.PDF
                 Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - isPdf=$isPdf")
                 
                 // PDF (REG-DOC): No tap zones, single tap does nothing
@@ -352,7 +352,7 @@ class PlayerGestureSetupManager(
                 
                 // PDF: No double-tap zoom (use pinch-to-zoom only)
                 // IMAGE: Toggle zoom 2x/1x (command panel) or 3x/1x (fullscreen)
-                if (activity.isPdfActive()) {
+                if (viewModel.state.value.currentFile?.type == MediaType.PDF) {
                     return false // PDF spec: pinch-to-zoom only
                 }
                 
@@ -371,7 +371,7 @@ class PlayerGestureSetupManager(
                 
                 // Only handle fling for PDF (vertical swipes for page navigation)
                 // For images: fling disabled to prevent conflict with tap zones
-                if (activity.isPdfActive()) {
+                if (viewModel.state.value.currentFile?.type == MediaType.PDF) {
                     activity.pdfViewerManager.handlePdfFling(e1, e2, velocityX, velocityY)
                 } else {
                     // IMAGE: fling disabled, return false to let PhotoView handle pan gestures
@@ -385,7 +385,7 @@ class PlayerGestureSetupManager(
             if (isOverlayBlocking()) return@setOnLongClickListener false
             
             // Route to PDF handler if PDF is active, else image zoom
-            if (activity.isPdfActive()) {
+            if (viewModel.state.value.currentFile?.type == MediaType.PDF) {
                 activity.pdfViewerManager.handlePdfLongPress()
             } else {
                 touchZoneGestureManager.handleImageLongPress()

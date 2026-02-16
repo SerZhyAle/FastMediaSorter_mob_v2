@@ -65,6 +65,10 @@ class TouchZoneGestureManager(
     private fun getCurrentPhotoViewScale(): Float {
         return getVisiblePhotoView()?.scale ?: 1.0f
     }
+
+    private fun isAnyImageSurfaceVisible(): Boolean {
+        return isAnyPhotoViewVisible() || binding.imageView.isVisible
+    }
     
     interface TouchZoneCallback {
         fun isOverlayBlocking(): Boolean
@@ -142,7 +146,7 @@ class TouchZoneGestureManager(
                     return false
                 }
                 
-                if (isImage && isAnyPhotoViewVisible()) {
+                if (isImage && isAnyImageSurfaceVisible()) {
                     // In fullscreen mode: use 9-zone grid for top area, 3-zone for rest
                     if (isInFullscreenMode) {
                         Timber.d("SingleTap: IMAGE fullscreen mode -> handleTouchZone (9 zones)")
@@ -370,7 +374,7 @@ class TouchZoneGestureManager(
             return false
         }
 
-        if (isImage && isAnyPhotoViewVisible()) {
+        if (isImage && isAnyImageSurfaceVisible()) {
             if (isInFullscreenMode) {
                 Timber.d("handleImageSingleTap: fullscreen -> 9-zone grid")
                 handleTouchZone(e.x, e.y)
@@ -423,7 +427,7 @@ class TouchZoneGestureManager(
 
         Timber.d("handleImageDoubleTap: pos=(${e.x.toInt()},${e.y.toInt()}), fullscreen=$isInFullscreenMode")
 
-        if (isImage && isAnyPhotoViewVisible()) {
+        if (isImage && isAnyImageSurfaceVisible()) {
             if (!isInFullscreenMode) {
                 val screenWidth = binding.root.width
                 val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen = false)
