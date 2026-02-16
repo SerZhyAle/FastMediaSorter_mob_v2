@@ -342,7 +342,9 @@ class PlayerGestureSetupManager(
                 }
                 
                 Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - routing to handleImageSingleTap")
-                val result = touchZoneGestureManager.handleImageSingleTap(e)
+                val rootEvent = toRootCoordinatesEvent(photoView, e)
+                val result = touchZoneGestureManager.handleImageSingleTap(rootEvent)
+                rootEvent.recycle()
                 Timber.d("TOUCH_DEBUG: photoView$surfaceId.onSingleTapConfirmed - handleImageSingleTap returned $result")
                 return result
             }
@@ -356,7 +358,10 @@ class PlayerGestureSetupManager(
                     return false // PDF spec: pinch-to-zoom only
                 }
                 
-                return touchZoneGestureManager.handleImageDoubleTap(e)
+                val rootEvent = toRootCoordinatesEvent(photoView, e)
+                val result = touchZoneGestureManager.handleImageDoubleTap(rootEvent)
+                rootEvent.recycle()
+                return result
             }
 
             override fun onDoubleTapEvent(e: MotionEvent): Boolean = false
@@ -390,6 +395,23 @@ class PlayerGestureSetupManager(
             } else {
                 touchZoneGestureManager.handleImageLongPress()
             }
+        }
+    }
+
+    private fun toRootCoordinatesEvent(
+        sourceView: android.view.View,
+        sourceEvent: MotionEvent
+    ): MotionEvent {
+        val rootLocation = IntArray(2)
+        val sourceLocation = IntArray(2)
+        binding.root.getLocationOnScreen(rootLocation)
+        sourceView.getLocationOnScreen(sourceLocation)
+
+        val rootX = sourceEvent.x + (sourceLocation[0] - rootLocation[0])
+        val rootY = sourceEvent.y + (sourceLocation[1] - rootLocation[1])
+
+        return MotionEvent.obtain(sourceEvent).apply {
+            setLocation(rootX, rootY)
         }
     }
     
