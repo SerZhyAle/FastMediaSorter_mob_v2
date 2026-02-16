@@ -650,7 +650,6 @@ class MediaFileAdapter(
             val imageView = binding.ivThumbnail
             val context = imageView.context
             val generatedPlaceholder = createPlaceholderDrawable(file)
-            val generatedPlaceholder = createPlaceholderDrawable(file)
             
             // Reset scaleType to CENTER_CROP (may have been CENTER_INSIDE for folder icons due to view recycling)
             imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
@@ -1582,6 +1581,7 @@ class MediaFileAdapter(
 
             val imageView = binding.ivThumbnail
             val context = imageView.context
+            val generatedPlaceholder = createPlaceholderDrawable(file)
             
             // Reset scaleType to CENTER_CROP (may have been CENTER_INSIDE for folder icons due to view recycling)
             imageView.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP

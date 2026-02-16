@@ -569,15 +569,24 @@ class BrowseViewModel @Inject constructor(
             Timber.i("BrowseViewModel.refreshResourceMetadata: START - loading updated resource from database")
             val updatedResource = getResourcesUseCase.getById(resourceId)
             if (updatedResource != null) {
+                val effectiveResource = if (updatedResource.isAudioOnly() && updatedResource.displayMode != DisplayMode.LIST) {
+                    updatedResource.copy(displayMode = DisplayMode.LIST)
+                } else {
+                    updatedResource
+                }
                 withContext(Dispatchers.Main) {
-                    Timber.i("BrowseViewModel.refreshResourceMetadata: Resource loaded - name='${updatedResource.name}', sortMode=${updatedResource.sortMode}, displayMode=${updatedResource.displayMode}")
+                    Timber.i("BrowseViewModel.refreshResourceMetadata: Resource loaded - name='${effectiveResource.name}', sortMode=${effectiveResource.sortMode}, displayMode=${effectiveResource.displayMode}")
                     updateState { 
                         it.copy(
-                            resource = updatedResource,
-                            sortMode = updatedResource.sortMode,
-                            displayMode = updatedResource.displayMode
+                            resource = effectiveResource,
+                            sortMode = effectiveResource.sortMode,
+                            displayMode = effectiveResource.displayMode
                         ) 
                     }
+                }
+
+                if (effectiveResource != updatedResource) {
+                    updateResourceUseCase(effectiveResource)
                 }
             } else {
                 Timber.e("BrowseViewModel.refreshResourceMetadata: Resource not found for id=$resourceId")
@@ -1038,11 +1047,18 @@ class BrowseViewModel @Inject constructor(
             val initialSubfolderMode = resource.scanSubdirectories && resource.showSubfoldersAsItems
             Timber.d("BrowseViewModel.loadResource: initialSubfolderMode=$initialSubfolderMode (scanSubdirectories=${resource.scanSubdirectories}, showSubfoldersAsItems=${resource.showSubfoldersAsItems})")
             
+            val effectiveDisplayMode = if (resource.isAudioOnly()) DisplayMode.LIST else resource.displayMode
+            val effectiveResource = if (resource.displayMode != effectiveDisplayMode) {
+                resource.copy(displayMode = effectiveDisplayMode)
+            } else {
+                resource
+            }
+            
             updateState { 
                 it.copy(
-                    resource = resource,
+                    resource = effectiveResource,
                     sortMode = resource.sortMode,
-                    displayMode = resource.displayMode,
+                    displayMode = effectiveDisplayMode,
                     isCloudResource = isCloudResource,
                     filter = restoredFilter,
                     isSubfolderMode = initialSubfolderMode,
@@ -1051,8 +1067,12 @@ class BrowseViewModel @Inject constructor(
                 ) 
             }
             
-            Timber.d("BrowseViewModel.loadResource: State updated - displayMode=${resource.displayMode}, sortMode=${resource.sortMode}")
+            Timber.d("BrowseViewModel.loadResource: State updated - displayMode=$effectiveDisplayMode, sortMode=${resource.sortMode}, isAudioOnly=${resource.isAudioOnly()}")
             Timber.d("BrowseViewModel.loadResource: Cloud resource details - cloudProvider=${resource.cloudProvider}, cloudFolderId=${resource.cloudFolderId}, path=${resource.path}")
+            
+            if (effectiveResource != resource) {
+                updateResourceUseCase(effectiveResource)
+            }
             
             // For Google Drive resources, verify authentication by testing API access
             if (resource.type == ResourceType.CLOUD && resource.cloudProvider == CloudProvider.GOOGLE_DRIVE) {
@@ -1636,6 +1656,20 @@ class BrowseViewModel @Inject constructor(
 
     fun toggleDisplayMode() {
         val resource = state.value.resource ?: return
+
+        if (resource.isAudioOnly()) {
+            if (state.value.displayMode != DisplayMode.LIST || resource.displayMode != DisplayMode.LIST) {
+                val updatedResource = resource.copy(displayMode = DisplayMode.LIST)
+                updateState { it.copy(displayMode = DisplayMode.LIST, resource = updatedResource) }
+                viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                    withContext(NonCancellable) {
+                        updateResourceUseCase(updatedResource)
+                    }
+                }
+            }
+            Timber.d("toggleDisplayMode ignored for audio-only resource: ${resource.name}")
+            return
+        }
         
         val newMode = if (state.value.displayMode == DisplayMode.LIST) {
             DisplayMode.GRID

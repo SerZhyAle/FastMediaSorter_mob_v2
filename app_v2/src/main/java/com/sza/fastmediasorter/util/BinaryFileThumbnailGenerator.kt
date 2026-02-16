@@ -47,8 +47,10 @@ class BinaryFileThumbnailGenerator(private val context: Context) {
         val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         
-        // Get gradient colors based on type
-        val (startColor, endColor) = BinaryFileTypeDetector.getColorForType(type)
+        // Get gradient colors based on extension palette (SPEC_07)
+        val baseColor = ThumbnailColorMapper.getColorForExtension(extension)
+        val startColor = ThumbnailColorMapper.lighten(baseColor)
+        val endColor = ThumbnailColorMapper.darken(baseColor)
         
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             shader = LinearGradient(
@@ -65,7 +67,7 @@ class BinaryFileThumbnailGenerator(private val context: Context) {
         
         // Draw extension text in center
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
+            color = ThumbnailColorMapper.getContrastingTextColor(baseColor)
             textSize = size * 0.25f
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER

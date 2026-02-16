@@ -735,41 +735,105 @@
 
             </LinearLayout>
 
-            <!-- Logs -->
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <LinearLayout
+                android:id="@+id/containerDebugSettings"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/settings_item_margin_bottom"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnShowLog"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="@dimen/match_constraint"
+                <TextView
+                    android:id="@+id/tvDebugSectionTitle"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:text="@string/show_log"
-                    android:textSize="12sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/btnShowSessionLog"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_weight="1"
-                    app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+                    android:layout_marginBottom="@dimen/margin_tiny"
+                    android:text="@string/debug_settings_title"
+                    android:textSize="@dimen/text_size_small"
+                    android:textStyle="bold" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnShowSessionLog"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="@dimen/match_constraint"
+                <!-- Debug logs -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/show_current_session_log"
-                    android:textSize="12sp"
-                    app:layout_constraintStart_toEndOf="@+id/btnShowLog"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_weight="1"
-                    app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+                    android:layout_marginBottom="@dimen/margin_tiny">
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnShowLog"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="@dimen/match_constraint"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="@dimen/margin_small"
+                        android:text="@string/show_log"
+                        android:textSize="12sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/btnShowSessionLog"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintHorizontal_weight="1"
+                        app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnShowSessionLog"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="@dimen/match_constraint"
+                        android:layout_height="wrap_content"
+                        android:text="@string/show_current_session_log"
+                        android:textSize="12sp"
+                        app:layout_constraintStart_toEndOf="@+id/btnShowLog"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintHorizontal_weight="1"
+                        app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+                <!-- Integration tests and debug import -->
+                <androidx.constraintlayout.widget.ConstraintLayout
+                    android:id="@+id/containerIntegrationTests"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:layout_marginBottom="@dimen/margin_tiny">
+
+                    <Button
+                        android:id="@+id/btnIntegrationTests"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                        android:layout_width="@dimen/match_constraint"
+                        android:layout_height="wrap_content"
+                        android:text="@string/run_integration_tests"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        app:icon="@android:drawable/ic_menu_manage"
+                        app:iconSize="@dimen/settings_icon_size"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintHorizontal_weight="1"
+                        app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+
+                    <Button
+                        android:id="@+id/btnImportTestCredentials"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+                        android:layout_width="@dimen/match_constraint"
+                        android:layout_height="wrap_content"
+                        android:text="@string/import_test_credentials"
+                        android:textSize="12sp"
+                        android:visibility="gone"
+                        app:icon="@android:drawable/ic_menu_upload"
+                        app:iconSize="@dimen/settings_icon_size"
+                        app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintHorizontal_weight="1"
+                        app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
+
+            </LinearLayout>
 
             <!-- Cache Management Container -->
             <androidx.constraintlayout.widget.ConstraintLayout
@@ -892,47 +956,11 @@
             </LinearLayout>
 
             <androidx.constraintlayout.widget.ConstraintLayout
-                android:id="@+id/containerIntegrationTests"
+                android:id="@+id/containerGeneralActions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/margin_tiny"
                 android:layout_marginBottom="@dimen/margin_tiny">
-
-                <!-- Integration Tests Button (DEBUG only) -->
-                <Button
-                    android:id="@+id/btnIntegrationTests"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
-                    android:layout_width="@dimen/match_constraint"
-                    android:layout_height="wrap_content"
-                    android:text="@string/run_integration_tests"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    app:icon="@android:drawable/ic_menu_manage"
-                    app:iconSize="@dimen/settings_icon_size"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toStartOf="@+id/btnImportTestCredentials"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_weight="1"
-                    app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
-
-                <!-- Import Test Credentials Button (DEBUG only) -->
-                <Button
-                    android:id="@+id/btnImportTestCredentials"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
-                    android:layout_width="@dimen/match_constraint"
-                    android:layout_height="wrap_content"
-                    android:text="@string/import_test_credentials"
-                    android:textSize="12sp"
-                    android:visibility="gone"
-                    app:icon="@android:drawable/ic_menu_upload"
-                    app:iconSize="@dimen/settings_icon_size"
-                    app:layout_constraintStart_toEndOf="@+id/btnIntegrationTests"
-                    app:layout_constraintEnd_toStartOf="@+id/btnResetGeneralSection"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintHorizontal_weight="1"
-                    app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
                 <Button
                     android:id="@+id/btnResetGeneralSection"
@@ -943,7 +971,7 @@
                     android:textSize="12sp"
                     app:icon="@android:drawable/ic_menu_revert"
                     app:iconSize="@dimen/settings_icon_size"
-                    app:layout_constraintStart_toEndOf="@+id/btnImportTestCredentials"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toStartOf="@+id/btnResetSettings"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"

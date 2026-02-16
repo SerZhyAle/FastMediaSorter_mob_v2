@@ -147,6 +147,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     // Cache current display mode to avoid redundant updateDisplayMode() calls
     private var currentDisplayMode: DisplayMode? = null
+    // Cache current audio-only mode to force layout refresh when resource media types change
+    private var currentAudioOnlyMode: Boolean? = null
     // Track last submitted sort mode to force adapter refresh when the user changes sorting
     private var lastSubmittedSortMode: SortMode? = null
     
@@ -616,6 +618,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
 
         binding.btnToggleView.setOnClickListener {
+            if (viewModel.state.value.resource?.isAudioOnly() == true) {
+                return@setOnClickListener
+            }
             UserActionLogger.logButtonClick("ToggleView", "BrowseActivity")
             viewModel.toggleDisplayMode()
         }
@@ -747,15 +752,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
-    override fun observeData() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect { state ->
-                    // Don't log every collect - only when actually submitting list (reduces log spam)
-                    
-                    // Always use standard mode (no pagination)
-                    // Only submit list if content actually changed
-
     private fun performSelectAllWithToast() {
         viewModel.selectAll()
         val selectedCount = viewModel.state.value.selectedFiles.size
@@ -768,6 +764,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }
     }
+
+    override fun observeData() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    // Don't log every collect - only when actually submitting list (reduces log spam)
+                    
+                    // Always use standard mode (no pagination)
+                    // Only submit list if content actually changed
                     // Compare with last emitted list from ViewModel (survives Activity recreation)
                     val previousMediaFiles = viewModel.lastEmittedMediaFiles
                     val previousSize = previousMediaFiles?.size ?: -1
@@ -1008,6 +1013,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     mediaFileAdapter.setSelectedPaths(state.selectedFiles)
                     state.resource?.let { resource ->
+                        mediaFileAdapter.setAudioOnlyMode(resource.isAudioOnly())
                         mediaFileAdapter.setCredentialsId(resource.credentialsId)
                         mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
                         Timber.d("THUMBNAIL_DEBUG: Resource '${resource.name}' disableThumbnails=${resource.disableThumbnails}")
@@ -1074,8 +1080,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnUndo.isVisible = state.lastOperation != null
                     binding.btnShare.isVisible = hasSelection
 
-                    // Only update display mode if it actually changed
-                    if (state.displayMode != currentDisplayMode) {
+                    updateToggleViewAvailability(state.resource?.isAudioOnly() == true)
+
+                    // Update display mode when either mode OR audio-only state changed.
+                    // This is required to restore normal thumbnail sizing after leaving audio-only resources.
+                    val isAudioOnly = state.resource?.isAudioOnly() == true
+                    if (state.displayMode != currentDisplayMode || isAudioOnly != currentAudioOnlyMode) {
+                        currentAudioOnlyMode = isAudioOnly
                         currentDisplayMode = state.displayMode
                         updateDisplayMode(state.displayMode)
                     }
@@ -1215,6 +1226,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val currentResource = viewModel.state.value.resource
                     if (currentResource != null && 
                         currentResource.displayMode == DisplayMode.GRID && 
+                        !currentResource.isAudioOnly() &&
                         settings.defaultIconSize != lastIconSize) {
                         
                         lastIconSize = settings.defaultIconSize
@@ -1532,10 +1544,29 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private suspend fun updateDisplayMode(mode: DisplayMode) {
         val settings = settingsRepository.getSettings().first()
         val currentResource = viewModel.state.value.resource
-        val iconSize = if (currentResource?.disableThumbnails == true) 32 else settings.defaultIconSize
+        val isAudioOnly = currentResource?.isAudioOnly() == true
+        val effectiveMode = if (isAudioOnly) DisplayMode.LIST else mode
+        val iconSize = if (isAudioOnly) {
+            48
+        } else if (currentResource?.disableThumbnails == true) {
+            32
+        } else {
+            settings.defaultIconSize
+        }
         
-        recyclerViewManager.updateDisplayMode(mode, iconSize, showVideoThumbnails)
-        currentDisplayMode = mode
+        recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnails)
+        currentDisplayMode = effectiveMode
+        updateToggleViewAvailability(isAudioOnly)
+    }
+
+    private fun updateToggleViewAvailability(isAudioOnly: Boolean) {
+        binding.btnToggleView.apply {
+            isEnabled = !isAudioOnly
+            alpha = if (isAudioOnly) 0.4f else 1.0f
+            if (isAudioOnly) {
+                setIconResource(R.drawable.ic_view_list)
+            }
+        }
     }
 
     /**

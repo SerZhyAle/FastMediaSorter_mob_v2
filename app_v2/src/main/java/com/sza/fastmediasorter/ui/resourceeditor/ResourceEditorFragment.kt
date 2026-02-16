@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
+import androidx.activity.result.contract.ActivityResultContracts
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -25,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
+import com.sza.fastmediasorter.utils.PermissionChecker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -43,6 +45,21 @@ class ResourceEditorFragment : Fragment() {
     private var resourceType: ResourceType? = null
     private val shownWarnings = mutableSetOf<ResourceEditorWarning>()
     private var credentialsDialogShown = false
+    private var pendingSaveAfterPermissionGrant = false
+    private val mediaPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted || PermissionChecker.hasMediaPermissions(requireContext())) {
+            if (pendingSaveAfterPermissionGrant) {
+                pendingSaveAfterPermissionGrant = false
+                viewModel.onSave()
+            }
+        } else {
+            pendingSaveAfterPermissionGrant = false
+            Snackbar.make(binding.root, R.string.permissions_denied_warning, Snackbar.LENGTH_LONG).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -153,7 +170,11 @@ class ResourceEditorFragment : Fragment() {
         }
 
         binding.btnSave.setOnClickListener {
-            viewModel.onSave()
+            if (shouldCheckMediaPermissionBeforeSave()) {
+                showPermissionRequiredDialog()
+            } else {
+                viewModel.onSave()
+            }
         }
 
         binding.btnRetry.setOnClickListener {
@@ -172,6 +193,37 @@ class ResourceEditorFragment : Fragment() {
             val suggestion = viewModel.uiState.value.nameSuggestions.firstOrNull() ?: return@setOnClickListener
             viewModel.onUseNameSuggestion(suggestion)
         }
+    }
+
+    private fun shouldCheckMediaPermissionBeforeSave(): Boolean {
+        val state = viewModel.uiState.value
+        val isCreateMode = mode == ResourceEditorMode.CREATE
+        val isLocalResource = state.formData.type == ResourceType.LOCAL
+        return isCreateMode && isLocalResource && !PermissionChecker.hasMediaPermissions(requireContext())
+    }
+
+    private fun showPermissionRequiredDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(R.string.permissions_required_for_local_resource)
+            .setPositiveButton(R.string.grant_permissions) { _, _ ->
+                pendingSaveAfterPermissionGrant = true
+                requestMediaPermissions()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun requestMediaPermissions() {
+        val permissions = PermissionChecker.getRequiredMediaPermissions()
+        if (permissions.isEmpty() || PermissionChecker.hasMediaPermissions(requireContext())) {
+            if (pendingSaveAfterPermissionGrant) {
+                pendingSaveAfterPermissionGrant = false
+                viewModel.onSave()
+            }
+            return
+        }
+        mediaPermissionsLauncher.launch(permissions)
     }
 
     private fun observeUiState() {

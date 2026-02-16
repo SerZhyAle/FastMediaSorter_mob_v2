@@ -274,7 +274,10 @@
     <string name="default_smb_password">SMB пароль за замовчуванням</string>
     <string name="user_guide">Керівництво користувача</string>
     <string name="privacy_policy">Конфіденційність</string>
-    <string name="manage_permissions">Керування дозволами</string>
+    <string name="manage_permissions">Керування правами</string>
+    <string name="request_permissions">Запросити дозволи</string>
+    <string name="permissions_required_title">Потрібні дозволи</string>
+    <string name="permissions_required_for_local_resource">Для створення локального ресурсу потрібен доступ до медіафайлів. Надайте дозволи для продовження.</string>
     <string name="show_logs">Показати логи</string>
     <string name="support_images">Підтримка зображень</string>
     <string name="support_images_description">Підтримка статичних зображень</string>
@@ -511,6 +514,12 @@
     <string name="welcome_description_4">РЕСУРСИ: Додавайте папки з локального сховища, мережевих ресурсів або хмарних сервісів.\n\nПРИЗНАЧЕННЯ: Налаштуйте до 30 швидких папок з кольоровим маркуванням для операцій копіювання/переміщення.\n\nНалаштовуйте в будь-який час!</string>
     <string name="welcome_title_5">Додаткові функції</string>
     <string name="welcome_description_5">📝 ТЕКСТ І PDF: Перегляд та редагування текстових файлів, експорт сторінок PDF у JPG\n\n🔤 OCR І ПЕРЕКЛАД: Витягування тексту із зображень та переклад на вашу мову\n\n📚 EPUB: Читання електронних книг з налаштовуваним розміром шрифту\n\n🎵 АУДІО: Відтворення музики з обкладинками з iTunes\n\n✨ І багато іншого!\n\nНалаштування в Налаштуваннях далі...</string>
+    <string name="welcome_permissions_title">Доступ до медіафайлів</string>
+    <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
+    <string name="grant_permissions">Надати доступ</string>
+    <string name="permissions_denied_title">Потрібен дозвіл</string>
+    <string name="permissions_denied_warning">Без доступу до медіафайлів основний функціонал додатка буде недоступний.</string>
+    <string name="continue_anyway">Продовжити без дозволів</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ до сховища</string>
@@ -522,6 +531,7 @@
     <string name="grant_local_files_permission">НАДАТИ ДОСТУП ДО ЛОКАЛЬНИХ ФАЙЛІВ</string>
     <string name="grant_network_permission">НАДАТИ ДОСТУП ДО МЕРЕЖІ</string>
     <string name="network_permission_granted">Доступ до мережі надано</string>
+    <string name="debug_settings_title">ВІДЛАДКА</string>
     <string name="show_log">ПОКАЗАТИ ЛОГ</string>
     <string name="show_current_session_log">ЛОГ ПОТОЧНОЇ СЕСІЇ</string>
     <string name="clear_cache">ОЧИСТИТИ КЕШ</string>
@@ -1099,15 +1109,15 @@
         <item quantity="many">Додано %1$d ресурсів</item>
         <item quantity="other">Додано %1$d ресурсу</item>
     </plurals>
-    <string name="resource_deleted">Ресурс видалено</string>
-    <string name="msg_loading_timeout">Завантаження тривало занадто довго</string>
-    <string name="speed">Швидкість</string>
     <plurals name="selected_n_files">
         <item quantity="one">Вибрано %1$d файл</item>
         <item quantity="few">Вибрано %1$d файли</item>
         <item quantity="many">Вибрано %1$d файлів</item>
         <item quantity="other">Вибрано %1$d файла</item>
     </plurals>
+    <string name="resource_deleted">Ресурс видалено</string>
+    <string name="msg_loading_timeout">Завантаження тривало занадто довго</string>
+    <string name="speed">Швидкість</string>
     <string name="network_speed">Швидкість мережі</string>
     <string name="read_speed">Читання</string>
     <string name="write_speed">Запис</string>

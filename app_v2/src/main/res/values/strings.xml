@@ -240,6 +240,9 @@
     <string name="user_guide">User Guide</string>
     <string name="privacy_policy">Privacy</string>
     <string name="manage_permissions">Manage permissions</string>
+    <string name="request_permissions">Request permissions</string>
+    <string name="permissions_required_title">Permissions required</string>
+    <string name="permissions_required_for_local_resource">To create a local resource, media file access is required. Grant permissions to continue.</string>
     <string name="show_logs">Show logs</string>
     <string name="open_documentation">Open Documentation</string>
     <string name="support_images">Support Images</string>
@@ -522,6 +525,12 @@
     <string name="welcome_description_4">RESOURCES: Add folders from local storage, network shares, or cloud services.\n\nDESTINATIONS: Set up to 30 quick-access folders with color coding for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
     <string name="welcome_title_5">Additional Features</string>
     <string name="welcome_description_5">📝 TEXT &amp; PDF: View and edit text files, export PDF pages to JPG\n\n🔤 OCR &amp; TRANSLATION: Extract text from images and translate to your language\n\n📚 EPUB: Read e-books with adjustable font size\n\n🎵 AUDIO: Play music with album covers from iTunes\n\n✨ And much more to discover!\n\nSetup in Settings next...</string>
+    <string name="welcome_permissions_title">Media Files Access</string>
+    <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
+    <string name="grant_permissions">Grant Access</string>
+    <string name="permissions_denied_title">Permission Required</string>
+    <string name="permissions_denied_warning">Without media access, core app features will be unavailable.</string>
+    <string name="continue_anyway">Continue anyway</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Storage Access</string>
@@ -533,6 +542,7 @@
     <string name="grant_local_files_permission">GRANT LOCAL FILES PERMISSION</string>
     <string name="grant_network_permission">GRANT NETWORK PERMISSION</string>
     <string name="network_permission_granted">Network permission granted</string>
+    <string name="debug_settings_title">DEBUG</string>
     <string name="show_log">SHOW LOG</string>
     <string name="show_current_session_log">CURRENT SESSION LOG</string>
     <string name="cache_size_limit">Cache Size Limit</string>
@@ -1297,6 +1307,10 @@
         <item quantity="one">Added %1$d resource</item>
         <item quantity="other">Added %1$d resources</item>
     </plurals>
+    <plurals name="selected_n_files">
+        <item quantity="one">Selected %1$d file</item>
+        <item quantity="other">Selected %1$d files</item>
+    </plurals>
     <string name="resource_deleted">Resource deleted</string>
     <string name="msg_loading_timeout">Loading took too long</string>
     <string name="speed">Speed</string>
@@ -1308,10 +1322,6 @@
     <string name="last_test_date">Last test: %s</string>
     <string name="never_tested">Never tested</string>
     <string name="smb_resource_added_success">SMB resource added successfully</string>
-    <plurals name="selected_n_files">
-        <item quantity="one">Selected %1$d file</item>
-        <item quantity="other">Selected %1$d files</item>
-    </plurals>
     <string name="smb_resource_added_unavailable">SMB resource \'%1$s\' added but is currently unavailable. Check that the share exists and is accessible from this device.</string>
     
     <!-- Speed Test -->

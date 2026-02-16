@@ -186,7 +186,11 @@ class NetworkVideoFrameDecoder(
                 retriever.getFrameAtTime(frameTime, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
                     ?: retriever.getFrameAtTime(0) // Fallback to first frame
             } catch (e: Exception) {
-                Timber.e(e, "Failed to extract video frame")
+                if (isExpectedFrameExtractionFailure(e)) {
+                    Timber.w("Video frame extraction skipped for ${path.substringAfterLast('/')} - ${e.message}")
+                } else {
+                    Timber.w("Video frame extraction failed for ${path.substringAfterLast('/')} - ${e.javaClass.simpleName}: ${e.message}")
+                }
                 null
             } finally {
                 try {
@@ -289,6 +293,25 @@ class NetworkVideoFrameDecoder(
             val bmp = bitmapDrawable.bitmap ?: return
             bitmapPool.put(bmp)
         }
+    }
+
+    private fun isExpectedFrameExtractionFailure(error: Exception): Boolean {
+        if (error is InterruptedException || error is java.util.concurrent.CancellationException) {
+            return true
+        }
+
+        val message = error.message.orEmpty()
+        if (message.contains("setDataSourceCallback failed", ignoreCase = true) ||
+            message.contains("status = 0x80000000", ignoreCase = true) ||
+            message.contains("timed out", ignoreCase = true)
+        ) {
+            return true
+        }
+
+        val cause = error.cause
+        return cause is InterruptedException ||
+            cause is java.util.concurrent.CancellationException ||
+            cause?.message?.contains("setDataSourceCallback failed", ignoreCase = true) == true
     }
 }
 

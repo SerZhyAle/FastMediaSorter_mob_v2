@@ -17,6 +17,8 @@ class WelcomeViewModel @Inject constructor(
         private const val PREFS_NAME = "welcome_prefs"
         private const val KEY_WELCOME_COMPLETED = "welcome_completed"
         private const val KEY_FIRST_RUN_AFTER_WELCOME = "first_run_after_welcome"
+        private const val APP_PREFS_NAME = "app_prefs"
+        private const val KEY_MEDIA_PERMISSIONS_GRANTED = "media_permissions_granted"
     }
 
     override fun getInitialState(): WelcomeState = WelcomeState()
@@ -57,6 +59,15 @@ class WelcomeViewModel @Inject constructor(
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_FIRST_RUN_AFTER_WELCOME, false)
+                .apply()
+        }
+    }
+
+    fun setMediaPermissionsGranted(granted: Boolean) {
+        StrictModeHelper.allowDiskWrites {
+            context.getSharedPreferences(APP_PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_MEDIA_PERMISSIONS_GRANTED, granted)
                 .apply()
         }
     }

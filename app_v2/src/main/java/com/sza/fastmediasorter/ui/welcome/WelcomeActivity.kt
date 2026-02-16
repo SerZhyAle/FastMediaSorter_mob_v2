@@ -1,16 +1,19 @@
 package com.sza.fastmediasorter.ui.welcome
 
+import android.Manifest
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
-import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -23,7 +26,25 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private var currentPage = 0
-    private var permissionsGranted = false
+    private var waitingPermissionForFinish = false
+    private val mediaPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted || hasRequiredMediaPermissions()) {
+            onMediaPermissionsGranted()
+        } else {
+            showPermissionDeniedDialog()
+        }
+    }
+    private val pageBackgrounds = intArrayOf(
+        R.color.welcome_page_1_background,
+        R.color.welcome_page_2_background,
+        R.color.welcome_page_3_background,
+        R.color.welcome_page_4_background,
+        R.color.welcome_page_5_background,
+        R.color.welcome_page_6_background
+    )
 
     override fun getViewBinding(): ActivityWelcomeBinding =
         ActivityWelcomeBinding.inflate(layoutInflater)
@@ -142,11 +163,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun updateUI() {
+        applyPageBackground()
         updateIndicators()
 
         val isLastPage = currentPage == pagerAdapter.itemCount - 1
         val isFirstPage = currentPage == 0
-        val isPermissionPage = pagerAdapter.getItemViewType(currentPage) == 2 // VIEW_TYPE_PERMISSIONS
 
         binding.btnPrevious.visibility = if (isFirstPage) View.INVISIBLE else View.VISIBLE
         
@@ -170,82 +191,68 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
          binding.btnSkip.visibility = if (isLastPage) View.INVISIBLE else View.VISIBLE
     }
 
+    private fun applyPageBackground() {
+        val backgroundIndex = currentPage.coerceIn(0, pageBackgrounds.lastIndex)
+        binding.root.setBackgroundResource(pageBackgrounds[backgroundIndex])
+    }
+
     private fun finishWelcome() {
-        // If user skips onboarding pages and storage permission is still missing,
-        // request it immediately before entering the app.
-        if (!PermissionHelper.hasStoragePermission(this)) {
+        if (!hasRequiredMediaPermissions()) {
+            waitingPermissionForFinish = true
             requestPermissions()
             return
         }
 
-        checkAndFinish()
+        completeWelcomeFlow()
     }
 
     private fun requestPermissions() {
-        // Request storage permission first
-        if (!PermissionHelper.hasStoragePermission(this)) {
-            // Direct request for modern flow (we are on the explanation page)
-            PermissionHelper.requestStoragePermission(this)
-        } else {
-            // Storage already granted, check MANAGE_MEDIA
-            requestManageMediaIfNeeded()
+        val requiredPermissions = getRequiredMediaPermissions()
+        if (requiredPermissions.isEmpty() || hasRequiredMediaPermissions()) {
+            onMediaPermissionsGranted()
+            return
         }
+
+        mediaPermissionsLauncher.launch(requiredPermissions)
     }
 
-    private fun requestManageMediaIfNeeded() {
-        // For Android 12+, offer MANAGE_MEDIA for one-tap file operations
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S && 
-            !PermissionHelper.hasManageMediaPermission(this)) {
-                // Direct request
-                PermissionHelper.requestManageMediaPermission(this)
-        } else {
-            // Either already granted or not available, finish
-            permissionsGranted = true
-            Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
-            
-            // Auto finish after granting?
-            // Or user clicks "Finish" / "Start App"
+    private fun onMediaPermissionsGranted() {
+        viewModel.setMediaPermissionsGranted(true)
+        Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
+
+        if (waitingPermissionForFinish) {
+            waitingPermissionForFinish = false
+            completeWelcomeFlow()
+        } else if (currentPage == pagerAdapter.itemCount - 1) {
             viewModel.setWelcomeCompleted()
             restartApp()
         }
     }
 
-    // kept for legacy or if we want to use dialogs elsewhere, but simplified here
-    private fun showPermissionDialog(
-        title: String,
-        message: String,
-        onGrant: () -> Unit,
-        onSkip: () -> Unit
-    ) {
+    private fun showPermissionDeniedDialog() {
         AlertDialog.Builder(this)
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton(R.string.grant_permission) { _, _ ->
-                onGrant()
+            .setTitle(R.string.permissions_denied_title)
+            .setMessage(R.string.permissions_denied_warning)
+            .setPositiveButton(R.string.retry) { _, _ ->
+                requestPermissions()
             }
-            .setNegativeButton(R.string.skip_permission) { _, _ ->
-                onSkip()
+            .setNegativeButton(R.string.continue_anyway) { _, _ ->
+                waitingPermissionForFinish = false
+                completeWelcomeFlow()
             }
-            .setCancelable(false)
+            .setCancelable(true)
             .show()
     }
 
-    private fun checkAndFinish() {
-         // Check permissions one last time
-        if (PermissionHelper.hasStoragePermission(this)) {
-             permissionsGranted = true
+    private fun completeWelcomeFlow() {
+        if (hasRequiredMediaPermissions()) {
+            viewModel.setMediaPermissionsGranted(true)
+            viewModel.setWelcomeCompleted()
+            restartApp()
+            return
         }
 
-        if (permissionsGranted) {
-            viewModel.setWelcomeCompleted()
-            // Permissions were granted, restart app
-             // Only show toast if we didn't show it during grant
-             // Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
-            restartApp()
-        } else {
-            // No permissions granted, just go to MainActivity
-            goToMainActivity()
-        }
+        goToMainActivity()
     }
 
     private fun goToMainActivity() {
@@ -277,38 +284,28 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         LocaleHelper.restartApp(this)
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        
-        when (requestCode) {
-            PermissionHelper.REQUEST_CODE_MANAGE_STORAGE -> {
-                if (PermissionHelper.hasStoragePermission(this)) {
-                    permissionsGranted = true
-                    // Proceed to next permission or finish
-                    checkAndFinish()
-                }
+    private fun getRequiredMediaPermissions(): Array<String> {
+        return when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
+                arrayOf(
+                    Manifest.permission.READ_MEDIA_IMAGES,
+                    Manifest.permission.READ_MEDIA_VIDEO,
+                    Manifest.permission.READ_MEDIA_AUDIO
+                )
             }
-            PermissionHelper.REQUEST_CODE_MANAGE_MEDIA -> {
-                requestManageMediaIfNeeded()
+
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
+                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
+
+            else -> emptyArray()
         }
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        
-        when (requestCode) {
-            PermissionHelper.REQUEST_CODE_STORAGE -> {
-                if (PermissionHelper.hasStoragePermission(this)) {
-                    // permissionsGranted = true // Don't set yet, check next logic
-                    // After storage permission, check MANAGE_MEDIA
-                    requestManageMediaIfNeeded()
-                }
-            }
+    private fun hasRequiredMediaPermissions(): Boolean {
+        return getRequiredMediaPermissions().all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) ==
+                android.content.pm.PackageManager.PERMISSION_GRANTED
         }
     }
 }

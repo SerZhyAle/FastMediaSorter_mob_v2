@@ -281,7 +281,10 @@
     <string name="default_smb_password">SMB пароль по умолчанию</string>
     <string name="user_guide">Руководство пользователя</string>
     <string name="privacy_policy">Конфиденциальность</string>
-    <string name="manage_permissions">Управление разрешениями</string>
+    <string name="manage_permissions">Управление правами</string>
+    <string name="request_permissions">Запросить разрешения</string>
+    <string name="permissions_required_title">Требуются разрешения</string>
+    <string name="permissions_required_for_local_resource">Для создания локального ресурса необходим доступ к медиа-файлам. Предоставьте разрешения для продолжения.</string>
     <string name="show_logs">Показать логи</string>
     <string name="support_images">Поддержка изображений</string>
     <string name="support_images_description">Поддержка статичных изображений</string>
@@ -520,6 +523,12 @@
     <string name="welcome_description_4">РЕСУРСЫ: Добавляйте папки с локального хранилища, сетевых ресурсов или облачных сервисов.\n\nНАЗНАЧЕНИЯ: Настройте до 30 быстрых папок с цветовой маркировкой для операций копирования/перемещения.\n\nНастраивайте в любое время!</string>
     <string name="welcome_title_5">Дополнительные функции</string>
     <string name="welcome_description_5">📝 ТЕКСТ И PDF: Просмотр и редактирование текстовых файлов, экспорт страниц PDF в JPG\n\n🔤 OCR И ПЕРЕВОД: Извлечение текста из изображений и перевод на ваш язык\n\n📚 EPUB: Чтение электронных книг с настраиваемым размером шрифта\n\n🎵 АУДИО: Воспроизведение музыки с обложками из iTunes\n\n✨ И многое другое!\n\nНастройка в Настройках далее...</string>
+    <string name="welcome_permissions_title">Доступ к медиафайлам</string>
+    <string name="welcome_permissions_description">FastMediaSorter требуется доступ к вашим фото, видео и аудиофайлам для сканирования и отображения медиа. Мы не передаём ваши файлы третьим лицам.</string>
+    <string name="grant_permissions">Предоставить доступ</string>
+    <string name="permissions_denied_title">Требуется разрешение</string>
+    <string name="permissions_denied_warning">Без доступа к медиафайлам основной функционал приложения будет недоступен.</string>
+    <string name="continue_anyway">Продолжить без разрешений</string>
     
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ к хранилищу</string>
@@ -531,6 +540,7 @@
     <string name="grant_local_files_permission">РАЗРЕШИТЬ ДОСТУП К ЛОКАЛЬНЫМ ФАЙЛАМ</string>
     <string name="grant_network_permission">ПРЕДОСТАВИТЬ ДОСТУП К СЕТИ</string>
     <string name="network_permission_granted">Доступ к сети предоставлен</string>
+    <string name="debug_settings_title">ОТЛАДКА</string>
     <string name="show_log">ПОКАЗАТЬ ЛОГ</string>
     <string name="show_current_session_log">ЛОГ ТЕКУЩЕЙ СЕССИИ</string>
     <string name="clear_cache">ОЧИСТИТЬ КЭШ</string>
@@ -1109,15 +1119,15 @@
         <item quantity="many">Добавлено %1$d ресурсов</item>
         <item quantity="other">Добавлено %1$d ресурса</item>
     </plurals>
-    <string name="resource_deleted">Ресурс удален</string>
-    <string name="msg_loading_timeout">Загрузка заняла слишком много времени</string>
-    <string name="speed">Скорость</string>
     <plurals name="selected_n_files">
         <item quantity="one">Выбран %1$d файл</item>
         <item quantity="few">Выбрано %1$d файла</item>
         <item quantity="many">Выбрано %1$d файлов</item>
         <item quantity="other">Выбрано %1$d файла</item>
     </plurals>
+    <string name="resource_deleted">Ресурс удален</string>
+    <string name="msg_loading_timeout">Загрузка заняла слишком много времени</string>
+    <string name="speed">Скорость</string>
     <string name="network_speed">Скорость сети</string>
     <string name="read_speed">Чтение</string>
     <string name="write_speed">Запись</string>

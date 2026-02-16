@@ -1,14 +1,16 @@
 package com.sza.fastmediasorter.ui.main
 
 import android.content.res.ColorStateList
-import android.graphics.Color
 import android.text.SpannableString
+import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.format.DateUtils
 import android.text.style.ForegroundColorSpan
+import android.text.style.ImageSpan
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -19,6 +21,7 @@ import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.ui.common.MediaGroupPalette
 import timber.log.Timber
 
 class ResourceAdapter(
@@ -34,23 +37,51 @@ class ResourceAdapter(
     companion object {
         const val VIEW_TYPE_LIST = 0
         const val VIEW_TYPE_GRID = 1
-        
-        // Color definitions for each media type
-        private const val COLOR_IMAGE = 0xFF2196F3.toInt()     // Blue
-        private const val COLOR_VIDEO = 0xFFE91E63.toInt()     // Pink
-        private const val COLOR_AUDIO = 0xFF4CAF50.toInt()     // Green
-        private const val COLOR_GIF = 0xFFFF9800.toInt()       // Orange
-        private const val COLOR_TEXT = 0xFF9C27B0.toInt()      // Purple
-        private const val COLOR_PDF = 0xFFF44336.toInt()       // Red
-        private const val COLOR_EPUB = 0xFF00BCD4.toInt()      // Cyan
+
+        private val DOCUMENT_TYPES = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB)
+        private val IMAGE_TYPES = setOf(MediaType.IMAGE, MediaType.GIF)
+
+        private data class SingleCategoryIndicator(
+            val iconRes: Int,
+            val color: Int
+        )
         
         /**
          * Formats supported media types as colored IVAGTPE string or "ALL" for allFiles mode
          */
-        fun formatMediaTypes(types: Set<MediaType>, allFiles: Boolean): CharSequence {
+        fun formatMediaTypes(context: android.content.Context, types: Set<MediaType>, allFiles: Boolean): CharSequence {
             // If allFiles flag is set, show "ALL" instead of type letters
             if (allFiles) {
                 return "ALL"
+            }
+
+            // Single-category shortcuts as icons:
+            // - Audio only -> note
+            // - Documents only (T/P/E subset) -> book
+            // - Video only -> video icon
+            // - Images only (I/G subset) -> image icon
+            val indicator = when {
+                types == setOf(MediaType.AUDIO) -> SingleCategoryIndicator(
+                    iconRes = R.drawable.ic_music_note,
+                    color = MediaGroupPalette.AUDIO_PRIMARY
+                )
+                types.isNotEmpty() && types.all { it in DOCUMENT_TYPES } -> SingleCategoryIndicator(
+                    iconRes = R.drawable.ic_book,
+                    color = MediaGroupPalette.DOCUMENT_PRIMARY
+                )
+                types == setOf(MediaType.VIDEO) -> SingleCategoryIndicator(
+                    iconRes = R.drawable.ic_video,
+                    color = MediaGroupPalette.VIDEO_PRIMARY
+                )
+                types.isNotEmpty() && types.all { it in IMAGE_TYPES } -> SingleCategoryIndicator(
+                    iconRes = R.drawable.ic_image,
+                    color = MediaGroupPalette.IMAGE_PRIMARY
+                )
+                else -> null
+            }
+
+            if (indicator != null) {
+                return createIconSpan(context, indicator.iconRes, indicator.color)
             }
             
             // Build colored string for each media type
@@ -70,35 +101,49 @@ class ResourceAdapter(
             var position = 0
             
             if (MediaType.IMAGE in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_IMAGE), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.IMAGE)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             if (MediaType.VIDEO in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_VIDEO), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.VIDEO)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             if (MediaType.AUDIO in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_AUDIO), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.AUDIO)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             if (MediaType.GIF in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_GIF), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.GIF)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             if (MediaType.TEXT in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_TEXT), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.TEXT)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             if (MediaType.PDF in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_PDF), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.PDF)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             if (MediaType.EPUB in types) {
-                spannable.setSpan(ForegroundColorSpan(COLOR_EPUB), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+                spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.EPUB)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
                 position++
             }
             
             return spannable
+        }
+
+        private fun createIconSpan(context: android.content.Context, iconRes: Int, tintColor: Int): CharSequence {
+            val drawable = ContextCompat.getDrawable(context, iconRes)?.mutate()
+                ?: return ""
+
+            // Match indicator text height (~12sp) with slight extra for readability
+            val sizePx = (12f * context.resources.displayMetrics.scaledDensity).toInt()
+            drawable.setBounds(0, 0, sizePx, sizePx)
+            DrawableCompat.setTint(drawable, ColorStateList.valueOf(tintColor).defaultColor)
+
+            val builder = SpannableStringBuilder(" ")
+            builder.setSpan(ImageSpan(drawable, ImageSpan.ALIGN_BOTTOM), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            return builder
         }
     }
 
@@ -239,7 +284,7 @@ class ResourceAdapter(
                 }
 
                 // Media Types Indicator (IVAGTPE or ALL)
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(resource.supportedMediaTypes, resource.allFiles)
+                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
 
                 // Interaction with debounce protection
                 root.isSelected = resource.id == selectedId
@@ -325,7 +370,7 @@ class ResourceAdapter(
                     else -> root.context.getString(R.string.file_count_format, resource.fileCount)
                 }
                 
-                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(resource.supportedMediaTypes, resource.allFiles)
+                tvMediaTypes.text = if (resource.id == -100L) "" else formatMediaTypes(root.context, resource.supportedMediaTypes, resource.allFiles)
                 
                 tvDestinationMark.text = if (resource.isDestination) "→" else ""
                 

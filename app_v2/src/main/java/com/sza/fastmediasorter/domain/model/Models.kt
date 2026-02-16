@@ -151,7 +151,11 @@ data class MediaResource(
     val writeSpeedMbps: Double? = null,
     val recommendedThreads: Int? = null,
     val lastSpeedTestDate: Long? = null
-)
+) {
+    fun isAudioOnly(): Boolean {
+        return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)
+    }
+}
 
 /**
  * Domain model for Media File

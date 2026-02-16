@@ -2,7 +2,9 @@ package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,12 +20,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.activity.result.contract.ActivityResultContracts
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.utils.PermissionChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -56,6 +60,12 @@ class GeneralSettingsFragment : Fragment() {
         uri?.let { safeUri ->
             importSettingsFromUri(safeUri)
         }
+    }
+
+    private val mediaPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        updatePermissionButtonsState()
     }
     
     // Lazy initialization of CalculateOptimalCacheSizeUseCase
@@ -592,9 +602,11 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnResetGeneralSection.setOnClickListener {
             showResetGeneralSectionConfirmation()
         }
+
+        binding.containerDebugSettings?.isVisible = BuildConfig.DEBUG
         
         // Integration Tests Button (DEBUG only)
-        if (com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
+        if (BuildConfig.DEBUG && com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
             binding.btnIntegrationTests.visibility = View.VISIBLE
             binding.btnIntegrationTests.setOnClickListener {
                 com.sza.fastmediasorter.ui.settings.IntegrationTestDialog()
@@ -621,7 +633,7 @@ class GeneralSettingsFragment : Fragment() {
         }
         
         binding.btnLocalFilesPermission.setOnClickListener {
-            requestStoragePermissions()
+            handleLocalFilesPermissionAction()
         }
         
         binding.btnNetworkPermission.setOnClickListener {
@@ -637,9 +649,6 @@ class GeneralSettingsFragment : Fragment() {
         // Manage Media Permission button (Android 12+)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             binding.btnManageMediaPermission.visibility = View.VISIBLE
-            binding.btnManageMediaPermission.setOnClickListener {
-                requestManageMediaPermission()
-            }
         } else {
             binding.btnManageMediaPermission.visibility = View.GONE
         }
@@ -940,14 +949,17 @@ class GeneralSettingsFragment : Fragment() {
     }
     
     private fun updatePermissionButtonsState() {
-        // Local Files Permission - enable only if not granted
-        val hasStoragePermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasStoragePermission(requireContext())
-        binding.btnLocalFilesPermission.isEnabled = !hasStoragePermission
-        binding.btnLocalFilesPermission.alpha = if (hasStoragePermission) 0.5f else 1.0f
-        if (hasStoragePermission) {
-            binding.btnLocalFilesPermission.text = getString(R.string.storage_permissions_granted)
+        // Local files/media permission button adapts request/manage action
+        val hasMediaPermissions = PermissionChecker.hasMediaPermissions(requireContext())
+        binding.btnLocalFilesPermission.isEnabled = true
+        binding.btnLocalFilesPermission.alpha = 1.0f
+        binding.btnLocalFilesPermission.text = if (hasMediaPermissions) {
+            getString(R.string.manage_permissions)
         } else {
-            binding.btnLocalFilesPermission.text = getString(R.string.grant_local_files_permission)
+            getString(R.string.request_permissions)
+        }
+        binding.btnLocalFilesPermission.setOnClickListener {
+            handleLocalFilesPermissionAction()
         }
         
         // Network Permission - always granted (normal permission), so always disabled
@@ -963,24 +975,45 @@ class GeneralSettingsFragment : Fragment() {
         // Manage Media Permission (Android 12+) - enable if not granted
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
             val hasManageMedia = com.sza.fastmediasorter.core.util.PermissionHelper.hasManageMediaPermission(requireContext())
-            binding.btnManageMediaPermission.isEnabled = !hasManageMedia
-            binding.btnManageMediaPermission.alpha = if (hasManageMedia) 0.5f else 1.0f
-            if (hasManageMedia) {
-                binding.btnManageMediaPermission.text = getString(R.string.manage_media_permission_granted)
+            binding.btnManageMediaPermission.isEnabled = true
+            binding.btnManageMediaPermission.alpha = 1.0f
+            binding.btnManageMediaPermission.text = if (hasManageMedia) {
+                getString(R.string.manage_permissions)
             } else {
-                binding.btnManageMediaPermission.text = getString(R.string.grant_manage_media_permission)
+                getString(R.string.grant_manage_media_permission)
+            }
+            binding.btnManageMediaPermission.setOnClickListener {
+                if (com.sza.fastmediasorter.core.util.PermissionHelper.hasManageMediaPermission(requireContext())) {
+                    openAppSettings()
+                } else {
+                    requestManageMediaPermission()
+                }
             }
         }
     }
-    
-    private fun requestStoragePermissions() {
-        val context = requireContext()
-        if (com.sza.fastmediasorter.core.util.PermissionHelper.checkStoragePermissions(context)) {
-            Toast.makeText(context, R.string.storage_permissions_granted, Toast.LENGTH_SHORT).show()
+
+    private fun handleLocalFilesPermissionAction() {
+        if (PermissionChecker.hasMediaPermissions(requireContext())) {
+            openAppSettings()
+        } else {
+            requestMediaPermissions()
+        }
+    }
+
+    private fun requestMediaPermissions() {
+        val permissions = PermissionChecker.getRequiredMediaPermissions()
+        if (permissions.isEmpty()) {
+            updatePermissionButtonsState()
             return
         }
+        mediaPermissionsLauncher.launch(permissions)
+    }
 
-        com.sza.fastmediasorter.core.util.PermissionHelper.requestStoragePermission(requireActivity())
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+            data = Uri.fromParts("package", requireContext().packageName, null)
+        }
+        startActivity(intent)
     }
     
     private fun requestManageMediaPermission() {

@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
+import com.sza.fastmediasorter.utils.PermissionChecker
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -64,6 +65,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private var googleDriveAccount: GoogleSignInAccount? = null
     private var isDropboxAuthenticated: Boolean = false
     private var isOneDriveAuthenticated: Boolean = false
+    private var pendingMediaPermissionAction: (() -> Unit)? = null
     
     private lateinit var helper: AddResourceHelper
 
@@ -90,6 +92,20 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let { loadSshKeyFromFile(it) }
+    }
+
+    private val mediaPermissionsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        if (allGranted || PermissionChecker.hasMediaPermissions(this)) {
+            val action = pendingMediaPermissionAction
+            pendingMediaPermissionAction = null
+            action?.invoke() ?: showLocalFolderOptions()
+        } else {
+            pendingMediaPermissionAction = null
+            Toast.makeText(this, R.string.permissions_denied_warning, Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun getViewBinding(): ActivityAddResourceBinding {
@@ -210,7 +226,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
         binding.cardLocalFolder.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("LocalFolderCard", "AddResource")
-            showLocalFolderOptions()
+            ensureMediaPermissionsForLocalResource { showLocalFolderOptions() }
         }
 
         binding.cardNetworkFolder.setOnClickListener {
@@ -264,25 +280,26 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
         binding.btnScan.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("ScanLocal", "AddResource")
-            viewModel.scanLocalFolders()
+            ensureMediaPermissionsForLocalResource { viewModel.scanLocalFolders() }
         }
 
         binding.btnAddManually.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("AddLocalManually", "AddResource")
-            
-            val androidVersion = Build.VERSION.SDK_INT
-            val hasPermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)
-            
-            timber.log.Timber.w("FOLDER_PICKER: Android SDK=$androidVersion, hasAllFilesAccess=$hasPermission")
-            
-            // Check MANAGE_EXTERNAL_STORAGE on Android 11+
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && 
-                !hasPermission) {
-                timber.log.Timber.w("FOLDER_PICKER: Showing permission dialog (Android 11+ without permission)")
-                showAllFilesAccessPermissionDialog()
-            } else {
-                timber.log.Timber.w("FOLDER_PICKER: Showing folder selection dialog")
-                showFolderSelectionDialog()
+            ensureMediaPermissionsForLocalResource {
+                val androidVersion = Build.VERSION.SDK_INT
+                val hasPermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)
+
+                timber.log.Timber.w("FOLDER_PICKER: Android SDK=$androidVersion, hasAllFilesAccess=$hasPermission")
+
+                // Check MANAGE_EXTERNAL_STORAGE on Android 11+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+                    !hasPermission) {
+                    timber.log.Timber.w("FOLDER_PICKER: Showing permission dialog (Android 11+ without permission)")
+                    showAllFilesAccessPermissionDialog()
+                } else {
+                    timber.log.Timber.w("FOLDER_PICKER: Showing folder selection dialog")
+                    showFolderSelectionDialog()
+                }
             }
         }
 
@@ -1703,6 +1720,37 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             .setNegativeButton(android.R.string.cancel, null)
             .setCancelable(true)
             .show()
+    }
+
+    private fun ensureMediaPermissionsForLocalResource(onGranted: () -> Unit) {
+        if (PermissionChecker.hasMediaPermissions(this)) {
+            onGranted()
+        } else {
+            pendingMediaPermissionAction = onGranted
+            showLocalPermissionRequiredDialog()
+        }
+    }
+
+    private fun showLocalPermissionRequiredDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(R.string.permissions_required_for_local_resource)
+            .setPositiveButton(R.string.grant_permissions) { _, _ ->
+                requestMediaPermissions()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun requestMediaPermissions() {
+        val permissions = PermissionChecker.getRequiredMediaPermissions()
+        if (permissions.isEmpty() || PermissionChecker.hasMediaPermissions(this)) {
+            val action = pendingMediaPermissionAction
+            pendingMediaPermissionAction = null
+            action?.invoke() ?: showLocalFolderOptions()
+            return
+        }
+        mediaPermissionsLauncher.launch(permissions)
     }
     
     @Deprecated("Deprecated in Java")

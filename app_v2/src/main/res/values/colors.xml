@@ -28,6 +28,15 @@
     <color name="filter_warning_text">#FF000000</color> <!-- Black text for contrast -->
     <color name="folder_item_stroke">#00000000</color> <!-- Transparent by default -->
     <color name="unavailable_resource_bg">#FFFFE0E6</color> <!-- Pale pink for unavailable resources -->
+    
+    <!-- Welcome screen backgrounds (light theme, muted Material palette) -->
+    <color name="welcome_page_1_background">#E3F2FD</color>
+    <color name="welcome_page_2_background">#E8F5E9</color>
+    <color name="welcome_page_3_background">#F3E5F5</color>
+    <color name="welcome_page_4_background">#FFF3E0</color>
+    <color name="welcome_page_5_background">#F1F8E9</color>
+    <color name="welcome_page_6_background">#ECEFF1</color>
+
     <color name="resource_item_bg_even">#FFFFFFFF</color> <!-- White -->
     <color name="resource_item_bg_odd">#FFF5F5F5</color> <!-- Very light grey -->
     <color name="error_color">#FFD32F2F</color>
