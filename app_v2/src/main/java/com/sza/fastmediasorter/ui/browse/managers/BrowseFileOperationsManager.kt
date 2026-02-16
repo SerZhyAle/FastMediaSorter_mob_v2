@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.app.Activity
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
@@ -24,8 +25,12 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
+import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -358,7 +363,7 @@ class BrowseFileOperationsManager(
                     val fileToShare: File? = when (resource.type) {
                         ResourceType.LOCAL -> File(mediaFile.path)
                         ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
-                            downloadNetworkFileToCache(mediaFile, resource)
+                            downloadNetworkFileToCacheWithProgress(mediaFile, resource)
                         }
                     }
                     
@@ -404,6 +409,9 @@ class BrowseFileOperationsManager(
                         android.content.Intent.createChooser(shareIntent, context.getString(R.string.share))
                     )
                 }
+            } catch (_: CancellationException) {
+                Timber.i("Share operation cancelled by user")
+                return@launch
                 
             } catch (e: Exception) {
                 Timber.e(e, "Failed to share files")
@@ -411,6 +419,156 @@ class BrowseFileOperationsManager(
                     Toast.makeText(context, context.getString(R.string.toast_failed_to_share, e.message), Toast.LENGTH_LONG).show()
                 }
             }
+        }
+    }
+
+    private suspend fun downloadNetworkFileToCacheWithProgress(
+        mediaFile: MediaFile,
+        resource: MediaResource
+    ): File? {
+        withContext(Dispatchers.Main) {
+            Toast.makeText(context, R.string.msg_download_share, Toast.LENGTH_SHORT).show()
+        }
+
+        val cacheRoot = callbacks.getExternalCacheDir() ?: callbacks.getCacheDir() ?: return null
+        val shareTempDir = File(cacheRoot, "share_temp")
+        withContext(Dispatchers.IO) {
+            if (!shareTempDir.exists()) {
+                shareTempDir.mkdirs()
+            }
+            cleanupOldShareTempFiles(shareTempDir)
+        }
+
+        val tempFile = File(shareTempDir, mediaFile.name)
+        withContext(Dispatchers.IO) {
+            if (tempFile.exists()) {
+                tempFile.delete()
+            }
+        }
+
+        val sourceFile = createNetworkAwareFile(mediaFile.path, mediaFile.name, mediaFile.size)
+        val operation = FileOperation.Copy(
+            sources = listOf(sourceFile),
+            destination = shareTempDir,
+            overwrite = true,
+            sourceCredentialsId = resource.credentialsId
+        )
+
+        val totalBytes = mediaFile.size.coerceAtLeast(0L)
+        val copyDeferred = coroutineScope.async(Dispatchers.IO) {
+            fileOperationUseCase.execute(operation)
+        }
+
+        val progressDialog = if (context is Activity && !context.isFinishing && !context.isDestroyed) {
+            FileCopyProgressDialog(
+                context = context,
+                fileName = mediaFile.name,
+                onCancelRequested = {
+                    copyDeferred.cancel(CancellationException("User cancelled network share copy"))
+                }
+            )
+        } else {
+            null
+        }
+
+        val monitorJob = coroutineScope.launch(Dispatchers.Main) {
+            var lastTime = System.currentTimeMillis()
+            var lastBytes = 0L
+
+            progressDialog?.show()
+            progressDialog?.showIndeterminate()
+
+            while (copyDeferred.isActive) {
+                val copiedBytes = tempFile.length().coerceAtLeast(0L)
+                val now = System.currentTimeMillis()
+                val elapsedMs = (now - lastTime).coerceAtLeast(1L)
+                val bytesDelta = (copiedBytes - lastBytes).coerceAtLeast(0L)
+                val speedBytesPerSec = (bytesDelta * 1000L) / elapsedMs
+
+                progressDialog?.updateProgress(copiedBytes, totalBytes, speedBytesPerSec)
+
+                lastTime = now
+                lastBytes = copiedBytes
+                delay(200)
+            }
+        }
+
+        return try {
+            when (val result = copyDeferred.await()) {
+                is FileOperationResult.Success -> {
+                    if (tempFile.exists()) {
+                        tempFile
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(context, R.string.error, Toast.LENGTH_SHORT).show()
+                        }
+                        null
+                    }
+                }
+                is FileOperationResult.Failure -> {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.error_share_download_failed, result.error),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    null
+                }
+                is FileOperationResult.AuthenticationRequired -> {
+                    callbacks.onAuthRequest(result.provider)
+                    null
+                }
+                else -> {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, R.string.error_share_unexpected, Toast.LENGTH_SHORT).show()
+                    }
+                    null
+                }
+            }
+        } catch (_: CancellationException) {
+            withContext(Dispatchers.IO) {
+                if (tempFile.exists()) {
+                    tempFile.delete()
+                }
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.toast_copy_cancelled, Toast.LENGTH_SHORT).show()
+            }
+            throw CancellationException("User cancelled network share copy")
+        } finally {
+            monitorJob.cancel()
+            withContext(Dispatchers.Main) {
+                progressDialog?.dismiss()
+            }
+        }
+    }
+
+    private fun cleanupOldShareTempFiles(cacheDir: File) {
+        val now = System.currentTimeMillis()
+        cacheDir.listFiles()?.forEach { file ->
+            if (!file.isFile) return@forEach
+            val age = now - file.lastModified()
+            if (age > 60 * 60 * 1000L) {
+                file.delete()
+            }
+        }
+    }
+
+    private fun createNetworkAwareFile(path: String, name: String?, size: Long): File {
+        return if (path.startsWith("smb://") ||
+            path.startsWith("sftp://") ||
+            path.startsWith("ftp://") ||
+            path.startsWith("cloud://")
+        ) {
+            object : File(path) {
+                override fun getAbsolutePath(): String = path
+                override fun getPath(): String = path
+                override fun getName(): String = name ?: super.getName()
+                override fun length(): Long = size
+            }
+        } else {
+            File(path)
         }
     }
     

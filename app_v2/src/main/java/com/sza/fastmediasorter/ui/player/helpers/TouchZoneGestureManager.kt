@@ -34,6 +34,12 @@ class TouchZoneGestureManager(
     private val callback: TouchZoneCallback
 ) {
 
+    private enum class HorizontalZone {
+        LEFT,
+        CENTER,
+        RIGHT
+    }
+
     // ════════════════════════════════════════════════════════════════════════
     // DUAL-SURFACE SUPPORT (D.5 Gesture Unification)
     // ════════════════════════════════════════════════════════════════════════
@@ -64,6 +70,37 @@ class TouchZoneGestureManager(
      */
     private fun getCurrentPhotoViewScale(): Float {
         return getVisiblePhotoView()?.scale ?: 1.0f
+    }
+
+    private fun resolveHorizontalZone(rootX: Float): HorizontalZone {
+        val targetView = getVisiblePhotoView() ?: binding.imageView.takeIf { it.isVisible }
+        val leftBoundaryRatio: Float
+        val rightBoundaryRatio: Float
+        val effectiveX: Float
+
+        if (targetView != null) {
+            val location = IntArray(2)
+            targetView.getLocationOnScreen(location)
+            val rootLocation = IntArray(2)
+            binding.root.getLocationOnScreen(rootLocation)
+            val targetLeftInRoot = (location[0] - rootLocation[0]).toFloat()
+            val targetWidth = targetView.width.toFloat().coerceAtLeast(1f)
+            val normalized = ((rootX - targetLeftInRoot) / targetWidth).coerceIn(0f, 1f)
+            effectiveX = normalized
+            leftBoundaryRatio = 0.25f
+            rightBoundaryRatio = 0.75f
+        } else {
+            val screenWidth = binding.root.width.toFloat().coerceAtLeast(1f)
+            effectiveX = (rootX / screenWidth).coerceIn(0f, 1f)
+            leftBoundaryRatio = 0.25f
+            rightBoundaryRatio = 0.75f
+        }
+
+        return when {
+            effectiveX < leftBoundaryRatio -> HorizontalZone.LEFT
+            effectiveX < rightBoundaryRatio -> HorizontalZone.CENTER
+            else -> HorizontalZone.RIGHT
+        }
     }
 
     private fun isAnyImageSurfaceVisible(): Boolean {
@@ -381,20 +418,13 @@ class TouchZoneGestureManager(
                 return true
             }
 
-            // Command panel: REG-3100 (25% left | 50% center | 25% right)
-            val screenWidth = binding.root.width
-            val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen = false)
-            val config = TouchZoneConfig.getConfiguration(zoneMap)
-            val leftBoundary = screenWidth * config.widthRatios[0]
-            val rightBoundary = screenWidth * (config.widthRatios[0] + config.widthRatios[1])
-
-            when {
-                e.x < leftBoundary -> {
+            when (resolveHorizontalZone(e.x)) {
+                HorizontalZone.LEFT -> {
                     Timber.d("handleImageSingleTap: Left zone -> PREVIOUS")
                     callback.onPrevious()
                     return true
                 }
-                e.x < rightBoundary -> {
+                HorizontalZone.CENTER -> {
                     val currentScale = getCurrentPhotoViewScale()
                     Timber.d("handleImageSingleTap: Center zone, scale=${"%.2f".format(currentScale)}x")
                     if (currentScale > 1.05f) {
@@ -405,7 +435,7 @@ class TouchZoneGestureManager(
                     // Not zoomed: no action (double-tap or pinch to zoom)
                     return false
                 }
-                else -> {
+                HorizontalZone.RIGHT -> {
                     Timber.d("handleImageSingleTap: Right zone -> NEXT")
                     callback.onNext()
                     return true
@@ -429,13 +459,7 @@ class TouchZoneGestureManager(
 
         if (isImage && isAnyImageSurfaceVisible()) {
             if (!isInFullscreenMode) {
-                val screenWidth = binding.root.width
-                val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen = false)
-                val config = TouchZoneConfig.getConfiguration(zoneMap)
-                val leftBoundary = screenWidth * config.widthRatios[0]
-                val rightBoundary = screenWidth * (config.widthRatios[0] + config.widthRatios[1])
-
-                if (e.x >= leftBoundary && e.x < rightBoundary) {
+                if (resolveHorizontalZone(e.x) == HorizontalZone.CENTER) {
                     val currentScale = getCurrentPhotoViewScale()
                     if (currentScale > 1.05f) {
                         Timber.d("handleImageDoubleTap: Reset to 1x (was ${"%.2f".format(currentScale)}x)")

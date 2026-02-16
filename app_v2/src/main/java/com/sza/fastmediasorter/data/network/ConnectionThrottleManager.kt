@@ -416,6 +416,26 @@ object ConnectionThrottleManager {
         Timber.i("ConnectionThrottle: Reset complete for $resourceKey")
         return cancelledCount
     }
+
+    fun resetAllSmbStates() {
+        val smbKeys = protocolStates.keys.filter { it.startsWith("smb://", ignoreCase = true) }
+        smbKeys.forEach { key ->
+            protocolStates.remove(key)
+            semaphores.remove(key)
+            semaphoreLocks.remove(key)
+            recommendedThreadsCache.remove(key)
+            recommendedBufferSizeCache.remove(key)
+            synchronized(videoPlayerResources) {
+                videoPlayerResources.remove(key)
+                if (videoPlayerResources.isEmpty()) {
+                    videoPlayerActive = false
+                }
+            }
+        }
+        if (smbKeys.isNotEmpty()) {
+            Timber.i("ConnectionThrottle: Reset SMB states for ${smbKeys.size} resources")
+        }
+    }
     
     /**
      * Cancel all active operations for a specific resource.

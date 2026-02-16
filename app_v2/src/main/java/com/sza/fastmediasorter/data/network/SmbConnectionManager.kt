@@ -277,6 +277,10 @@ class SmbConnectionManager @Inject constructor(
                 }
             } catch (e: Exception) {
                 lastException = e
+                if (isNonRetriableConnectionError(e)) {
+                    Timber.w("Fresh connection failed with non-retriable error, aborting retries: ${e.message}")
+                    break
+                }
                 if (freshConnectionAttempts < 2) {
                     Timber.w("Fresh connection attempt $freshConnectionAttempts failed, retrying with longer timeout")
                     delay(RETRY_DELAY_MS)
@@ -626,6 +630,31 @@ class SmbConnectionManager @Inject constructor(
         }
         Timber.d("Closed all ${keys.size} pooled connections")
     }
+
+    private fun isNonRetriableConnectionError(e: Exception): Boolean {
+        val message = buildString {
+            append(e.message ?: "")
+            append(' ')
+            append(e.cause?.message ?: "")
+            append(' ')
+            append(e.cause?.cause?.message ?: "")
+        }
+
+        val isAuthError = message.contains("STATUS_LOGON_FAILURE", ignoreCase = true) ||
+            message.contains("Authentication failed", ignoreCase = true) ||
+            message.contains("Logon failure", ignoreCase = true) ||
+            message.contains("wrong password", ignoreCase = true) ||
+            message.contains("invalid credential", ignoreCase = true)
+
+        val isAccessError = message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
+            message.contains("Access denied", ignoreCase = true)
+
+        val isConfigError = message.contains("Unknown host", ignoreCase = true) ||
+            message.contains("Connection refused", ignoreCase = true) ||
+            message.contains("No such host", ignoreCase = true)
+
+        return isAuthError || isAccessError || isConfigError
+    }
     
     /**
      * Clear connection pool (public API).
@@ -662,6 +691,7 @@ class SmbConnectionManager @Inject constructor(
         
         closeAllConnections()
         resetClients()
+        ConnectionThrottleManager.resetAllSmbStates()
         consecutiveTimeouts = 0
         lastSuccessfulOperation = currentTime
         
@@ -680,6 +710,7 @@ class SmbConnectionManager @Inject constructor(
         Timber.d("SmbConnectionManager: Manual reset requested")
         closeAllConnections()
         resetClients()
+        ConnectionThrottleManager.resetAllSmbStates()
         consecutiveTimeouts = 0
         lastSuccessfulOperation = System.currentTimeMillis()
         lastAutoResetTime = System.currentTimeMillis() // Update to prevent immediate auto-reset after manual
