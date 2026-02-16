@@ -1112,6 +1112,12 @@
     <string name="resource_deleted">Ресурс удален</string>
     <string name="msg_loading_timeout">Загрузка заняла слишком много времени</string>
     <string name="speed">Скорость</string>
+    <plurals name="selected_n_files">
+        <item quantity="one">Выбран %1$d файл</item>
+        <item quantity="few">Выбрано %1$d файла</item>
+        <item quantity="many">Выбрано %1$d файлов</item>
+        <item quantity="other">Выбрано %1$d файла</item>
+    </plurals>
     <string name="network_speed">Скорость сети</string>
     <string name="read_speed">Чтение</string>
     <string name="write_speed">Запись</string>

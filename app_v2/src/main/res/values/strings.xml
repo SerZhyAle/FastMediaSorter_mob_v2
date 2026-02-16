@@ -1308,6 +1308,10 @@
     <string name="last_test_date">Last test: %s</string>
     <string name="never_tested">Never tested</string>
     <string name="smb_resource_added_success">SMB resource added successfully</string>
+    <plurals name="selected_n_files">
+        <item quantity="one">Selected %1$d file</item>
+        <item quantity="other">Selected %1$d files</item>
+    </plurals>
     <string name="smb_resource_added_unavailable">SMB resource \'%1$s\' added but is currently unavailable. Check that the share exists and is accessible from this device.</string>
     
     <!-- Speed Test -->

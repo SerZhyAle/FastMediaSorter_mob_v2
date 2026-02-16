@@ -415,7 +415,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 // Task 8: Additional keyboard shortcuts
                 override fun selectAllFiles() {
                     Timber.d("Keyboard: Ctrl+A - Select All")
-                    viewModel.selectAll()
+                    performSelectAllWithToast()
                 }
                 
                 override fun showRenameDialog() {
@@ -622,7 +622,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         binding.btnSelectAll.setOnClickListener {
             UserActionLogger.logButtonClick("SelectAll", "BrowseActivity")
-            viewModel.selectAll()
+            performSelectAllWithToast()
         }
         
         binding.btnDeselectAll.setOnClickListener {
@@ -755,6 +755,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     // Always use standard mode (no pagination)
                     // Only submit list if content actually changed
+
+    private fun performSelectAllWithToast() {
+        viewModel.selectAll()
+        val selectedCount = viewModel.state.value.selectedFiles.size
+        if (selectedCount > 0) {
+            val message = resources.getQuantityString(
+                R.plurals.selected_n_files,
+                selectedCount,
+                selectedCount
+            )
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
                     // Compare with last emitted list from ViewModel (survives Activity recreation)
                     val previousMediaFiles = viewModel.lastEmittedMediaFiles
                     val previousSize = previousMediaFiles?.size ?: -1

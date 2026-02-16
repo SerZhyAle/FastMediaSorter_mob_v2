@@ -1102,6 +1102,12 @@
     <string name="resource_deleted">Ресурс видалено</string>
     <string name="msg_loading_timeout">Завантаження тривало занадто довго</string>
     <string name="speed">Швидкість</string>
+    <plurals name="selected_n_files">
+        <item quantity="one">Вибрано %1$d файл</item>
+        <item quantity="few">Вибрано %1$d файли</item>
+        <item quantity="many">Вибрано %1$d файлів</item>
+        <item quantity="other">Вибрано %1$d файла</item>
+    </plurals>
     <string name="network_speed">Швидкість мережі</string>
     <string name="read_speed">Читання</string>
     <string name="write_speed">Запис</string>
