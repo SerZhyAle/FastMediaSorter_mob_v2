@@ -1071,7 +1071,18 @@ class EpubViewerManager(
      */
     fun release() {
         closeEpubBook()
-        webView?.destroy()
+        webView?.let { wv ->
+            try {
+                // Detach WebView from window BEFORE destroy to prevent native crash
+                (wv.parent as? android.view.ViewGroup)?.removeView(wv)
+                wv.removeAllViews()
+                wv.clearCache(true)
+                wv.destroy()
+                Timber.d("EpubViewerManager: WebView properly destroyed")
+            } catch (e: Exception) {
+                Timber.e(e, "EpubViewerManager: Error destroying WebView")
+            }
+        }
         webView = null
         Timber.d("EpubViewerManager: Released")
     }

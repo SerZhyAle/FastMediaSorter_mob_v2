@@ -89,64 +89,37 @@ class FtpClient @Inject constructor() {
      */
     @Throws(IOException::class)
     fun getConnectionForExoPlayer(connectionInfo: FtpConnectionInfo): ExoPlayerFtpConnection {
-        val key = ConnectionKey(connectionInfo.host, connectionInfo.port, connectionInfo.username)
-        
         try {
             connectionSemaphore.acquire()
-            
-            synchronized(poolMutex) {
-                // Try to get existing valid connection from pool
-                val existing = connectionPool[key]
-                if (existing != null && existing.client.isConnected) {
-                    // Verify connection is still alive with NOOP
-                    try {
-                        if (existing.client.sendNoOp()) {
-                            existing.lastUsed = System.currentTimeMillis()
-                            Timber.d("FTP ExoPlayer: Reusing pooled connection to ${connectionInfo.host}")
-                            return ExoPlayerFtpConnection(existing.client)
-                        }
-                    } catch (e: Exception) {
-                        Timber.w("FTP ExoPlayer: Pooled connection stale, recreating: ${e.message}")
-                    }
-                    
-                    // Connection is stale, remove it
-                    try {
-                        existing.client.disconnect()
-                    } catch (ignored: Exception) {}
-                    connectionPool.remove(key)
-                }
-                
-                // Create new connection
-                Timber.d("FTP ExoPlayer: Creating new pooled connection to ${connectionInfo.host}")
-                
-                val client = FTPClient()
-                client.connectTimeout = CONNECT_TIMEOUT
-                client.defaultTimeout = SOCKET_TIMEOUT
-                client.setDataTimeout(SOCKET_TIMEOUT)
-                client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
-                
-                client.connect(connectionInfo.host, connectionInfo.port)
-                
-                val replyCode = client.replyCode
-                if (!FTPReply.isPositiveCompletion(replyCode)) {
-                    client.disconnect()
-                    throw IOException("FTP server refused connection. Reply code: $replyCode")
-                }
-                
-                if (!client.login(connectionInfo.username, connectionInfo.password)) {
-                    client.disconnect()
-                    throw IOException("FTP authentication failed for user: ${connectionInfo.username}")
-                }
-                
-                client.enterLocalPassiveMode()
-                client.setFileType(FTP.BINARY_FILE_TYPE)
-                
-                // Add to pool
-                connectionPool[key] = PooledFtpConnection(client)
-                
-                Timber.d("FTP ExoPlayer: New connection added to pool for ${connectionInfo.host}")
-                return ExoPlayerFtpConnection(client)
+
+            // IMPORTANT: For MediaDataSource each consumer must have exclusive FTPClient instance.
+            // Sharing one FTPClient across concurrent thumbnail extraction threads causes protocol
+            // reply interleaving (e.g. PASV expects 227 but receives NOOP 200).
+            Timber.d("FTP ExoPlayer: Creating dedicated connection to ${connectionInfo.host}")
+
+            val client = FTPClient()
+            client.connectTimeout = CONNECT_TIMEOUT
+            client.defaultTimeout = SOCKET_TIMEOUT
+            client.setDataTimeout(SOCKET_TIMEOUT)
+            client.controlKeepAliveTimeout = Duration.ofSeconds(KEEPALIVE_TIMEOUT).seconds
+
+            client.connect(connectionInfo.host, connectionInfo.port)
+
+            val replyCode = client.replyCode
+            if (!FTPReply.isPositiveCompletion(replyCode)) {
+                client.disconnect()
+                throw IOException("FTP server refused connection. Reply code: $replyCode")
             }
+
+            if (!client.login(connectionInfo.username, connectionInfo.password)) {
+                client.disconnect()
+                throw IOException("FTP authentication failed for user: ${connectionInfo.username}")
+            }
+
+            client.enterLocalPassiveMode()
+            client.setFileType(FTP.BINARY_FILE_TYPE)
+
+            return ExoPlayerFtpConnection(client)
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
             throw IOException("Interrupted while waiting for FTP connection", e)
@@ -174,9 +147,21 @@ class FtpClient @Inject constructor() {
         } catch (e: Exception) {
             Timber.w("FTP ExoPlayer: completePendingCommand failed (non-critical): ${e.message}")
         }
+
+        try {
+            if (client?.isConnected == true) {
+                try {
+                    client.logout()
+                } catch (e: Exception) {
+                    Timber.w("FTP ExoPlayer: logout failed (ignored): ${e.message}")
+                }
+                client.disconnect()
+            }
+        } catch (e: Exception) {
+            Timber.w("FTP ExoPlayer: disconnect failed (ignored): ${e.message}")
+        }
         
         connectionSemaphore.release()
-        cleanupIdleFtpConnections()
     }
 
     /**
@@ -910,7 +895,11 @@ class FtpClient @Inject constructor() {
             
             // Extract directory and construct new path
             val directory = oldPath.substringBeforeLast('/', "")
-            val newPath = if (directory.isEmpty()) "/$newName" else "$directory/$newName"
+            val newPath = when {
+                directory.isNotEmpty() -> "$directory/$newName"
+                oldPath.startsWith("/") -> "/$newName"
+                else -> newName
+            }
             
             Timber.d("FTP renaming: $oldPath → $newPath")
             
@@ -1044,8 +1033,12 @@ class FtpClient @Inject constructor() {
                         // Other logout errors also non-critical
                         Timber.d(e, "FTP logout error (ignored)")
                     } finally {
-                        // Restore original timeout before disconnect
-                        client.soTimeout = originalTimeout
+                        // Restore original timeout before disconnect (if socket still active)
+                        try {
+                            client.soTimeout = originalTimeout
+                        } catch (e: Exception) {
+                            // Socket may be null/closed - ignore
+                        }
                     }
                     // Always close socket regardless of logout success
                     client.disconnect()
@@ -1192,7 +1185,11 @@ class FtpClient @Inject constructor() {
     ): Result<Unit> = withContext(Dispatchers.IO) {
         executeWithNewConnection(host, port, username, password) { client ->
             val directory = oldPath.substringBeforeLast('/', "")
-            val newPath = if (directory.isEmpty()) "/$newName" else "$directory/$newName"
+            val newPath = when {
+                directory.isNotEmpty() -> "$directory/$newName"
+                oldPath.startsWith("/") -> "/$newName"
+                else -> newName
+            }
             
             Timber.d("FTP temp connection: renaming $oldPath → $newPath")
             val success = client.rename(oldPath, newPath)

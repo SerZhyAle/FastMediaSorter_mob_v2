@@ -230,8 +230,12 @@ class FtpFileOperationHandler @Inject constructor(
             Timber.d("FTP executeRename: Parsed - host=${connectionInfo.host}:${connectionInfo.port}, remotePath=${connectionInfo.remotePath}")
             
             // Check if file with new name already exists
-            val directory = connectionInfo.remotePath.substringBeforeLast('/')
-            val newRemotePath = if (directory.isEmpty()) operation.newName else "$directory/${operation.newName}"
+            val directory = connectionInfo.remotePath.substringBeforeLast('/', "")
+            val newRemotePath = when {
+                directory.isNotEmpty() -> "$directory/${operation.newName}"
+                connectionInfo.remotePath.startsWith("/") -> "/${operation.newName}"
+                else -> operation.newName
+            }
             val existsResult = ftpClient.existsWithNewConnection(
                 connectionInfo.host,
                 connectionInfo.port,

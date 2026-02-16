@@ -1017,8 +1017,12 @@ class SftpClient @Inject constructor() {
         oldPath: String,
         newName: String
     ): Result<Unit> {
-        val parentPath = oldPath.substringBeforeLast('/')
-        val newPath = if (parentPath.isEmpty()) newName else "$parentPath/$newName"
+        val parentPath = oldPath.substringBeforeLast('/', "")
+        val newPath = when {
+            parentPath.isNotEmpty() -> "$parentPath/$newName"
+            oldPath.startsWith("/") -> "/$newName"
+            else -> newName
+        }
         return rename(connectionInfo, oldPath, newPath)
     }
 

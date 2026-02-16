@@ -312,11 +312,11 @@ class SftpFileOperationHandler @Inject constructor(
                 "SFTP executeRename: Parsed - host=${connectionInfo.host}:${connectionInfo.port}, remotePath=${connectionInfo.remotePath}"
             )
 
-            val directory = connectionInfo.remotePath.substringBeforeLast('/')
-            val newRemotePath = if (directory.isEmpty() || directory == connectionInfo.remotePath) {
-                operation.newName
-            } else {
-                "$directory/${operation.newName}"
+            val directory = connectionInfo.remotePath.substringBeforeLast('/', "")
+            val newRemotePath = when {
+                directory.isNotEmpty() -> "$directory/${operation.newName}"
+                connectionInfo.remotePath.startsWith("/") -> "/${operation.newName}"
+                else -> operation.newName
             }
 
             val existsResult = sftpClient.exists(connectionInfo.toClientInfo(), newRemotePath)

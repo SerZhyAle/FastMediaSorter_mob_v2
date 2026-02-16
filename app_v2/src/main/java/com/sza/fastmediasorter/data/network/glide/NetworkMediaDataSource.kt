@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
 import java.io.IOException
+import java.net.SocketTimeoutException
 
 /**
  * MediaDataSource implementation for network files (SMB/SFTP/FTP).
@@ -40,6 +41,9 @@ class NetworkMediaDataSource(
     private var cachedChunkStart = -1L
     private var cachedChunkEnd = -1L
     private var cachedChunkData: ByteArray? = null
+    
+    // FTP connection pooling for thumbnail extraction (prevents reconnect on every read)
+    private var pooledFtpConnection: FtpClient.ExoPlayerFtpConnection? = null
 
     override fun readAt(position: Long, buffer: ByteArray, offset: Int, size: Int): Int {
         if (isClosed) {
@@ -113,6 +117,17 @@ class NetworkMediaDataSource(
         cachedChunkData = null
         cachedChunkStart = -1L
         cachedChunkEnd = -1L
+        
+        // Release pooled FTP connection
+        pooledFtpConnection?.let { conn ->
+            try {
+                ftpClient.releaseExoPlayerConnection(conn.client)
+                Timber.d("Network read interrupted at position 0 (expected during cancellation)")
+            } catch (e: Exception) {
+                Timber.w(e, "NetworkMediaDataSource: Error releasing FTP connection")
+            }
+            pooledFtpConnection = null
+        }
     }
 
     private fun readBytesFromNetwork(offset: Long, length: Long): ByteArray {
@@ -232,14 +247,104 @@ class NetworkMediaDataSource(
             credentialsRepository.getByTypeServerAndPort("FTP", server, port)
         } ?: throw IOException("No credentials found for FTP")
 
+        val connectionInfo = FtpClient.FtpConnectionInfo(
+            host = server,
+            port = port,
+            username = credentials.username,
+            password = credentials.password
+        )
+        
         try {
-            ftpClient.connect(server, port, credentials.username, credentials.password)
-            if (!ftpClient.isConnected()) throw IOException("FTP connection failed")
+            // Get or reuse pooled FTP connection (prevents reconnect on every read)
+            // Validate connection is still alive before reuse
+            val connection = pooledFtpConnection?.let { existing ->
+                if (existing.client.isConnected) {
+                    Timber.d("NetworkMediaDataSource: Reusing pooled FTP connection")
+                    existing
+                } else {
+                    // Connection is dead, release it and get a new one
+                    Timber.w("NetworkMediaDataSource: Pooled connection is dead, getting new one")
+                    try {
+                        ftpClient.releaseExoPlayerConnection(existing.client)
+                    } catch (ignored: Exception) {}
+                    pooledFtpConnection = null
+                    null
+                }
+            } ?: run {
+                val newConn = ftpClient.getConnectionForExoPlayer(connectionInfo)
+                pooledFtpConnection = newConn
+                Timber.d("NetworkMediaDataSource: Created new pooled FTP connection")
+                newConn
+            }
+            
+            // Read bytes using pooled connection directly
+            val client = connection.client
+            val bytes = synchronized(client) {
+                val readInCurrentMode: () -> ByteArray = {
+                    client.setRestartOffset(offset)
 
-            val result = ftpClient.readFileBytesRange(remotePath, offset, length)
-            result.getOrNull() ?: throw IOException("FTP read failed")
-        } finally {
-            ftpClient.disconnect()
+                    client.retrieveFileStream(remotePath)?.use { inputStream ->
+                        val buffer = ByteArray(length.toInt())
+                        var totalRead = 0
+
+                        while (totalRead < length) {
+                            val read = inputStream.read(buffer, totalRead, (length - totalRead).toInt())
+                            if (read == -1) break
+                            totalRead += read
+                        }
+
+                        if (!client.completePendingCommand()) {
+                            throw IOException("FTP completePendingCommand failed")
+                        }
+
+                        if (totalRead < length) {
+                            buffer.copyOf(totalRead)
+                        } else {
+                            buffer
+                        }
+                    } ?: throw IOException("Failed to open FTP stream: $remotePath")
+                }
+
+                try {
+                    readInCurrentMode()
+                } catch (e: Exception) {
+                    val shouldRetryInActiveMode = e is SocketTimeoutException ||
+                        (e.cause is SocketTimeoutException) ||
+                        (e.message?.contains("completePendingCommand", ignoreCase = true) == true)
+
+                    if (!shouldRetryInActiveMode) {
+                        throw e
+                    }
+
+                    Timber.w(e, "NetworkMediaDataSource: Passive FTP read failed, retrying in active mode")
+                    client.enterLocalActiveMode()
+
+                    try {
+                        readInCurrentMode()
+                    } finally {
+                        try {
+                            client.enterLocalPassiveMode()
+                            Timber.d("NetworkMediaDataSource: Switched back to passive mode")
+                        } catch (passiveError: Exception) {
+                            Timber.w(passiveError, "NetworkMediaDataSource: Failed to switch back to passive mode")
+                        }
+                    }
+                }
+            }
+            
+            bytes
+        } catch (e: Exception) {
+            // On error, release and clear pooled connection so next attempt reconnects
+            pooledFtpConnection?.let { conn ->
+                try {
+                    ftpClient.releaseExoPlayerConnection(conn.client)
+                } catch (ignored: Exception) {
+                    Timber.w(ignored, "Error releasing pooled connection")
+                }
+                pooledFtpConnection = null
+                Timber.d("NetworkMediaDataSource: Cleared pooled connection after error")
+            }
+            throw IOException("FTP read failed at offset $offset", e)
         }
     }
 }
