@@ -2,8 +2,10 @@ package com.sza.fastmediasorter.ui.welcome
 
 import android.Manifest
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -14,6 +16,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -27,15 +30,28 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private var currentPage = 0
     private var waitingPermissionForFinish = false
+    private var hasTriggeredLastPagePermissionRequest = false
+    private var hasRequestedManageMediaInSession = false
+    private var hasRequestedAllFilesAccessInSession = false
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (allGranted || hasRequiredMediaPermissions()) {
-            onMediaPermissionsGranted()
+            onRuntimePermissionsProcessed()
         } else {
             showPermissionDeniedDialog()
         }
+    }
+    private val manageMediaPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        continueSpecialPermissionsFlowOrComplete()
+    }
+    private val allFilesAccessPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        continueSpecialPermissionsFlowOrComplete()
     }
     private val pageBackgrounds = intArrayOf(
         R.color.welcome_page_1_background,
@@ -182,6 +198,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             // Let's just show Finish button if it's NOT permission page, or if it is but maybe we want to allow skip?
             // The "Skip" button at top handles skipping.
             binding.btnFinish.visibility = View.VISIBLE
+
+            if (!hasTriggeredLastPagePermissionRequest) {
+                hasTriggeredLastPagePermissionRequest = true
+                requestPermissions()
+            }
         } else {
             binding.btnNext.visibility = View.VISIBLE
             binding.btnFinish.visibility = View.GONE
@@ -197,36 +218,90 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun finishWelcome() {
-        if (!hasRequiredMediaPermissions()) {
-            waitingPermissionForFinish = true
-            requestPermissions()
-            return
-        }
-
-        completeWelcomeFlow()
+        waitingPermissionForFinish = true
+        requestPermissions()
     }
 
     private fun requestPermissions() {
         val requiredPermissions = getRequiredMediaPermissions()
         if (requiredPermissions.isEmpty() || hasRequiredMediaPermissions()) {
-            onMediaPermissionsGranted()
+            onRuntimePermissionsProcessed()
             return
         }
 
         mediaPermissionsLauncher.launch(requiredPermissions)
     }
 
-    private fun onMediaPermissionsGranted() {
-        viewModel.setMediaPermissionsGranted(true)
-        Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
+    private fun onRuntimePermissionsProcessed() {
+        if (hasRequiredMediaPermissions()) {
+            viewModel.setMediaPermissionsGranted(true)
+            Toast.makeText(this, R.string.permissions_granted, Toast.LENGTH_SHORT).show()
+        }
 
-        if (waitingPermissionForFinish) {
+        continueSpecialPermissionsFlowOrComplete()
+    }
+
+    private fun continueSpecialPermissionsFlowOrComplete() {
+        if (requestManageMediaPermissionIfNeeded()) {
+            return
+        }
+
+        if (requestAllFilesAccessPermissionIfNeeded()) {
+            return
+        }
+
+        if (waitingPermissionForFinish || currentPage == pagerAdapter.itemCount - 1) {
             waitingPermissionForFinish = false
             completeWelcomeFlow()
-        } else if (currentPage == pagerAdapter.itemCount - 1) {
-            viewModel.setWelcomeCompleted()
-            restartApp()
         }
+    }
+
+    private fun requestManageMediaPermissionIfNeeded(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+            return false
+        }
+
+        if (PermissionHelper.hasManageMediaPermission(this) || hasRequestedManageMediaInSession) {
+            return false
+        }
+
+        hasRequestedManageMediaInSession = true
+
+        val intent = try {
+            Intent(Settings.ACTION_REQUEST_MANAGE_MEDIA).apply {
+                data = Uri.parse("package:$packageName")
+            }
+        } catch (_: Exception) {
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+            }
+        }
+
+        manageMediaPermissionLauncher.launch(intent)
+        return true
+    }
+
+    private fun requestAllFilesAccessPermissionIfNeeded(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) {
+            return false
+        }
+
+        if (PermissionHelper.hasAllFilesAccessPermission(this) || hasRequestedAllFilesAccessInSession) {
+            return false
+        }
+
+        hasRequestedAllFilesAccessInSession = true
+
+        val intent = try {
+            Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                data = Uri.parse("package:$packageName")
+            }
+        } catch (_: Exception) {
+            Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+        }
+
+        allFilesAccessPermissionLauncher.launch(intent)
+        return true
     }
 
     private fun showPermissionDeniedDialog() {
@@ -237,8 +312,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 requestPermissions()
             }
             .setNegativeButton(R.string.continue_anyway) { _, _ ->
-                waitingPermissionForFinish = false
-                completeWelcomeFlow()
+                continueSpecialPermissionsFlowOrComplete()
             }
             .setCancelable(true)
             .show()

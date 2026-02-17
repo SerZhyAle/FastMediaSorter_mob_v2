@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.resourceeditor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
@@ -70,8 +71,16 @@ data class ResourceStatistics(
 )
 
 sealed interface ResourceEditorUiEvent {
-    data class ShowError(val message: String) : ResourceEditorUiEvent
-    data class ShowInfo(val message: String) : ResourceEditorUiEvent
+    data class ShowError(
+        val message: String? = null,
+        val messageResId: Int? = null
+    ) : ResourceEditorUiEvent
+
+    data class ShowInfo(
+        val message: String? = null,
+        val messageResId: Int? = null
+    ) : ResourceEditorUiEvent
+
     data class Saved(val resourceId: Long) : ResourceEditorUiEvent
 }
 
@@ -146,7 +155,12 @@ class ResourceFormViewModel @Inject constructor(
                 _uiState.value = recalculateState(initialized)
             }.onFailure { error ->
                 Timber.e(error, "ResourceFormViewModel: initialize failed")
-                _events.emit(ResourceEditorUiEvent.ShowError(error.message ?: "Initialization failed"))
+                _events.emit(
+                    ResourceEditorUiEvent.ShowError(
+                        message = error.message,
+                        messageResId = R.string.resource_editor_init_failed
+                    )
+                )
             }
         }
     }
@@ -249,7 +263,7 @@ class ResourceFormViewModel @Inject constructor(
             if (!validation.isValid) {
                 applyValidation(validation)
                 _uiState.update { it.copy(isTestingConnection = false) }
-                _events.emit(ResourceEditorUiEvent.ShowError("Validation failed before connection test"))
+                _events.emit(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_before_test))
                 return@launch
             }
 
@@ -271,7 +285,7 @@ class ResourceFormViewModel @Inject constructor(
         val currentForm = state.formData
         if (!state.canSave) {
             viewModelScope.launch {
-                _events.emit(ResourceEditorUiEvent.ShowInfo("No changes to save or form is invalid"))
+                _events.emit(ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_no_changes_or_invalid))
             }
             return
         }
@@ -284,7 +298,7 @@ class ResourceFormViewModel @Inject constructor(
             if (!validation.isValid) {
                 applyValidation(validation)
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(ResourceEditorUiEvent.ShowError("Validation failed"))
+                _events.emit(ResourceEditorUiEvent.ShowError(messageResId = R.string.resource_editor_validation_failed))
                 return@launch
             }
 
@@ -307,7 +321,12 @@ class ResourceFormViewModel @Inject constructor(
             }.onFailure { error ->
                 Timber.e(error, "ResourceFormViewModel: save failed")
                 _uiState.update { it.copy(isSaving = false) }
-                _events.emit(ResourceEditorUiEvent.ShowError(error.message ?: "Save failed"))
+                _events.emit(
+                    ResourceEditorUiEvent.ShowError(
+                        message = error.message,
+                        messageResId = R.string.error_save_failed
+                    )
+                )
             }
         }
     }
@@ -316,7 +335,7 @@ class ResourceFormViewModel @Inject constructor(
         val state = _uiState.value
         if (state.formData.mode != ResourceEditorMode.EDIT) {
             viewModelScope.launch {
-                _events.emit(ResourceEditorUiEvent.ShowInfo("Save as Copy is available only in EDIT mode"))
+                _events.emit(ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_save_as_copy_edit_only))
             }
             return
         }
@@ -361,7 +380,7 @@ class ResourceFormViewModel @Inject constructor(
             LastAction.SAVE -> onSave()
             LastAction.NONE -> {
                 viewModelScope.launch {
-                    _events.emit(ResourceEditorUiEvent.ShowInfo("Nothing to retry"))
+                    _events.emit(ResourceEditorUiEvent.ShowInfo(messageResId = R.string.resource_editor_nothing_to_retry))
                 }
             }
         }

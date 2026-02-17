@@ -240,6 +240,8 @@
     <string name="user_guide">User Guide</string>
     <string name="privacy_policy">Privacy</string>
     <string name="manage_permissions">Manage permissions</string>
+    <string name="manage_local_files_permission">Manage local files access</string>
+    <string name="manage_manage_media_permission">Manage media management permission</string>
     <string name="request_permissions">Request permissions</string>
     <string name="permissions_required_title">Permissions required</string>
     <string name="permissions_required_for_local_resource">To create a local resource, media file access is required. Grant permissions to continue.</string>
@@ -1771,6 +1773,12 @@
     
     <string name="resource_saved">Resource saved successfully</string>
     <string name="warning_title">Warning</string>
+    <string name="resource_editor_init_failed">Failed to initialize resource editor</string>
+    <string name="resource_editor_validation_before_test">Validation failed before connection test</string>
+    <string name="resource_editor_no_changes_or_invalid">No changes to save or form is invalid</string>
+    <string name="resource_editor_validation_failed">Validation failed</string>
+    <string name="resource_editor_save_as_copy_edit_only">Save as Copy is available only in EDIT mode</string>
+    <string name="resource_editor_nothing_to_retry">Nothing to retry</string>
     <string name="warning_read_only_destination">Read-only destination may block move/copy operations.</string>
     <string name="warning_endpoint_changed_rescan">Path or endpoint changed. Re-scan/re-verification is required.</string>
     <string name="warning_path_duplicate_existing">A resource with the same path already exists. Duplicate is allowed, but consider editing existing resource.</string>

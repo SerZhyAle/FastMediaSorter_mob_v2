@@ -954,9 +954,9 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnLocalFilesPermission.isEnabled = true
         binding.btnLocalFilesPermission.alpha = 1.0f
         binding.btnLocalFilesPermission.text = if (hasMediaPermissions) {
-            getString(R.string.manage_permissions)
+            getString(R.string.manage_local_files_permission)
         } else {
-            getString(R.string.request_permissions)
+            getString(R.string.grant_local_files_permission)
         }
         binding.btnLocalFilesPermission.setOnClickListener {
             handleLocalFilesPermissionAction()
@@ -978,7 +978,7 @@ class GeneralSettingsFragment : Fragment() {
             binding.btnManageMediaPermission.isEnabled = true
             binding.btnManageMediaPermission.alpha = 1.0f
             binding.btnManageMediaPermission.text = if (hasManageMedia) {
-                getString(R.string.manage_permissions)
+                getString(R.string.manage_manage_media_permission)
             } else {
                 getString(R.string.grant_manage_media_permission)
             }

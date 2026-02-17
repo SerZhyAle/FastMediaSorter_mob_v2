@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.resourceeditor
 
 import androidx.activity.result.contract.ActivityResultContracts
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,6 +13,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import android.widget.LinearLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputLayout
@@ -46,6 +48,10 @@ class ResourceEditorFragment : Fragment() {
     private val shownWarnings = mutableSetOf<ResourceEditorWarning>()
     private var credentialsDialogShown = false
     private var pendingSaveAfterPermissionGrant = false
+    private var hasMediaTypesBySchema = false
+    private val uiPrefs by lazy {
+        requireContext().getSharedPreferences(PREFS_RESOURCE_EDITOR_UI, Context.MODE_PRIVATE)
+    }
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -82,6 +88,7 @@ class ResourceEditorFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        reorderScanningAboveMediaTypes()
         setupToolbar()
         setupFieldListeners()
         setupButtons()
@@ -105,21 +112,93 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun setupCollapsibleSections() {
-        setupCollapsibleHeader(binding.headerMediaTypes, binding.gridMediaTypes, binding.ivMediaTypesExpand)
-        setupCollapsibleHeader(binding.headerScanning, binding.contentScanning, binding.ivScanningExpand)
-        setupCollapsibleHeader(binding.headerDestination, binding.contentDestination, binding.ivDestinationExpand)
-        setupCollapsibleHeader(binding.headerAdvanced, binding.contentAdvanced, binding.ivAdvancedExpand)
-        setupCollapsibleHeader(binding.headerStatistics, binding.groupStatistics, binding.ivStatisticsExpand)
+        setupCollapsibleHeader(
+            binding.headerMediaTypes,
+            binding.gridMediaTypes,
+            binding.ivMediaTypesExpand,
+            KEY_SECTION_MEDIA_TYPES
+        )
+        setupCollapsibleHeader(
+            binding.headerScanning,
+            binding.contentScanning,
+            binding.ivScanningExpand,
+            KEY_SECTION_SCANNING
+        )
+        setupCollapsibleHeader(
+            binding.headerDestination,
+            binding.contentDestination,
+            binding.ivDestinationExpand,
+            KEY_SECTION_DESTINATION
+        )
+        setupCollapsibleHeader(
+            binding.headerAdvanced,
+            binding.contentAdvanced,
+            binding.ivAdvancedExpand,
+            KEY_SECTION_ADVANCED
+        )
+        setupCollapsibleHeader(
+            binding.headerStatistics,
+            binding.groupStatistics,
+            binding.ivStatisticsExpand,
+            KEY_SECTION_STATISTICS
+        )
     }
 
-    private fun setupCollapsibleHeader(header: View, content: View, expandIcon: android.widget.ImageView) {
+    private fun reorderScanningAboveMediaTypes() {
+        val parent = binding.headerMediaTypes.parent as? LinearLayout ?: return
+
+        val scanningHeader = binding.headerScanning
+        val scanningContent = binding.contentScanning
+        val mediaHeader = binding.headerMediaTypes
+        val mediaContent = binding.gridMediaTypes
+
+        val destinationHeaderIndex = parent.indexOfChild(binding.headerDestination)
+        if (destinationHeaderIndex <= 0) {
+            return
+        }
+
+        parent.removeView(scanningHeader)
+        parent.removeView(scanningContent)
+        parent.removeView(mediaHeader)
+        parent.removeView(mediaContent)
+
+        val insertIndex = parent.indexOfChild(binding.headerDestination)
+        parent.addView(scanningHeader, insertIndex)
+        parent.addView(scanningContent, insertIndex + 1)
+        parent.addView(mediaHeader, insertIndex + 2)
+        parent.addView(mediaContent, insertIndex + 3)
+    }
+
+    private fun setupCollapsibleHeader(
+        header: View,
+        content: View,
+        expandIcon: android.widget.ImageView,
+        stateKey: String
+    ) {
+        val isExpanded = uiPrefs.getBoolean(stateKey, false)
+        setSectionExpanded(content, expandIcon, isExpanded, animate = false)
+
         header.setOnClickListener {
-            val isExpanded = content.isVisible
-            content.isVisible = !isExpanded
+            val newExpanded = !content.isVisible
+            setSectionExpanded(content, expandIcon, newExpanded, animate = true)
+            uiPrefs.edit().putBoolean(stateKey, newExpanded).apply()
+        }
+    }
+
+    private fun setSectionExpanded(
+        content: View,
+        expandIcon: android.widget.ImageView,
+        isExpanded: Boolean,
+        animate: Boolean
+    ) {
+        content.isVisible = isExpanded
+        if (animate) {
             expandIcon.animate()
-                .rotation(if (isExpanded) 0f else 180f)
+                .rotation(if (isExpanded) 180f else 0f)
                 .setDuration(200)
                 .start()
+        } else {
+            expandIcon.rotation = if (isExpanded) 180f else 0f
         }
     }
 
@@ -466,8 +545,28 @@ class ResourceEditorFragment : Fragment() {
         binding.cbPdf.isEnabled = mediaEnabled
         binding.cbEpub.isEnabled = mediaEnabled
 
+        updateMediaTypesSectionVisibility(formData.allFiles)
+
         binding.tilDomain.isVisible = false
         binding.tilShareName.isVisible = false
+    }
+
+    private fun updateMediaTypesSectionVisibility(allFilesEnabled: Boolean) {
+        val shouldShowMediaTypes = hasMediaTypesBySchema && !allFilesEnabled
+        binding.headerMediaTypes.isVisible = shouldShowMediaTypes
+
+        if (!shouldShowMediaTypes) {
+            binding.gridMediaTypes.isVisible = false
+            return
+        }
+
+        val mediaExpanded = uiPrefs.getBoolean(KEY_SECTION_MEDIA_TYPES, false)
+        setSectionExpanded(
+            content = binding.gridMediaTypes,
+            expandIcon = binding.ivMediaTypesExpand,
+            isExpanded = mediaExpanded,
+            animate = false
+        )
     }
 
     private fun renderFieldSchema(schema: List<ResourceFieldSchema>, type: ResourceType) {
@@ -494,8 +593,8 @@ class ResourceEditorFragment : Fragment() {
         binding.btnTestConnection.isVisible = isNetwork || isCloud
 
         // Media types section (collapsible header + content)
-        val hasMediaTypes = visibleKeys.contains(ResourceFieldKey.MEDIA_TYPES)
-        binding.headerMediaTypes.isVisible = hasMediaTypes
+        hasMediaTypesBySchema = visibleKeys.contains(ResourceFieldKey.MEDIA_TYPES)
+        updateMediaTypesSectionVisibility(viewModel.uiState.value.formData.allFiles)
 
         // Scanning section (collapsible header + content)
         val hasScanSettings = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES) ||
@@ -578,7 +677,10 @@ class ResourceEditorFragment : Fragment() {
         binding.groupConnectionResult.isVisible = true
         binding.tvConnectionStatus.text = when (result.status) {
             ResourceConnectionStatus.SUCCESS -> getString(R.string.connection_success)
-            ResourceConnectionStatus.FAILED -> getString(R.string.connection_test_failed_detail, result.diagnosticMessage ?: "Unknown error")
+            ResourceConnectionStatus.FAILED -> getString(
+                R.string.connection_test_failed_detail,
+                result.diagnosticMessage ?: getString(R.string.error_unknown)
+            )
             ResourceConnectionStatus.PARTIAL -> getString(R.string.connection_success)
             ResourceConnectionStatus.NOT_SUPPORTED -> getString(R.string.connection_test_not_supported)
         }
@@ -616,10 +718,16 @@ class ResourceEditorFragment : Fragment() {
                 viewModel.events.collectLatest { event ->
                     when (event) {
                         is ResourceEditorUiEvent.ShowError -> {
-                            Snackbar.make(binding.root, event.message, Snackbar.LENGTH_LONG).show()
+                            val message = event.messageResId?.let { getString(it) }
+                                ?: event.message
+                                ?: getString(R.string.error_unknown)
+                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
                         }
                         is ResourceEditorUiEvent.ShowInfo -> {
-                            Snackbar.make(binding.root, event.message, Snackbar.LENGTH_SHORT).show()
+                            val message = event.messageResId?.let { getString(it) }
+                                ?: event.message
+                                ?: getString(R.string.error_unknown)
+                            Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
                         }
                         is ResourceEditorUiEvent.Saved -> {
                             Snackbar.make(binding.root, getString(R.string.resource_saved), Snackbar.LENGTH_SHORT).show()
@@ -681,6 +789,12 @@ class ResourceEditorFragment : Fragment() {
         private const val ARG_MODE = "mode"
         private const val ARG_RESOURCE_ID = "resource_id"
         private const val ARG_RESOURCE_TYPE = "resource_type"
+        private const val PREFS_RESOURCE_EDITOR_UI = "resource_editor_ui_state"
+        private const val KEY_SECTION_MEDIA_TYPES = "section_media_types_expanded"
+        private const val KEY_SECTION_SCANNING = "section_scanning_expanded"
+        private const val KEY_SECTION_DESTINATION = "section_destination_expanded"
+        private const val KEY_SECTION_ADVANCED = "section_advanced_expanded"
+        private const val KEY_SECTION_STATISTICS = "section_statistics_expanded"
 
         fun newInstance(
             mode: ResourceEditorMode,
