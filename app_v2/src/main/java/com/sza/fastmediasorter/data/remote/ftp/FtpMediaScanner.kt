@@ -144,15 +144,90 @@ class FtpMediaScanner @Inject constructor(
         showHiddenFiles: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
         try {
-            // For simplicity, reuse scanFolder and apply offset/limit
-            // TODO: optimize FTP client to support native pagination
-            val allFiles = scanFolder(path, supportedTypes, sizeFilter, credentialsId)
-            
-            val pageFiles = allFiles.drop(offset).take(limit)
-            val hasMore = offset + limit < allFiles.size
-            
-            Timber.d("FtpMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
-            MediaFilePage(pageFiles, hasMore)
+            val connectionInfo = parseFtpPath(path, credentialsId) ?: run {
+                Timber.w("Invalid FTP path format: $path")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            val connectResult = ftpClient.connect(
+                host = connectionInfo.host,
+                port = connectionInfo.port,
+                username = connectionInfo.username,
+                password = connectionInfo.password
+            )
+
+            if (connectResult.isFailure) {
+                Timber.e("Failed to connect to FTP for paged scan: ${connectResult.exceptionOrNull()?.message}")
+                return@withContext MediaFilePage(emptyList(), false)
+            }
+
+            val resourceKey = "ftp://${connectionInfo.host}:${connectionInfo.port}"
+            val safeLimit = limit.coerceAtLeast(1)
+            val batchSize = (safeLimit * 3).coerceIn(100, 1000)
+
+            val pageFiles = mutableListOf<MediaFile>()
+            var filteredSkipped = 0
+            var rawOffset = 0
+            var rawHasMore = true
+
+            while (rawHasMore && pageFiles.size <= safeLimit && kotlinx.coroutines.currentCoroutineContext().isActive) {
+                val batchResult = ConnectionThrottleManager.withThrottle(
+                    protocol = ConnectionThrottleManager.ProtocolLimits.FTP,
+                    resourceKey = resourceKey,
+                    highPriority = false
+                ) {
+                    ftpClient.listFilesWithMetadataPaged(
+                        remotePath = connectionInfo.remotePath,
+                        offset = rawOffset,
+                        limit = batchSize + 1,
+                        recursive = scanSubdirectories
+                    )
+                }
+
+                if (batchResult.isFailure) {
+                    Timber.e("Failed to list FTP files (paged batch): ${batchResult.exceptionOrNull()?.message}")
+                    break
+                }
+
+                val rawBatch = batchResult.getOrNull().orEmpty()
+                rawHasMore = rawBatch.size > batchSize
+                val candidateFiles = rawBatch.take(batchSize)
+
+                if (candidateFiles.isEmpty()) {
+                    break
+                }
+
+                candidateFiles.forEach { ftpFile ->
+                    val mediaFile = toMediaFileOrNull(
+                        ftpFile = ftpFile,
+                        connectionInfo = connectionInfo,
+                        supportedTypes = supportedTypes,
+                        sizeFilter = sizeFilter,
+                        showHiddenFiles = showHiddenFiles
+                    ) ?: return@forEach
+
+                    if (filteredSkipped < offset) {
+                        filteredSkipped++
+                    } else if (pageFiles.size < safeLimit + 1) {
+                        pageFiles.add(mediaFile)
+                    }
+                }
+
+                rawOffset += candidateFiles.size
+                if (candidateFiles.size < batchSize) {
+                    rawHasMore = false
+                }
+            }
+
+            ftpClient.disconnect()
+
+            val hasMore = pageFiles.size > safeLimit || rawHasMore
+            val resultFiles = pageFiles.take(safeLimit)
+
+            Timber.d(
+                "FtpMediaScanner paged(native): offset=$offset, limit=$limit, returned=${resultFiles.size}, hasMore=$hasMore, rawOffset=$rawOffset"
+            )
+            MediaFilePage(resultFiles, hasMore)
         } catch (e: Exception) {
             Timber.e(e, "Error scanning FTP folder (paged): $path")
             MediaFilePage(emptyList(), false)
@@ -450,6 +525,34 @@ class FtpMediaScanner @Inject constructor(
 
     private fun getMediaType(fileName: String): MediaType? {
         return MediaTypeUtils.getMediaType(fileName)
+    }
+
+    private fun toMediaFileOrNull(
+        ftpFile: org.apache.commons.net.ftp.FTPFile,
+        connectionInfo: ConnectionInfo,
+        supportedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        showHiddenFiles: Boolean
+    ): MediaFile? {
+        if (ftpFile.name.startsWith(".trash")) return null
+        if (!showHiddenFiles && ftpFile.name.startsWith(".")) return null
+
+        val isAllFilesMode = supportedTypes.size == 7
+        val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
+        if (mediaType == null || !supportedTypes.contains(mediaType)) return null
+
+        val fileSize = ftpFile.size
+        if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(fileSize, mediaType, sizeFilter)) {
+            return null
+        }
+
+        return MediaFile(
+            name = ftpFile.name,
+            path = buildFullFtpPath(connectionInfo, ftpFile.name),
+            size = fileSize,
+            createdDate = ftpFile.timestamp?.timeInMillis ?: 0L,
+            type = mediaType
+        )
     }
 
     private data class ConnectionInfo(

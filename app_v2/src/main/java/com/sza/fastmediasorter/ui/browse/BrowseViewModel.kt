@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
+import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import com.sza.fastmediasorter.data.network.glide.NetworkVideoFrameDecoder
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -112,6 +113,7 @@ class BrowseViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
+    private val smbOperationsUseCase: SmbOperationsUseCase,
     private val cleanupTrashFoldersUseCase: com.sza.fastmediasorter.domain.usecase.CleanupTrashFoldersUseCase,
     private val cleanupOrphanedTempFilesUseCase: com.sza.fastmediasorter.domain.usecase.CleanupOrphanedTempFilesUseCase,
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
@@ -2516,13 +2518,31 @@ class BrowseViewModel @Inject constructor(
                         }
                     }
                     else -> {
-                        // Network resource cleanup: SMB/SFTP/FTP/Cloud
-                        // TODO: Implement network trash cleanup when needed
-                        // Requires:
-                        // 1. Scan for .trash folders via network clients
-                        // 2. Delete each .trash folder recursively
-                        // 3. Handle connection credentials properly
-                        Timber.d("Network cleanup not yet implemented for resource type: ${resource.type}")
+                        val credentialsId = resource.credentialsId
+                        if (credentialsId.isNullOrBlank()) {
+                            Timber.w("Network trash cleanup skipped: missing credentialsId for resource ${resource.name}")
+                            return@launch
+                        }
+
+                        val cleanupResult = smbOperationsUseCase.cleanupTrash(
+                            type = resource.type,
+                            credentialsId = credentialsId,
+                            path = resource.path
+                        )
+
+                        if (cleanupResult.isSuccess) {
+                            val deletedCount = cleanupResult.getOrDefault(0)
+                            if (deletedCount > 0) {
+                                Timber.i("Cleaned up $deletedCount network trash folders in ${resource.name}")
+                            } else {
+                                Timber.d("No network trash folders found for ${resource.name}")
+                            }
+                        } else {
+                            Timber.w(
+                                cleanupResult.exceptionOrNull(),
+                                "Network trash cleanup failed for ${resource.name}"
+                            )
+                        }
                     }
                 }
             } catch (e: Exception) {

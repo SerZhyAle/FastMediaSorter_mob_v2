@@ -310,7 +310,7 @@ class SftpOperationStrategy(
             username = usernameToUse,
             password = credentials.password,
             privateKey = credentials.decryptedSshPrivateKey,
-            passphrase = null // TODO: Add passphrase support to NetworkCredentialsEntity
+            passphrase = credentials.password.ifEmpty { null }
         )
     }
     

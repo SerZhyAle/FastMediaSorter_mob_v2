@@ -45,7 +45,7 @@ class PlayerGestureSetupManager(
      * In renderer mode, returns the surface currently showing content.
      */
     val activePhotoView: com.github.chrisbanes.photoview.PhotoView
-        get() = binding.photoView // TODO: Switch based on renderer state when migration enabled
+        get() = getVisiblePhotoView() ?: binding.photoView
 
     /**
      * Check if any PhotoView surface is visible and active.

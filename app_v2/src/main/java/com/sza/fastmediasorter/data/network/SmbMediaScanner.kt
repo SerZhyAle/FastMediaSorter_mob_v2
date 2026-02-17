@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.data.network
 
+import android.media.MediaMetadataRetriever
+import android.util.LruCache
+import androidx.exifinterface.media.ExifInterface
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -14,6 +17,11 @@ import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -27,6 +35,28 @@ class SmbMediaScanner @Inject constructor(
     private val credentialsRepository: NetworkCredentialsRepository
     // Metadata extraction removed - loaded on-demand
 ) : MediaScanner {
+
+    private data class ExifMetadata(
+        val width: Int?,
+        val height: Int?,
+        val orientation: Int?,
+        val dateTimeMillis: Long?,
+        val latitude: Double?,
+        val longitude: Double?
+    )
+
+    private data class VideoMetadata(
+        val duration: Long?,
+        val width: Int?,
+        val height: Int?,
+        val codec: String?,
+        val bitrate: Int?,
+        val frameRate: Float?,
+        val rotation: Int?
+    )
+
+    private val exifCache = LruCache<String, ExifMetadata>(100)
+    private val videoMetadataCache = LruCache<String, VideoMetadata>(100)
 
     companion object {
         // Extensions moved to MediaTypeUtils
@@ -108,20 +138,35 @@ class SmbMediaScanner @Inject constructor(
                                 return@mapNotNull null
                             }
 
-                            // TODO: Extract EXIF from SMB files (requires downloading file header)
-                            // For now, EXIF extraction is skipped for network files to avoid slow scanning
-                            // EXIF can be extracted on-demand during image viewing
-                            
-                            // TODO: Extract video metadata from SMB files (requires downloading file or partial read)
-                            // For now, video metadata extraction is skipped for network files to avoid slow scanning
-                            // Video metadata can be extracted on-demand during video viewing
+                            val exifMetadata = if (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF) {
+                                extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
+                            } else {
+                                null
+                            }
+
+                            val videoMetadata = if (mediaType == MediaType.VIDEO) {
+                                extractVideoMetadata(connectionInfo.connectionInfo, fileInfo.path)
+                            } else {
+                                null
+                            }
                             
                             MediaFile(
                                 name = fileInfo.name,
                                 path = buildFullSmbPath(connectionInfo, fileInfo.path),
                                 size = fileInfo.size,
                                 createdDate = fileInfo.lastModified,
-                                type = mediaType
+                                type = mediaType,
+                                duration = videoMetadata?.duration,
+                                width = exifMetadata?.width ?: videoMetadata?.width,
+                                height = exifMetadata?.height ?: videoMetadata?.height,
+                                exifOrientation = exifMetadata?.orientation,
+                                exifDateTime = exifMetadata?.dateTimeMillis,
+                                exifLatitude = exifMetadata?.latitude,
+                                exifLongitude = exifMetadata?.longitude,
+                                videoCodec = videoMetadata?.codec,
+                                videoBitrate = videoMetadata?.bitrate,
+                                videoFrameRate = videoMetadata?.frameRate,
+                                videoRotation = videoMetadata?.rotation
                             )
                         } else null
                     }
@@ -538,6 +583,134 @@ class SmbMediaScanner @Inject constructor(
 
     private fun buildFullSmbPath(connectionInfo: SmbConnectionInfoWithPath, filePath: String): String {
         return "smb://${connectionInfo.connectionInfo.server}:${connectionInfo.connectionInfo.port}/${connectionInfo.connectionInfo.shareName}/$filePath"
+    }
+
+    private suspend fun extractExifMetadata(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String
+    ): ExifMetadata? {
+        exifCache.get(remotePath)?.let { return it }
+
+        return try {
+            when (val result = smbClient.readPartialFile(connectionInfo, remotePath, 0L, 64 * 1024)) {
+                is SmbResult.Success -> {
+                    val bytes = result.data
+                    if (bytes.isEmpty()) return null
+
+                    val exif = ExifInterface(ByteArrayInputStream(bytes))
+                    val width = exif.getAttributeInt(ExifInterface.TAG_IMAGE_WIDTH, 0).takeIf { it > 0 }
+                        ?: exif.getAttributeInt(ExifInterface.TAG_PIXEL_X_DIMENSION, 0).takeIf { it > 0 }
+                    val height = exif.getAttributeInt(ExifInterface.TAG_IMAGE_LENGTH, 0).takeIf { it > 0 }
+                        ?: exif.getAttributeInt(ExifInterface.TAG_PIXEL_Y_DIMENSION, 0).takeIf { it > 0 }
+                    val orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_UNDEFINED)
+                        .takeIf { it != ExifInterface.ORIENTATION_UNDEFINED }
+
+                    val dateTimeMillis = parseExifDateTimeMillis(
+                        exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                            ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
+                    )
+
+                    val latLong = exif.latLong
+                    val metadata = ExifMetadata(
+                        width = width,
+                        height = height,
+                        orientation = orientation,
+                        dateTimeMillis = dateTimeMillis,
+                        latitude = latLong?.getOrNull(0),
+                        longitude = latLong?.getOrNull(1)
+                    )
+
+                    if (
+                        metadata.width != null || metadata.height != null || metadata.orientation != null ||
+                        metadata.dateTimeMillis != null || metadata.latitude != null || metadata.longitude != null
+                    ) {
+                        exifCache.put(remotePath, metadata)
+                        metadata
+                    } else {
+                        null
+                    }
+                }
+                is SmbResult.Error -> {
+                    Timber.v("SMB EXIF extraction skipped for $remotePath: ${result.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.v(e, "SMB EXIF extraction failed for $remotePath")
+            null
+        }
+    }
+
+    private suspend fun extractVideoMetadata(
+        connectionInfo: SmbConnectionInfo,
+        remotePath: String
+    ): VideoMetadata? {
+        videoMetadataCache.get(remotePath)?.let { return it }
+
+        var tempFile: File? = null
+        return try {
+            when (val result = smbClient.readPartialFile(connectionInfo, remotePath, 0L, 1024 * 1024)) {
+                is SmbResult.Success -> {
+                    val bytes = result.data
+                    if (bytes.isEmpty()) return null
+
+                    tempFile = File.createTempFile("smb_video_header_", ".tmp")
+                    tempFile.writeBytes(bytes)
+
+                    val metadata = MediaMetadataRetriever().use { retriever ->
+                        retriever.setDataSource(tempFile.absolutePath)
+                        VideoMetadata(
+                            duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull(),
+                            width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toIntOrNull(),
+                            height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toIntOrNull(),
+                            codec = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE),
+                            bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull(),
+                            frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)?.toFloatOrNull(),
+                            rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()
+                        )
+                    }
+
+                    if (
+                        metadata.duration != null || metadata.width != null || metadata.height != null ||
+                        metadata.codec != null || metadata.bitrate != null || metadata.frameRate != null || metadata.rotation != null
+                    ) {
+                        videoMetadataCache.put(remotePath, metadata)
+                        metadata
+                    } else {
+                        null
+                    }
+                }
+                is SmbResult.Error -> {
+                    Timber.v("SMB video metadata extraction skipped for $remotePath: ${result.message}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.v(e, "SMB video metadata extraction failed for $remotePath")
+            null
+        } finally {
+            runCatching { tempFile?.delete() }
+        }
+    }
+
+    private fun parseExifDateTimeMillis(value: String?): Long? {
+        if (value.isNullOrBlank()) return null
+
+        val patterns = listOf(
+            "yyyy:MM:dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss"
+        )
+
+        patterns.forEach { pattern ->
+            runCatching {
+                val formatter = SimpleDateFormat(pattern, Locale.US).apply {
+                    timeZone = TimeZone.getDefault()
+                }
+                formatter.parse(value)?.time
+            }.getOrNull()?.let { return it }
+        }
+
+        return null
     }
 
     private data class SmbConnectionInfoWithPath(

@@ -4,6 +4,12 @@ import android.content.Context
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
+import com.sza.fastmediasorter.R
 import timber.log.Timber
 
 /**
@@ -181,13 +187,54 @@ class PlayerGestureHelper(
         if (prefs.getBoolean(PREF_FIRST_RUN_HINT_SHOWN, false)) {
             return
         }
-        
-        // TODO: Implement hint overlay UI
-        Timber.d("PlayerGestureHelper: First-run hint would be shown here")
-        
-        // Mark as shown
-        prefs.edit().putBoolean(PREF_FIRST_RUN_HINT_SHOWN, true).apply()
-        onDismiss()
+
+        val parent = rootView as? ViewGroup
+        if (parent == null) {
+            Timber.w("PlayerGestureHelper: rootView is not a ViewGroup, fallback to callback")
+            prefs.edit().putBoolean(PREF_FIRST_RUN_HINT_SHOWN, true).apply()
+            onDismiss()
+            return
+        }
+
+        if (parent.findViewWithTag<View>("gesture_hint_overlay")?.isVisible == true) {
+            return
+        }
+
+        val overlay = FrameLayout(context).apply {
+            tag = "gesture_hint_overlay"
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            setBackgroundColor(ContextCompat.getColor(context, R.color.player_overlay_heavy))
+            isClickable = true
+            isFocusable = true
+        }
+
+        val messageView = TextView(context).apply {
+            layoutParams = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                marginStart = (24 * context.resources.displayMetrics.density).toInt()
+                marginEnd = (24 * context.resources.displayMetrics.density).toInt()
+                topMargin = (64 * context.resources.displayMetrics.density).toInt()
+            }
+            text = context.getString(R.string.tooltip_touch_zones_message)
+            setTextColor(ContextCompat.getColor(context, R.color.player_zone_text))
+            textSize = 16f
+        }
+
+        overlay.addView(messageView)
+
+        overlay.setOnClickListener {
+            parent.removeView(overlay)
+            prefs.edit().putBoolean(PREF_FIRST_RUN_HINT_SHOWN, true).apply()
+            onDismiss()
+        }
+
+        parent.addView(overlay)
+        Timber.d("PlayerGestureHelper: First-run hint overlay displayed")
     }
     
     /**

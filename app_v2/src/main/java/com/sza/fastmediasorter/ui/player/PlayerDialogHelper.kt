@@ -28,8 +28,10 @@ import com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -388,19 +390,65 @@ class PlayerDialogHelper(
         builder.show()
     }
     /**
-     * Show PDF editing dialog (Placeholder for future functionality)
+     * Show PDF editing dialog with available export actions.
      */
     fun showPdfEditDialog(currentFile: MediaFile) {
         if (currentFile.type != MediaType.PDF) {
-            Toast.makeText(activity, "PDF editing only for PDF files", Toast.LENGTH_SHORT).show()
+            Toast.makeText(activity, activity.getString(R.string.msg_no_file_to_edit), Toast.LENGTH_SHORT).show()
             return
         }
-        
-        // TODO: Implement actual PDF editing dialog
+
+        val options = arrayOf(activity.getString(R.string.pdf_export_to_jpg))
+
         AlertDialog.Builder(activity)
-            .setTitle("PDF Edit")
-            .setMessage("PDF editing functionality will be implemented here.")
-            .setPositiveButton("OK", null)
+            .setTitle(R.string.pdf_edit_title)
+            .setItems(options) { _, which ->
+                when (which) {
+                    0 -> exportPdfToJpg(currentFile)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
             .show()
+    }
+
+    private fun exportPdfToJpg(currentFile: MediaFile) {
+        activity.lifecycleScope.launch {
+            Toast.makeText(activity, R.string.pdf_exporting_started, Toast.LENGTH_SHORT).show()
+
+            try {
+                if (currentFile.path.contains("://")) {
+                    Toast.makeText(activity, R.string.unsupported_format_network_hint, Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                val result = withContext(Dispatchers.IO) {
+                    com.sza.fastmediasorter.utils.PdfExportHelper.exportPdfPagesToJpg(
+                        activity,
+                        File(currentFile.path)
+                    )
+                }
+
+                result.onSuccess { count ->
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.pdf_export_success, count),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }.onFailure { e ->
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.pdf_export_failed, e.message ?: "Unknown error"),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "PDF export failed")
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.pdf_export_failed, e.message ?: "Unknown error"),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+        }
     }
 }

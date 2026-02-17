@@ -294,6 +294,52 @@ class FtpClient @Inject constructor() {
             }
         }
     }
+
+    /**
+     * List files with metadata using offset/limit pagination.
+     * Supports early-stop recursive traversal to avoid loading full directory trees.
+     */
+    suspend fun listFilesWithMetadataPaged(
+        remotePath: String = "/",
+        offset: Int = 0,
+        limit: Int = 50,
+        recursive: Boolean = true
+    ): Result<List<FTPFile>> = withContext(Dispatchers.IO) {
+        synchronized(mutex) {
+            try {
+                val client = ftpClient ?: return@withContext Result.failure(
+                    IllegalStateException("Not connected. Call connect() first.")
+                )
+
+                if (limit <= 0) {
+                    return@withContext Result.success(emptyList())
+                }
+
+                val safeOffset = offset.coerceAtLeast(0)
+                val results = mutableListOf<FTPFile>()
+
+                if (recursive) {
+                    val pagingState = MetadataPagingState(offset = safeOffset, limit = limit)
+                    listFilesWithMetadataRecursivePaged(client, remotePath, results, pagingState)
+                } else {
+                    val allFiles = mutableListOf<FTPFile>()
+                    listFilesWithMetadataSingleLevel(client, remotePath, allFiles)
+                    allFiles.drop(safeOffset).take(limit).forEach { results.add(it) }
+                }
+
+                Timber.d(
+                    "FTP listFilesWithMetadataPaged: path=$remotePath, offset=$safeOffset, limit=$limit, recursive=$recursive, returned=${results.size}"
+                )
+                Result.success(results)
+            } catch (e: IOException) {
+                Timber.e(e, "FTP paged list files with metadata failed: $remotePath")
+                Result.failure(e)
+            } catch (e: Exception) {
+                Timber.e(e, "FTP paged list files with metadata error: $remotePath")
+                Result.failure(e)
+            }
+        }
+    }
     
     /**
      * List files with metadata in single directory level (non-recursive)
@@ -381,6 +427,63 @@ class FtpClient @Inject constructor() {
                 } else if (ftpFile.isFile) {
                     // Add file to results
                     results.add(ftpFile)
+                }
+            }
+        }
+    }
+
+    private data class MetadataPagingState(
+        val offset: Int,
+        val limit: Int,
+        var skipped: Int = 0,
+        var collected: Int = 0
+    )
+
+    private fun listFilesWithMetadataRecursivePaged(
+        client: FTPClient,
+        remotePath: String,
+        results: MutableList<FTPFile>,
+        paging: MetadataPagingState
+    ) {
+        if (paging.collected >= paging.limit) return
+
+        val ftpFiles = try {
+            Timber.d("FTP listing files with metadata (paged) in passive mode: $remotePath")
+            client.listFiles(remotePath)
+        } catch (e: SocketTimeoutException) {
+            Timber.w(e, "FTP passive mode timeout (paged), switching to active mode")
+            client.enterLocalActiveMode()
+            Timber.d("FTP retrying paged listFiles in active mode: $remotePath")
+            try {
+                client.listFiles(remotePath)
+            } finally {
+                try {
+                    client.enterLocalPassiveMode()
+                    Timber.d("FTP switched back to passive mode")
+                } catch (ignored: Exception) {
+                    Timber.w(ignored, "Failed to switch back to passive mode")
+                }
+            }
+        }
+
+        ftpFiles.forEach { ftpFile ->
+            if (paging.collected >= paging.limit) return
+            if (ftpFile.name == "." || ftpFile.name == "..") return@forEach
+
+            val subPath = if (remotePath.endsWith("/")) {
+                remotePath + ftpFile.name
+            } else {
+                "$remotePath/${ftpFile.name}"
+            }
+
+            if (ftpFile.isDirectory) {
+                listFilesWithMetadataRecursivePaged(client, subPath, results, paging)
+            } else if (ftpFile.isFile) {
+                if (paging.skipped < paging.offset) {
+                    paging.skipped++
+                } else {
+                    results.add(ftpFile)
+                    paging.collected++
                 }
             }
         }
