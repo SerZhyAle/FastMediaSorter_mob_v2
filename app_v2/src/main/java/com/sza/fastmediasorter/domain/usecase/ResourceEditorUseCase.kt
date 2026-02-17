@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
@@ -221,11 +222,12 @@ class ResourceEditorUseCase @Inject constructor(
                 return@withContext Result.failure(IllegalStateException("Resource form validation failed"))
             }
 
-            val model = buildPersistenceModel(formData)
+            val preparedFormData = ensureDestinationMetadata(formData)
+            val model = buildPersistenceModel(preparedFormData)
 
             val resourceId: Long = when {
                 formData.mode == ResourceEditorMode.EDIT -> {
-                    val existingId = requireNotNull(formData.id) {
+                    val existingId = requireNotNull(preparedFormData.id) {
                         "resourceId is required for EDIT mode"
                     }
                     updateResourceUseCase(model).getOrThrow()
@@ -253,6 +255,33 @@ class ResourceEditorUseCase @Inject constructor(
 
     private fun strategyFor(type: ResourceType): ResourceStrategy {
         return strategies[type] ?: LocalResourceStrategy()
+    }
+
+    private suspend fun ensureDestinationMetadata(formData: ResourceFormData): ResourceFormData {
+        if (!formData.isDestination) {
+            return formData.copy(destinationOrder = null)
+        }
+
+        val currentOrder = formData.destinationOrder
+        if (currentOrder != null && currentOrder >= 0) {
+            return formData
+        }
+
+        val maxExistingOrder = resourceRepository.getAllResourcesSync()
+            .asSequence()
+            .filter { resource ->
+                resource.isDestination &&
+                    (resource.destinationOrder ?: -1) >= 0 &&
+                    (formData.id == null || resource.id != formData.id)
+            }
+            .map { it.destinationOrder ?: -1 }
+            .maxOrNull() ?: -1
+
+        val nextOrder = maxExistingOrder + 1
+        return formData.copy(
+            destinationOrder = nextOrder,
+            destinationColor = DestinationColors.getColorForDestination(nextOrder)
+        )
     }
 
     private fun normalizeForStrategy(formData: ResourceFormData): ResourceFormData {

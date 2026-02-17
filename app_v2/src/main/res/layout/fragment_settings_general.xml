@@ -394,7 +394,7 @@
                             android:layout_marginStart="@dimen/settings_help_icon_margin"
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:contentDescription="@string/help_remember_file_list"
-                            android:src="@drawable/ic_help_outline_24"
+                            android:src="@android:drawable/ic_menu_help"
                             app:tint="@color/text_color_secondary" />
 
                     </LinearLayout>
