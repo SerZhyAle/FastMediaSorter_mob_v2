@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.data.transfer
 
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import timber.log.Timber
+import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
 /**
  * Wrapper strategy that adds atomic file transfer capability to existing FileOperationStrategy.
@@ -70,7 +73,7 @@ class AtomicFileOperationStrategy(
             // Step 0: Check destination exists BEFORE copying if overwrite=false
             // This prevents unnecessary data transfer if file already exists
             if (!overwrite) {
-                val destExists = delegate.exists(destination).getOrNull() ?: false
+                val destExists = pathExists(destination).getOrNull() ?: false
                 if (destExists) {
                     Timber.w("AtomicFileOperationStrategy: Destination exists and overwrite=false, aborting")
                     // Extract filename from destination path for error message
@@ -82,10 +85,10 @@ class AtomicFileOperationStrategy(
             }
             
             // Step 1: Handle collision - if temp file exists, delete it (overwrite policy)
-            val tempExists = delegate.exists(tempDestination).getOrNull() ?: false
+            val tempExists = pathExists(tempDestination).getOrNull() ?: false
             if (tempExists) {
                 Timber.w("AtomicFileOperationStrategy: Temp file already exists, deleting: $tempDestination")
-                val deleteResult = delegate.deleteFile(tempDestination)
+                val deleteResult = deletePath(tempDestination)
                 if (deleteResult.isFailure) {
                     Timber.e("AtomicFileOperationStrategy: Failed to delete existing temp file")
                     return Result.failure(
@@ -108,7 +111,7 @@ class AtomicFileOperationStrategy(
             Timber.d("AtomicFileOperationStrategy: Copy to temp completed, size check...")
             
             // Step 3: Verify temp file exists
-            val tempExistsAfterCopy = delegate.exists(tempDestination).getOrNull() ?: false
+            val tempExistsAfterCopy = pathExists(tempDestination).getOrNull() ?: false
             if (!tempExistsAfterCopy) {
                 Timber.e("AtomicFileOperationStrategy: Temp file doesn't exist after copy!")
                 return Result.failure(Exception("Temp file not found after copy: $tempDestination"))
@@ -116,10 +119,10 @@ class AtomicFileOperationStrategy(
             
             // Step 4: Handle destination overwrite if needed
             if (overwrite) {
-                val destExists = delegate.exists(destination).getOrNull() ?: false
+                val destExists = pathExists(destination).getOrNull() ?: false
                 if (destExists) {
                     Timber.d("AtomicFileOperationStrategy: Destination exists, deleting before rename")
-                    val deleteResult = delegate.deleteFile(destination)
+                    val deleteResult = deletePath(destination)
                     if (deleteResult.isFailure) {
                         Timber.e("AtomicFileOperationStrategy: Failed to delete existing destination")
                         cleanupTempFile(tempDestination)
@@ -132,7 +135,7 @@ class AtomicFileOperationStrategy(
             
             // Step 5: Rename temp to final destination
             Timber.d("AtomicFileOperationStrategy: Renaming temp to final destination")
-            val renameResult = renameFile(tempDestination, destination)
+            val renameResult = renamePath(tempDestination, destination)
             
             if (renameResult.isFailure) {
                 Timber.e("AtomicFileOperationStrategy: Rename failed: ${renameResult.exceptionOrNull()?.message}")
@@ -172,8 +175,12 @@ class AtomicFileOperationStrategy(
      * For local files: Use File.renameTo()
      * For network protocols: Delegate expects protocol-specific rename
      */
-    private suspend fun renameFile(oldPath: String, newPath: String): Result<Unit> {
+    private suspend fun renamePath(oldPath: String, newPath: String): Result<Unit> {
         return try {
+            if (isLocalPath(oldPath) && isLocalPath(newPath)) {
+                return renameLocalPath(oldPath, newPath)
+            }
+
             // Try using moveFile (which should use rename for same-location files)
             val moveResult = delegate.moveFile(oldPath, newPath)
             
@@ -196,9 +203,78 @@ class AtomicFileOperationStrategy(
                 Result.success(Unit)
             }
         } catch (e: Exception) {
-            Timber.e(e, "AtomicFileOperationStrategy: renameFile exception")
+            Timber.e(e, "AtomicFileOperationStrategy: renamePath exception")
             Result.failure(e)
         }
+    }
+
+    private fun renameLocalPath(oldPath: String, newPath: String): Result<Unit> {
+        return try {
+            val oldFile = File(oldPath)
+            val newFile = File(newPath)
+
+            if (!oldFile.exists()) {
+                return Result.failure(Exception("Source temp file does not exist: $oldPath"))
+            }
+
+            newFile.parentFile?.mkdirs()
+
+            if (oldFile.renameTo(newFile)) {
+                return Result.success(Unit)
+            }
+
+            FileInputStream(oldFile).use { input ->
+                FileOutputStream(newFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            if (!oldFile.delete()) {
+                Timber.w("AtomicFileOperationStrategy: Local fallback rename copied file but failed to delete source: $oldPath")
+            }
+
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    private suspend fun pathExists(path: String): Result<Boolean> {
+        return if (isLocalPath(path)) {
+            Result.success(File(path).exists())
+        } else {
+            delegate.exists(path)
+        }
+    }
+
+    private suspend fun deletePath(path: String): Result<Unit> {
+        return if (isLocalPath(path)) {
+            try {
+                val file = File(path)
+                if (!file.exists()) {
+                    Result.success(Unit)
+                } else if (file.delete()) {
+                    Result.success(Unit)
+                } else {
+                    Result.failure(Exception("Failed to delete local file: $path"))
+                }
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        } else {
+            delegate.deleteFile(path)
+        }
+    }
+
+    private fun isLocalPath(path: String): Boolean {
+        val normalized = path.lowercase()
+        return !normalized.startsWith("smb:") &&
+            !normalized.startsWith("sftp:") &&
+            !normalized.startsWith("ftp:") &&
+            !normalized.startsWith("gdrive:") &&
+            !normalized.startsWith("dropbox:") &&
+            !normalized.startsWith("onedrive:") &&
+            !normalized.startsWith("content:")
     }
     
     /**
@@ -208,7 +284,7 @@ class AtomicFileOperationStrategy(
     private suspend fun cleanupTempFile(tempPath: String) {
         try {
             Timber.d("AtomicFileOperationStrategy: Attempting cleanup of temp file: $tempPath")
-            val deleteResult = delegate.deleteFile(tempPath)
+            val deleteResult = deletePath(tempPath)
             if (deleteResult.isSuccess) {
                 Timber.d("AtomicFileOperationStrategy: Temp file cleanup successful")
             } else {

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.graphics.Bitmap
 import android.view.View
 import com.sza.fastmediasorter.ui.player.views.TranslationOverlayView
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -133,9 +134,10 @@ class GoogleLensTranslationHelper(
                 }
             }
             
-            // Release scaled bitmap after OCR (only if we created a scaled copy)
-            if (shouldScale && ocrBitmap != bitmap) {
-                ocrBitmap.recycle()
+        } catch (e: CancellationException) {
+            Timber.d("Google Lens translation cancelled")
+            withContext(Dispatchers.Main) {
+                translationOverlayView.visibility = View.GONE
             }
         } catch (e: Exception) {
             Timber.e(e, "Google Lens translation failed")
@@ -144,6 +146,9 @@ class GoogleLensTranslationHelper(
                 onError(e.message ?: "Translation failed")
             }
         }
+        // NOTE: Do NOT recycle ocrBitmap here.
+        // On cancellation, Tesseract native code may still reference the bitmap → SIGSEGV.
+        // GC will handle the small scaled copy.
     }
     
     /**

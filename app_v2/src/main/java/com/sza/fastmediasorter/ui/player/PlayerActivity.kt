@@ -1512,7 +1512,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             loadingIndicatorHandler = loadingIndicatorHandler,
             showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
             mediaFilesCacheManager = mediaFilesCacheManager,
-            audioServiceController = audioServiceController
+            audioServiceController = audioServiceController,
+            onAudioServicePlaybackChanged = { isPlaying ->
+                val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
+                sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
+            }
         )
         
         dialogAndUiStateManager = PlayerDialogAndUiStateManager(
@@ -2766,6 +2770,54 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     /**
+     * Extract bitmap from any drawable type.
+     * Handles BitmapDrawable, GifDrawable, TransitionDrawable (from Glide crossfade),
+     * and any other drawable by rendering it to a bitmap canvas.
+     */
+    private fun extractBitmapFromDrawable(drawable: android.graphics.drawable.Drawable?, source: String): android.graphics.Bitmap? {
+        if (drawable == null) {
+            Timber.d("extractBitmapFromDrawable: drawable is null ($source)")
+            return null
+        }
+        
+        return when (drawable) {
+            is android.graphics.drawable.BitmapDrawable -> {
+                Timber.d("extractBitmapFromDrawable: BitmapDrawable ($source)")
+                drawable.bitmap
+            }
+            is com.bumptech.glide.load.resource.gif.GifDrawable -> {
+                Timber.d("extractBitmapFromDrawable: GifDrawable - extracting current frame ($source)")
+                val width = drawable.intrinsicWidth
+                val height = drawable.intrinsicHeight
+                if (width <= 0 || height <= 0) return null
+                val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                drawable.setBounds(0, 0, width, height)
+                drawable.draw(canvas)
+                bitmap
+            }
+            is android.graphics.drawable.TransitionDrawable -> {
+                // Glide crossfade wraps the actual drawable in TransitionDrawable
+                // The last layer (index numberOfLayers-1) is the loaded image
+                Timber.d("extractBitmapFromDrawable: TransitionDrawable with ${drawable.numberOfLayers} layers ($source)")
+                val lastLayer = drawable.getDrawable(drawable.numberOfLayers - 1)
+                extractBitmapFromDrawable(lastLayer, "$source/transitionLayer")
+            }
+            else -> {
+                // Fallback: render any drawable to bitmap
+                Timber.d("extractBitmapFromDrawable: fallback rendering ${drawable.javaClass.simpleName} ($source)")
+                val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: return null
+                val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: return null
+                val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
+                val canvas = android.graphics.Canvas(bitmap)
+                drawable.setBounds(0, 0, width, height)
+                drawable.draw(canvas)
+                bitmap
+            }
+        }
+    }
+
+    /**
      * Stop active translation and hide overlays.
      * Cancels any running translation job.
      */
@@ -2811,48 +2863,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         translationJob?.cancel()
         
         // Get bitmap from current image view (including GIF first frame)
+        // Check all possible image surfaces: photoView, photoViewSurfaceB (dual surface), imageView
         val bitmap = when {
             binding.photoView.isVisible -> {
-                // PhotoView for zoomable images
-                binding.photoView.drawable?.let { drawable ->
-                    when (drawable) {
-                        is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
-                        is com.bumptech.glide.load.resource.gif.GifDrawable -> {
-                            // Extract current frame from GIF by drawing to bitmap
-                            Timber.d("translateCurrentImage: Extracting current frame from GIF")
-                            val width = drawable.intrinsicWidth
-                            val height = drawable.intrinsicHeight
-                            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-                            val canvas = android.graphics.Canvas(bitmap)
-                            drawable.setBounds(0, 0, width, height)
-                            drawable.draw(canvas)
-                            bitmap
-                        }
-                        else -> null
-                    }
-                }
+                extractBitmapFromDrawable(binding.photoView.drawable, "photoView")
+            }
+            binding.photoViewSurfaceB?.isVisible == true -> {
+                extractBitmapFromDrawable(binding.photoViewSurfaceB?.drawable, "photoViewSurfaceB")
             }
             binding.imageView.isVisible -> {
-                // Regular ImageView
-                binding.imageView.drawable?.let { drawable ->
-                    when (drawable) {
-                        is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
-                        is com.bumptech.glide.load.resource.gif.GifDrawable -> {
-                            // Extract current frame from GIF by drawing to bitmap
-                            Timber.d("translateCurrentImage: Extracting current frame from GIF (imageView)")
-                            val width = drawable.intrinsicWidth
-                            val height = drawable.intrinsicHeight
-                            val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-                            val canvas = android.graphics.Canvas(bitmap)
-                            drawable.setBounds(0, 0, width, height)
-                            drawable.draw(canvas)
-                            bitmap
-                        }
-                        else -> null
-                    }
-                }
+                extractBitmapFromDrawable(binding.imageView.drawable, "imageView")
             }
-            else -> null
+            else -> {
+                Timber.w("translateCurrentImage: No image view is visible (photoView=${binding.photoView.isVisible}, surfaceB=${binding.photoViewSurfaceB?.isVisible}, imageView=${binding.imageView.isVisible})")
+                null
+            }
         }
         
         if (bitmap == null) {

@@ -618,7 +618,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
 
         binding.btnToggleView.setOnClickListener {
-            if (viewModel.state.value.resource?.isAudioOnly() == true) {
+            val resource = viewModel.state.value.resource
+            if (resource?.isAudioOnly() == true || resource?.isOnlyImage() == true) {
                 return@setOnClickListener
             }
             UserActionLogger.logButtonClick("ToggleView", "BrowseActivity")
@@ -1080,13 +1081,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnUndo.isVisible = state.lastOperation != null
                     binding.btnShare.isVisible = hasSelection
 
-                    updateToggleViewAvailability(state.resource?.isAudioOnly() == true)
+                    val shouldDisableToggle = resource?.isAudioOnly() == true || resource?.isOnlyImage() == true
+                    updateToggleViewAvailability(shouldDisableToggle)
 
                     // Update display mode when either mode OR audio-only state changed.
                     // This is required to restore normal thumbnail sizing after leaving audio-only resources.
-                    val isAudioOnly = state.resource?.isAudioOnly() == true
-                    if (state.displayMode != currentDisplayMode || isAudioOnly != currentAudioOnlyMode) {
-                        currentAudioOnlyMode = isAudioOnly
+                    if (state.displayMode != currentDisplayMode || shouldDisableToggle != currentAudioOnlyMode) {
+                        currentAudioOnlyMode = shouldDisableToggle
                         currentDisplayMode = state.displayMode
                         updateDisplayMode(state.displayMode)
                     }
@@ -1387,6 +1388,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             showCloudAuthenticationDialog(provider)
             return
         }
+
+        if (isNonCriticalNetworkImageError(message, details, exception)) {
+            Timber.d("BrowseActivity: Suppressed non-critical network image error: $message")
+            return
+        }
         
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
@@ -1421,6 +1427,47 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 // Simple toast for users who don't want details
                 Toast.makeText(this@BrowseActivity, message, Toast.LENGTH_LONG).show()
             }
+        }
+    }
+
+    private fun isNonCriticalNetworkImageError(
+        message: String,
+        details: String?,
+        exception: Throwable?
+    ): Boolean {
+        val messages = mutableListOf<String>()
+        messages.add(message)
+        if (!details.isNullOrBlank()) {
+            messages.add(details)
+        }
+
+        var current = exception
+        var depth = 0
+        while (current != null && depth < 12) {
+            messages.add(current.message ?: "")
+            current = current.cause
+            depth++
+        }
+
+        val hasNetworkContext = messages.any { msg ->
+            msg.contains("NetworkFileDataFetcher", ignoreCase = true) ||
+            msg.contains("Failed to load network file:", ignoreCase = true) ||
+            msg.contains("smb://", ignoreCase = true) ||
+            msg.contains("sftp://", ignoreCase = true) ||
+            msg.contains("ftp://", ignoreCase = true)
+        }
+
+        if (!hasNetworkContext) return false
+
+        return messages.any { msg ->
+            msg.contains("Invalid/corrupted image data", ignoreCase = true) ||
+            msg.contains("Corrupted image data:", ignoreCase = true) ||
+            msg.contains("Request cancelled", ignoreCase = true) ||
+            msg.contains("Failed to decode", ignoreCase = true) ||
+            msg.contains("DecodeException", ignoreCase = true) ||
+            msg.contains("ImageDecoder", ignoreCase = true) ||
+            msg.contains("HEIC", ignoreCase = true) ||
+            msg.contains("HEIF", ignoreCase = true)
         }
     }
     
@@ -1544,9 +1591,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private suspend fun updateDisplayMode(mode: DisplayMode) {
         val settings = settingsRepository.getSettings().first()
         val currentResource = viewModel.state.value.resource
-        val isAudioOnly = currentResource?.isAudioOnly() == true
-        val effectiveMode = if (isAudioOnly) DisplayMode.LIST else mode
-        val iconSize = if (isAudioOnly) {
+        val shouldForceList = currentResource?.isAudioOnly() == true || currentResource?.isOnlyImage() == true
+        val effectiveMode = if (shouldForceList) DisplayMode.LIST else mode
+        val iconSize = if (shouldForceList) {
             48
         } else if (currentResource?.disableThumbnails == true) {
             32
@@ -1556,16 +1603,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnails)
         currentDisplayMode = effectiveMode
-        updateToggleViewAvailability(isAudioOnly)
+        updateToggleViewAvailability(shouldForceList)
     }
 
-    private fun updateToggleViewAvailability(isAudioOnly: Boolean) {
+    private fun updateToggleViewAvailability(shouldDisable: Boolean) {
         binding.btnToggleView.apply {
-            isEnabled = !isAudioOnly
-            alpha = if (isAudioOnly) 0.4f else 1.0f
-            if (isAudioOnly) {
-                setIconResource(R.drawable.ic_view_list)
-            }
+            isEnabled = !shouldDisable
+            alpha = if (shouldDisable) 0.4f else 1.0f
+            // Hide the button completely for single-type resources
+            visibility = if (shouldDisable) android.view.View.GONE else android.view.View.VISIBLE
         }
     }
 

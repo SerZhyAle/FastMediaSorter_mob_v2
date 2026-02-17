@@ -136,6 +136,14 @@ class ResourceEditorFragment : Fragment() {
             viewModel.onFieldChanged(ResourceFieldKey.CLOUD_FOLDER, text?.toString().orEmpty())
         }
 
+        binding.etSlideshowInterval.addTextChangedListener { text ->
+            viewModel.onFieldChanged(ResourceFieldKey.SLIDESHOW_INTERVAL, text?.toString().orEmpty())
+        }
+
+        binding.cbShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.SHOW_COMMAND_PANEL, isChecked)
+        }
+
         // Media types checkboxes
         binding.cbVideo.setOnCheckedChangeListener { _, _ ->
             updateMediaTypes()
@@ -365,6 +373,9 @@ class ResourceEditorFragment : Fragment() {
         if (binding.etCloudFolderId.text.toString() != formData.cloudFolderId.orEmpty()) {
             binding.etCloudFolderId.setText(formData.cloudFolderId.orEmpty())
         }
+        if (binding.etSlideshowInterval.text.toString() != formData.slideshowInterval.toString()) {
+            binding.etSlideshowInterval.setText(formData.slideshowInterval.toString())
+        }
 
         binding.cbVideo.isChecked = formData.supportedMediaTypes.contains(MediaType.VIDEO)
         binding.cbAudio.isChecked = formData.supportedMediaTypes.contains(MediaType.AUDIO)
@@ -372,6 +383,8 @@ class ResourceEditorFragment : Fragment() {
         binding.cbDocument.isChecked = formData.supportedMediaTypes.any {
             it == MediaType.TEXT || it == MediaType.PDF || it == MediaType.EPUB
         }
+        
+        binding.cbShowCommandPanel.isChecked = formData.showCommandPanel ?: false
 
         binding.tilDomain.isVisible = false
         binding.tilShareName.isVisible = false

@@ -619,7 +619,7 @@ class SmbFileOperationHandler @Inject constructor(
             val share = tempInfo.connectionInfo.shareName
             
             Timber.d("SmbFileOperationHandler: Looking up credentials for server='$server', share='$share'")
-            val credentials = credentialsRepository.getByServerAndShare(server, share)
+            val credentials = resolveSmbCredentials(server, share)
             Timber.d("SmbFileOperationHandler: Credential lookup result: ${if (credentials != null) "FOUND (user='${credentials.username}')" else "NULL"}")
             
             // Return path info with actual credentials
@@ -638,5 +638,40 @@ class SmbFileOperationHandler @Inject constructor(
             Timber.e(e, "Error parsing SMB path: $path")
             null
         }
+    }
+
+    private suspend fun resolveSmbCredentials(
+        server: String,
+        shareName: String
+    ): com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity? {
+        val normalizedShare = shareName.trim().trim('/', '\\')
+        val firstSegment = normalizedShare.substringBefore('/', normalizedShare)
+
+        val shareCandidates = linkedSetOf<String>().apply {
+            add(shareName)
+            if (normalizedShare.isNotEmpty()) {
+                add(normalizedShare)
+            }
+            if (firstSegment.isNotEmpty()) {
+                add(firstSegment)
+            }
+        }
+
+        for (candidate in shareCandidates) {
+            val candidateCredentials = credentialsRepository.getByServerAndShare(server, candidate)
+            if (candidateCredentials != null) {
+                Timber.d("SmbFileOperationHandler: Credentials resolved for server='$server', share='$candidate'")
+                return candidateCredentials
+            }
+        }
+
+        val hostCredentials = credentialsRepository.getCredentialsByHost(server)
+        if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
+            Timber.w("SmbFileOperationHandler: Share-specific credentials not found for '$server/$shareName', using SMB host credentials")
+            return hostCredentials
+        }
+
+        Timber.w("SmbFileOperationHandler: No SMB credentials found for '$server/$shareName'")
+        return null
     }
 }

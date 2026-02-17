@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.settings
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.FastMediaSorterApp
 import com.sza.fastmediasorter.R
 
 enum class SettingsSearchDestination(val tabIndex: Int) {
@@ -224,7 +225,7 @@ object SettingsSearchRegistry {
         ),
         SettingsSearchIndex(
             key = "media.other_ocr",
-            title = "Enable OCR",
+            title = FastMediaSorterApp.appContext.getString(R.string.enable_ocr),
             keywords = listOf("ocr", "text recognition"),
             sectionId = "other",
             destination = SettingsSearchDestination.MEDIA,

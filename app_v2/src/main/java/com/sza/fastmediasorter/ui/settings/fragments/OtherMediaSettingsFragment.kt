@@ -62,7 +62,7 @@ class OtherMediaSettingsFragment : Fragment() {
                     memoryTier.name,
                     apiLevel
                 )
-                binding.tvOcrSummary.alpha = 0.6f // Gray out text
+                binding.tvOcrSummary.alpha = 1.0f
                 
                 // Update settings to disable OCR
                 val current = viewModel.settings.value

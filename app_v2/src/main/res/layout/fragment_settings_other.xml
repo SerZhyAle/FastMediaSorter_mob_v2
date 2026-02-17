@@ -199,7 +199,7 @@
             android:layout_height="wrap_content"
             android:text="@string/enable_ocr_summary"
             android:textSize="@dimen/text_size_small"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
             android:layout_marginBottom="@dimen/margin_small" />
 

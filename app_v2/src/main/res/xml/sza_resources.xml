@@ -39,6 +39,7 @@
         supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT"
         sortMode="NAME_ASC"
         displayMode="GRID"
+        addToDestinations="true"
         scanSubdirectories="true"
         disableThumbnails="false" />
 
@@ -149,6 +150,7 @@
         scanSubdirectories="true"
         showHiddenFiles="true"
         showFoldersInList="true"
+        addToDestinations="true"
         displayMode="LIST"
         allFiles="true" />
         
@@ -160,6 +162,7 @@
         password="SerZhyA25SerZhyA25"
         supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT"
         allFiles="true"
+        addToDestinations="true"
         sortMode="SIZE_DESC"
         displayMode="LIST" />
 

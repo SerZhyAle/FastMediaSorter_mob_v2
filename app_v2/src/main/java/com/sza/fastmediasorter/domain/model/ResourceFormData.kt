@@ -14,6 +14,7 @@ data class ResourceFormData(
 
     val isDestination: Boolean = false,
     val destinationOrder: Int? = null,
+    val destinationColor: Int = 0xFF4CAF50.toInt(), // Default green color
     val isReadOnly: Boolean = false,
 
     val credentialsId: String? = null,
@@ -28,6 +29,9 @@ data class ResourceFormData(
     val supportedMediaTypes: Set<MediaType> = setOf(MediaType.IMAGE, MediaType.VIDEO),
     val sortMode: SortMode = SortMode.NAME_ASC,
     val displayMode: DisplayMode = DisplayMode.LIST,
+
+    val slideshowInterval: Int = 10, // Seconds between images in slideshow mode
+    val showCommandPanel: Boolean? = null, // null = use global default, true/false = override
 
     val scanSubdirectories: Boolean = false,
     val disableThumbnails: Boolean = false,

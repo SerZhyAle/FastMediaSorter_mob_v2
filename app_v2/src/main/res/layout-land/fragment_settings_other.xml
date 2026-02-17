@@ -184,7 +184,7 @@
             android:layout_height="wrap_content"
             android:text="@string/enable_ocr_summary"
             android:textSize="12sp"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/colorOnSurface"
             android:layout_marginStart="48dp"
             android:layout_marginBottom="16dp" />
 

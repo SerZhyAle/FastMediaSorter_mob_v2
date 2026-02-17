@@ -25,6 +25,7 @@ import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.zip.CRC32
 
 /**
  * Glide ModelLoader for loading images from network paths (SMB/SFTP/FTP).
@@ -110,6 +111,11 @@ class NetworkFileDataFetcher(
         // Most image headers + thumbnail data < 512KB (JPEG/PNG/WebP all decode from headers)
         private const val THUMBNAIL_MAX_BYTES = 5120 * 1024L // 5MB limit for thumbnails (increased from 2MB)
         
+        // Lossless formats (PNG/WebP/GIF/BMP) are sensitive to truncation.
+        // Keep a higher cap for thumbnails to avoid passing corrupted/partial payloads to Glide decoder.
+        private const val LOSSLESS_THUMBNAIL_MAX_BYTES = 25 * 1024 * 1024L // 25MB
+        private val LOSSLESS_EXTENSIONS = setOf("png", "webp", "gif", "bmp")
+        
         // Track failed video files to avoid repeated decode attempts
         // Use LinkedHashMap for FIFO eviction (insertion order)
         // PUBLIC: Shared with NetworkVideoFrameDecoder
@@ -190,7 +196,7 @@ class NetworkFileDataFetcher(
                 Timber.d("NetworkFileDataFetcher: Starting direct byte fetch for $fileName")
                 
                 // Determine max bytes: limit for thumbnails, unlimited for full images
-                val maxBytes = if (data.loadFullImage) Long.MAX_VALUE else THUMBNAIL_MAX_BYTES
+                val maxBytes = determineMaxBytes(fileName)
                 
                 val bytes = when {
                     data.path.startsWith("smb://", ignoreCase = true) -> fetchBytesFromSmb(maxBytes)
@@ -212,9 +218,38 @@ class NetworkFileDataFetcher(
                 }
 
                 Timber.d("NetworkFileDataFetcher: Fetch complete for $fileName, read ${bytes.size / 1024}KB")
+
+                var finalBytes = bytes
+                // Validate image data before passing to Glide to prevent SIGSEGV in disk cache.
+                // For FTP, do one automatic retry before failing.
+                if (!isValidImageData(finalBytes)) {
+                    if (data.path.startsWith("ftp://", ignoreCase = true)) {
+                        val retryMaxBytes = if (!data.loadFullImage && isJpegFile(fileName)) {
+                            Timber.w("NetworkFileDataFetcher: JPEG thumbnail failed validation, retrying with full-size read for $fileName")
+                            Long.MAX_VALUE
+                        } else {
+                            Timber.w("NetworkFileDataFetcher: Image failed validation, retrying FTP read once for $fileName")
+                            maxBytes
+                        }
+
+                        val retryBytes = fetchBytesFromFtp(retryMaxBytes)
+                        if (retryBytes != null) {
+                            Timber.d("NetworkFileDataFetcher: FTP retry fetch complete for $fileName, read ${retryBytes.size / 1024}KB")
+                            finalBytes = retryBytes
+                        } else {
+                            Timber.w("NetworkFileDataFetcher: FTP retry returned null for $fileName")
+                        }
+                    }
+                }
+
+                if (!isValidImageData(finalBytes)) {
+                    Timber.e("NetworkFileDataFetcher: Invalid/corrupted image data for $fileName (size=${finalBytes.size})")
+                    callback.onLoadFailed(Exception("Corrupted image data: ${data.path}"))
+                    return@launch
+                }
                 
                 // Return ByteArrayInputStream to Glide (fully buffered, no synchronization issues)
-                callback.onDataReady(ByteArrayInputStream(bytes))
+                callback.onDataReady(ByteArrayInputStream(finalBytes))
             } catch (e: Exception) {
                 when {
                     e is CancellationException || e.cause is CancellationException -> {
@@ -445,6 +480,156 @@ class NetworkFileDataFetcher(
                 null
             }
         }
+    }
+
+    /**
+     * Determine safe max bytes for current request.
+     * For lossless image formats, avoid aggressive truncation that can lead to native decoder crashes.
+     */
+    private fun determineMaxBytes(fileName: String): Long {
+        if (data.loadFullImage) return Long.MAX_VALUE
+
+        val extension = fileName.substringAfterLast('.', "").lowercase()
+        if (extension in LOSSLESS_EXTENSIONS) {
+            if (data.size > 0L && data.size <= LOSSLESS_THUMBNAIL_MAX_BYTES) {
+                return data.size
+            }
+            return LOSSLESS_THUMBNAIL_MAX_BYTES
+        }
+
+        return THUMBNAIL_MAX_BYTES
+    }
+
+    private fun isJpegFile(fileName: String): Boolean {
+        val extension = fileName.substringAfterLast('.', "").lowercase()
+        return extension == "jpg" || extension == "jpeg"
+    }
+    
+    /**
+     * Validate image data by checking magic bytes (file signature).
+     * Prevents Glide from crashing when decoding corrupted data.
+     */
+    private fun isValidImageData(bytes: ByteArray): Boolean {
+        if (bytes.size < 8) return false
+        
+        // Check PNG signature: 89 50 4E 47 0D 0A 1A 0A
+        if (bytes[0] == 0x89.toByte() && bytes[1] == 0x50.toByte() && 
+            bytes[2] == 0x4E.toByte() && bytes[3] == 0x47.toByte()) {
+            return isValidPngData(bytes)
+        }
+        
+        // Check JPEG signature: FF D8 FF
+        if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte()) {
+            // Some FTP servers/files can contain trailing bytes after EOI.
+            // Accept JPEG when EOI marker exists near tail, not strictly at the last 2 bytes.
+            if (bytes.size < 4) return false
+
+            val searchWindow = 64 * 1024
+            val startIndex = maxOf(2, bytes.size - searchWindow)
+            for (index in (bytes.size - 1) downTo startIndex) {
+                if (bytes[index - 1] == 0xFF.toByte() && bytes[index] == 0xD9.toByte()) {
+                    return true
+                }
+            }
+
+            Timber.w("isValidImageData: JPEG without EOI marker in tail window (size=${bytes.size})")
+            return false
+        }
+        
+        // Check WebP signature: RIFF ... WEBP
+        if (bytes.size >= 12 &&
+            bytes[0] == 0x52.toByte() && bytes[1] == 0x49.toByte() && // "RI"
+            bytes[2] == 0x46.toByte() && bytes[3] == 0x46.toByte() && // "FF"
+            bytes[8] == 0x57.toByte() && bytes[9] == 0x45.toByte() &&  // "WE"
+            bytes[10] == 0x42.toByte() && bytes[11] == 0x50.toByte()) { // "BP"
+            val riffPayloadSize = readUInt32LittleEndian(bytes, 4)
+            if (riffPayloadSize < 4) return false
+            return riffPayloadSize + 8 <= bytes.size.toLong()
+        }
+        
+        // Check GIF signature: GIF87a or GIF89a
+        if (bytes.size >= 6 &&
+            bytes[0] == 0x47.toByte() && bytes[1] == 0x49.toByte() && bytes[2] == 0x46.toByte()) {
+            // GIF trailer must end with ';' (0x3B)
+            return bytes[bytes.size - 1] == 0x3B.toByte()
+        }
+        
+        // Check BMP signature: BM
+        if (bytes[0] == 0x42.toByte() && bytes[1] == 0x4D.toByte()) {
+            if (bytes.size >= 6) {
+                val declaredSize = readUInt32LittleEndian(bytes, 2)
+                if (declaredSize > bytes.size.toLong()) return false
+            }
+            return true
+        }
+        
+        Timber.w("isValidImageData: Unknown format - first 8 bytes: ${bytes.take(8).joinToString(" ") { "%02X".format(it) }}")
+        return false
+    }
+
+    private fun isValidPngData(bytes: ByteArray): Boolean {
+        if (bytes.size < 33) return false
+        if (bytes[0] != 0x89.toByte() || bytes[1] != 0x50.toByte() || bytes[2] != 0x4E.toByte() || bytes[3] != 0x47.toByte() ||
+            bytes[4] != 0x0D.toByte() || bytes[5] != 0x0A.toByte() || bytes[6] != 0x1A.toByte() || bytes[7] != 0x0A.toByte()) {
+            return false
+        }
+
+        var offset = 8
+        var seenIhdr = false
+        val crc32 = CRC32()
+
+        while (offset + 12 <= bytes.size) {
+            val length = readIntBigEndian(bytes, offset)
+            if (length < 0) return false
+
+            val typeOffset = offset + 4
+            val dataOffset = offset + 8
+            val crcOffset = dataOffset + length
+            if (crcOffset + 4 > bytes.size) return false
+
+            if (!seenIhdr) {
+                if (!chunkTypeEquals(bytes, typeOffset, 'I', 'H', 'D', 'R')) return false
+                seenIhdr = true
+            }
+
+            crc32.reset()
+            crc32.update(bytes, typeOffset, 4 + length)
+            val actualCrc = crc32.value and 0xFFFFFFFFL
+            val expectedCrc = readIntBigEndian(bytes, crcOffset).toLong() and 0xFFFFFFFFL
+            if (actualCrc != expectedCrc) return false
+
+            val isIend = chunkTypeEquals(bytes, typeOffset, 'I', 'E', 'N', 'D')
+            if (isIend) {
+                if (length != 0) return false
+                return crcOffset + 4 == bytes.size
+            }
+
+            offset = crcOffset + 4
+        }
+
+        return false
+    }
+
+    private fun chunkTypeEquals(bytes: ByteArray, offset: Int, c1: Char, c2: Char, c3: Char, c4: Char): Boolean {
+        return offset + 3 < bytes.size &&
+            bytes[offset] == c1.code.toByte() &&
+            bytes[offset + 1] == c2.code.toByte() &&
+            bytes[offset + 2] == c3.code.toByte() &&
+            bytes[offset + 3] == c4.code.toByte()
+    }
+
+    private fun readIntBigEndian(bytes: ByteArray, offset: Int): Int {
+        return ((bytes[offset].toInt() and 0xFF) shl 24) or
+            ((bytes[offset + 1].toInt() and 0xFF) shl 16) or
+            ((bytes[offset + 2].toInt() and 0xFF) shl 8) or
+            (bytes[offset + 3].toInt() and 0xFF)
+    }
+
+    private fun readUInt32LittleEndian(bytes: ByteArray, offset: Int): Long {
+        return (bytes[offset].toLong() and 0xFF) or
+            ((bytes[offset + 1].toLong() and 0xFF) shl 8) or
+            ((bytes[offset + 2].toLong() and 0xFF) shl 16) or
+            ((bytes[offset + 3].toLong() and 0xFF) shl 24)
     }
     
     override fun cleanup() {

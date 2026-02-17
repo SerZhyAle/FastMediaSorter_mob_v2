@@ -1,5 +1,10 @@
 package com.sza.fastmediasorter.data.network
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
@@ -61,6 +66,8 @@ object ConnectionThrottleManager {
     @Volatile
     private var videoPlayerActive = false
     private val videoPlayerResources = mutableSetOf<String>()
+    private var videoPlayerResumeJob: Job? = null
+    private val managerScope = CoroutineScope(Dispatchers.Default + Job())
 
     /**
      * Update the user-defined network parallelism limit.
@@ -135,15 +142,26 @@ object ConnectionThrottleManager {
     
     /**
      * Deactivate video player priority mode for a resource.
-     * Resumes normal operation for thumbnails.
+     * Resumes normal operation for thumbnails AFTER 300ms delay to prevent race conditions.
      * @param resourceKey Resource identifier
      */
     fun deactivateVideoPlayerMode(resourceKey: String) {
         synchronized(videoPlayerResources) {
             videoPlayerResources.remove(resourceKey)
             if (videoPlayerResources.isEmpty()) {
-                videoPlayerActive = false
-                Timber.i("ConnectionThrottle: *** VIDEO PLAYER DEACTIVATED for $resourceKey - RESUMING THUMBNAILS ***")
+                // Cancel any pending resume
+                videoPlayerResumeJob?.cancel()
+                
+                Timber.i("ConnectionThrottle: *** VIDEO PLAYER DEACTIVATED for $resourceKey - RESUMING THUMBNAILS IN 300ms ***")
+                
+                // Add 300ms delay before resuming thumbnails to allow FTP connections to fully close
+                // This prevents race condition where Glide tries to load thumbnails while
+                // FTP connections are still in process of being released (prevents SIGSEGV)
+                videoPlayerResumeJob = managerScope.launch {
+                    delay(300)
+                    videoPlayerActive = false
+                    Timber.i("ConnectionThrottle: *** THUMBNAILS RESUMED after delay ***")
+                }
             }
         }
     }

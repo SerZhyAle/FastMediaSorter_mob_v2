@@ -32,13 +32,13 @@
     <string name="deselect_all">Снять выбор</string>
     <string name="share">Поделиться</string>
     <string name="search">Поиск</string>
-    <string name="search_hint">Поиск...</string>
+    <string name="search_hint">Поиск…</string>
     <string name="translate">Перевести</string>
     <string name="no_files_selected">Файлы не выбраны</string>
     <string name="no_supported_files_in_resource">Допустимых типов файла в ресурсе нет</string>
-    <string name="process_started">Процесс запущен...</string>
-    <string name="long_operation_started">Операция выполняется, пожалуйста подождите...</string>
-    <string name="please_wait">Пожалуйста, подождите...</string>
+    <string name="process_started">Процесс запущен…</string>
+    <string name="long_operation_started">Операция выполняется, пожалуйста подождите…</string>
+    <string name="please_wait">Пожалуйста, подождите…</string>
     <string name="favorites">Избранное</string>
     <string name="resource">Ресурс</string>
     <string name="media_type">Тип медиа</string>
@@ -91,7 +91,7 @@
     <string name="deleted_n_of_m_files">Удалено %1$d из %2$d файлов</string>
     <string name="delete_failed">Ошибка удаления: %1$s</string>
     <string name="deleting_files">Удаление файлов</string>
-    <string name="deleting_n_files">Удаление %1$d файлов, пожалуйста подождите...</string>
+    <string name="deleting_n_files">Удаление %1$d файлов, пожалуйста подождите…</string>
     
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопировано %1$d файл(ов)</string>
@@ -183,8 +183,13 @@
     <string name="recent_media">Недавние медиа</string>
     <string name="no_files_match_criteria">Нет файлов, соответствующих критериям</string>
     <string name="connection_failed">Сбой подключения</string>
-    <string name="connecting_to_resource">Подключение к %1$s...</string>
-    <string name="connection_ok_starting_speed_test">Подключение успешно. Запуск теста скорости...</string>
+    <string name="loading_indicator">Загрузка…</string>
+    <string name="connecting">Подключение к ресурсу…</string>
+    <string name="connecting_to_resource">Подключение к %1$s…</string>
+    <string name="scan_progress_indicator">Сканирование файлов</string>
+    <string name="operation_progress_indicator">Операция в процессе</string>
+    <string name="pdf_fullscreen">Полноэкранный режим PDF</string>
+    <string name="connection_ok_starting_speed_test">Подключение успешно. Запуск теста скорости…</string>
     <string name="error_subfolder_does_not_exist">Подпапка \'%1$s\' не существует в общем ресурсе \'%2$s\'</string>
     <string name="retry">Повторить</string>
     <string name="select_resource_type">Выберите тип папки</string>
@@ -264,7 +269,7 @@
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Еще</string>
     <string name="slideshow">Слайдшоу</string>
-    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s...</string>
+    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s…</string>
     <string name="google_lens">Google Lens</string>
     
     <!-- Safe Mode (Phase 2.1) -->
@@ -522,7 +527,7 @@
     <string name="welcome_title_4">Ресурсы и назначения</string>
     <string name="welcome_description_4">РЕСУРСЫ: Добавляйте папки с локального хранилища, сетевых ресурсов или облачных сервисов.\n\nНАЗНАЧЕНИЯ: Настройте до 30 быстрых папок с цветовой маркировкой для операций копирования/перемещения.\n\nНастраивайте в любое время!</string>
     <string name="welcome_title_5">Дополнительные функции</string>
-    <string name="welcome_description_5">📝 ТЕКСТ И PDF: Просмотр и редактирование текстовых файлов, экспорт страниц PDF в JPG\n\n🔤 OCR И ПЕРЕВОД: Извлечение текста из изображений и перевод на ваш язык\n\n📚 EPUB: Чтение электронных книг с настраиваемым размером шрифта\n\n🎵 АУДИО: Воспроизведение музыки с обложками из iTunes\n\n✨ И многое другое!\n\nНастройка в Настройках далее...</string>
+    <string name="welcome_description_5">📝 ТЕКСТ И PDF: Просмотр и редактирование текстовых файлов, экспорт страниц PDF в JPG\n\n🔤 OCR И ПЕРЕВОД: Извлечение текста из изображений и перевод на ваш язык\n\n📚 EPUB: Чтение электронных книг с настраиваемым размером шрифта\n\n🎵 АУДИО: Воспроизведение музыки с обложками из iTunes\n\n✨ И многое другое!\n\nНастройка в Настройках далее…</string>
     <string name="welcome_permissions_title">Доступ к медиафайлам</string>
     <string name="welcome_permissions_description">FastMediaSorter требуется доступ к вашим фото, видео и аудиофайлам для сканирования и отображения медиа. Мы не передаём ваши файлы третьим лицам.</string>
     <string name="grant_permissions">Предоставить доступ</string>
@@ -636,7 +641,7 @@
     
     <!-- Lyrics Feature -->
     <string name="lyrics">Лирика</string>
-    <string name="searching_lyrics">Поиск текста песни...</string>
+    <string name="searching_lyrics">Поиск текста песни…</string>
     <string name="lyrics_not_found">Лирика не найдена</string>
     <string name="error_timeout_lyrics">Время ожидания истекло. Пожалуйста, проверьте подключение к Интернету и попробуйте снова.</string>
     
@@ -749,11 +754,6 @@
     <string name="touch_zone_8_delete">8. УДАЛИТЬ - Удалить текущий файл</string>
     <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустить/остановить слайдшоу</string>
     
-    <!-- Accessibility labels -->
-    <string name="loading_indicator">Загрузка</string>
-    <string name="scan_progress_indicator">Сканирование файлов</string>
-    <string name="operation_progress_indicator">Выполнение операции</string>
-    
     <!-- Cloud Storage -->
     <string name="cloud_storage">Облачное хранилище</string>
     <string name="cloud_storage_description">Добавить папки из Google Drive, OneDrive, Dropbox</string>
@@ -827,7 +827,7 @@
     </plurals>
     <string name="sync_now">Синхронизировать сейчас</string>
     <string name="sync_status_idle">Готово к синхронизации</string>
-    <string name="sync_status_in_progress">Синхронизация...</string>
+    <string name="sync_status_in_progress">Синхронизация…</string>
     <string name="sync_status_completed">Синхронизировано %d ресурсов</string>
     <string name="sync_status_failed">Ошибка синхронизации</string>
     <string name="sync_completed_successfully">Успешно синхронизировано %d ресурсов</string>
@@ -916,7 +916,7 @@
     <string name="manage_media_dont_ask">Больше не спрашивать</string>
     <string name="grant_manage_media_permission">Разрешить управление медиа</string>
     <string name="manage_media_permission_granted">Разрешение на управление медиа получено</string>
-    <string name="msg_download_share">Скачивание файла для отправки...</string>
+    <string name="msg_download_share">Скачивание файла для отправки…</string>
     <string name="error_share_download_failed">Ошибка скачивания для отправки: %1$s</string>
     <string name="error_share_unexpected">Неожиданная ошибка скачивания</string>
     <string name="error_share_failed">Ошибка отправки: %1$s</string>
@@ -924,7 +924,7 @@
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Обнаружение сети</string>
-    <string name="msg_scanning_subnet">Сканирование локальной подсети...</string>
+    <string name="msg_scanning_subnet">Сканирование локальной подсети…</string>
     <string name="msg_scan_complete">Сканирование завершено</string>
     <string name="msg_host_selected">Выбрано %1$s (%2$s)</string>
     <string name="label_test_result">Результат теста</string>
@@ -972,14 +972,14 @@
     <string name="gif_edit_save_first_frame">Сохранить первый кадр как изображение</string>
     <string name="gif_edit_first_frame_help">Извлекает первый кадр анимации и сохраняет его как статичное PNG изображение в папку Загрузки. Имя файла: [исходное_имя]_first_frame.png</string>
     <string name="msg_gif_extracting">Извлечение кадров…</string>
-    <string name="msg_gif_extract_started">Извлечение %1$d кадров...</string>
+    <string name="msg_gif_extract_started">Извлечение %1$d кадров…</string>
     <string name="msg_gif_extract_success">%1$d кадров сохранено в Загрузки</string>
     <string name="msg_gif_extract_failed">Не удалось извлечь кадры: %1$s</string>
     <string name="msg_gif_speed_success">Скорость изменена на %1$.1fx</string>
     <string name="msg_gif_speed_failed">Не удалось изменить скорость: %1$s</string>
     <string name="msg_gif_first_frame_success">Первый кадр сохранен в Загрузки</string>
     <string name="msg_gif_first_frame_failed">Не удалось сохранить первый кадр: %1$s</string>
-    <string name="msg_preparing_file">Подготовка файла...</string>
+    <string name="msg_preparing_file">Подготовка файла…</string>
     <string name="msg_gif_prepare_failed">Не удалось подготовить GIF файл</string>
     <string name="msg_gif_downloading">Загрузка файла…</string>
     <string name="msg_gif_speed_already_normal">Скорость уже нормальная (1.0x)</string>
@@ -991,7 +991,7 @@
     <string name="msg_error_occurred">Произошла ошибка: %1$s</string>
     <string name="slideshow_enabled_message">Слайд-шоу включено с интервалом %1$d секунд</string>
     <string name="volume_level">Громкость: %1$d%%</string>
-    <string name="msg_network_stream_retry">Сеть прервана, повтор... (%1$d/%2$d)</string>
+    <string name="msg_network_stream_retry">Сеть прервана, повтор… (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Ошибка сети после %1$d попыток: %2$s</string>
     <string name="msg_playback_error">Ошибка воспроизведения: %1$s</string>
 
@@ -1009,7 +1009,7 @@
     <string name="later">Позже</string>
 
     <!-- Network Discovery Dialog -->
-    <string name="scanning_local_subnet">Сканирование локальной сети...</string>
+    <string name="scanning_local_subnet">Сканирование локальной сети…</string>
     <string name="no_devices_found">Устройства пока не найдены</string>
 
     <!-- Filter Resource Dialog -->
@@ -1040,8 +1040,8 @@
     <string name="unsupported_format_network_hint">Для воспроизведения этого файла во внешнем проигрывателе сначала скопируйте его на локальный ресурс.</string>
     <string name="unsupported_format_use_external_player">Формат не поддерживается. Попробуйте открыть во внешнем проигрывателе.</string>
     <string name="unsupported_format_copy_to_local">Формат не поддерживается. Скопируйте файл на локальный ресурс, чтобы использовать внешний проигрыватель.</string>
-    <string name="panel_copy_to">Копировать в...</string>
-    <string name="panel_move_to">Переместить в...</string>
+    <string name="panel_copy_to">Копировать в…</string>
+    <string name="panel_move_to">Переместить в…</string>
     
     <!-- PDF Navigation -->
     <string name="goto_page_title">Перейти к странице</string>
@@ -1053,6 +1053,7 @@
     <!-- OCR Feature -->
     <string name="enable_ocr">Разрешить распознавание текста (OCR)</string>
     <string name="enable_ocr_summary">Извлечение текста из изображений и PDF для копирования</string>
+    <string name="ocr_requires_newer_device">OCR требует более нового устройства (Память: %1$s, API: %2$d). Требуется API 26+ и 4 ГБ+ ОЗУ.</string>
     <string name="ocr_font_size">Размер шрифта для OCR</string>
     <string name="ocr_font_family">Шрифт для OCR</string>
     <string name="ocr_button_description">Извлечь текст</string>
@@ -1132,7 +1133,7 @@
     <string name="read_speed">Чтение</string>
     <string name="write_speed">Запись</string>
     <string name="rec_threads">Потоки</string>
-    <string name="analyzing_speed">Анализ скорости...</string>
+    <string name="analyzing_speed">Анализ скорости…</string>
     <string name="last_test_date">Посл. тест: %s</string>
     <string name="never_tested">Не тестировалось</string>
     <string name="smb_resource_added_success">SMB ресурс успешно добавлен</string>
@@ -1232,7 +1233,7 @@
     <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">Отсканировано 0 файлов</string>
-    <string name="activity_main_tvScanProgress_text">Сканирование ресурсов...</string>
+    <string name="activity_main_tvScanProgress_text">Сканирование ресурсов…</string>
     <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
@@ -1327,7 +1328,7 @@
     <string name="dialog_file_operation_progress_btnCancel_text">Отмена</string>
     <string name="dialog_file_operation_progress_tvCurrentFile_text">file.jpg</string>
     <string name="dialog_file_operation_progress_tvProgressText_text">0 / 10</string>
-    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов...</string>
+    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов…</string>
     <string name="dialog_file_operation_progress_tvSpeed_text">1.5 МБ/с</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
@@ -1369,8 +1370,8 @@
     <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
     <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
-    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите...</string>
-    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка...</string>
+    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите…</string>
+    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка…</string>
     <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string> <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string> <!-- Speed option: no translation needed -->

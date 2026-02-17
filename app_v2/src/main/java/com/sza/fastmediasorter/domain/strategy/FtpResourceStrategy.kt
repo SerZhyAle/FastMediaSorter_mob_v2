@@ -20,9 +20,6 @@ class FtpResourceStrategy(
         if (formData.host.isBlank()) {
             errors[ResourceFieldKey.HOST] = ResourceErrorCode.EMPTY
         }
-        if (formData.path.isBlank()) {
-            errors[ResourceFieldKey.PATH] = ResourceErrorCode.EMPTY
-        }
         if (formData.port != null && formData.port !in 1..65535) {
             errors[ResourceFieldKey.PORT] = ResourceErrorCode.OUT_OF_RANGE
         }
@@ -58,7 +55,7 @@ class FtpResourceStrategy(
             ResourceFieldSchema(ResourceFieldKey.NAME, required = true),
             ResourceFieldSchema(ResourceFieldKey.HOST, required = true),
             ResourceFieldSchema(ResourceFieldKey.PORT, required = false),
-            ResourceFieldSchema(ResourceFieldKey.PATH, required = true),
+            ResourceFieldSchema(ResourceFieldKey.PATH, required = false),
             ResourceFieldSchema(ResourceFieldKey.USERNAME, required = false),
             ResourceFieldSchema(ResourceFieldKey.PASSWORD, required = false)
         )

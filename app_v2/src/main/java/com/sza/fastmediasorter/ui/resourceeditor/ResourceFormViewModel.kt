@@ -151,6 +151,15 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.MEDIA_TYPES -> current.formData.copy(
                     supportedMediaTypes = extractMediaTypes(value, current.formData.supportedMediaTypes)
                 )
+                ResourceFieldKey.SLIDESHOW_INTERVAL -> current.formData.copy(
+                    slideshowInterval = (value as? String)?.toIntOrNull() ?: (value as? Int) ?: 10
+                )
+                ResourceFieldKey.DESTINATION_COLOR -> current.formData.copy(
+                    destinationColor = (value as? Int) ?: current.formData.destinationColor
+                )
+                ResourceFieldKey.SHOW_COMMAND_PANEL -> current.formData.copy(
+                    showCommandPanel = value as? Boolean
+                )
                 else -> current.formData
             }
 

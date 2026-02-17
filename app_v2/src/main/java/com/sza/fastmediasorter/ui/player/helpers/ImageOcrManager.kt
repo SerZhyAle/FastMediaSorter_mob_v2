@@ -109,12 +109,20 @@ class ImageOcrManager(
                     extractBitmapFromDrawable(drawable, "photoView")
                 }
             }
+            binding.photoViewSurfaceB?.isVisible == true -> {
+                binding.photoViewSurfaceB.drawable?.let { drawable ->
+                    extractBitmapFromDrawable(drawable, "photoViewSurfaceB")
+                }
+            }
             binding.imageView.isVisible -> {
                 binding.imageView.drawable?.let { drawable ->
                     extractBitmapFromDrawable(drawable, "imageView")
                 }
             }
-            else -> null
+            else -> {
+                Timber.w("extractBitmapFromImageView: No image view is visible")
+                null
+            }
         }
     }
     
@@ -127,7 +135,10 @@ class ImageOcrManager(
         source: String
     ): Bitmap? {
         return when (drawable) {
-            is android.graphics.drawable.BitmapDrawable -> drawable.bitmap
+            is android.graphics.drawable.BitmapDrawable -> {
+                Timber.d("ImageOcrManager: BitmapDrawable ($source)")
+                drawable.bitmap
+            }
             is GifDrawable -> {
                 // Extract current frame from GIF by drawing to bitmap
                 Timber.d("ImageOcrManager: Extracting current frame from GIF ($source)")
@@ -143,9 +154,22 @@ class ImageOcrManager(
                 drawable.draw(canvas)
                 bitmap
             }
+            is android.graphics.drawable.TransitionDrawable -> {
+                // Glide crossfade wraps the actual drawable in TransitionDrawable
+                Timber.d("ImageOcrManager: TransitionDrawable with ${drawable.numberOfLayers} layers ($source)")
+                val lastLayer = drawable.getDrawable(drawable.numberOfLayers - 1)
+                extractBitmapFromDrawable(lastLayer, "$source/transitionLayer")
+            }
             else -> {
-                Timber.w("ImageOcrManager: Unsupported drawable type: ${drawable.javaClass.simpleName}")
-                null
+                // Fallback: render any drawable to bitmap
+                Timber.d("ImageOcrManager: Fallback rendering ${drawable.javaClass.simpleName} ($source)")
+                val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: return null
+                val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: return null
+                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                drawable.setBounds(0, 0, width, height)
+                drawable.draw(canvas)
+                bitmap
             }
         }
     }

@@ -155,6 +155,10 @@ data class MediaResource(
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)
     }
+    
+    fun isOnlyImage(): Boolean {
+        return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.IMAGE)
+    }
 }
 
 /**

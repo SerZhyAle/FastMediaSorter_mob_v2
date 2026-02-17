@@ -32,11 +32,11 @@
     <string name="deselect_all">Зняти вибір</string>
     <string name="share">Поділитися</string>
     <string name="search">Пошук</string>
-    <string name="search_hint">Пошук...</string>
+    <string name="search_hint">Пошук…</string>
     <string name="translate">Перекласти</string>
-    <string name="no_files_selected">Файли не вибрані</string>    <string name="no_supported_files_in_resource">Допустимих типів файлів у ресурсі немає</string>    <string name="process_started">Процес розпочато...</string>
-    <string name="long_operation_started">Операція виконується, будь ласка зачекайте...</string>
-    <string name="please_wait">Будь ласка, зачекайте...</string>
+    <string name="no_files_selected">Файли не вибрані</string>    <string name="no_supported_files_in_resource">Допустимих типів файлів у ресурсі немає</string>    <string name="process_started">Процес розпочато…</string>
+    <string name="long_operation_started">Операція виконується, будь ласка зачекайте…</string>
+    <string name="please_wait">Будь ласка, зачекайте…</string>
     <string name="favorites">Вибране</string>
     <string name="resource">Ресурс</string>
     <string name="media_type">Тип медіа</string>
@@ -89,7 +89,7 @@
     <string name="deleted_n_of_m_files">Видалено %1$d з %2$d файлів</string>
     <string name="delete_failed">Помилка видалення: %1$s</string>
     <string name="deleting_files">Видалення файлів</string>
-    <string name="deleting_n_files">Видалення %1$d файлів, будь ласка зачекайте...</string>
+    <string name="deleting_n_files">Видалення %1$d файлів, будь ласка зачекайте…</string>
     
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопійовано %1$d файл(ів)</string>
@@ -181,8 +181,13 @@
     <string name="recent_media">Нещодавні медіа</string>
     <string name="no_files_match_criteria">Немає файлів, що відповідають критеріям</string>
     <string name="connection_failed">Помилка підключення</string>
-    <string name="connecting_to_resource">Підключення до %1$s...</string>
-    <string name="connection_ok_starting_speed_test">Підключення успішне. Запуск тесту швидкості...</string>
+    <string name="loading_indicator">Завантаження…</string>
+    <string name="connecting">Підключення до  ресурсу…</string>
+    <string name="scan_progress_indicator">Сканування файлів</string>
+    <string name="operation_progress_indicator">Операція в процесі</string>
+    <string name="pdf_fullscreen">Повноекранний режим PDF</string>
+    <string name="connecting_to_resource">Підключення до %1$s…</string>
+    <string name="connection_ok_starting_speed_test">Підключення успішне. Запуск тесту швидкості…</string>
     <string name="error_subfolder_does_not_exist">Підпапка \'%1$s\' не існує в спільному ресурсі \'%2$s\'</string>
     <string name="retry">Повторити</string>
     <string name="select_resource_type">Оберіть тип теки</string>
@@ -257,7 +262,7 @@
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Ще</string>
     <string name="slideshow">Слайдшоу</string>
-    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s...</string>
+    <string name="starting_slideshow_for">Запуск слайдшоу для %1$s…</string>
     <string name="google_lens">Google Lens</string>
     
     <!-- Safe Mode (Phase 2.1) -->
@@ -513,7 +518,7 @@
     <string name="welcome_title_4">Ресурси та призначення</string>
     <string name="welcome_description_4">РЕСУРСИ: Додавайте папки з локального сховища, мережевих ресурсів або хмарних сервісів.\n\nПРИЗНАЧЕННЯ: Налаштуйте до 30 швидких папок з кольоровим маркуванням для операцій копіювання/переміщення.\n\nНалаштовуйте в будь-який час!</string>
     <string name="welcome_title_5">Додаткові функції</string>
-    <string name="welcome_description_5">📝 ТЕКСТ І PDF: Перегляд та редагування текстових файлів, експорт сторінок PDF у JPG\n\n🔤 OCR І ПЕРЕКЛАД: Витягування тексту із зображень та переклад на вашу мову\n\n📚 EPUB: Читання електронних книг з налаштовуваним розміром шрифту\n\n🎵 АУДІО: Відтворення музики з обкладинками з iTunes\n\n✨ І багато іншого!\n\nНалаштування в Налаштуваннях далі...</string>
+    <string name="welcome_description_5">📝 ТЕКСТ І PDF: Перегляд та редагування текстових файлів, експорт сторінок PDF у JPG\n\n🔤 OCR І ПЕРЕКЛАД: Витягування тексту із зображень та переклад на вашу мову\n\n📚 EPUB: Читання електронних книг з налаштовуваним розміром шрифту\n\n🎵 АУДІО: Відтворення музики з обкладинками з iTunes\n\n✨ І багато іншого!\n\nНалаштування в Налаштуваннях далі…</string>
     <string name="welcome_permissions_title">Доступ до медіафайлів</string>
     <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
     <string name="grant_permissions">Надати доступ</string>
@@ -628,7 +633,7 @@
     
     <!-- Lyrics Feature -->
     <string name="lyrics">Лірика</string>
-    <string name="searching_lyrics">Пошук тексту пісні...</string>
+    <string name="searching_lyrics">Пошук тексту пісні…</string>
     <string name="lyrics_not_found">Лірика не знайдена</string>
     <string name="error_timeout_lyrics">Час очікування вичерпано. Будь ласка, перевірте підключення до Інтернету та спробуйте ще раз.</string>
     
@@ -741,11 +746,6 @@
     <string name="touch_zone_8_delete">8. ВИДАЛИТИ - Видалити поточний файл</string>
     <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустити/зупинити слайдшоу</string>
     
-    <!-- Accessibility labels -->
-    <string name="loading_indicator">Завантаження</string>
-    <string name="scan_progress_indicator">Сканування файлів</string>
-    <string name="operation_progress_indicator">Виконання операції</string>
-    
     <!-- Cloud Storage -->
     <string name="cloud_storage">Хмарне сховище</string>
     <string name="cloud_storage_description">Додати папки з Google Drive, OneDrive, Dropbox</string>
@@ -819,7 +819,7 @@
     </plurals>
     <string name="sync_now">Синхронізувати зараз</string>
     <string name="sync_status_idle">Готово до синхронізації</string>
-    <string name="sync_status_in_progress">Синхронізація...</string>
+    <string name="sync_status_in_progress">Синхронізація…</string>
     <string name="sync_status_completed">Синхронізовано %d ресурсів</string>
     <string name="sync_status_failed">Помилка синхронізації</string>
     <string name="sync_completed_successfully">Успішно синхронізовано %d ресурсів</string>
@@ -906,7 +906,7 @@
     <string name="manage_media_dont_ask">Більше не питати</string>
     <string name="grant_manage_media_permission">Дозволити керування медіа</string>
     <string name="manage_media_permission_granted">Дозвіл на керування медіа отримано</string>
-    <string name="msg_download_share">Завантаження файлу для відправки...</string>
+    <string name="msg_download_share">Завантаження файлу для відправки…</string>
     <string name="error_share_download_failed">Помилка завантаження для відправки: %1$s</string>
     <string name="error_share_unexpected">Несподівана помилка завантаження</string>
     <string name="error_share_failed">Помилка відправки: %1$s</string>
@@ -914,7 +914,7 @@
 
     <!-- Add Resource & Network Discovery -->
     <string name="network_discovery_title">Виявлення мережі</string>
-    <string name="msg_scanning_subnet">Сканування локальної підмережі...</string>
+    <string name="msg_scanning_subnet">Сканування локальної підмережі…</string>
     <string name="msg_scan_complete">Сканування завершено</string>
     <string name="msg_host_selected">Вибрано %1$s (%2$s)</string>
     <string name="label_test_result">Результат тесту</string>
@@ -962,20 +962,20 @@
     <string name="gif_edit_save_first_frame">Зберегти перший кадр як зображення</string>
     <string name="gif_edit_first_frame_help">Витягує перший кадр анімації та зберігає його як статичне PNG зображення в папку Завантаження. Ім\'я файлу: [початкове_ім\'я]_first_frame.png</string>
     <string name="msg_gif_extracting">Вилучення кадрів…</string>
-    <string name="msg_gif_extract_started">Витягування %1$d кадрів...</string>
+    <string name="msg_gif_extract_started">Витягування %1$d кадрів…</string>
     <string name="msg_gif_extract_success">%1$d кадрів збережено в Завантаження</string>
     <string name="msg_gif_extract_failed">Не вдалося витягти кадри: %1$s</string>
     <string name="msg_gif_speed_success">Швидкість змінено на %1$.1fx</string>
     <string name="msg_gif_speed_failed">Не вдалося змінити швидкість: %1$s</string>
     <string name="msg_gif_first_frame_success">Перший кадр збережено в Завантаження</string>
     <string name="msg_gif_first_frame_failed">Не вдалося зберегти перший кадр: %1$s</string>
-    <string name="msg_preparing_file">Підготовка файлу...</string>
+    <string name="msg_preparing_file">Підготовка файлу…</string>
     <string name="msg_no_file_to_edit">Нічого редагувати</string>
     <string name="msg_no_file_to_delete">Нічого видаляти</string>
     <string name="msg_error_occurred">Сталася помилка: %1$s</string>
     <string name="slideshow_enabled_message">Слайд-шоу увімкнено з інтервалом %1$d секунд</string>
     <string name="volume_level">Гучність: %1$d%%</string>
-    <string name="msg_network_stream_retry">Мережа перервана, повтор... (%1$d/%2$d)</string>
+    <string name="msg_network_stream_retry">Мережа перервана, повтор… (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Помилка мережі після %1$d спроб: %2$s</string>
     <string name="msg_playback_error">Помилка відтворення: %1$s</string>
 
@@ -993,7 +993,7 @@
     <string name="later">Пізніше</string>
 
     <!-- Network Discovery Dialog -->
-    <string name="scanning_local_subnet">Сканування локальної мережі...</string>
+    <string name="scanning_local_subnet">Сканування локальної мережі…</string>
     <string name="no_devices_found">Пристрої поки не знайдені</string>
 
     <!-- Filter Resource Dialog -->
@@ -1024,8 +1024,8 @@
     <string name="unsupported_format_network_hint">Для відтворення цього файлу у зовнішньому програвачі спочатку скопіюйте його на локальний ресурс.</string>
     <string name="unsupported_format_use_external_player">Формат не підтримується. Спробуйте відкрити у зовнішньому програвачі.</string>
     <string name="unsupported_format_copy_to_local">Формат не підтримується. Скопіюйте файл на локальний ресурс, щоб використовувати зовнішній програвач.</string>
-    <string name="panel_copy_to">Копіювати до...</string>
-    <string name="panel_move_to">Перемістити до...</string>
+    <string name="panel_copy_to">Копіювати до…</string>
+    <string name="panel_move_to">Перемістити до…</string>
     <string name="msg_gif_prepare_failed">Не вдалося підготувати GIF файл</string>
     <string name="msg_gif_downloading">Завантаження файлу…</string>
     <string name="msg_gif_speed_already_normal">Швидкість вже нормальна (1.0x)</string>
@@ -1043,6 +1043,7 @@
     <!-- OCR Feature -->
     <string name="enable_ocr">Дозволити розпізнавання тексту (OCR)</string>
     <string name="enable_ocr_summary">Витягування тексту із зображень та PDF для копіювання</string>
+    <string name="ocr_requires_newer_device">OCR потребує новішого пристрою (Пам’ять: %1$s, API: %2$d). Потрібно API 26+ і 4 ГБ+ ОЗП.</string>
     <string name="ocr_font_size">Розмір шрифту для OCR</string>
     <string name="ocr_font_family">Шрифт для OCR</string>
     <string name="ocr_button_description">Витягти текст</string>
@@ -1122,7 +1123,7 @@
     <string name="read_speed">Читання</string>
     <string name="write_speed">Запис</string>
     <string name="rec_threads">Потоки</string>
-    <string name="analyzing_speed">Аналіз швидкості...</string>
+    <string name="analyzing_speed">Аналіз швидкості…</string>
     <string name="last_test_date">Ост. тест: %s</string>
     <string name="never_tested">Не тестувалось</string>
     <string name="smb_resource_added_success">SMB ресурс успішно додано</string>
@@ -1235,7 +1236,7 @@
     <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_main_tabResourceTypes_tabMode">fixed</string>
     <string name="activity_main_tvScanDetail_text">Відскановано 0 файлів</string>
-    <string name="activity_main_tvScanProgress_text">Сканування ресурсів...</string>
+    <string name="activity_main_tvScanProgress_text">Сканування ресурсів…</string>
     <string name="activity_onedrive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_player_audioFileInfo_lineSpacingMultiplier">1.2</string>
     <string name="activity_player_audioMetadata_lineSpacingMultiplier">1.2</string>
@@ -1330,7 +1331,7 @@
     <string name="dialog_file_operation_progress_btnCancel_text">Відміна</string>
     <string name="dialog_file_operation_progress_tvCurrentFile_text">file.jpg</string>
     <string name="dialog_file_operation_progress_tvProgressText_text">0 / 10</string>
-    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копіювання файлів...</string>
+    <string name="dialog_file_operation_progress_tvProgressTitle_text">Копіювання файлів…</string>
     <string name="dialog_file_operation_progress_tvSpeed_text">1.5 МБ/с</string>
     <string name="dialog_filter_btnApplyFilter_boxBackgroundMode">outline</string>
     <string name="dialog_filter_cbFilterEpub_boxBackgroundMode">outline</string>
@@ -1372,8 +1373,8 @@
     <string name="dialog_log_view_tvLogText_breakStrategy">balanced</string>
     <string name="dialog_log_view_tvLogText_lineSpacingMultiplier">1.2</string>
     <string name="dialog_material_progress_horizontal_tvProgress_text">0%</string>
-    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Будь ласка, зачекайте...</string>
-    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Завантаження...</string>
+    <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Будь ласка, зачекайте…</string>
+    <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Завантаження…</string>
     <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="dialog_player_settings_chipSpeed025_text">0.25x</string> <!-- Speed option: no translation needed -->
     <string name="dialog_player_settings_chipSpeed05_text">0.5x</string> <!-- Speed option: no translation needed -->

@@ -117,14 +117,26 @@ class TesseractManager(private val context: Context) {
 
         return withContext(Dispatchers.Default) {
             try {
-                tessApi?.setImage(bitmap)
+                val preparedBitmap = prepareBitmapForTesseract(bitmap)
+                if (preparedBitmap == null) {
+                    Timber.w("Tesseract recognition skipped: bitmap is invalid")
+                    return@withContext null
+                }
+
+                tessApi?.setImage(preparedBitmap)
                 val text = tessApi?.utF8Text
                 tessApi?.clear()
                 text
             } catch (e: Exception) {
-                Timber.e(e, "Tesseract recognition failed")
+                if (isNonCriticalBitmapReadError(e)) {
+                    Timber.w("Tesseract recognition skipped: failed to read bitmap")
+                } else {
+                    Timber.e(e, "Tesseract recognition failed")
+                }
                 null
             }
+            // NOTE: Do NOT recycle preparedBitmap here.
+            // Tesseract native code may still hold a reference after cancellation → SIGSEGV.
         }
     }
 
@@ -145,7 +157,13 @@ class TesseractManager(private val context: Context) {
 
         return withContext(Dispatchers.Default) {
             try {
-                tessApi?.setImage(bitmap)
+                val preparedBitmap = prepareBitmapForTesseract(bitmap)
+                if (preparedBitmap == null) {
+                    Timber.w("Tesseract block recognition skipped: bitmap is invalid")
+                    return@withContext null
+                }
+
+                tessApi?.setImage(preparedBitmap)
                 // Force recognition to populate results
                 tessApi?.utF8Text 
                 
@@ -187,10 +205,33 @@ class TesseractManager(private val context: Context) {
                 tessApi?.clear()
                 filteredBlocks
             } catch (e: Exception) {
-                Timber.e(e, "Tesseract block recognition failed")
+                if (isNonCriticalBitmapReadError(e)) {
+                    Timber.w("Tesseract block recognition skipped: failed to read bitmap")
+                } else {
+                    Timber.e(e, "Tesseract block recognition failed")
+                }
                 null
             }
+            // NOTE: Do NOT recycle preparedBitmap here.
+            // Tesseract native code may still hold a reference after cancellation → SIGSEGV.
         }
+    }
+
+    private fun prepareBitmapForTesseract(bitmap: Bitmap): Bitmap? {
+        if (bitmap.isRecycled || bitmap.width <= 0 || bitmap.height <= 0) {
+            return null
+        }
+
+        return if (bitmap.config == Bitmap.Config.ARGB_8888 && !bitmap.isPremultiplied) {
+            bitmap
+        } else {
+            bitmap.copy(Bitmap.Config.ARGB_8888, false)
+        }
+    }
+
+    private fun isNonCriticalBitmapReadError(error: Throwable): Boolean {
+        val message = error.message ?: ""
+        return error is RuntimeException && message.contains("Failed to read bitmap", ignoreCase = true)
     }
 
     fun release() {

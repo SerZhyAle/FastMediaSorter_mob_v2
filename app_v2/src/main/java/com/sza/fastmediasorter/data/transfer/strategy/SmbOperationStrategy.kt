@@ -494,13 +494,10 @@ class SmbOperationStrategy(
     }
     
     private suspend fun getConnectionInfo(pathInfo: SmbPathUtils.SmbPathInfo): SmbConnectionInfo {
-        // Try to get credentials from repository
-        val credentials = credentialsRepository.getByServerAndShare(
-            pathInfo.connectionInfo.server,
-            pathInfo.connectionInfo.shareName
-        )
-        
-        // Return existing connectionInfo with credentials if found, or original if not
+        val server = pathInfo.connectionInfo.server
+        val shareName = pathInfo.connectionInfo.shareName
+        val credentials = resolveSmbCredentials(server, shareName)
+
         return if (credentials != null) {
             pathInfo.connectionInfo.copy(
                 username = credentials.username,
@@ -510,6 +507,41 @@ class SmbOperationStrategy(
         } else {
             pathInfo.connectionInfo
         }
+    }
+
+    private suspend fun resolveSmbCredentials(
+        server: String,
+        shareName: String
+    ): com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity? {
+        val normalizedShare = shareName.trim().trim('/', '\\')
+        val firstSegment = normalizedShare.substringBefore('/', normalizedShare)
+
+        val shareCandidates = linkedSetOf<String>().apply {
+            add(shareName)
+            if (normalizedShare.isNotEmpty()) {
+                add(normalizedShare)
+            }
+            if (firstSegment.isNotEmpty()) {
+                add(firstSegment)
+            }
+        }
+
+        for (candidate in shareCandidates) {
+            val candidateCredentials = credentialsRepository.getByServerAndShare(server, candidate)
+            if (candidateCredentials != null) {
+                Timber.d("SmbOperationStrategy: Credentials resolved for server='$server', share='$candidate'")
+                return candidateCredentials
+            }
+        }
+
+        val hostCredentials = credentialsRepository.getCredentialsByHost(server)
+        if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
+            Timber.w("SmbOperationStrategy: Share-specific credentials not found for '$server/$shareName', using SMB host credentials")
+            return hostCredentials
+        }
+
+        Timber.w("SmbOperationStrategy: No SMB credentials found for '$server/$shareName'")
+        return null
     }
     
     // ==================== Directory Operations ====================

@@ -813,6 +813,11 @@ class ImageLoadingManager(
                 if (!callback.isDestroyed()) {
                     binding.progressBar.isVisible = false
                 }
+
+                if (isNonCriticalNetworkImageError(e)) {
+                    Timber.d("ImageLoadingManager: Suppressed non-critical network image error")
+                    return false
+                }
                 
                 // Check if this is a race condition error from fast scrolling
                 val isRaceConditionError = e?.rootCauses?.any { cause ->
@@ -895,6 +900,10 @@ class ImageLoadingManager(
                 loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
                 if (!callback.isDestroyed()) {
                     binding.progressBar.isVisible = false
+                    if (isNonCriticalNetworkImageError(e)) {
+                        Timber.d("ImageLoadingManager: Suppressed non-critical network GIF error")
+                        return false
+                    }
                     callback.showError("Failed to load GIF: ${e?.message}", e)
                 }
                 return false
@@ -937,6 +946,43 @@ class ImageLoadingManager(
                 }
                 return false
             }
+        }
+    }
+
+    private fun isNonCriticalNetworkImageError(exception: GlideException?): Boolean {
+        if (exception == null) return false
+
+        val messages = buildList {
+            add(exception.message ?: "")
+            exception.rootCauses.forEach { rootCause ->
+                add(rootCause.message ?: "")
+                var cause = rootCause.cause
+                while (cause != null) {
+                    add(cause.message ?: "")
+                    cause = cause.cause
+                }
+            }
+        }
+
+        val hasNetworkContext = messages.any { msg ->
+            msg.contains("NetworkFileDataFetcher", ignoreCase = true) ||
+            msg.contains("Failed to load network file:", ignoreCase = true) ||
+            msg.contains("smb://", ignoreCase = true) ||
+            msg.contains("sftp://", ignoreCase = true) ||
+            msg.contains("ftp://", ignoreCase = true)
+        }
+
+        if (!hasNetworkContext) return false
+
+        return messages.any { msg ->
+            msg.contains("Invalid/corrupted image data", ignoreCase = true) ||
+            msg.contains("Corrupted image data:", ignoreCase = true) ||
+            msg.contains("Request cancelled", ignoreCase = true) ||
+            msg.contains("Failed to decode", ignoreCase = true) ||
+            msg.contains("DecodeException", ignoreCase = true) ||
+            msg.contains("ImageDecoder", ignoreCase = true) ||
+            msg.contains("HEIC", ignoreCase = true) ||
+            msg.contains("HEIF", ignoreCase = true)
         }
     }
 

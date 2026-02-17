@@ -4,6 +4,7 @@ import android.net.Uri
 import android.os.Handler
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.media3.common.Player
 import com.bumptech.glide.Glide
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
@@ -48,9 +49,16 @@ class PlayerMediaLoaderManager(
     private val loadingIndicatorHandler: Handler,
     private val showLoadingIndicatorRunnable: Runnable,
     private val mediaFilesCacheManager: MediaFilesCacheManager,
-    private val audioServiceController: AudioServiceController? = null
+    private val audioServiceController: AudioServiceController? = null,
+    private val onAudioServicePlaybackChanged: (Boolean) -> Unit = {}
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+    private var servicePlaybackPlayer: Player? = null
+    private val servicePlaybackListener = object : Player.Listener {
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            onAudioServicePlaybackChanged(isPlaying)
+        }
+    }
 
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
@@ -136,6 +144,9 @@ class PlayerMediaLoaderManager(
             playAudioViaService(path)
             return
         }
+
+        unbindServicePlaybackListener()
+        onAudioServicePlaybackChanged(false)
         
         // Determine resource type from path prefix (for Favorites with mixed sources)
         val actualResourceType = determineResourceType(path, resource?.type)
@@ -160,6 +171,8 @@ class PlayerMediaLoaderManager(
 
         controller.playAudio(uri) { player ->
             activity.runOnUiThread {
+                bindServicePlaybackListener(player)
+
                 // Set MediaController as PlayerView's player — controls work automatically
                 binding.playerView.player = player
 
@@ -170,6 +183,20 @@ class PlayerMediaLoaderManager(
                 Timber.d("PlayerMediaLoaderManager.playAudioViaService: service player bound to PlayerView")
             }
         }
+    }
+
+    private fun bindServicePlaybackListener(player: Player) {
+        if (servicePlaybackPlayer !== player) {
+            servicePlaybackPlayer?.removeListener(servicePlaybackListener)
+            servicePlaybackPlayer = player
+            servicePlaybackPlayer?.addListener(servicePlaybackListener)
+        }
+        onAudioServicePlaybackChanged(player.isPlaying)
+    }
+
+    private fun unbindServicePlaybackListener() {
+        servicePlaybackPlayer?.removeListener(servicePlaybackListener)
+        servicePlaybackPlayer = null
     }
 
     /** Whether audio is currently playing through the background service */
