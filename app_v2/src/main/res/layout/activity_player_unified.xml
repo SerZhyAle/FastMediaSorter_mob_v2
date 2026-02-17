@@ -480,7 +480,7 @@
             android:paddingHorizontal="8dp"
             android:paddingVertical="4dp"
             android:background="@drawable/bg_rounded_badge"
-            android:textColor="@android:color/white"
+            android:textColor="@color/white"
             android:textSize="11sp"
             android:visibility="gone" />
 

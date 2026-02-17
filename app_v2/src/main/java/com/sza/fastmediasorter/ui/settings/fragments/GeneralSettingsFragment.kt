@@ -48,6 +48,7 @@ class GeneralSettingsFragment : Fragment() {
         private const val KEY_INTERFACE_EXPANDED = "section_interface_expanded"
         private const val KEY_FILES_EXPANDED = "section_files_expanded"
         private const val KEY_SYSTEM_EXPANDED = "section_system_expanded"
+        private const val KEY_DEBUG_EXPANDED = "section_debug_expanded"
     }
     
     private val collapsibleSections = mutableListOf<CollapsibleSection>()
@@ -485,34 +486,36 @@ class GeneralSettingsFragment : Fragment() {
         // Sync interval dropdown
         val syncIntervalOptions = arrayOf("5", "15", "60", "120", "300")
         val syncAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, syncIntervalOptions)
-        binding.actvSyncInterval.setAdapter(syncAdapter)
-        
-        // Convert hours to minutes for initial display
-        val currentMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
-        binding.actvSyncInterval.setText(currentMinutes.toString(), false)
-        
-        binding.actvSyncInterval.setOnItemClickListener { _, _, position, _ ->
-            if (isUpdatingSpinner) return@setOnItemClickListener
-            val minutes = syncIntervalOptions[position].toInt()
-            val hours = (minutes / 60.0).toInt().coerceAtLeast(1) // At least 1 hour
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
-        }
-        
-        // Handle manual input
-        binding.actvSyncInterval.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus && !isUpdatingSpinner) {
-                val text = binding.actvSyncInterval.text.toString()
-                val minutes = text.toIntOrNull()
-                if (minutes != null && minutes >= 5) {
-                    val hours = (minutes / 60.0).toInt().coerceAtLeast(1) // At least 1 hour
-                    val current = viewModel.settings.value
-                    viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
-                } else {
-                    // Invalid input, restore previous value
-                    val previousMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
-                    binding.actvSyncInterval.setText(previousMinutes.toString(), false)
-                    android.widget.Toast.makeText(requireContext(), R.string.slide_interval_error, android.widget.Toast.LENGTH_SHORT).show()
+        binding.actvSyncInterval?.let { syncIntervalView ->
+            syncIntervalView.setAdapter(syncAdapter)
+            
+            // Convert hours to minutes for initial display
+            val currentMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
+            syncIntervalView.setText(currentMinutes.toString(), false)
+            
+            syncIntervalView.setOnItemClickListener { _, _, position, _ ->
+                if (isUpdatingSpinner) return@setOnItemClickListener
+                val minutes = syncIntervalOptions[position].toInt()
+                val hours = (minutes / 60.0).toInt().coerceAtLeast(1) // At least 1 hour
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
+            }
+            
+            // Handle manual input
+            syncIntervalView.setOnFocusChangeListener { _, hasFocus ->
+                if (!hasFocus && !isUpdatingSpinner) {
+                    val text = syncIntervalView.text.toString()
+                    val minutes = text.toIntOrNull()
+                    if (minutes != null && minutes >= 5) {
+                        val hours = (minutes / 60.0).toInt().coerceAtLeast(1) // At least 1 hour
+                        val current = viewModel.settings.value
+                        viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
+                    } else {
+                        // Invalid input, restore previous value
+                        val previousMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
+                        syncIntervalView.setText(previousMinutes.toString(), false)
+                        android.widget.Toast.makeText(requireContext(), R.string.slide_interval_error, android.widget.Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -621,6 +624,7 @@ class GeneralSettingsFragment : Fragment() {
             showResetGeneralSectionConfirmation()
         }
 
+        binding.headerDebugSettings?.isVisible = BuildConfig.DEBUG
         binding.containerDebugSettings?.isVisible = BuildConfig.DEBUG
         
         // Integration Tests Button (DEBUG only)
@@ -799,9 +803,11 @@ class GeneralSettingsFragment : Fragment() {
                     
                     // Update sync interval (convert hours to minutes)
                     val syncMinutes = settings.backgroundSyncIntervalHours * 60
-                    val displayedText = binding.actvSyncInterval.text.toString()
-                    if (displayedText != syncMinutes.toString()) {
-                        binding.actvSyncInterval.setText(syncMinutes.toString(), false)
+                    binding.actvSyncInterval?.let { syncIntervalView ->
+                        val displayedText = syncIntervalView.text.toString()
+                        if (displayedText != syncMinutes.toString()) {
+                            syncIntervalView.setText(syncMinutes.toString(), false)
+                        }
                     }
                 }
             }
@@ -1835,6 +1841,20 @@ class GeneralSettingsFragment : Fragment() {
                 )
             }
         }
+
+        if (BuildConfig.DEBUG) {
+            binding.headerDebugSettings?.let { header ->
+                binding.containerDebugSettings?.let { container ->
+                    bindSectionToggle(
+                        header,
+                        container,
+                        getString(R.string.debug_settings_title),
+                        KEY_DEBUG_EXPANDED,
+                        savedStates[KEY_DEBUG_EXPANDED] ?: false
+                    )
+                }
+            }
+        }
     }
 
     private fun bindSectionToggle(
@@ -1873,7 +1893,8 @@ class GeneralSettingsFragment : Fragment() {
             mapOf(
                 KEY_INTERFACE_EXPANDED to prefs.getBoolean(KEY_INTERFACE_EXPANDED, false),
                 KEY_FILES_EXPANDED to prefs.getBoolean(KEY_FILES_EXPANDED, false),
-                KEY_SYSTEM_EXPANDED to prefs.getBoolean(KEY_SYSTEM_EXPANDED, false)
+                KEY_SYSTEM_EXPANDED to prefs.getBoolean(KEY_SYSTEM_EXPANDED, false),
+                KEY_DEBUG_EXPANDED to prefs.getBoolean(KEY_DEBUG_EXPANDED, false)
             )
         }
     }

@@ -31,6 +31,6 @@
         android:paddingEnd="6dp"
         android:paddingTop="2dp"
         android:paddingBottom="2dp"
-        android:textColor="@android:color/white"
+        android:textColor="@color/white"
         android:textSize="11sp" />
 </FrameLayout>
