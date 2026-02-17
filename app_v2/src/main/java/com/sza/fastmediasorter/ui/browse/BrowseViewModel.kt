@@ -2515,7 +2515,7 @@ class BrowseViewModel @Inject constructor(
      * Check if resource settings (supportedMediaTypes, scanSubdirectories) changed in database.
      * If changed, reload files to reflect new filter.
      * If not changed, sync with PlayerActivity cache for deleted/moved/renamed files.
-     * Called from BrowseActivity.onResume() when returning from PlayerActivity or EditResourceActivity.
+    * Called from BrowseActivity.onResume() when returning from PlayerActivity or ResourceEditorActivity.
      */
     fun checkAndReloadIfResourceChanged() {
         Timber.d("BrowseViewModel.checkAndReloadIfResourceChanged: START - resourceId=$resourceId")

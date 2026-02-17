@@ -19,8 +19,8 @@ class BrowseMetadataManager(
     /**
      * Updates resource metadata (fileCount and lastBrowseDate) after successful file loading.
      * For network resources (SMB/SFTP/FTP), also updates lastSyncDate.
-     * Uses withContext to ensure update completes before returning, preventing race conditions
-     * when EditResourceActivity opens immediately after browsing.
+    * Uses withContext to ensure update completes before returning, preventing race conditions
+    * when ResourceEditorActivity opens immediately after browsing.
      * 
      * @param resource The resource to update
      * @param actualFileCount The actual number of files found during browsing

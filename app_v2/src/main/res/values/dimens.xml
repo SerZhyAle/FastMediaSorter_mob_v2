@@ -441,8 +441,6 @@
     <dimen name="activity_browse_spaceAfterBack_layout_height">@dimen/layout_dimension_min</dimen>
     <dimen name="activity_browse_tvEmptyStateHint_layout_marginTop">@dimen/layout_spacing_normal</dimen>
     <dimen name="activity_browse_tvEmptyStateHint_textSize">@dimen/layout_text_size_small</dimen>
-    <dimen name="activity_edit_resource_btnClearTrash_layout_height">@dimen/layout_dimension_min</dimen>
-    <dimen name="activity_edit_resource_cardSpeedResults_strokeWidth">@dimen/layout_dimension_min</dimen>
     <dimen name="activity_edit_resource_layoutProgress_elevation">@dimen/layout_spacing_normal</dimen>
     <dimen name="activity_main_btnAddResource_iconPadding">@dimen/layout_spacing_small</dimen>
     <dimen name="activity_main_btnAddResource_layout_height">@dimen/layout_dimension_min</dimen>
@@ -638,9 +636,6 @@
     <dimen name="player_command_panel_mode_moveToPanel_textSize">@dimen/layout_text_size_tiny</dimen>
     <dimen name="player_command_panel_mode_topCommandPanel_paddingBottom">@dimen/layout_spacing_tiny</dimen>
     <dimen name="player_command_panel_mode_topCommandPanel_paddingTop">@dimen/layout_spacing_tiny</dimen>
-    <dimen name="toolbar_edit_resource_ivResourceTypeIcon_layout_height">@dimen/layout_button_size_small</dimen>
-    <dimen name="toolbar_edit_resource_ivResourceTypeIcon_layout_width">@dimen/layout_button_size_small</dimen>
-    <dimen name="toolbar_edit_resource_tvToolbarTitle_textSize">@dimen/layout_text_size_medium</dimen>
     <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginBottom">@dimen/layout_dimension_min</dimen>
     <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginEnd">@dimen/layout_dimension_min</dimen>
     <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginStart">@dimen/layout_dimension_min</dimen>

@@ -113,6 +113,12 @@ class ResourceEditorFragment : Fragment() {
 
     private fun setupCollapsibleSections() {
         setupCollapsibleHeader(
+            binding.headerConnectionSettings,
+            binding.contentConnectionSettings,
+            binding.ivConnectionExpand,
+            KEY_SECTION_CONNECTION
+        )
+        setupCollapsibleHeader(
             binding.headerMediaTypes,
             binding.gridMediaTypes,
             binding.ivMediaTypesExpand,
@@ -569,6 +575,46 @@ class ResourceEditorFragment : Fragment() {
         )
     }
 
+    private fun updateConnectionSectionVisibility(
+        visibleKeys: Set<ResourceFieldKey>,
+        type: ResourceType
+    ) {
+        val isLocal = type == ResourceType.LOCAL
+        val isNetwork = type == ResourceType.SMB || type == ResourceType.SFTP || type == ResourceType.FTP
+        val isCloud = type == ResourceType.CLOUD
+
+        val localFieldsVisible = isLocal && visibleKeys.contains(ResourceFieldKey.PATH)
+        val networkFieldsVisible = isNetwork && (
+            visibleKeys.contains(ResourceFieldKey.HOST) ||
+                visibleKeys.contains(ResourceFieldKey.PORT) ||
+                visibleKeys.contains(ResourceFieldKey.USERNAME) ||
+                visibleKeys.contains(ResourceFieldKey.PASSWORD) ||
+                visibleKeys.contains(ResourceFieldKey.PATH)
+            )
+        val cloudFieldsVisible = isCloud && visibleKeys.contains(ResourceFieldKey.CLOUD_FOLDER)
+
+        val shouldShowConnectionSection = localFieldsVisible ||
+            networkFieldsVisible ||
+            cloudFieldsVisible ||
+            isNetwork ||
+            isCloud
+
+        binding.headerConnectionSettings.isVisible = shouldShowConnectionSection
+
+        if (!shouldShowConnectionSection) {
+            binding.contentConnectionSettings.isVisible = false
+            return
+        }
+
+        val connectionExpanded = uiPrefs.getBoolean(KEY_SECTION_CONNECTION, false)
+        setSectionExpanded(
+            content = binding.contentConnectionSettings,
+            expandIcon = binding.ivConnectionExpand,
+            isExpanded = connectionExpanded,
+            animate = false
+        )
+    }
+
     private fun renderFieldSchema(schema: List<ResourceFieldSchema>, type: ResourceType) {
         val visibleKeys = schema.filter { it.visible }.map { it.key }.toSet()
 
@@ -591,6 +637,8 @@ class ResourceEditorFragment : Fragment() {
 
         binding.tilCloudFolderId.isVisible = isCloud && visibleKeys.contains(ResourceFieldKey.CLOUD_FOLDER)
         binding.btnTestConnection.isVisible = isNetwork || isCloud
+
+        updateConnectionSectionVisibility(visibleKeys, type)
 
         // Media types section (collapsible header + content)
         hasMediaTypesBySchema = visibleKeys.contains(ResourceFieldKey.MEDIA_TYPES)
@@ -790,6 +838,7 @@ class ResourceEditorFragment : Fragment() {
         private const val ARG_RESOURCE_ID = "resource_id"
         private const val ARG_RESOURCE_TYPE = "resource_type"
         private const val PREFS_RESOURCE_EDITOR_UI = "resource_editor_ui_state"
+        private const val KEY_SECTION_CONNECTION = "section_connection_expanded"
         private const val KEY_SECTION_MEDIA_TYPES = "section_media_types_expanded"
         private const val KEY_SECTION_SCANNING = "section_scanning_expanded"
         private const val KEY_SECTION_DESTINATION = "section_destination_expanded"

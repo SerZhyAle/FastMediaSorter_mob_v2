@@ -136,7 +136,7 @@ class OneDriveRestClient @Inject constructor(
                 }
                 
                 // Need interactive authentication
-                AuthResult.Error("Interactive sign-in required. Please use AddResourceActivity to authenticate.")
+                AuthResult.Error("Interactive sign-in required. Please use ResourceEditorActivity to authenticate.")
             } catch (e: Exception) {
                 Timber.e(e, "OneDrive authentication failed")
                 AuthResult.Error("Authentication failed: ${e.message}")

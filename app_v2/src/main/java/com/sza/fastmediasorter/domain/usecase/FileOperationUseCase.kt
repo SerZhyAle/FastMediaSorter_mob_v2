@@ -59,7 +59,7 @@ sealed class FileOperationResult {
     
     /**
      * Cloud provider requires re-authentication
-     * UI should prompt user to re-authenticate via AddResourceActivity
+        * UI should prompt user to re-authenticate via ResourceEditorActivity
      */
     data class AuthenticationRequired(val provider: String, val message: String) : FileOperationResult()
     

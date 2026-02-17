@@ -126,6 +126,42 @@
                 android:text="@string/btn_use_suggested_name"
                 android:visibility="gone" />
 
+            <!-- ========== CONNECTION PARAMETERS (collapsible) ========== -->
+
+            <LinearLayout
+                android:id="@+id/headerConnectionSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:background="?attr/selectableItemBackground"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingVertical="@dimen/margin_small">
+
+                <TextView
+                    android:id="@+id/tvConnectionSettingsHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/label_connection_settings"
+                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/ivConnectionExpand"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:contentDescription="@string/label_expand_collapse"
+                    android:src="@drawable/ic_expand_more" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/contentConnectionSettings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
             <!-- ========== LOCAL SECTION ========== -->
 
             <LinearLayout
@@ -389,6 +425,8 @@
                 android:layout_marginBottom="@dimen/margin_medium"
                 android:text="@string/btn_retry"
                 android:visibility="gone" />
+
+            </LinearLayout>
 
             <!-- ========== MEDIA TYPES (collapsible) ========== -->
 

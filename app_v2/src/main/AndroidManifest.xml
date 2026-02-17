@@ -80,12 +80,6 @@
         </activity>
 
         <activity
-            android:name=".ui.addresource.AddResourceActivity"
-            android:exported="false"
-            android:screenOrientation="sensor"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
-
-        <activity
             android:name=".ui.browse.BrowseActivity"
             android:exported="false"
             android:screenOrientation="sensor"
@@ -103,12 +97,6 @@
             android:name=".ui.settings.SettingsActivity"
             android:exported="false"
             android:label="@string/settings"
-            android:screenOrientation="sensor"
-            android:configChanges="orientation|screenSize|keyboardHidden" />
-
-        <activity
-            android:name=".ui.editresource.EditResourceActivity"
-            android:exported="false"
             android:screenOrientation="sensor"
             android:configChanges="orientation|screenSize|keyboardHidden" />
 

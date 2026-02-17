@@ -314,6 +314,7 @@
     <string name="hint_slideshow_interval">Интервал слайдшоу (секунды)</string>
     <string name="label_media_types">Типы медиа</string>
     <string name="label_scanning_settings">Сканирование</string>
+    <string name="label_connection_settings">Параметры подключения</string>
     <string name="label_destination_settings">Настройки назначения</string>
     <string name="label_advanced_settings">Расширенные настройки</string>
     <string name="label_statistics">Статистика</string>
@@ -1267,42 +1268,9 @@
 
 
     <!-- Auto-generated from layout files - TODO: Translate below -->
-    <string name="activity_add_resource_etSftpPath_text">/</string>
-    <string name="activity_add_resource_rvResourcesToAdd_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_add_resource_rvSmbResourcesToAdd_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_add_resource_tilLocalPinCode_endIconMode">password_toggle</string>
-    <string name="activity_add_resource_tilSftpKeyPassphrase_endIconMode">password_toggle</string>
-    <string name="activity_add_resource_tilSftpPassword_endIconMode">password_toggle</string>
-    <string name="activity_add_resource_tilSftpPinCode_endIconMode">password_toggle</string>
-    <string name="activity_add_resource_tilSmbPassword_endIconMode">password_toggle</string>
-    <string name="activity_add_resource_tilSmbPinCode_endIconMode">password_toggle</string>
-    <string name="activity_add_resource_toolbar_title">Добавить ресурс</string>
     <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_dropbox_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="activity_edit_resource_tilAccessPassword_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilAccessPassword_endIconMode">password_toggle</string>
-    <string name="activity_edit_resource_tilResourceComment_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilResourceName_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilResourcePath_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSftpHostEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSftpPasswordEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSftpPasswordEdit_endIconMode">password_toggle</string>
-    <string name="activity_edit_resource_tilSftpPathEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSftpPortEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSftpUsernameEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSmbDomainEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSmbPasswordEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSmbPasswordEdit_endIconMode">password_toggle</string>
-    <string name="activity_edit_resource_tilSmbPortEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSmbServerEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSmbShareNameEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tilSmbUsernameEdit_boxBackgroundMode">outline</string>
-    <string name="activity_edit_resource_tvAllFilesInfo_text">Режим "Все файлы" включен в Настройках. Все типы медиа поддерживаются автоматически.</string>
-    <string name="activity_edit_resource_tvCredentialsTitle_text">Учетные данные S/FTP</string>
-    <string name="activity_edit_resource_tvLastTestDate_text">Последний тест: -</string>
-    <string name="activity_edit_resource_tvReadSpeed_text">0.0 Мбит/с</string>
     <string name="activity_edit_resource_tvRecThreads_text">-</string>
-    <string name="activity_edit_resource_tvWriteSpeed_text">0.0 Мбит/с</string>
     <string name="activity_google_drive_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_main_emptyStateView_alpha">0.6</string>
     <string name="activity_main_rvResources_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>

@@ -164,7 +164,7 @@ class GoogleDriveRestClient @Inject constructor(
                 }
                 
                 // Need interactive authentication
-                AuthResult.Error("Interactive sign-in required. Please use AddResourceActivity to authenticate.")
+                AuthResult.Error("Interactive sign-in required. Please use ResourceEditorActivity to authenticate.")
             } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
                 // Re-throw UserRecoverableAuthException so caller can handle interactive auth
                 Timber.e(e, "Google Drive authentication failed")

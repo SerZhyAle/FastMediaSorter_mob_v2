@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.player.PlayerActivity
+import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.browse.managers.BrowseDialogHelper
 import com.sza.fastmediasorter.ui.browse.managers.BrowseMediaStoreObserver
 import com.sza.fastmediasorter.ui.browse.managers.BrowseRecyclerViewManager
@@ -101,21 +102,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
-            val requiresRescan = result.data?.getBooleanExtra(
-                com.sza.fastmediasorter.ui.editresource.EditResourceActivity.EXTRA_REQUIRES_RESCAN,
-                false
-            ) ?: false
-            
-            if (requiresRescan) {
-                // Settings affecting file list changed - full reload with list clear
-                // Cache is automatically cleared inside reloadFiles()
-                Timber.i("Resource updated with file list changes, reloading files")
-                viewModel.reloadFiles(clearList = true)
-            } else {
-                // Only metadata changed - reload resource but keep file list
-                Timber.i("Resource metadata updated, refreshing without rescan")
-                viewModel.refreshResourceMetadata()
-            }
+            Timber.i("Resource updated, reloading files")
+            viewModel.reloadFiles(clearList = true)
         }
     }
     
@@ -1550,9 +1538,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     private fun launchEditResource(resourceId: Long) {
-        val intent = Intent(this, com.sza.fastmediasorter.ui.editresource.EditResourceActivity::class.java).apply {
-            putExtra("resourceId", resourceId)
-        }
+        val intent = ResourceEditorActivity.createEditIntent(this, resourceId)
         editResourceLauncher.launch(intent)
     }
 

@@ -208,8 +208,8 @@ class DropboxClient @Inject constructor(
                 }
                 
                 // Need OAuth flow - must be initiated from Activity
-                // This will be handled by AddResourceActivity
-                AuthResult.Error("OAuth flow required. Please use AddResourceActivity to authenticate.")
+                // This will be handled by ResourceEditorActivity
+                AuthResult.Error("OAuth flow required. Please use ResourceEditorActivity to authenticate.")
             } catch (e: Exception) {
                 Timber.e(e, "Dropbox authentication failed")
                 AuthResult.Error("Authentication failed: ${e.message}")

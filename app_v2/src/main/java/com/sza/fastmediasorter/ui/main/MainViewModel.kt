@@ -467,8 +467,7 @@ class MainViewModel @Inject constructor(
             return
         }
         
-        // Navigate to AddResourceActivity with copyResourceId to pre-fill data
-        // Opening AddResourceActivity to copy resource
+        // Open copy flow in ResourceEditorActivity with source resource id
         sendEvent(MainEvent.NavigateToAddResourceCopy(selected.id))
     }
     
