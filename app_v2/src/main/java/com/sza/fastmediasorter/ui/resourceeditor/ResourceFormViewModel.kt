@@ -55,7 +55,18 @@ data class ResourceEditorUiState(
     val warnings: Set<ResourceEditorWarning> = emptySet(),
     val connectionResult: ResourceConnectionTestResult? = null,
     val saveResult: ResourceEditorSaveResult? = null,
-    val isReadOnlyMode: Boolean = false
+    val isReadOnlyMode: Boolean = false,
+    val statistics: ResourceStatistics? = null
+)
+
+data class ResourceStatistics(
+    val fileCount: Int = 0,
+    val subfolderCount: Int = 0,
+    val createdDate: Long? = null,
+    val lastBrowseDate: Long? = null,
+    val lastSyncDate: Long? = null,
+    val readSpeedMbps: Double? = null,
+    val writeSpeedMbps: Double? = null
 )
 
 sealed interface ResourceEditorUiEvent {
@@ -125,7 +136,12 @@ class ResourceFormViewModel @Inject constructor(
                         requiresCredentialChoice = preparedFormData.mode == ResourceEditorMode.COPY &&
                             (preparedFormData.credentialsId != null ||
                                 preparedFormData.username.isNotBlank() ||
-                                preparedFormData.password.isNotBlank())
+                                preparedFormData.password.isNotBlank()),
+                        statistics = if (mode == ResourceEditorMode.EDIT && resourceId != null) {
+                            withContext(Dispatchers.IO) {
+                                resourceEditorUseCase.getResourceStatistics(resourceId)
+                            }
+                        } else null
                     )
                 _uiState.value = recalculateState(initialized)
             }.onFailure { error ->
@@ -146,6 +162,7 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.USERNAME -> current.formData.copy(username = value as? String ?: "")
                 ResourceFieldKey.PASSWORD -> current.formData.copy(password = value as? String ?: "")
                 ResourceFieldKey.ACCESS_PIN -> current.formData.copy(accessPin = value as? String ?: "")
+                ResourceFieldKey.COMMENT -> current.formData.copy(comment = value as? String ?: "")
                 ResourceFieldKey.CLOUD_PROVIDER -> current.formData.copy(cloudProvider = value as? com.sza.fastmediasorter.data.cloud.CloudProvider)
                 ResourceFieldKey.CLOUD_FOLDER -> current.formData.copy(cloudFolderId = value as? String)
                 ResourceFieldKey.MEDIA_TYPES -> current.formData.copy(
@@ -154,8 +171,29 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.SLIDESHOW_INTERVAL -> current.formData.copy(
                     slideshowInterval = (value as? String)?.toIntOrNull() ?: (value as? Int) ?: 10
                 )
+                ResourceFieldKey.IS_DESTINATION -> current.formData.copy(
+                    isDestination = value as? Boolean ?: false
+                )
                 ResourceFieldKey.DESTINATION_COLOR -> current.formData.copy(
                     destinationColor = (value as? Int) ?: current.formData.destinationColor
+                )
+                ResourceFieldKey.IS_READ_ONLY -> current.formData.copy(
+                    isReadOnly = value as? Boolean ?: false
+                )
+                ResourceFieldKey.SCAN_SUBDIRECTORIES -> current.formData.copy(
+                    scanSubdirectories = value as? Boolean ?: false
+                )
+                ResourceFieldKey.ALL_FILES -> current.formData.copy(
+                    allFiles = value as? Boolean ?: false
+                )
+                ResourceFieldKey.DISABLE_THUMBNAILS -> current.formData.copy(
+                    disableThumbnails = value as? Boolean ?: false
+                )
+                ResourceFieldKey.SHOW_HIDDEN_FILES -> current.formData.copy(
+                    showHiddenFiles = value as? Boolean ?: false
+                )
+                ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS -> current.formData.copy(
+                    showSubfoldersAsItems = value as? Boolean ?: false
                 )
                 ResourceFieldKey.SHOW_COMMAND_PANEL -> current.formData.copy(
                     showCommandPanel = value as? Boolean

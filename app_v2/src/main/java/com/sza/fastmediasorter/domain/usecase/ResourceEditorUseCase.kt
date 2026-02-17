@@ -311,14 +311,17 @@ class ResourceEditorUseCase @Inject constructor(
         }
     }
 
-    private fun toFormData(resource: MediaResource, mode: ResourceEditorMode): ResourceFormData {
+    private suspend fun toFormData(resource: MediaResource, mode: ResourceEditorMode): ResourceFormData {
         val baseType = resource.type
         val sourcePath = resource.path
+
+        var parsedPort: Int? = null
 
         val hostAndPath = when (baseType) {
             ResourceType.SMB -> {
                 val parsed = SmbPathUtils.parseSmbPath(sourcePath)
                 val smbPath = if (parsed != null) {
+                    parsedPort = parsed.connectionInfo.port
                     listOf(parsed.connectionInfo.shareName, parsed.remotePath)
                         .filter { it.isNotBlank() }
                         .joinToString("/")
@@ -330,15 +333,49 @@ class ResourceEditorUseCase @Inject constructor(
 
             ResourceType.SFTP -> {
                 val parsed = SftpPathUtils.parseSftpPath(sourcePath)
+                parsedPort = parsed?.port
                 parsed?.host.orEmpty() to (parsed?.remotePath ?: sourcePath)
             }
 
             ResourceType.FTP -> {
                 val parsed = FtpPathUtils.parseFtpPath(sourcePath)
+                parsedPort = parsed?.port
                 parsed?.host.orEmpty() to (parsed?.remotePath ?: sourcePath)
             }
 
             else -> "" to sourcePath
+        }
+
+        // Load credentials from credential store
+        var loadedUsername = ""
+        var loadedPassword = ""
+        val credentialsId = resource.credentialsId
+        if (credentialsId != null) {
+            try {
+                when (baseType) {
+                    ResourceType.SMB -> {
+                        smbOperationsUseCase.getConnectionInfo(credentialsId).getOrNull()?.let { info ->
+                            loadedUsername = info.username
+                            loadedPassword = info.password
+                        }
+                    }
+                    ResourceType.SFTP -> {
+                        smbOperationsUseCase.getSftpCredentials(credentialsId).getOrNull()?.let { cred ->
+                            loadedUsername = cred.username
+                            loadedPassword = cred.password
+                        }
+                    }
+                    ResourceType.FTP -> {
+                        smbOperationsUseCase.getFtpCredentials(credentialsId).getOrNull()?.let { cred ->
+                            loadedUsername = cred.username
+                            loadedPassword = cred.password
+                        }
+                    }
+                    else -> { /* no credentials for local/cloud */ }
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "Failed to load credentials for credentialsId=$credentialsId")
+            }
         }
 
         val form = ResourceFormData(
@@ -354,7 +391,10 @@ class ResourceEditorUseCase @Inject constructor(
             destinationColor = resource.destinationColor,
             isReadOnly = resource.isReadOnly,
             credentialsId = resource.credentialsId,
+            username = loadedUsername,
+            password = loadedPassword,
             host = hostAndPath.first,
+            port = parsedPort,
             cloudProvider = resource.cloudProvider,
             cloudFolderId = resource.cloudFolderId,
             supportedMediaTypes = resource.supportedMediaTypes,
@@ -440,5 +480,18 @@ class ResourceEditorUseCase @Inject constructor(
             .map { it.type to it.path.trim() }
             .filter { it.second.isNotBlank() }
             .toSet()
+    }
+
+    suspend fun getResourceStatistics(resourceId: Long): com.sza.fastmediasorter.ui.resourceeditor.ResourceStatistics? = withContext(ioDispatcher) {
+        val resource = resourceRepository.getResourceById(resourceId) ?: return@withContext null
+        com.sza.fastmediasorter.ui.resourceeditor.ResourceStatistics(
+            fileCount = resource.fileCount,
+            subfolderCount = resource.subfolderCount,
+            createdDate = resource.createdDate,
+            lastBrowseDate = resource.lastBrowseDate,
+            lastSyncDate = resource.lastSyncDate,
+            readSpeedMbps = resource.readSpeedMbps,
+            writeSpeedMbps = resource.writeSpeedMbps
+        )
     }
 }

@@ -85,6 +85,7 @@ class ResourceEditorFragment : Fragment() {
         setupToolbar()
         setupFieldListeners()
         setupButtons()
+        setupCollapsibleSections()
         observeUiState()
         observeEvents()
 
@@ -100,6 +101,25 @@ class ResourceEditorFragment : Fragment() {
         binding.toolbar.title = title
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
+    }
+
+    private fun setupCollapsibleSections() {
+        setupCollapsibleHeader(binding.headerMediaTypes, binding.gridMediaTypes, binding.ivMediaTypesExpand)
+        setupCollapsibleHeader(binding.headerScanning, binding.contentScanning, binding.ivScanningExpand)
+        setupCollapsibleHeader(binding.headerDestination, binding.contentDestination, binding.ivDestinationExpand)
+        setupCollapsibleHeader(binding.headerAdvanced, binding.contentAdvanced, binding.ivAdvancedExpand)
+        setupCollapsibleHeader(binding.headerStatistics, binding.groupStatistics, binding.ivStatisticsExpand)
+    }
+
+    private fun setupCollapsibleHeader(header: View, content: View, expandIcon: android.widget.ImageView) {
+        header.setOnClickListener {
+            val isExpanded = content.isVisible
+            content.isVisible = !isExpanded
+            expandIcon.animate()
+                .rotation(if (isExpanded) 0f else 180f)
+                .setDuration(200)
+                .start()
         }
     }
 
@@ -136,27 +156,56 @@ class ResourceEditorFragment : Fragment() {
             viewModel.onFieldChanged(ResourceFieldKey.CLOUD_FOLDER, text?.toString().orEmpty())
         }
 
+        binding.etComment.addTextChangedListener { text ->
+            viewModel.onFieldChanged(ResourceFieldKey.COMMENT, text?.toString().orEmpty())
+        }
+
+        binding.etAccessPin.addTextChangedListener { text ->
+            viewModel.onFieldChanged(ResourceFieldKey.ACCESS_PIN, text?.toString().orEmpty())
+        }
+
         binding.etSlideshowInterval.addTextChangedListener { text ->
             viewModel.onFieldChanged(ResourceFieldKey.SLIDESHOW_INTERVAL, text?.toString().orEmpty())
         }
 
-        binding.cbShowCommandPanel.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.onFieldChanged(ResourceFieldKey.SHOW_COMMAND_PANEL, isChecked)
+        // Scanning & behavior checkboxes
+        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.SCAN_SUBDIRECTORIES, isChecked)
         }
 
-        // Media types checkboxes
-        binding.cbVideo.setOnCheckedChangeListener { _, _ ->
-            updateMediaTypes()
+        binding.cbAllFiles.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.ALL_FILES, isChecked)
         }
-        binding.cbAudio.setOnCheckedChangeListener { _, _ ->
-            updateMediaTypes()
+
+        binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.DISABLE_THUMBNAILS, isChecked)
         }
-        binding.cbImage.setOnCheckedChangeListener { _, _ ->
-            updateMediaTypes()
+
+        binding.cbShowHiddenFiles.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.SHOW_HIDDEN_FILES, isChecked)
         }
-        binding.cbDocument.setOnCheckedChangeListener { _, _ ->
-            updateMediaTypes()
+
+        binding.cbShowSubfoldersAsItems.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, isChecked)
         }
+
+        // Destination & read-only
+        binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.IS_DESTINATION, isChecked)
+        }
+
+        binding.cbIsReadOnly.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.IS_READ_ONLY, isChecked)
+        }
+
+        // Media types checkboxes (7 individual types)
+        binding.cbVideo.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbAudio.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbImage.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbGif.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbText.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbPdf.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbEpub.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
     }
 
     private fun updateMediaTypes() {
@@ -164,11 +213,10 @@ class ResourceEditorFragment : Fragment() {
         if (binding.cbVideo.isChecked) types.add(MediaType.VIDEO)
         if (binding.cbAudio.isChecked) types.add(MediaType.AUDIO)
         if (binding.cbImage.isChecked) types.add(MediaType.IMAGE)
-        if (binding.cbDocument.isChecked) {
-            types.add(MediaType.TEXT)
-            types.add(MediaType.PDF)
-            types.add(MediaType.EPUB)
-        }
+        if (binding.cbGif.isChecked) types.add(MediaType.GIF)
+        if (binding.cbText.isChecked) types.add(MediaType.TEXT)
+        if (binding.cbPdf.isChecked) types.add(MediaType.PDF)
+        if (binding.cbEpub.isChecked) types.add(MediaType.EPUB)
         viewModel.onFieldChanged(ResourceFieldKey.MEDIA_TYPES, types)
     }
 
@@ -248,6 +296,7 @@ class ResourceEditorFragment : Fragment() {
                     renderContextWarnings(state)
                     renderNameCollision(state)
                     renderCredentialChoice(state)
+                    renderStatistics(state.statistics)
                 }
             }
         }
@@ -373,18 +422,49 @@ class ResourceEditorFragment : Fragment() {
         if (binding.etCloudFolderId.text.toString() != formData.cloudFolderId.orEmpty()) {
             binding.etCloudFolderId.setText(formData.cloudFolderId.orEmpty())
         }
+        if (binding.etComment.text.toString() != formData.comment) {
+            binding.etComment.setText(formData.comment)
+        }
+        if (binding.etAccessPin.text.toString() != formData.accessPin) {
+            binding.etAccessPin.setText(formData.accessPin)
+        }
         if (binding.etSlideshowInterval.text.toString() != formData.slideshowInterval.toString()) {
             binding.etSlideshowInterval.setText(formData.slideshowInterval.toString())
         }
 
+        // Media type checkboxes (7 individual types)
         binding.cbVideo.isChecked = formData.supportedMediaTypes.contains(MediaType.VIDEO)
         binding.cbAudio.isChecked = formData.supportedMediaTypes.contains(MediaType.AUDIO)
         binding.cbImage.isChecked = formData.supportedMediaTypes.contains(MediaType.IMAGE)
-        binding.cbDocument.isChecked = formData.supportedMediaTypes.any {
-            it == MediaType.TEXT || it == MediaType.PDF || it == MediaType.EPUB
-        }
-        
-        binding.cbShowCommandPanel.isChecked = formData.showCommandPanel ?: false
+        binding.cbGif.isChecked = formData.supportedMediaTypes.contains(MediaType.GIF)
+        binding.cbText.isChecked = formData.supportedMediaTypes.contains(MediaType.TEXT)
+        binding.cbPdf.isChecked = formData.supportedMediaTypes.contains(MediaType.PDF)
+        binding.cbEpub.isChecked = formData.supportedMediaTypes.contains(MediaType.EPUB)
+
+        // Scanning checkboxes
+        binding.cbScanSubdirectories.isChecked = formData.scanSubdirectories
+        binding.cbAllFiles.isChecked = formData.allFiles
+        binding.cbDisableThumbnails.isChecked = formData.disableThumbnails
+        binding.cbShowHiddenFiles.isChecked = formData.showHiddenFiles
+        binding.cbShowSubfoldersAsItems.isChecked = formData.showSubfoldersAsItems
+
+        // Destination checkboxes
+        binding.cbIsDestination.isChecked = formData.isDestination
+        binding.cbIsReadOnly.isChecked = formData.isReadOnly
+
+        // Dependent visibility: showHiddenFiles depends on allFiles, showSubfoldersAsItems depends on scanSubdirectories
+        binding.cbShowHiddenFiles.isEnabled = formData.allFiles
+        binding.cbShowSubfoldersAsItems.isEnabled = formData.scanSubdirectories
+
+        // Media type checkboxes disabled when allFiles is on
+        val mediaEnabled = !formData.allFiles
+        binding.cbVideo.isEnabled = mediaEnabled
+        binding.cbAudio.isEnabled = mediaEnabled
+        binding.cbImage.isEnabled = mediaEnabled
+        binding.cbGif.isEnabled = mediaEnabled
+        binding.cbText.isEnabled = mediaEnabled
+        binding.cbPdf.isEnabled = mediaEnabled
+        binding.cbEpub.isEnabled = mediaEnabled
 
         binding.tilDomain.isVisible = false
         binding.tilShareName.isVisible = false
@@ -412,6 +492,34 @@ class ResourceEditorFragment : Fragment() {
 
         binding.tilCloudFolderId.isVisible = isCloud && visibleKeys.contains(ResourceFieldKey.CLOUD_FOLDER)
         binding.btnTestConnection.isVisible = isNetwork || isCloud
+
+        // Media types section (collapsible header + content)
+        val hasMediaTypes = visibleKeys.contains(ResourceFieldKey.MEDIA_TYPES)
+        binding.headerMediaTypes.isVisible = hasMediaTypes
+
+        // Scanning section (collapsible header + content)
+        val hasScanSettings = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES) ||
+            visibleKeys.contains(ResourceFieldKey.ALL_FILES) ||
+            visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS)
+        binding.headerScanning.isVisible = hasScanSettings
+        binding.cbScanSubdirectories.isVisible = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES)
+        binding.cbAllFiles.isVisible = visibleKeys.contains(ResourceFieldKey.ALL_FILES)
+        binding.cbDisableThumbnails.isVisible = visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS)
+        binding.cbShowHiddenFiles.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_HIDDEN_FILES)
+        binding.cbShowSubfoldersAsItems.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS)
+
+        // Destination section (collapsible header + content)
+        val hasDestination = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION) ||
+            visibleKeys.contains(ResourceFieldKey.IS_READ_ONLY)
+        binding.headerDestination.isVisible = hasDestination
+        binding.cbIsDestination.isVisible = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION)
+        binding.cbIsReadOnly.isVisible = visibleKeys.contains(ResourceFieldKey.IS_READ_ONLY)
+
+        // Advanced section (collapsible header + content)
+        binding.headerAdvanced.isVisible = true
+        binding.tilComment.isVisible = visibleKeys.contains(ResourceFieldKey.COMMENT)
+        binding.tilAccessPin.isVisible = visibleKeys.contains(ResourceFieldKey.ACCESS_PIN)
+        binding.tilSlideshowInterval.isVisible = visibleKeys.contains(ResourceFieldKey.SLIDESHOW_INTERVAL)
     }
 
     private fun renderFieldStates(fieldStates: Map<ResourceFieldKey, ResourceFieldState>) {
@@ -429,9 +537,21 @@ class ResourceEditorFragment : Fragment() {
             ResourceFieldKey.PORT -> binding.tilPort
             ResourceFieldKey.USERNAME -> binding.tilUsername
             ResourceFieldKey.PASSWORD -> binding.tilPassword
+            ResourceFieldKey.ACCESS_PIN -> binding.tilAccessPin
+            ResourceFieldKey.COMMENT -> binding.tilComment
             ResourceFieldKey.CLOUD_PROVIDER -> null
             ResourceFieldKey.CLOUD_FOLDER -> binding.tilCloudFolderId
             ResourceFieldKey.MEDIA_TYPES -> null
+            ResourceFieldKey.SLIDESHOW_INTERVAL -> binding.tilSlideshowInterval
+            ResourceFieldKey.DESTINATION_COLOR -> null
+            ResourceFieldKey.IS_DESTINATION -> null
+            ResourceFieldKey.IS_READ_ONLY -> null
+            ResourceFieldKey.SCAN_SUBDIRECTORIES -> null
+            ResourceFieldKey.ALL_FILES -> null
+            ResourceFieldKey.DISABLE_THUMBNAILS -> null
+            ResourceFieldKey.SHOW_HIDDEN_FILES -> null
+            ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS -> null
+            ResourceFieldKey.SHOW_COMMAND_PANEL -> null
             else -> null
         }
     }
@@ -509,6 +629,46 @@ class ResourceEditorFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+
+    private fun renderStatistics(statistics: ResourceStatistics?) {
+        val show = statistics != null && mode == ResourceEditorMode.EDIT
+        binding.headerStatistics.isVisible = show
+        binding.groupStatistics.isVisible = show
+
+        if (!show || statistics == null) return
+
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
+
+        binding.tvStatFileCount.text = getString(R.string.label_file_count, statistics.fileCount)
+        binding.tvStatSubfolderCount.text = getString(R.string.label_subfolder_count, statistics.subfolderCount)
+        binding.tvStatCreatedDate.text = getString(
+            R.string.label_created_date,
+            statistics.createdDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)
+        )
+        binding.tvStatLastBrowseDate.text = getString(
+            R.string.label_last_browse_date,
+            statistics.lastBrowseDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)
+        )
+
+        val isNetwork = viewModel.uiState.value.formData.type != ResourceType.LOCAL
+        binding.tvStatLastSyncDate.isVisible = isNetwork
+        if (isNetwork) {
+            binding.tvStatLastSyncDate.text = getString(
+                R.string.label_last_sync_date,
+                statistics.lastSyncDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)
+            )
+        }
+
+        binding.tvStatReadSpeed.isVisible = statistics.readSpeedMbps != null
+        if (statistics.readSpeedMbps != null) {
+            binding.tvStatReadSpeed.text = getString(R.string.label_read_speed, statistics.readSpeedMbps)
+        }
+
+        binding.tvStatWriteSpeed.isVisible = statistics.writeSpeedMbps != null
+        if (statistics.writeSpeedMbps != null) {
+            binding.tvStatWriteSpeed.text = getString(R.string.label_write_speed, statistics.writeSpeedMbps)
         }
     }
 

@@ -1716,12 +1716,33 @@
     <string name="hint_cloud_folder_id">Cloud Folder ID</string>
     <string name="hint_slideshow_interval">Slideshow Interval (seconds)</string>
     <string name="hint_destination_color">Destination Color</string>
+    <string name="hint_access_pin">PIN Code (4–6 digits)</string>
+    <string name="hint_comment">Comment (optional)</string>
     
     <string name="label_media_types">Media Types</string>
     <string name="label_slideshow_interval">Slideshow Interval</string>
     <string name="label_show_command_panel">Show Command Panel</string>
     <string name="label_destination_settings">Destination Settings</string>
     <string name="label_advanced_settings">Advanced Settings</string>
+    <string name="label_scanning_settings">Scanning</string>
+    <string name="label_content_settings">Content Settings</string>
+    <string name="label_is_destination">Use as destination folder</string>
+    <string name="label_is_read_only">Read-only mode</string>
+    <string name="label_scan_subdirectories">Scan subdirectories</string>
+    <string name="label_all_files">All files (ignore media type filter)</string>
+    <string name="label_disable_thumbnails">Disable thumbnails</string>
+    <string name="label_show_hidden_files">Show hidden files</string>
+    <string name="label_show_subfolders_as_items">Show subfolders as items</string>
+    <string name="label_statistics">Statistics</string>
+    <string name="label_file_count">Files: %1$d</string>
+    <string name="label_subfolder_count">Subfolders: %1$d</string>
+    <string name="label_created_date">Created: %1$s</string>
+    <string name="label_last_browse_date">Last opened: %1$s</string>
+    <string name="label_last_sync_date">Last sync: %1$s</string>
+    <string name="label_read_speed">Read speed: %1$.1f MB/s</string>
+    <string name="label_write_speed">Write speed: %1$.1f MB/s</string>
+    <string name="label_never">Never</string>
+    <string name="label_expand_collapse">Expand/Collapse</string>
     <string name="media_type_document">Documents</string>
     
     <string name="btn_test_connection">Test Connection</string>

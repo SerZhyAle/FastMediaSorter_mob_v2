@@ -57,7 +57,18 @@ class FtpResourceStrategy(
             ResourceFieldSchema(ResourceFieldKey.PORT, required = false),
             ResourceFieldSchema(ResourceFieldKey.PATH, required = false),
             ResourceFieldSchema(ResourceFieldKey.USERNAME, required = false),
-            ResourceFieldSchema(ResourceFieldKey.PASSWORD, required = false)
+            ResourceFieldSchema(ResourceFieldKey.PASSWORD, required = false),
+            ResourceFieldSchema(ResourceFieldKey.MEDIA_TYPES, required = false),
+            ResourceFieldSchema(ResourceFieldKey.SCAN_SUBDIRECTORIES, required = false),
+            ResourceFieldSchema(ResourceFieldKey.ALL_FILES, required = false),
+            ResourceFieldSchema(ResourceFieldKey.DISABLE_THUMBNAILS, required = false),
+            ResourceFieldSchema(ResourceFieldKey.SHOW_HIDDEN_FILES, required = false),
+            ResourceFieldSchema(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, required = false),
+            ResourceFieldSchema(ResourceFieldKey.IS_DESTINATION, required = false),
+            ResourceFieldSchema(ResourceFieldKey.IS_READ_ONLY, required = false),
+            ResourceFieldSchema(ResourceFieldKey.COMMENT, required = false),
+            ResourceFieldSchema(ResourceFieldKey.ACCESS_PIN, required = false),
+            ResourceFieldSchema(ResourceFieldKey.SLIDESHOW_INTERVAL, required = false)
         )
     }
 

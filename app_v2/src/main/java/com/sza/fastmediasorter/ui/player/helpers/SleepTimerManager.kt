@@ -74,6 +74,7 @@ class SleepTimerManager(
 
     /**
      * Pause vinyl record rotation (when audio is paused).
+     * Hides the vinyl icon completely when paused.
      */
     fun pauseVinylAnimation() {
         rotationAnimator?.let { animator ->
@@ -82,6 +83,8 @@ class SleepTimerManager(
                 Timber.d("SleepTimerManager: vinyl animation paused")
             }
         }
+        // Hide the vinyl icon when paused (only show during active playback)
+        vinylView.isVisible = false
     }
 
     /**
