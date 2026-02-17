@@ -51,6 +51,7 @@ class BrowseLoadingManager(
         fun setLoading(loading: Boolean)
         suspend fun handleLoadingError(resource: MediaResource, error: Throwable)
         suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int)
+        suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>)
         fun startFileObserver()
         fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile>
     }
@@ -214,6 +215,7 @@ class BrowseLoadingManager(
                 
                 // Update resource metadata (fileCount and lastBrowseDate) after successful load
                 callbacks.updateResourceMetadata(resource, sortedFiles.size)
+                callbacks.onFilesLoaded(resource, finalFiles)
                 
                 // Start FileObserver for local resources
                 callbacks.startFileObserver()

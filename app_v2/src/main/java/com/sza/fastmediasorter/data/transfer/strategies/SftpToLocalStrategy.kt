@@ -2,13 +2,12 @@ package com.sza.fastmediasorter.data.transfer.strategies
 
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.data.cloud.NetworkCredentialsResolver
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
 import com.sza.fastmediasorter.data.transfer.TransferStrategy
-import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
-import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +15,7 @@ import javax.inject.Singleton
 class SftpToLocalStrategy @Inject constructor(
     @ApplicationContext private val context: Context,
     private val sftpClient: SftpClient,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsResolver: NetworkCredentialsResolver
 ) : TransferStrategy {
 
     override fun supports(sourceScheme: String?, destScheme: String?): Boolean {
@@ -32,8 +31,70 @@ class SftpToLocalStrategy @Inject constructor(
         sourceCredentialsId: String?,
         progressCallback: ByteProgressCallback?
     ): Boolean {
-        // TODO: Implement SftpToLocal copy when credentials resolution is available
-        Timber.w("SftpToLocalStrategy.copy not yet implemented")
-        return false
+        // Resolve source credentials
+        val sourceCredentials = credentialsResolver.getCredentials(source.toString())
+        if (sourceCredentials == null) {
+            Timber.e("SftpToLocalStrategy.copy: No credentials for source $source")
+            return false
+        }
+        
+        val sourceRemotePath = extractRemotePath(source, sourceCredentials.server, sourceCredentials.port)
+        
+        // Get destination output stream
+        val outputStream = try {
+            when (destination.scheme) {
+                "file", null -> {
+                    val destFile = java.io.File(destination.path ?: destination.toString())
+                    destFile.parentFile?.mkdirs()
+                    destFile.outputStream()
+                }
+                "content" -> {
+                    context.contentResolver.openOutputStream(destination)
+                        ?: throw IllegalStateException("Cannot open content:// for writing")
+                }
+                else -> {
+                    Timber.e("SftpToLocalStrategy.copy: Unsupported destination scheme ${destination.scheme}")
+                    return false
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "SftpToLocalStrategy.copy: Failed to open destination")
+            return false
+        }
+        
+        // Download from SFTP
+        val connectionInfo = SftpClient.SftpConnectionInfo(
+            host = sourceCredentials.server,
+            port = sourceCredentials.port,
+            username = sourceCredentials.username,
+            password = sourceCredentials.password,
+            privateKey = sourceCredentials.privateKey
+        )
+        
+        return try {
+            outputStream.use { output ->
+                val downloadResult = sftpClient.downloadFile(
+                    connectionInfo = connectionInfo,
+                    remotePath = sourceRemotePath,
+                    outputStream = output,
+                    fileSize = 0L, // Unknown size
+                    progressCallback = progressCallback
+                )
+                downloadResult.isSuccess
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "SftpToLocalStrategy.copy: Download failed")
+            false
+        }
+    }
+    
+    /**
+     * Extract remote path from SFTP URI
+     * Example: sftp://server:22/path/to/file.txt -> /path/to/file.txt
+     */
+    private fun extractRemotePath(uri: Uri, host: String, port: Int): String {
+        val full = uri.toString()
+        val prefix = "sftp://$host:$port"
+        return full.removePrefix(prefix).ifBlank { "/" }
     }
 }

@@ -60,6 +60,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     
     @Inject
     lateinit var unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache
+
+    @Inject
+    lateinit var cachedFileListRepository: com.sza.fastmediasorter.data.repository.CachedFileListRepository
     
     @Inject
     lateinit var networkStateMonitor: com.sza.fastmediasorter.core.network.NetworkStateMonitor

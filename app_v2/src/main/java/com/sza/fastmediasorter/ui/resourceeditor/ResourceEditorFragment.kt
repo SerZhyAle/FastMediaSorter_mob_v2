@@ -274,6 +274,14 @@ class ResourceEditorFragment : Fragment() {
             viewModel.onFieldChanged(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, isChecked)
         }
 
+        binding.cbRememberFileList.setOnCheckedChangeListener { _, isChecked ->
+            viewModel.onFieldChanged(ResourceFieldKey.REMEMBER_FILE_LIST, isChecked)
+        }
+
+        binding.btnHelpRememberFileListEditor.setOnClickListener {
+            showRememberFileListHelpDialog()
+        }
+
         // Destination & read-only
         binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked ->
             viewModel.onFieldChanged(ResourceFieldKey.IS_DESTINATION, isChecked)
@@ -532,6 +540,7 @@ class ResourceEditorFragment : Fragment() {
         binding.cbDisableThumbnails.isChecked = formData.disableThumbnails
         binding.cbShowHiddenFiles.isChecked = formData.showHiddenFiles
         binding.cbShowSubfoldersAsItems.isChecked = formData.showSubfoldersAsItems
+        binding.cbRememberFileList.isChecked = formData.rememberFileList
 
         // Destination checkboxes
         binding.cbIsDestination.isChecked = formData.isDestination
@@ -647,13 +656,16 @@ class ResourceEditorFragment : Fragment() {
         // Scanning section (collapsible header + content)
         val hasScanSettings = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES) ||
             visibleKeys.contains(ResourceFieldKey.ALL_FILES) ||
-            visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS)
+            visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS) ||
+            visibleKeys.contains(ResourceFieldKey.REMEMBER_FILE_LIST)
         binding.headerScanning.isVisible = hasScanSettings
         binding.cbScanSubdirectories.isVisible = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES)
         binding.cbAllFiles.isVisible = visibleKeys.contains(ResourceFieldKey.ALL_FILES)
         binding.cbDisableThumbnails.isVisible = visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS)
         binding.cbShowHiddenFiles.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_HIDDEN_FILES)
         binding.cbShowSubfoldersAsItems.isVisible = visibleKeys.contains(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS)
+        binding.cbRememberFileList.isVisible = hasScanSettings
+        binding.btnHelpRememberFileListEditor.isVisible = hasScanSettings
 
         // Destination section (collapsible header + content)
         val hasDestination = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION) ||
@@ -698,9 +710,18 @@ class ResourceEditorFragment : Fragment() {
             ResourceFieldKey.DISABLE_THUMBNAILS -> null
             ResourceFieldKey.SHOW_HIDDEN_FILES -> null
             ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS -> null
+            ResourceFieldKey.REMEMBER_FILE_LIST -> null
             ResourceFieldKey.SHOW_COMMAND_PANEL -> null
             else -> null
         }
+    }
+
+    private fun showRememberFileListHelpDialog() {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.remember_file_list_help_title)
+            .setMessage(R.string.remember_file_list_help_message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private fun getErrorMessage(errorCode: ResourceErrorCode): String {

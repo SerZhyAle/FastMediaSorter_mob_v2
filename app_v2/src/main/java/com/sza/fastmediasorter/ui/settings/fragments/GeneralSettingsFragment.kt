@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
+import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -26,6 +27,7 @@ import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.PermissionChecker
 import kotlinx.coroutines.Dispatchers
@@ -75,6 +77,7 @@ class GeneralSettingsFragment : Fragment() {
     
     // Flag to prevent infinite loop when programmatically updating spinner
     private var isUpdatingSpinner = false
+    private var manualSyncProgressDialog: MaterialProgressDialog? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -90,6 +93,8 @@ class GeneralSettingsFragment : Fragment() {
         setupVersionInfo()
         setupViews()
         observeData()
+        observeManualNetworkSyncState()
+        refreshLastSyncStatus()
         checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
         setupExpandableSections()
@@ -370,6 +375,16 @@ class GeneralSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showSubfoldersAsItems = isChecked))
         }
 
+        binding.switchDefaultRememberFileList?.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
+        }
+
+        binding.btnHelpRememberFileList?.setOnClickListener {
+            showRememberFileListHelpDialog()
+        }
+
         binding.iconHelpShowSubfolders.setOnClickListener {
             com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
                 requireContext(),
@@ -503,8 +518,11 @@ class GeneralSettingsFragment : Fragment() {
         }
         
         binding.btnSyncNow.setOnClickListener {
-            // TODO: Trigger manual sync
-            android.widget.Toast.makeText(requireContext(), R.string.manual_sync_triggered, android.widget.Toast.LENGTH_SHORT).show()
+            if (viewModel.manualNetworkSyncState.value.inProgress) {
+                viewModel.cancelManualNetworkSync()
+            } else {
+                viewModel.startManualNetworkSync()
+            }
         }
         
         // Default User
@@ -688,6 +706,7 @@ class GeneralSettingsFragment : Fragment() {
         updatePermissionButtonsState()
         // Update cache size when returning to fragment
         updateCacheSize()
+        refreshLastSyncStatus()
     }
 
     private fun observeData() {
@@ -739,6 +758,11 @@ class GeneralSettingsFragment : Fragment() {
                     if (binding.switchShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems) {
                         binding.switchShowSubfoldersAsItems.isChecked = settings.showSubfoldersAsItems
                     }
+                    binding.switchDefaultRememberFileList?.let { rememberSwitch ->
+                        if (rememberSwitch.isChecked != settings.defaultRememberFileList) {
+                            rememberSwitch.isChecked = settings.defaultRememberFileList
+                        }
+                    }
                     
                     // Safe Mode (Phase 2.1)
                     if (binding.switchEnableSafeMode.isChecked != settings.enableSafeMode) {
@@ -781,6 +805,105 @@ class GeneralSettingsFragment : Fragment() {
                     }
                 }
             }
+        }
+    }
+
+    private fun observeManualNetworkSyncState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.manualNetworkSyncState.collect { state ->
+                    if (state.inProgress) {
+                        binding.btnSyncNow.text = getString(R.string.cancel)
+                        showOrUpdateManualSyncProgressDialog(state.processedCount, state.totalCount)
+                        return@collect
+                    }
+
+                    binding.btnSyncNow.text = getString(R.string.sync_now)
+                    dismissManualSyncProgressDialog()
+
+                    when {
+                        state.completed -> {
+                            refreshLastSyncStatus()
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.sync_completed_successfully, state.successCount),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.clearManualNetworkSyncTerminalState()
+                        }
+
+                        state.cancelled -> {
+                            Toast.makeText(
+                                requireContext(),
+                                R.string.dialog_file_operation_progress_btnCancel_text,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            viewModel.clearManualNetworkSyncTerminalState()
+                        }
+
+                        state.errorMessage != null -> {
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.sync_failed, state.errorMessage),
+                                Toast.LENGTH_LONG
+                            ).show()
+                            viewModel.clearManualNetworkSyncTerminalState()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showOrUpdateManualSyncProgressDialog(processedCount: Int, totalCount: Int) {
+        if (!isAdded) {
+            return
+        }
+
+        val dialog = manualSyncProgressDialog ?: MaterialProgressDialog(requireContext()).apply {
+            setTitle(getString(R.string.sync_now))
+            setProgressStyle(MaterialProgressDialog.STYLE_HORIZONTAL)
+            show()
+            manualSyncProgressDialog = this
+        }
+
+        val safeMax = maxOf(1, totalCount)
+        val safeProgress = processedCount.coerceIn(0, safeMax)
+        dialog.max = safeMax
+        dialog.progress = safeProgress
+
+        val message = if (totalCount > 0) {
+            "${getString(R.string.sync_status_in_progress)} ($processedCount/$totalCount)"
+        } else {
+            getString(R.string.sync_status_in_progress)
+        }
+        dialog.setMessage(message)
+    }
+
+    private fun dismissManualSyncProgressDialog() {
+        manualSyncProgressDialog?.dismiss()
+        manualSyncProgressDialog = null
+    }
+
+    private fun refreshLastSyncStatus() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            val lastSyncTimestamp = viewModel.getLastNetworkSyncTimestamp()
+            if (!isAdded || _binding == null) {
+                return@launch
+            }
+
+            val statusText = if (lastSyncTimestamp == null) {
+                getString(R.string.never_synced)
+            } else {
+                val relativeTime = DateUtils.getRelativeTimeSpanString(
+                    lastSyncTimestamp,
+                    System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS,
+                    DateUtils.FORMAT_ABBREV_RELATIVE
+                )
+                getString(R.string.last_sync_time, relativeTime)
+            }
+            binding.tvSyncLastStatus?.text = statusText
         }
     }
 
@@ -1300,8 +1423,17 @@ class GeneralSettingsFragment : Fragment() {
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to clear MediaFilesCacheManager")
                         }
+
+                        // 5. Clear DB-cached file lists
+                        try {
+                            val app = requireActivity().application as com.sza.fastmediasorter.FastMediaSorterApp
+                            app.cachedFileListRepository.deleteAllCachedFiles()
+                            Timber.d("Cleared CachedFileListRepository (DB-cached file lists)")
+                        } catch (e: Exception) {
+                            Timber.e(e, "Failed to clear CachedFileListRepository")
+                        }
                         
-                        // 5. Clear playback positions
+                        // 6. Clear playback positions
                         try {
                             val app = requireActivity().application as com.sza.fastmediasorter.FastMediaSorterApp
                             app.playbackPositionRepository.deleteAllPositions()
@@ -1311,7 +1443,7 @@ class GeneralSettingsFragment : Fragment() {
                         }
                         
                         withContext(Dispatchers.Main) {
-                            // 6. Clear Glide Memory Cache
+                            // 7. Clear Glide Memory Cache
                             try {
                                 com.bumptech.glide.Glide.get(requireContext()).clearMemory()
                             } catch (e: Exception) {
@@ -1342,6 +1474,14 @@ class GeneralSettingsFragment : Fragment() {
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showRememberFileListHelpDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(R.string.remember_file_list_help_title)
+            .setMessage(R.string.remember_file_list_help_message)
+            .setPositiveButton(android.R.string.ok, null)
             .show()
     }
     
@@ -1752,6 +1892,7 @@ class GeneralSettingsFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        dismissManualSyncProgressDialog()
         super.onDestroyView()
         _binding = null
     }

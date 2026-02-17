@@ -143,6 +143,7 @@ data class MediaResource(
     val allFiles: Boolean = false, // Show all files regardless of type (when true, overrides supportedMediaTypes filter)
     val showHiddenFiles: Boolean = false, // Show hidden files and folders (those starting with a dot). Depends on allFiles being ON.
     val showSubfoldersAsItems: Boolean = false, // Show subfolders as separate clickable items in Browse. Only works when scanSubdirectories is enabled.
+    val rememberFileList: Boolean = false, // Persist file list in DB for faster subsequent loads
     val accessPin: String? = null, // PIN code to access the resource (null = no PIN protection)
     val comment: String? = null, // User comment for the resource
     

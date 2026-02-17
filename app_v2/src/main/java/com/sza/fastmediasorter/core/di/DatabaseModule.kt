@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.di
 import android.content.Context
 import androidx.room.Room
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
@@ -33,7 +34,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_3_4, 
                 AppDatabase.MIGRATION_4_5, 
                 AppDatabase.MIGRATION_5_6, 
-                AppDatabase.MIGRATION_6_7
+                AppDatabase.MIGRATION_6_7,
+                AppDatabase.MIGRATION_7_8
             )
             .build()
     }
@@ -66,5 +68,11 @@ object DatabaseModule {
     @Singleton
     fun provideThumbnailCacheDao(database: AppDatabase): ThumbnailCacheDao {
         return database.thumbnailCacheDao()
+    }
+    
+    @Provides
+    @Singleton
+    fun provideCachedFileListDao(database: AppDatabase): CachedFileListDao {
+        return database.cachedFileListDao()
     }
 }

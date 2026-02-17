@@ -607,6 +607,30 @@
                     android:layout_height="wrap_content"
                     android:text="@string/label_show_subfolders_as_items" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbRememberFileList"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/remember_file_list" />
+
+                    <ImageButton
+                        android:id="@+id/btnHelpRememberFileListEditor"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/help_remember_file_list"
+                        android:src="@drawable/ic_help_outline_24"
+                        app:tint="?attr/colorPrimary" />
+
+                </LinearLayout>
+
             </LinearLayout>
 
             <!-- ========== DESTINATION (collapsible) ========== -->

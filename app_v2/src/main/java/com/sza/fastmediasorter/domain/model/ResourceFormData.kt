@@ -38,6 +38,7 @@ data class ResourceFormData(
     val allFiles: Boolean = false,
     val showHiddenFiles: Boolean = false,
     val showSubfoldersAsItems: Boolean = false,
+    val rememberFileList: Boolean = false,
 
     val metadata: Map<String, String> = emptyMap()
 )

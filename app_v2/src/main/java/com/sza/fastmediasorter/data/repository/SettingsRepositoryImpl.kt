@@ -130,6 +130,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // Last used resource key
         private val KEY_LAST_USED_RESOURCE_ID = longPreferencesKey("last_used_resource_id")
         
+        // File list caching
+        private val KEY_DEFAULT_REMEMBER_FILE_LIST = booleanPreferencesKey("default_remember_file_list")
+        
         // UI State keys
         private val KEY_IS_RESOURCE_GRID_MODE = booleanPreferencesKey("is_resource_grid_mode")
     }
@@ -280,7 +283,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     enablePictureInPicture = preferences[KEY_ENABLE_PICTURE_IN_PICTURE] ?: false,
                     
                     // Last used resource
-                    lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L
+                    lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L,
+                    
+                    // File list caching
+                    defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -409,6 +415,9 @@ class SettingsRepositoryImpl @Inject constructor(
             
             // Last used resource
             preferences[KEY_LAST_USED_RESOURCE_ID] = settings.lastUsedResourceId
+            
+            // File list caching
+            preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] = settings.defaultRememberFileList
             
             // UI State
             preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode

@@ -2466,6 +2466,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             is PlayerViewModel.PlayerEvent.CloudAuthRequired -> {
                 showCloudAuthenticationError(event.provider)
             }
+            is PlayerViewModel.PlayerEvent.ShowMissingFileDialog -> {
+                androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.file_not_found_title)
+                    .setMessage(getString(R.string.file_not_found_message, event.fileName))
+                    .setPositiveButton(R.string.refresh_resource) { _, _ ->
+                        viewModel.handleMissingFileRefresh(event.filePath)
+                    }
+                    .setNegativeButton(android.R.string.cancel) { _, _ ->
+                        finish()
+                    }
+                    .show()
+            }
             // Removed: LoadingProgress event handler (dialog not needed)
             PlayerViewModel.PlayerEvent.FinishActivity -> {
                 finish()

@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
@@ -22,7 +24,9 @@ class SyncNetworkResourcesUseCase @Inject constructor(
      * Sync all network resources
      * @return Result with count of successfully synced resources
      */
-    suspend fun syncAll(): Result<Int> {
+    suspend fun syncAll(
+        onProgress: ((processed: Int, total: Int, successCount: Int) -> Unit)? = null
+    ): Result<Int> {
         return try {
             val resources = resourceRepository.getAllResourcesSync()
             val networkResources = resources.filter { 
@@ -47,8 +51,12 @@ class SyncNetworkResourcesUseCase @Inject constructor(
             } else null
             
             var successCount = 0
+            var processedCount = 0
+            val totalCount = networkResources.size
+            onProgress?.invoke(processedCount, totalCount, successCount)
             
             networkResources.forEach { resource ->
+                currentCoroutineContext().ensureActive()
                 try {
                     val scanner = mediaScannerFactory.getScanner(resource.type)
                     val fileCount = scanner.getFileCount(
@@ -70,6 +78,9 @@ class SyncNetworkResourcesUseCase @Inject constructor(
                 } catch (e: Exception) {
                     Timber.e(e, "SyncNetworkResourcesUseCase: Failed to sync ${resource.name}")
                 }
+
+                processedCount++
+                onProgress?.invoke(processedCount, totalCount, successCount)
             }
             
             Result.success(successCount)

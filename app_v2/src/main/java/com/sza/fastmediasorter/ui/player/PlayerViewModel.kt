@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
@@ -39,7 +40,8 @@ class PlayerViewModel @Inject constructor(
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
-    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient
+    private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
+    private val cachedFileListRepository: CachedFileListRepository
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -81,6 +83,7 @@ class PlayerViewModel @Inject constructor(
         data class FileModified(val filePath: String) : PlayerEvent()
         data class ShowUndoSnackbar(val operation: UndoOperation) : PlayerEvent()
         data class CloudAuthRequired(val provider: String, val message: String) : PlayerEvent()
+        data class ShowMissingFileDialog(val fileName: String, val filePath: String) : PlayerEvent()
         // Removed: LoadingProgress event (dialog not needed for single file loads)
         object FinishActivity : PlayerEvent()
     }
@@ -349,6 +352,10 @@ class PlayerViewModel @Inject constructor(
                             foundIndex
                         } else {
                             Timber.w("File not found by path: $initialFilePath, using index 0")
+                            if (resource.rememberFileList) {
+                                val missingName = initialFilePath.substringAfterLast('/').ifBlank { initialFilePath }
+                                sendEvent(PlayerEvent.ShowMissingFileDialog(missingName, initialFilePath))
+                            }
                             0
                         }
                     } else {
@@ -388,6 +395,19 @@ class PlayerViewModel @Inject constructor(
                 sendEvent(PlayerEvent.FinishActivity)
                 setLoading(false)
             }
+        }
+    }
+
+    fun handleMissingFileRefresh(filePath: String) {
+        viewModelScope.launch {
+            val resource = state.value.resource
+            resource?.let {
+                MediaFilesCacheManager.removeFile(it.id, filePath)
+                if (it.rememberFileList) {
+                    cachedFileListRepository.deleteFile(it.id, filePath)
+                }
+            }
+            sendEvent(PlayerEvent.FinishActivity)
         }
     }
 

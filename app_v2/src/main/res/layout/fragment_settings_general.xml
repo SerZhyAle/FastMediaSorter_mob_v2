@@ -331,6 +331,41 @@
 
             </LinearLayout>
 
+            <LinearLayout
+                android:id="@+id/layoutDefaultRememberFileList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/margin_tiny"
+                android:gravity="center_vertical"
+                android:minHeight="@dimen/settings_item_min_height"
+                android:orientation="horizontal">
+
+                <com.google.android.material.switchmaterial.SwitchMaterial
+                    android:id="@+id/switchDefaultRememberFileList"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/settings_switch_margin_end"
+                    android:contentDescription="@string/default_remember_file_list" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/default_remember_file_list"
+                    android:textSize="@dimen/resource_card_title_text_size" />
+
+                <ImageButton
+                    android:id="@+id/btnHelpRememberFileList"
+                    android:layout_width="@dimen/settings_help_icon_size"
+                    android:layout_height="@dimen/settings_help_icon_size"
+                    android:layout_marginStart="@dimen/settings_help_icon_margin"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/help_remember_file_list"
+                    android:src="@drawable/ic_help_outline_24"
+                    app:tint="@color/text_color_secondary" />
+
+            </LinearLayout>
+
             <!-- Enable Safe Mode + Confirm options in two columns -->
 
             <LinearLayout
@@ -733,6 +768,15 @@
 
                 </LinearLayout>
 
+                <TextView
+                    android:id="@+id/tvSyncLastStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/margin_tiny"
+                    android:text="@string/never_synced"
+                    android:textColor="@color/text_color_secondary"
+                    android:textSize="@dimen/text_size_small" />
+
             </LinearLayout>
 
             <LinearLayout
@@ -922,39 +966,6 @@
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
-            <!-- Documentation Links Container - horizontal layout -->
-            <LinearLayout
-                android:id="@+id/containerDocLinks"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
-                android:layout_marginBottom="@dimen/margin_tiny"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnUserGuide"
-                    style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/settings_margin_standard"
-                    android:text="@string/user_guide"
-                    android:textSize="12sp"
-                    app:icon="@android:drawable/ic_menu_help"
-                    app:iconSize="@dimen/settings_icon_size" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPrivacyPolicy"
-                    style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/privacy_policy"
-                    android:textSize="12sp"
-                    app:icon="@android:drawable/ic_menu_info_details"
-                    app:iconSize="@dimen/settings_icon_size" />
-
-            </LinearLayout>
-
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/containerGeneralActions"
                 android:layout_width="match_parent"
@@ -996,6 +1007,39 @@
                     app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+        </LinearLayout>
+
+        <!-- Documentation Links Container - horizontal layout -->
+        <LinearLayout
+            android:id="@+id/containerDocLinks"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUserGuide"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_margin_standard"
+                android:text="@string/user_guide"
+                android:textSize="12sp"
+                app:icon="@android:drawable/ic_menu_help"
+                app:iconSize="@dimen/settings_icon_size" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPrivacyPolicy"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/privacy_policy"
+                android:textSize="12sp"
+                app:icon="@android:drawable/ic_menu_info_details"
+                app:iconSize="@dimen/settings_icon_size" />
 
         </LinearLayout>
 

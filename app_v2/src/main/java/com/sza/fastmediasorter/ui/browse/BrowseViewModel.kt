@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.data.observer.MediaFileObserver
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
@@ -107,6 +108,7 @@ class BrowseViewModel @Inject constructor(
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
+    private val cachedFileListRepository: CachedFileListRepository,
     private val updateResourceUseCase: UpdateResourceUseCase,
     val fileOperationUseCase: FileOperationUseCase, // Public for RenameDialog
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
@@ -469,6 +471,7 @@ class BrowseViewModel @Inject constructor(
      * @param newFile Updated MediaFile object
      */
     fun updateFile(oldPath: String, newFile: MediaFile) {
+        val resource = state.value.resource
         // Notify selection manager about path change
         selectionManager.onFilePathChanged(oldPath, newFile.path)
         
@@ -479,6 +482,12 @@ class BrowseViewModel @Inject constructor(
         
         // Invalidate directory cache after updating file
         invalidateDirectoryCache()
+
+        if (resource?.rememberFileList == true) {
+            viewModelScope.launch(ioDispatcher) {
+                cachedFileListRepository.updateFile(resource.id, oldPath, newFile)
+            }
+        }
     }
 
     fun reloadFiles(clearList: Boolean = false) {
@@ -553,9 +562,18 @@ class BrowseViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 // Clearing cache for resource
                 MediaFilesCacheManager.clearCache(resourceId)
+                if (currentResource?.rememberFileList == true) {
+                    viewModelScope.launch(ioDispatcher) {
+                        try {
+                            cachedFileListRepository.deleteCachedFiles(resourceId)
+                        } catch (e: Exception) {
+                            Timber.e(e, "BrowseViewModel.reloadFiles: Failed to clear DB cache for resource $resourceId")
+                        }
+                    }
+                }
                 // Clear video frame extraction cache to retry failed videos
                 NetworkFileDataFetcher.clearFailedVideoCache()
-                loadResource()
+                loadResource(forceRescan = true)
             }
         }
     }
@@ -924,7 +942,7 @@ class BrowseViewModel @Inject constructor(
     
     // ===== END SUBFOLDER NAVIGATION =====
 
-    private fun loadResource() {
+    private fun loadResource(forceRescan: Boolean = false) {
         Timber.d("BrowseViewModel.loadResource: START - resourceId=$resourceId")
         // Cancel previous loadResource if still running to prevent parallel loads
         loadResourceJob?.cancel()
@@ -1072,6 +1090,33 @@ class BrowseViewModel @Inject constructor(
             
             if (effectiveResource != resource) {
                 updateResourceUseCase(effectiveResource)
+            }
+
+            if (resource.rememberFileList && !forceRescan && !initialSubfolderMode) {
+                try {
+                    Timber.d("BrowseViewModel.loadResource: Trying DB cache for resource=${resource.id}")
+                    val dbCachedFiles = cachedFileListRepository.getCachedFiles(resource.id)
+                    if (!dbCachedFiles.isNullOrEmpty()) {
+                        val filteredDbCache = if (!resource.allFiles && resource.supportedMediaTypes.isNotEmpty()) {
+                            dbCachedFiles.filter { file ->
+                                file.isDirectory || resource.supportedMediaTypes.contains(file.type)
+                            }
+                        } else {
+                            dbCachedFiles
+                        }
+
+                        MediaFilesCacheManager.setCachedList(resource.id, filteredDbCache)
+                        updateState { it.copy(mediaFiles = filteredDbCache, totalFileCount = filteredDbCache.size) }
+                        schedulePlayerWarmupIfEligible(filteredDbCache)
+                        setLoading(false)
+                        updateResourceMetadataAfterBrowse(resource, filteredDbCache.size)
+                        Timber.i("BrowseViewModel.loadResource: Loaded ${filteredDbCache.size} files from DB cache for resource ${resource.id}")
+                        return@launch
+                    }
+                    Timber.d("BrowseViewModel.loadResource: DB cache is empty for resource=${resource.id}")
+                } catch (e: Exception) {
+                    Timber.e(e, "BrowseViewModel.loadResource: Failed to load DB cache for resource=${resource.id}")
+                }
             }
             
             // For Google Drive resources, verify authentication by testing API access
@@ -1414,6 +1459,16 @@ class BrowseViewModel @Inject constructor(
             
             override suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int) {
                 updateResourceMetadataAfterBrowse(resource, fileCount)
+            }
+
+            override suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>) {
+                if (!resource.rememberFileList) return
+                try {
+                    cachedFileListRepository.saveCachedFiles(resource.id, files)
+                    Timber.d("BrowseViewModel: Saved ${files.size} files to DB cache for resource ${resource.id}")
+                } catch (e: Exception) {
+                    Timber.e(e, "BrowseViewModel: Failed to save files to DB cache for resource ${resource.id}")
+                }
             }
             
             override fun startFileObserver() {
@@ -1807,6 +1862,17 @@ class BrowseViewModel @Inject constructor(
                 mediaFiles = sortedList,
                 totalFileCount = sortedList.size
             )
+        }
+
+        val resource = state.value.resource
+        if (resource?.rememberFileList == true) {
+            viewModelScope.launch(ioDispatcher) {
+                try {
+                    cachedFileListRepository.saveCachedFiles(resource.id, sortedList)
+                } catch (e: Exception) {
+                    Timber.e(e, "mergeResolvedFileAndOpen: Failed to save DB cache")
+                }
+            }
         }
 
         val targetIndex = sortedList.indexOfFirst { it.path == resolvedFile.path }
@@ -2505,6 +2571,16 @@ class BrowseViewModel @Inject constructor(
             if (filteredFiles != currentFiles) {
                 updateState { it.copy(mediaFiles = filteredFiles, totalFileCount = filteredFiles.size) }
                 Timber.d("syncWithCache: State updated")
+
+                if (resource?.rememberFileList == true) {
+                    viewModelScope.launch(ioDispatcher) {
+                        try {
+                            cachedFileListRepository.saveCachedFiles(resource.id, filteredFiles)
+                        } catch (e: Exception) {
+                            Timber.e(e, "syncWithCache: Failed to persist DB cache for resource ${resource.id}")
+                        }
+                    }
+                }
             } else {
                 Timber.d("syncWithCache: State already up to date")
             }
@@ -2580,6 +2656,32 @@ class BrowseViewModel @Inject constructor(
             
             // Also update cache
             MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
+
+            val resource = state.value.resource
+            if (resource?.rememberFileList == true) {
+                viewModelScope.launch(ioDispatcher) {
+                    paths.forEach { path ->
+                        cachedFileListRepository.deleteFile(resource.id, path)
+                    }
+                }
+            }
+        }
+    }
+
+    suspend fun onFileMissingFromDisk(mediaFile: MediaFile) {
+        val resource = state.value.resource ?: return
+
+        Timber.w("BrowseViewModel: File missing from disk: ${mediaFile.path}")
+
+        updateState { current ->
+            val updatedFiles = current.mediaFiles.filterNot { it.path == mediaFile.path }
+            current.copy(mediaFiles = updatedFiles, totalFileCount = updatedFiles.size)
+        }
+
+        MediaFilesCacheManager.removeFile(resource.id, mediaFile.path)
+
+        if (resource.rememberFileList) {
+            cachedFileListRepository.deleteFile(resource.id, mediaFile.path)
         }
     }
     

@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.Flow
  */
 @Dao
 interface NetworkCredentialsDao {
+
+    @Query("SELECT * FROM network_credentials WHERE id = :id LIMIT 1")
+    suspend fun getById(id: Long): NetworkCredentialsEntity?
     
     @Query("SELECT * FROM network_credentials WHERE credentialId = :credentialId")
     suspend fun getCredentialsById(credentialId: String): NetworkCredentialsEntity?

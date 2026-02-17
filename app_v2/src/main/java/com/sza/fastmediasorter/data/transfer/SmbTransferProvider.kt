@@ -6,8 +6,10 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import android.content.Context
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.transfer.FileTransferProvider
 import com.sza.fastmediasorter.domain.usecase.ByteProgressCallback
+import com.sza.fastmediasorter.utils.SmbPathUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -25,7 +27,8 @@ import javax.inject.Singleton
 @Singleton
 class SmbTransferProvider @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val smbClient: SmbClient
+    private val smbClient: SmbClient,
+    private val credentialsRepository: NetworkCredentialsRepository
 ) : FileTransferProvider {
     
     override val protocolName: String = "SMB"
@@ -48,39 +51,64 @@ class SmbTransferProvider @Inject constructor(
      * Returns Triple(server, shareName, remotePath)
      */
     private fun parseSmbPath(path: String): Triple<String, String, String> {
-        require(path.startsWith("smb://")) { "Invalid SMB path format: $path" }
-        
-        val pathWithoutProtocol = path.substringAfter("smb://")
-        val parts = pathWithoutProtocol.split("/", limit = 3)
-        
-        require(parts.size >= 2) { "SMB path must contain server and share: $path" }
-        
-        val server = parts[0]
-        val shareName = parts[1]
-        val remotePath = if (parts.size > 2) parts[2] else ""
-        
-        return Triple(server, shareName, remotePath)
+        val pathInfo = SmbPathUtils.parseSmbPath(path)
+            ?: throw IllegalArgumentException("Invalid SMB path format: $path")
+        return Triple(
+            pathInfo.connectionInfo.server,
+            pathInfo.connectionInfo.shareName,
+            pathInfo.remotePath
+        )
     }
     
-    /**
-     * Get connection info from path.
-     * TODO: Integrate with NetworkCredentialsRepository to fetch username/password/domain.
-     * For now, uses empty credentials (requires anonymous access or saved credentials in SmbClient cache).
-     */
-    private fun getConnectionInfo(path: String): SmbConnectionInfo {
-        val (server, shareName, _) = parseSmbPath(path)
-        
-        // TODO: Fetch credentials from NetworkCredentialsRepository
-        // val credentials = credentialsRepository.getCredentials(server, shareName)
-        
-        return SmbConnectionInfo(
-            server = server,
-            shareName = shareName,
-            username = "", // TODO: credentials.username
-            password = "", // TODO: credentials.password
-            domain = "",   // TODO: credentials.domain
-            port = 445
+    private suspend fun getConnectionInfo(path: String): SmbConnectionInfo {
+        val pathInfo = SmbPathUtils.parseSmbPath(path)
+            ?: throw IllegalArgumentException("Invalid SMB path format: $path")
+
+        val server = pathInfo.connectionInfo.server
+        val shareName = pathInfo.connectionInfo.shareName
+        val credentials = resolveSmbCredentials(server, shareName)
+            ?: throw IllegalStateException("No SMB credentials configured for '$server/$shareName'")
+
+        return pathInfo.connectionInfo.copy(
+            username = credentials.username,
+            password = credentials.password,
+            domain = credentials.domain
         )
+    }
+
+    private suspend fun resolveSmbCredentials(
+        server: String,
+        shareName: String
+    ): com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity? {
+        val normalizedShare = shareName.trim().trim('/', '\\')
+        val firstSegment = normalizedShare.substringBefore('/', normalizedShare)
+
+        val shareCandidates = linkedSetOf<String>().apply {
+            add(shareName)
+            if (normalizedShare.isNotEmpty()) {
+                add(normalizedShare)
+            }
+            if (firstSegment.isNotEmpty()) {
+                add(firstSegment)
+            }
+        }
+
+        for (candidate in shareCandidates) {
+            val candidateCredentials = credentialsRepository.getByServerAndShare(server, candidate)
+            if (candidateCredentials != null) {
+                Timber.d("SmbTransferProvider: Credentials resolved for server='$server', share='$candidate'")
+                return candidateCredentials
+            }
+        }
+
+        val hostCredentials = credentialsRepository.getCredentialsByHost(server)
+        if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
+            Timber.w("SmbTransferProvider: Share credentials not found for '$server/$shareName', using host SMB credentials")
+            return hostCredentials
+        }
+
+        Timber.w("SmbTransferProvider: No SMB credentials found for '$server/$shareName'")
+        return null
     }
     
     override suspend fun downloadFile(
@@ -91,13 +119,21 @@ class SmbTransferProvider @Inject constructor(
         return@withContext try {
             val (_, _, remotePath) = parseSmbPath(sourcePath)
             val connectionInfo = getConnectionInfo(sourcePath)
+
+            val fileSize = when (val fileInfoResult = smbClient.getFileInfo(connectionInfo, remotePath)) {
+                is SmbResult.Success -> fileInfoResult.data.size
+                is SmbResult.Error -> {
+                    Timber.w(fileInfoResult.exception, "SMB file size lookup failed, fallback to unknown size: ${fileInfoResult.message}")
+                    0L
+                }
+            }
             
             destinationFile.outputStream().use { output ->
                 when (val result = smbClient.downloadFile(
                     connectionInfo = connectionInfo,
                     remotePath = remotePath,
                     localOutputStream = output,
-                    fileSize = 0L, // TODO: Get file size from getFileInfo first
+                    fileSize = fileSize,
                     progressCallback = adaptProgressCallback(onProgress)
                 )) {
                     is SmbResult.Success -> {

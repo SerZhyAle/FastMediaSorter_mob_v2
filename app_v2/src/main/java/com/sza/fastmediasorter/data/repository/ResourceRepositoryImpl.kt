@@ -377,6 +377,7 @@ class ResourceRepositoryImpl @Inject constructor(
             allFiles = allFiles,
             showHiddenFiles = showHiddenFiles,
             showSubfoldersAsItems = showSubfoldersAsItems,
+            rememberFileList = rememberFileList,
             accessPin = accessPin,
             comment = comment,
             readSpeedMbps = readSpeedMbps,
@@ -429,6 +430,7 @@ class ResourceRepositoryImpl @Inject constructor(
             allFiles = allFiles,  // CRITICAL FIX: Added missing allFiles field mapping
             showHiddenFiles = showHiddenFiles,  // Show hidden files (depends on allFiles)
             showSubfoldersAsItems = showSubfoldersAsItems,
+            rememberFileList = rememberFileList,
             accessPin = accessPin,
             comment = comment,
             readSpeedMbps = readSpeedMbps,

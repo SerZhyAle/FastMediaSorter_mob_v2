@@ -209,6 +209,9 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS -> current.formData.copy(
                     showSubfoldersAsItems = value as? Boolean ?: false
                 )
+                ResourceFieldKey.REMEMBER_FILE_LIST -> current.formData.copy(
+                    rememberFileList = value as? Boolean ?: false
+                )
                 ResourceFieldKey.SHOW_COMMAND_PANEL -> current.formData.copy(
                     showCommandPanel = value as? Boolean
                 )

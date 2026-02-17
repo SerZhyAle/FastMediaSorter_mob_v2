@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,12 @@ import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
 class DestinationsSettingsFragment : Fragment() {
+    companion object {
+        private const val PREFS_NAME = "settings_section_states"
+        private const val KEY_FILE_OPS_EXPANDED = "destinations_file_ops_expanded"
+        private const val KEY_DESTINATIONS_EXPANDED = "destinations_list_expanded"
+    }
+
     private var _binding: FragmentSettingsDestinationsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
@@ -37,6 +44,7 @@ class DestinationsSettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
+        setupExpandableSections()
         observeData()
     }
     
@@ -113,22 +121,6 @@ class DestinationsSettingsFragment : Fragment() {
             showAddDestinationDialog()
         }
 
-        binding.btnResetDestinationsSection.setOnClickListener {
-            androidx.appcompat.app.AlertDialog.Builder(requireContext())
-                .setTitle(R.string.reset_destinations_section_title)
-                .setMessage(R.string.reset_destinations_section_message)
-                .setPositiveButton(android.R.string.ok) { _, _ ->
-                    viewModel.resetDestinationsSection()
-                    Toast.makeText(
-                        requireContext(),
-                        R.string.reset_destinations_section_success,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                .setNegativeButton(android.R.string.cancel, null)
-                .show()
-        }
-        
         // Max Recipients
         val maxRecipientsOptions = arrayOf("5", "10", "15", "20", "25", "30")
         val maxRecipientsAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, maxRecipientsOptions)
@@ -262,6 +254,51 @@ class DestinationsSettingsFragment : Fragment() {
     private fun setupDestinationsLayoutManager() {
         val spanCount = resources.getInteger(R.integer.destinations_column_count)
         binding.rvDestinations.layoutManager = androidx.recyclerview.widget.GridLayoutManager(requireContext(), spanCount)
+    }
+
+    private fun setupExpandableSections() {
+        val prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        bindSectionToggle(
+            header = binding.headerFileOperations,
+            content = binding.containerFileOperations,
+            title = getString(R.string.settings_category_file_operations),
+            prefKey = KEY_FILE_OPS_EXPANDED,
+            initiallyExpanded = prefs.getBoolean(KEY_FILE_OPS_EXPANDED, false)
+        )
+        bindSectionToggle(
+            header = binding.headerDestinations,
+            content = binding.containerDestinations,
+            title = getString(R.string.destinations_list_header),
+            prefKey = KEY_DESTINATIONS_EXPANDED,
+            initiallyExpanded = prefs.getBoolean(KEY_DESTINATIONS_EXPANDED, false)
+        )
+    }
+
+    private fun bindSectionToggle(
+        header: android.widget.TextView,
+        content: View,
+        title: String,
+        prefKey: String,
+        initiallyExpanded: Boolean
+    ) {
+        content.isVisible = initiallyExpanded
+        updateHeader(header, title, initiallyExpanded)
+
+        header.setOnClickListener {
+            val expanded = !content.isVisible
+            content.isVisible = expanded
+            updateHeader(header, title, expanded)
+            requireContext()
+                .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(prefKey, expanded)
+                .apply()
+        }
+    }
+
+    private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
+        val prefix = if (expanded) "▼" else "▶"
+        header.text = "$prefix $title"
     }
     
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {

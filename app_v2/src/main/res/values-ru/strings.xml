@@ -1468,7 +1468,6 @@
     <string name="reset_general_section">Сбросить раздел Общие</string>
     <string name="reset_media_section">Сбросить раздел Медиа</string>
     <string name="reset_playback_section">Сбросить раздел Воспроизведение</string>
-    <string name="reset_destinations_section">Сбросить раздел Назначения</string>
     <string name="reset_general_section_title">Сброс раздела Общие</string>
     <string name="reset_general_section_message">Сбросить только настройки раздела Общие к значениям по умолчанию?</string>
     <string name="reset_general_section_success">Раздел Общие сброшен</string>
@@ -1479,12 +1478,21 @@
     <string name="reset_playback_section_title">Сброс раздела Воспроизведение</string>
     <string name="reset_playback_section_message">Сбросить только настройки раздела Воспроизведение к значениям по умолчанию?</string>
     <string name="reset_playback_section_success">Раздел Воспроизведение сброшен</string>
-    <string name="reset_destinations_section_title">Сброс раздела Назначения</string>
-    <string name="reset_destinations_section_message">Сбросить только настройки раздела Назначения к значениям по умолчанию?</string>
-    <string name="reset_destinations_section_success">Раздел Назначения сброшен</string>
     <string name="export_settings_confirm_title">Экспорт настроек</string>
     <string name="export_settings_confirm_message">Создать файл экспорта с текущими настройками?</string>
     <string name="import_settings_confirm_title">Импорт настроек</string>
     <string name="import_settings_confirm_message">Импорт перезапишет текущие значения настроек. Продолжить?</string>
+
+    <!-- Remember file list -->
+    <string name="default_remember_file_list">Запоминать списки файлов (по умолчанию для новых ресурсов)</string>
+    <string name="remember_file_list">Запоминать список файлов для этого ресурса</string>
+    <string name="help_remember_file_list">Справка: Запоминать список файлов</string>
+    <string name="remember_file_list_help_title">Запоминать список файлов</string>
+    <string name="remember_file_list_help_message">При включении приложение сохраняет список файлов ресурса в базе данных после сканирования. При следующих открытиях список загружается из кэша мгновенно. Для внешних изменений используйте кнопку «Обновить».</string>
+
+    <!-- Missing file -->
+    <string name="file_not_found_title">Файл не найден</string>
+    <string name="file_not_found_message">Файл "%1$s" больше не существует. Возможно, он был удалён или перемещён вне приложения. Обновить ресурс?</string>
+    <string name="refresh_resource">Обновить ресурс</string>
 
 </resources>

@@ -1644,7 +1644,6 @@
     <string name="reset_general_section">Reset General section</string>
     <string name="reset_media_section">Reset Media section</string>
     <string name="reset_playback_section">Reset Playback section</string>
-    <string name="reset_destinations_section">Reset Destinations section</string>
     <string name="reset_general_section_title">Reset General section</string>
     <string name="reset_general_section_message">Reset only General settings to default values?</string>
     <string name="reset_general_section_success">General section reset completed</string>
@@ -1655,9 +1654,6 @@
     <string name="reset_playback_section_title">Reset Playback section</string>
     <string name="reset_playback_section_message">Reset only Playback settings to default values?</string>
     <string name="reset_playback_section_success">Playback section reset completed</string>
-    <string name="reset_destinations_section_title">Reset Destinations section</string>
-    <string name="reset_destinations_section_message">Reset only Destinations settings to default values?</string>
-    <string name="reset_destinations_section_success">Destinations section reset completed</string>
     <string name="export_settings_confirm_title">Export settings</string>
     <string name="export_settings_confirm_message">Create an export file with current settings?</string>
     <string name="import_settings_confirm_title">Import settings</string>
@@ -1775,6 +1771,18 @@
     <string name="sleep_timer_active">Sleep: %s remaining</string>
     <string name="sleep_timer_cancelled">Sleep timer cancelled</string>
     <string name="sleep_timer_set">Sleep timer set for %s</string>
+
+    <!-- Remember file list -->
+    <string name="default_remember_file_list">Remember file lists (default for new resources)</string>
+    <string name="remember_file_list">Remember file list for this resource</string>
+    <string name="help_remember_file_list">Help: Remember File List</string>
+    <string name="remember_file_list_help_title">Remember File List</string>
+    <string name="remember_file_list_help_message">When enabled, the app stores the resource file list in the database after scan. Next openings load from cache instantly. Use Refresh to pick up external file changes.</string>
+
+    <!-- Missing file -->
+    <string name="file_not_found_title">File Not Found</string>
+    <string name="file_not_found_message">The file "%1$s" no longer exists. It may have been deleted or moved outside the app. Refresh this resource?</string>
+    <string name="refresh_resource">Refresh Resource</string>
 
     <!-- Picture-in-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>

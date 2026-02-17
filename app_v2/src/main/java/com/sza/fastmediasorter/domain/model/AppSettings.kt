@@ -112,7 +112,10 @@ data class AppSettings(
     val enablePictureInPicture: Boolean = false,
     
     // Last used resource for quick slideshow
-    val lastUsedResourceId: Long = -1L
+    val lastUsedResourceId: Long = -1L,
+    
+    // File list caching
+    val defaultRememberFileList: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

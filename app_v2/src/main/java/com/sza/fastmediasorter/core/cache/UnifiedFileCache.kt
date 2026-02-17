@@ -140,14 +140,6 @@ class UnifiedFileCache @Inject constructor(
         }
     }
     
-    /**
-     * Clear all cached files (alias for clearAll).
-     * @deprecated Use clearAll() instead
-     */
-    @Deprecated("Use clearAll() instead", ReplaceWith("clearAll()"))
-    fun clearCache() {
-        clearAll()
-    }
     
     /**
      * Get cache statistics.

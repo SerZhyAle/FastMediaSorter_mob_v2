@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
 import com.sza.fastmediasorter.domain.model.ResourceVerificationStatus
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.strategy.CloudResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.FtpResourceStrategy
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -41,6 +43,7 @@ data class ResourceEditorSaveResult(
 
 class ResourceEditorUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
+    private val settingsRepository: SettingsRepository,
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
@@ -133,10 +136,15 @@ class ResourceEditorUseCase @Inject constructor(
         try {
             when (mode) {
                 ResourceEditorMode.CREATE -> {
+                    val defaultRememberFileList = settingsRepository
+                        .getSettings()
+                        .first()
+                        .defaultRememberFileList
                     Result.success(
                         ResourceFormData(
                             mode = ResourceEditorMode.CREATE,
-                            type = resourceType
+                            type = resourceType,
+                            rememberFileList = defaultRememberFileList
                         )
                     )
                 }
@@ -200,6 +208,7 @@ class ResourceEditorUseCase @Inject constructor(
             allFiles = normalized.allFiles,
             showHiddenFiles = normalized.showHiddenFiles,
             showSubfoldersAsItems = normalized.showSubfoldersAsItems,
+            rememberFileList = normalized.rememberFileList,
             accessPin = normalized.accessPin.ifBlank { null },
             comment = normalized.comment.ifBlank { null }
         )
@@ -406,7 +415,8 @@ class ResourceEditorUseCase @Inject constructor(
             disableThumbnails = resource.disableThumbnails,
             allFiles = resource.allFiles,
             showHiddenFiles = resource.showHiddenFiles,
-            showSubfoldersAsItems = resource.showSubfoldersAsItems
+            showSubfoldersAsItems = resource.showSubfoldersAsItems,
+            rememberFileList = resource.rememberFileList
         )
 
         return if (mode == ResourceEditorMode.COPY) {

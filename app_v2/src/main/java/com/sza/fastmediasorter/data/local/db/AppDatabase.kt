@@ -13,9 +13,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ResourceFtsEntity::class,
         FavoritesEntity::class,
         PlaybackPositionEntity::class,
-        ThumbnailCacheEntity::class
+        ThumbnailCacheEntity::class,
+        CachedFileListEntity::class
     ],
-    version = 7,
+    version = 8,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -25,6 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun favoritesDao(): FavoritesDao
     abstract fun playbackPositionDao(): PlaybackPositionDao
     abstract fun thumbnailCacheDao(): ThumbnailCacheDao
+    abstract fun cachedFileListDao(): CachedFileListDao
     
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -238,6 +240,27 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("CREATE INDEX idx_resources_media_types ON resources (supportedMediaTypesFlags)")
                 }
                 // If column is already NOT NULL, do nothing - database is already correct
+            }
+        }
+        
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // 1. Add rememberFileList column to resources table
+                db.execSQL("ALTER TABLE resources ADD COLUMN rememberFileList INTEGER NOT NULL DEFAULT 0")
+                
+                // 2. Create cached_file_lists table
+                db.execSQL("""
+                    CREATE TABLE cached_file_lists (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        resourceId INTEGER NOT NULL,
+                        media_file_json TEXT NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        FOREIGN KEY(resourceId) REFERENCES resources(id) ON DELETE CASCADE
+                    )
+                """)
+                
+                // 3. Create index on resourceId
+                db.execSQL("CREATE INDEX idx_cached_files_resource_id ON cached_file_lists (resourceId)")
             }
         }
     }

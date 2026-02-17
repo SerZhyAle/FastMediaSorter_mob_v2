@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -14,17 +15,31 @@ import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
+import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
+
+data class ManualNetworkSyncUiState(
+    val inProgress: Boolean = false,
+    val processedCount: Int = 0,
+    val totalCount: Int = 0,
+    val successCount: Int = 0,
+    val completed: Boolean = false,
+    val cancelled: Boolean = false,
+    val errorMessage: String? = null
+)
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -36,8 +51,13 @@ class SettingsViewModel @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     val exportSettingsUseCase: ExportSettingsUseCase,
     val importSettingsUseCase: ImportSettingsUseCase,
-    val resetSmbConnectionsUseCase: ResetSmbConnectionsUseCase
+    val resetSmbConnectionsUseCase: ResetSmbConnectionsUseCase,
+    private val syncNetworkResourcesUseCase: SyncNetworkResourcesUseCase
 ) : ViewModel() {
+
+    private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
+    val manualNetworkSyncState: StateFlow<ManualNetworkSyncUiState> = _manualNetworkSyncState.asStateFlow()
+    private var manualSyncJob: Job? = null
 
     val settings: StateFlow<AppSettings> = settingsRepository.getSettings()
         .stateIn(
@@ -253,6 +273,26 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    suspend fun getLastNetworkSyncTimestamp(): Long? {
+        return try {
+            withContext(Dispatchers.IO) {
+                getResourcesUseCase().first()
+                    .asSequence()
+                    .filter {
+                        it.type == ResourceType.SMB ||
+                            it.type == ResourceType.SFTP ||
+                            it.type == ResourceType.FTP
+                    }
+                    .mapNotNull { it.lastSyncDate }
+                    .filter { it > 0L }
+                    .maxOrNull()
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error getting last network sync timestamp")
+            null
+        }
+    }
+
     fun addDestination(resource: MediaResource) {
         viewModelScope.launch {
             try {
@@ -279,6 +319,71 @@ class SettingsViewModel @Inject constructor(
                 Timber.e(e, "Error adding destination")
             }
         }
+    }
+
+    fun startManualNetworkSync() {
+        if (manualSyncJob?.isActive == true) {
+            return
+        }
+
+        _manualNetworkSyncState.value = ManualNetworkSyncUiState(inProgress = true)
+
+        manualSyncJob = viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val result = syncNetworkResourcesUseCase.syncAll { processed, total, success ->
+                    _manualNetworkSyncState.value = ManualNetworkSyncUiState(
+                        inProgress = true,
+                        processedCount = processed,
+                        totalCount = total,
+                        successCount = success
+                    )
+                }
+
+                withContext(Dispatchers.Main) {
+                    if (result.isSuccess) {
+                        val syncedCount = result.getOrNull() ?: 0
+                        _manualNetworkSyncState.value = ManualNetworkSyncUiState(
+                            inProgress = false,
+                            processedCount = _manualNetworkSyncState.value.processedCount,
+                            totalCount = _manualNetworkSyncState.value.totalCount,
+                            successCount = syncedCount,
+                            completed = true
+                        )
+                    } else {
+                        _manualNetworkSyncState.value = ManualNetworkSyncUiState(
+                            inProgress = false,
+                            errorMessage = result.exceptionOrNull()?.message ?: "Unknown sync error"
+                        )
+                    }
+                }
+            } catch (_: kotlinx.coroutines.CancellationException) {
+                withContext(Dispatchers.Main) {
+                    _manualNetworkSyncState.value = ManualNetworkSyncUiState(
+                        inProgress = false,
+                        cancelled = true
+                    )
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error in manual network sync")
+                withContext(Dispatchers.Main) {
+                    _manualNetworkSyncState.value = ManualNetworkSyncUiState(
+                        inProgress = false,
+                        errorMessage = e.message
+                    )
+                }
+            }
+        }
+    }
+
+    fun cancelManualNetworkSync() {
+        manualSyncJob?.cancel()
+    }
+
+    fun clearManualNetworkSyncTerminalState() {
+        if (_manualNetworkSyncState.value.inProgress) {
+            return
+        }
+        _manualNetworkSyncState.value = ManualNetworkSyncUiState()
     }
 
     fun updateDestinationColor(resource: MediaResource, color: Int) {

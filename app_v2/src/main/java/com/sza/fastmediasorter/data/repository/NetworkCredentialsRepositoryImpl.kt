@@ -157,8 +157,8 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getById(id: Long): NetworkCredentialsEntity? {
-        // DAO doesn't have getById, use getByTypeServerAndPort as workaround
-        return null // TODO: Add getById to DAO if needed
+        val entity = dao.getById(id)
+        return applyDefaultCredentialsIfNeeded(entity)
     }
 
     override suspend fun getByCredentialId(credentialId: String): NetworkCredentialsEntity? {

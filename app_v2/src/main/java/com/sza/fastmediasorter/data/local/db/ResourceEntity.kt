@@ -83,5 +83,7 @@ data class ResourceEntity(
     val recommendedThreads: Int? = null,
     
     @ColumnInfo(name = "last_speed_test_date")
-    val lastSpeedTestDate: Long? = null
+    val lastSpeedTestDate: Long? = null,
+    
+    val rememberFileList: Boolean = false
 )
