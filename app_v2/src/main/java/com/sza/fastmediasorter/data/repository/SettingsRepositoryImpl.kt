@@ -213,7 +213,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     showPdfThumbnails = preferences[KEY_SHOW_PDF_THUMBNAILS] ?: false,
                     textSizeMax = preferences[KEY_TEXT_SIZE_MAX] ?: 104857600L,
                     showTextLineNumbers = preferences[KEY_SHOW_TEXT_LINE_NUMBERS] ?: false,
-                    textReaderTheme = preferences[KEY_TEXT_READER_THEME] ?: "LIGHT",
+                    textReaderTheme = preferences[KEY_TEXT_READER_THEME] ?: "SYSTEM",
                     markdownRendered = preferences[KEY_MARKDOWN_RENDERED] ?: true,
                     syntaxHighlighting = preferences[KEY_SYNTAX_HIGHLIGHTING] ?: true,
                     pdfScrollMode = preferences[KEY_PDF_SCROLL_MODE] ?: false,

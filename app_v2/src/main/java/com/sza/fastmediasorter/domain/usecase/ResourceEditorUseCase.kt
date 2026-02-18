@@ -223,12 +223,34 @@ class ResourceEditorUseCase @Inject constructor(
             }
 
             val preparedFormData = ensureDestinationMetadata(formData)
-            val model = buildPersistenceModel(preparedFormData)
+            var model = buildPersistenceModel(preparedFormData)
 
             val resourceId: Long = when {
                 formData.mode == ResourceEditorMode.EDIT -> {
                     val existingId = requireNotNull(preparedFormData.id) {
                         "resourceId is required for EDIT mode"
+                    }
+                    // Preserve runtime-only fields that are not part of the edit form.
+                    // Without this, isWritable would be overwritten with the default (false),
+                    // causing Move/Rename/Delete buttons to disappear after editing a resource.
+                    val existing = resourceRepository.getResourceById(existingId)
+                    if (existing != null) {
+                        model = model.copy(
+                            isWritable = existing.isWritable,
+                            isAvailable = existing.isAvailable,
+                            fileCount = existing.fileCount,
+                            subfolderCount = existing.subfolderCount,
+                            lastViewedFile = existing.lastViewedFile,
+                            lastScrollPosition = existing.lastScrollPosition,
+                            lastAccessedDate = existing.lastAccessedDate,
+                            lastBrowseDate = existing.lastBrowseDate,
+                            lastSyncDate = existing.lastSyncDate,
+                            displayOrder = existing.displayOrder,
+                            readSpeedMbps = existing.readSpeedMbps,
+                            writeSpeedMbps = existing.writeSpeedMbps,
+                            recommendedThreads = existing.recommendedThreads,
+                            lastSpeedTestDate = existing.lastSpeedTestDate
+                        )
                     }
                     updateResourceUseCase(model).getOrThrow()
                     existingId

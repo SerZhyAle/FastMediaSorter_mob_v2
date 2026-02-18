@@ -4,25 +4,25 @@ import androidx.room.*
 
 @Dao
 interface CachedFileListDao {
-    
-    @Query("SELECT * FROM cached_file_lists WHERE resourceId = :resourceId ORDER BY id ASC")
-    suspend fun getCachedFiles(resourceId: Long): List<CachedFileListEntity>
-    
+
+    /** Returns the single cached snapshot for a resource, or null if none. */
+    @Query("SELECT * FROM cached_file_lists WHERE resourceId = :resourceId LIMIT 1")
+    suspend fun getByResourceId(resourceId: Long): CachedFileListEntity?
+
+    /**
+     * Insert or replace the cached snapshot for a resource.
+     * REPLACE strategy handles the uniqueness constraint on resourceId.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(files: List<CachedFileListEntity>)
-    
+    suspend fun insertOrReplace(entity: CachedFileListEntity)
+
     @Query("DELETE FROM cached_file_lists WHERE resourceId = :resourceId")
     suspend fun deleteByResourceId(resourceId: Long)
-    
+
     @Query("DELETE FROM cached_file_lists")
     suspend fun deleteAll()
-    
-    @Query("SELECT COUNT(*) FROM cached_file_lists WHERE resourceId = :resourceId")
-    suspend fun getCount(resourceId: Long): Int
-    
-    @Query("UPDATE cached_file_lists SET media_file_json = :newMediaFileJson WHERE resourceId = :resourceId AND media_file_json LIKE '%' || :oldPath || '%'")
-    suspend fun updateFile(resourceId: Long, oldPath: String, newMediaFileJson: String): Int
-    
-    @Query("DELETE FROM cached_file_lists WHERE resourceId = :resourceId AND media_file_json LIKE '%' || :filePath || '%'")
-    suspend fun deleteFile(resourceId: Long, filePath: String): Int
+
+    @Query("SELECT file_count FROM cached_file_lists WHERE resourceId = :resourceId LIMIT 1")
+    suspend fun getFileCount(resourceId: Long): Int?
 }
+

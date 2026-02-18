@@ -742,13 +742,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     private fun performSelectAllWithToast() {
+        val totalCount = viewModel.state.value.mediaFiles.size
         viewModel.selectAll()
-        val selectedCount = viewModel.state.value.selectedFiles.size
-        if (selectedCount > 0) {
+        if (totalCount > 0) {
             val message = resources.getQuantityString(
                 R.plurals.selected_n_files,
-                selectedCount,
-                selectedCount
+                totalCount,
+                totalCount
             )
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
         }

@@ -51,7 +51,7 @@ data class AppSettings(
     val showPdfThumbnails: Boolean = false, // "Large PDF Thumbnails" - increases size limit for network PDF thumbnails
     val textSizeMax: Long = 104857600L, // 100MB max for internal text viewer
     val showTextLineNumbers: Boolean = false, // Show line numbers for text files
-    val textReaderTheme: String = "LIGHT", // Reader theme: LIGHT, DARK, SEPIA, OLED_BLACK (independent of system)
+    val textReaderTheme: String = "SYSTEM", // Reader theme: LIGHT, DARK, SEPIA (SYSTEM follows device dark-mode)
     val markdownRendered: Boolean = true, // Render Markdown (.md) or show raw text
     val syntaxHighlighting: Boolean = true, // Enable syntax highlighting for code files
     val pdfScrollMode: Boolean = false, // PDF vertical scroll mode (true) vs page mode (false)

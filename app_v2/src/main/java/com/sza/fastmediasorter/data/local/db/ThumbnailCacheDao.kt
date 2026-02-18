@@ -74,4 +74,15 @@ interface ThumbnailCacheDao {
      * Update thumbnail path (for migration from cacheDir to filesDir).
      */
     @Query("UPDATE thumbnail_cache SET thumbnailPath = :newPath WHERE filePath = :filePath")
-    suspend fun updateThumbnailPath(filePath: String, newPath: String)}
+    suspend fun updateThumbnailPath(filePath: String, newPath: String)
+
+    /**
+     * Returns all entries ordered by lastAccessedAt ASC (LRU first) for size-based eviction.
+     */
+    @Query("SELECT * FROM thumbnail_cache ORDER BY lastAccessedAt ASC")
+    suspend fun getAllByLruOrder(): List<ThumbnailCacheEntity>
+
+    /** Bulk delete by file path list. */
+    @Query("DELETE FROM thumbnail_cache WHERE filePath IN (:filePaths)")
+    suspend fun deleteByPaths(filePaths: List<String>): Int
+}

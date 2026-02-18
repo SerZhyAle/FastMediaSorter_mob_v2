@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import android.content.res.Configuration
 import android.util.TypedValue
 import android.view.GestureDetector
 import android.view.MotionEvent
@@ -80,8 +81,8 @@ class TextViewerManager(
     private var markdownRendered = true
     private var syntaxHighlightingEnabled = true
 
-    // Reader theme
-    private var currentReaderTheme = TextReaderTheme.LIGHT
+    // Reader theme - defaults to DARK on night-mode devices, LIGHT otherwise
+    private var currentReaderTheme: TextReaderTheme = resolveTheme("SYSTEM")
 
     // TTS
     private var ttsManager: TtsReadAloudManager? = null
@@ -585,7 +586,7 @@ class TextViewerManager(
                 // Load H.2 rendering settings
                 markdownRendered = settings.markdownRendered
                 syntaxHighlightingEnabled = settings.syntaxHighlighting
-                currentReaderTheme = TextReaderTheme.fromName(settings.textReaderTheme)
+                currentReaderTheme = resolveTheme(settings.textReaderTheme)
 
                 val startLine = pager.getStartLineNumber(0)
 
@@ -827,6 +828,21 @@ class TextViewerManager(
      * Get current reader theme.
      */
     fun getCurrentTheme(): TextReaderTheme = currentReaderTheme
+
+    /**
+     * Resolve reader theme by name. "SYSTEM" picks DARK or LIGHT based on the device dark-mode
+     * setting; any unrecognized name also falls back to the system default.
+     */
+    private fun resolveTheme(name: String): TextReaderTheme {
+        if (name.equals("SYSTEM", ignoreCase = true)) {
+            val isNight = (context.resources.configuration.uiMode
+                    and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            return if (isNight) TextReaderTheme.DARK else TextReaderTheme.LIGHT
+        }
+        // Known enums; fall back to system default for anything unrecognised
+        return TextReaderTheme.entries.find { it.name.equals(name, ignoreCase = true) }
+            ?: resolveTheme("SYSTEM")
+    }
 
     /**
      * Toggle TTS read-aloud for current page text.

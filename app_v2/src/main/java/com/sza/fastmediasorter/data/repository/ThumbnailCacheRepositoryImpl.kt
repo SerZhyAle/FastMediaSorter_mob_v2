@@ -140,6 +140,38 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
         }
     }
     
+    override suspend fun enforceSizeLimit(maxBytes: Long): Int {
+        return try {
+            val totalSize = thumbnailCacheDao.getTotalCacheSize()
+            if (totalSize <= maxBytes) {
+                Timber.d("ThumbnailCache: size ${totalSize / 1024 / 1024}MB is within limit ${maxBytes / 1024 / 1024}MB — no eviction needed")
+                return 0
+            }
+
+            // Evict LRU entries (oldest lastAccessedAt first) until under limit
+            val entries = thumbnailCacheDao.getAllByLruOrder()
+            var freed = 0L
+            val toDelete = mutableListOf<String>()
+
+            for (entry in entries) {
+                if (totalSize - freed <= maxBytes) break
+                val file = File(entry.thumbnailPath)
+                if (file.exists()) {
+                    freed += file.length()
+                    file.delete()
+                }
+                toDelete.add(entry.filePath)
+            }
+
+            val deleted = if (toDelete.isNotEmpty()) thumbnailCacheDao.deleteByPaths(toDelete) else 0
+            Timber.i("ThumbnailCache: evicted $deleted entries (${freed / 1024 / 1024}MB freed) to enforce ${maxBytes / 1024 / 1024}MB limit")
+            deleted
+        } catch (e: Exception) {
+            Timber.e(e, "ThumbnailCache: error enforcing size limit")
+            0
+        }
+    }
+
     /**
      * Migrate thumbnails from old cache directory (cacheDir) to new persistent directory (filesDir).
      * Should be called once during app startup.

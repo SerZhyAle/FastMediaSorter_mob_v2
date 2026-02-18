@@ -1,160 +1,46 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/settings_padding">
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
 
-        <!-- Support video -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Support video -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSupportVideos"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="true" />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportVideos" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/support_video_description"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_video_description" android:textSize="@dimen/resource_card_desc_text_size" />
 
-            <ImageButton
-                android:id="@+id/iconHelpSupportVideos"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/supported_video_formats"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+        <ImageButton android:id="@+id/iconHelpSupportVideos" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/supported_video_formats" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <!-- Show video thumbnails -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
-            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Show video thumbnails -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchShowVideoThumbnails"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowVideoThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/show_video_thumbnails"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_video_thumbnails" android:textSize="@dimen/resource_card_desc_text_size" />
 
-            <ImageButton
-                android:id="@+id/iconHelpVideoThumbnails"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_video_thumbnails_title"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+        <ImageButton android:id="@+id/iconHelpVideoThumbnails" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_video_thumbnails_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <!-- Video size limit -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Video size limit -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
-            <TextView
-                android:id="@+id/tvVideoSizeLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/video_size_limit"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:id="@+id/tvVideoSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/video_size_limit" android:textSize="@dimen/resource_card_desc_text_size" />
 
-            <ImageButton
-                android:id="@+id/iconHelpVideoSizeLimits"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_video_size_limits_title"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+        <ImageButton android:id="@+id/iconHelpVideoSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_video_size_limits_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutVideoSizeInputs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:layout_marginEnd="@dimen/settings_margin_standard"
-            android:layout_marginBottom="@dimen/margin_small">
+    <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/layoutVideoSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilVideoSizeMin"
-                android:layout_width="@dimen/match_constraint"
-                android:layout_height="wrap_content"
-                android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
-                app:hintTextColor="@color/settings_textinput_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_marginEnd="@dimen/margin_small"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/tilVideoSizeMax"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilVideoSizeMin" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:hint="@string/fragment_settings_video_tilVideoSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_marginEnd="@dimen/margin_small" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@+id/tilVideoSizeMax" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etVideoSizeMin"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
-                    android:hint="@string/fragment_settings_images_tilImageSizeMin_hint"
-                    android:inputType="number"
-                    android:maxLength="@integer/input_max_length_filesize" />
-            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etVideoSizeMin" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxWidth="@dimen/layout_settings_text_field_max_width" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilVideoSizeMax"
-                android:layout_width="@dimen/match_constraint"
-                android:layout_height="wrap_content"
-                android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
-                app:hintTextColor="@color/settings_textinput_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:layout_constraintStart_toEndOf="@+id/tilVideoSizeMin"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilVideoSizeMax" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:hint="@string/fragment_settings_media_etVideoSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" app:layout_constraintStart_toEndOf="@+id/tilVideoSizeMin" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etVideoSizeMax"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
-                    android:hint="@string/fragment_settings_media_etVideoSizeMin_hint"
-                    android:inputType="number"
-                    android:maxLength="@integer/input_max_length_filesize" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etVideoSizeMax" android:layout_width="match_parent" android:layout_height="wrap_content" android:maxWidth="@dimen/layout_settings_text_field_max_width" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </LinearLayout>
 

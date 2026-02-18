@@ -38,6 +38,12 @@ interface ThumbnailCacheRepository {
      * Get cache statistics.
      */
     suspend fun getCacheStats(): CacheStats
+
+    /**
+     * Evict least-recently-used thumbnails until total size is below [maxBytes].
+     * @return Number of deleted entries.
+     */
+    suspend fun enforceSizeLimit(maxBytes: Long): Int
 }
 
 /**

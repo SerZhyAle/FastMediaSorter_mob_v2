@@ -34,6 +34,7 @@ class AppStartupInitializer(
     fun initialize() {
         syncCacheSizeToSharedPreferences()
         fixCloudResourcesWritableFlag()
+        fixLocalResourcesWritableFlag()
         cleanupPlaybackPositions()
         migrateThumbnailCache()
         cleanupOldThumbnails()
@@ -195,6 +196,33 @@ class AppStartupInitializer(
     }
     
     /**
+     * Fix LOCAL resources with isWritable = false due to the edit-reset bug.
+     * When a resource was edited, buildPersistenceModel() did not preserve isWritable,
+     * overwriting it with the default (false). This restores the correct flag for LOCAL resources
+     * that are not explicitly marked as read-only.
+     */
+    private fun fixLocalResourcesWritableFlag() {
+        applicationScope.launch {
+            try {
+                val resources = resourceRepository.getAllResources().first()
+                val broken = resources.filter {
+                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.LOCAL
+                        && !it.isWritable
+                        && !it.isReadOnly
+                }
+                if (broken.isNotEmpty()) {
+                    broken.forEach { resource ->
+                        resourceRepository.updateResource(resource.copy(isWritable = true))
+                    }
+                    Timber.d("Fixed isWritable flag for ${broken.size} LOCAL resources")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to fix local resources isWritable flag")
+            }
+        }
+    }
+
+    /**
      * Cleanup playback positions by count limit on app start.
      */
     private fun cleanupPlaybackPositions() {
@@ -226,15 +254,24 @@ class AppStartupInitializer(
     }
     
     /**
-     * Cleanup old thumbnail cache (>30 days) on app start.
+     * Cleanup old thumbnail cache (>30 days) on app start, then enforce the user-configured
+     * size limit via LRU eviction.
      */
     private fun cleanupOldThumbnails() {
         applicationScope.launch {
             try {
-                val deletedCount = thumbnailCacheRepository.cleanupOldThumbnails(30)
-                Timber.d("Cleaned up $deletedCount old thumbnail cache entries")
+                val deletedByAge = thumbnailCacheRepository.cleanupOldThumbnails(30)
+                Timber.d("ThumbnailCache: age cleanup removed $deletedByAge entries")
+
+                // Enforce size limit: use the same cacheSizeMb setting as Glide
+                val settings = settingsRepository.getSettings().first()
+                val limitBytes = settings.cacheSizeMb.toLong() * 1024L * 1024L
+                val deletedBySize = thumbnailCacheRepository.enforceSizeLimit(limitBytes)
+                if (deletedBySize > 0) {
+                    Timber.i("ThumbnailCache: evicted $deletedBySize entries to respect ${settings.cacheSizeMb}MB limit")
+                }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to cleanup old thumbnail cache")
+                Timber.e(e, "Failed to cleanup thumbnail cache")
             }
         }
     }

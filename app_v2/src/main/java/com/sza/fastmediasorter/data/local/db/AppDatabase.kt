@@ -16,7 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ThumbnailCacheEntity::class,
         CachedFileListEntity::class
     ],
-    version = 8,
+    version = 9,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -261,6 +261,27 @@ abstract class AppDatabase : RoomDatabase() {
                 
                 // 3. Create index on resourceId
                 db.execSQL("CREATE INDEX idx_cached_files_resource_id ON cached_file_lists (resourceId)")
+            }
+        }
+
+        /**
+         * v8 → v9: Replace N-rows-per-resource plain JSON with 1-row-per-resource GZIP BLOB.
+         * Existing cache is intentionally dropped — it will be repopulated on next browse.
+         */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS cached_file_lists")
+                db.execSQL("""
+                    CREATE TABLE cached_file_lists (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        resourceId INTEGER NOT NULL,
+                        compressed_data BLOB NOT NULL,
+                        file_count INTEGER NOT NULL,
+                        created_at INTEGER NOT NULL,
+                        FOREIGN KEY(resourceId) REFERENCES resources(id) ON DELETE CASCADE
+                    )
+                """)
+                db.execSQL("CREATE UNIQUE INDEX idx_cached_files_resource_id ON cached_file_lists (resourceId)")
             }
         }
     }

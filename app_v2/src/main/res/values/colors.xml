@@ -4,31 +4,31 @@
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
-    
+
     <!-- New primary colors - Blue for better contrast and readability -->
-    <color name="blue_500">#FF1976D2</color> <!-- Material Blue 700 -->
-    <color name="blue_700">#FF0D47A1</color> <!-- Material Blue 900 -->
-    <color name="blue_200">#FF64B5F6</color> <!-- Material Blue 300 -->
-    
+    <color name="blue_500">#FF1976D2</color>    <!-- Material Blue 700 -->
+    <color name="blue_700">#FF0D47A1</color>    <!-- Material Blue 900 -->
+    <color name="blue_200">#FF64B5F6</color>    <!-- Material Blue 300 -->
+
     <!-- Accent colors -->
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    
+
     <!-- Basic colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    
+
     <!-- App specific colors -->
     <color name="ic_launcher_background">#FF1976D2</color>
     <color name="delete_button">#FFD32F2F</color>
     <color name="item_selected">#FFE3F2FD</color>
     <color name="item_normal">#FFFFFFFF</color>
     <color name="audio_icon_bg">#FF607D8B</color>
-    <color name="filter_warning_bg">#FFFFF9C4</color> <!-- Light yellow for warnings -->
-    <color name="filter_warning_text">#FF000000</color> <!-- Black text for contrast -->
-    <color name="folder_item_stroke">#00000000</color> <!-- Transparent by default -->
-    <color name="unavailable_resource_bg">#FFFFE0E6</color> <!-- Pale pink for unavailable resources -->
-    
+    <color name="filter_warning_bg">#FFFFF9C4</color>    <!-- Light yellow for warnings -->
+    <color name="filter_warning_text">#FF000000</color>    <!-- Black text for contrast -->
+    <color name="folder_item_stroke">#00000000</color>    <!-- Transparent by default -->
+    <color name="unavailable_resource_bg">#FFFFE0E6</color>    <!-- Pale pink for unavailable resources -->
+
     <!-- Welcome screen backgrounds (light theme, muted Material palette) -->
     <color name="welcome_page_1_background">#E3F2FD</color>
     <color name="welcome_page_2_background">#E8F5E9</color>
@@ -37,36 +37,36 @@
     <color name="welcome_page_5_background">#F1F8E9</color>
     <color name="welcome_page_6_background">#ECEFF1</color>
 
-    <color name="resource_item_bg_even">#FFFFFFFF</color> <!-- White -->
-    <color name="resource_item_bg_odd">#FFF5F5F5</color> <!-- Very light grey -->
+    <color name="resource_item_bg_even">#FFFFFFFF</color>    <!-- White -->
+    <color name="resource_item_bg_odd">#FFF5F5F5</color>    <!-- Very light grey -->
     <color name="error_color">#FFD32F2F</color>
     <color name="warning_color">#FFF57C00</color>
     <color name="success_color">#FF2E7D32</color>
     <color name="info_color">#FF0288D1</color>
     <color name="scrollbar_thumb">#FF9E9E9E</color>
-    
+
     <!-- Focus and hover colors for keyboard/mouse navigation -->
-    <color name="item_focused">#FFBBDEFB</color> <!-- Blue 100 - visible focus highlight -->
-    <color name="item_hovered">#FFF5F5F5</color> <!-- Grey 100 - subtle hover -->
-    <color name="item_alternate">#FFF5F5F5</color> <!-- Same as hover for now, very light grey -->
-    <color name="item_pressed">#FFE1F5FE</color> <!-- Light Blue 50 -->
-    <color name="focus_indicator">#FF1976D2</color> <!-- Primary blue for focus rings -->
-    <color name="button_hover">#14000000</color> <!-- 8% black overlay for button hover -->
-    <color name="button_focused">#1F000000</color> <!-- 12% black overlay for button focus -->
-    
+    <color name="item_focused">#FFBBDEFB</color>    <!-- Blue 100 - visible focus highlight -->
+    <color name="item_hovered">#FFF5F5F5</color>    <!-- Grey 100 - subtle hover -->
+    <color name="item_alternate">#FFF5F5F5</color>    <!-- Same as hover for now, very light grey -->
+    <color name="item_pressed">#FFE1F5FE</color>    <!-- Light Blue 50 -->
+    <color name="focus_indicator">#FF1976D2</color>    <!-- Primary blue for focus rings -->
+    <color name="button_hover">#14000000</color>    <!-- 8% black overlay for button hover -->
+    <color name="button_focused">#1F000000</color>    <!-- 12% black overlay for button focus -->
+
     <!-- Thumbnail backgrounds -->
-    <color name="thumbnail_doc_bg">#B0BEC5</color> <!-- Blue Grey 200 -->
-    <color name="thumbnail_video_bg">#F48FB1</color> <!-- Pink 200 -->
-    <color name="thumbnail_audio_bg">#A5D6A7</color> <!-- Green 200 -->
-    <color name="thumbnail_image_bg">#90CAF9</color> <!-- Blue 200 -->
-    
+    <color name="thumbnail_doc_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
+    <color name="thumbnail_video_bg">#F48FB1</color>    <!-- Pink 200 -->
+    <color name="thumbnail_audio_bg">#A5D6A7</color>    <!-- Green 200 -->
+    <color name="thumbnail_image_bg">#90CAF9</color>    <!-- Blue 200 -->
+
     <!-- Action button background (semitransparent for both themes) -->
     <color name="action_button_bg">#20000000</color>
-    
+
     <!-- ============================================================ -->
     <!-- BASE PLAYER COLORS (Light Theme) -->
     <!-- ============================================================ -->
-    
+
     <!-- Overlay backgrounds -->
     <color name="player_overlay_standard">#CC000000</color>
     <color name="player_overlay_light">#80000000</color>
@@ -75,11 +75,11 @@
     <color name="player_overlay_subtle">#88000000</color>
     <color name="player_overlay_minimal">#44000000</color>
     <color name="player_overlay_solid">#FF000000</color>
-    
+
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50000000</color>
     <color name="player_touch_zone_inactive">#20000000</color>
-    
+
     <!-- Text colors -->
     <color name="player_audio_info_text">#666666</color>
     <color name="player_countdown_text">#888888</color>
@@ -87,20 +87,20 @@
     <color name="player_zone_text">@color/white</color>
     <color name="player_filename_overlay_text">@color/white</color>
     <color name="player_music_track_text">#DDFFFFFF</color>
-    
+
     <!-- Action buttons -->
     <color name="player_navigation_action">#4CAF50</color>
     <color name="player_home_action">#2196F3</color>
     <color name="player_close_action">#424242</color>
-    
+
     <!-- Action panels -->
     <color name="player_panel_copy">#CC004D00</color>
     <color name="player_panel_move">#CC00004D</color>
-    
+
     <!-- ============================================================ -->
     <!-- PLAYER COLOR ALIASES (mapped to base colors) -->
     <!-- ============================================================ -->
-    
+
     <!-- Player overlay backgrounds (dark semi-transparent on light theme) -->
     <color name="activity_player_unified_translationOverlay_cardBackgroundColor">@color/player_overlay_translucent</color>
     <color name="activity_player_unified_etTextContent_background">@color/player_overlay_standard</color>
@@ -116,13 +116,13 @@
     <color name="activity_player_unified_toolbar_background">@color/player_overlay_light</color>
     <color name="activity_player_unified_audioSlideshowSongLabel_background">@color/player_overlay_subtle</color>
     <color name="activity_player_unified_tvBackgroundMusicTrack_background">@color/player_overlay_minimal</color>
-    
+
     <!-- Action panel backgrounds (green/blue dark for light theme) -->
     <color name="activity_player_unified_copyToPanel_background">@color/player_panel_copy</color>
     <color name="player_command_panel_mode_copyToPanel_background">@color/player_panel_copy</color>
     <color name="activity_player_unified_moveToPanel_background">@color/player_panel_move</color>
     <color name="player_command_panel_mode_moveToPanel_background">@color/player_panel_move</color>
-    
+
     <!-- Touch zone backgrounds (dark semi-transparent for light theme) -->
     <color name="activity_player_unified_zoneBack_background">@color/player_touch_zone_active</color>
     <color name="touch_zones_overlay_zoneBack_background">@color/player_touch_zone_inactive</color>
@@ -142,7 +142,7 @@
     <color name="touch_zones_overlay_zoneRename_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneSlideshow_background">@color/player_touch_zone_active</color>
     <color name="touch_zones_overlay_zoneSlideshow_background">@color/player_touch_zone_inactive</color>
-    
+
     <!-- Player text colors (dark for light theme) -->
     <color name="activity_player_audioFileInfo_textColor">@color/player_audio_info_text</color>
     <color name="activity_player_unified_audioFileInfo_textColor">@color/player_audio_info_text</color>
@@ -151,7 +151,7 @@
     <color name="activity_player_tvCountdown_textColor">@color/player_countdown_text</color>
     <color name="activity_player_unified_tvCountdown_textColor">@color/player_countdown_text</color>
     <color name="activity_player_unified_etSearchQuery_textColorHint">@color/player_search_hint_text</color>
-    
+
     <!-- Zone text colors (white for readability on dark overlays) -->
     <color name="activity_player_unified_zoneBack_textColor">@color/player_zone_text</color>
     <color name="activity_player_unified_zoneCommandPanel_textColor">@color/player_zone_text</color>
@@ -162,11 +162,11 @@
     <color name="activity_player_unified_zonePrevious_textColor">@color/player_zone_text</color>
     <color name="activity_player_unified_zoneRename_textColor">@color/player_zone_text</color>
     <color name="activity_player_unified_zoneSlideshow_textColor">@color/player_zone_text</color>
-    
+
     <!-- Overlay text colors (white with alpha) -->
     <color name="activity_player_unified_tvFileNameOverlay_textColor">@color/player_filename_overlay_text</color>
     <color name="activity_player_unified_tvBackgroundMusicTrack_textColor">@color/player_music_track_text</color>
-    
+
     <!-- Player button tints (Material colors) -->
     <color name="activity_player_unified_btnCloseTextViewer_tint">@color/player_close_action</color>
     <color name="activity_player_unified_btnEpubHome_tint">@color/player_home_action</color>
@@ -176,10 +176,10 @@
     <color name="activity_player_unified_btnPdfNextPage_tint">@color/player_navigation_action</color>
     <color name="activity_player_unified_btnPdfPrevPage_tint">@color/player_navigation_action</color>
     <color name="activity_player_unified_btnSaveText_backgroundTint">@color/player_navigation_action</color>
-    
+
     <!-- ExoPlayer progress bar -->
     <color name="custom_player_controls_exo_bottom_bar_unplayed_color">#40FFFFFF</color>
-    
+
     <!-- Additional base colors -->
     <color name="white_50_alpha">#80FFFFFF</color>
     <color name="transparent">#00000000</color>
@@ -188,7 +188,7 @@
     <color name="text_color_primary">#DE000000</color>
     <color name="text_color_secondary">#99000000</color>
     <color name="text_color_tertiary">#61000000</color>
-    
+
     <!-- Status colors (aliases for resource editor) -->
     <color name="success_green">@color/success_color</color>
     <color name="error_red">@color/error_color</color>

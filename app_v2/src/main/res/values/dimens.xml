@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- ===== COMMON DIMENSIONS ===== -->
-    
+
     <!-- Text sizes -->
     <dimen name="text_size_huge">24sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
@@ -11,7 +11,7 @@
     <dimen name="text_size_tiny">11sp</dimen>
     <dimen name="text_size_title_dialog">20sp</dimen>
     <dimen name="text_line_spacing_extra">4dp</dimen>
-    
+
     <!-- Padding and margins -->
     <dimen name="padding_huge">24dp</dimen>
     <dimen name="padding_xxlarge">32dp</dimen>
@@ -19,7 +19,7 @@
     <dimen name="padding_normal">12dp</dimen>
     <dimen name="padding_small">8dp</dimen>
     <dimen name="padding_tiny">4dp</dimen>
-    
+
     <dimen name="margin_normal">8dp</dimen>
     <dimen name="margin_large">16dp</dimen>
     <dimen name="margin_xlarge">24dp</dimen>
@@ -30,7 +30,7 @@
     <dimen name="margin_minimal">2dp</dimen>
     <dimen name="stroke_width_normal">2dp</dimen>
     <dimen name="margin_medium">12dp</dimen>
-    
+
     <!-- UI Elements -->
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
@@ -44,17 +44,17 @@
     <dimen name="toolbar_height">56dp</dimen>
     <dimen name="card_corner_radius">8dp</dimen>
     <dimen name="card_elevation">2dp</dimen>
-    
+
     <!-- ===== SPECIFIC COMPONENTS ===== -->
-    
+
     <!-- Page indicators -->
     <dimen name="indicator_size">8dp</dimen>
     <dimen name="indicator_margin">4dp</dimen>
-    
+
     <!-- Destination buttons in Copy/Move dialogs -->
     <dimen name="destination_button_min_height">64dp</dimen>
     <dimen name="destination_border_width">3dp</dimen>
-    
+
     <!-- Welcome screen -->
     <dimen name="welcome_button_text_size">14sp</dimen>
     <dimen name="welcome_button_padding">8dp</dimen>
@@ -67,7 +67,7 @@
     <dimen name="welcome_title_text_size">24sp</dimen>
     <dimen name="welcome_description_margin_top">16dp</dimen>
     <dimen name="welcome_description_text_size">16sp</dimen>
-    
+
     <!-- Resource list items -->
     <dimen name="resource_item_padding">12dp</dimen>
     <dimen name="resource_item_margin">2dp</dimen>
@@ -75,7 +75,7 @@
     <dimen name="resource_path_text_size">12sp</dimen>
     <dimen name="resource_badge_size">24dp</dimen>
     <dimen name="resource_indicator_text_size">12sp</dimen>
-    
+
     <!-- Main Activity -->
     <dimen name="main_recycler_margin">8dp</dimen>
     <dimen name="control_bar_padding">4dp</dimen>
@@ -87,7 +87,7 @@
     <dimen name="elevation_dialog">8dp</dimen>
     <dimen name="progress_bar_width">200dp</dimen>
     <dimen name="button_margin_top_normal">16dp</dimen>
-    
+
     <!-- Browse Activity -->
     <dimen name="browse_scroll_button_size">32dp</dimen>
     <dimen name="browse_scroll_button_margin">40dp</dimen>
@@ -99,7 +99,7 @@
     <dimen name="browse_progress_max_width">250dp</dimen>
     <dimen name="browse_stop_button_margin_start">16dp</dimen>
     <dimen name="elevation_operations_bar">4dp</dimen>
-    
+
     <!-- Player Activity -->
     <dimen name="player_cmd_button_size">40dp</dimen>
     <dimen name="player_cmd_overflow_width">40dp</dimen>
@@ -131,7 +131,7 @@
     <dimen name="player_lyrics_line_spacing">4dp</dimen>
     <dimen name="elevation_player_overlay">8dp</dimen>
     <dimen name="elevation_player_controls">16dp</dimen>
-    
+
     <!-- Additional Player Layout Padding -->
     <dimen name="player_ocr_padding_horizontal">8dp</dimen>
     <dimen name="player_search_counter_padding">8dp</dimen>
@@ -149,14 +149,14 @@
     <dimen name="player_indicator_padding_vertical_4dp">4dp</dimen>
     <dimen name="player_epub_chapter_indicator_margin_horizontal">8dp</dimen>
     <dimen name="player_text_edit_margin_end">8dp</dimen>
-    
+
     <!-- Add Resource Activity -->
     <dimen name="add_resource_title_text_size">18sp</dimen>
     <dimen name="add_resource_title_margin">16dp</dimen>
-    
+
     <!-- Welcome Activity -->
     <dimen name="welcome_button_min_height">48dp</dimen>
-    
+
     <!-- Custom Player Controls -->
     <dimen name="player_controls_padding">8dp</dimen>
     <dimen name="player_progress_height">26dp</dimen>
@@ -167,11 +167,11 @@
     <dimen name="player_large_button_size">56dp</dimen>
     <dimen name="player_button_margin_start">4dp</dimen>
     <dimen name="player_play_button_margin_horizontal">8dp</dimen>
-    
+
     <!-- Settings Activity -->
     <dimen name="toolbar_elevation">0dp</dimen>
     <dimen name="tab_indicator_height">4dp</dimen>
-    
+
     <!-- Resource Management (Add/Edit Resource) -->
     <dimen name="resource_card_margin_bottom">8dp</dimen>
     <dimen name="resource_card_icon_size">32dp</dimen>
@@ -190,7 +190,7 @@
     <dimen name="resource_port_width">120dp</dimen>
     <dimen name="resource_pin_width">240dp</dimen>
     <dimen name="elevation_button_bar">2dp</dimen>
-    
+
     <!-- Additional AddResource dimensions -->
     <dimen name="resource_title_margin_start">16dp</dimen>
     <dimen name="resource_padding_zero">0dp</dimen>
@@ -201,7 +201,7 @@
     <dimen name="resource_stroke_width">1dp</dimen>
     <dimen name="resource_card_elevation_zero">0dp</dimen>
     <dimen name="resource_checkbox_min_size_zero">0dp</dimen>
-    
+
     <!-- Settings Fragments -->
     <dimen name="settings_fragment_padding">4dp</dimen>
     <dimen name="settings_item_min_height">36dp</dimen>
@@ -210,10 +210,10 @@
     <dimen name="settings_help_icon_size">24dp</dimen>
     <dimen name="settings_help_icon_margin">4dp</dimen>
     <dimen name="settings_nested_margin_start">32dp</dimen>
-   <dimen name="settings_spinner_min_width">120dp</dimen>
+    <dimen name="settings_spinner_min_width">120dp</dimen>
     <dimen name="settings_text_input_width">160dp</dimen>
     <dimen name="settings_icon_size">18dp</dimen>
-    
+
     <!-- Dialog Layouts -->
     <dimen name="dialog_min_width">280dp</dimen>
     <dimen name="dialog_max_width">560dp</dimen>
@@ -221,7 +221,7 @@
     <dimen name="dialog_button_spacing">12dp</dimen>
     <dimen name="dialog_color_item_size">48dp</dimen>
     <dimen name="dialog_color_grid_spacing">8dp</dimen>
-    
+
     <!-- Specific Dialog Dimensions -->
     <dimen name="dialog_file_info_min_width">320dp</dimen>
     <dimen name="dialog_button_min_width_small">80dp</dimen>
@@ -233,7 +233,7 @@
     <dimen name="dialog_icon_button_min_width">48dp</dimen>
     <dimen name="dialog_button_icon_padding">0dp</dimen>
     <dimen name="dialog_button_inset">0dp</dimen>
-    
+
     <!-- Item Layouts -->
     <dimen name="item_padding">16dp</dimen>
     <dimen name="item_padding_vertical">12dp</dimen>
@@ -264,7 +264,7 @@
     <dimen name="card_elevation_low">1dp</dimen>
     <dimen name="indicator_width">4dp</dimen>
     <dimen name="indicator_height">4dp</dimen>
-    
+
     <!-- Empty/Error states -->
     <dimen name="empty_state_padding">32dp</dimen>
     <dimen name="empty_state_icon_size">64dp</dimen>
@@ -291,16 +291,16 @@
     <dimen name="settings_padding_vertical">12dp</dimen>
     <dimen name="settings_divider_height">1dp</dimen>
     <dimen name="padding_none">0dp</dimen>
-    
+
     <!-- ============================================================ -->
     <!-- LAYOUT-SPECIFIC BASE DIMENSIONS (from layout extraction) -->
     <!-- ============================================================ -->
-    
+
     <!-- Spacing (layout-specific values) -->
     <dimen name="dimension_zero">0dp</dimen>
     <dimen name="match_constraint">0dp</dimen>
     <dimen name="spacing_none">0dp</dimen>
-        <dimen name="layout_spacing_tiny">2dp</dimen>
+    <dimen name="layout_spacing_tiny">2dp</dimen>
     <dimen name="layout_spacing_small">4dp</dimen>
     <dimen name="layout_spacing_normal">8dp</dimen>
     <dimen name="layout_spacing_medium_small">10dp</dimen>
@@ -308,21 +308,21 @@
     <dimen name="layout_spacing_large">24dp</dimen>
     <dimen name="layout_spacing_xlarge">32dp</dimen>
     <dimen name="layout_spacing_xxlarge">48dp</dimen>
-    
+
     <!-- Button sizes -->
     <dimen name="layout_button_size_small">20dp</dimen>
     <dimen name="layout_button_size_standard">40dp</dimen>
     <dimen name="layout_button_size_large">48dp</dimen>
-    
+
     <!-- Special values -->
     <dimen name="layout_button_overlap">-6dp</dimen>
     <dimen name="layout_dimension_min">1dp</dimen>
-    
+
     <!-- Layout constraints -->
     <dimen name="layout_settings_button_max_width">320dp</dimen>
     <dimen name="layout_settings_text_field_max_width">488dp</dimen>
     <dimen name="layout_toolbar_button_max_width">100dp</dimen>
-    
+
     <!-- Text sizes (layout-specific) -->
     <dimen name="layout_text_size_tiny">10sp</dimen>
     <dimen name="layout_text_size_small">14sp</dimen>
@@ -366,7 +366,7 @@
     <dimen name="activity_browse_btnBack_maxHeight">@dimen/layout_button_size_small</dimen>
     <dimen name="activity_browse_btnBack_maxWidth">@dimen/layout_toolbar_button_max_width</dimen>
     <dimen name="activity_browse_btnBack_minHeight">@dimen/layout_button_size_small</dimen>
-    <dimen name="activity_browse_btnBack_minWidth">@dimen/layout_button_size_small</dimen>
+    <dimen name="activity_browse_btnBack_minWidth">30dp</dimen>
     <dimen name="activity_browse_btnBack_paddingEnd">@dimen/layout_spacing_small</dimen>
     <dimen name="activity_browse_btnBack_paddingLeft">@dimen/layout_spacing_medium_small</dimen>
     <dimen name="activity_browse_btnBack_paddingRight">@dimen/layout_spacing_medium_small</dimen>

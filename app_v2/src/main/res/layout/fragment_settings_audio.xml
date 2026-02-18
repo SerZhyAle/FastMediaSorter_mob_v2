@@ -1,249 +1,73 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="@dimen/settings_padding">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/settings_padding">
 
-        <!-- Support audio -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Support audio -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSupportAudio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="true" />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/support_audio_description"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_audio_description" android:textSize="@dimen/resource_card_desc_text_size" />
 
-            <ImageButton
-                android:id="@+id/iconHelpSupportAudio"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/supported_audio_formats"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+        <ImageButton android:id="@+id/iconHelpSupportAudio" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/supported_audio_formats" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <!-- Search audio covers online -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
-            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Search audio covers online -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSearchAudioCoversOnline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSearchAudioCoversOnline" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/search_audio_covers_online"
-                android:textSize="@dimen/resource_card_desc_text_size" />
-        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/search_audio_covers_online" android:textSize="@dimen/resource_card_desc_text_size" />
+    </LinearLayout>
 
-        <!-- Search covers only on WiFi -->
-        <LinearLayout
-            android:id="@+id/layoutSearchCoversOnlyWifi"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
-            android:layout_marginStart="@dimen/settings_nested_margin_start"
-            android:visibility="gone"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Search covers only on WiFi -->
+    <LinearLayout android:id="@+id/layoutSearchCoversOnlyWifi" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchSearchCoversOnlyWifi"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="true" />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSearchCoversOnlyWifi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/search_covers_only_on_wifi"
-                android:textSize="@dimen/resource_card_desc_text_size"
-                android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/search_covers_only_on_wifi" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <!-- Audio size limit -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Audio size limit -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 
-            <TextView
-                android:id="@+id/tvAudioSizeLabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/audio_size_limit"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:id="@+id/tvAudioSizeLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_size_limit" android:textSize="@dimen/resource_card_desc_text_size" />
 
-            <ImageButton
-                android:id="@+id/iconHelpAudioSizeLimits"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_audio_size_limits_title"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+        <ImageButton android:id="@+id/iconHelpAudioSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_audio_size_limits_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/layoutAudioSizeInputs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-            android:layout_marginEnd="@dimen/settings_margin_standard"
-            android:layout_marginBottom="@dimen/margin_small">
+    <androidx.constraintlayout.widget.ConstraintLayout android:id="@+id/layoutAudioSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small">
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilAudioSizeMin"
-                android:layout_width="@dimen/match_constraint"
-                android:layout_height="wrap_content"
-                android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_marginEnd="@dimen/margin_small"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@+id/tilAudioSizeMax"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toStartOf="@+id/tilAudioSizeMax" app:layout_constraintHorizontal_weight="1" app:layout_constraintStart_toStartOf="parent" app:layout_constraintTop_toTopOf="parent">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etAudioSizeMin"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
-                    android:inputType="number"
-                    android:maxWidth="@dimen/layout_settings_text_field_max_width" />
-            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAudioSizeMin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxWidth="@dimen/layout_settings_text_field_max_width" />
+        </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilAudioSizeMax"
-                android:layout_width="@dimen/match_constraint"
-                android:layout_height="wrap_content"
-                android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                app:layout_constraintStart_toEndOf="@+id/tilAudioSizeMin"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintHorizontal_weight="1"
-                app:layout_constraintWidth_max="@dimen/fragment_settings_general_btnShowSessionLog_layout_constraintWidth_max">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="0dp" android:layout_height="wrap_content" android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintHorizontal_weight="1" app:layout_constraintStart_toEndOf="@+id/tilAudioSizeMin" app:layout_constraintTop_toTopOf="parent">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etAudioSizeMax"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:maxWidth="@dimen/layout_settings_text_field_max_width"
-                    android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
-                    android:inputType="number"
-                    android:maxLength="@integer/input_max_length_filesize" />
-            </com.google.android.material.textfield.TextInputLayout>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAudioSizeMax" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint" android:inputType="number" android:maxWidth="@dimen/layout_settings_text_field_max_width" android:maxLength="@integer/input_max_length_filesize" />
+        </com.google.android.material.textfield.TextInputLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <!-- Enable photos during audio playback -->
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart"
-            android:layout_marginBottom="@dimen/margin_small"
-            android:gravity="center_vertical"
-            android:minHeight="@dimen/button_height"
-            android:orientation="horizontal">
+    <!-- Enable photos during audio playback -->
+    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
 
-            <com.google.android.material.switchmaterial.SwitchMaterial
-                android:id="@+id/switchEnablePhotosDuringAudio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="@dimen/settings_switch_margin_end"
-                android:checked="false" />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnablePhotosDuringAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/enable_photos_during_audio_description"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/enable_photos_during_audio_description" android:textSize="@dimen/resource_card_desc_text_size" />
 
-            <ImageButton
-                android:id="@+id/iconHelpPhotosDuringAudio"
-                android:layout_width="@dimen/settings_help_icon_size"
-                android:layout_height="@dimen/settings_help_icon_size"
-                android:layout_marginStart="@dimen/settings_help_icon_margin"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/tooltip_photos_during_audio_title"
-                android:src="@android:drawable/ic_menu_help"
-                app:tint="@color/text_color_secondary" />
-        </LinearLayout>
+        <ImageButton android:id="@+id/iconHelpPhotosDuringAudio" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_photos_during_audio_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+    </LinearLayout>
 
-        <!-- Background photos source selector -->
-        <LinearLayout
-            android:id="@+id/layoutPhotosSourceSelector"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginStart="@dimen/settings_nested_margin_start"
-            android:visibility="gone"
-            android:layout_marginBottom="@dimen/margin_small">
+    <!-- Background photos source selector -->
+    <LinearLayout android:id="@+id/layoutPhotosSourceSelector" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginStart="@dimen/settings_nested_margin_start" android:visibility="gone" android:layout_marginBottom="@dimen/margin_small">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/audio_background_photos_source_label"
-                android:textSize="@dimen/resource_card_desc_text_size"
-                android:textColor="@color/text_color_primary"
-                android:layout_marginBottom="@dimen/margin_small" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/audio_background_photos_source_label" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_primary" android:layout_marginBottom="@dimen/margin_small" />
 
-            <TextView
-                android:id="@+id/tvSelectedPhotosSource"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:text="@string/no_photos_source_selected"
-                android:textSize="@dimen/resource_name_text_size"
-                android:gravity="center"
-                android:textColor="@color/text_color_secondary" />
+        <TextView android:id="@+id/tvSelectedPhotosSource" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:text="@string/no_photos_source_selected" android:textSize="@dimen/resource_name_text_size" android:gravity="center" android:textColor="@color/text_color_secondary" />
 
-            <Button
-                android:id="@+id/btnSelectPhotosSource"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/select_photos_source"
-                android:textAllCaps="false" />
-        </LinearLayout>
+        <Button android:id="@+id/btnSelectPhotosSource" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_photos_source" android:textAllCaps="false" />
+    </LinearLayout>
 
 
 </LinearLayout>
