@@ -38,6 +38,8 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Static context for Glide ModelLoader factory (needed for Hilt EntryPoint access)
         lateinit var appContext: Context
             private set
+
+        private const val ENABLE_DEBUG_STRICT_MODE = false
     }
     
     @Inject
@@ -167,7 +169,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     }
 
     private fun setupDebugStrictMode() {
-        if (!BuildConfig.DEBUG) return
+        if (!BuildConfig.DEBUG || !ENABLE_DEBUG_STRICT_MODE) return
 
         // Configure StrictMode to detect issues while allowing necessary startup operations
         // Note: Early initialization (attachBaseContext, onCreate) wrapped in StrictModeHelper

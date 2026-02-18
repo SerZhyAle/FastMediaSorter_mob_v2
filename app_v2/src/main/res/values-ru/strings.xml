@@ -1495,4 +1495,14 @@
     <string name="file_not_found_message">Файл "%1$s" больше не существует. Возможно, он был удалён или перемещён вне приложения. Обновить ресурс?</string>
     <string name="refresh_resource">Обновить ресурс</string>
 
+    <!-- Sleep Timer -->
+    <string name="menu_sleep_timer">Таймер сна</string>
+    <string name="sleep_timer_title">Таймер сна</string>
+    <string name="sleep_timer_off">Выкл.</string>
+    <string name="sleep_timer_minutes">%d мин</string>
+    <string name="sleep_timer_hours">%1$d ч %2$d мин</string>
+    <string name="sleep_timer_active">Сон: осталось %s</string>
+    <string name="sleep_timer_cancelled">Таймер сна отменён</string>
+    <string name="sleep_timer_set">Таймер сна установлен на %s</string>
+
 </resources>

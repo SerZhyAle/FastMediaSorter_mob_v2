@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.data.remote.ftp.FtpClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.data.transfer.AtomicFileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.BaseFileOperationHandler
+import com.sza.fastmediasorter.data.transfer.FileExistsException
 import com.sza.fastmediasorter.data.transfer.FileOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.FtpOperationStrategy
 import com.sza.fastmediasorter.data.transfer.strategy.LocalOperationStrategy
@@ -132,7 +133,12 @@ class FtpFileOperationHandler @Inject constructor(
                                 errors.add(error)
                             } else {
                                 // 2. Upload to FTP
-                                val uploadedPath = uploadToFtp(tempFile, destFilePath, progressCallback)
+                                val uploadedPath = uploadToFtp(
+                                    source = tempFile,
+                                    ftpPath = destFilePath,
+                                    overwrite = operation.overwrite,
+                                    progressCallback = progressCallback
+                                )
                                 if (uploadedPath != null) {
                                     // 3. Delete network source
                                     val deleteResult = if (sourcePath.startsWith("sftp:", ignoreCase = true)) {
@@ -160,7 +166,12 @@ class FtpFileOperationHandler @Inject constructor(
                     }
                     else -> {
                         // Local/SAF -> FTP Move (Upload + Delete)
-                        val uploadedPath = uploadToFtp(File(sourcePath), destFilePath, progressCallback)
+                        val uploadedPath = uploadToFtp(
+                            source = File(sourcePath),
+                            ftpPath = destFilePath,
+                            overwrite = operation.overwrite,
+                            progressCallback = progressCallback
+                        )
                         
                         if (uploadedPath != null) {
                             // 2. Delete Source - may require permission on Android 11+
@@ -296,21 +307,35 @@ class FtpFileOperationHandler @Inject constructor(
             val existsResult = existsAtDestination(destination)
             if (existsResult.isFailure) return Result.failure(existsResult.exceptionOrNull() ?: Exception("Exists check failed"))
             if (existsResult.getOrDefault(false)) {
-                return Result.failure(Exception("Destination file already exists"))
+                val fileName = destination.substringAfterLast('/').ifBlank {
+                    extractFileName(source, File(source).name)
+                }
+                return Result.failure(
+                    FileExistsException(
+                        fileName = fileName,
+                        destinationPath = destination,
+                        isMove = false
+                    )
+                )
             }
         }
 
         return when {
             isSourceFtp && isDestSftp -> copyFtpToSftp(source, destination)
             isSourceFtp && isDestSmb -> copyFtpToSmb(source, destination, progressCallback)
-            isSourceFtp && isDestFtp -> copyFtpToFtp(source, destination)?.let { Result.success(it) }
+            isSourceFtp && isDestFtp -> copyFtpToFtp(source, destination, overwrite)?.let { Result.success(it) }
                 ?: Result.failure(Exception("Failed to copy between FTP servers"))
             isSourceFtp && !isDestFtp -> {
                 val localFile = File(destination)
                 downloadFromFtp(source, localFile)?.let { Result.success(destination) }
                     ?: Result.failure(Exception("Failed to download from FTP"))
             }
-            !isSourceFtp && isDestFtp -> uploadToFtp(File(source), destination, progressCallback)?.let { Result.success(it) }
+            !isSourceFtp && isDestFtp -> uploadToFtp(
+                source = File(source),
+                ftpPath = destination,
+                overwrite = overwrite,
+                progressCallback = progressCallback
+            )?.let { Result.success(it) }
                 ?: Result.failure(Exception("Failed to upload to FTP"))
             else -> Result.failure(IllegalArgumentException("Unsupported operation: $source -> $destination"))
         }
@@ -434,9 +459,26 @@ class FtpFileOperationHandler @Inject constructor(
     private suspend fun uploadToFtp(
         source: File, 
         ftpPath: String,
+        overwrite: Boolean = false,
         progressCallback: ByteProgressCallback? = null
     ): String? {
         Timber.d("uploadToFtp: ${source.path} → $ftpPath")
+
+        val connectionInfo = parseFtpPath(ftpPath)
+        if (connectionInfo == null) {
+            Timber.e("uploadToFtp: Failed to parse FTP path: $ftpPath")
+            return null
+        }
+
+        Timber.d("uploadToFtp: Parsed - host=${connectionInfo.host}:${connectionInfo.port}")
+
+        if (overwrite) {
+            val prepared = prepareFtpDestinationForOverwrite(connectionInfo, ftpPath)
+            if (!prepared) {
+                Timber.e("uploadToFtp: Failed to prepare destination for overwrite: $ftpPath")
+                return null
+            }
+        }
         
         // Handle SAF URIs (content:/ or content://) using ContentResolver
         val inputStream = if (source.path.startsWith("content:/")) {
@@ -485,14 +527,6 @@ class FtpFileOperationHandler @Inject constructor(
             source.length()
         }
         Timber.d("uploadToFtp: File size=$fileSize bytes")
-        
-        val connectionInfo = parseFtpPath(ftpPath)
-        if (connectionInfo == null) {
-            Timber.e("uploadToFtp: Failed to parse FTP path: $ftpPath")
-            return null
-        }
-        
-        Timber.d("uploadToFtp: Parsed - host=${connectionInfo.host}:${connectionInfo.port}")
         
         // Use new connection to avoid blocking UI
         return try {
@@ -553,7 +587,7 @@ class FtpFileOperationHandler @Inject constructor(
         }
     }
 
-    private suspend fun copyFtpToFtp(sourcePath: String, destPath: String): String? {
+    private suspend fun copyFtpToFtp(sourcePath: String, destPath: String, overwrite: Boolean): String? {
         Timber.d("copyFtpToFtp: $sourcePath → $destPath")
         
         // Download to temp file then upload to avoid OOM
@@ -596,6 +630,14 @@ class FtpFileOperationHandler @Inject constructor(
             }
             
             Timber.d("copyFtpToFtp: Dest parsed - host=${destConnectionInfo.host}:${destConnectionInfo.port}")
+
+            if (overwrite) {
+                val prepared = prepareFtpDestinationForOverwrite(destConnectionInfo, destPath)
+                if (!prepared) {
+                    Timber.e("copyFtpToFtp: Failed to prepare destination for overwrite: $destPath")
+                    return null
+                }
+            }
             
             // Upload to destination using new connection
             val uploadResult = tempFile.inputStream().use { inputStream ->
@@ -628,6 +670,49 @@ class FtpFileOperationHandler @Inject constructor(
                 tempFile.delete()
             }
         }
+    }
+
+    private suspend fun prepareFtpDestinationForOverwrite(
+        connectionInfo: FtpConnectionInfoWithPath,
+        ftpPath: String
+    ): Boolean {
+        val existsResult = ftpClient.existsWithNewConnection(
+            connectionInfo.host,
+            connectionInfo.port,
+            connectionInfo.username,
+            connectionInfo.password,
+            connectionInfo.remotePath
+        )
+
+        if (existsResult.isFailure) {
+            Timber.e(
+                "prepareFtpDestinationForOverwrite: exists check failed for $ftpPath: ${existsResult.exceptionOrNull()?.message}"
+            )
+            return false
+        }
+
+        if (!existsResult.getOrDefault(false)) {
+            return true
+        }
+
+        Timber.w("prepareFtpDestinationForOverwrite: deleting existing destination $ftpPath")
+        val deleteResult = ftpClient.deleteFileWithNewConnection(
+            connectionInfo.host,
+            connectionInfo.port,
+            connectionInfo.username,
+            connectionInfo.password,
+            connectionInfo.remotePath
+        )
+
+        if (deleteResult.isSuccess) {
+            Timber.i("prepareFtpDestinationForOverwrite: existing destination deleted: $ftpPath")
+            return true
+        }
+
+        Timber.e(
+            "prepareFtpDestinationForOverwrite: failed to delete existing destination $ftpPath: ${deleteResult.exceptionOrNull()?.message}"
+        )
+        return false
     }
 
     /**

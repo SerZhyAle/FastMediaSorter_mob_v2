@@ -626,7 +626,7 @@
                         android:layout_height="40dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="@string/help_remember_file_list"
-                        android:src="@drawable/ic_help_outline_24"
+                        android:src="@android:drawable/ic_menu_help"
                         app:tint="?attr/colorPrimary" />
 
                 </LinearLayout>

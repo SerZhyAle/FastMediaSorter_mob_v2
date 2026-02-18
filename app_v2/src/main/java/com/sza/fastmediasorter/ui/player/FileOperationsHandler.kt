@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.net.InetSocketAddress
+import java.net.Socket
 
 /**
  * Handles file operations (copy, move, delete, share) in PlayerActivity.
@@ -51,15 +53,21 @@ class FileOperationsHandler(
      */
     fun performCopy(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
-        
-        // Show immediate feedback that operation started
-        Toast.makeText(
-            context,
-            context.getString(com.sza.fastmediasorter.R.string.msg_copy_started, destination.name),
-            Toast.LENGTH_LONG
-        ).show()
-        
+
         lifecycleScope.launch {
+            val destinationReachabilityError = checkSmbDestinationReachability(destination)
+            if (destinationReachabilityError != null) {
+                callback.onOperationError(destinationReachabilityError, null)
+                return@launch
+            }
+
+            // Show immediate feedback that operation started
+            Toast.makeText(
+                context,
+                context.getString(com.sza.fastmediasorter.R.string.msg_copy_started, destination.name),
+                Toast.LENGTH_LONG
+            ).show()
+
             val settings = settingsRepository.getSettings().first()
             
             try {
@@ -122,15 +130,21 @@ class FileOperationsHandler(
      */
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
-        
-        // Show immediate feedback that operation started
-        Toast.makeText(
-            context,
-            context.getString(com.sza.fastmediasorter.R.string.msg_move_started, destination.name),
-            Toast.LENGTH_LONG
-        ).show()
-        
+
         lifecycleScope.launch {
+            val destinationReachabilityError = checkSmbDestinationReachability(destination)
+            if (destinationReachabilityError != null) {
+                callback.onOperationError(destinationReachabilityError, null)
+                return@launch
+            }
+
+            // Show immediate feedback that operation started
+            Toast.makeText(
+                context,
+                context.getString(com.sza.fastmediasorter.R.string.msg_move_started, destination.name),
+                Toast.LENGTH_LONG
+            ).show()
+
             val settings = settingsRepository.getSettings().first()
             
             try {
@@ -396,6 +410,37 @@ class FileOperationsHandler(
             val age = now - file.lastModified()
             if (age > 60 * 60 * 1000L) {
                 file.delete()
+            }
+        }
+    }
+
+    /**
+     * Fast fail for unavailable SMB destination to ensure user sees immediate feedback.
+     * Returns localized error message if destination is unreachable, otherwise null.
+     */
+    private suspend fun checkSmbDestinationReachability(destination: MediaResource): String? {
+        if (!destination.path.startsWith("smb://", ignoreCase = true)) {
+            return null
+        }
+
+        return withContext(Dispatchers.IO) {
+            try {
+                val endpoint = destination.path.removePrefix("smb://").substringBefore("/")
+                if (endpoint.isBlank()) {
+                    return@withContext context.getString(com.sza.fastmediasorter.R.string.error_connection_failed_generic, destination.name)
+                }
+
+                val host = endpoint.substringBefore(":")
+                val port = endpoint.substringAfter(":", "445").toIntOrNull() ?: 445
+
+                Socket().use { socket ->
+                    socket.connect(InetSocketAddress(host, port), 2000)
+                }
+
+                null
+            } catch (e: Exception) {
+                Timber.w(e, "FileOperationsHandler: SMB destination unreachable: ${destination.path}")
+                context.getString(com.sza.fastmediasorter.R.string.error_connection_failed_generic, destination.name)
             }
         }
     }

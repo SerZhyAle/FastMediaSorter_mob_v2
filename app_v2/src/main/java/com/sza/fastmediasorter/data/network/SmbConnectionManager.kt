@@ -19,6 +19,9 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import timber.log.Timber
 import java.io.IOException
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -300,6 +303,12 @@ class SmbConnectionManager @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         useDegradedTimeout: Boolean = false
     ): PooledConnection {
+        // Fast connectivity check before attempting full SMB connection
+        // This avoids waiting 5-15s for the library to timeout on dead hosts
+        if (!useDegradedTimeout) {
+            checkConnectivity(connectionInfo.server, connectionInfo.port, 2000) // 2s fast check
+        }
+
         val startTime = System.currentTimeMillis()
         // Use degraded client for recovery after timeout to get extended timeouts
         val client = if (useDegradedTimeout) getDegradedClient() else getClient(connectionInfo.server, connectionInfo.port)
@@ -740,11 +749,30 @@ class SmbConnectionManager @Inject constructor(
         closeAllConnections()
         resetClients()
     }
+
+    /**
+     * Fast check if host:port is reachable.
+     * Throws IOException if unreachable within timeout.
+     */
+    private fun checkConnectivity(host: String, port: Int, timeoutMs: Int) {
+        try {
+            Socket().use { socket ->
+                socket.connect(InetSocketAddress(host, port), timeoutMs)
+            }
+        } catch (e: Exception) {
+            val msg = "Fast connectivity check failed to $host:$port after ${timeoutMs}ms"
+            Timber.w(msg)
+            // Rethrow as IOException with clear message for handling
+            throw IOException("Server unreachable ($host:$port)", e)
+        }
+    }
     
     /**     * Convert exception to user-friendly error message.
      */
     private fun getUserFriendlyMessage(e: Exception): String {
         return when {
+            e.message?.contains("Server unreachable", ignoreCase = true) == true ->
+                "Server is offline or unreachable."
             e.message?.contains("Unknown host", ignoreCase = true) == true ->
                 "Cannot resolve server address. Check server name/IP."
             e.message?.contains("Connection refused", ignoreCase = true) == true ->

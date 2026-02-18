@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaFilePage
 import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.SftpPathUtils
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -135,6 +136,9 @@ class SftpMediaScanner @Inject constructor(
             } ?: emptyList()
             
             mediaFiles
+        } catch (e: CancellationException) {
+            Timber.d("SFTP scan cancelled for path: $path")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SFTP folder: $path")
             emptyList()
@@ -245,6 +249,9 @@ class SftpMediaScanner @Inject constructor(
             Timber.d("SftpMediaScanner paged: offset=$offset, limit=$limit, returned=${pageFiles.size}, hasMore=$hasMore")
             MediaFilePage(pageFiles, hasMore)
             
+        } catch (e: CancellationException) {
+            Timber.d("SFTP paged scan cancelled for path: $path")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SFTP folder (paged): $path")
             MediaFilePage(emptyList(), false)
@@ -265,6 +272,8 @@ class SftpMediaScanner @Inject constructor(
             // If we got exactly 1000 files, there are likely more (return 1000 to show ">1000")
             // If we got less, that's the actual count
             page.files.size
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error counting SFTP files in: $path")
             0
@@ -381,6 +390,9 @@ class SftpMediaScanner @Inject constructor(
                     .thenBy(String.CASE_INSENSITIVE_ORDER) { it.name }
             ) ?: emptyList()
 
+        } catch (e: CancellationException) {
+            Timber.d("SFTP directory listing cancelled for path: $path")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error listing SFTP directory contents: $path")
             emptyList()
@@ -410,6 +422,8 @@ class SftpMediaScanner @Inject constructor(
             }
 
             result.isSuccess
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error checking SFTP write access for: $path")
             false

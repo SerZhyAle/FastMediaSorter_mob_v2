@@ -15,6 +15,7 @@ android {
     namespace = "com.sza.fastmediasorter"
     // CRITICAL: Do not change - required for latest Android features and Play Store requirements
     compileSdk = 35
+    ndkVersion = "25.1.8937393"
 
     defaultConfig {
         applicationId = "com.sza.fastmediasorter"
@@ -27,8 +28,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260218013
-        versionName = "2.60.2180.133"
+        versionCode = 260218020
+        versionName = "2.60.2180.206"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

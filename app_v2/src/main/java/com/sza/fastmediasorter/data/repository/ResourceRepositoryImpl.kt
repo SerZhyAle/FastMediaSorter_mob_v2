@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import com.sza.fastmediasorter.utils.FtpPathUtils
+import com.sza.fastmediasorter.utils.SftpPathUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -266,18 +268,17 @@ class ResourceRepositoryImpl @Inject constructor(
             return Result.failure(Exception("Credentials not found"))
         }
         
-        // Parse SFTP path to get host and port
+        // Parse SFTP path using utility (handles optional ports)
         val path = resource.path
-        val sftpRegex = """sftp://([^:]+):(\d+)""".toRegex()
-        val matchResult = sftpRegex.find(path)
+        val pathInfo = SftpPathUtils.parseSftpPath(path)
         
-        if (matchResult == null) {
+        if (pathInfo == null) {
             Timber.w("Invalid SFTP path format: $path")
             return Result.failure(Exception("Invalid SFTP path format"))
         }
         
-        val host = matchResult.groupValues[1]
-        val port = matchResult.groupValues[2].toIntOrNull() ?: 22
+        val host = pathInfo.host
+        val port = pathInfo.port
         
         // Test SFTP connection (with password or private key)
         val privateKey = credentialsEntity.decryptedSshPrivateKey
@@ -305,18 +306,17 @@ class ResourceRepositoryImpl @Inject constructor(
             return Result.failure(Exception("FTP credentials not found"))
         }
         
-        // Parse FTP path to get host and port
+        // Parse FTP path using utility (handles optional ports)
         val path = resource.path
-        val ftpRegex = """ftp://([^:]+):(\d+)""".toRegex()
-        val matchResult = ftpRegex.find(path)
+        val pathInfo = FtpPathUtils.parseFtpPath(path)
         
-        if (matchResult == null) {
+        if (pathInfo == null) {
             Timber.w("Invalid FTP path format: $path")
             return Result.failure(Exception("Invalid FTP path format"))
         }
         
-        val host = matchResult.groupValues[1]
-        val port = matchResult.groupValues[2].toIntOrNull() ?: 21
+        val host = pathInfo.host
+        val port = pathInfo.port
         
         // Test FTP connection
         return smbOperationsUseCase.testFtpConnection(
