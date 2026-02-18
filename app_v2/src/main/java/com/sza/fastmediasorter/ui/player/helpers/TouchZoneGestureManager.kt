@@ -490,7 +490,7 @@ class TouchZoneGestureManager(
      * Handle fling (swipe) on PhotoView (from PhotoView's native OnSingleFlingListener).
      * Only fires when not zoomed (scale <= 1.0) and single-touch.
      */
-    fun handleImageFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+    fun handleImageFling(e1: MotionEvent?, @Suppress("UNUSED_PARAMETER") e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
         val currentFile = viewModel.state.value.currentFile
         val isFullscreen = !viewModel.state.value.showCommandPanel
         val zoneMap = TouchZoneConfig.getZoneMapForMediaType(currentFile?.type, isFullscreen)

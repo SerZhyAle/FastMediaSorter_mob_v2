@@ -126,7 +126,6 @@ class ResourceAdapter(
             }
             if (MediaType.EPUB in types) {
                 spannable.setSpan(ForegroundColorSpan(MediaGroupPalette.colorForType(MediaType.EPUB)), position, position + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
-                position++
             }
             
             return spannable
@@ -137,6 +136,7 @@ class ResourceAdapter(
                 ?: return ""
 
             // Match indicator text height (~12sp) with slight extra for readability
+            @Suppress("DEPRECATION")
             val sizePx = (12f * context.resources.displayMetrics.scaledDensity).toInt()
             drawable.setBounds(0, 0, sizePx, sizePx)
             DrawableCompat.setTint(drawable, ColorStateList.valueOf(tintColor).defaultColor)

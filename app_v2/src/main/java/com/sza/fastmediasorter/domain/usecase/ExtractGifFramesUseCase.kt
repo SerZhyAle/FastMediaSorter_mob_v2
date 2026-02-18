@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION") // android.graphics.Movie is deprecated (API 33+)
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context

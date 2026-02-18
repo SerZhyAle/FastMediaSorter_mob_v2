@@ -63,7 +63,7 @@ class TextFilePager(
      * Returns page text as String (may be empty for pages beyond EOF).
      */
     fun readPage(pageIndex: Int): String {
-        val reader = raf ?: throw IllegalStateException("TextFilePager not opened")
+        raf ?: throw IllegalStateException("TextFilePager not opened")
 
         // Ensure index covers this page
         ensureIndexedUpTo(pageIndex)
@@ -180,7 +180,7 @@ class TextFilePager(
      * Tries to end at a newline boundary within [chunkSize] bytes.
      */
     private fun findPageEnd(startOffset: Long): Long {
-        val reader = raf ?: throw IllegalStateException("TextFilePager not opened")
+        raf ?: throw IllegalStateException("TextFilePager not opened")
 
         val remaining = fileSize - startOffset
         if (remaining <= chunkSize) {
@@ -228,7 +228,7 @@ class TextFilePager(
         }
 
         // UTF-8 / multi-byte boundary correction
-        val reader = raf ?: return offset
+        raf ?: return offset
         var pos = offset
 
         synchronized(rafLock) {

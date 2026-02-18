@@ -35,6 +35,7 @@ import kotlin.math.abs
  * - Supports OCR-based translation of PDF pages via TranslationManager
  * - Saves and restores last viewed page position
  */
+@OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class PdfViewerManager(
     binding: ActivityPlayerUnifiedBinding,
     private val networkFileManager: NetworkFileManager,
@@ -1182,7 +1183,7 @@ class PdfViewerManager(
      * Called from PlayerGestureSetupManager's PhotoView fling listener.
      * Returns true if handled (PDF active and gesture recognized), false otherwise.
      */
-    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean {
+    fun handlePdfFling(e1: MotionEvent?, e2: MotionEvent, @Suppress("UNUSED_PARAMETER") velocityX: Float, velocityY: Float): Boolean {
         // Only handle when PDF is active
         if (pdfRenderer == null || e1 == null) return false
         

@@ -47,10 +47,10 @@ class CloudMediaScanner @Inject constructor(
         path: String,
         supportedTypes: Set<MediaType>,
         sizeFilter: SizeFilter?,
-        credentialsId: String?,
+        @Suppress("UNUSED_PARAMETER") credentialsId: String?,
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean,
-        onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?,
+        @Suppress("UNUSED_PARAMETER") onProgress: com.sza.fastmediasorter.domain.usecase.ScanProgressCallback?,
         includeDirectories: Boolean
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         try {

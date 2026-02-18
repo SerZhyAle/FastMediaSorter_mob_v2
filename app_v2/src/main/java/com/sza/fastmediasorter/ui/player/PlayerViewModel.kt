@@ -373,7 +373,7 @@ class PlayerViewModel @Inject constructor(
                     val showCommandPanel = when {
                         resource.showCommandPanel == null -> currentSettings.defaultShowCommandPanel
                         resource.showCommandPanel == false && currentSettings.defaultShowCommandPanel == true -> currentSettings.defaultShowCommandPanel
-                        else -> resource.showCommandPanel ?: currentSettings.defaultShowCommandPanel
+                        else -> resource.showCommandPanel!!
                     }
 
                     Timber.d("PlayerViewModel.loadMediaFiles: Determined showCommandPanel=$showCommandPanel (resource.showCommandPanel=${resource.showCommandPanel}, default=${currentSettings.defaultShowCommandPanel})")

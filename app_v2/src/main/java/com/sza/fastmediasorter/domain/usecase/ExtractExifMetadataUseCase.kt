@@ -127,7 +127,9 @@ class ExtractExifMetadataUseCase @Inject constructor(
         }
 
         // Extract GPS coordinates
+        @Suppress("DEPRECATION")
         val latLong = FloatArray(2)
+        @Suppress("DEPRECATION")
         val hasGps = exif.getLatLong(latLong)
         val latitude = if (hasGps) latLong[0].toDouble() else null
         val longitude = if (hasGps) latLong[1].toDouble() else null
