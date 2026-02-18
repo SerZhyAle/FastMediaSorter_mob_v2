@@ -233,3 +233,7 @@ app_v2\src\main\res\xml\sza_resources.xml
 
 # RAM disk backup folders
 app_v2/build.backup/
+
+# Large binary artifacts (>50MB, removed from history 2026-02-18)
+bundletool.jar
+maestro/lib/
