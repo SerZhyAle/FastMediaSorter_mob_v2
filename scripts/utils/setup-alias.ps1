@@ -48,5 +48,9 @@ Write-Host "   . `$PROFILE" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "После этого можно использовать:" -ForegroundColor Gray
 Write-Host "   a d    # Build debug" -ForegroundColor Green
+Write-Host "   a db   # Fast debug without zip" -ForegroundColor Green
+Write-Host "   a cd   # Clean + debug + zip" -ForegroundColor Green
+Write-Host "   a cdb  # Clean + debug without zip" -ForegroundColor Green
+Write-Host "   a cls  # Clean Gradle caches" -ForegroundColor Green
 Write-Host "   a c    # Commit & push" -ForegroundColor Green
 Write-Host "   a r    # Build release" -ForegroundColor Green

@@ -5,7 +5,10 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
@@ -39,7 +42,10 @@ class SyncMediaStoreUseCase @Inject constructor(
      * @return Result with count of files synchronized
      */
     suspend fun invoke(resource: MediaResource): Result<Int> = withContext(Dispatchers.IO) {
+        var syncedCount = 0
         try {
+            currentCoroutineContext().ensureActive()
+
             if (resource.type != ResourceType.LOCAL) {
                 Timber.w("SyncMediaStore: Skipping non-local resource '${resource.name}' (type=${resource.type})")
                 return@withContext Result.success(0)
@@ -51,28 +57,20 @@ class SyncMediaStoreUseCase @Inject constructor(
                 return@withContext Result.failure(IllegalArgumentException("Invalid directory: ${resource.path}"))
             }
             
-            Timber.i("SyncMediaStore: START synchronization for '${resource.name}' at ${resource.path}")
-            var syncedCount = 0
-            
             // Scan all files recursively
             val filesToSync = mutableListOf<File>()
             collectFiles(rootFolder, filesToSync, resource.scanSubdirectories)
             
-            Timber.d("SyncMediaStore: Found ${filesToSync.size} files to sync")
-            
             // Register each file in MediaStore
             filesToSync.forEach { file ->
+                currentCoroutineContext().ensureActive()
                 try {
-                    MediaStoreNotifier.notifyFile(
+                    MediaStoreNotifier.notifyFileAwait(
                         context = context,
                         path = file.absolutePath,
                         reason = "sync-mediastore"
                     )
                     syncedCount++
-                    
-                    if (syncedCount % 100 == 0) {
-                        Timber.d("SyncMediaStore: Progress - synced $syncedCount/${filesToSync.size} files")
-                    }
                 } catch (e: Exception) {
                     Timber.e(e, "SyncMediaStore: Failed to notify MediaStore for ${file.name}")
                 }
@@ -81,6 +79,9 @@ class SyncMediaStoreUseCase @Inject constructor(
             Timber.i("SyncMediaStore: COMPLETE - Successfully synced $syncedCount files for '${resource.name}'")
             Result.success(syncedCount)
             
+        } catch (e: CancellationException) {
+            Timber.i("SyncMediaStore: CANCELLED for resource '${resource.name}', synced $syncedCount files")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "SyncMediaStore: FAILED for resource '${resource.name}'")
             Result.failure(e)
@@ -94,11 +95,13 @@ class SyncMediaStoreUseCase @Inject constructor(
      * @param outFiles List to collect files into
      * @param scanSubdirectories Whether to scan subdirectories recursively
      */
-    private fun collectFiles(directory: File, outFiles: MutableList<File>, scanSubdirectories: Boolean) {
+    private suspend fun collectFiles(directory: File, outFiles: MutableList<File>, scanSubdirectories: Boolean) {
         try {
+            currentCoroutineContext().ensureActive()
             val entries = directory.listFiles() ?: return
             
             for (entry in entries) {
+                currentCoroutineContext().ensureActive()
                 // Skip hidden files and directories (starting with dot)
                 if (entry.name.startsWith(".")) {
                     continue

@@ -1,6 +1,10 @@
 # Quick debug build script with auto-versioning
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
 
+param(
+    [switch]$SkipZip
+)
+
 Write-Host "Building debug APK (auto-versioned)..." -ForegroundColor Cyan
 
 # Generate version code and name
@@ -49,12 +53,18 @@ function Invoke-DebugBuild {
         $gradleArgs += "--rerun-tasks"
     }
 
-    $output = & "$PSScriptRoot\..\..\\gradlew.bat" @gradleArgs 2>&1
-    $output | ForEach-Object { Write-Host $_ }
+    Write-Host "Starting Gradle: .\\gradlew.bat $($gradleArgs -join ' ')" -ForegroundColor DarkGray
+
+    $outputLines = New-Object System.Collections.Generic.List[string]
+    & "$PSScriptRoot\..\..\\gradlew.bat" @gradleArgs 2>&1 | ForEach-Object {
+        $line = [string]$_
+        $outputLines.Add($line)
+        Write-Host $line
+    }
 
     return [PSCustomObject]@{
         ExitCode = $LASTEXITCODE
-        Output = ($output | Out-String)
+        Output   = ($outputLines -join [Environment]::NewLine)
     }
 }
 
@@ -62,9 +72,9 @@ $buildResult = Invoke-DebugBuild
 
 if ($buildResult.ExitCode -ne 0) {
     $isKotlinCachePackError =
-        ($buildResult.Output -match "Failed to store cache entry") -and
-        ($buildResult.Output -match "Could not pack tree") -and
-        ($buildResult.Output -match "lookups\.tab\.values")
+    ($buildResult.Output -match "Failed to store cache entry") -and
+    ($buildResult.Output -match "Could not pack tree") -and
+    ($buildResult.Output -match "lookups\.tab\.values")
 
     if ($isKotlinCachePackError) {
         Write-Host "`nDetected Kotlin/Gradle cache packing issue. Cleaning local caches and retrying once..." -ForegroundColor Yellow
@@ -148,13 +158,28 @@ $zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
 $zipPath = "$gdDir\$zipName"
 
 # Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
-if (Test-Path -Path $7zipPath) {
-    & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
-    Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-    # Write-Host "Password: 1" -ForegroundColor Yellow
+if ($SkipZip) {
+    Write-Host "SkipZip enabled: ZIP creation and Google Drive archive copy skipped." -ForegroundColor Yellow
 }
 else {
-    Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
-    Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+    if (Test-Path -Path $7zipPath) {
+        if (Test-Path -Path $zipPath) {
+            Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
+        }
+
+        & $7zipPath a -y -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
+        }
+        else {
+            Write-Host "Warning: 7-Zip archive creation failed with exit code $LASTEXITCODE" -ForegroundColor Yellow
+        }
+        # Write-Host "Password: 1" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
+        Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+    }
 }

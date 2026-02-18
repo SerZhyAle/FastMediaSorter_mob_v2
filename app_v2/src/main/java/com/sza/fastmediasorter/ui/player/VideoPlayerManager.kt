@@ -477,7 +477,7 @@ class VideoPlayerManager(
                     ResourceType.SMB -> playSmbVideo(path, credentialsId, playWhenReady)
                     ResourceType.SFTP -> playSftpVideo(path, credentialsId, playWhenReady)
                     ResourceType.FTP -> playFtpVideo(path, credentialsId, playWhenReady)
-                    ResourceType.LOCAL -> playLocalVideo(path, playWhenReady)
+                    ResourceType.LOCAL -> playLocalVideoInternal(path, playWhenReady)
                 }
                 
                 // Restore position if saved (after media is loaded)
@@ -572,22 +572,33 @@ class VideoPlayerManager(
      * Play local video file
      */
     fun playLocalVideo(path: String, playWhenReady: Boolean = true) {
-        Timber.d("VideoPlayerManager: Playing local video - path=$path")
+        managerScope.launch {
+            playLocalVideoInternal(path, playWhenReady)
+        }
+    }
+
+    private suspend fun playLocalVideoInternal(path: String, playWhenReady: Boolean = true) {
+        val normalizedPath = normalizeLocalPath(path)
+        Timber.d("VideoPlayerManager: Playing local video - path=$path, normalizedPath=$normalizedPath")
         
-        // Validate file exists for local files
-        if (!path.startsWith("content://")) {
-            val file = File(path)
-            if (!file.exists()) {
-                Timber.e("VideoPlayerManager: Local file does not exist: $path")
+        // Validate file exists for local files (IO thread to avoid StrictMode DiskReadViolation)
+        if (!normalizedPath.startsWith("content://")) {
+            val file = File(normalizedPath)
+            val fileCheck = withContext(Dispatchers.IO) {
+                Triple(file.exists(), file.canRead(), if (file.exists()) file.length() else 0L)
+            }
+
+            if (!fileCheck.first) {
+                Timber.e("VideoPlayerManager: Local file does not exist: $normalizedPath (originalPath=$path)")
                 playerCallback.showError(context.getString(R.string.file_not_found_name, file.name))
                 return
             }
-            if (!file.canRead()) {
-                Timber.e("VideoPlayerManager: Cannot read local file: $path")
+            if (!fileCheck.second) {
+                Timber.e("VideoPlayerManager: Cannot read local file: $normalizedPath (originalPath=$path)")
                 playerCallback.showError(context.getString(R.string.cannot_read_file, file.name))
                 return
             }
-            Timber.d("VideoPlayerManager: File exists and readable: ${file.name}, size=${file.length()} bytes")
+            Timber.d("VideoPlayerManager: File exists and readable: ${file.name}, size=${fileCheck.third} bytes")
         }
         
         if (exoPlayer == null && currentPlayerView != null) {
@@ -595,19 +606,36 @@ class VideoPlayerManager(
         }
         
         exoPlayer?.apply {
-            val uri = if (path.startsWith("content://")) {
-                path
+            val uri = if (normalizedPath.startsWith("content://")) {
+                normalizedPath
             } else {
-                File(path).toURI().toString()
+                File(normalizedPath).toURI().toString()
             }
             
             Timber.d("VideoPlayerManager: Setting media item for URI: $uri")
-            setMediaItem(createMediaItem(uri, path))
+            setMediaItem(createMediaItem(uri, normalizedPath))
             prepare()
             this.playWhenReady = playWhenReady
         }
         
         Timber.d("VideoPlayerManager: Local video setup complete")
+    }
+
+    private fun normalizeLocalPath(path: String): String {
+        if (path.startsWith("content://")) {
+            return path
+        }
+
+        if (path.startsWith("file:", ignoreCase = true)) {
+            return try {
+                Uri.parse(path).path?.takeIf { it.isNotBlank() } ?: path
+            } catch (e: Exception) {
+                Timber.w(e, "VideoPlayerManager: Failed to normalize file URI, using original path")
+                path
+            }
+        }
+
+        return path
     }
     
     /**

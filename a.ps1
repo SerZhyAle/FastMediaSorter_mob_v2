@@ -9,6 +9,10 @@
     r   - Build AAB Release
     dc  - Build Debug Clean
     d   - Build Debug
+    db  - Build Debug (without zip)
+    cd  - Clean + Debug + Zip
+    cdb - Clean + Debug (without zip)
+    cls - Clean Gradle caches
     c   - Commit & Push
     ch  - Check Typo/Lint
     s   - Setup Test Media
@@ -30,14 +34,18 @@ $ProjectRoot = $PSScriptRoot
 
 # Script mapping
 $scripts = @{
-    'r'  = 'scripts\builders\build-aab-release.ps1'
-    'dc' = 'scripts\builders\build-debug-clean.PS1'
-    'd'  = 'scripts\builders\build-debug.PS1'
-    'c'  = 'scripts\utils\commit-push.ps1'
-    'ch' = 'scripts\utils\check-typo-lint.ps1'
-    's'  = 'scripts\utils\setup_test_media.ps1'
-    'b'  = 'scripts\builders\build-and-push-all.ps1'
-    'bp' = 'scripts\builders\build-and-push-all.ps1'
+    'r'   = @{ Path = 'scripts\builders\build-aab-release.ps1'; Args = @() }
+    'dc'  = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
+    'd'   = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @() }
+    'db'  = @{ Path = 'scripts\builders\build-debug.PS1'; Args = @('-SkipZip') }
+    'cd'  = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @() }
+    'cdb' = @{ Path = 'scripts\builders\build-debug-clean.PS1'; Args = @('-SkipZip') }
+    'cls' = @{ Path = 'scripts\builders\clean-gradle-caches.ps1'; Args = @() }
+    'c'   = @{ Path = 'scripts\utils\commit-push.ps1'; Args = @() }
+    'ch'  = @{ Path = 'scripts\utils\check-typo-lint.ps1'; Args = @() }
+    's'   = @{ Path = 'scripts\utils\setup_test_media.ps1'; Args = @() }
+    'b'   = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
+    'bp'  = @{ Path = 'scripts\builders\build-and-push-all.ps1'; Args = @() }
 }
 
 # Validate command
@@ -48,6 +56,10 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  r   - Build AAB Release" -ForegroundColor Cyan
     Write-Host "  dc  - Build Debug Clean" -ForegroundColor Cyan
     Write-Host "  d   - Build Debug" -ForegroundColor Cyan
+    Write-Host "  db  - Build Debug without zip" -ForegroundColor Cyan
+    Write-Host "  cd  - Clean + Debug + zip" -ForegroundColor Cyan
+    Write-Host "  cdb - Clean + Debug without zip" -ForegroundColor Cyan
+    Write-Host "  cls - Clean Gradle caches" -ForegroundColor Cyan
     Write-Host "  c   - Commit & Push" -ForegroundColor Cyan
     Write-Host "  ch  - Check Typo/Lint" -ForegroundColor Cyan
     Write-Host "  s   - Setup Test Media" -ForegroundColor Cyan
@@ -60,7 +72,9 @@ if (-not $scripts.ContainsKey($Command)) {
 }
 
 # Get script path
-$scriptPath = Join-Path $ProjectRoot $scripts[$Command]
+$scriptEntry = $scripts[$Command]
+$scriptPath = Join-Path $ProjectRoot $scriptEntry.Path
+$scriptArgs = $scriptEntry.Args
 
 # Verify script exists
 if (-not (Test-Path $scriptPath)) {
@@ -69,10 +83,10 @@ if (-not (Test-Path $scriptPath)) {
 }
 
 # Execute script
-Write-Host "🚀 Executing: $($scripts[$Command])" -ForegroundColor Green
+Write-Host "🚀 Executing: $($scriptEntry.Path) $($scriptArgs -join ' ')" -ForegroundColor Green
 Write-Host ""
 
-& $scriptPath
+& $scriptPath @scriptArgs
 
 # Return exit code from executed script
 exit $LASTEXITCODE

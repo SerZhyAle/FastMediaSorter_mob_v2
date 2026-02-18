@@ -1,6 +1,10 @@
 # Quick debug build script with auto-versioning and CLEAN BUILD
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
 
+param(
+    [switch]$SkipZip
+)
+
 Write-Host "Cleaning caches and building debug APK (auto-versioned)..." -ForegroundColor Cyan
 
 # Generate version code and name
@@ -134,13 +138,28 @@ $zipName = [System.IO.Path]::ChangeExtension($destName, ".zip")
 $zipPath = "$gdDir\$zipName"
 
 # Use 7-Zip to create password-protected archive
-$7zipPath = "C:\Program Files\7-Zip\7z.exe"
-if (Test-Path -Path $7zipPath) {
-    & $7zipPath a -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
-    Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
-    # Write-Host "Password: 1" -ForegroundColor Yellow
+if ($SkipZip) {
+    Write-Host "SkipZip enabled: ZIP creation and Google Drive archive copy skipped." -ForegroundColor Yellow
 }
 else {
-    Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
-    Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+    $7zipPath = "C:\Program Files\7-Zip\7z.exe"
+    if (Test-Path -Path $7zipPath) {
+        if (Test-Path -Path $zipPath) {
+            Remove-Item -Path $zipPath -Force -ErrorAction SilentlyContinue
+        }
+
+        & $7zipPath a -y -tzip -p1 "$zipPath" "$downloadsDir\$destName" | Out-Null
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Cyan
+        }
+        else {
+            Write-Host "Warning: 7-Zip archive creation failed with exit code $LASTEXITCODE" -ForegroundColor Yellow
+        }
+        # Write-Host "Password: 1" -ForegroundColor Yellow
+    }
+    else {
+        Write-Host "Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
+        Write-Host "Install 7-Zip from https://www.7-zip.org/ to enable Google Drive upload." -ForegroundColor Yellow
+    }
 }

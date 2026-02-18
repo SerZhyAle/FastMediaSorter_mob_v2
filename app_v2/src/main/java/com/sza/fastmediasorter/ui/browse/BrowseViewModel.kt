@@ -554,9 +554,11 @@ class BrowseViewModel @Inject constructor(
                         Timber.e(error, "BrowseViewModel.reloadFiles: MediaStore sync failed")
                     }
                 } finally {
-                    // Small delay to let any pending FileObserver events from MediaStore sync drain
-                    kotlinx.coroutines.delay(500)
-                    ignoringFileChanges = false
+                    withContext(NonCancellable) {
+                        // Small delay to let any pending FileObserver events from MediaStore sync drain
+                        kotlinx.coroutines.delay(500)
+                        ignoringFileChanges = false
+                    }
                 }
             }
             
@@ -618,6 +620,8 @@ class BrowseViewModel @Inject constructor(
         // Setting graceful stop flag
         // Set flag to signal scanner to stop gracefully and return partial results
         shouldStopScan.set(true)
+        reloadDebounceJob?.cancel()
+        reloadFilesJob?.cancel()
         playerWarmupJob?.cancel()
         
         // Don't cancel the job - let it complete gracefully

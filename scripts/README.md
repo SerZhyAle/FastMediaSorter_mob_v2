@@ -33,6 +33,25 @@ scripts/
 .\scripts\builders\build-release.ps1
 ```
 
+### Alias `a` (recommended)
+
+```powershell
+# Same as build-debug.PS1
+a d
+
+# Fast debug without zip
+a db
+
+# Clean + debug + zip
+a cd
+
+# Clean + debug without zip
+a cdb
+
+# Clean Gradle caches
+a cls
+```
+
 ### Run Tests
 
 ```powershell
@@ -61,6 +80,7 @@ scripts/
 Some root-level scripts remain for backward compatibility:
 
 - `build-debug.PS1` (root) - Quick access wrapper
+- `a.ps1` (root) - Command launcher (`a d`, `a db`, `a cd`, `a cdb`, `a cls`)
 
 ## Note
 

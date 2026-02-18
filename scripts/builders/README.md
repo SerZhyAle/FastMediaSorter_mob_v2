@@ -8,10 +8,19 @@ Quick builds for development and testing (no version bump):
 
 ```powershell
 .\scripts\builders\build-debug.PS1              # Standard flavor (all features)
+.\scripts\builders\build-debug.PS1 -SkipZip     # Standard flavor without zip/GDrive archive
+.\scripts\builders\build-debug-clean.PS1        # Clean + standard debug + zip
+.\scripts\builders\build-debug-clean.PS1 -SkipZip # Clean + standard debug without zip
 .\scripts\builders\build-standard-debug.ps1     # Standard flavor explicit
 .\scripts\builders\build-lite-debug.ps1         # Lite flavor (no cloud/audio)
 .\scripts\builders\build-photos-debug.ps1       # Photos only flavor
 .\scripts\builders\build-legacy-debug.ps1       # Legacy flavor (no cloud)
+```
+
+## Cleanup
+
+```powershell
+.\scripts\builders\clean-gradle-caches.ps1      # Stop daemons + remove project caches + gradlew clean
 ```
 
 ## Release Builds

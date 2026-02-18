@@ -3,8 +3,10 @@ package com.sza.fastmediasorter.utils
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.os.Environment
+import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
 import java.io.File
+import kotlin.coroutines.resume
 
 object MediaStoreNotifier {
     fun notifyFile(context: Context, path: String, reason: String? = null) {
@@ -14,9 +16,36 @@ object MediaStoreNotifier {
         if (!isSharedStoragePath(context, file.absolutePath)) return
 
         val tag = if (reason.isNullOrBlank()) "" else " ($reason)"
+        val shouldLogDetails = reason != "sync-mediastore"
         try {
             MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), null) { _, uri ->
-                Timber.d("MediaStoreNotifier: scanned ${file.absolutePath} -> $uri$tag")
+                if (shouldLogDetails) {
+                    Timber.d("MediaStoreNotifier: scanned ${file.absolutePath} -> $uri$tag")
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "MediaStoreNotifier: scan failed for ${file.absolutePath}$tag")
+        }
+    }
+
+    suspend fun notifyFileAwait(context: Context, path: String, reason: String? = null) {
+        if (path.startsWith("content://")) return
+        val file = File(path)
+        if (!file.exists()) return
+        if (!isSharedStoragePath(context, file.absolutePath)) return
+
+        val tag = if (reason.isNullOrBlank()) "" else " ($reason)"
+        val shouldLogDetails = reason != "sync-mediastore"
+        try {
+            suspendCancellableCoroutine<Unit> { continuation ->
+                MediaScannerConnection.scanFile(context, arrayOf(file.absolutePath), null) { _, uri ->
+                    if (shouldLogDetails) {
+                        Timber.d("MediaStoreNotifier: scanned ${file.absolutePath} -> $uri$tag")
+                    }
+                    if (continuation.isActive) {
+                        continuation.resume(Unit)
+                    }
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "MediaStoreNotifier: scan failed for ${file.absolutePath}$tag")
