@@ -209,6 +209,7 @@ vcs.xml
 
 # Agents documentation (internal AI instructions)
 AGENTS.md
+GEMINI.md
 
 # Google site verification
 google*.html
