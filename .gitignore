@@ -230,3 +230,6 @@ servers/
 archive/
 ChoiceModelRules.md
 app_v2\src\main\res\xml\sza_resources.xml
+
+# RAM disk backup folders
+app_v2/build.backup/
