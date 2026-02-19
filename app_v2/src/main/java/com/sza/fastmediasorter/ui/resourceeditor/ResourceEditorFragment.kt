@@ -151,28 +151,23 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun reorderScanningAboveMediaTypes() {
-        val parent = binding.headerMediaTypes.parent as? LinearLayout ?: return
+        val parent = binding.cardMediaTypes.parent as? LinearLayout ?: return
 
-        val scanningHeader = binding.headerScanning
-        val scanningContent = binding.contentScanning
-        val mediaHeader = binding.headerMediaTypes
-        val mediaContent = binding.gridMediaTypes
+        val scanningCard = binding.cardScanning
+        val mediaCard = binding.cardMediaTypes
+        val destinationCard = binding.cardDestination
 
-        val destinationHeaderIndex = parent.indexOfChild(binding.headerDestination)
+        val destinationHeaderIndex = parent.indexOfChild(destinationCard)
         if (destinationHeaderIndex <= 0) {
             return
         }
 
-        parent.removeView(scanningHeader)
-        parent.removeView(scanningContent)
-        parent.removeView(mediaHeader)
-        parent.removeView(mediaContent)
+        parent.removeView(scanningCard)
+        parent.removeView(mediaCard)
 
-        val insertIndex = parent.indexOfChild(binding.headerDestination)
-        parent.addView(scanningHeader, insertIndex)
-        parent.addView(scanningContent, insertIndex + 1)
-        parent.addView(mediaHeader, insertIndex + 2)
-        parent.addView(mediaContent, insertIndex + 3)
+        val insertIndex = parent.indexOfChild(destinationCard)
+        parent.addView(scanningCard, insertIndex)
+        parent.addView(mediaCard, insertIndex + 1)
     }
 
     private fun setupCollapsibleHeader(
@@ -568,6 +563,7 @@ class ResourceEditorFragment : Fragment() {
 
     private fun updateMediaTypesSectionVisibility(allFilesEnabled: Boolean) {
         val shouldShowMediaTypes = hasMediaTypesBySchema && !allFilesEnabled
+        binding.cardMediaTypes.isVisible = shouldShowMediaTypes
         binding.headerMediaTypes.isVisible = shouldShowMediaTypes
 
         if (!shouldShowMediaTypes) {
@@ -608,6 +604,7 @@ class ResourceEditorFragment : Fragment() {
             isNetwork ||
             isCloud
 
+        binding.cardConnectionSettings.isVisible = shouldShowConnectionSection
         binding.headerConnectionSettings.isVisible = shouldShowConnectionSection
 
         if (!shouldShowConnectionSection) {
@@ -658,6 +655,7 @@ class ResourceEditorFragment : Fragment() {
             visibleKeys.contains(ResourceFieldKey.ALL_FILES) ||
             visibleKeys.contains(ResourceFieldKey.DISABLE_THUMBNAILS) ||
             visibleKeys.contains(ResourceFieldKey.REMEMBER_FILE_LIST)
+        binding.cardScanning.isVisible = hasScanSettings
         binding.headerScanning.isVisible = hasScanSettings
         binding.cbScanSubdirectories.isVisible = visibleKeys.contains(ResourceFieldKey.SCAN_SUBDIRECTORIES)
         binding.cbAllFiles.isVisible = visibleKeys.contains(ResourceFieldKey.ALL_FILES)
@@ -670,11 +668,13 @@ class ResourceEditorFragment : Fragment() {
         // Destination section (collapsible header + content)
         val hasDestination = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION) ||
             visibleKeys.contains(ResourceFieldKey.IS_READ_ONLY)
+        binding.cardDestination.isVisible = hasDestination
         binding.headerDestination.isVisible = hasDestination
         binding.cbIsDestination.isVisible = visibleKeys.contains(ResourceFieldKey.IS_DESTINATION)
         binding.cbIsReadOnly.isVisible = visibleKeys.contains(ResourceFieldKey.IS_READ_ONLY)
 
         // Advanced section (collapsible header + content)
+        binding.cardAdvanced.isVisible = true
         binding.headerAdvanced.isVisible = true
         binding.tilComment.isVisible = visibleKeys.contains(ResourceFieldKey.COMMENT)
         binding.tilAccessPin.isVisible = visibleKeys.contains(ResourceFieldKey.ACCESS_PIN)
@@ -811,6 +811,7 @@ class ResourceEditorFragment : Fragment() {
 
     private fun renderStatistics(statistics: ResourceStatistics?) {
         val show = statistics != null && mode == ResourceEditorMode.EDIT
+        binding.cardStatistics.isVisible = show
         binding.headerStatistics.isVisible = show
         binding.groupStatistics.isVisible = show
 
@@ -818,8 +819,10 @@ class ResourceEditorFragment : Fragment() {
 
         val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
 
-        binding.tvStatFileCount.text = getString(R.string.label_file_count, statistics.fileCount)
-        binding.tvStatSubfolderCount.text = getString(R.string.label_subfolder_count, statistics.subfolderCount)
+        val fileCountText = getString(R.string.label_file_count, statistics.fileCount)
+        val subfolderCountText = getString(R.string.label_subfolder_count, statistics.subfolderCount)
+        binding.tvStatFileCount.text = "$fileCountText    $subfolderCountText"
+        binding.tvStatSubfolderCount.isVisible = false
         binding.tvStatCreatedDate.text = getString(
             R.string.label_created_date,
             statistics.createdDate?.let { dateFormat.format(java.util.Date(it)) } ?: getString(R.string.label_never)

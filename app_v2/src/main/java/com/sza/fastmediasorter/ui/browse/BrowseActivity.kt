@@ -294,8 +294,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 viewModel.selectFileRange(file.path)
             },
             onPlayClick = { file ->
-                UserActionLogger.logButtonClick("Play", "File: ${file.name}")
-                viewModel.openFile(file)
+                UserActionLogger.logButtonClick("InlinePlay", "File: ${file.name}")
+                viewModel.inlinePlayToggle(file)
             },
             onFavoriteClick = { file ->
                 UserActionLogger.logButtonClick("Favorite", "File: ${file.name}")
@@ -1122,6 +1122,28 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         }
 
+        // Observe inline audio player state — update adapter + auto-scroll to playing track
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.inlinePlayerState.collect { state ->
+                    mediaFileAdapter.updateInlinePlayerState(state)
+                    state.playingPath?.let { path ->
+                        val position = viewModel.state.value.mediaFiles.indexOfFirst { it.path == path }
+                        if (position >= 0) {
+                            val layoutManager = binding.rvMediaFiles.layoutManager as? LinearLayoutManager
+                            layoutManager?.let { lm ->
+                                val rvHeight = binding.rvMediaFiles.height
+                                val itemHeight = lm.findViewByPosition(position)?.height ?: 80
+                                val offset = ((rvHeight - itemHeight) / 2).coerceAtLeast(0)
+                                lm.scrollToPositionWithOffset(position, offset)
+                                Timber.d("InlinePlayer: auto-scrolled to position=$position offset=$offset")
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Observe settings for favorite button visibility
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -1309,6 +1331,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             }
                         }
                         is BrowseEvent.NavigateToPlayer -> {
+                            viewModel.inlineStop()
                             val resourceId = viewModel.state.value.resource?.id ?: 0L
                             // Pass skipAvailabilityCheck to prevent redundant checks
                             val skipCheck = intent.getBooleanExtra(EXTRA_SKIP_AVAILABILITY_CHECK, false)
@@ -1858,11 +1881,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             Toast.makeText(this, R.string.toast_resource_not_loaded, Toast.LENGTH_SHORT).show()
             return
         }
-        fileOperationsManager.showCopyDialog(
-            state.selectedFiles.toList(),
-            state.mediaFiles,
-            resource
-        )
+        lifecycleScope.launch {
+            val settings = viewModel.getSettings()
+            fileOperationsManager.showCopyDialog(
+                state.selectedFiles.toList(),
+                state.mediaFiles,
+                resource,
+                settings
+            )
+        }
     }
     
     private fun showMoveDialog() {
@@ -1946,6 +1973,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun onStop() {
         Timber.d("BrowseActivity.onStop: isFinishing=$isFinishing, isChangingConfigurations=$isChangingConfigurations")
         super.onStop()
+
+        if (!isChangingConfigurations) {
+            Timber.d("BrowseActivity.onStop: stopping inline audio playback")
+            viewModel.inlineStop()
+        }
         
         // Cancel scan if Activity is going into background (not finishing)
         // This prevents resource waste when:

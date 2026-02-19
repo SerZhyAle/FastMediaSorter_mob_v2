@@ -71,6 +71,29 @@ class MediaFileAdapter(
     private var showFavoriteButton: Boolean = true // Show/hide favorite button based on settings
     private var hideGridActionButtons: Boolean = false // Hide quick action buttons in grid mode
     private var isAudioOnlyMode: Boolean = false
+
+    // Inline audio player state (adapter-level, not part of MediaFile model)
+    private var inlinePlayerState: InlinePlayerState = InlinePlayerState()
+
+    /**
+     * Update inline playback state and partially rebind only affected items.
+     * Uses PAYLOAD_PLAYBACK_STATE to avoid full rebind (thumbnail stays intact).
+     */
+    fun updateInlinePlayerState(newState: InlinePlayerState) {
+        val oldState = inlinePlayerState
+        inlinePlayerState = newState
+        val affectedPaths = setOf(
+            oldState.playingPath,
+            oldState.downloadingPath,
+            newState.playingPath,
+            newState.downloadingPath
+        ).filterNotNull()
+        currentList.forEachIndexed { index, file ->
+            if (file.path in affectedPaths) {
+                notifyItemChanged(index, PAYLOAD_PLAYBACK_STATE)
+            }
+        }
+    }
     
     // Fast scroll detection to skip thumbnail loading during rapid scrolling
     private var isScrolling: Boolean = false
@@ -180,6 +203,7 @@ class MediaFileAdapter(
         private const val VIEW_TYPE_LIST = 0
         private const val VIEW_TYPE_GRID = 1
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
+        private const val PAYLOAD_PLAYBACK_STATE = "playback_state"
         private const val CACHED_THUMBNAIL_SIZE = 300 // Fixed size for cache stability across List/Grid modes
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
         
@@ -368,8 +392,14 @@ class MediaFileAdapter(
                     }
                 }
             }
+            if (payloads.contains(PAYLOAD_PLAYBACK_STATE)) {
+                // Partial bind: only update inline play button state
+                if (holder is ListViewHolder) {
+                    holder.updatePlaybackState(file)
+                }
+            }
             // If no known payloads were handled, fall back to super
-            if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED")) {
+            if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED") && !payloads.contains(PAYLOAD_PLAYBACK_STATE)) {
                 Timber.d("onBindViewHolder: UNKNOWN payloads=$payloads, calling super")
                 super.onBindViewHolder(holder, position, payloads)
             }
@@ -382,7 +412,10 @@ class MediaFileAdapter(
         // ConnectionThrottleManager slots immediately. This is critical for
         // network resources where concurrency is limited.
         when (holder) {
-            is ListViewHolder -> holder.clearImage()
+            is ListViewHolder -> {
+                holder.clearImage()
+                holder.stopPlaybackAnimations() // Cancel inline playback animations when view is recycled
+            }
             is GridViewHolder -> holder.clearImage()
         }
     }
@@ -392,6 +425,8 @@ class MediaFileAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
         
         private var lastLoadedKey: String? = null
+        private var noteAnimator: android.animation.ObjectAnimator? = null
+        private var downloadAnimator: android.animation.ObjectAnimator? = null
         private val selectionCheckedChangeListener = CompoundButton.OnCheckedChangeListener { _, isChecked ->
             val file = getItemByPosition() ?: return@OnCheckedChangeListener
             if (!file.isDirectory) {
@@ -476,6 +511,11 @@ class MediaFileAdapter(
                 onDeleteClick(file)
             }
 
+            binding.btnPlayInline.setOnClickListener {
+                val file = getItemByPosition() ?: return@setOnClickListener
+                onPlayClick(file)
+            }
+
             // Task 8: Make item focusable for keyboard navigation
             binding.root.isFocusable = true
             binding.root.isFocusableInTouchMode = false
@@ -496,6 +536,106 @@ class MediaFileAdapter(
                 Timber.w("Failed to clear Glide request: ${e.message}")
             }
             lastLoadedKey = null
+        }
+
+        /**
+         * Update only the inline play button icon/animation for this item.
+         * Called via PAYLOAD_PLAYBACK_STATE partial rebind.
+         */
+        fun updatePlaybackState(file: MediaFile) {
+            val state = this@MediaFileAdapter.inlinePlayerState
+            val isThisItem = state.playingPath == file.path
+            val isDownloading = state.downloadingPath == file.path
+            binding.btnPlayInline.isVisible = isAudioOnlyMode
+            if (!isAudioOnlyMode) return
+
+            val baseInfo = buildFileInfo(file)
+            if (isDownloading) {
+                val progress = state.downloadProgressPercent.coerceIn(0, 100)
+                binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
+            } else {
+                binding.tvFileInfo.text = baseInfo
+            }
+
+            binding.btnPlayInline.isEnabled = !isDownloading
+            applyInlineHighlight(isThisItem || isDownloading)
+
+            when {
+                isDownloading -> {
+                    binding.btnPlayInline.setImageResource(android.R.drawable.stat_sys_download)
+                    stopNoteAnimation()
+                    startDownloadAnimation()
+                }
+                !isThisItem -> {
+                    binding.btnPlayInline.setImageResource(R.drawable.ic_play_inline_outline)
+                    stopNoteAnimation()
+                    stopDownloadAnimation()
+                }
+                state.status == PlaybackStatus.PLAYING -> {
+                    binding.btnPlayInline.setImageResource(R.drawable.ic_music_note)
+                    stopDownloadAnimation()
+                    startNoteAnimation()
+                }
+                state.status == PlaybackStatus.PAUSED -> {
+                    binding.btnPlayInline.setImageResource(R.drawable.ic_pause)
+                    stopNoteAnimation()
+                    stopDownloadAnimation()
+                }
+            }
+        }
+
+        private fun startNoteAnimation() {
+            if (noteAnimator?.isRunning == true) return
+            noteAnimator = android.animation.ObjectAnimator.ofFloat(
+                binding.btnPlayInline, "rotation", 0f, 360f
+            ).apply {
+                duration = 1200
+                repeatCount = android.animation.ObjectAnimator.INFINITE
+                interpolator = android.view.animation.LinearInterpolator()
+                start()
+            }
+        }
+
+        private fun stopNoteAnimation() {
+            noteAnimator?.cancel()
+            noteAnimator = null
+            binding.btnPlayInline.rotation = 0f
+        }
+
+        private fun startDownloadAnimation() {
+            if (downloadAnimator?.isRunning == true) return
+            downloadAnimator = android.animation.ObjectAnimator.ofFloat(
+                binding.btnPlayInline,
+                "alpha",
+                1f,
+                0.35f,
+                1f
+            ).apply {
+                duration = 900
+                repeatCount = android.animation.ObjectAnimator.INFINITE
+                interpolator = android.view.animation.LinearInterpolator()
+                start()
+            }
+        }
+
+        private fun stopDownloadAnimation() {
+            downloadAnimator?.cancel()
+            downloadAnimator = null
+            binding.btnPlayInline.alpha = 1f
+        }
+
+        fun stopPlaybackAnimations() {
+            stopNoteAnimation()
+            stopDownloadAnimation()
+            binding.btnPlayInline.rotation = 0f
+        }
+
+        private fun applyInlineHighlight(active: Boolean) {
+            binding.root.foreground = if (active) {
+                ContextCompat.getDrawable(binding.root.context, R.drawable.item_inline_playing_border)
+            } else {
+                null
+            }
         }
 
         fun loadThumbnailOnly(file: MediaFile) {
@@ -599,6 +739,16 @@ class MediaFileAdapter(
                 btnRenameItem.isVisible = isWritable && !shouldHideActions
                 
                 btnDeleteItem.isVisible = isWritable && !shouldHideActions
+
+                // Inline play button: visible only in Audio Only mode, not for folders
+                if (isAudioOnlyMode && !isFolder) {
+                    updatePlaybackState(file)
+                } else {
+                    btnPlayInline.isVisible = false
+                    btnPlayInline.isEnabled = true
+                    tvFileInfo.text = buildFileInfo(file)
+                    applyInlineHighlight(false)
+                }
             }
         }
         

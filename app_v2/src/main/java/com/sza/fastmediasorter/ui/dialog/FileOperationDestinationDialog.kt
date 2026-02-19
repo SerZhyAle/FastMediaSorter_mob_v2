@@ -43,6 +43,7 @@ class FileOperationDestinationDialog(
     private val fileOperationUseCase: FileOperationUseCase,
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val overwriteFiles: Boolean,
+    private val showDetailedErrors: Boolean,
     private val onComplete: (UndoOperation?) -> Unit,
 
     private val onAuthRequest: ((String) -> Unit)? = null,
@@ -350,15 +351,22 @@ class FileOperationDestinationDialog(
                         FileOperationType.MOVE -> R.string.error_move
                         else -> R.string.error_copy
                     }
+                    val failMsgResId = when (operationType) {
+                        FileOperationType.COPY -> R.string.copy_failed
+                        FileOperationType.MOVE -> R.string.move_failed
+                        else -> R.string.copy_failed
+                    }
                     
-                    val errorMessage = "Exception: ${e.javaClass.simpleName}\nMessage: ${e.message}"
+                    val errorMessage = context.getString(
+                        failMsgResId,
+                        e.message ?: context.getString(R.string.error_unknown)
+                    )
                     Timber.e("performOperation: Showing error dialog: $errorMessage")
-                    
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context,
-                        context.getString(errorTitleResId),
-                        errorMessage,
-                        e.stackTraceToString()
+
+                    showOperationError(
+                        title = context.getString(errorTitleResId),
+                        message = errorMessage,
+                        detailedInfo = e.stackTraceToString()
                     )
                     
                     binding.progressBar.visibility = View.GONE
@@ -461,12 +469,12 @@ class FileOperationDestinationDialog(
                         FileOperationType.MOVE -> "Move Failed"
                         else -> "Operation Failed"
                     }
-                    
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context,
-                        failTitle,
-                        context.getString(failMsgResId, result.error),
-                        "Check logcat for detailed information (tag: FileOperation)"
+
+                    val message = context.getString(failMsgResId, result.error)
+                    showOperationError(
+                        title = failTitle,
+                        message = message,
+                        detailedInfo = "Check logcat for detailed information (tag: FileOperation)"
                     )
                 }
                 
@@ -501,6 +509,24 @@ class FileOperationDestinationDialog(
                 }
             }
         }
+    }
+
+    private fun showOperationError(title: String, message: String, detailedInfo: String? = null) {
+        if (showDetailedErrors && !detailedInfo.isNullOrBlank()) {
+            com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+                context,
+                title,
+                message,
+                detailedInfo
+            )
+            return
+        }
+
+        com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
+            context,
+            title,
+            message
+        )
     }
     
     private fun showCloudAuthenticationError(errorMessage: String, destinationResource: MediaResource? = null) {

@@ -127,6 +127,7 @@ class PlayerDialogHelper(
                 fileOperationUseCase = viewModel.fileOperationUseCase,
                 getDestinationsUseCase = viewModel.getDestinationsUseCase,
                 overwriteFiles = settings.overwriteOnCopy,
+                showDetailedErrors = settings.showDetailedErrors,
                 onComplete = { undoOperation ->
                     // Save undo operation if enabled
                     if (settings.enableUndo && undoOperation != null) {
@@ -221,6 +222,7 @@ class PlayerDialogHelper(
             fileOperationUseCase = viewModel.fileOperationUseCase,
             getDestinationsUseCase = viewModel.getDestinationsUseCase,
             overwriteFiles = settings.overwriteOnMove,
+            showDetailedErrors = settings.showDetailedErrors,
             onComplete = { undoOperation ->
                 // Save undo operation if enabled
                 if (settings.enableUndo && undoOperation != null) {

@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.domain.strategy.ResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.SftpResourceStrategy
 import com.sza.fastmediasorter.domain.strategy.SmbResourceStrategy
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
 import com.sza.fastmediasorter.utils.SmbPathUtils
@@ -45,6 +46,7 @@ data class ResourceEditorSaveResult(
 class ResourceEditorUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
+    private val cachedFileListRepository: CachedFileListRepository,
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
@@ -545,14 +547,56 @@ class ResourceEditorUseCase @Inject constructor(
 
     suspend fun getResourceStatistics(resourceId: Long): com.sza.fastmediasorter.ui.resourceeditor.ResourceStatistics? = withContext(ioDispatcher) {
         val resource = resourceRepository.getResourceById(resourceId) ?: return@withContext null
+        val cachedFiles = cachedFileListRepository.getCachedFiles(resourceId)
+        val inferredSubfolders = cachedFiles?.let { inferSubfolderCount(resource, it) } ?: 0
+        val effectiveSubfolderCount = maxOf(resource.subfolderCount, inferredSubfolders)
+
         com.sza.fastmediasorter.ui.resourceeditor.ResourceStatistics(
             fileCount = resource.fileCount,
-            subfolderCount = resource.subfolderCount,
+            subfolderCount = effectiveSubfolderCount,
             createdDate = resource.createdDate,
             lastBrowseDate = resource.lastBrowseDate,
             lastSyncDate = resource.lastSyncDate,
             readSpeedMbps = resource.readSpeedMbps,
             writeSpeedMbps = resource.writeSpeedMbps
         )
+    }
+
+    private fun inferSubfolderCount(resource: MediaResource, files: List<com.sza.fastmediasorter.domain.model.MediaFile>): Int {
+        if (files.isEmpty()) return 0
+
+        val rootPath = normalizePath(resource.path)
+        val directories = mutableSetOf<String>()
+
+        files.forEach { file ->
+            val path = normalizePath(file.path)
+            val parent = extractParent(path)
+
+            if (!parent.isNullOrBlank()) {
+                val isUnderRoot = rootPath.isNotBlank() && (parent == rootPath || parent.startsWith("$rootPath/"))
+                if (rootPath.isBlank() || isUnderRoot) {
+                    directories.add(parent)
+                }
+            }
+
+            if (file.isDirectory) {
+                directories.add(path)
+            }
+        }
+
+        if (rootPath.isNotBlank()) {
+            directories.remove(rootPath)
+        }
+        return directories.size
+    }
+
+    private fun normalizePath(path: String): String {
+        return path.trim().trimEnd('/').replace("\\\\", "/")
+    }
+
+    private fun extractParent(path: String): String? {
+        val idx = path.lastIndexOf('/')
+        if (idx <= 0) return null
+        return path.substring(0, idx).trimEnd('/')
     }
 }

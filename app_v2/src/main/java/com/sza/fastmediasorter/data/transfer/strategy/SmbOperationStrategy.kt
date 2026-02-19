@@ -526,17 +526,21 @@ class SmbOperationStrategy(
             }
         }
 
+        Timber.d("SmbOperationStrategy: resolving credentials for server='$server', share='$shareName'. Candidates: $shareCandidates")
+
         for (candidate in shareCandidates) {
             val candidateCredentials = credentialsRepository.getByServerAndShare(server, candidate)
             if (candidateCredentials != null) {
-                Timber.d("SmbOperationStrategy: Credentials resolved for server='$server', share='$candidate'")
+                Timber.d("SmbOperationStrategy: Credentials resolved for server='$server', share='$candidate' (user: ${candidateCredentials.username})")
                 return candidateCredentials
+            } else {
+                Timber.v("SmbOperationStrategy: No credentials for '$candidate'")
             }
         }
 
         val hostCredentials = credentialsRepository.getCredentialsByHost(server)
         if (hostCredentials != null && hostCredentials.type.equals("SMB", ignoreCase = true)) {
-            Timber.w("SmbOperationStrategy: Share-specific credentials not found for '$server/$shareName', using SMB host credentials")
+            Timber.w("SmbOperationStrategy: Share-specific credentials not found for '$server/$shareName', using SMB host credentials (user: ${hostCredentials.username})")
             return hostCredentials
         }
 

@@ -194,7 +194,8 @@ class BrowseFileOperationsManager(
     fun showCopyDialog(
         selectedPaths: List<String>,
         mediaFiles: List<MediaFile>,
-        resource: MediaResource
+        resource: MediaResource,
+        settings: AppSettings
     ) {
         Timber.d("showCopyDialog: Triggered for ${selectedPaths.size} files, resource=${resource.name}")
         if (selectedPaths.isEmpty()) {
@@ -235,6 +236,7 @@ class BrowseFileOperationsManager(
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
             overwriteFiles = false,
+            showDetailedErrors = settings.showDetailedErrors,
             onComplete = { undoOp ->
                 undoOp?.let { callbacks.saveUndoOperation(it) }
                 callbacks.clearSelection()
@@ -319,6 +321,7 @@ class BrowseFileOperationsManager(
             fileOperationUseCase = fileOperationUseCase,
             getDestinationsUseCase = getDestinationsUseCase,
             overwriteFiles = settings.overwriteOnMove,
+            showDetailedErrors = settings.showDetailedErrors,
             onComplete = { undoOp ->
                 // Clear pending operation on success
                 pendingMoveOperation = null

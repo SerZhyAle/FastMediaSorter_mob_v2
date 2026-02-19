@@ -185,22 +185,39 @@ class IntegrationTestRunner @Inject constructor(
     
     /**
      * Find a cloud resource by cloud provider type.
-     * Uses predefined naming conventions for test resources.
+     * Uses predefined naming conventions for test resources (as documented in sza_resources.xml).
      */
     private suspend fun findCloudResource(provider: CloudProvider): com.sza.fastmediasorter.domain.model.MediaResource? {
         val name = when (provider) {
-            CloudProvider.ONEDRIVE -> "onedrive_test_media"
-            CloudProvider.GOOGLE_DRIVE -> "googledrive_test_media"
-            CloudProvider.DROPBOX -> "dropbox_test_media"
+            CloudProvider.ONEDRIVE -> "onedrive_test"
+            CloudProvider.GOOGLE_DRIVE -> "google_drive_test"
+            CloudProvider.DROPBOX -> "dropbox_test"
         }
         return findResourceByName(name)
     }
     
     /**
-     * Find the SMB test resource by name.
+     * Find the SMB test resource by name (matches sza_resources.xml).
      */
     private suspend fun findSmbResource(): com.sza.fastmediasorter.domain.model.MediaResource? {
-        return findResourceByName("SMB Test Share")
+        // "test_media" is defined in sza_resources.xml
+        return findResourceByName("test_media")
+    }
+
+    /**
+     * Find the SFTP test resource by name (matches sza_resources.xml).
+     */
+    private suspend fun findSftpResource(): com.sza.fastmediasorter.domain.model.MediaResource? {
+        // "SFTP" is defined in sza_resources.xml
+        return findResourceByName("SFTP")
+    }
+
+    /**
+     * Find the FTP test resource by name (matches sza_resources.xml).
+     */
+    private suspend fun findFtpResource(): com.sza.fastmediasorter.domain.model.MediaResource? {
+        // "FTP" is defined in sza_resources.xml
+        return findResourceByName("FTP")
     }
     
     // Store last test results for failed-only reruns
@@ -780,21 +797,18 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCredential(ResourceType.SFTP)
-            if (credential == null) {
+            // Find SFTP test resource from database
+            val sftpResource = findSftpResource()
+            if (sftpResource == null) {
                 recordResult(testName, "Copy", "Local", "SFTP", false, 0,
-                    error = "SFTP credentials not found")
+                    error = "SFTP resource not found in database")
                 return
             }
             
             val localFile = createTestFile("test_sftp_upload.txt", "SFTP upload test")
-            val folderPath = credential.folder?.let { "/$it" } ?: ""
-            // Create SFTP destination path using production utility
-            val sftpPath = com.sza.fastmediasorter.utils.SftpPathUtils.buildSftpPath(
-                host = credential.server,
-                path = "${folderPath}/test_integration",
-                port = credential.port ?: 22
-            )
+            
+            // Build destination path
+            val sftpPath = "${sftpResource.path.trimEnd('/')}/test_integration"
             val sftpDestDir = File(sftpPath)
             
             val operation = FileOperation.Copy(
@@ -808,7 +822,7 @@ class IntegrationTestRunner @Inject constructor(
             
             if (result is FileOperationResult.Success) {
                 recordResult(testName, "Copy", "Local", "SFTP", true, duration,
-                    details = "Uploaded to ${credential.server}:${credential.port}")
+                    details = "Uploaded to ${sftpResource.name}")
             } else {
                 recordResult(testName, "Copy", "Local", "SFTP", false, duration,
                     error = (result as? FileOperationResult.Failure)?.error)
@@ -829,16 +843,19 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCredential(ResourceType.FTP)
-            if (credential == null) {
+            // Find FTP test resource from database
+            val ftpResource = findFtpResource()
+            if (ftpResource == null) {
                 recordResult(testName, "Copy", "Local", "FTP", false, 0,
-                    error = "FTP credentials not found")
+                    error = "FTP resource not found in database")
                 return
             }
-            
+
             val localFile = createTestFile("test_ftp_upload.txt", "FTP upload test")
-            val folderPath = credential.folder?.let { "/$it" } ?: ""
-            val ftpDestDir = File("ftp:///${credential.server}:${credential.port}${folderPath}/test_integration")
+            
+            // Build destination path
+            val ftpPath = "${ftpResource.path.trimEnd('/')}/test_integration"
+            val ftpDestDir = File(ftpPath)
             
             val operation = FileOperation.Copy(
                 sources = listOf(localFile),
@@ -851,7 +868,7 @@ class IntegrationTestRunner @Inject constructor(
             
             if (result is FileOperationResult.Success) {
                 recordResult(testName, "Copy", "Local", "FTP", true, duration,
-                    details = "Uploaded to ${credential.server}:${credential.port}")
+                    details = "Uploaded to ${ftpResource.name}")
             } else {
                 recordResult(testName, "Copy", "Local", "FTP", false, duration,
                     error = (result as? FileOperationResult.Failure)?.error)
@@ -872,16 +889,35 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            // Find SMB test resource from database
-            val smbResource = findSmbResource()
-            if (smbResource == null) {
+            val smbCred = credentialsLoader.getCredential(ResourceType.SMB)
+            if (smbCred == null) {
                 recordResult(testName, "Copy", "SMB", "Local", false, 0,
-                    error = "SMB Test Share not found in database")
+                    error = "SMB credentials not found")
                 return
             }
             
-            // Assume test file exists from previous upload test
-            val smbFile = File("${smbResource.path.trimEnd('/')}/test_integration/test_smb_upload.txt")
+            // 1. Ensure source file exists on SMB
+            val smbPath = "smb://${smbCred.server}/${smbCred.shareName ?: ""}/test_integration/test_smb_upload.txt"
+            val smbFile = File(smbPath)
+            
+            log("[$testName] Ensuring source exists at: $smbPath")
+            
+            val tempUploadFile = createTestFile("temp_upload_for_smb_dl.txt", "Content for SMB download test")
+            val uploadOp = FileOperation.Copy(
+                sources = listOf(tempUploadFile),
+                destination = File(smbFile.parent),
+                overwrite = true
+            )
+            val uploadResult = fileOperationUseCase.execute(uploadOp)
+            if (uploadResult !is FileOperationResult.Success) {
+                 recordResult(testName, "Copy", "SMB", "Local", false, 0,
+                    error = "Setup failed: Could not upload source file to SMB: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                 tempUploadFile.delete()
+                 return
+            }
+            tempUploadFile.delete()
+
+            // 2. Perform Download Test
             val localDestDir = File(context.cacheDir, "test_smb_download")
             localDestDir.mkdirs()
             
@@ -899,9 +935,8 @@ class IntegrationTestRunner @Inject constructor(
                 val success = downloadedFile.exists()
                 
                 recordResult(testName, "Copy", "SMB", "Local", success, duration,
-                    details = "Downloaded from ${smbResource.name}")
+                    details = "Downloaded from ${smbCred.server}")
                 
-                // Cleanup
                 downloadedFile.delete()
                 localDestDir.delete()
             } else {
@@ -929,8 +964,30 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
+            // 1. Ensure source file exists on SFTP
             val folderPath = credential.folder?.let { "/$it" } ?: ""
-            val sftpFile = File("sftp:///${credential.server}:${credential.port}${folderPath}/test_integration/test_sftp_upload.txt")
+            // Clean path: sftp://host:port/...
+            val sftpPath = "sftp://${credential.server}:${credential.port}${folderPath}/test_integration/test_sftp_upload.txt"
+            val sftpFile = File(sftpPath)
+            
+            log("[$testName] Ensuring source exists at: $sftpPath")
+            
+            val tempUploadFile = createTestFile("temp_upload_for_sftp_dl.txt", "Content for SFTP download test")
+            val uploadOp = FileOperation.Copy(
+                sources = listOf(tempUploadFile),
+                destination = File(sftpFile.parent),
+                overwrite = true
+            )
+            val uploadResult = fileOperationUseCase.execute(uploadOp)
+            if (uploadResult !is FileOperationResult.Success) {
+                 recordResult(testName, "Copy", "SFTP", "Local", false, 0,
+                    error = "Setup failed: Could not upload source file to SFTP: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                 tempUploadFile.delete()
+                 return
+            }
+            tempUploadFile.delete()
+            
+            // 2. Perform Download Test
             val localDestDir = File(context.cacheDir, "test_sftp_download")
             localDestDir.mkdirs()
             
@@ -977,8 +1034,30 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
+            // 1. Ensure source file exists
             val folderPath = credential.folder?.let { "/$it" } ?: ""
-            val ftpFile = File("ftp:///${credential.server}:${credential.port}${folderPath}/test_integration/test_ftp_upload.txt")
+            // Clean path: ftp://host:port/...
+            val ftpPath = "ftp://${credential.server}:${credential.port}${folderPath}/test_integration/test_ftp_upload.txt"
+            val ftpFile = File(ftpPath)
+            
+            log("[$testName] Ensuring source exists at: $ftpPath")
+
+            val tempUploadFile = createTestFile("temp_upload_for_ftp_dl.txt", "Content for FTP download test")
+            val uploadOp = FileOperation.Copy(
+                sources = listOf(tempUploadFile),
+                destination = File(ftpFile.parent),
+                overwrite = true
+            )
+            val uploadResult = fileOperationUseCase.execute(uploadOp)
+            if (uploadResult !is FileOperationResult.Success) {
+                 recordResult(testName, "Copy", "FTP", "Local", false, 0,
+                    error = "Setup failed: Could not upload source file to FTP: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                 tempUploadFile.delete()
+                 return
+            }
+            tempUploadFile.delete()
+            
+            // 2. Perform Download Test
             val localDestDir = File(context.cacheDir, "test_ftp_download")
             localDestDir.mkdirs()
             
@@ -1027,9 +1106,32 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
-            val smbFile = File("smb:///${smbCred.server}/${smbCred.shareName ?: ""}/test_integration/test_smb_upload.txt")
+            // 1. Ensure source file exists on SMB
+            val smbPath = "smb://${smbCred.server}/${smbCred.shareName ?: ""}/test_integration/test_smb_upload.txt"
+            val smbFile = File(smbPath)
+            
+            log("[$testName] Ensuring source exists at: $smbPath")
+            
+            val tempUploadFile = createTestFile("temp_upload_for_smb_sftp.txt", "Content for SMB->SFTP copy test")
+            val uploadOp = FileOperation.Copy(
+                sources = listOf(tempUploadFile),
+                destination = File(smbFile.parent),
+                overwrite = true
+            )
+            val uploadResult = fileOperationUseCase.execute(uploadOp)
+            if (uploadResult !is FileOperationResult.Success) {
+                 recordResult(testName, "Copy", "SMB", "SFTP", false, 0,
+                    error = "Setup failed: Could not upload source file to SMB: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                 tempUploadFile.delete()
+                 return
+            }
+            tempUploadFile.delete()
+
+            // 2. Perform Cross-Protocol Copy
             val folderPath = sftpCred.folder?.let { "/$it" } ?: ""
-            val sftpDestDir = File("sftp:///${sftpCred.server}:${sftpCred.port}${folderPath}/test_integration")
+            // Clean path: sftp://host:port/...
+            val sftpDestPath = "sftp://${sftpCred.server}:${sftpCred.port}${folderPath}/test_integration"
+            val sftpDestDir = File(sftpDestPath)
             
             val operation = FileOperation.Copy(
                 sources = listOf(smbFile),
@@ -1070,10 +1172,34 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
+            // 1. Ensure source file exists on SFTP
             val sftpFolderPath = sftpCred.folder?.let { "/$it" } ?: ""
-            val sftpFile = File("sftp:///${sftpCred.server}:${sftpCred.port}${sftpFolderPath}/test_integration/test_sftp_upload.txt")
+            // Clean path
+            val sftpPath = "sftp://${sftpCred.server}:${sftpCred.port}${sftpFolderPath}/test_integration/test_sftp_upload.txt"
+            val sftpFile = File(sftpPath)
+            
+            log("[$testName] Ensuring source exists at: $sftpPath")
+            
+            val tempUploadFile = createTestFile("temp_upload_for_sftp_ftp.txt", "Content for SFTP->FTP copy test")
+            val uploadOp = FileOperation.Copy(
+                sources = listOf(tempUploadFile),
+                destination = File(sftpFile.parent),
+                overwrite = true
+            )
+            val uploadResult = fileOperationUseCase.execute(uploadOp)
+            if (uploadResult !is FileOperationResult.Success) {
+                 recordResult(testName, "Copy", "SFTP", "FTP", false, 0,
+                    error = "Setup failed: Could not upload source file to SFTP: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                 tempUploadFile.delete()
+                 return
+            }
+            tempUploadFile.delete()
+
+            // 2. Perform Cross-Protocol Copy
             val ftpFolderPath = ftpCred.folder?.let { "/$it" } ?: ""
-            val ftpDestDir = File("ftp:///${ftpCred.server}:${ftpCred.port}${ftpFolderPath}/test_integration")
+            // Clean path
+            val ftpDestPath = "ftp://${ftpCred.server}:${ftpCred.port}${ftpFolderPath}/test_integration"
+            val ftpDestDir = File(ftpDestPath)
             
             val operation = FileOperation.Copy(
                 sources = listOf(sftpFile),
@@ -1114,9 +1240,32 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
+            // 1. Ensure source file exists on FTP
             val folderPath = ftpCred.folder?.let { "/$it" } ?: ""
-            val ftpFile = File("ftp:///${ftpCred.server}:${ftpCred.port}${folderPath}/test_integration/test_ftp_upload.txt")
-            val smbDestDir = File("smb:///${smbCred.server}/${smbCred.shareName ?: ""}/test_integration")
+            // Clean path
+            val ftpPath = "ftp://${ftpCred.server}:${ftpCred.port}${folderPath}/test_integration/test_ftp_upload.txt"
+            val ftpFile = File(ftpPath)
+            
+            log("[$testName] Ensuring source exists at: $ftpPath")
+            
+            val tempUploadFile = createTestFile("temp_upload_for_ftp_smb.txt", "Content for FTP->SMB copy test")
+            val uploadOp = FileOperation.Copy(
+                sources = listOf(tempUploadFile),
+                destination = File(ftpFile.parent),
+                overwrite = true
+            )
+            val uploadResult = fileOperationUseCase.execute(uploadOp)
+            if (uploadResult !is FileOperationResult.Success) {
+                 recordResult(testName, "Copy", "FTP", "SMB", false, 0,
+                    error = "Setup failed: Could not upload source file to FTP: ${(uploadResult as? FileOperationResult.Failure)?.error}")
+                 tempUploadFile.delete()
+                 return
+            }
+            tempUploadFile.delete()
+
+            // 2. Perform Cross-Protocol Copy
+            val smbDestPath = "smb://${smbCred.server}/${smbCred.shareName ?: ""}/test_integration"
+            val smbDestDir = File(smbDestPath)
             
             val operation = FileOperation.Copy(
                 sources = listOf(ftpFile),

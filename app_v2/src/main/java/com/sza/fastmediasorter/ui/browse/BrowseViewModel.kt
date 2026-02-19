@@ -92,6 +92,17 @@ sealed class BrowseEvent {
     data class NoFilesFound(val message: String? = null, val messageResId: Int? = null) : BrowseEvent()  // Return to main screen with toast
 }
 
+// --- Inline Audio Player ---
+enum class PlaybackStatus { IDLE, PLAYING, PAUSED }
+
+data class InlinePlayerState(
+    val playingPath: String? = null,
+    val status: PlaybackStatus = PlaybackStatus.IDLE,
+    val downloadingPath: String? = null,
+    val downloadProgressPercent: Int = 0
+)
+// --- end Inline Audio Player ---
+
 /**
  * Cache entry for directory contents with hash-based validation.
  * Hash is computed from file names, sizes, and modification dates.
@@ -225,6 +236,14 @@ class BrowseViewModel @Inject constructor(
     // Optional player warm-up job (feature-flagged)
     private var playerWarmupJob: Job? = null
     private var lastWarmupSignature: String? = null
+
+    // --- Inline Audio Player ---
+    private var inlineMediaPlayer: android.media.MediaPlayer? = null
+    private val inlinePrefetchInProgress = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+
+    private val _inlinePlayerState = MutableStateFlow(InlinePlayerState())
+    val inlinePlayerState: StateFlow<InlinePlayerState> = _inlinePlayerState.asStateFlow()
+    // --- end Inline Audio Player ---
     
     // Track last emitted list to avoid redundant UI updates (survives Activity recreation)
     var lastEmittedMediaFiles: List<MediaFile>? = null
@@ -358,6 +377,237 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Toggle inline playback for the given file:
+     *   IDLE  / different file → start new
+     *   PLAYING same file → pause
+     *   PAUSED  same file → resume
+     */
+    fun inlinePlayToggle(file: MediaFile) {
+        val current = _inlinePlayerState.value
+        when {
+            current.playingPath == file.path && current.status == PlaybackStatus.PLAYING -> {
+                inlineMediaPlayer?.pause()
+                _inlinePlayerState.value = current.copy(status = PlaybackStatus.PAUSED)
+                Timber.d("InlinePlayer: paused '${file.name}'")
+            }
+            current.playingPath == file.path && current.status == PlaybackStatus.PAUSED -> {
+                inlineMediaPlayer?.start()
+                _inlinePlayerState.value = current.copy(status = PlaybackStatus.PLAYING)
+                Timber.d("InlinePlayer: resumed '${file.name}'")
+            }
+            else -> {
+                inlineStop()
+                inlineStart(file)
+            }
+        }
+    }
+
+    private fun inlineStart(file: MediaFile) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val localPath = resolveLocalPath(file)
+                if (localPath == null) {
+                    Timber.e("InlinePlayer: cannot resolve playback path for '${file.name}'")
+                    _inlinePlayerState.value = InlinePlayerState()
+                    return@launch
+                }
+
+                _inlinePlayerState.value = _inlinePlayerState.value.copy(
+                    playingPath = file.path,
+                    status = PlaybackStatus.IDLE,
+                    downloadingPath = null,
+                    downloadProgressPercent = 0
+                )
+
+                val player = android.media.MediaPlayer().apply {
+                    setDataSource(localPath)
+                    prepare() // blocking — on IO dispatcher
+                    setOnCompletionListener { inlinePlayNext() }
+                }
+                inlineMediaPlayer = player
+                _inlinePlayerState.value = InlinePlayerState(
+                    playingPath = file.path,
+                    status = PlaybackStatus.PLAYING
+                )
+                player.start()
+                Timber.d("InlinePlayer: started '${file.name}'")
+                prefetchNextInlineAudio(file.path)
+            } catch (e: Exception) {
+                Timber.e(e, "InlinePlayer: failed to start '${file.name}'")
+                _inlinePlayerState.value = InlinePlayerState()
+            }
+        }
+    }
+
+    /**
+     * Returns a local file path ready for MediaPlayer.setDataSource().
+     * For SMB files, downloads to app cache first; for local files returns path as-is.
+     * Returns null when resolution fails (error already logged).
+     */
+    private suspend fun resolveLocalPath(file: MediaFile): String? {
+        val path = file.path
+        if (!path.startsWith("smb://")) return path
+
+        val cacheFile = getInlineAudioCacheFile(file)
+        if (cacheFile.exists() && cacheFile.length() > 0L) {
+            Timber.d("InlinePlayer.resolveLocalPath: cache hit for '${file.name}'")
+            return cacheFile.absolutePath
+        }
+
+        _inlinePlayerState.value = _inlinePlayerState.value.copy(
+            playingPath = file.path,
+            status = PlaybackStatus.IDLE,
+            downloadingPath = file.path,
+            downloadProgressPercent = 0
+        )
+
+        return downloadSmbAudioToCache(file, showProgress = true)
+    }
+
+    private fun getInlineAudioCacheFile(file: MediaFile): java.io.File {
+        val cacheDir = java.io.File(context.cacheDir, "inline_audio")
+        cacheDir.mkdirs()
+        return java.io.File(cacheDir, "${file.path.hashCode()}_${file.name}")
+    }
+
+    private suspend fun downloadSmbAudioToCache(file: MediaFile, showProgress: Boolean): String? {
+        val path = file.path
+        val credentialsId = state.value.resource?.credentialsId
+        if (credentialsId == null) {
+            Timber.e("InlinePlayer.resolveLocalPath: no credentialsId for resource")
+            return null
+        }
+
+        val connectionInfoResult = smbOperationsUseCase.getConnectionInfo(credentialsId)
+        if (connectionInfoResult.isFailure) {
+            Timber.e(connectionInfoResult.exceptionOrNull(), "InlinePlayer.resolveLocalPath: failed to get connection info")
+            return null
+        }
+        val connectionInfo = connectionInfoResult.getOrThrow()
+
+        val uri = android.net.Uri.parse(path)
+        val segments = uri.pathSegments
+        if (segments.size < 2) {
+            Timber.e("InlinePlayer.resolveLocalPath: invalid SMB path '$path'")
+            return null
+        }
+        val shareFromPath = segments.first()
+        val filePathInShare = segments.drop(1).joinToString("/")
+        val effectiveConnectionInfo = if (connectionInfo.shareName != shareFromPath) {
+            Timber.w(
+                "InlinePlayer.resolveLocalPath: overriding SMB share '%s' -> '%s' based on file path",
+                connectionInfo.shareName,
+                shareFromPath
+            )
+            connectionInfo.copy(shareName = shareFromPath)
+        } else {
+            connectionInfo
+        }
+
+        val cacheFile = getInlineAudioCacheFile(file)
+
+        var lastReportedPercent = -1
+        val progressCallback = if (showProgress) {
+            object : com.sza.fastmediasorter.domain.usecase.ByteProgressCallback {
+                override suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long) {
+                    if (totalBytes <= 0L) return
+                    val percent = ((bytesTransferred * 100L) / totalBytes).toInt().coerceIn(0, 100)
+                    if (percent == lastReportedPercent || percent - lastReportedPercent < 2) return
+                    lastReportedPercent = percent
+                    _inlinePlayerState.value = _inlinePlayerState.value.copy(
+                        playingPath = file.path,
+                        downloadingPath = file.path,
+                        downloadProgressPercent = percent
+                    )
+                }
+            }
+        } else null
+
+        Timber.d("InlinePlayer.resolveLocalPath: downloading '${file.name}' from SMB")
+        val result = java.io.FileOutputStream(cacheFile).use { output ->
+            smbClient.downloadFile(
+                connectionInfo = effectiveConnectionInfo,
+                remotePath = filePathInShare,
+                localOutputStream = output,
+                fileSize = file.size,
+                progressCallback = progressCallback
+            )
+        }
+        return when (result) {
+            is com.sza.fastmediasorter.data.network.model.SmbResult.Success -> {
+                Timber.d("InlinePlayer.resolveLocalPath: download complete, size=${cacheFile.length()}")
+                if (showProgress) {
+                    _inlinePlayerState.value = _inlinePlayerState.value.copy(
+                        downloadingPath = null,
+                        downloadProgressPercent = 0
+                    )
+                }
+                cacheFile.absolutePath
+            }
+            is com.sza.fastmediasorter.data.network.model.SmbResult.Error -> {
+                Timber.e("InlinePlayer.resolveLocalPath: SMB download failed: ${result.message}")
+                cacheFile.delete()
+                if (showProgress) {
+                    _inlinePlayerState.value = _inlinePlayerState.value.copy(
+                        downloadingPath = null,
+                        downloadProgressPercent = 0
+                    )
+                }
+                null
+            }
+        }
+    }
+
+    private fun prefetchNextInlineAudio(currentPath: String) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val audioFiles = state.value.mediaFiles.filter { !it.isDirectory && it.type == MediaType.AUDIO }
+            if (audioFiles.size < 2) return@launch
+
+            val index = audioFiles.indexOfFirst { it.path == currentPath }
+            if (index < 0) return@launch
+
+            val next = audioFiles[(index + 1) % audioFiles.size]
+            if (!next.path.startsWith("smb://")) return@launch
+
+            val cacheFile = getInlineAudioCacheFile(next)
+            if (cacheFile.exists() && cacheFile.length() > 0L) return@launch
+
+            val added = inlinePrefetchInProgress.add(next.path)
+            if (!added) return@launch
+            try {
+                Timber.d("InlinePlayer.prefetchNextInlineAudio: prefetch '${next.name}'")
+                downloadSmbAudioToCache(next, showProgress = false)
+            } finally {
+                inlinePrefetchInProgress.remove(next.path)
+            }
+        }
+    }
+
+    /** Plays the next audio file in the current list, wraps around to first. */
+    private fun inlinePlayNext() {
+        val currentPath = _inlinePlayerState.value.playingPath ?: return
+        val audioFiles = state.value.mediaFiles.filter {
+            !it.isDirectory && it.type == MediaType.AUDIO
+        }
+        if (audioFiles.isEmpty()) return
+        val idx = audioFiles.indexOfFirst { it.path == currentPath }
+        val next = audioFiles[(idx + 1) % audioFiles.size]
+        inlineStop()
+        inlineStart(next)
+    }
+
+    /** Stops playback and releases MediaPlayer resources. */
+    fun inlineStop() {
+        inlineMediaPlayer?.let {
+            try { it.stop() } catch (_: IllegalStateException) {}
+            it.release()
+        }
+        inlineMediaPlayer = null
+        _inlinePlayerState.value = InlinePlayerState()
+        Timber.d("InlinePlayer: stopped")
+    }
+
     override fun onCleared() {
         Timber.d("BrowseViewModel.onCleared: START - resourceId=$resourceId, fileCount=${state.value.mediaFiles.size}")
         // Save current filter state before clearing
@@ -365,7 +615,9 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher) {
             browseStateDataStore.saveFilter(currentFilter)
         }
-        
+
+        inlineStop() // Release MediaPlayer before super.onCleared()
+
         super.onCleared()
         
         // Cancel all active network operations for this resource to prevent conflicts
@@ -1809,6 +2061,7 @@ class BrowseViewModel @Inject constructor(
             Timber.d("Saved lastViewedFile=${file.path} for resource: ${resource.name}")
         }
         
+        inlineStop()
         sendEvent(BrowseEvent.NavigateToPlayer(file.path, index))
     }
 
@@ -1884,6 +2137,7 @@ class BrowseViewModel @Inject constructor(
         val targetIndex = sortedList.indexOfFirst { it.path == resolvedFile.path }
         val indexForPlayer = if (targetIndex >= 0) targetIndex else approximatePosition
 
+        inlineStop()
         sendEvent(BrowseEvent.NavigateToPlayer(resolvedFile.path, indexForPlayer))
     }
 

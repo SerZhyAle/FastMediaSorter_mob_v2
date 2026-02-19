@@ -1,675 +1,250 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fillViewport="true"
-    tools:ignore="NestedWeights">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" tools:ignore="NestedWeights">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/settings_padding">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
-        <!-- GROUP: Sorting & Slideshow -->
-        <TextView
-            android:id="@+id/headerSortingSlideshow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="@dimen/settings_padding_vertical"
-            android:text="@string/settings_category_sorting_slideshow"
-            android:textSize="@dimen/text_size_normal"
-            android:textStyle="bold" />
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
-        <LinearLayout
-            android:id="@+id/containerSortingSlideshow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/margin_small">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-            <!-- Sort Mode and Slideshow Interval (one row) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:baselineAligned="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                <!-- GROUP: Sorting & Slideshow -->
+                <TextView android:id="@+id/headerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_sorting_slideshow" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:layout_weight="1"
-                    android:hint="@string/default_sort_mode">
+                <LinearLayout android:id="@+id/containerSortingSlideshow" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                        android:id="@+id/spinnerSortMode"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:inputType="none" />
+                    <!-- Sort Mode and Slideshow Interval (one row) -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.TextInputLayout style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:hint="@string/default_sort_mode">
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilSlideshowInterval"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_width="@dimen/settings_width_input_small"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/slideshow_interval">
+                            <com.google.android.material.textfield.MaterialAutoCompleteTextView android:id="@+id/spinnerSortMode" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="none" />
 
-                    <AutoCompleteTextView
-                        android:id="@+id/etSlideshowInterval"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/slideshow_interval"
-                        android:inputType="number"
-                        android:maxLength="@integer/input_max_length_medium"
-                        android:text="@string/default_slideshow_interval" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-                </com.google.android.material.textfield.TextInputLayout>
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilSlideshowInterval" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_width="@dimen/settings_width_input_small" android:layout_height="wrap_content" android:hint="@string/slideshow_interval">
 
-                <ImageButton
-                    android:id="@+id/iconHelpSlideshow"
-                    android:layout_width="@dimen/settings_help_icon_size"
-                    android:layout_height="@dimen/settings_help_icon_size"
-                    android:layout_marginStart="@dimen/settings_help_icon_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/tooltip_slideshow_title"
-                    android:src="@android:drawable/ic_menu_help"
-                    app:tint="@color/text_color_secondary" />
+                            <AutoCompleteTextView android:id="@+id/etSlideshowInterval" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/slideshow_interval" android:inputType="number" android:maxLength="@integer/input_max_length_medium" android:text="@string/default_slideshow_interval" />
 
-            </LinearLayout>
+                        </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Play Video to End (Moved from containerRenamePlay) -->
-            <LinearLayout
-                android:id="@+id/layoutPlayToEnd"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height"
-                android:orientation="horizontal"
-                android:layout_marginBottom="@dimen/margin_small">
+                        <ImageButton android:id="@+id/iconHelpSlideshow" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_slideshow_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchPlayToEnd"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                    </LinearLayout>
 
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/play_video_to_end"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
+                    <!-- Play Video to End (Moved from containerRenamePlay) -->
+                    <LinearLayout android:id="@+id/layoutPlayToEnd" android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_small">
 
-            </LinearLayout>
-        </LinearLayout>
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPlayToEnd" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-        <!-- GROUP: File Operations -->
-        <TextView
-            android:id="@+id/headerFileOperations"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="@dimen/settings_padding_vertical"
-            android:text="@string/settings_category_file_operations"
-            android:textSize="@dimen/text_size_normal"
-            android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/play_video_to_end" android:textSize="@dimen/resource_card_desc_text_size" />
 
-        <LinearLayout
-            android:id="@+id/containerFileOperations"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/margin_small">
-
-            <!-- Allow Rename (Moved from containerRenamePlay) -->
-            <LinearLayout
-                android:id="@+id/layoutAllowRename"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:gravity="center_vertical"
-                android:minHeight="@dimen/button_height"
-                android:orientation="horizontal">
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchAllowRename"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/allow_rename"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
-
-            </LinearLayout>
-
-            <!-- Delete + ConfirmDelete Row Container -->
-            <LinearLayout
-                android:id="@+id/containerDeleteConfirm"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:baselineAligned="false"
-                android:layout_marginBottom="@dimen/margin_small">
-
-                <LinearLayout
-                    android:id="@+id/layoutAllowDelete"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height"
-                    android:layout_marginEnd="@dimen/resource_field_margin_end">
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchAllowDelete"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/allow_delete"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
-
+                    </LinearLayout>
                 </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-                <LinearLayout
-                    android:id="@+id/layoutConfirmDelete"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height"
-                    android:layout_marginStart="@dimen/settings_help_icon_margin">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchConfirmDelete"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/confirm_delete"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
+                <!-- GROUP: File Operations -->
+                <TextView android:id="@+id/headerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_file_operations" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
+                <LinearLayout android:id="@+id/containerFileOperations" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- Allow Rename (Moved from containerRenamePlay) -->
+                    <LinearLayout android:id="@+id/layoutAllowRename" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllowRename" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/allow_rename" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                    </LinearLayout>
+
+                    <!-- Delete + ConfirmDelete Row Container -->
+                    <LinearLayout android:id="@+id/containerDeleteConfirm" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_small">
+
+                        <LinearLayout android:id="@+id/layoutAllowDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginEnd="@dimen/resource_field_margin_end">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllowDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/allow_delete" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                        </LinearLayout>
+
+                        <LinearLayout android:id="@+id/layoutConfirmDelete" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:layout_marginStart="@dimen/settings_help_icon_margin">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/confirm_delete" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Grid View -->
-        <TextView
-            android:id="@+id/headerGridView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="@dimen/settings_padding_vertical"
-            android:text="@string/settings_category_grid_view"
-            android:textSize="@dimen/text_size_normal"
-            android:textStyle="bold" />
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
-        <LinearLayout
-            android:id="@+id/containerGridView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/margin_small">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-            <!-- Icon Size for Grid -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:layout_marginBottom="@dimen/margin_small">
+                <!-- GROUP: Grid View -->
+                <TextView android:id="@+id/headerGridView" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_grid_view" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/tilIconSize"
-                    android:layout_width="@dimen/fragment_settings_playback_tilIconSize_layout_width"
-                    android:layout_height="wrap_content"
-                    android:hint="@string/default_icon_size"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
-                    android:layout_marginStart="@dimen/margin_small">
+                <LinearLayout android:id="@+id/containerGridView" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <AutoCompleteTextView
-                        android:id="@+id/etIconSize"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="@string/default_icon_size"
-                        android:inputType="number"
-                        android:maxLength="@integer/input_max_length_small"
-                        android:text="@string/default_icon_size_value"/>
+                    <!-- Icon Size for Grid -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/margin_small">
 
-                </com.google.android.material.textfield.TextInputLayout>
-                
-                <ImageButton
-                    android:id="@+id/iconHelpGridSize"
-                    android:layout_width="@dimen/settings_help_icon_size"
-                    android:layout_height="@dimen/settings_help_icon_size"
-                    android:layout_marginStart="@dimen/settings_help_icon_margin"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/tooltip_grid_size_title"
-                    android:src="@android:drawable/ic_menu_help"
-                    app:tint="@color/text_color_secondary" />
+                        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilIconSize" android:layout_width="@dimen/fragment_settings_playback_tilIconSize_layout_width" android:layout_height="wrap_content" android:hint="@string/default_icon_size" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu" android:layout_marginStart="@dimen/margin_small">
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchGridMode"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/settings_switch_margin_end"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                            <AutoCompleteTextView android:id="@+id/etIconSize" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/default_icon_size" android:inputType="number" android:maxLength="@integer/input_max_length_small" android:text="@string/default_icon_size_value"/>
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/grid_mode"
-                    android:textSize="@dimen/resource_card_title_text_size" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-            </LinearLayout>
+                        <ImageButton android:id="@+id/iconHelpGridSize" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_grid_size_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
 
-            <!-- Hide Grid Action Buttons -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchGridMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_switch_margin_end" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchHideGridActionButtons"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/grid_mode" android:textSize="@dimen/resource_card_title_text_size" />
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/hide_grid_action_buttons"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
-            </LinearLayout>
-        </LinearLayout>
+                    </LinearLayout>
 
-        <!-- GROUP: Player UI -->
-        <TextView
-            android:id="@+id/headerPlayerUI"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="@dimen/settings_padding_vertical"
-            android:text="@string/settings_category_player_ui"
-            android:textSize="@dimen/text_size_normal"
-            android:textStyle="bold" />
+                    <!-- Hide Grid Action Buttons -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
 
-        <LinearLayout
-            android:id="@+id/containerPlayerUI"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/margin_small">
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchHideGridActionButtons" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-            <!-- Hide System UI in Fullscreen -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <com.google.android.material.switchmaterial.SwitchMaterial
-                    android:id="@+id/switchHideSystemUiInFullscreen"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/hide_system_ui_in_fullscreen"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
-            </LinearLayout>
-
-            <!-- Command Panel + Detailed Errors (One Row) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:baselineAligned="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <!-- Show Command Panel -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchShowCommandPanel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/margin_small"
-                        android:text="@string/show_command_panel_by_default"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
-
-                    <ImageButton
-                        android:id="@+id/iconHelpCommandPanel"
-                        android:layout_width="@dimen/settings_help_icon_size"
-                        android:layout_height="@dimen/settings_help_icon_size"
-                        android:layout_marginStart="@dimen/settings_help_icon_margin"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/tooltip_command_panel_title"
-                        android:src="@android:drawable/ic_menu_help"
-                        app:tint="@color/text_color_secondary" />
-
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
-
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_grid_action_buttons" android:textSize="@dimen/resource_card_desc_text_size" />
+                    </LinearLayout>
                 </LinearLayout>
-
-                <!-- Show Detailed Errors -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_small"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchDetailedErrors"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/show_detailed_errors"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
-
-                </LinearLayout>
-
             </LinearLayout>
-        </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Touch Zones -->
-        <TextView
-            android:id="@+id/headerTouchZones"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/colorSurfaceVariant"
-            android:clickable="true"
-            android:focusable="true"
-            android:padding="@dimen/settings_padding_vertical"
-            android:text="@string/settings_category_touch_zones"
-            android:textSize="@dimen/text_size_normal"
-            android:textStyle="bold" />
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
-        <LinearLayout
-            android:id="@+id/containerTouchZones"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginBottom="@dimen/margin_small">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-            <!-- Player Hint + Touch Zones (One Row) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:baselineAligned="false"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                <!-- GROUP: Player UI -->
+                <TextView android:id="@+id/headerPlayerUI" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_player_ui" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                <!-- Show Player Hint -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="@dimen/margin_small"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height"
-                    android:orientation="horizontal">
+                <LinearLayout android:id="@+id/containerPlayerUI" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchShowPlayerHint"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+                    <!-- Hide System UI in Fullscreen -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
 
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/show_player_hint"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchHideSystemUiInFullscreen" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/hide_system_ui_in_fullscreen" android:textSize="@dimen/resource_card_desc_text_size" />
+                    </LinearLayout>
+
+                    <!-- Command Panel + Detailed Errors (One Row) -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <!-- Show Command Panel -->
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowCommandPanel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/show_command_panel_by_default" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                            <ImageButton android:id="@+id/iconHelpCommandPanel" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_command_panel_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+
+                            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                        <!-- Show Detailed Errors -->
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDetailedErrors" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/show_detailed_errors" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
                 </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-                <!-- Always Show Touch Zones -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/margin_small"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:minHeight="@dimen/button_height"
-                    android:orientation="horizontal">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/switchAlwaysShowTouchZones"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="@dimen/margin_small"
-                        android:text="@string/always_show_touch_zones_overlay"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
+                <!-- GROUP: Touch Zones -->
+                <TextView android:id="@+id/headerTouchZones" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/colorSurfaceVariant" android:clickable="true" android:focusable="true" android:padding="@dimen/settings_padding_vertical" android:text="@string/settings_category_touch_zones" android:textSize="@dimen/text_size_normal" android:textStyle="bold" />
 
-                    <ImageButton
-                        android:id="@+id/iconHelpTouchZones"
-                        android:layout_width="@dimen/settings_help_icon_size"
-                        android:layout_height="@dimen/settings_help_icon_size"
-                        android:layout_marginStart="@dimen/settings_help_icon_margin"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/tooltip_touch_zones_title"
-                        android:src="@android:drawable/ic_menu_help"
-                        app:tint="@color/text_color_secondary" />
+                <LinearLayout android:id="@+id/containerTouchZones" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
 
-                    <View
-                        android:layout_width="0dp"
-                        android:layout_height="0dp"
-                        android:layout_weight="1" />
+                    <!-- Player Hint + Touch Zones (One Row) -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">
 
+                        <!-- Show Player Hint -->
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowPlayerHint" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/show_player_hint" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                        </LinearLayout>
+
+                        <!-- Always Show Touch Zones -->
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_weight="1" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+
+                            <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAlwaysShowTouchZones" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
+
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/always_show_touch_zones_overlay" android:textSize="@dimen/resource_card_desc_text_size" />
+
+                            <ImageButton android:id="@+id/iconHelpTouchZones" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_touch_zones_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+
+                            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/always_show_touch_zones_overlay_description" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd" android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"/>
+
+                    <!-- Touch Zones Scheme Header and Button -->
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">
+
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/touch_zones_scheme" android:textColor="?attr/colorPrimary" android:textSize="@dimen/resource_card_title_text_size" android:textStyle="bold" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShowHintNow" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hint_now" />
+
+                    </LinearLayout>
+
+                    <!-- Horizontal layout: Map (50%) + Legend (50%) -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_small">
+
+                        <ImageView android:layout_width="0dp" android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height" android:layout_weight="1" android:contentDescription="@string/touch_zones_scheme" android:scaleType="fitCenter" android:src="@drawable/touch_zones_scheme" android:layout_marginEnd="@dimen/margin_small"/>
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zones_legend_title" android:textSize="@dimen/text_size_small" android:textStyle="bold" android:textColor="?attr/colorPrimary" android:layout_marginBottom="@dimen/margin_tiny"/>
+
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_1_back" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_2_copy" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_3_rename" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_4_previous" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_5_move" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_6_next" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_7_command" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_8_delete" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+                            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/touch_zone_9_slideshow" android:textSize="@dimen/activity_browse_btnSort_textSize" android:lineSpacingMultiplier="1.2"/>
+
+                        </LinearLayout>
+
+                    </LinearLayout>
                 </LinearLayout>
-
             </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/always_show_touch_zones_overlay_description"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/text_color_secondary"
-                android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart"
-                android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
-                android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"/>
-
-            <!-- Touch Zones Scheme Header and Button -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_small"
-                android:layout_marginBottom="@dimen/margin_small"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/touch_zones_scheme"
-                    android:textColor="?attr/colorPrimary"
-                    android:textSize="@dimen/resource_card_title_text_size"
-                    android:textStyle="bold" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnShowHintNow"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/show_hint_now" />
-
-            </LinearLayout>
-
-            <!-- Horizontal layout: Map (50%) + Legend (50%) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:baselineAligned="false"
-                android:layout_marginBottom="@dimen/margin_small">
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/fragment_settings_playback_btnShowHintNow_layout_height"
-                    android:layout_weight="1"
-                    android:contentDescription="@string/touch_zones_scheme"
-                    android:scaleType="fitCenter"
-                    android:src="@drawable/touch_zones_scheme"
-                    android:layout_marginEnd="@dimen/margin_small"/>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zones_legend_title"
-                        android:textSize="@dimen/text_size_small"
-                        android:textStyle="bold"
-                        android:textColor="?attr/colorPrimary"
-                        android:layout_marginBottom="@dimen/margin_tiny"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_1_back"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_2_copy"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_3_rename"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_4_previous"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_5_move"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_6_next"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_7_command"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_8_delete"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/touch_zone_9_slideshow"
-                        android:textSize="@dimen/activity_browse_btnSort_textSize"
-                        android:lineSpacingMultiplier="1.2"/>
-
-                </LinearLayout>
-
-            </LinearLayout>
-        </LinearLayout>
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnResetPlaybackSection"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="12dp"
-            android:text="@string/reset_playback_section"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResetPlaybackSection" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="end" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/reset_playback_section" style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

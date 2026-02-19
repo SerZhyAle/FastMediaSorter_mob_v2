@@ -288,7 +288,9 @@ class SftpOperationStrategy(
 
             val username = usernameFromUrl ?: ""
 
-            return SftpPathInfo(host = host, port = port, username = username, remotePath = remotePath)
+            val result = SftpPathInfo(host = host, port = port, username = username, remotePath = remotePath)
+            Timber.v("Parsed SFTP path: '$path' -> Host: $host, Port: $port, User: '$username', Remote: '$remotePath'")
+            return result
         } catch (e: Exception) {
             Timber.e(e, "Failed to parse SFTP path: $path")
             return null

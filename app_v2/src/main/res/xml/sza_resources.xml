@@ -16,7 +16,33 @@
     - disableThumbnails: Boolean (true/false)
     
     Note: ID is auto-generated upon creation. Credentials for network resources will need to be handled separately or prompted.
--->
+
+    === INTEGRATION TEST INSTRUCTIONS ===
+    To run integration tests, please add the following CLOUD resources to this file (or create them manually with these exact names):
+
+    1. Google Drive:
+       name="google_drive_test"
+       path="cloud://google_drive/{FOLDER_ID}" (e.g. cloud://google_drive/1A2B3C...)
+       type="CLOUD"
+       supportedMediaTypes="VIDEO,AUDIO,IMAGE,DOCUMENT"
+
+    2. OneDrive:
+       name="onedrive_test"
+       path="cloud://onedrive/{FOLDER_ID}" (e.g. cloud://onedrive/123456...)
+       type="CLOUD"
+       supportedMediaTypes="VIDEO,AUDIO,IMAGE,DOCUMENT"
+
+    3. Dropbox:
+       name="dropbox_test"
+       path="cloud://dropbox/{PATH}" (e.g. cloud://dropbox/Tests)
+       type="CLOUD"
+       supportedMediaTypes="VIDEO,AUDIO,IMAGE,DOCUMENT"
+
+    The tests will also use the following existing resources from this file:
+    - SMB: "test_media"
+    - SFTP: "SFTP"
+    - FTP: "FTP"
+    -->
 <media-resources>
 
     <resource
