@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -1329,11 +1330,23 @@ class BrowseViewModel @Inject constructor(
             } else {
                 resource
             }
-            
+
+            // Profile-aware effective sort: suggest a sensible default when sort is still at NAME_ASC
+            val effectiveSortMode = if (resource.sortMode == SortMode.NAME_ASC) {
+                when (resource.profile) {
+                    ResourceProfile.AUDIO_LIBRARY -> SortMode.ARTIST_ASC
+                    ResourceProfile.PHOTO_STORAGE -> SortMode.DATE_TAKEN_DESC
+                    else -> resource.sortMode
+                }
+            } else {
+                resource.sortMode
+            }
+            Timber.d("BrowseViewModel.loadResource: profile=${resource.profile}, effectiveSortMode=$effectiveSortMode (persisted=${resource.sortMode})")
+
             updateState { 
                 it.copy(
                     resource = effectiveResource,
-                    sortMode = resource.sortMode,
+                    sortMode = effectiveSortMode,
                     displayMode = effectiveDisplayMode,
                     isCloudResource = isCloudResource,
                     filter = restoredFilter,
@@ -1343,7 +1356,7 @@ class BrowseViewModel @Inject constructor(
                 ) 
             }
             
-            Timber.d("BrowseViewModel.loadResource: State updated - displayMode=$effectiveDisplayMode, sortMode=${resource.sortMode}, isAudioOnly=${resource.isAudioOnly()}")
+            Timber.d("BrowseViewModel.loadResource: State updated - displayMode=$effectiveDisplayMode, sortMode=$effectiveSortMode, isAudioOnly=${resource.isAudioOnly()}")
             Timber.d("BrowseViewModel.loadResource: Cloud resource details - cloudProvider=${resource.cloudProvider}, cloudFolderId=${resource.cloudFolderId}, path=${resource.path}")
             
             if (effectiveResource != resource) {
