@@ -246,6 +246,26 @@
                     android:paddingBottom="@dimen/padding_normal" />
 
                 <TextView
+                    android:id="@+id/tvAudioTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:visibility="gone"
+                    android:textIsSelectable="true"/>
+
+                <TextView
+                    android:id="@+id/tvAudioArtist"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
+                    android:lineSpacingMultiplier="1.2"
+                    android:paddingBottom="@dimen/padding_small"
+                    android:visibility="gone"
+                    android:textIsSelectable="true"/>
+
+                <TextView
                     android:id="@+id/tvAudioDuration"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

@@ -217,19 +217,51 @@ class BrowseDialogHelper(
     }
     
     fun showSortDialog(currentSortMode: SortMode) {
-        val sortModes = SortMode.values()
-        val items = sortModes.map { getSortModeName(it) }.toTypedArray()
-        val currentIndex = sortModes.indexOf(currentSortMode)
-
-        AlertDialog.Builder(activity)
+        val sortModes = SortMode.values().filter { 
+            it != SortMode.DATE_TAKEN_ASC && it != SortMode.DATE_TAKEN_DESC 
+        }
+        
+        val dialogBinding = com.sza.fastmediasorter.databinding.DialogSortBinding.inflate(LayoutInflater.from(activity))
+        val dialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.sort_by_title)
-            .setSingleChoiceItems(items, currentIndex) { dialog, which ->
-                val selectedMode = sortModes[which]
-                callbacks.onSortModeSelected(selectedMode)
-                dialog.dismiss()
-            }
+            .setView(dialogBinding.root)
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create()
+            
+        dialogBinding.rvSortOptions.layoutManager = androidx.recyclerview.widget.GridLayoutManager(activity, 2)
+        dialogBinding.rvSortOptions.adapter = object : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+                val view = LayoutInflater.from(parent.context).inflate(R.layout.item_sort_option, parent, false)
+                return object : RecyclerView.ViewHolder(view) {}
+            }
+            
+            override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+                val mode = sortModes[position]
+                val button = holder.itemView as com.google.android.material.button.MaterialButton
+                button.text = getSortModeName(mode)
+                
+                // Highlight selected mode
+                if (mode == currentSortMode) {
+                    val colorPrimaryContainer = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorPrimaryContainer)
+                    val colorOnPrimaryContainer = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnPrimaryContainer)
+                    button.setBackgroundColor(colorPrimaryContainer)
+                    button.setTextColor(colorOnPrimaryContainer)
+                } else {
+                    val colorOnSurface = com.google.android.material.color.MaterialColors.getColor(button, com.google.android.material.R.attr.colorOnSurface)
+                    button.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+                    button.setTextColor(colorOnSurface)
+                }
+                
+                button.setOnClickListener {
+                    callbacks.onSortModeSelected(mode)
+                    dialog.dismiss()
+                }
+            }
+            
+            override fun getItemCount() = sortModes.size
+        }
+        
+        dialog.show()
     }
     
     private fun getSortModeName(mode: SortMode): String {

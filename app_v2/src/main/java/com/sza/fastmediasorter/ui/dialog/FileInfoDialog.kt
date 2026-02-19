@@ -450,11 +450,23 @@ class FileInfoDialog(
             binding.tvGifFrames.visibility = View.VISIBLE
         }
         
-        // Audio Codec (for audio section)
+        // Audio Codes (for audio section)
         if (details.audioCodec != null && mediaFile.type == MediaType.AUDIO) {
             val codec = details.audioCodec.substringAfter("audio/").uppercase()
             binding.tvAudioCodecInfo.text = context.getString(R.string.audio_codec_label, codec)
             binding.tvAudioCodecInfo.visibility = View.VISIBLE
+        }
+
+        // Audio Title
+        if (details.audioTitle != null) {
+            binding.tvAudioTitle?.text = context.getString(R.string.audio_title_label, details.audioTitle)
+            binding.tvAudioTitle?.visibility = View.VISIBLE
+        }
+
+        // Audio Artist
+        if (details.audioArtist != null) {
+            binding.tvAudioArtist?.text = context.getString(R.string.audio_artist_label, details.audioArtist)
+            binding.tvAudioArtist?.visibility = View.VISIBLE
         }
         
         // Audio Channels

@@ -273,7 +273,11 @@ class GetMediaFilesUseCase @Inject constructor(
             }
         }
 
-        val metadataReadyFiles = if (resource.rememberFileList) {
+        // Enrich metadata when rememberFileList is enabled OR when sort mode requires
+        // audio/image metadata fields (artist, title, duration, exifDateTime).
+        // Without enrichment those fields are null, making metadata-based sorts
+        // indistinguishable from NAME_ASC.
+        val metadataReadyFiles = if (resource.rememberFileList || needsMetadataForSort(sortMode)) {
             filesWithFavorites.map { file ->
                 CachedMediaMetadataExtractor.enrichForCache(file)
             }.also { CachedMediaMetadataExtractor.logSessionDiagnostics("scan resource=${resource.id}") }
@@ -295,6 +299,19 @@ class GetMediaFilesUseCase @Inject constructor(
         
         timber.log.Timber.d("GetMediaFilesUseCase: COMPLETE - flow emission done")
     }.flowOn(Dispatchers.IO) // Execute scanning and sorting on IO thread
+
+    /**
+     * Returns true when the sort mode relies on metadata fields that require
+     * [CachedMediaMetadataExtractor.enrichForCache] to be populated:
+     * artist, title, duration (audio) or exifDateTime (image).
+     */
+    private fun needsMetadataForSort(mode: SortMode): Boolean = when (mode) {
+        SortMode.ARTIST_ASC, SortMode.ARTIST_DESC,
+        SortMode.TITLE_ASC, SortMode.TITLE_DESC,
+        SortMode.DURATION_ASC, SortMode.DURATION_DESC,
+        SortMode.DATE_TAKEN_ASC, SortMode.DATE_TAKEN_DESC -> true
+        else -> false
+    }
 
     private fun sortFiles(files: List<MediaFile>, mode: SortMode): List<MediaFile> {
         return when (mode) {

@@ -73,13 +73,16 @@ class SmbConnectionManager @Inject constructor(
     
     companion object {
         // Normal timeouts (healthy connection)
-        private const val CONNECTION_TIMEOUT_MS = 5000L // 5 seconds
+        private const val CONNECTION_TIMEOUT_MS = 2000L // 2 seconds (fast failure for offline hosts)
         private const val READ_TIMEOUT_MS = 90000L // 90 seconds - increased for large folder listing
         private const val WRITE_TIMEOUT_MS = 60000L // 60 seconds
         
         // Degraded timeouts (poor connection)
-        private const val CONNECTION_TIMEOUT_DEGRADED_MS = 15000L // 15 seconds
+        private const val CONNECTION_TIMEOUT_DEGRADED_MS = 8000L // 8 seconds
         private const val READ_TIMEOUT_DEGRADED_MS = 120000L // 120 seconds - extended for degraded connection
+        
+        // Fast TCP pre-check before full SMBJ connect attempt
+        private const val CONNECTIVITY_CHECK_TIMEOUT_MS = 1500 // 1.5 seconds
         
         // Timeout for no-response detection (connection appears dead)
         private const val NO_RESPONSE_TIMEOUT_MS = 15000L // 15 seconds
@@ -303,11 +306,9 @@ class SmbConnectionManager @Inject constructor(
         connectionInfo: SmbConnectionInfo,
         useDegradedTimeout: Boolean = false
     ): PooledConnection {
-        // Fast connectivity check before attempting full SMB connection
-        // This avoids waiting 5-15s for the library to timeout on dead hosts
-        if (!useDegradedTimeout) {
-            checkConnectivity(connectionInfo.server, connectionInfo.port, 2000) // 2s fast check
-        }
+        // Fast TCP pre-check before attempting full SMBJ connect.
+        // Always run regardless of useDegradedTimeout to avoid waiting 5-15s for offline hosts.
+        checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
 
         val startTime = System.currentTimeMillis()
         // Use degraded client for recovery after timeout to get extended timeouts
@@ -662,7 +663,12 @@ class SmbConnectionManager @Inject constructor(
             message.contains("Connection refused", ignoreCase = true) ||
             message.contains("No such host", ignoreCase = true)
 
-        return isAuthError || isAccessError || isConfigError
+        // Treat unreachable hosts as non-retriable — checkConnectivity already handles fast fail
+        val isUnreachable = message.contains("Server unreachable", ignoreCase = true) ||
+            e.cause is SocketTimeoutException ||
+            e is SocketTimeoutException
+
+        return isAuthError || isAccessError || isConfigError || isUnreachable
     }
     
     /**
@@ -770,13 +776,16 @@ class SmbConnectionManager @Inject constructor(
     /**     * Convert exception to user-friendly error message.
      */
     private fun getUserFriendlyMessage(e: Exception): String {
+        val cause = e.cause
         return when {
-            e.message?.contains("Server unreachable", ignoreCase = true) == true ->
-                "Server is offline or unreachable."
+            e.message?.contains("Server unreachable", ignoreCase = true) == true ||
+            cause is SocketTimeoutException ||
+            e is SocketTimeoutException ->
+                "Server is not responding. Make sure the device is powered on and reachable."
             e.message?.contains("Unknown host", ignoreCase = true) == true ->
                 "Cannot resolve server address. Check server name/IP."
             e.message?.contains("Connection refused", ignoreCase = true) == true ->
-                "Connection refused. Check if SMB service is running."
+                "Connection refused. Check if the SMB/file sharing service is running."
             e.message?.contains("Connection timed out", ignoreCase = true) == true ->
                 "Connection timed out. Check network and server availability."
             e.message?.contains("Authentication failed", ignoreCase = true) == true ->

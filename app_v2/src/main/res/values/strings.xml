@@ -635,6 +635,10 @@
     <string name="current_color">Current color:</string>
     <string name="selected_label">Selected</string>
 
+    <!-- Audio Metadata -->
+    <string name="audio_artist_label">Artist: %1$s</string>
+    <string name="audio_title_label">Title: %1$s</string>
+
     <!-- Languages array -->
     <string-array name="languages">
         <item>English</item>

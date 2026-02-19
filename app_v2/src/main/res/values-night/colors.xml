@@ -85,8 +85,8 @@
     <color name="player_close_action">#CCCCCC</color>
 
     <!-- Action panels -->
-    <color name="player_panel_copy">#CC00FF66</color>
-    <color name="player_panel_move">#CC6699FF</color>
+    <color name="player_panel_copy">#CC004D00</color>
+    <color name="player_panel_move">#CC00004D</color>
 
     <!-- ============================================================ -->
     <!-- PLAYER COLOR ALIASES (mapped to base colors) -->

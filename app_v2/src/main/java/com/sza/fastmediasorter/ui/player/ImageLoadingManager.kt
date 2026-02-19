@@ -1199,10 +1199,15 @@ class ImageLoadingManager(
                 } else "N/A"
                 
                 withContext(Dispatchers.Main) {
-                    safeViews.audioFileInfo.text = buildString {
-                        append("Size: $fileSizeStr")
-                        file.duration?.let { if (it > 0) append("\nDuration: ${formatDuration(it)}") }
-                    }
+                    val sizeString = callback.getString(R.string.file_size_label)
+                    val durationString = callback.getString(R.string.audio_duration_label)
+                    
+                    val sizeLabel = String.format(sizeString, fileSizeStr)
+                    val durationLabel = file.duration?.let { 
+                        if (it > 0) "\n" + String.format(durationString, formatDuration(it)) else "" 
+                    } ?: ""
+                    
+                    safeViews.audioFileInfo.text = "$sizeLabel$durationLabel"
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get audio file info")

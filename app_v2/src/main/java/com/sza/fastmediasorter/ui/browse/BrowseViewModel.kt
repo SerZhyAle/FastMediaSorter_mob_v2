@@ -1961,6 +1961,15 @@ class BrowseViewModel @Inject constructor(
         // If we have cached list, re-sort it instead of rescanning
         val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
         if (cachedFiles != null && cachedFiles.isNotEmpty()) {
+            // Guard: if the new sort mode requires metadata fields (artist/title/duration/exifDateTime)
+            // but the cached list was loaded without enrichment (all relevant fields are null),
+            // clear the cache and trigger a fresh scan so enrichment runs via GetMediaFilesUseCase.
+            if (cachedFilesMissingMetadataForSort(cachedFiles, sortMode)) {
+                Timber.d("setSortMode: cached files lack metadata for $sortMode - clearing cache and reloading")
+                MediaFilesCacheManager.clearCache(resourceId)
+                loadMediaFiles()
+                return
+            }
             Timber.d("setSortMode: Applying sort to cached list (${cachedFiles.size} files)")
             // Apply current filter first, then sort
             val currentFilter = state.value.filter ?: FileFilter()
@@ -2682,6 +2691,33 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
+    /**
+     * Returns true when [sortMode] requires metadata fields (artist, title, duration, exifDateTime)
+     * that may not have been extracted during the initial scan (i.e. when rememberFileList was off).
+     * In that case the cached list is useless for this sort and a fresh enriched scan is needed.
+     */
+    private fun cachedFilesMissingMetadataForSort(
+        files: List<MediaFile>,
+        sortMode: SortMode
+    ): Boolean {
+        return when (sortMode) {
+            SortMode.ARTIST_ASC, SortMode.ARTIST_DESC,
+            SortMode.TITLE_ASC, SortMode.TITLE_DESC -> {
+                val audioFiles = files.filter { it.type == MediaType.AUDIO }
+                audioFiles.isNotEmpty() && audioFiles.all { it.artist == null && it.title == null }
+            }
+            SortMode.DURATION_ASC, SortMode.DURATION_DESC -> {
+                val audioFiles = files.filter { it.type == MediaType.AUDIO }
+                audioFiles.isNotEmpty() && audioFiles.all { it.duration == null }
+            }
+            SortMode.DATE_TAKEN_ASC, SortMode.DATE_TAKEN_DESC -> {
+                val imageFiles = files.filter { it.type == MediaType.IMAGE || it.type == MediaType.GIF }
+                imageFiles.isNotEmpty() && imageFiles.all { it.exifDateTime == null }
+            }
+            else -> false
+        }
+    }
+
     /**
      * Sorts files according to sort mode. Used for in-memory sorting without rescanning.
      */

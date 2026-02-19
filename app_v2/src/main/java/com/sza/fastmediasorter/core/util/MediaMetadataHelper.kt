@@ -40,6 +40,9 @@ data class DetailedMediaInfo(
     val frameRate: Double? = null, // frames per second
     val latitude: Double? = null,
     val longitude: Double? = null,
+    // Audio metadata
+    val audioTitle: String? = null,
+    val audioArtist: String? = null,
     // Document metadata (PDF/TXT/EPUB)
     val pageCount: Int? = null,         // PDF pages
     val docTitle: String? = null,       // PDF/EPUB title
@@ -268,6 +271,8 @@ class MediaMetadataHelper(
         var frameRate: Double? = null
         var latitude: Double? = null
         var longitude: Double? = null
+        var audioTitle: String? = null
+        var audioArtist: String? = null
         
         // Validate file before attempting to read metadata
         if (!file.exists()) {
@@ -316,6 +321,10 @@ class MediaMetadataHelper(
                     Timber.w("Failed to parse GPS location from video: $location")
                 }
             }
+
+            // Extract Title and Artist
+            audioTitle = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE)
+            audioArtist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST)
             
             val extractor = MediaExtractor()
             extractor.setDataSource(file.absolutePath)
@@ -384,7 +393,9 @@ class MediaMetadataHelper(
             bitrate = bitrate,
             frameRate = frameRate,
             latitude = latitude,
-            longitude = longitude
+            longitude = longitude,
+            audioTitle = audioTitle,
+            audioArtist = audioArtist
         )
     }
 
