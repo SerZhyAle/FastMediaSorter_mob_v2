@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import java.io.File
 import java.util.Date
+import java.util.Locale
 
 class MediaFileAdapter(
     private val onFileClick: (MediaFile) -> Unit,
@@ -1435,6 +1436,48 @@ class MediaFileAdapter(
                     else -> "$count items"
                 }
             }
+
+            val legacyInfo = buildLegacyFileInfo(file)
+
+            when (file.type) {
+                MediaType.AUDIO -> {
+                    val audioTitle = when {
+                        !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
+                        !file.artist.isNullOrBlank() -> file.artist
+                        !file.title.isNullOrBlank() -> file.title
+                        else -> file.name
+                    }
+                    val duration = formatDuration(file.duration)
+                    return if (duration != null) "$audioTitle • $duration" else audioTitle
+                }
+
+                MediaType.VIDEO -> {
+                    val resolution = if (file.width != null && file.height != null) {
+                        "${file.width}x${file.height}"
+                    } else {
+                        null
+                    }
+                    val duration = formatDuration(file.duration)
+                    val parts = listOfNotNull(resolution, duration)
+                    return if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
+                }
+
+                MediaType.IMAGE, MediaType.GIF -> {
+                    val resolution = if (file.width != null && file.height != null) {
+                        "${file.width}x${file.height}"
+                    } else {
+                        null
+                    }
+                    val dateTaken = file.exifDateTime?.let { DateFormat.format("yyyy-MM-dd", Date(it)).toString() }
+                    val parts = listOfNotNull(resolution, dateTaken)
+                    return if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
+                }
+
+                else -> return legacyInfo
+            }
+        }
+
+        private fun buildLegacyFileInfo(file: MediaFile): String {
             
             // Hide invalid FTP metadata (size=0 or date=1970-01-01)
             val size = if (file.size > 0) formatFileSize(file.size) else "—"
@@ -1444,6 +1487,22 @@ class MediaFileAdapter(
                 "—"
             }
             return "$size • $date"
+        }
+
+        private fun formatDuration(durationMs: Long?): String? {
+            val value = durationMs ?: return null
+            if (value <= 0L) return null
+
+            val totalSeconds = value / 1000
+            val hours = totalSeconds / 3600
+            val minutes = (totalSeconds % 3600) / 60
+            val seconds = totalSeconds % 60
+
+            return if (hours > 0) {
+                String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
+            } else {
+                String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
+            }
         }
         
         private fun formatFileSize(size: Long): String {
