@@ -11,8 +11,18 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import java.util.concurrent.atomic.AtomicInteger
 
 object CachedMediaMetadataExtractor {
+
+    private val successCount = AtomicInteger(0)
+    private val failCount = AtomicInteger(0)
+
+    /** Logs and resets per-session extraction diagnostics. Call once per scan batch. */
+    fun logSessionDiagnostics(tag: String = "") {
+        val label = if (tag.isNotBlank()) " [$tag]" else ""
+        Timber.d("CachedMediaMetadataExtractor$label diagnostics: success=${successCount.getAndSet(0)}, fail=${failCount.getAndSet(0)}")
+    }
 
     suspend fun enrichForCache(file: MediaFile): MediaFile = withContext(Dispatchers.IO) {
         if (file.isDirectory) return@withContext file
@@ -52,7 +62,9 @@ object CachedMediaMetadataExtractor {
                     duration = file.duration ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull()
                 )
             }
-        }.onFailure {
+        }.onSuccess { successCount.incrementAndGet() }
+        .onFailure {
+            failCount.incrementAndGet()
             Timber.d("CachedMediaMetadataExtractor audio skipped: ${sanitizePath(file.path)}")
         }.getOrElse { file }
     }
@@ -68,7 +80,9 @@ object CachedMediaMetadataExtractor {
                     videoRotation = file.videoRotation ?: retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()
                 )
             }
-        }.onFailure {
+        }.onSuccess { successCount.incrementAndGet() }
+        .onFailure {
+            failCount.incrementAndGet()
             Timber.d("CachedMediaMetadataExtractor video skipped: ${sanitizePath(file.path)}")
         }.getOrElse { file }
     }
@@ -92,7 +106,9 @@ object CachedMediaMetadataExtractor {
                 height = height,
                 exifDateTime = exifDateTime
             )
-        }.onFailure {
+        }.onSuccess { successCount.incrementAndGet() }
+        .onFailure {
+            failCount.incrementAndGet()
             Timber.d("CachedMediaMetadataExtractor image skipped: ${sanitizePath(file.path)}")
         }.getOrElse { file }
     }

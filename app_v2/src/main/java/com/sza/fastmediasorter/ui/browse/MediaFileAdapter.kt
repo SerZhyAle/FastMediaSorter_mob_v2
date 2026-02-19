@@ -26,6 +26,7 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.formatMediaDuration
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter.databinding.ItemMediaFileGridBinding
@@ -41,7 +42,6 @@ import com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator
 import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import java.io.File
 import java.util.Date
-import java.util.Locale
 
 class MediaFileAdapter(
     private val onFileClick: (MediaFile) -> Unit,
@@ -1489,21 +1489,7 @@ class MediaFileAdapter(
             return "$size • $date"
         }
 
-        private fun formatDuration(durationMs: Long?): String? {
-            val value = durationMs ?: return null
-            if (value <= 0L) return null
-
-            val totalSeconds = value / 1000
-            val hours = totalSeconds / 3600
-            val minutes = (totalSeconds % 3600) / 60
-            val seconds = totalSeconds % 60
-
-            return if (hours > 0) {
-                String.format(Locale.getDefault(), "%d:%02d:%02d", hours, minutes, seconds)
-            } else {
-                String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-            }
-        }
+        private fun formatDuration(durationMs: Long?): String? = formatMediaDuration(durationMs)
         
         private fun formatFileSize(size: Long): String {
             return com.sza.fastmediasorter.core.util.formatFileSize(size)

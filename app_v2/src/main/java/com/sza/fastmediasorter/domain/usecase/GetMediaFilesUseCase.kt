@@ -276,7 +276,7 @@ class GetMediaFilesUseCase @Inject constructor(
         val metadataReadyFiles = if (resource.rememberFileList) {
             filesWithFavorites.map { file ->
                 CachedMediaMetadataExtractor.enrichForCache(file)
-            }
+            }.also { CachedMediaMetadataExtractor.logSessionDiagnostics("scan resource=${resource.id}") }
         } else {
             filesWithFavorites
         }
