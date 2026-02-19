@@ -148,14 +148,8 @@ class IntegrationTestRunner @Inject constructor(
                     credentialsRepository.insert(entity)
                     log("Inserted credential for ${cred.type}://${cred.server}")
                 } else {
-                    // Update existing to ensure password is correct
-                    val updated = existing.copy(
-                        encryptedPassword = entity.encryptedPassword, 
-                        username = entity.username,
-                        domain = entity.domain,
-                    )
-                    credentialsRepository.update(updated)
-                    log("Updated credential for ${cred.type}://${cred.server}")
+                    // Keep user/device credentials intact to avoid overriding valid runtime configuration
+                    log("Existing credential found for ${cred.type}://${cred.server} (kept unchanged)")
                 }
             }
         } catch (e: Exception) {
@@ -1654,10 +1648,11 @@ class IntegrationTestRunner @Inject constructor(
             val sourceFileName = "matrix_copy_src_${sourceType.name}_${timestamp}.txt"
             
             // Ensure source file exists
-            val sourceFile = ensureTestFileExists(sourceType, sourceFileName)
+            val sourcePrepare = ensureTestFileExists(sourceType, sourceFileName)
+            val sourceFile = sourcePrepare.file
             if (sourceFile == null) {
-                recordResult(testName, "Copy", sourceType.name, destType.name, false, 0,
-                    error = "Failed to create/access source file on ${sourceType.name}")
+                recordResult(testName, "Copy", sourceType.name, destType.name, false, System.currentTimeMillis() - startTime,
+                    error = sourcePrepare.error ?: "Failed to create/access source file on ${sourceType.name}")
                 return
             }
             
@@ -1739,10 +1734,11 @@ class IntegrationTestRunner @Inject constructor(
             val sourceFileName = "matrix_move_src_${sourceType.name}_${timestamp}.txt"
             
             // Ensure source file exists
-            val sourceFile = ensureTestFileExists(sourceType, sourceFileName)
+            val sourcePrepare = ensureTestFileExists(sourceType, sourceFileName)
+            val sourceFile = sourcePrepare.file
             if (sourceFile == null) {
-                recordResult(testName, "Move", sourceType.name, destType.name, false, 0,
-                    error = "Failed to create/access source file on ${sourceType.name}")
+                recordResult(testName, "Move", sourceType.name, destType.name, false, System.currentTimeMillis() - startTime,
+                    error = sourcePrepare.error ?: "Failed to create/access source file on ${sourceType.name}")
                 return
             }
             
@@ -1820,10 +1816,11 @@ class IntegrationTestRunner @Inject constructor(
             val newFileName = "matrix_renamed_${resourceType.name}_${timestamp}.txt"
             
             // Ensure source file exists
-            val sourceFile = ensureTestFileExists(resourceType, originalFileName)
+            val sourcePrepare = ensureTestFileExists(resourceType, originalFileName)
+            val sourceFile = sourcePrepare.file
             if (sourceFile == null) {
-                recordResult(testName, "Rename", resourceType.name, null, false, 0,
-                    error = "Failed to create/access file on ${resourceType.name}")
+                recordResult(testName, "Rename", resourceType.name, null, false, System.currentTimeMillis() - startTime,
+                    error = sourcePrepare.error ?: "Failed to create/access file on ${resourceType.name}")
                 return
             }
             
@@ -1891,10 +1888,11 @@ class IntegrationTestRunner @Inject constructor(
             val fileName = "matrix_delete_${resourceType.name}_${timestamp}.txt"
             
             // Ensure file exists
-            val fileToDelete = ensureTestFileExists(resourceType, fileName)
+            val sourcePrepare = ensureTestFileExists(resourceType, fileName)
+            val fileToDelete = sourcePrepare.file
             if (fileToDelete == null) {
-                recordResult(testName, "Delete", resourceType.name, null, false, 0,
-                    error = "Failed to create/access file on ${resourceType.name}")
+                recordResult(testName, "Delete", resourceType.name, null, false, System.currentTimeMillis() - startTime,
+                    error = sourcePrepare.error ?: "Failed to create/access file on ${resourceType.name}")
                 return
             }
             
@@ -2018,25 +2016,45 @@ class IntegrationTestRunner @Inject constructor(
         }
     }
     
+    private data class TestFilePreparationResult(
+        val file: File?,
+        val error: String? = null
+    )
+
     /**
      * Get or create a test file on the specified resource type.
      * For network resources, uploads a file first if it doesn't exist.
      */
-    private suspend fun ensureTestFileExists(type: ResourceType, fileName: String): File? {
+    private suspend fun ensureTestFileExists(type: ResourceType, fileName: String): TestFilePreparationResult {
         return when (type) {
             ResourceType.LOCAL -> {
-                val file = File(context.cacheDir, "test_matrix/$fileName")
-                file.parentFile?.mkdirs()
-                if (!file.exists()) {
-                    file.writeText("Test content for matrix test: ${System.currentTimeMillis()}")
+                try {
+                    val file = File(context.cacheDir, "test_matrix/$fileName")
+                    file.parentFile?.mkdirs()
+                    if (!file.exists()) {
+                        file.writeText("Test content for matrix test: ${System.currentTimeMillis()}")
+                    }
+                    TestFilePreparationResult(file = file)
+                } catch (e: Exception) {
+                    TestFilePreparationResult(
+                        file = null,
+                        error = "Local source setup failed: ${e.message}"
+                    )
                 }
-                file
             }
             else -> {
                 // For network resources, we need to upload a local file first
-                val destDir = buildResourcePath(type, "test_matrix") ?: return null
+                val destDir = buildResourcePath(type, "test_matrix")
+                    ?: return TestFilePreparationResult(
+                        file = null,
+                        error = "Failed to resolve setup destination on ${type.name}"
+                    )
+
+                Timber.d("Matrix source setup: type=${type.name}, destination=$destDir, file=$fileName")
+
                 // Use the same fileName for local temp file so after upload the remote file has correct name
-                val localTestFile = File(context.cacheDir, fileName)
+                val localTestFile = File(context.cacheDir, "test_matrix_setup/$fileName")
+                localTestFile.parentFile?.mkdirs()
                 localTestFile.writeText("Test content for matrix test: ${System.currentTimeMillis()}")
                 
                 // Upload to network location
@@ -2048,11 +2066,26 @@ class IntegrationTestRunner @Inject constructor(
                 val result = fileOperationUseCase.execute(copyOp)
                 localTestFile.delete()
                 
-                if (result is FileOperationResult.Success) {
-                    File(destDir, fileName)
-                } else {
-                    Timber.e("ensureTestFileExists: Failed to upload source file to ${type.name}: $result")
-                    null
+                when (result) {
+                    is FileOperationResult.Success,
+                    is FileOperationResult.PartialSuccess -> {
+                        TestFilePreparationResult(file = File(destDir, fileName))
+                    }
+                    is FileOperationResult.Failure -> {
+                        val error = "Source setup failed on ${type.name}: ${result.error}"
+                        Timber.e("ensureTestFileExists: $error")
+                        TestFilePreparationResult(file = null, error = error)
+                    }
+                    is FileOperationResult.AuthenticationRequired -> {
+                        val error = "Source setup auth failed on ${type.name}: ${result.message}"
+                        Timber.w("ensureTestFileExists: $error")
+                        TestFilePreparationResult(file = null, error = error)
+                    }
+                    is FileOperationResult.PermissionRequired -> {
+                        val error = "Source setup permission required on ${type.name}"
+                        Timber.w("ensureTestFileExists: $error")
+                        TestFilePreparationResult(file = null, error = error)
+                    }
                 }
             }
         }
