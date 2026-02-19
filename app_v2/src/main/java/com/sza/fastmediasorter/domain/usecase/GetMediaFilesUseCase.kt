@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -271,14 +272,22 @@ class GetMediaFilesUseCase @Inject constructor(
                 fileWithResource
             }
         }
+
+        val metadataReadyFiles = if (resource.rememberFileList) {
+            filesWithFavorites.map { file ->
+                CachedMediaMetadataExtractor.enrichForCache(file)
+            }
+        } else {
+            filesWithFavorites
+        }
         
         // Skip sorting for large folders (> 1000 files) - improves performance
-        val sortedFiles = if (filesWithFavorites.size > LARGE_FOLDER_THRESHOLD) {
-            timber.log.Timber.d("GetMediaFilesUseCase: Large folder (${filesWithFavorites.size} files), skipping sort for better performance")
-            filesWithFavorites  // Return unsorted for large folders
+        val sortedFiles = if (metadataReadyFiles.size > LARGE_FOLDER_THRESHOLD) {
+            timber.log.Timber.d("GetMediaFilesUseCase: Large folder (${metadataReadyFiles.size} files), skipping sort for better performance")
+            metadataReadyFiles  // Return unsorted for large folders
         } else {
-            timber.log.Timber.d("GetMediaFilesUseCase: Small folder (${filesWithFavorites.size} files), sorting by $sortMode")
-            sortFiles(filesWithFavorites, sortMode)
+            timber.log.Timber.d("GetMediaFilesUseCase: Small folder (${metadataReadyFiles.size} files), sorting by $sortMode")
+            sortFiles(metadataReadyFiles, sortMode)
         }
         
         timber.log.Timber.d("GetMediaFilesUseCase: Emitting ${sortedFiles.size} files to flow")
