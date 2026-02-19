@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
@@ -1659,12 +1660,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     private fun showSortPopupMenu() {
         val popup = PopupMenu(this, binding.btnSort)
-        val sortModes = SortMode.values()
-        
+        val resource = viewModel.state.value.resource
+        val sortModes = getRelevantSortModes(resource)
+
         sortModes.forEachIndexed { index, mode ->
             popup.menu.add(0, index, index, getSortModeName(mode))
         }
-        
+
         popup.setOnMenuItemClickListener { menuItem ->
             val selectedMode = sortModes[menuItem.itemId]
             if (selectedMode != viewModel.state.value.sortMode) {
@@ -1674,8 +1676,30 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
             true
         }
-        
+
         popup.show()
+    }
+
+    /**
+     * Returns sort modes relevant for the given resource's media type configuration.
+     * Metadata-specific modes (artist, title, duration, dateTaken) are filtered
+     * to only appear when the resource actually supports the related media types.
+     */
+    private fun getRelevantSortModes(resource: MediaResource?): Array<SortMode> {
+        val types = resource?.supportedMediaTypes ?: emptySet()
+        val showAll = resource?.allFiles ?: true
+        return SortMode.values().filter { mode ->
+            when (mode) {
+                SortMode.ARTIST_ASC, SortMode.ARTIST_DESC,
+                SortMode.TITLE_ASC, SortMode.TITLE_DESC ->
+                    showAll || MediaType.AUDIO in types
+                SortMode.DURATION_ASC, SortMode.DURATION_DESC ->
+                    showAll || MediaType.AUDIO in types || MediaType.VIDEO in types
+                SortMode.DATE_TAKEN_ASC, SortMode.DATE_TAKEN_DESC ->
+                    showAll || MediaType.IMAGE in types || MediaType.GIF in types
+                else -> true
+            }
+        }.toTypedArray()
     }
     
     private fun getSortModeShortName(mode: SortMode): String {
