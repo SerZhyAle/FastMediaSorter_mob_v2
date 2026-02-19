@@ -211,3 +211,299 @@ File: `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.k
 2. Acceptance criteria satisfied.
 3. Manual smoke test completed on at least one resource per type (audio/video/image).
 4. Spec-linked implementation notes added to PR description.
+
+## 15. Consolidated Delivery Scope (Spec + Task + Todo)
+
+This execution plan consolidates:
+
+1. `dev/IMPLEMENTATION_PLAN_METADATA_CACHING.md`
+2. `dev/TASK_METADATA_CACHING.md`
+3. `dev/todo.md`
+
+Mandatory combined outcomes:
+
+1. Metadata extraction/persistence/rendering for cached file lists (`rememberFileList=true`).
+2. Metadata-based sorting/filtering (artist/title/duration/dateTaken) with null-safe behavior.
+3. Resource profile selection during resource creation (`Audio Library`, `Video Library`, `Photo Storage`, `Documents`, `All Files`) with automatic type filter presets.
+4. Foundation for profile-specific Browse behavior (current iteration: profile field + routing hooks; full dedicated screens can be delivered incrementally).
+
+## 16. Step-by-Step Developer Execution Plan
+
+Rule for all steps:
+
+1. Execute step prompt.
+2. Verify expected result.
+3. Run build.
+4. Commit.
+
+---
+
+### Step 1 — Domain Contract Foundation
+
+**Prompt**
+
+1. Extend `MediaFile` with nullable audio metadata fields:
+   - `artist: String? = null`
+   - `album: String? = null`
+   - `title: String? = null`
+2. Extend `SortMode` with metadata sorts:
+   - `ARTIST_ASC`, `ARTIST_DESC`
+   - `TITLE_ASC`, `TITLE_DESC`
+   - `DURATION_ASC`, `DURATION_DESC`
+   - `DATE_TAKEN_ASC`, `DATE_TAKEN_DESC`
+3. Update all in-memory sort points (`BrowseFileListManager`, use-case sort fallbacks) with null-safe comparators.
+4. Preserve backward compatibility of cache JSON (new fields nullable, default values only).
+
+**Expected Result**
+
+1. Code compiles without constructor breakages.
+2. Existing cache entries deserialize without migration.
+3. New sort modes are accepted and do not crash on null metadata.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(metadata-cache): add audio metadata fields and null-safe metadata sort modes`
+
+---
+
+### Step 2 — Metadata Extractor Service (IO-only)
+
+**Prompt**
+
+1. Add/extend metadata extraction service (`MediaMetadataHelper` or dedicated helper) with focused methods:
+   - `extractAudio(path)`
+   - `extractVideo(path)`
+   - `extractImage(path)`
+2. Use `MediaMetadataRetriever` for audio/video and `ExifInterface` for images.
+3. Ensure strict safety:
+   - `Dispatchers.IO`
+   - per-file try/catch
+   - guaranteed retriever release
+   - Timber debug/warn logs without sensitive data leakage.
+
+**Expected Result**
+
+1. Extraction is isolated and reusable.
+2. Corrupted media never crashes scan flow.
+3. Helper returns partial metadata when only some fields are available.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(metadata-cache): add resilient IO metadata extractor for audio video image`
+
+---
+
+### Step 3 — Scan Pipeline Integration (`rememberFileList` gated)
+
+**Prompt**
+
+1. Integrate metadata enrichment into scan/index flow only when `resource.rememberFileList == true`.
+2. Enrich `MediaFile` objects before DB cached-list save.
+3. For `rememberFileList == false`, skip extended extraction path entirely.
+4. Keep scan resilient: metadata failure for one file must not fail entire list.
+
+**Expected Result**
+
+1. Cached list stores enriched metadata for remembered resources.
+2. Non-remembered resources keep previous scan performance path.
+3. No regressions in folder loading stability.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(metadata-cache): enrich scanned media only for rememberFileList resources`
+
+---
+
+### Step 4 — Protocol-Specific Coverage (SMB/SFTP/FTP/Cloud)
+
+**Prompt**
+
+1. Reuse existing metadata present in scanners (e.g., SMB video/EXIF).
+2. Add safe extraction path for missing metadata where technically feasible per protocol.
+3. Keep network overhead bounded; do not introduce blocking on main thread.
+4. Log skipped/failed protocol extraction at debug level.
+
+**Expected Result**
+
+1. Metadata quality improves without protocol regressions.
+2. Remote resources still load reliably under failures/timeouts.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(metadata-cache): improve protocol metadata enrichment with graceful fallbacks`
+
+---
+
+### Step 5 — Browse UI Rendering (Metadata Info Line)
+
+**Prompt**
+
+1. Update file info formatter in `MediaFileAdapter`:
+   - Audio: `artist - title • duration` with fallback chain.
+   - Video: `widthxheight • duration`.
+   - Image: `widthxheight • dateTaken`.
+2. Preserve existing fallback line (`size • date`) when metadata unavailable.
+3. Do not add extra UI rows; reuse current info text line.
+
+**Expected Result**
+
+1. Metadata is visible in list items after scan and after restart from cache.
+2. Legacy items still show valid fallback info.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(metadata-cache): render audio video image metadata in browse list info line`
+
+---
+
+### Step 6 — Metadata Sorting and Filtering Delivery
+
+**Prompt**
+
+1. Wire new sort modes into UI state handling and persistence.
+2. Add filter hooks for metadata fields (artist/title/duration/dateTaken) in existing filter pipeline.
+3. Null-safe behavior mandatory; resources without metadata must keep stable sorting behavior.
+
+**Expected Result**
+
+1. User can sort/filter by new metadata fields.
+2. No crashes on mixed legacy/new cached entries.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(metadata-cache): add metadata sort and filter support with null-safe comparators`
+
+---
+
+### Step 7 — Resource Profile Selector (from todo)
+
+**Prompt**
+
+1. In resource creation/edit flow, add dropdown profile selector:
+   - `Audio Library`, `Video Library`, `Photo Storage`, `Documents`, `All Files`.
+2. On selection, apply default media type filters and related flags.
+3. Persist selected profile in resource model/entity.
+
+**Expected Result**
+
+1. New resource can be created with profile preset in one action.
+2. Filter setup is deterministic and persisted.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`feat(resource-profile): add resource profile selector with filter presets`
+
+---
+
+### Step 8 — Profile-Aware Browse Routing Hooks
+
+**Prompt**
+
+1. Add routing hooks in Browse entry flow for profile-specific behavior.
+2. Keep current screens intact; introduce minimal abstraction for future dedicated profile screens.
+3. Ensure current audio-specialized behavior remains compatible.
+
+**Expected Result**
+
+1. Profile is available as behavior switch in Browse pipeline.
+2. No regression for existing resources without explicit profile.
+
+**Build**
+
+`./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+
+**Commit**
+
+`refactor(browse): introduce profile-aware browse routing hooks`
+
+---
+
+### Step 9 — Tests and Diagnostics
+
+**Prompt**
+
+1. Add/update unit tests:
+   - metadata formatters (full/partial/empty)
+   - metadata sort comparators null-safe behavior
+2. Add focused diagnostics counters for extraction success/failure per scan session (debug logs).
+3. Validate cache backward compatibility with old payload sample.
+
+**Expected Result**
+
+1. New metadata behavior is covered by deterministic tests.
+2. Failures become diagnosable without noisy logs.
+
+**Build**
+
+`./gradlew.bat :app_v2:testStandardDebugUnitTest`
+
+**Commit**
+
+`test(metadata-cache): add formatter and comparator coverage plus extraction diagnostics`
+
+---
+
+### Step 10 — Final Verification and Release Notes
+
+**Prompt**
+
+1. Run final build and lint for touched areas.
+2. Execute manual smoke matrix:
+   - rememberFileList true/false
+   - audio/video/image metadata display from fresh scan and from DB cache after restart
+   - metadata sorts/filters
+   - profile selector preset behavior
+3. Update implementation notes for PR.
+
+**Expected Result**
+
+1. Acceptance criteria from spec and task are met.
+2. Release notes clearly document compatibility and limitations.
+
+**Build**
+
+1. `./gradlew.bat :app_v2:compileStandardDebugKotlin --quiet`
+2. `./gradlew.bat :app_v2:lintStandardDebug`
+
+**Commit**
+
+`chore(metadata-cache): finalize verification checklist and implementation notes`
+
+## 17. Realization Start Point
+
+Implementation starts from **Step 1** in this sequence.
+
+## 18. Build/Commit Policy
+
+1. No next step starts until previous step build succeeds.
+2. Commit is mandatory after each successful step.
+3. If build fails, fix in the same step before commit.
+4. If failure is external/unrelated, document blocker in commit message footer and continue only after user confirmation.

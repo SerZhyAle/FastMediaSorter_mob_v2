@@ -131,6 +131,14 @@ class BrowseFileListManager(
             SortMode.SIZE_DESC -> regularFiles.sortedByDescending { it.size }
             SortMode.TYPE_ASC -> regularFiles.sortedBy { it.type.ordinal }
             SortMode.TYPE_DESC -> regularFiles.sortedByDescending { it.type.ordinal }
+            SortMode.ARTIST_ASC -> regularFiles.sortedWith(compareBy<MediaFile> { it.artist?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.ARTIST_DESC -> regularFiles.sortedWith(compareByDescending<MediaFile> { it.artist?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.TITLE_ASC -> regularFiles.sortedWith(compareBy<MediaFile> { it.title?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.TITLE_DESC -> regularFiles.sortedWith(compareByDescending<MediaFile> { it.title?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.DURATION_ASC -> regularFiles.sortedWith(compareBy<MediaFile> { it.duration ?: Long.MAX_VALUE }.thenBy { it.name.lowercase() })
+            SortMode.DURATION_DESC -> regularFiles.sortedWith(compareByDescending<MediaFile> { it.duration ?: Long.MIN_VALUE }.thenBy { it.name.lowercase() })
+            SortMode.DATE_TAKEN_ASC -> regularFiles.sortedWith(compareBy<MediaFile> { it.exifDateTime ?: Long.MAX_VALUE }.thenBy { it.name.lowercase() })
+            SortMode.DATE_TAKEN_DESC -> regularFiles.sortedWith(compareByDescending<MediaFile> { it.exifDateTime ?: Long.MIN_VALUE }.thenBy { it.name.lowercase() })
             SortMode.MANUAL -> regularFiles // No sorting for manual mode
             SortMode.RANDOM -> regularFiles.shuffled()
         }

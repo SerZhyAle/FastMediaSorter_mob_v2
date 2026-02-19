@@ -144,6 +144,14 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.SIZE_DESC -> "ORDER BY fileCount DESC"
             SortMode.TYPE_ASC -> "ORDER BY type ASC"
             SortMode.TYPE_DESC -> "ORDER BY type DESC"
+            SortMode.ARTIST_ASC,
+            SortMode.TITLE_ASC,
+            SortMode.DURATION_ASC,
+            SortMode.DATE_TAKEN_ASC -> "ORDER BY name COLLATE NOCASE ASC"
+            SortMode.ARTIST_DESC,
+            SortMode.TITLE_DESC,
+            SortMode.DURATION_DESC,
+            SortMode.DATE_TAKEN_DESC -> "ORDER BY name COLLATE NOCASE DESC"
             SortMode.RANDOM -> "ORDER BY RANDOM()" // SQL random ordering
         }
         
@@ -171,6 +179,14 @@ class ResourceRepositoryImpl @Inject constructor(
             SortMode.SIZE_DESC -> compareByDescending { it.fileCount }
             SortMode.TYPE_ASC -> compareBy { it.type }
             SortMode.TYPE_DESC -> compareByDescending { it.type }
+            SortMode.ARTIST_ASC,
+            SortMode.TITLE_ASC,
+            SortMode.DURATION_ASC,
+            SortMode.DATE_TAKEN_ASC -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.name }
+            SortMode.ARTIST_DESC,
+            SortMode.TITLE_DESC,
+            SortMode.DURATION_DESC,
+            SortMode.DATE_TAKEN_DESC -> compareByDescending(String.CASE_INSENSITIVE_ORDER) { it.name }
             SortMode.RANDOM -> Comparator { _, _ -> kotlin.random.Random.nextInt(-1, 2) }
         }
     }

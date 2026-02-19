@@ -55,6 +55,14 @@ enum class SortMode {
     SIZE_DESC,
     TYPE_ASC,
     TYPE_DESC,
+    ARTIST_ASC,
+    ARTIST_DESC,
+    TITLE_ASC,
+    TITLE_DESC,
+    DURATION_ASC,
+    DURATION_DESC,
+    DATE_TAKEN_ASC,
+    DATE_TAKEN_DESC,
     RANDOM       // Random order (useful for slideshows)
 }
 
@@ -184,6 +192,10 @@ data class MediaFile(
     val videoBitrate: Int? = null, // Video bitrate in bits per second
     val videoFrameRate: Float? = null, // Video frame rate (fps)
     val videoRotation: Int? = null, // Video rotation angle (0, 90, 180, 270 degrees)
+    // Audio metadata fields
+    val artist: String? = null,
+    val album: String? = null,
+    val title: String? = null,
     // Cloud storage fields (for CLOUD resources)
     val thumbnailUrl: String? = null, // Cloud thumbnail URL
     val webViewUrl: String? = null, // Cloud web view URL

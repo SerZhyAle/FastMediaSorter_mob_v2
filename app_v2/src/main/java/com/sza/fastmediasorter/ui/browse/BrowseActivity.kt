@@ -1689,6 +1689,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             SortMode.SIZE_DESC -> "Size ↓"
             SortMode.TYPE_ASC -> "Type ↑"
             SortMode.TYPE_DESC -> "Type ↓"
+            SortMode.ARTIST_ASC -> "Artist ↑"
+            SortMode.ARTIST_DESC -> "Artist ↓"
+            SortMode.TITLE_ASC -> "Title ↑"
+            SortMode.TITLE_DESC -> "Title ↓"
+            SortMode.DURATION_ASC -> "Duration ↑"
+            SortMode.DURATION_DESC -> "Duration ↓"
+            SortMode.DATE_TAKEN_ASC -> "DateTaken ↑"
+            SortMode.DATE_TAKEN_DESC -> "DateTaken ↓"
             SortMode.RANDOM -> "Random"
         }
     }
@@ -1704,6 +1712,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             SortMode.SIZE_DESC -> getString(R.string.sort_mode_size_desc)
             SortMode.TYPE_ASC -> getString(R.string.sort_mode_type_asc)
             SortMode.TYPE_DESC -> getString(R.string.sort_mode_type_desc)
+            SortMode.ARTIST_ASC -> "Artist (A-Z)"
+            SortMode.ARTIST_DESC -> "Artist (Z-A)"
+            SortMode.TITLE_ASC -> "Title (A-Z)"
+            SortMode.TITLE_DESC -> "Title (Z-A)"
+            SortMode.DURATION_ASC -> "Duration (Short first)"
+            SortMode.DURATION_DESC -> "Duration (Long first)"
+            SortMode.DATE_TAKEN_ASC -> "Date taken (Old first)"
+            SortMode.DATE_TAKEN_DESC -> "Date taken (New first)"
             SortMode.RANDOM -> getString(R.string.sort_mode_random)
         }
     }

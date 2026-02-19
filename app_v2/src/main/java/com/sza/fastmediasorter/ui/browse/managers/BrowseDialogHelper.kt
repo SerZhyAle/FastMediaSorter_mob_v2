@@ -243,6 +243,14 @@ class BrowseDialogHelper(
             SortMode.SIZE_DESC -> "Size (Large first)"
             SortMode.TYPE_ASC -> "Type (A-Z)"
             SortMode.TYPE_DESC -> "Type (Z-A)"
+            SortMode.ARTIST_ASC -> "Artist (A-Z)"
+            SortMode.ARTIST_DESC -> "Artist (Z-A)"
+            SortMode.TITLE_ASC -> "Title (A-Z)"
+            SortMode.TITLE_DESC -> "Title (Z-A)"
+            SortMode.DURATION_ASC -> "Duration (Short first)"
+            SortMode.DURATION_DESC -> "Duration (Long first)"
+            SortMode.DATE_TAKEN_ASC -> "Date taken (Old first)"
+            SortMode.DATE_TAKEN_DESC -> "Date taken (New first)"
             SortMode.RANDOM -> "Random"
         }
     }

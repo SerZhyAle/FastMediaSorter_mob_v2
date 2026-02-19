@@ -298,6 +298,14 @@ class GetMediaFilesUseCase @Inject constructor(
             SortMode.SIZE_DESC -> files.sortedByDescending { it.size }
             SortMode.TYPE_ASC -> files.sortedBy { it.type.ordinal }
             SortMode.TYPE_DESC -> files.sortedByDescending { it.type.ordinal }
+            SortMode.ARTIST_ASC -> files.sortedWith(compareBy<MediaFile> { it.artist?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.ARTIST_DESC -> files.sortedWith(compareByDescending<MediaFile> { it.artist?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.TITLE_ASC -> files.sortedWith(compareBy<MediaFile> { it.title?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.TITLE_DESC -> files.sortedWith(compareByDescending<MediaFile> { it.title?.lowercase() ?: "" }.thenBy { it.name.lowercase() })
+            SortMode.DURATION_ASC -> files.sortedWith(compareBy<MediaFile> { it.duration ?: Long.MAX_VALUE }.thenBy { it.name.lowercase() })
+            SortMode.DURATION_DESC -> files.sortedWith(compareByDescending<MediaFile> { it.duration ?: Long.MIN_VALUE }.thenBy { it.name.lowercase() })
+            SortMode.DATE_TAKEN_ASC -> files.sortedWith(compareBy<MediaFile> { it.exifDateTime ?: Long.MAX_VALUE }.thenBy { it.name.lowercase() })
+            SortMode.DATE_TAKEN_DESC -> files.sortedWith(compareByDescending<MediaFile> { it.exifDateTime ?: Long.MIN_VALUE }.thenBy { it.name.lowercase() })
             SortMode.RANDOM -> files.shuffled() // Random order for slideshows
         }
     }
