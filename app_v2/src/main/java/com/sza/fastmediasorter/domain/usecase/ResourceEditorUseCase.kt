@@ -213,7 +213,8 @@ class ResourceEditorUseCase @Inject constructor(
             showSubfoldersAsItems = normalized.showSubfoldersAsItems,
             rememberFileList = normalized.rememberFileList,
             accessPin = normalized.accessPin.ifBlank { null },
-            comment = normalized.comment.ifBlank { null }
+            comment = normalized.comment.ifBlank { null },
+            profile = normalized.profile
         )
     }
 
@@ -469,7 +470,8 @@ class ResourceEditorUseCase @Inject constructor(
             allFiles = resource.allFiles,
             showHiddenFiles = resource.showHiddenFiles,
             showSubfoldersAsItems = resource.showSubfoldersAsItems,
-            rememberFileList = resource.rememberFileList
+            rememberFileList = resource.rememberFileList,
+            profile = resource.profile
         )
 
         return if (mode == ResourceEditorMode.COPY) {

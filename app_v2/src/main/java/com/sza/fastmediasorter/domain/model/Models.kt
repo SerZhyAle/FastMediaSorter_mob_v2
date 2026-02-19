@@ -75,6 +75,19 @@ enum class DisplayMode {
 }
 
 /**
+ * Resource profile enum — quick-setup presets that apply media type and flag defaults.
+ * The selected profile is persisted in the resource entity for informational purposes.
+ */
+enum class ResourceProfile {
+    NONE,          // No preset — manual configuration
+    AUDIO_LIBRARY, // Audio only + rememberFileList recommended
+    VIDEO_LIBRARY, // Video + Audio
+    PHOTO_STORAGE, // Image + GIF
+    DOCUMENTS,     // Text + PDF + EPUB
+    ALL_FILES      // allFiles flag enabled (show everything)
+}
+
+/**
  * Filter criteria for media files
  * According to specification: filename (case-insensitive), creation date (>=Date;<=Date), file size (>=Mb;<=Mb)
  */
@@ -154,6 +167,7 @@ data class MediaResource(
     val rememberFileList: Boolean = false, // Persist file list in DB for faster subsequent loads
     val accessPin: String? = null, // PIN code to access the resource (null = no PIN protection)
     val comment: String? = null, // User comment for the resource
+    val profile: ResourceProfile = ResourceProfile.NONE, // Quick-setup profile (preset applied during creation)
     
     // Network speed test results
     val readSpeedMbps: Double? = null,

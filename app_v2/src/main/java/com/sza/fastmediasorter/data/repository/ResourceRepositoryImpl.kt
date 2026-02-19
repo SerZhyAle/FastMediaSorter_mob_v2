@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -396,6 +397,7 @@ class ResourceRepositoryImpl @Inject constructor(
             rememberFileList = rememberFileList,
             accessPin = accessPin,
             comment = comment,
+            profile = runCatching { ResourceProfile.valueOf(profile) }.getOrDefault(ResourceProfile.NONE),
             readSpeedMbps = readSpeedMbps,
             writeSpeedMbps = writeSpeedMbps,
             recommendedThreads = recommendedThreads,
@@ -449,6 +451,7 @@ class ResourceRepositoryImpl @Inject constructor(
             rememberFileList = rememberFileList,
             accessPin = accessPin,
             comment = comment,
+            profile = profile.name,
             readSpeedMbps = readSpeedMbps,
             writeSpeedMbps = writeSpeedMbps,
             recommendedThreads = recommendedThreads,

@@ -1789,6 +1789,15 @@
     <string name="pip_play">Play</string>
     <string name="pip_pause">Pause</string>
 
+    <!-- Resource Profile Selector -->
+    <string name="label_profile_none">Quick Setup: Custom</string>
+    <string name="label_profile_audio_library">Quick Setup: Audio Library</string>
+    <string name="label_profile_video_library">Quick Setup: Video Library</string>
+    <string name="label_profile_photo_storage">Quick Setup: Photo Storage</string>
+    <string name="label_profile_documents">Quick Setup: Documents</string>
+    <string name="label_profile_all_files">Quick Setup: All Files</string>
+    <string name="title_select_profile">Quick Setup Profile</string>
+
 </resources>
 
 

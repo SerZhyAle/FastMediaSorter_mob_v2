@@ -170,6 +170,8 @@
 
                     </LinearLayout>
 
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnProfileSelector" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/margin_small" android:layout_marginEnd="@dimen/margin_small" android:layout_marginTop="@dimen/margin_small" android:text="@string/label_profile_none" android:textAllCaps="false" app:icon="@drawable/ic_expand_more" app:iconGravity="end" />
+
                     <GridLayout android:id="@+id/gridMediaTypes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" android:columnCount="2" android:rowCount="4">
 
                         <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbVideo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="@string/media_type_video" />

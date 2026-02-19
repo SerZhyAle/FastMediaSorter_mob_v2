@@ -40,5 +40,40 @@ data class ResourceFormData(
     val showSubfoldersAsItems: Boolean = false,
     val rememberFileList: Boolean = false,
 
+    val profile: ResourceProfile = ResourceProfile.NONE, // Active quick-setup profile
+
     val metadata: Map<String, String> = emptyMap()
 )
+
+/**
+ * Applies a [ResourceProfile] preset to this form data, overwriting relevant fields.
+ * Selecting [ResourceProfile.NONE] is a no-op (returns unchanged data).
+ */
+fun ResourceFormData.applyProfile(profile: ResourceProfile): ResourceFormData = when (profile) {
+    ResourceProfile.NONE -> this
+    ResourceProfile.AUDIO_LIBRARY -> copy(
+        profile = profile,
+        supportedMediaTypes = setOf(MediaType.AUDIO),
+        allFiles = false,
+        rememberFileList = true
+    )
+    ResourceProfile.VIDEO_LIBRARY -> copy(
+        profile = profile,
+        supportedMediaTypes = setOf(MediaType.VIDEO, MediaType.AUDIO),
+        allFiles = false
+    )
+    ResourceProfile.PHOTO_STORAGE -> copy(
+        profile = profile,
+        supportedMediaTypes = setOf(MediaType.IMAGE, MediaType.GIF),
+        allFiles = false
+    )
+    ResourceProfile.DOCUMENTS -> copy(
+        profile = profile,
+        supportedMediaTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB),
+        allFiles = false
+    )
+    ResourceProfile.ALL_FILES -> copy(
+        profile = profile,
+        allFiles = true
+    )
+}

@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
 import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.utils.PermissionChecker
@@ -337,6 +338,10 @@ class ResourceEditorFragment : Fragment() {
             val suggestion = viewModel.uiState.value.nameSuggestions.firstOrNull() ?: return@setOnClickListener
             viewModel.onUseNameSuggestion(suggestion)
         }
+
+        binding.btnProfileSelector.setOnClickListener {
+            showProfileSelectorDialog()
+        }
     }
 
     private fun shouldCheckMediaPermissionBeforeSave(): Boolean {
@@ -368,6 +373,29 @@ class ResourceEditorFragment : Fragment() {
             return
         }
         mediaPermissionsLauncher.launch(permissions)
+    }
+
+    private fun showProfileSelectorDialog() {
+        val profiles = ResourceProfile.values()
+        val labels = profiles.map { getString(getProfileLabelResId(it)) }.toTypedArray()
+        val currentIndex = profiles.indexOf(viewModel.uiState.value.formData.profile).coerceAtLeast(0)
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.title_select_profile)
+            .setSingleChoiceItems(labels, currentIndex) { dialog, which ->
+                viewModel.onProfileSelected(profiles[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    private fun getProfileLabelResId(profile: ResourceProfile): Int = when (profile) {
+        ResourceProfile.NONE -> R.string.label_profile_none
+        ResourceProfile.AUDIO_LIBRARY -> R.string.label_profile_audio_library
+        ResourceProfile.VIDEO_LIBRARY -> R.string.label_profile_video_library
+        ResourceProfile.PHOTO_STORAGE -> R.string.label_profile_photo_storage
+        ResourceProfile.DOCUMENTS -> R.string.label_profile_documents
+        ResourceProfile.ALL_FILES -> R.string.label_profile_all_files
     }
 
     private fun observeUiState() {
@@ -528,6 +556,9 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.isChecked = formData.supportedMediaTypes.contains(MediaType.TEXT)
         binding.cbPdf.isChecked = formData.supportedMediaTypes.contains(MediaType.PDF)
         binding.cbEpub.isChecked = formData.supportedMediaTypes.contains(MediaType.EPUB)
+
+        // Profile selector button label
+        binding.btnProfileSelector.setText(getProfileLabelResId(formData.profile))
 
         // Scanning checkboxes
         binding.cbScanSubdirectories.isChecked = formData.scanSubdirectories

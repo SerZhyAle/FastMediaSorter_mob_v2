@@ -84,6 +84,9 @@ data class ResourceEntity(
     
     @ColumnInfo(name = "last_speed_test_date")
     val lastSpeedTestDate: Long? = null,
-    
-    val rememberFileList: Boolean = false
+
+    val rememberFileList: Boolean = false,
+
+    @ColumnInfo(name = "profile", defaultValue = "NONE")
+    val profile: String = "NONE" // ResourceProfile.name — quick-setup preset applied at creation
 )

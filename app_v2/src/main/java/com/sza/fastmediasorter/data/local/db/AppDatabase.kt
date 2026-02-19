@@ -16,7 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ThumbnailCacheEntity::class,
         CachedFileListEntity::class
     ],
-    version = 9,
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -282,6 +282,13 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """)
                 db.execSQL("CREATE UNIQUE INDEX idx_cached_files_resource_id ON cached_file_lists (resourceId)")
+            }
+        }
+
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Add resource profile field for quick-setup presets
+                db.execSQL("ALTER TABLE resources ADD COLUMN profile TEXT NOT NULL DEFAULT 'NONE'")
             }
         }
     }

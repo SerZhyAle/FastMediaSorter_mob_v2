@@ -11,6 +11,8 @@ import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.domain.model.applyProfile
 import com.sza.fastmediasorter.domain.strategy.ResourceFieldSchema
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorSaveResult
 import com.sza.fastmediasorter.domain.usecase.ResourceEditorUseCase
@@ -180,7 +182,8 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.CLOUD_PROVIDER -> current.formData.copy(cloudProvider = value as? com.sza.fastmediasorter.data.cloud.CloudProvider)
                 ResourceFieldKey.CLOUD_FOLDER -> current.formData.copy(cloudFolderId = value as? String)
                 ResourceFieldKey.MEDIA_TYPES -> current.formData.copy(
-                    supportedMediaTypes = extractMediaTypes(value, current.formData.supportedMediaTypes)
+                    supportedMediaTypes = extractMediaTypes(value, current.formData.supportedMediaTypes),
+                    profile = ResourceProfile.NONE // Manual change clears profile preset
                 )
                 ResourceFieldKey.SLIDESHOW_INTERVAL -> current.formData.copy(
                     slideshowInterval = (value as? String)?.toIntOrNull() ?: (value as? Int) ?: 10
@@ -234,6 +237,25 @@ class ResourceFormViewModel @Inject constructor(
 
     fun onUseNameSuggestion(suggestedName: String) {
         onFieldChanged(ResourceFieldKey.NAME, suggestedName)
+    }
+
+    /**
+     * Applies a quick-setup [ResourceProfile] preset to the form data,
+     * overwriting relevant fields (supportedMediaTypes, allFiles, rememberFileList, etc.).
+     * [ResourceProfile.NONE] is a no-op.
+     */
+    fun onProfileSelected(profile: ResourceProfile) {
+        if (profile == ResourceProfile.NONE) return
+        _uiState.update { current ->
+            val updated = current.formData.applyProfile(profile)
+            recalculateState(
+                current.copy(
+                    formData = updated,
+                    fieldSchema = resourceEditorUseCase.fieldSchema(updated.type)
+                )
+            )
+        }
+        applyValidation()
     }
 
     fun onCredentialBehaviorSelected(keepCredentials: Boolean) {
