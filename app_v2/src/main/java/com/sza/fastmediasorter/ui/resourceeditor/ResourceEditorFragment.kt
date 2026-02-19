@@ -110,6 +110,22 @@ class ResourceEditorFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+        // Show current resource type as subtitle (visible at all times)
+        updateToolbarTypeSubtitle(resourceType ?: ResourceType.LOCAL)
+    }
+
+    private fun updateToolbarTypeSubtitle(type: ResourceType) {
+        val typeLabel = when (type) {
+            ResourceType.LOCAL -> getString(R.string.resource_type_local)
+            ResourceType.SMB -> getString(R.string.resource_type_smb)
+            ResourceType.SFTP -> getString(R.string.resource_type_sftp)
+            ResourceType.FTP -> getString(R.string.resource_type_ftp)
+            ResourceType.CLOUD -> getString(R.string.resource_type_cloud)
+        }
+        binding.toolbar.subtitle = typeLabel
+        binding.toolbar.setSubtitleTextColor(
+            requireContext().getColor(android.R.color.white)
+        )
     }
 
     private fun setupCollapsibleSections() {
@@ -514,6 +530,9 @@ class ResourceEditorFragment : Fragment() {
     }
 
     private fun renderFormData(formData: ResourceFormData) {
+        // Always keep toolbar subtitle in sync with type
+        updateToolbarTypeSubtitle(formData.type)
+
         if (binding.etName.text.toString() != formData.name) {
             binding.etName.setText(formData.name)
         }

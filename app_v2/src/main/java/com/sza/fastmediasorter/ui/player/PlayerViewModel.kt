@@ -121,10 +121,19 @@ class PlayerViewModel @Inject constructor(
                 settingsRepository.getSettings().collect { settings ->
                     val resource = state.value.resource
                     
-                    // Determine showCommandPanel: use resource-specific setting if available, otherwise use global default
-                    val showCommandPanel = resource?.showCommandPanel ?: settings.defaultShowCommandPanel
+                    // Determine showCommandPanel:
+                    // Priority: resource-specific → current runtime value (if session active) → global default
+                    // IMPORTANT: Do NOT override showCommandPanel from a running session when an unrelated
+                    // setting (e.g. copyPanelCollapsed) is saved. The state.resource object is a snapshot
+                    // from the initial DB read and does NOT reflect subsequent toggleCommandPanel() calls,
+                    // so using it as a source of truth after the session starts causes spurious resets.
+                    val showCommandPanel = when {
+                        resource?.showCommandPanel != null -> resource.showCommandPanel
+                        state.value.files.isNotEmpty() -> state.value.showCommandPanel // keep runtime value
+                        else -> settings.defaultShowCommandPanel // initial load only
+                    }
                     
-                    Timber.d("TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=${resource?.showCommandPanel}, settings.defaultShowCommandPanel=${settings.defaultShowCommandPanel}, RESULT showCommandPanel=$showCommandPanel")
+                    Timber.d("TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=${resource?.showCommandPanel}, settings.defaultShowCommandPanel=${settings.defaultShowCommandPanel}, filesLoaded=${state.value.files.isNotEmpty()}, RESULT showCommandPanel=$showCommandPanel")
                     
                     Timber.d("PlayerViewModel.loadSettings: enableTranslation=${settings.enableTranslation}, enableOcr=${settings.enableOcr}, enableGoogleLens=${settings.enableGoogleLens}")
                     
@@ -373,7 +382,7 @@ class PlayerViewModel @Inject constructor(
                     val showCommandPanel = when {
                         resource.showCommandPanel == null -> currentSettings.defaultShowCommandPanel
                         resource.showCommandPanel == false && currentSettings.defaultShowCommandPanel == true -> currentSettings.defaultShowCommandPanel
-                        else -> resource.showCommandPanel!!
+                        else -> resource.showCommandPanel
                     }
 
                     Timber.d("PlayerViewModel.loadMediaFiles: Determined showCommandPanel=$showCommandPanel (resource.showCommandPanel=${resource.showCommandPanel}, default=${currentSettings.defaultShowCommandPanel})")

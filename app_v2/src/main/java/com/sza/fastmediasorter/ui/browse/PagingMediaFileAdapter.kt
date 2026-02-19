@@ -470,7 +470,7 @@ class PagingMediaFileAdapter(
 
         private fun buildFileInfo(file: MediaFile): String {
             val size = formatFileSize(file.size)
-            val date = DateFormat.format("yyyy-MM-dd", Date(file.createdDate))
+            val date = DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate))
             return "$size • $date"
         }
 

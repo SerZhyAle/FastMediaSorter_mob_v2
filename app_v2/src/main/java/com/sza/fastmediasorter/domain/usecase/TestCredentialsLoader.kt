@@ -40,13 +40,13 @@ class TestCredentialsLoader @Inject constructor(
             Timber.d("Loading hardcoded test credentials")
             
             val credentials = listOf(
-                // SMB
+                // SMB — credentials from sza_resources.xml (test_media resource)
                 TestCredential(
                     type = ResourceType.SMB,
                     server = "192.168.1.100",
                     port = 445,
-                    username = "smbuser",
-                    password = "smbpass123",
+                    username = "sza",
+                    password = "SerZhyA25",
                     shareName = "test_share",
                     folder = "", // Root folder
                     domain = null

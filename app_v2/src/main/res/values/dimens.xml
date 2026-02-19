@@ -17,16 +17,16 @@
     <dimen name="padding_xxlarge">32dp</dimen>
     <dimen name="padding_large">16dp</dimen>
     <dimen name="padding_normal">12dp</dimen>
-    <dimen name="padding_small">8dp</dimen>
-    <dimen name="padding_tiny">4dp</dimen>
+    <dimen name="padding_small">6dp</dimen>
+    <dimen name="padding_tiny">2dp</dimen>
 
     <dimen name="margin_normal">8dp</dimen>
     <dimen name="margin_large">16dp</dimen>
     <dimen name="margin_xlarge">24dp</dimen>
     <dimen name="margin_xxlarge">32dp</dimen>
     <dimen name="margin_huge">24dp</dimen>
-    <dimen name="margin_small">8dp</dimen>
-    <dimen name="margin_tiny">4dp</dimen>
+    <dimen name="margin_small">4dp</dimen>
+    <dimen name="margin_tiny">2dp</dimen>
     <dimen name="margin_minimal">2dp</dimen>
     <dimen name="stroke_width_normal">2dp</dimen>
     <dimen name="margin_medium">12dp</dimen>
@@ -34,7 +34,7 @@
     <!-- UI Elements -->
     <dimen name="button_height">48dp</dimen>
     <dimen name="button_height_small">36dp</dimen>
-    <dimen name="list_item_height">64dp</dimen>
+    <dimen name="list_item_height">48dp</dimen>
     <dimen name="icon_size_large">48dp</dimen>
     <dimen name="icon_size_normal">32dp</dimen>
     <dimen name="icon_size_small">24dp</dimen>
@@ -49,14 +49,14 @@
 
     <!-- Page indicators -->
     <dimen name="indicator_size">8dp</dimen>
-    <dimen name="indicator_margin">4dp</dimen>
+    <dimen name="indicator_margin">2dp</dimen>
 
     <!-- Destination buttons in Copy/Move dialogs -->
-    <dimen name="destination_button_min_height">64dp</dimen>
-    <dimen name="destination_border_width">3dp</dimen>
+    <dimen name="destination_button_min_height">56dp</dimen>
+    <dimen name="destination_border_width">1dp</dimen>
 
     <!-- Welcome screen -->
-    <dimen name="welcome_button_text_size">14sp</dimen>
+    <dimen name="welcome_button_text_size">18sp</dimen>
     <dimen name="welcome_button_padding">8dp</dimen>
     <dimen name="welcome_top_nav_padding">8dp</dimen>
     <dimen name="welcome_indicator_margin_bottom">24dp</dimen>
@@ -74,7 +74,7 @@
     <dimen name="resource_name_text_size">16sp</dimen>
     <dimen name="resource_path_text_size">12sp</dimen>
     <dimen name="resource_badge_size">24dp</dimen>
-    <dimen name="resource_indicator_text_size">12sp</dimen>
+    <dimen name="resource_indicator_text_size">14sp</dimen>
 
     <!-- Main Activity -->
     <dimen name="main_recycler_margin">8dp</dimen>
@@ -89,7 +89,7 @@
     <dimen name="button_margin_top_normal">16dp</dimen>
 
     <!-- Browse Activity -->
-    <dimen name="browse_scroll_button_size">32dp</dimen>
+    <dimen name="browse_scroll_button_size">40dp</dimen>
     <dimen name="browse_scroll_button_margin">40dp</dimen>
     <dimen name="browse_scroll_button_padding">6dp</dimen>
     <dimen name="browse_filter_badge_size">18dp</dimen>
@@ -133,8 +133,8 @@
     <dimen name="elevation_player_controls">16dp</dimen>
 
     <!-- Additional Player Layout Padding -->
-    <dimen name="player_ocr_padding_horizontal">8dp</dimen>
-    <dimen name="player_search_counter_padding">8dp</dimen>
+    <dimen name="player_ocr_padding_horizontal">4dp</dimen>
+    <dimen name="player_search_counter_padding">4dp</dimen>
     <dimen name="player_indicator_padding">12dp</dimen>
     <dimen name="player_indicator_padding_vertical">4dp</dimen>
     <dimen name="player_indicator_margin">8dp</dimen>
@@ -158,33 +158,33 @@
     <dimen name="welcome_button_min_height">48dp</dimen>
 
     <!-- Custom Player Controls -->
-    <dimen name="player_controls_padding">8dp</dimen>
+    <dimen name="player_controls_padding">4dp</dimen>
     <dimen name="player_progress_height">26dp</dimen>
-    <dimen name="player_progress_margin_horizontal">8dp</dimen>
+    <dimen name="player_progress_margin_horizontal">4dp</dimen>
     <dimen name="player_position_text_size">14sp</dimen>
     <dimen name="player_small_button_size">48dp</dimen>
     <dimen name="player_medium_button_size">48dp</dimen>
     <dimen name="player_large_button_size">56dp</dimen>
     <dimen name="player_button_margin_start">4dp</dimen>
-    <dimen name="player_play_button_margin_horizontal">8dp</dimen>
+    <dimen name="player_play_button_margin_horizontal">4dp</dimen>
 
     <!-- Settings Activity -->
     <dimen name="toolbar_elevation">0dp</dimen>
     <dimen name="tab_indicator_height">4dp</dimen>
 
     <!-- Resource Management (Add/Edit Resource) -->
-    <dimen name="resource_card_margin_bottom">8dp</dimen>
+    <dimen name="resource_card_margin_bottom">4dp</dimen>
     <dimen name="resource_card_icon_size">32dp</dimen>
-    <dimen name="resource_card_icon_margin_end">12dp</dimen>
+    <dimen name="resource_card_icon_margin_end">10dp</dimen>
     <dimen name="resource_card_title_text_size">16sp</dimen>
     <dimen name="resource_card_desc_text_size">14sp</dimen>
-    <dimen name="resource_button_margin_start">8dp</dimen>
+    <dimen name="resource_button_margin_start">4dp</dimen>
     <dimen name="resource_field_margin_end">4dp</dimen>
     <dimen name="resource_field_margin_start">4dp</dimen>
     <dimen name="resource_field_margin_top">4dp</dimen>
-    <dimen name="resource_section_margin_top">8dp</dimen>
+    <dimen name="resource_section_margin_top">4dp</dimen>
     <dimen name="resource_section_margin_top_12">12dp</dimen>
-    <dimen name="resource_checkbox_min_height">48dp</dimen>
+    <dimen name="resource_checkbox_min_height">32dp</dimen>
     <dimen name="resource_text_13sp">13sp</dimen>
     <dimen name="resource_server_width">180dp</dimen>
     <dimen name="resource_port_width">120dp</dimen>
@@ -192,7 +192,7 @@
     <dimen name="elevation_button_bar">2dp</dimen>
 
     <!-- Additional AddResource dimensions -->
-    <dimen name="resource_title_margin_start">16dp</dimen>
+    <dimen name="resource_title_margin_start">10dp</dimen>
     <dimen name="resource_padding_zero">0dp</dimen>
     <dimen name="resource_margin_2dp">2dp</dimen>
     <dimen name="resource_margin_4dp">4dp</dimen>
@@ -206,24 +206,24 @@
     <dimen name="settings_fragment_padding">4dp</dimen>
     <dimen name="settings_item_min_height">36dp</dimen>
     <dimen name="settings_item_margin_bottom">2dp</dimen>
-    <dimen name="settings_switch_margin_end">12dp</dimen>
+    <dimen name="settings_switch_margin_end">10dp</dimen>
     <dimen name="settings_help_icon_size">24dp</dimen>
     <dimen name="settings_help_icon_margin">4dp</dimen>
-    <dimen name="settings_nested_margin_start">32dp</dimen>
+    <dimen name="settings_nested_margin_start">24dp</dimen>
     <dimen name="settings_spinner_min_width">120dp</dimen>
     <dimen name="settings_text_input_width">160dp</dimen>
     <dimen name="settings_icon_size">18dp</dimen>
 
     <!-- Dialog Layouts -->
-    <dimen name="dialog_min_width">280dp</dimen>
-    <dimen name="dialog_max_width">560dp</dimen>
-    <dimen name="dialog_field_spacing">8dp</dimen>
-    <dimen name="dialog_button_spacing">12dp</dimen>
-    <dimen name="dialog_color_item_size">48dp</dimen>
-    <dimen name="dialog_color_grid_spacing">8dp</dimen>
+    <dimen name="dialog_min_width">150dp</dimen>
+    <dimen name="dialog_max_width">300dp</dimen>
+    <dimen name="dialog_field_spacing">2dp</dimen>
+    <dimen name="dialog_button_spacing">2dp</dimen>
+    <dimen name="dialog_color_item_size">32dp</dimen>
+    <dimen name="dialog_color_grid_spacing">4dp</dimen>
 
     <!-- Specific Dialog Dimensions -->
-    <dimen name="dialog_file_info_min_width">320dp</dimen>
+    <dimen name="dialog_file_info_min_width">150dp</dimen>
     <dimen name="dialog_button_min_width_small">80dp</dimen>
     <dimen name="dialog_scroll_max_height">500dp</dimen>
     <dimen name="dialog_content_height_large">400dp</dimen>
@@ -235,18 +235,18 @@
     <dimen name="dialog_button_inset">0dp</dimen>
 
     <!-- Item Layouts -->
-    <dimen name="item_padding">16dp</dimen>
-    <dimen name="item_padding_vertical">12dp</dimen>
-    <dimen name="item_padding_horizontal">16dp</dimen>
-    <dimen name="padding_vertical">12dp</dimen>
+    <dimen name="item_padding">8dp</dimen>
+    <dimen name="item_padding_vertical">8dp</dimen>
+    <dimen name="item_padding_horizontal">8dp</dimen>
+    <dimen name="padding_vertical">8dp</dimen>
     <dimen name="item_padding_small">6dp</dimen>
     <dimen name="item_padding_tiny">2dp</dimen>
     <dimen name="item_margin_tiny">2dp</dimen>
-    <dimen name="item_icon_size">56dp</dimen>
-    <dimen name="item_icon_size_medium">48dp</dimen>
-    <dimen name="item_icon_size_small">32dp</dimen>
+    <dimen name="item_icon_size">48dp</dimen>
+    <dimen name="item_icon_size_medium">32dp</dimen>
+    <dimen name="item_icon_size_small">24dp</dimen>
     <dimen name="item_icon_size_tiny">16dp</dimen>
-    <dimen name="item_network_icon_size">40dp</dimen>
+    <dimen name="item_network_icon_size">36dp</dimen>
     <dimen name="item_thumbnail_size">120dp</dimen>
     <dimen name="item_grid_thumbnail_size">150dp</dimen>
     <dimen name="item_title_text_size">16sp</dimen>
@@ -260,7 +260,7 @@
     <dimen name="item_status_badge_size">24dp</dimen>
     <dimen name="item_checkbox_size">24dp</dimen>
     <dimen name="item_divider_height">1dp</dimen>
-    <dimen name="card_elevation_high">8dp</dimen>
+    <dimen name="card_elevation_high">4dp</dimen>
     <dimen name="card_elevation_low">1dp</dimen>
     <dimen name="indicator_width">4dp</dimen>
     <dimen name="indicator_height">4dp</dimen>
@@ -272,21 +272,21 @@
     <dimen name="empty_state_text_margin_top">16dp</dimen>
 
     <!-- Settings Fragments -->
-    <dimen name="settings_padding">12dp</dimen>
-    <dimen name="settings_margin_standard">12dp</dimen>
-    <dimen name="settings_margin_large">24dp</dimen>
-    <dimen name="settings_padding_vertical_small">12dp</dimen>
-    <dimen name="settings_padding_horizontal_large">24dp</dimen>
+    <dimen name="settings_padding">8dp</dimen>
+    <dimen name="settings_margin_standard">8dp</dimen>
+    <dimen name="settings_margin_large">12dp</dimen>
+    <dimen name="settings_padding_vertical_small">8dp</dimen>
+    <dimen name="settings_padding_horizontal_large">16dp</dimen>
     <dimen name="settings_text_size_header">18sp</dimen>
     <dimen name="settings_width_input_small">120dp</dimen>
     <dimen name="settings_width_input_medium">140dp</dimen>
-    <dimen name="settings_width_icon">48dp</dimen>
-    <dimen name="settings_height_icon">48dp</dimen>
-    <dimen name="settings_height_container_min">200dp</dimen>
+    <dimen name="settings_width_icon">32dp</dimen>
+    <dimen name="settings_height_icon">32dp</dimen>
+    <dimen name="settings_height_container_min">150dp</dimen>
     <dimen name="settings_margin_end_large">36dp</dimen>
     <dimen name="settings_margin_indent_level_2">48dp</dimen>
     <dimen name="settings_margin_indent_level_3">64dp</dimen>
-    <dimen name="settings_padding_horizontal_start">16dp</dimen>
+    <dimen name="settings_padding_horizontal_start">8dp</dimen>
     <dimen name="settings_padding_vertical_top_small">8dp</dimen>
     <dimen name="settings_padding_vertical">12dp</dimen>
     <dimen name="settings_divider_height">1dp</dimen>
@@ -300,18 +300,18 @@
     <dimen name="dimension_zero">0dp</dimen>
     <dimen name="match_constraint">0dp</dimen>
     <dimen name="spacing_none">0dp</dimen>
-    <dimen name="layout_spacing_tiny">2dp</dimen>
-    <dimen name="layout_spacing_small">4dp</dimen>
-    <dimen name="layout_spacing_normal">8dp</dimen>
-    <dimen name="layout_spacing_medium_small">10dp</dimen>
-    <dimen name="layout_spacing_medium">16dp</dimen>
-    <dimen name="layout_spacing_large">24dp</dimen>
-    <dimen name="layout_spacing_xlarge">32dp</dimen>
-    <dimen name="layout_spacing_xxlarge">48dp</dimen>
+    <dimen name="layout_spacing_tiny">0dp</dimen>
+    <dimen name="layout_spacing_small">2dp</dimen>
+    <dimen name="layout_spacing_normal">4dp</dimen>
+    <dimen name="layout_spacing_medium_small">8dp</dimen>
+    <dimen name="layout_spacing_medium">12dp</dimen>
+    <dimen name="layout_spacing_large">16dp</dimen>
+    <dimen name="layout_spacing_xlarge">24dp</dimen>
+    <dimen name="layout_spacing_xxlarge">32dp</dimen>
 
     <!-- Button sizes -->
     <dimen name="layout_button_size_small">20dp</dimen>
-    <dimen name="layout_button_size_standard">40dp</dimen>
+    <dimen name="layout_button_size_standard">32dp</dimen>
     <dimen name="layout_button_size_large">48dp</dimen>
 
     <!-- Special values -->
@@ -319,8 +319,8 @@
     <dimen name="layout_dimension_min">1dp</dimen>
 
     <!-- Layout constraints -->
-    <dimen name="layout_settings_button_max_width">320dp</dimen>
-    <dimen name="layout_settings_text_field_max_width">488dp</dimen>
+    <dimen name="layout_settings_button_max_width">300dp</dimen>
+    <dimen name="layout_settings_text_field_max_width">300dp</dimen>
     <dimen name="layout_toolbar_button_max_width">100dp</dimen>
 
     <!-- Text sizes (layout-specific) -->
@@ -334,22 +334,22 @@
     <!-- Unique layout dimensions (no unification) -->
     <dimen name="activity_browse_btnResourceAction_layout_height">48dp</dimen>
     <dimen name="activity_browse_btnResourceAction_layout_width">48dp</dimen>
-    <dimen name="activity_browse_btnResourceAction_padding">6dp</dimen>
+    <dimen name="activity_browse_btnResourceAction_padding">4dp</dimen>
     <dimen name="activity_edit_resource_tvLastTestDate_textSize">11sp</dimen>
     <dimen name="activity_player_audioInfoOverlay_layout_marginBottom">140dp</dimen>
     <dimen name="activity_player_audioMetadata_textSize">22sp</dimen>
     <dimen name="activity_player_unified_audioMetadata_textSize">22sp</dimen>
     <dimen name="activity_player_unified_audioSlideshowSongLabel_layout_margin">12dp</dimen>
     <dimen name="activity_player_unified_btnDocumentFullscreenExit_padding">12dp</dimen>
-    <dimen name="activity_player_unified_btnExitPdfFullscreen_padding">6dp</dimen>
-    <dimen name="activity_player_unified_btnGoogleLensImage_layout_marginBottom">88dp</dimen>
-    <dimen name="activity_player_unified_btnOcrImage_layout_marginBottom">152dp</dimen>
+    <dimen name="activity_player_unified_btnExitPdfFullscreen_padding">4dp</dimen>
+    <dimen name="activity_player_unified_btnGoogleLensImage_layout_marginBottom">80dp</dimen>
+    <dimen name="activity_player_unified_btnOcrImage_layout_marginBottom">150dp</dimen>
     <dimen name="activity_player_unified_translationOverlay_layout_marginBottom">120dp</dimen>
     <dimen name="activity_player_unified_translationScrollView_maxHeight">200dp</dimen>
-    <dimen name="activity_player_unified_tvBackgroundMusicTrack_layout_marginBottom">12dp</dimen>
-    <dimen name="activity_player_unified_tvBackgroundMusicTrack_layout_marginStart">12dp</dimen>
+    <dimen name="activity_player_unified_tvBackgroundMusicTrack_layout_marginBottom">10dp</dimen>
+    <dimen name="activity_player_unified_tvBackgroundMusicTrack_layout_marginStart">10dp</dimen>
     <dimen name="activity_player_unified_tvBackgroundMusicTrack_maxWidth">280dp</dimen>
-    <dimen name="activity_player_unified_tvBackgroundMusicTrack_textSize">11sp</dimen>
+    <dimen name="activity_player_unified_tvBackgroundMusicTrack_textSize">12sp</dimen>
     <dimen name="bottom_sheet_binary_file_tvFileName_textSize">18sp</dimen>
     <dimen name="dialog_resource_picker_tvTitle_maxHeight">400dp</dimen>
     <dimen name="dialog_slideshow_settings_tvIntervalLabel_textSize">16sp</dimen>
@@ -366,7 +366,7 @@
     <dimen name="activity_browse_btnBack_maxHeight">@dimen/layout_button_size_small</dimen>
     <dimen name="activity_browse_btnBack_maxWidth">@dimen/layout_toolbar_button_max_width</dimen>
     <dimen name="activity_browse_btnBack_minHeight">@dimen/layout_button_size_small</dimen>
-    <dimen name="activity_browse_btnBack_minWidth">30dp</dimen>
+    <dimen name="activity_browse_btnBack_minWidth">@dimen/layout_button_size_standard</dimen>
     <dimen name="activity_browse_btnBack_paddingEnd">@dimen/layout_spacing_small</dimen>
     <dimen name="activity_browse_btnBack_paddingLeft">@dimen/layout_spacing_medium_small</dimen>
     <dimen name="activity_browse_btnBack_paddingRight">@dimen/layout_spacing_medium_small</dimen>

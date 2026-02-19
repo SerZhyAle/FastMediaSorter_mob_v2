@@ -223,38 +223,44 @@ class CommandPanelController(
             canWrite = false
         }
         
+        // AUDIO override: for audio files the command panel is always force-shown by
+        // updatePanelVisibility() regardless of state.showCommandPanel. We must mirror
+        // that logic here so buttons/panels are consistent with what the user sees.
+        val isAudioFile = currentFile.type == MediaType.AUDIO
+        val effectiveShowCommandPanel = state.showCommandPanel || isAudioFile
+        
         // Adaptive layout based on orientation
         // Portrait: Back | Overflow(...) | Delete, Fullscreen | Prev, Next
         // Landscape: All buttons visible
         
-        val showInLandscape = state.showCommandPanel && isLandscapeMode
-        val showInPortrait = state.showCommandPanel && !isLandscapeMode
+        val showInLandscape = effectiveShowCommandPanel && isLandscapeMode
+        val showInPortrait = effectiveShowCommandPanel && !isLandscapeMode
         
         // Overflow menu button - visible only in portrait mode
         safeViews.btnOverflowMenu.isVisible = showInPortrait
         
         // Back, Delete, Fullscreen, Previous, Next: always visible in command panel mode
-        binding.btnBack.isVisible = state.showCommandPanel
+        binding.btnBack.isVisible = effectiveShowCommandPanel
         // Hide delete button if not writable or not allowed
-        binding.btnDeleteCmd.isVisible = state.showCommandPanel && canWrite && state.allowDelete
+        binding.btnDeleteCmd.isVisible = effectiveShowCommandPanel && canWrite && state.allowDelete
         binding.btnDeleteCmd.isEnabled = canWrite && canRead && state.allowDelete
-        binding.btnPreviousCmd.isVisible = state.showCommandPanel
-        binding.btnNextCmd.isVisible = state.showCommandPanel
+        binding.btnPreviousCmd.isVisible = effectiveShowCommandPanel
+        binding.btnNextCmd.isVisible = effectiveShowCommandPanel
         
-        // Fullscreen: visible in both modes
-        binding.btnFullscreenCmd.isVisible = state.showCommandPanel && 
+        // Fullscreen: not applicable for audio; visible in both modes for image/video/document
+        binding.btnFullscreenCmd.isVisible = effectiveShowCommandPanel && 
             (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF ||
              currentFile.type == MediaType.VIDEO || 
              currentFile.type == MediaType.PDF || currentFile.type == MediaType.TEXT ||
              currentFile.type == MediaType.EPUB)
         
         // Slideshow: visible in both modes for supported types (including AUDIO for background photos)
-        binding.btnSlideshowCmd.isVisible = state.showCommandPanel && 
+        binding.btnSlideshowCmd.isVisible = effectiveShowCommandPanel && 
              (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF ||
               currentFile.type == MediaType.VIDEO || currentFile.type == MediaType.AUDIO)
 
         // Common Action Buttons (Visible in both Portrait and Landscape)
-        if (state.showCommandPanel) {
+        if (effectiveShowCommandPanel) {
             // Check enableFavorites setting (async)
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
@@ -366,8 +372,8 @@ class CommandPanelController(
         val hasCopyButtons = safeViews.copyToButtonsGrid.childCount > 0
         val hasMoveButtons = safeViews.moveToButtonsGrid.childCount > 0
         
-        val copyPanelVisible = state.showCommandPanel && state.enableCopying && hasCopyButtons
-        val movePanelVisible = state.showCommandPanel && state.enableMoving && hasMoveButtons && canWrite
+        val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons
+        val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons && canWrite
         
         Timber.d("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${safeViews.copyToButtonsGrid.childCount})")
         Timber.d("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${safeViews.moveToButtonsGrid.childCount})")

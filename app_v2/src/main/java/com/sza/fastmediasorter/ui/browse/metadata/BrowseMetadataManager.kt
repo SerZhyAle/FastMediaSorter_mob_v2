@@ -25,7 +25,11 @@ class BrowseMetadataManager(
      * @param resource The resource to update
      * @param actualFileCount The actual number of files found during browsing
      */
-    suspend fun updateMetadata(resource: MediaResource, actualFileCount: Int) {
+    /**
+     * @param subfolderCount Number of subdirectories found during scanning, or -1 to keep
+     * the existing value stored in the resource (e.g. when loading from cache).
+     */
+    suspend fun updateMetadata(resource: MediaResource, actualFileCount: Int, subfolderCount: Int = -1) {
         withContext(ioDispatcher) {
             try {
                 // For network resources (SMB/SFTP/FTP), update lastSyncDate
@@ -37,7 +41,8 @@ class BrowseMetadataManager(
                 val updatedResource = resource.copy(
                     fileCount = actualFileCount,
                     lastBrowseDate = timestamp,
-                    lastSyncDate = if (isNetworkResource) System.currentTimeMillis() else resource.lastSyncDate
+                    lastSyncDate = if (isNetworkResource) System.currentTimeMillis() else resource.lastSyncDate,
+                    subfolderCount = if (subfolderCount >= 0) subfolderCount else resource.subfolderCount
                 )
                 
                 Timber.d("BrowseMetadataManager: Updating resource metadata: id=${resource.id}, name=${resource.name}, OLD lastBrowseDate=${resource.lastBrowseDate}, NEW lastBrowseDate=$timestamp")
@@ -45,7 +50,7 @@ class BrowseMetadataManager(
                 val result = updateResourceUseCase(updatedResource)
                 
                 if (result.isSuccess) {
-                    Timber.d("BrowseMetadataManager: Successfully updated resource metadata: fileCount=$actualFileCount, lastBrowseDate=$timestamp, lastSyncDate=${if (isNetworkResource) "updated" else "unchanged"}")
+                    Timber.d("BrowseMetadataManager: Successfully updated resource metadata: fileCount=$actualFileCount, subfolderCount=${updatedResource.subfolderCount}, lastBrowseDate=$timestamp, lastSyncDate=${if (isNetworkResource) "updated" else "unchanged"}")
                 } else {
                     Timber.e("BrowseMetadataManager: Failed to update resource metadata: ${result.exceptionOrNull()?.message}")
                 }

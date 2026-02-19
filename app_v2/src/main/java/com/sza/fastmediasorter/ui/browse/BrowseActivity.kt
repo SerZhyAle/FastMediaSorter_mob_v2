@@ -1203,15 +1203,19 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         val actualItemCount = mediaFileAdapter.itemCount
                         val actualIsEmpty = actualItemCount == 0
                         val isFavoritesResource = state.resource?.id == -100L
-                        
-                        val shouldShowEmptyState = if (isFavoritesResource) {
-                            actualIsEmpty && !hasError && state.mediaFiles.isEmpty()
-                        } else {
-                            actualIsEmpty && !hasError
+
+                        // Guard: adapter may not have committed items yet while ViewModel already
+                        // holds the loaded list — avoid flashing empty state in this race window.
+                        val filesStillPending = actualIsEmpty && state.mediaFiles.isNotEmpty()
+
+                        val shouldShowEmptyState = when {
+                            filesStillPending -> false
+                            isFavoritesResource -> actualIsEmpty && !hasError && state.mediaFiles.isEmpty()
+                            else -> actualIsEmpty && !hasError
                         }
-                        
+
                         binding.emptyStateView.isVisible = shouldShowEmptyState
-                        Timber.d("Progress observer: Empty state visibility updated after loading: $shouldShowEmptyState (itemCount=$actualItemCount, hasError=$hasError)")
+                        Timber.d("Progress observer: Empty state visibility updated after loading: $shouldShowEmptyState (itemCount=$actualItemCount, hasError=$hasError, filesStillPending=$filesStillPending)")
                     }
                 }
             }

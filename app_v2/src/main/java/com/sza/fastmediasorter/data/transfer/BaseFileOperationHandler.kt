@@ -880,7 +880,7 @@ abstract class BaseFileOperationHandler(
             Timber.d("BaseFileOperationHandler.listFiles: Listing files in '$directoryPath'")
             val strategy = getStrategyForPath(directoryPath)
             if (strategy == null) {
-                Timber.e("BaseFileOperationHandler.listFiles: No strategy found for path '$directoryPath'")
+                Timber.w("BaseFileOperationHandler.listFiles: No strategy found for path '$directoryPath'")
                 return@withContext Result.failure(IllegalArgumentException("No strategy supports path: $directoryPath"))
             }
             strategy.listFiles(directoryPath)

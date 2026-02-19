@@ -918,7 +918,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun isCommandPanelVisible(): Boolean {
-                    return viewModel.state.value.showCommandPanel
+                    // Mirror the audio override from updatePanelVisibility:
+                    // audio files always show the command panel
+                    val state = viewModel.state.value
+                    return state.showCommandPanel || state.currentFile?.type == MediaType.AUDIO
                 }
             }
         )

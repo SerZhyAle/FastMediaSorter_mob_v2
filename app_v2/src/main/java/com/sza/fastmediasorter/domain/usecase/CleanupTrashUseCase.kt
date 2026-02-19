@@ -61,6 +61,9 @@ class CleanupTrashUseCase @Inject constructor(
                 Timber.d("CleanupTrashUseCase: .trash does not exist or cannot be checked")
                 Result.success(Unit) // No .trash to clean = success
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Timber.d("CleanupTrashUseCase: Cleanup cancelled")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "CleanupTrashUseCase: Exception during cleanup")
             Result.failure(e)

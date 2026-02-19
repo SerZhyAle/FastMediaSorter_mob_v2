@@ -50,7 +50,7 @@ class BrowseLoadingManager(
         suspend fun updateState(mediaFiles: List<MediaFile>, usePagination: Boolean, loadingProgress: Int, totalFileCount: Int, isScanCancellable: Boolean)
         fun setLoading(loading: Boolean)
         suspend fun handleLoadingError(resource: MediaResource, error: Throwable)
-        suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int)
+        suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int, subfolderCount: Int)
         suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>)
         fun startFileObserver()
         fun sortFiles(files: List<MediaFile>, sortMode: SortMode, forceSort: Boolean): List<MediaFile>
@@ -212,9 +212,31 @@ class BrowseLoadingManager(
                 }
                 
                 Timber.d("BrowseLoadingManager: COMPLETE - ${finalFiles.size} files loaded and displayed")
-                
-                // Update resource metadata (fileCount and lastBrowseDate) after successful load
-                callbacks.updateResourceMetadata(resource, sortedFiles.size)
+
+                // Count subdirectories discovered during this scan.
+                // Collect all unique parent-directory paths (and explicit directory items)
+                // that lie under the resource root — this mirrors the logic in
+                // ResourceEditorUseCase.inferSubfolderCount() but runs on the live list.
+                val rootPath = resource.path.trim().trimEnd('/')
+                val discoveredDirs = mutableSetOf<String>()
+                for (file in sortedFiles) {
+                    val filePath = file.path.trim().trimEnd('/')
+                    if (file.isDirectory) discoveredDirs.add(filePath)
+                    val parentIdx = filePath.lastIndexOf('/')
+                    if (parentIdx > 0) {
+                        val parent = filePath.substring(0, parentIdx).trimEnd('/')
+                        if (parent.isNotBlank() && parent != rootPath &&
+                            (rootPath.isBlank() || parent.startsWith("$rootPath/")))
+                        {
+                            discoveredDirs.add(parent)
+                        }
+                    }
+                }
+                val subfolderCount = discoveredDirs.size
+                Timber.d("BrowseLoadingManager: Discovered $subfolderCount subfolders during scan")
+
+                // Update resource metadata (fileCount, lastBrowseDate, subfolderCount) after successful load
+                callbacks.updateResourceMetadata(resource, sortedFiles.size, subfolderCount)
                 callbacks.onFilesLoaded(resource, finalFiles)
                 
                 // Start FileObserver for local resources

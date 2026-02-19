@@ -173,7 +173,16 @@ class ResourceFormViewModel @Inject constructor(
                 ResourceFieldKey.NAME -> current.formData.copy(name = value as? String ?: "")
                 ResourceFieldKey.PATH -> current.formData.copy(path = value as? String ?: "")
                 ResourceFieldKey.TYPE -> current.formData.copy(type = value as? ResourceType ?: current.formData.type)
-                ResourceFieldKey.HOST -> current.formData.copy(host = value as? String ?: "")
+                ResourceFieldKey.HOST -> {
+                    val newHost = value as? String ?: ""
+                    val updated = current.formData.copy(host = newHost)
+                    // Auto-fill name from host if name is still empty (CREATE mode)
+                    if (current.formData.id == null && current.formData.name.isBlank() && newHost.isNotBlank()) {
+                        updated.copy(name = newHost)
+                    } else {
+                        updated
+                    }
+                }
                 ResourceFieldKey.PORT -> current.formData.copy(port = (value as? String)?.toIntOrNull() ?: (value as? Int))
                 ResourceFieldKey.USERNAME -> current.formData.copy(username = value as? String ?: "")
                 ResourceFieldKey.PASSWORD -> current.formData.copy(password = value as? String ?: "")

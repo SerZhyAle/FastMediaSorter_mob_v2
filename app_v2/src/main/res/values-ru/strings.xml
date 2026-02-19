@@ -43,14 +43,14 @@
     <string name="resource">Ресурс</string>
     <string name="media_type">Тип медиа</string>
     <string name="playback_resumed_from">Возобновлено с %1$s</string>
-    
+
     <!-- Settings Tabs -->
     <string name="settings_tab_general">Общие</string>
     <string name="settings_tab_media">Медиа</string>
     <string name="settings_tab_playback">Воспроизведение</string>
     <string name="settings_tab_network">Сеть</string>
     <string name="settings_tab_destinations">Сортировка</string>
-    
+
     <!-- Copy Dialog -->
     <string name="copying_files">Копирование файлов</string>
     <string name="copying_n_files_from_folder">Копирование %1$d файлов из %2$s</string>
@@ -58,14 +58,14 @@
     <string name="copied_n_of_m_files">Скопировано %1$d из %2$d файлов</string>
     <string name="copy_failed">Ошибка копирования: %1$s</string>
     <string name="no_destinations_available">Нет папок быстрой сортировки</string>
-    
+
     <!-- Move Dialog -->
     <string name="moving_files">Перемещение файлов</string>
     <string name="moving_n_files_from_folder">Перемещение %1$d файлов из %2$s</string>
     <string name="moved_n_files">Перемещено %1$d файлов</string>
     <string name="moved_n_of_m_files">Перемещено %1$d из %2$d файлов</string>
     <string name="move_failed">Ошибка перемещения: %1$s</string>
-    
+
     <!-- Rename Dialog -->
     <string name="renaming_files">Переименование файлов</string>
     <string name="renaming_n_files_from_folder">Переименование %1$d файлов из %2$s</string>
@@ -82,7 +82,7 @@
     <string name="all_move_operations_failed">Не удалось переместить ни одного файла: %1$s</string>
     <string name="all_delete_operations_failed">Не удалось удалить ни одного файла: %1$s</string>
     <string name="cloud_auth_required">%1$s требует повторной авторизации. Пожалуйста, войдите снова.</string>
-    
+
     <!-- Delete Dialog -->
     <string name="delete_confirmation">Подтверждение удаления</string>
     <string name="delete_file_confirmation">Вы уверены, что хотите удалить файл %1$s из %2$s?</string>
@@ -92,17 +92,17 @@
     <string name="delete_failed">Ошибка удаления: %1$s</string>
     <string name="deleting_files">Удаление файлов</string>
     <string name="deleting_n_files">Удаление %1$d файлов, пожалуйста подождите…</string>
-    
+
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопировано %1$d файл(ов)</string>
     <string name="moved_n_file_s">Перемещено %1$d файл(ов)</string>
     <string name="deleted_n_file_s">Удалено %1$d файл(ов)</string>
     <string name="file_renamed_successfully">Файл успешно переименован</string>
-    
+
     <!-- GIF Editing -->
     <string name="gif_editing_only_for_gif_files">Редактирование GIF только для GIF-файлов</string>
     <string name="gif_edit_completed">Редактирование GIF завершено</string>
-    
+
     <string name="open_in_default_player">Открыть в проигрывателе по-умолчанию</string>
     <string name="download_and_open">Загрузить и открыть</string>
     <string name="downloading_file">Загрузка файла…</string>
@@ -110,7 +110,7 @@
     <string name="download_failed">Ошибка загрузки: %1$s</string>
     <string name="no_app_to_handle_file">Не найдено приложение для открытия этого файла</string>
     <string name="error_opening_file">Ошибка открытия файла: %1$s</string>
-    
+
     <!-- File Information Dialog -->
     <string name="file_information">Информация о файле</string>
     <string name="file_info_section">Информация о файле</string>
@@ -162,7 +162,7 @@
     <string name="audio_channels_label">Каналов: %1$s</string>
     <string name="audio_bitrate_label">Аудио битрейт: %1$s</string>
     <string name="audio_duration_label">Длительность: %1$s</string>
-    
+
     <!-- Common -->
     <string name="apply">Применить</string>
     <string name="clear_all">Очистить всё</string>
@@ -193,23 +193,23 @@
     <string name="error_subfolder_does_not_exist">Подпапка \'%1$s\' не существует в общем ресурсе \'%2$s\'</string>
     <string name="retry">Повторить</string>
     <string name="select_resource_type">Выберите тип папки</string>
-    
+
     <!-- Connection Error Messages -->
     <string name="error_connection_timeout">Не удаётся подключиться к \"%1$s\" - сервер %2$s не отвечает</string>
     <string name="error_host_not_found">Не удаётся подключиться к \"%1$s\" - сервер %2$s не найден</string>
     <string name="error_connection_refused">Не удаётся подключиться к \"%1$s\" - сервер %2$s отклонил подключение</string>
     <string name="error_connection_failed_generic">Не удаётся подключиться к \"%1$s\" - сбой соединения</string>
-    
+
     <!-- Cloud Connection Error Messages -->
     <string name="error_cloud_auth_expired">Не удаётся получить доступ к \"%1$s\" - аутентификация утрачена или сессия завершена</string>
     <string name="error_cloud_auth_suggestion">Пожалуйста, повторно войдите в ваш облачный аккаунт в Настройки → Редактировать ресурс</string>
     <string name="error_cloud_connection_failed">Не удаётся получить доступ к \"%1$s\" - ошибка подключения к облачному хранилищу</string>
-    
+
     <string name="error_connection_auth">Не удаётся подключиться к \"%1$s\" - ошибка авторизации.\n\nПроверьте имя пользователя и пароль.</string>
     <string name="error_connection_access">Не удаётся подключиться к \"%1$s\" - доступ к ресурсу запрещён.\n\nПроверьте права доступа к папке.</string>
     <string name="error_connection_share_not_found">Не удаётся подключиться к \"%1$s\" - папка не найдена.\n\nПроверьте имя общей папки на сервере.</string>
     <string name="error_connection_server_generic">Не удаётся подключиться к серверу.\n\n%1$s</string>
-    
+
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>
     <string name="error_details_path">Путь</string>
@@ -218,7 +218,7 @@
     <string name="error_details_type">Тип ошибки</string>
     <string name="error_details_message">Сообщение</string>
     <string name="error_details_timeout">Таймаут</string>
-    
+
     <!-- Filter Dialog -->
     <string name="filter_by_name">Фильтр по имени (без учёта регистра)</string>
     <string name="filter_by_date">Фильтр по дате создания</string>
@@ -236,13 +236,13 @@
     <string name="min_size_mb">Мин. размер</string>
     <string name="max_size_mb">Макс. размер</string>
     <string name="filter_active">Фильтр активен: %1$s</string>
-    
+
     <!-- Settings -->
     <string name="general">Общие</string>
     <string name="media_files">Медиафайлы</string>
     <string name="playback">Воспроизведение и сортировка</string>
     <string name="destinations">Быстрая сортировка</string>
-        <!-- Settings - General -->
+    <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Резервное копирование</string>
     <string name="export_settings">Выгрузить все настройки в файл</string>
@@ -256,22 +256,24 @@
     <string name="restart_required_title">Требуется перезапуск</string>
     <string name="restart_required_message">Настройки импортированы. Перезапустите приложение для применения изменений.</string>
     <string name="restart_now">Перезапустить</string>
-    <string name="restart_later">Позже</string>    <string name="reset_settings_to_defaults">СБРОС настроек</string>
+    <string name="restart_later">Позже</string>
+    <string name="reset_settings_to_defaults">СБРОС настроек</string>
     <string name="reset_settings_title">Сбросить все настройки?</string>
     <string name="reset_settings_message">Это сбросит все настройки на значения по умолчанию. Ваши ресурсы и папки будут сохранены. Продолжить?</string>
-    <string name="reset_settings_success">Настройки успешно сброшены на значения по умолчанию</string>    <string name="setup_content_first_toast">Сначала настройте контент..</string>
+    <string name="reset_settings_success">Настройки успешно сброшены на значения по умолчанию</string>
+    <string name="setup_content_first_toast">Сначала настройте контент..</string>
     <string name="prevent_sleep">Запретить сон устройства</string>
     <string name="small_controls">Компактные элементы</string>
     <string name="enable_favorites">Включить избранное</string>
     <string name="favorite">Избранное</string>
     <string name="favorites_title">Избранное</string>
-    
+
     <!-- Command Panel Overflow Menu -->
     <string name="more_actions">Еще</string>
     <string name="slideshow">Слайдшоу</string>
     <string name="starting_slideshow_for">Запуск слайдшоу для %1$s…</string>
     <string name="google_lens">Google Lens</string>
-    
+
     <!-- Safe Mode (Phase 2.1) -->
     <string name="safe_mode_section">Безопасный режим</string>
     <string name="enable_safe_mode">Включить безопасный режим</string>
@@ -281,7 +283,7 @@
     <string name="confirm_delete_message">Удалить %1$d файл(ов)? Это действие нельзя отменить.</string>
     <string name="confirm_move_title">Переместить файлы?</string>
     <string name="confirm_move_message">Переместить %1$d файл(ов) в %2$s?</string>
-    
+
     <string name="default_smb_user">SMB пользователь по умолчанию</string>
     <string name="default_smb_password">SMB пароль по умолчанию</string>
     <string name="user_guide">Руководство пользователя</string>
@@ -489,11 +491,11 @@
     <string name="destinations_list_header">Список быстрой сортировки</string>
     <string name="add_resources_first_message">Сначала добавьте папки на главном экране, прежде чем отмечать их для быстрой сортировки.</string>
     <string name="register_as_destination">Быстрая сортировка</string>
-    
+
     <!-- Edit Folder -->
     <string name="edit_resource">Редактирование папки</string>
     <string name="edit_resource_with_type">Редактирование папки (%1$s)</string>
-        <!-- Add Folder -->
+    <!-- Add Folder -->
     <string name="add_resource_title">Добавить папку</string>
     <string name="copy_resource_title">Добавить копированием</string>
     <string name="resource_type_local">Локальные</string>
@@ -542,7 +544,7 @@
     <string name="read_only_mode">Только чтение</string>
     <string name="read_only_mode_hint">Запрещает файловые операции (копирование, перемещение, удаление)</string>
     <string name="error_read_only">Этот ресурс доступен только для чтения</string>
-    
+
     <!-- Empty state -->
     <string name="no_files_found">Содержимого нет</string>
     <string name="empty_folder">Пустая папка</string>
@@ -550,7 +552,7 @@
     <string name="empty_folder_hint_subdirectories">В корневой папке нет файлов.\nВключите \"С подпапками\" в настройках ресурса для поиска во вложенных папках.</string>
     <string name="favorites_empty_title">Нет избранного</string>
     <string name="favorites_empty_hint">Пометьте файлы как избранные чтобы увидеть их здесь</string>
-    
+
     <string name="use_as_destination">Отметить для быстрой сортировки</string>
     <string name="counting">подсчёт…</string>
     <string name="clear_trash">Очистить корзину</string>
@@ -582,13 +584,13 @@
     <string name="connection_test_success_title">Тест соединения - Успешно</string>
     <string name="connection_test_failed_title">Тест соединения - Ошибка</string>
     <string name="server_share_required">IP сервера и имя ресурса обязательны</string>
-    
+
     <!-- Language Change -->
     <string name="restart_app_title">Перезапустить приложение</string>
     <string name="restart_app_message">Для применения нового языка (%1$s) необходимо перезапустить приложение. Продолжить?</string>
     <string name="restart_app_cache_message">Для применения нового размера кэша (%1$d МБ) необходимо перезапустить приложение. Продолжить?</string>
     <string name="restart">Перезапустить</string>
-    
+
     <!-- Welcome Screen -->
     <string name="skip">Пропустить</string>
     <string name="previous">Назад</string>
@@ -610,7 +612,7 @@
     <string name="permissions_denied_title">Требуется разрешение</string>
     <string name="permissions_denied_warning">Без доступа к медиафайлам основной функционал приложения будет недоступен.</string>
     <string name="continue_anyway">Продолжить без разрешений</string>
-    
+
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ к хранилищу</string>
     <string name="permission_storage_rationale">FastMediaSorter требуется доступ к хранилищу для сканирования и отображения медиафайлов.</string>
@@ -647,7 +649,7 @@
     <string name="default_password">Пароль по умолчанию</string>
     <string name="skip_permission">Пропустить</string>
     <string name="permissions_granted">Разрешения предоставлены. Приложение перезапустится.</string>
-    
+
     <!-- Context Tooltips -->
     <string name="tooltip_slideshow_title">Интервал слайдшоу</string>
     <string name="tooltip_slideshow_message">Время автопереключения изображений в режиме слайдшоу. Диапазон: 1-3600 секунд. Видеофайлы воспроизводятся до конца или согласно этому таймеру в зависимости от настроек.</string>
@@ -702,32 +704,32 @@
     <string name="tooltip_go_to_next_after_copy_message">Автоматически переходит к следующему файлу после успешного копирования текущего. Ускоряет процесс пакетной сортировки, устраняя необходимость ручной навигации.</string>
     <string name="tooltip_command_panel_title">Показывать панель команд по умолчанию</string>
     <string name="tooltip_command_panel_message">Автоматически открывает панель команд при входе в просмотрщик. Панель обеспечивает быстрый доступ к копированию, перемещению, удалению и другим операциям с файлами.</string>
-    
+
     <!-- Color Picker -->
     <string name="select_color">Выберите цвет</string>
     <string name="current_color">Текущий цвет:</string>
     <string name="selected_label">Выбрано</string>
-    
+
     <!-- Error Dialog -->
     <string name="error">Ошибка</string>
     <string name="information">Информация</string>
     <string name="close">Закрыть</string>
     <string name="copy_to_clipboard">Копировать в буфер</string>
     <string name="copied_to_clipboard">Скопировано в буфер обмена</string>
-    
+
     <!-- Lyrics Feature -->
     <string name="lyrics">Лирика</string>
     <string name="searching_lyrics">Поиск текста песни…</string>
     <string name="lyrics_not_found">Лирика не найдена</string>
     <string name="error_timeout_lyrics">Время ожидания истекло. Пожалуйста, проверьте подключение к Интернету и попробуйте снова.</string>
-    
+
     <!-- Add Resource -->
     <string name="add_local_folder">Добавить локальную папку</string>
     <string name="add_network_folder">Добавить сетевую папку (SMB)</string>
     <string name="network_folder">Сетевая папка</string>
     <string name="network_folder_description">Добавить SMB сетевые ресурсы</string>
     <string name="cloud_folder">Облачная папка</string>
-    
+
     <!-- Network Input Validation -->
     <string name="invalid_server_address">Неверный адрес сервера</string>
     <string name="invalid_host_address">Неверный адрес хоста</string>
@@ -744,7 +746,7 @@
     <string name="cloud_folder_description">Добавить Google Drive, Dropbox, OneDrive</string>
     <string name="sftp_ftp_folder">SFTP / FTP</string>
     <string name="sftp_ftp_folder_description">Добавить удалённые папки SFTP или FTP</string>
-    
+
     <!-- Validation Messages -->
     <string name="share_name_required">Требуется имя общего ресурса</string>
     <string name="ssh_key_required">Требуется SSH приватный ключ</string>
@@ -755,7 +757,7 @@
     <string name="google_drive_signed_out">Вы вышли из Google Drive</string>
     <string name="dropbox_signed_out">Вы вышли из Dropbox</string>
     <string name="onedrive_signed_out">Вы вышли из OneDrive</string>
-    
+
     <!-- SMB Network -->
     <string name="smb_server">IP сервера</string>
     <string name="smb_server_hint">например 192.168.1.100</string>
@@ -771,7 +773,7 @@
     <string name="smb_test_connection">Проверить соединение</string>
     <string name="smb_scan_shares">Сканировать ресурсы</string>
     <string name="smb_credentials">Сетевая Папка (SMB)</string>
-    
+
     <!-- SFTP / FTP -->
     <string name="protocol_selection">Выбор протокола:</string>
     <string name="protocol_sftp">SFTP (порт 22)</string>
@@ -787,12 +789,12 @@
     <string name="sftp_test_connection">Проверить соединение</string>
     <string name="sftp_add_resource">Добавить ресурс</string>
     <string name="smb_add_manual_resource">Добавить этот ресурс</string>
-    
+
     <!-- Credentials titles -->
     <string name="sftp_credentials">Учетные данные SFTP</string>
     <string name="ftp_credentials">Учетные данные FTP</string>
     <string name="credentials">Учетные данные</string>
-    
+
     <!-- SFTP Authentication -->
     <string name="sftp_auth_method">Метод аутентификации:</string>
     <string name="sftp_auth_password">Пароль</string>
@@ -804,7 +806,7 @@
     <string name="sftp_key_passphrase_hint">Оставьте пустым, если ключ не зашифрован</string>
     <string name="sftp_key_load_error">Ошибка загрузки файла ключа</string>
     <string name="sftp_key_invalid">Неверный формат SSH приватного ключа</string>
-    
+
     <!-- Touch Zones -->
     <string name="touch_zone_queue">Очередь</string>
     <string name="touch_zone_back">НАЗАД</string>
@@ -816,7 +818,7 @@
     <string name="touch_zone_command_panel">ПАНЕЛЬ\nКОМАНД</string>
     <string name="touch_zone_delete">УДАЛИТЬ</string>
     <string name="touch_zone_slideshow">СЛАЙДШОУ</string>
-    
+
     <!-- Touch Zones Legend -->
     <string name="touch_zones_legend_title">Легенда сенсорных зон:</string>
     <string name="touch_zone_0_legend">0. Легенда:</string>
@@ -829,7 +831,7 @@
     <string name="touch_zone_7_command">7. ПАНЕЛЬ КОМАНД - Открыть меню команд</string>
     <string name="touch_zone_8_delete">8. УДАЛИТЬ - Удалить текущий файл</string>
     <string name="touch_zone_9_slideshow">9. СЛАЙДШОУ - Запустить/остановить слайдшоу</string>
-    
+
     <!-- Cloud Storage -->
     <string name="cloud_storage">Облачное хранилище</string>
     <string name="cloud_storage_description">Добавить папки из Google Drive, OneDrive, Dropbox</string>
@@ -848,7 +850,7 @@
     <string name="google_drive_authentication_failed">Ошибка входа в Google Диск</string>
     <string name="google_drive_connection_test_success">Успешно подключено!</string>
     <string name="google_drive_connection_test_failed">Ошибка подключения: %1$s</string>
-    
+
     <!-- Dropbox strings -->
     <string name="dropbox_sign_in">Войти через Dropbox</string>
     <string name="dropbox_signed_in">Вход выполнен: %1$s</string>
@@ -857,7 +859,7 @@
     <string name="dropbox_authentication_failed">Ошибка входа в Dropbox</string>
     <string name="dropbox_connection_test_success">Успешно подключено!</string>
     <string name="dropbox_connection_test_failed">Ошибка подключения: %1$s</string>
-    
+
     <!-- OneDrive -->
     <string name="onedrive_sign_in">Войти через OneDrive</string>
     <string name="onedrive_signed_in">Вход выполнен: %1$s</string>
@@ -866,14 +868,14 @@
     <string name="onedrive_authentication_failed">Ошибка входа в OneDrive</string>
     <string name="onedrive_connection_test_success">Успешно подключено!</string>
     <string name="onedrive_connection_test_failed">Ошибка подключения: %1$s</string>
-    
+
     <string name="no_folders_found">Папки не найдены</string>
     <string name="add_folder">Добавить папку</string>
     <string name="add_as_destination">Добавить в получатели</string>
     <string name="selected_folder">Выбрано: %1$s</string>
     <string name="folder_icon">Значок папки</string>
     <string name="loading">Загрузка…</string>
-    
+
     <!-- Sort modes -->
     <string name="sort_by_name_asc">по имени ↑</string>
     <string name="sort_by_name_desc">по имени ↓</string>
@@ -882,11 +884,11 @@
     <string name="sort_by_size_asc">по размеру ↑</string>
     <string name="sort_by_size_desc">по размеру ↓</string>
     <string name="sort_by_type_asc">по типу ↑</string>
-        <string name="sort_by_type_desc">по типу ↓</string>
+    <string name="sort_by_type_desc">по типу ↓</string>
     <string name="sort_by_manual">Вручную</string>
     <string name="sort_by_random">Случайно</string>
     <string name="sort_by">Сортировать по</string>
-    
+
     <!-- Network Sync -->
     <string name="network_sync_settings">Настройки синхронизации сети</string>
     <string name="network_parallelism_title">Параллелизм сети</string>
@@ -912,7 +914,7 @@
     <string name="background_sync_disabled">Фоновая синхронизация отключена</string>
     <string name="last_sync_time">Последняя синхронизация: %s</string>
     <string name="never_synced">Никогда не синхронизировалось</string>
-    
+
     <!-- Resource Type Tabs -->
     <string name="tab_all_resources">ВСЕ</string>
     <string name="tab_local_resources">Локальные</string>
@@ -920,7 +922,7 @@
     <string name="tab_ftp_sftp_resources">S/FTP</string>
     <string name="tab_cloud_resources">Облако</string>
     <string name="tab_favorites">Избранное</string>
-    
+
     <!-- Player Settings Dialog -->
     <string name="player_settings_title">Настройки проигрывателя</string>
     <string name="player_speed">Скорость воспроизведения</string>
@@ -928,13 +930,13 @@
     <string name="player_show_subtitles">Показывать субтитры</string>
     <string name="player_subtitle_language">Язык субтитров</string>
     <string name="player_audio_track">Язык аудиодорожки</string>
-    
+
     <!-- Language Options -->
     <string name="language_default">По умолчанию</string>
     <string name="language_english">Английский</string>
     <string name="language_russian">Русский</string>
     <string name="language_ukrainian">Украинский</string>
-    
+
     <!-- Widgets -->
     <string name="widget_favorites_description">Быстрый доступ к избранным файлам</string>
     <string name="widget_resource_launch_description">Запуск конкретного ресурса</string>
@@ -981,7 +983,7 @@
     <string name="error_delete_failed">Ошибка удаления: %1$s</string>
     <string name="error_delete_unexpected">Неожиданная ошибка удаления</string>
     <string name="error_delete_permission_required">Требуется разрешение для удаления файла. Подтвердите доступ.</string>
-    
+
     <!-- MANAGE_MEDIA Permission -->
     <string name="manage_media_title">Включить быстрые операции</string>
     <string name="manage_media_explanation">FastMediaSorter создан для быстрой сортировки файлов. Для удаления и перемещения файлов одним касанием (без диалогов подтверждения) нужно разрешение «Управление медиафайлами».
@@ -1031,7 +1033,7 @@
     <string name="image_edit_apply_adjustments">Применить настройки</string>
     <string name="msg_image_edit_completed">Редактирование изображения завершено</string>
     <string name="msg_failed_reload_image">Не удалось перезагрузить изображение: %1$s</string>
-    
+
     <!-- GIF Editor -->
     <string name="gif_edit_title">Редактор GIF</string>
     <string name="gif_edit_extract">Извлечение кадров</string>
@@ -1094,7 +1096,7 @@
     <string name="filter_by_media_types">Фильтр по поддерживаемым типам медиа</string>
     <string name="filter_by_name_substring">Фильтр по имени (подстрока)</string>
     <string name="enter_name_hint">Введите имя или фрагмент пути</string>
-    
+
     <!-- External Player Fallback -->
     <string name="open_in_external_player">Открыть во внешнем проигрывателе</string>
     <string name="open_with">Открыть с помощью</string>
@@ -1118,14 +1120,14 @@
     <string name="unsupported_format_copy_to_local">Формат не поддерживается. Скопируйте файл на локальный ресурс, чтобы использовать внешний проигрыватель.</string>
     <string name="panel_copy_to">Копировать в…</string>
     <string name="panel_move_to">Переместить в…</string>
-    
+
     <!-- PDF Navigation -->
     <string name="goto_page_title">Перейти к странице</string>
     <string name="goto_page_message">Введите номер страницы:</string>
     <string name="goto_page_hint">Номер страницы (1-%1$d)</string>
     <string name="goto_page_button">Перейти</string>
     <string name="invalid_page_number">Неверный номер страницы. Введите число от 1 до %1$d</string>
-    
+
     <!-- OCR Feature -->
     <string name="enable_ocr">Разрешить распознавание текста (OCR)</string>
     <string name="enable_ocr_summary">Извлечение текста из изображений и PDF для копирования</string>
@@ -1137,7 +1139,7 @@
     <string name="ocr_no_text_found">Текст на изображении не найден</string>
     <string name="translation_no_text_found">Нет текста для перевода</string>
     <string name="ocr_error">Ошибка распознавания текста: %1$s</string>
-    
+
     <!-- Media Settings Categories -->
     <string name="media_category_images">Изображения</string>
     <string name="media_category_video">Видео</string>
@@ -1169,19 +1171,19 @@
     <string name="toast_image_flipped">Изображение отражено</string>
     <string name="toast_flip_failed">Не удалось отразить: %1$s</string>
     <string name="toast_filter_active">Фильтр активен…</string>
-    
+
     <!-- Прогресс-сообщения для редактирования изображений -->
     <string name="progress_applying_filter">Применение фильтра…</string>
     <string name="progress_applying_adjustments">Применение настроек…</string>
     <string name="progress_rotating_image">Поворот изображения…</string>
     <string name="progress_flipping_image">Отражение изображения %1$s…</string>
-    
+
     <string name="toast_no_files_to_play">Нет файлов для воспроизведения</string>
     <string name="toast_file_unavailable">Этот файл сейчас недоступен, выберите ресурс для проигрывания</string>
     <string name="toast_resource_not_loaded">Ресурс не загружен</string>
     <string name="toast_failed_to_share">Не удалось поделиться: %1$s</string>
     <string name="at_least_one_media_type_required">Необходимо выбрать хотя бы один тип медиафайлов</string>
-    
+
     <!-- EPUB Go to Chapter Dialog -->
     <string name="epub_go_to_chapter_title">Перейти к главе</string>
     <string name="epub_go_to_chapter_message">Введите номер главы (1 до %1$d)</string>
@@ -1214,12 +1216,12 @@
     <string name="never_tested">Не тестировалось</string>
     <string name="smb_resource_added_success">SMB ресурс успешно добавлен</string>
     <string name="smb_resource_added_unavailable">SMB ресурс \'%1$s\' добавлен, но временно недоступен. Проверьте существование ресурса и доступ к нему с этого устройства.</string>
-    
+
     <!-- Speed Test -->
     <string name="speed_test_preparing">Подготовка теста скорости…</string>
     <string name="speed_test_saving">Сохранение результатов…</string>
     <string name="speed_test_complete">Тест скорости завершён: Чтение: %1$s Мбит/с, Запись: %2$s Мбит/с (Потоки: %3$d)</string>
-    
+
     <!-- Trash System -->
     <string name="no_files_to_restore">Нет удалённых файлов для восстановления</string>
     <string name="original_path_not_exists">Исходный путь не существует: %1$s</string>
@@ -1232,12 +1234,34 @@
     <string name="use_trash">Использовать корзину (.trash)</string>
     <string name="use_trash_summary">Перемещать удалённые файлы в .trash вместо окончательного удаления. Позволяет восстановить до закрытия ресурса.</string>
     <string name="disable_trash_warning">Файлы будут удаляться окончательно без возможности восстановления</string>
-    
+
     <!-- Folder Selection & Permissions -->
     <string name="all_files_access_required">Требуется полный доступ к папкам</string>
     <string name="all_files_access_explanation">⚠️ Без разрешения \"Доступ ко всем файлам\" Android ограничивает выбор папок только стандартными (Документы, Загрузки, Изображения).\n\n✅ С этим разрешением вы сможете:\n• Выбрать ЛЮБУЮ папку на устройстве\n• Получить доступ к папкам Pictures, DCIM, Camera\n• Выбрать собственные папки для организации медиа\n\n🔒 Конфиденциальность: Приложение использует это только для просмотра ваших медиафайлов - никакие данные не собираются и не загружаются.\n\nПредоставьте разрешение на следующем экране для полного доступа к папкам.</string>
     <string name="continue_limited">Продолжить (Ограниченно)</string>
     <string name="folder_selection_limitations">⚠️ Ограниченный доступ к папкам\n\nБез разрешения \"Доступ ко всем файлам\" вы можете выбрать только стандартные папки Android.\n\nЧтобы выбрать любую папку на устройстве, пожалуйста, предоставьте разрешение когда будет предложено.</string>
+    <string name="select_folder">Выбрать папку</string>
+    <string name="folder_path_hint">напр. /storage/emulated/0/МояПапка</string>
+    <string name="browse_folders">Просмотр папок</string>
+    <string name="folder_not_found">Папка не найдена</string>
+    <string name="cannot_read_folder">Нет доступа к папке - проверьте разрешения</string>
+    <string name="android_media_requires_permission">⚠️ Папки Android/media требуют разрешения "Доступ ко всем файлам". Предоставьте разрешение для доступа к папкам WhatsApp, Telegram и других приложений.</string>
+    <string name="quick_select_common_folders">Быстрый выбор стандартных папок</string>
+    <string name="folder_root">📁 Корень (/storage/emulated/0)</string>
+    <string name="folder_dcim">DCIM</string>
+    <string name="folder_pictures">Pictures</string>
+    <string name="folder_download">Download</string>
+    <string name="folder_documents">Documents</string>
+    <string name="folder_whatsapp">WhatsApp</string>
+    <string name="folder_telegram">Telegram</string>
+    <string name="folder_instagram">Instagram</string>
+    <string name="or_enter_path_manually">ИЛИ Введите путь вручную</string>
+    <string name="folder_path">Путь к папке</string>
+    <string name="validate_and_select">Проверить и выбрать</string>
+    <string name="or_use_system_picker">ИЛИ Системный файловый менеджер</string>
+    <string name="browse_with_system_picker">Просмотр через системный менеджер</string>
+    <string name="current_path">Текущая папка</string>
+    <string name="select_current_folder">Выбрать эту папку</string>
     <!-- Media Settings Categories -->
     <string name="settings_category_images">Изображения</string>
     <string name="settings_category_video">Видео</string>
@@ -1384,7 +1408,7 @@
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
     <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_btnNegative_text">-</string>
-    <string name="dialog_image_edit_seekSaturation_text">2x</string> <!-- Speed option: no translation needed -->
+    <string name="dialog_image_edit_seekSaturation_text">2x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_integration_test_btnClose_text">Закрыть</string>
     <string name="dialog_integration_test_btnCopyLog_text">Копировать лог</string>
     <string name="dialog_integration_test_btnImportLog_text">Импортировать лог</string>
@@ -1416,13 +1440,13 @@
     <string name="dialog_material_progress_horizontal_tvProgressMessage_text">Пожалуйста, подождите…</string>
     <string name="dialog_material_progress_horizontal_tvProgressTitle_text">Загрузка…</string>
     <string name="dialog_network_discovery_rvHosts_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
-    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string> <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string> <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed1_text">1x</string> <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string> <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string> <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string> <!-- Speed option: no translation needed -->
-    <string name="dialog_player_settings_chipSpeed2_text">2x</string> <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed025_text">0.25x</string>    <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed05_text">0.5x</string>    <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed1_text">1x</string>    <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed125_text">1.25x</string>    <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed15_text">1.5x</string>    <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed175_text">1.75x</string>    <!-- Speed option: no translation needed -->
+    <string name="dialog_player_settings_chipSpeed2_text">2x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_rename_single_unknown_boxBackgroundMode">outline</string>
     <string name="dialog_slideshow_settings_tvIntervalValue_text">5с</string>
     <string name="fragment_settings_audio_tilAudioSizeMax_hint">Макс (МБ)</string>
@@ -1504,5 +1528,14 @@
     <string name="sleep_timer_active">Сон: осталось %s</string>
     <string name="sleep_timer_cancelled">Таймер сна отменён</string>
     <string name="sleep_timer_set">Таймер сна установлен на %s</string>
+
+    <!-- Resource Profile Selector -->
+    <string name="label_profile_none">Быстрая настройка: Пользовательский</string>
+    <string name="label_profile_audio_library">Быстрая настройка: Аудиотека</string>
+    <string name="label_profile_video_library">Быстрая настройка: Видеотека</string>
+    <string name="label_profile_photo_storage">Быстрая настройка: Фотохранилище</string>
+    <string name="label_profile_documents">Быстрая настройка: Документы</string>
+    <string name="label_profile_all_files">Быстрая настройка: Все файлы</string>
+    <string name="title_select_profile">Профиль быстрой настройки</string>
 
 </resources>

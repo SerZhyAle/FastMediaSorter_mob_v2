@@ -21,8 +21,8 @@ import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
-import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.addresource.AddResourceActivity
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
@@ -454,18 +454,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             }
                         }
                         is MainEvent.NavigateToAddResource -> {
-                            val resourceType = when (event.preselectedTab) {
-                                ResourceTab.LOCAL -> ResourceType.LOCAL
-                                ResourceTab.SMB -> ResourceType.SMB
-                                ResourceTab.FTP_SFTP -> ResourceType.FTP
-                                ResourceTab.CLOUD -> ResourceType.CLOUD
-                                ResourceTab.ALL,
-                                ResourceTab.FAVORITES -> ResourceType.LOCAL
-                            }
-                            startActivity(ResourceEditorActivity.createAddIntent(this@MainActivity, resourceType))
+                            startActivity(
+                                AddResourceActivity.createIntent(
+                                    this@MainActivity,
+                                    preselectedTab = event.preselectedTab
+                                )
+                            )
                         }
                         is MainEvent.NavigateToAddResourceCopy -> {
-                            startActivity(ResourceEditorActivity.createCopyIntent(this@MainActivity, event.copyResourceId))
+                            startActivity(
+                                AddResourceActivity.createIntent(
+                                    this@MainActivity,
+                                    copyResourceId = event.copyResourceId
+                                )
+                            )
                         }
                         MainEvent.NavigateToSettings -> {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))

@@ -148,8 +148,9 @@ class IntegrationTestRunner @Inject constructor(
                     credentialsRepository.insert(entity)
                     log("Inserted credential for ${cred.type}://${cred.server}")
                 } else {
-                    // Keep user/device credentials intact to avoid overriding valid runtime configuration
-                    log("Existing credential found for ${cred.type}://${cred.server} (kept unchanged)")
+                    // Always update to ensure test credentials are current
+                    credentialsRepository.update(entity.copy(id = existing.id, credentialId = existing.credentialId))
+                    log("Updated credential for ${cred.type}://${cred.server}")
                 }
             }
         } catch (e: Exception) {
@@ -899,7 +900,7 @@ class IntegrationTestRunner @Inject constructor(
             val tempUploadFile = createTestFile("temp_upload_for_smb_dl.txt", "Content for SMB download test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
-                destination = File(smbFile.parent),
+                destination = File(smbFile.parent!!),
                 overwrite = true
             )
             val uploadResult = fileOperationUseCase.execute(uploadOp)
@@ -969,7 +970,7 @@ class IntegrationTestRunner @Inject constructor(
             val tempUploadFile = createTestFile("temp_upload_for_sftp_dl.txt", "Content for SFTP download test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
-                destination = File(sftpFile.parent),
+                destination = File(sftpFile.parent!!),
                 overwrite = true
             )
             val uploadResult = fileOperationUseCase.execute(uploadOp)
@@ -1039,7 +1040,7 @@ class IntegrationTestRunner @Inject constructor(
             val tempUploadFile = createTestFile("temp_upload_for_ftp_dl.txt", "Content for FTP download test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
-                destination = File(ftpFile.parent),
+                destination = File(ftpFile.parent!!),
                 overwrite = true
             )
             val uploadResult = fileOperationUseCase.execute(uploadOp)
@@ -1109,7 +1110,7 @@ class IntegrationTestRunner @Inject constructor(
             val tempUploadFile = createTestFile("temp_upload_for_smb_sftp.txt", "Content for SMB->SFTP copy test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
-                destination = File(smbFile.parent),
+                destination = File(smbFile.parent!!),
                 overwrite = true
             )
             val uploadResult = fileOperationUseCase.execute(uploadOp)
@@ -1177,7 +1178,7 @@ class IntegrationTestRunner @Inject constructor(
             val tempUploadFile = createTestFile("temp_upload_for_sftp_ftp.txt", "Content for SFTP->FTP copy test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
-                destination = File(sftpFile.parent),
+                destination = File(sftpFile.parent!!),
                 overwrite = true
             )
             val uploadResult = fileOperationUseCase.execute(uploadOp)
@@ -1245,7 +1246,7 @@ class IntegrationTestRunner @Inject constructor(
             val tempUploadFile = createTestFile("temp_upload_for_ftp_smb.txt", "Content for FTP->SMB copy test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
-                destination = File(ftpFile.parent),
+                destination = File(ftpFile.parent!!),
                 overwrite = true
             )
             val uploadResult = fileOperationUseCase.execute(uploadOp)

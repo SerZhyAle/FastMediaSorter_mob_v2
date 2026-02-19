@@ -168,7 +168,6 @@
                 android:id="@+id/tvLastSync"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
                 android:layout_marginEnd="@dimen/dialog_field_spacing"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -178,24 +177,25 @@
                 android:visibility="gone"
                 app:layout_constraintEnd_toStartOf="@+id/tvSpeedTestResults"
                 app:layout_constraintStart_toStartOf="@+id/ivResourceTypeIcon"
-                app:layout_constraintTop_toBottomOf="@+id/tvResourceType"
+                app:layout_constraintTop_toTopOf="@+id/tvSpeedTestResults"
                 tools:text="Last sync: 2 hours ago"
                 tools:visibility="visible" />
 
             <TextView
                 android:id="@+id/tvSpeedTestResults"
-                android:layout_width="@dimen/match_constraint"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/margin_tiny"
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="@dimen/item_detail_text_size_small"
                 android:textStyle="italic"
                 android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="@+id/tvResourceName"
                 app:layout_constraintStart_toEndOf="@+id/tvLastSync"
-                app:layout_constraintTop_toBottomOf="@+id/tvResourceType"
+                app:layout_constraintTop_toBottomOf="@+id/tvMediaTypes"
+                app:layout_constraintVertical_bias="0.5"
                 tools:text="Speed: R:50 W:30 Mbps T:2"
                 tools:visibility="visible" />
 

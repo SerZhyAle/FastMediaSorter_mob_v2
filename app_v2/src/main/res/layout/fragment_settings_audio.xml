@@ -36,64 +36,18 @@
         <ImageButton android:id="@+id/iconHelpAudioSizeLimits" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_audio_size_limits_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
     </LinearLayout>
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutAudioSizeInputs"
-        android:layout_width="300dp"
-        android:layout_height="match_parent"
-        android:layout_marginStart="@dimen/settings_margin_indent_level_2"
-        android:layout_marginEnd="@dimen/settings_margin_standard"
-        android:layout_marginBottom="@dimen/margin_small">
+    <LinearLayout android:id="@+id/layoutAudioSizeInputs" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/settings_margin_indent_level_2" android:layout_marginEnd="@dimen/settings_margin_standard" android:layout_marginBottom="@dimen/margin_small" android:orientation="vertical">
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilAudioSizeMin"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/margin_small"
-            android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
-            app:hintTextColor="@color/settings_textinput_hint"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/tilAudioSizeMax"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMin" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint" app:hintTextColor="@color/settings_textinput_hint">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAudioSizeMin"
-                android:layout_width="150dp"
-                android:layout_height="wrap_content"
-                android:hint="@string/fragment_settings_audio_tilAudioSizeMin_hint"
-                android:inputType="number"
-                android:maxWidth="@dimen/layout_settings_text_field_max_width"
-                android:textColor="@color/text_color_primary"
-                android:textColorHint="@color/text_color_secondary" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAudioSizeMin" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilAudioSizeMax"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
-            app:hintTextColor="@color/settings_textinput_hint"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_weight="1"
-            app:layout_constraintStart_toEndOf="@+id/tilAudioSizeMin"
-            app:layout_constraintTop_toTopOf="parent">
+        <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilAudioSizeMax" style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint" app:hintTextColor="@color/settings_textinput_hint">
 
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAudioSizeMax"
-                android:layout_width="150dp"
-                android:layout_height="match_parent"
-                android:hint="@string/fragment_settings_audio_tilAudioSizeMax_hint"
-                android:inputType="number"
-                android:maxWidth="@dimen/layout_settings_text_field_max_width"
-                android:maxLength="@integer/input_max_length_filesize"
-                android:textColor="@color/text_color_primary"
-                android:textColorHint="@color/text_color_secondary" />
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/etAudioSizeMax" android:layout_width="match_parent" android:layout_height="wrap_content" android:inputType="number" android:maxLength="@integer/input_max_length_filesize" android:textColor="@color/text_color_primary" android:textColorHint="@color/text_color_secondary" />
         </com.google.android.material.textfield.TextInputLayout>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
     <!-- Enable photos during audio playback -->
     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">

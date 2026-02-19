@@ -1624,10 +1624,12 @@ class BrowseViewModel @Inject constructor(
                 Timber.w(e, "BrowseViewModel.loadMediaFiles: Cleanup exception (non-critical, continuing)")
             }
             
-            // Start 5-second timer to show STOP button in the same coroutine context
-            launch {
+            // Start 5-second timer to show STOP button in the same coroutine context.
+            // Store the job reference so it can be cancelled as soon as loading completes
+            // (prevents the button from appearing after the scan is already done).
+            stopButtonTimerJob = launch {
                 delay(5_000L)
-                if (loadFilesJob?.isActive == true) {
+                if (loading.value) {
                     updateState { it.copy(isScanCancellable = true) }
                     Timber.d("BrowseViewModel.loadMediaFiles: Scan running >5s, showing STOP button")
                 }
@@ -1687,6 +1689,11 @@ class BrowseViewModel @Inject constructor(
                 progressJob.cancel()
                 // Fallback to standard loading if count fails
                 loadMediaFilesStandard(resourceWithGlobalFilter, sizeFilter, progressJob)
+            } finally {
+                // Cancel STOP button timer immediately after loading finishes so the
+                // parent coroutine does not have to wait for the remaining delay and
+                // the button cannot appear after the scan is already complete.
+                stopButtonTimerJob?.cancel()
             }
         }
     }
@@ -1728,8 +1735,8 @@ class BrowseViewModel @Inject constructor(
                 this@BrowseViewModel.handleLoadingError(resource, error)
             }
             
-            override suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int) {
-                updateResourceMetadataAfterBrowse(resource, fileCount)
+            override suspend fun updateResourceMetadata(resource: MediaResource, fileCount: Int, subfolderCount: Int) {
+                updateResourceMetadataAfterBrowse(resource, fileCount, subfolderCount)
             }
 
             override suspend fun onFilesLoaded(resource: MediaResource, files: List<MediaFile>) {
@@ -1803,8 +1810,12 @@ class BrowseViewModel @Inject constructor(
      * Updates resource metadata (fileCount and lastBrowseDate) after successful file loading.
      * Delegated to BrowseMetadataManager.
      */
-    private suspend fun updateResourceMetadataAfterBrowse(resource: MediaResource, actualFileCount: Int) {
-        metadataManager.updateMetadata(resource, actualFileCount)
+    private suspend fun updateResourceMetadataAfterBrowse(
+        resource: MediaResource,
+        actualFileCount: Int,
+        subfolderCount: Int = -1
+    ) {
+        metadataManager.updateMetadata(resource, actualFileCount, subfolderCount)
     }
     
     private fun handleLoadingError(resource: MediaResource, e: Throwable) {

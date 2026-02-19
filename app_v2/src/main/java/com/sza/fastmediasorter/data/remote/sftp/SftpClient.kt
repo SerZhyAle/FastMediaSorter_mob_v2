@@ -149,6 +149,14 @@ class SftpClient @Inject constructor() {
             } finally {
                 connectionSemaphore.release()
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Timber.d("SFTP operation cancelled")
+            throw e
+        } catch (e: InterruptedException) {
+            // Blocking Semaphore.acquire() throws InterruptedException when the coroutine is cancelled
+            Timber.d("SFTP operation interrupted (coroutine cancelled)")
+            Thread.currentThread().interrupt() // restore interrupt flag
+            throw kotlinx.coroutines.CancellationException("SFTP interrupted", e)
         } catch (e: Exception) {
             Timber.e(e, "SFTP operation failed")
             Result.failure(e)

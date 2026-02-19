@@ -456,16 +456,19 @@ class SmbConnectionManager @Inject constructor(
                            errorMessage.contains("Access denied", ignoreCase = true)
         val isConfigError = errorMessage.contains("Unknown host", ignoreCase = true) ||
                            errorMessage.contains("Connection refused", ignoreCase = true)
+        val isShareNotFound = errorMessage.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
+                             errorMessage.contains("STATUS_BAD_NETWORK_PATH", ignoreCase = true)
         
         val isTimeout = e.toString().contains("TimeoutException", ignoreCase = true)
         
-        if (isAuthError || isAccessError || isConfigError) {
+        if (isAuthError || isAccessError || isConfigError || isShareNotFound) {
             // Configuration/authentication errors - don't increment timeout counter
             Timber.w(e, "Pooled connection configuration error (not network issue)")
             // Auto-reset SMB connections for this server
             val resetReason = when {
                 isAuthError -> "Authentication failure detected"
                 isAccessError -> "Access denied detected"
+                isShareNotFound -> "Share not found detected"
                 else -> "Configuration error detected"
             }
             autoResetIfNeeded(resetReason)
@@ -551,13 +554,15 @@ class SmbConnectionManager @Inject constructor(
                            errorMessage.contains("Access denied", ignoreCase = true)
         val isConfigError = errorMessage.contains("Unknown host", ignoreCase = true) ||
                            errorMessage.contains("Connection refused", ignoreCase = true)
+        val isShareNotFound = errorMessage.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
+                             errorMessage.contains("STATUS_BAD_NETWORK_PATH", ignoreCase = true)
         
         if (isCriticalError) {
             Timber.e("CRITICAL socket error - forcing full reset")
             closeAllConnections()
             resetClients()
             consecutiveTimeouts = 0
-        } else if (isAuthError || isAccessError || isConfigError) {
+        } else if (isAuthError || isAccessError || isConfigError || isShareNotFound) {
             // Configuration/authentication errors - don't increment timeout counter
             Timber.w("Fresh connection configuration error (not network issue): $errorMessage")
             // Don't track these as consecutive failures - they indicate user config issues
@@ -565,6 +570,7 @@ class SmbConnectionManager @Inject constructor(
             val resetReason = when {
                 isAuthError -> "Authentication failure on new connection"
                 isAccessError -> "Access denied on new connection"
+                isShareNotFound -> "Share not found on new connection"
                 else -> "Configuration error on new connection"
             }
             autoResetIfNeeded(resetReason)
@@ -590,15 +596,19 @@ class SmbConnectionManager @Inject constructor(
     
     /**
      * Remove connection from pool and close it.
+     * Each resource is closed independently so a dead transport on one
+     * step does not prevent the remaining resources from being released.
      */
     private fun removeConnection(key: ConnectionKey) {
         connectionPool.remove(key)?.let { pooled ->
-            try {
-                pooled.share.close()
-                pooled.session.close()
-                pooled.connection.close()
-            } catch (e: Exception) {
-                Timber.w(e, "Error closing pooled connection")
+            try { pooled.share.close() } catch (e: Exception) {
+                Timber.w("SMB share close error (likely dead connection): ${e.message}")
+            }
+            try { pooled.session.close() } catch (e: Exception) {
+                Timber.w("SMB session close error (likely dead connection): ${e.message}")
+            }
+            try { pooled.connection.close() } catch (e: Exception) {
+                Timber.w("SMB connection close error (likely dead connection): ${e.message}")
             }
         }
     }
@@ -628,17 +638,18 @@ class SmbConnectionManager @Inject constructor(
     }
     
     /**
-     * Close all connections in pool.
-     */
-    /**
-     * Close all pooled connections.
+     * Close all pooled connections asynchronously.
+     * Uses closeConnectionAsync to avoid blocking the caller when the server
+     * has already dropped connections (idle timeout scenario).
      */
     private fun closeAllConnections() {
         val keys = connectionPool.keys().toList()
         keys.forEach { key ->
-            removeConnection(key)
+            connectionPool.remove(key)?.let { pooled ->
+                closeConnectionAsync(pooled)
+            }
         }
-        Timber.d("Closed all ${keys.size} pooled connections")
+        Timber.d("Initiated async close of ${keys.size} pooled connections")
     }
 
     private fun isNonRetriableConnectionError(e: Exception): Boolean {
@@ -659,6 +670,11 @@ class SmbConnectionManager @Inject constructor(
         val isAccessError = message.contains("STATUS_ACCESS_DENIED", ignoreCase = true) ||
             message.contains("Access denied", ignoreCase = true)
 
+        // Share/path doesn't exist on server — retrying will never help
+        val isShareNotFound = message.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) ||
+            message.contains("STATUS_BAD_NETWORK_PATH", ignoreCase = true) ||
+            message.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true)
+
         val isConfigError = message.contains("Unknown host", ignoreCase = true) ||
             message.contains("Connection refused", ignoreCase = true) ||
             message.contains("No such host", ignoreCase = true)
@@ -668,7 +684,7 @@ class SmbConnectionManager @Inject constructor(
             e.cause is SocketTimeoutException ||
             e is SocketTimeoutException
 
-        return isAuthError || isAccessError || isConfigError || isUnreachable
+        return isAuthError || isAccessError || isConfigError || isUnreachable || isShareNotFound
     }
     
     /**

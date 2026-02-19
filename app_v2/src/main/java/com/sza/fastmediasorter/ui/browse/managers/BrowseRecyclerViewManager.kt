@@ -25,6 +25,12 @@ class BrowseRecyclerViewManager(
         fun updateToggleButtonIcon(iconResId: Int)
     }
     
+    init {
+        // Set adapter immediately so RecyclerView never reports "No adapter attached"
+        // before Activity's setupViews() block reaches the adapter assignment.
+        recyclerView.adapter = adapter
+    }
+
     fun initialize() {
         // RecyclerView already configured in Activity setupViews
     }

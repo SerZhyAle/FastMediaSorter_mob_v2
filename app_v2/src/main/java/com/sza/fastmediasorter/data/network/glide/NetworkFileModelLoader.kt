@@ -243,7 +243,7 @@ class NetworkFileDataFetcher(
                 }
 
                 if (!isValidImageData(finalBytes)) {
-                    Timber.e("NetworkFileDataFetcher: Invalid/corrupted image data for $fileName (size=${finalBytes.size})")
+                    Timber.w("NetworkFileDataFetcher: Invalid/corrupted image data for $fileName (size=${finalBytes.size})")
                     callback.onLoadFailed(Exception("Corrupted image data: ${data.path}"))
                     return@launch
                 }

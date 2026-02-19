@@ -550,7 +550,8 @@ class MediaFileAdapter(
             binding.btnPlayInline.isVisible = isAudioOnlyMode
             if (!isAudioOnlyMode) return
 
-            val baseInfo = buildFileInfo(file)
+            // Use detail line (filename + size + duration) for the info row, not artist/title which is already in tvFileName
+            val baseInfo = buildAudioDetailLine(file)
             if (isDownloading) {
                 val progress = state.downloadProgressPercent.coerceIn(0, 100)
                 binding.tvFileInfo.text = if (progress > 0) "$baseInfo • Cache $progress%" else "$baseInfo • Cache..."
@@ -670,20 +671,22 @@ class MediaFileAdapter(
                 val isSelected = file.path in selectedPaths
                 val isFolder = file.isDirectory
                 
-                // Apply thumbnail size from settings for list mode
-                val thumbnailSizePx = if (this@MediaFileAdapter.disableThumbnails) {
-                    if (isAudioOnlyMode) {
-                        (AUDIO_ONLY_THUMBNAIL_DP * root.resources.displayMetrics.density).toInt()
-                    } else {
+                // In audio-only mode, hide thumbnail entirely for files (not folders)
+                // so file name/details shift to the left and take its space
+                val audioOnlyFile = isAudioOnlyMode && !isFolder
+                ivThumbnail.visibility = if (audioOnlyFile) android.view.View.GONE else android.view.View.VISIBLE
+
+                if (!audioOnlyFile) {
+                    // Apply thumbnail size from settings for list mode
+                    val thumbnailSizePx = if (this@MediaFileAdapter.disableThumbnails) {
                         (32 * root.resources.displayMetrics.density).toInt() // 32dp for list when disabled
+                    } else {
+                        (thumbnailSize * root.resources.displayMetrics.density).toInt()
                     }
-                } else {
-                    val sizeDp = if (isAudioOnlyMode) AUDIO_ONLY_THUMBNAIL_DP else thumbnailSize
-                    (sizeDp * root.resources.displayMetrics.density).toInt()
+                    ivThumbnail.layoutParams.width = thumbnailSizePx
+                    ivThumbnail.layoutParams.height = thumbnailSizePx
                 }
-                ivThumbnail.layoutParams.width = thumbnailSizePx
-                ivThumbnail.layoutParams.height = thumbnailSizePx
-                
+
                 // Hide checkbox for folders (folders can't be selected)
                 cbSelect.isVisible = !isFolder
                 if (!isFolder) {
@@ -701,9 +704,15 @@ class MediaFileAdapter(
                 }
                 root.setBackgroundColor(backgroundColor)
                 
-                tvFileName.text = file.name
-                tvFileInfo.text = buildFileInfo(file)
-                
+                // In audio-only mode: top line = Artist - Title, bottom = filename + size + duration
+                if (audioOnlyFile) {
+                    tvFileName.text = buildAudioDisplayName(file)
+                    tvFileInfo.text = buildAudioDetailLine(file)
+                } else {
+                    tvFileName.text = file.name
+                    tvFileInfo.text = buildFileInfo(file)
+                }
+
                 // Load thumbnail or folder icon
                 if (isFolder) {
                     // ALWAYS show folder icon, regardless of skipInitialThumbnailLoad
@@ -713,14 +722,15 @@ class MediaFileAdapter(
                     ivThumbnail.setBackgroundColor(Color.TRANSPARENT)
                     ivThumbnail.imageTintList = null // Clear any tint from previous thumbnails
                     ivThumbnail.colorFilter = null
-                } else {
-                    // For files, respect skipInitialThumbnailLoad flag
+                } else if (!audioOnlyFile) {
+                    // For files in non-audio-only mode, respect skipInitialThumbnailLoad flag
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
                     } else {
                         Timber.d("ListViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
                     }
                 }
+                // audioOnlyFile: thumbnail is GONE, nothing to load
                 
                 // Favorite button (hide for folders)
                 btnFavorite.isVisible = showFavoriteButton && !isFolder
@@ -760,8 +770,18 @@ class MediaFileAdapter(
                 return
             }
             
-            // Fast path for AUDIO/TEXT: no network/disk loading needed, just show extension bitmap
-            if (file.type == MediaType.AUDIO || file.type == MediaType.TEXT) {
+            // AUDIO: show extension bitmap only (no metadata/cover art/internet in Browse).
+            // Cover art is loaded exclusively in the Player (ImageLoadingManager.loadAudioCoverArt).
+            if (file.type == MediaType.AUDIO) {
+                val extension = file.name.substringAfterLast('.', "").uppercase()
+                binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
+                applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
+                Timber.d("loadThumbnail: AUDIO extension bitmap for ${file.name} ($extension)")
+                return
+            }
+
+            // TEXT: show extension bitmap (no network/disk loading needed)
+            if (file.type == MediaType.TEXT) {
                 val extension = file.name.substringAfterLast('.', "").uppercase()
                 binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
                 applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
@@ -1426,6 +1446,22 @@ class MediaFileAdapter(
             applyPlaceholderStyle(imageView, file.type, true)
         }
         
+        /** "Artist - Title" for top line in audio-only mode. Falls back to filename if no metadata. */
+        private fun buildAudioDisplayName(file: MediaFile): String = when {
+            !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
+            !file.artist.isNullOrBlank() -> file.artist
+            !file.title.isNullOrBlank() -> file.title
+            else -> file.name
+        }
+
+        /** "size • date • duration" for bottom line in audio-only mode. */
+        private fun buildAudioDetailLine(file: MediaFile): String {
+            val size = if (file.size > 0) formatFileSize(file.size) else null
+            val date = if (file.createdDate > 0) DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate)).toString() else null
+            val duration = formatDuration(file.duration)
+            return listOfNotNull(size, date, duration).joinToString(" • ")
+        }
+
         private fun buildFileInfo(file: MediaFile): String {
             // Handle folders
             if (file.isDirectory) {
@@ -1441,14 +1477,19 @@ class MediaFileAdapter(
 
             when (file.type) {
                 MediaType.AUDIO -> {
-                    val audioTitle = when {
-                        !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
-                        !file.artist.isNullOrBlank() -> file.artist
-                        !file.title.isNullOrBlank() -> file.title
-                        else -> file.name
-                    }
+                    val hasMetadata = !file.artist.isNullOrBlank() || !file.title.isNullOrBlank()
                     val duration = formatDuration(file.duration)
-                    return if (duration != null) "$audioTitle • $duration" else audioTitle
+                    return if (hasMetadata) {
+                        val audioTitle = when {
+                            !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
+                            !file.artist.isNullOrBlank() -> file.artist!!
+                            else -> file.title!!
+                        }
+                        if (duration != null) "$audioTitle • $duration" else audioTitle
+                    } else {
+                        // No metadata: show size + date (+ duration if known)
+                        if (duration != null) "$legacyInfo • $duration" else legacyInfo
+                    }
                 }
 
                 MediaType.VIDEO -> {
@@ -1468,7 +1509,7 @@ class MediaFileAdapter(
                     } else {
                         null
                     }
-                    val dateTaken = file.exifDateTime?.let { DateFormat.format("yyyy-MM-dd", Date(it)).toString() }
+                    val dateTaken = file.exifDateTime?.let { DateFormat.format("yy-MM-dd HH:mm", Date(it)).toString() }
                     val parts = listOfNotNull(resolution, dateTaken)
                     return if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
                 }
@@ -1482,7 +1523,7 @@ class MediaFileAdapter(
             // Hide invalid FTP metadata (size=0 or date=1970-01-01)
             val size = if (file.size > 0) formatFileSize(file.size) else "—"
             val date = if (file.createdDate > 0) {
-                DateFormat.format("yyyy-MM-dd", Date(file.createdDate))
+                DateFormat.format("yy-MM-dd HH:mm", Date(file.createdDate))
             } else {
                 "—"
             }
@@ -1742,8 +1783,18 @@ class MediaFileAdapter(
                 return
             }
             
-            // Fast path for AUDIO/TEXT: no network/disk loading needed, just show extension bitmap
-            if (file.type == MediaType.AUDIO || file.type == MediaType.TEXT) {
+            // AUDIO: show extension bitmap only (no metadata/cover art/internet in Browse).
+            // Cover art is loaded exclusively in the Player (ImageLoadingManager.loadAudioCoverArt).
+            if (file.type == MediaType.AUDIO) {
+                val extension = file.name.substringAfterLast('.', "").uppercase()
+                binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
+                applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
+                Timber.d("loadThumbnail (Grid): AUDIO extension bitmap for ${file.name} ($extension)")
+                return
+            }
+
+            // TEXT: show extension bitmap (no network/disk loading needed)
+            if (file.type == MediaType.TEXT) {
                 val extension = file.name.substringAfterLast('.', "").uppercase()
                 binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
                 applyPlaceholderStyle(binding.ivThumbnail, file.type, true)

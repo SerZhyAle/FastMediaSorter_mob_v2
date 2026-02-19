@@ -96,6 +96,9 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
             Timber.i("CleanupOrphanedTempFilesUseCase: Cleanup completed successfully. Deleted $deletedCount orphaned temp files")
             Result.success(deletedCount)
             
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            Timber.d("CleanupOrphanedTempFilesUseCase: Cleanup cancelled")
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "CleanupOrphanedTempFilesUseCase: Exception during cleanup")
             Result.failure(e)
