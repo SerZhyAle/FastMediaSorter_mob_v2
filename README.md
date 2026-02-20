@@ -5,13 +5,22 @@
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=flat-square)
 
-**📖 Other Languages:** [🇷🇺 Русский](Readme_RU.md) | [🇺🇦 Українська](Readme_UK.md)
+**📖 Other Languages:** [🇷🇺 Русский](docs/README_RU.md) | [🇺🇦 Українська](docs/README_UK.md)
 
 ## About the Project
 
 **FastMediaSorter v2** is a powerful Android application for quick and convenient sorting of media files (images, videos, GIFs, audio, documents). It is designed as a single center for managing files from various sources: local device folders, network drives (SMB, SFTP, FTP), and cloud storage (Google Drive, OneDrive, Dropbox).
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
+
+### 🚀 Latest Update (February 2026)
+
+- **Batch Deletion Optimization**: Fixed multiple permission dialogs when deleting files - now shows ONE dialog for any number of files on Android 11+ (Task 1 ✅)
+- **Hidden Files Support**: Corrected hidden files filtering - files starting with `.` now properly respect the "Show Hidden Files" setting (Task 3 ✅)
+- **Binary Files Support**: Added support for binary files (ZIP, RAR, APK, ISO, EXE, etc.) with programmatic thumbnails and context menu - visible only in "All Files" mode (Task 6 ✅)
+- **Keyboard & Mouse Support**: Full keyboard navigation and mouse support across all screens - perfect for ChromeOS and desktop mode (Task 8 ✅)
+- **Enhanced Reliability**: Fixed file visibility after copy/move operations and resolved empty folder scanning issues.
+- **Better Compatibility**: Improved handling of scoped storage on Android 10-14.
 
 ## Windows Version 🖥️
 
@@ -47,16 +56,16 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 | Flavor | Description | Features |
 |--------|-------------|----------|
 | **Standard** | Full-featured version with all capabilities | Videos, Audio, Images, Documents, EPUB, Cloud Storage, Translation |
-| **Lite** | Lightweight version, local files only | Videos, Audio, Images (no cloud, no documents) |
-| **Photos** | Optimized for photo management, with cloud | Images only + Cloud Storage (no video/audio) |
-| **Legacy** | Full feature set for older Android (6.0+) | Videos, Audio, Images, Documents, EPUB, Cloud Storage |
+| **Lite** | Lightweight version for basic needs | Videos, Images only (no audio, cloud, documents) |
+| **Photos** | Optimized for photo management | Images only - perfect for photo viewing and editing |
+| **Legacy** | Extended local media support | Videos, Audio, Images (network/cloud support removed) |
 
 ### Which Flavor Should I Download?
 
-- **Standard** ⭐ **(Recommended)**: Full experience with all features — cloud storage, document viewing, translations, audio support
-- **Lite**: Smaller app size, no cloud/docs/animations — focused on local video/audio/photos
-- **Photos**: Best for users who only work with images — includes cloud backup support
-- **Legacy**: Identical feature set to Standard, but supports Android 6.0+ (API 23) devices
+- **Standard** ⭐ **(Recommended)**: Full experience with all features - cloud storage, document viewing, translations, audio support
+- **Lite**: Smaller app size, focused on photos and videos
+- **Photos**: Best for users who only work with images
+- **Legacy**: No cloud/network features but full local media support
 
 ## Download 📥
 
@@ -75,8 +84,6 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 >
 > 🔐 **ZIP Password: `1`** (APK files are packaged as password-protected ZIP archives to bypass Google Drive restrictions)
 
-📄 **Detailed information about builds and download process:** [docs/DOWLOADS_EN.md](docs/DOWLOADS_EN.md)
-
 ## Screenshots 📱
 
 <!-- Place screenshots here. Example structure: -->
@@ -93,24 +100,21 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 - ⭐ **Favorites System:** Mark important files as favorites and access them quickly from a dedicated tab that aggregates favorites across all sources.
 - 🔒 **PIN Protection:** Secure individual resources with access PIN codes to prevent unauthorized browsing and editing.
 - ⚙️ **Per-Resource Configuration:** Customize slideshow interval, scan depth (subdirectories), and thumbnail generation for each folder individually.
-- 🎛️ **Resource Profiles:** Quick-setup presets when creating a resource (Audio Library, Video Library, Photo Storage, Documents, All Files) — automatically sets file type filters and default sort order.
-- 🔤 **Metadata-Aware Display & Sorting:** Audio files show `Artist - Title • Duration` in the file list. Sort by Artist, Title, Duration, or Date Taken. Metadata is cached alongside the file list and survives app restarts.
 - 🖥️ **Network and Cloud Support:** Work with files on your network drives (SMB with automatic network scanning), SFTP servers, FTP, and in cloud storage (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Flexible Viewing:** Display files as a customizable grid or detailed list with pagination support for large collections (1000+ files).
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
-- 🖼️ **Audio Player with Photo Background:** Display a selected photo as a background while playing music tracks.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
-- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Includes context menu with Share/Open With/Copy/Move/Rename/Delete actions. Available in "All Files" mode.
-- ⌨️ **Keyboard & Mouse Support:** Full keyboard navigation (arrow keys, Ctrl+A/C/X/Delete, F2/F5, Tab, Escape) and mouse support (right-click context menu, hover effects, focus indicators) across all screens - perfect for ChromeOS and desktop mode.
+- 🗂️ **Binary Files Support:** View and manage binary files (ZIP, RAR, APK, ISO, EXE, DLL, etc.) with generated thumbnails showing file extensions. Context menu with Share/Open With/Copy/Move/Rename/Delete. Available only in "All Files" mode.
+- ⌨️ **Keyboard & Mouse Support:** Full keyboard navigation (arrow keys, shortcuts like Ctrl+A/C/X, F2, F5, Delete, Backspace) and mouse support (right-click context menu, hover effects, focus indicators) for ChromeOS and desktop mode.
 - 🔍 **Sorting and Filtering:** Order files by name, date, size, and duration. Apply filters for quick search. Support for hidden files (starting with `.`) with dedicated toggle.
 - ↩️ **Undo & Trash:** Ability to undo the last action (copy, move, delete) with soft-delete to `.trash/` folder. Includes "Empty Trash" functionality for resources.
 - 🎨 **Modern Interface:** Support for light and dark themes, intuitive controls, Material Design 3.
 - 💾 **Smart Caching:** Two-stage video metadata loading (1MB initial, 5MB extended) and configurable thumbnail cache (2GB default, up to 16GB).
 - 📄 **Document Viewer:** Built-in viewer for Text files (.txt, .md, .log, .json, .xml) and PDF documents with zoom, pan, and gesture navigation.
-- � **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
-- �📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
+-  **EPUB E-Book Reader:** Native EPUB reader with chapter navigation, table of contents, font size control, in-book search, and dark/light theme support. Works with local and network files.
+- 📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
 - 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.

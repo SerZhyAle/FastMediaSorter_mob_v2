@@ -982,18 +982,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         navigateToDropboxFolderPicker()
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.dropbox_authentication_failed) + ": ${result.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showDropboxBetaDialog()
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.msg_dropbox_auth_cancelled),
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showDropboxBetaDialog()
                     }
                 }
                 isDropboxAuthenticated = false
@@ -1054,6 +1046,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
     
+    private fun showDropboxBetaDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dropbox_beta_title)
+            .setMessage(R.string.dropbox_beta_message)
+            .setPositiveButton(R.string.dropbox_beta_send_email) { _, _ ->
+                val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                    data = android.net.Uri.parse("mailto:serzhyale@gmail.com")
+                    putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.dropbox_beta_email_subject))
+                    putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.dropbox_beta_email_body))
+                }
+                try { startActivity(intent) } catch (e: Exception) { /* no email client */ }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
     private fun navigateToDropboxFolderPicker() {
         val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.DropboxFolderPickerActivity::class.java)
         startActivity(intent)

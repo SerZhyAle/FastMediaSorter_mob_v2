@@ -169,20 +169,32 @@ class BrowseCloudAuthManager(
                         callbacks.onAuthenticationSuccess()
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.dropbox_authentication_failed) + ": ${result.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        showDropboxBetaDialog(context)
                         callbacks.onAuthenticationFailure()
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                        // User cancelled or auth didn't complete
-                        // Don't show error toast here as it might just be a normal resume
+                        showDropboxBetaDialog(context)
+                        callbacks.onAuthenticationFailure()
                     }
                 }
                 isDropboxAuthenticating = false
             }
         }
+    }
+
+    private fun showDropboxBetaDialog(context: android.content.Context) {
+        android.app.AlertDialog.Builder(context)
+            .setTitle(context.getString(R.string.dropbox_beta_title))
+            .setMessage(context.getString(R.string.dropbox_beta_message))
+            .setPositiveButton(context.getString(R.string.dropbox_beta_send_email)) { _, _ ->
+                val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
+                    data = android.net.Uri.parse("mailto:serzhyale@gmail.com")
+                    putExtra(android.content.Intent.EXTRA_SUBJECT, context.getString(R.string.dropbox_beta_email_subject))
+                    putExtra(android.content.Intent.EXTRA_TEXT, context.getString(R.string.dropbox_beta_email_body))
+                }
+                try { context.startActivity(intent) } catch (e: Exception) { Timber.w(e, "No email client") }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

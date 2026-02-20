@@ -614,6 +614,13 @@ class GeneralSettingsFragment : Fragment() {
                 ).show()
             }
         }
+
+        binding.btnOpenSourceLicenses?.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(android.R.id.content, OpenSourceLicensesFragment())
+                .addToBackStack(null)
+                .commit()
+        }
         
         // Reset Settings Button
         binding.btnResetSettings.setOnClickListener {

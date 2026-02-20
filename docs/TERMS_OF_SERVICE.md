@@ -123,6 +123,12 @@ We are not responsible for:
 - Changes to third-party APIs or protocols
 - Security of your network credentials
 
+### 8.3 Cloud API Terms
+
+- **Google Drive (play-services-auth):** Sensitive and restricted OAuth scopes (such as `.../drive` and `.../drive.file`) require app verification by Google. If the app is not verified, users will see a warning screen. This is a mandatory security measure.
+- **OneDrive (MSAL 6.0.1):** Registration in Microsoft Entra (Azure AD) is mandatory. It is free, but explicit consent to Microsoft Identity Platform Terms is required.
+- **Dropbox SDK (5.4.5):** The Dropbox Developer Agreement applies. There are traffic quotas on the free tier. For monetization or high traffic, a paid plan for the developer account may be required if quotas are exceeded.
+
 ## 9. Updates and Changes
 
 ### 9.1 App Updates

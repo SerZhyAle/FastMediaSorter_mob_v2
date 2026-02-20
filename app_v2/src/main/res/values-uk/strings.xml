@@ -150,6 +150,15 @@
     <string name="doc_chapter_count_label">Розділів: %1$d</string>
     <string name="doc_line_count_label">Рядків: %1$d</string>
     <string name="doc_word_count_label">Слів: %1$d</string>
+
+    <!-- Open Source Licenses -->
+    <string name="open_source_licenses_title">Ліцензії відкритого ПЗ</string>
+    <string name="lib_smbj_title">SMBJ - Бібліотека SMBv2/v3 для Java</string>
+    <string name="lib_smbj_license">Ліцензія: LGPL-2.1</string>
+    <string name="lib_epub4j_title">epub4j - Читання/запис EPUB файлів</string>
+    <string name="lib_epub4j_license">Ліцензія: LGPL-2.1</string>
+    <string name="view_source">Вихідний код</string>
+    <string name="view_license">Ліцензія</string>
     <string name="doc_char_count_label">Символів: %1$d</string>
     <string name="doc_encoding_label">Кодування: %1$s</string>
     <string name="pdf_version_label">Версія PDF: %1$s</string>
@@ -854,6 +863,11 @@
     <string name="dropbox_sign_out">Вийти</string>
     <string name="dropbox_select_folder">Вибрати папку</string>
     <string name="dropbox_authentication_failed">Помилка входу в Dropbox</string>
+    <string name="dropbox_beta_title">Dropbox: Бета-доступ</string>
+    <string name="dropbox_beta_message">Інтеграція з Dropbox наразі доступна в обмеженому бета-режимі.\n\n⚠️ Навіщо писати вам?\nDropbox вимагає від розробників вручну реєструвати тестерів на період перевірки. Це разова технічна формальність з боку Dropbox \u2014 ваш email потрібен лише для додавання вашого акаунту до дозволеного списку.\n\n🔒 Ваша приватність повністю захищена:\n\u2022 Ми НЕ збираємо, не зберігаємо і не передаємо ваш email\n\u2022 Ми НЕ отримуємо доступ до ваших файлів\n\u2022 Email використовується виключно для надання доступу до Dropbox у цьому додатку\n\nДля отримання доступу напишіть нам:\nserzhyale@gmail.com</string>
+    <string name="dropbox_beta_send_email">Написати листа</string>
+    <string name="dropbox_beta_email_subject">FastMediaSorter - Запит доступу до Dropbox бета</string>
+    <string name="dropbox_beta_email_body">Доброго дня,\n\nБудь ласка, додайте мій акаунт Dropbox до списку бета-тестерів FastMediaSorter.\n\nМій email Dropbox: </string>
     <string name="dropbox_connection_test_success">Успішно підключено!</string>
     <string name="dropbox_connection_test_failed">Помилка підключення: %1$s</string>
 
