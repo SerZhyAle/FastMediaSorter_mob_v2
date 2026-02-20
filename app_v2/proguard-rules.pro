@@ -148,20 +148,17 @@
 # Keep all data classes used by Retrofit (iTunes API models)
 -keep class com.sza.fastmediasorter.data.remote.** { *; }
 
-# Remove logging in release
+# Remove verbose/debug logging in release (v, d only).
+# WARNING: Do NOT add w() or e() here — -assumenosideeffects removes the call
+# entirely from bytecode, which would suppress error/warning reporting
+# (e.g. Crashlytics Timber tree, exception chaining side-effects).
 -assumenosideeffects class timber.log.Timber* {
     public static *** v(...);
     public static *** d(...);
-    public static *** i(...);
-    public static *** w(...);
-    public static *** e(...);
 }
 -assumenosideeffects class timber.log.Timber$Tree {
     public *** v(...);
     public *** d(...);
-    public *** i(...);
-    public *** w(...);
-    public *** e(...);
 }
 
 # Apache HTTP Client (используется транзитивными зависимостями)

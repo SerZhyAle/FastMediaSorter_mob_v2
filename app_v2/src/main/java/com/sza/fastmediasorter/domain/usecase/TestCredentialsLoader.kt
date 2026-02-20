@@ -47,7 +47,7 @@ class TestCredentialsLoader @Inject constructor(
                     port = 445,
                     username = "sza",
                     password = "SerZhyA25",
-                    shareName = "test_share",
+                    shareName = "test_media",
                     folder = "", // Root folder
                     domain = null
                 ),

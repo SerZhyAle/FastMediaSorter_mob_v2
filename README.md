@@ -47,16 +47,16 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 | Flavor | Description | Features |
 |--------|-------------|----------|
 | **Standard** | Full-featured version with all capabilities | Videos, Audio, Images, Documents, EPUB, Cloud Storage, Translation |
-| **Lite** | Lightweight version for basic needs | Videos, Images only (no audio, cloud, documents) |
-| **Photos** | Optimized for photo management | Images only - perfect for photo viewing and editing |
-| **Legacy** | Extended local media support | Videos, Audio, Images (network/cloud support removed) |
+| **Lite** | Lightweight version, local files only | Videos, Audio, Images (no cloud, no documents) |
+| **Photos** | Optimized for photo management, with cloud | Images only + Cloud Storage (no video/audio) |
+| **Legacy** | Full feature set for older Android (6.0+) | Videos, Audio, Images, Documents, EPUB, Cloud Storage |
 
 ### Which Flavor Should I Download?
 
-- **Standard** ⭐ **(Recommended)**: Full experience with all features - cloud storage, document viewing, translations, audio support
-- **Lite**: Smaller app size, focused on photos and videos
-- **Photos**: Best for users who only work with images
-- **Legacy**: No cloud/network features but full local media support
+- **Standard** ⭐ **(Recommended)**: Full experience with all features — cloud storage, document viewing, translations, audio support
+- **Lite**: Smaller app size, no cloud/docs/animations — focused on local video/audio/photos
+- **Photos**: Best for users who only work with images — includes cloud backup support
+- **Legacy**: Identical feature set to Standard, but supports Android 6.0+ (API 23) devices
 
 ## Download 📥
 
@@ -93,6 +93,8 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 - ⭐ **Favorites System:** Mark important files as favorites and access them quickly from a dedicated tab that aggregates favorites across all sources.
 - 🔒 **PIN Protection:** Secure individual resources with access PIN codes to prevent unauthorized browsing and editing.
 - ⚙️ **Per-Resource Configuration:** Customize slideshow interval, scan depth (subdirectories), and thumbnail generation for each folder individually.
+- 🎛️ **Resource Profiles:** Quick-setup presets when creating a resource (Audio Library, Video Library, Photo Storage, Documents, All Files) — automatically sets file type filters and default sort order.
+- 🔤 **Metadata-Aware Display & Sorting:** Audio files show `Artist - Title • Duration` in the file list. Sort by Artist, Title, Duration, or Date Taken. Metadata is cached alongside the file list and survives app restarts.
 - 🖥️ **Network and Cloud Support:** Work with files on your network drives (SMB with automatic network scanning), SFTP servers, FTP, and in cloud storage (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Flexible Viewing:** Display files as a customizable grid or detailed list with pagination support for large collections (1000+ files).
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
