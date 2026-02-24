@@ -11,12 +11,13 @@ Essential reading for end-users to install, configure, and use the application.
 - **[How-To Guides](HOW_TO.md)** - Detailed step-by-step instructions for specific tasks.
 - **[FAQ](FAQ.md)** - Frequently Asked Questions.
 - **[Troubleshooting](TROUBLESHOOTING.md)** - Solutions to common problems.
+- **[Program Limitations](LIMITATIONS.md)** - Known constraints and performance considerations.
 - **[SMB Setup Guide](SMB_SETUP_GUIDE.md)** - Specific guide for setting up network shares.
 - **[Module Selection](MODULE_SELECTION.md)** - Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy).
 
 ### 🌍 Multi-language Support
 Most guides are available in Russian and Ukrainian:
-- **Russian**: [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md)
+- **Russian**: [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md)
 - **Ukrainian**: [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md)
 
 ---

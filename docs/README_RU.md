@@ -182,9 +182,27 @@ FastMediaSorter v2 поддерживает широкий спектр форм
     - Альтернативно, включите опцию "Is Destination" (Является назначением) в окне редактирования любого ресурса, чтобы добавить его в список быстрой сортировки.
     - После этого на экране плеера появятся кнопки для быстрого копирования или перемещения файлов в эти папки.
 
-## Документация 📚
+## Документация / Документація / Документация 📚
 
 **🌐 Официальный сайт:** [https://serzhyale.github.io/FastMediaSorter_mob_v2/](https://serzhyale.github.io/FastMediaSorter_mob_v2/)
+
+Подробные руководства доступны на нескольких языках:
+
+**🇷🇺 Русский:**
+
+- [Руководства](docs/HOW_TO_RU.md)
+- [Быстрый Старт](docs/QUICK_START_RU.md)
+- [FAQ](docs/FAQ_RU.md)
+- [Устранение неполадок](docs/TROUBLESHOOTING_RU.md)
+- [Ограничения программы](docs/LIMITATIONS_RU.md)
+
+**🇺🇸 English:**
+
+- [How-To Guides](docs/HOW_TO.md)
+- [Quick Start](docs/QUICK_START.md)
+- [FAQ](docs/FAQ.md)
+- [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Program Limitations](docs/LIMITATIONS.md)
 
 **📖 Полная документация:** [Портал документации](https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html)
 

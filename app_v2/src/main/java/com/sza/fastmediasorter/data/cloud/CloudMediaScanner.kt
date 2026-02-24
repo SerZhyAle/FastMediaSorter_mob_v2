@@ -85,8 +85,8 @@ class CloudMediaScanner @Inject constructor(
             
             val client = getClient(resource.cloudProvider) ?: return@withContext emptyList()
             
-            // Ensure authenticated
-            ensureAuthenticated(client, resource.cloudProvider)
+            // Ensure authenticated with the correct account (credentialsId = account email for cloud resources)
+            ensureAuthenticated(client, resource.cloudProvider, resource.credentialsId)
             
             // Use cloudFolderId from resource for API calls (important for Dropbox which uses /path format)
             val actualFolderId = resource.cloudFolderId ?: folderId
@@ -202,7 +202,7 @@ class CloudMediaScanner @Inject constructor(
             
             val client = getClient(resource.cloudProvider) ?: return@withContext MediaFilePage(emptyList(), false)
             
-            ensureAuthenticated(client, resource.cloudProvider)
+            ensureAuthenticated(client, resource.cloudProvider, resource.credentialsId)
             
             // Get all files first (cloud APIs don't support offset-based pagination natively)
             // Use scanFolderInternal
@@ -283,7 +283,11 @@ class CloudMediaScanner @Inject constructor(
         }
     }
 
-    private suspend fun ensureAuthenticated(client: CloudStorageClient, provider: CloudProvider?) {
+    private suspend fun ensureAuthenticated(
+        client: CloudStorageClient,
+        provider: CloudProvider?,
+        credentialsId: String? = null
+    ) {
         when (provider) {
             CloudProvider.GOOGLE_DRIVE -> {
                 // Try to authenticate (will use cached account or fail)
@@ -308,13 +312,21 @@ class CloudMediaScanner @Inject constructor(
                 }
             }
             CloudProvider.DROPBOX, CloudProvider.ONEDRIVE -> {
-                // Other providers may need different handling
+                // For Dropbox: try to restore the specific account linked to this resource
+                if (credentialsId != null && provider == CloudProvider.DROPBOX) {
+                    if (dropboxClient.tryRestoreForAccount(credentialsId)) {
+                        Timber.d("CloudMediaScanner: Dropbox restored for account $credentialsId")
+                        return
+                    }
+                    Timber.w("CloudMediaScanner: Could not restore Dropbox account $credentialsId, falling back")
+                }
                 when (val result = client.authenticate()) {
                     is AuthResult.Success -> {
                         Timber.d("Cloud client authenticated: ${result.accountName}")
                     }
                     is AuthResult.Error -> {
-                        throw IllegalStateException("Not authenticated with $provider: ${result.message}")
+                        // Propagate with "Not authenticated" prefix so catch block re-throws to ViewModel
+                        throw IllegalStateException("Not authenticated with $provider. ${result.message}")
                     }
                     AuthResult.Cancelled -> {
                         throw IllegalStateException("Authentication cancelled for $provider")

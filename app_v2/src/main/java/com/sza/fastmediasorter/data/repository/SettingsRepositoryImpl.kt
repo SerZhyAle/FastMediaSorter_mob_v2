@@ -148,13 +148,19 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
             }
             .map { preferences ->
-                val language = preferences[KEY_LANGUAGE] ?: "en"
-                
-                // Sync language to SharedPreferences for LocaleHelper (if not already synced)
-                val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-                val savedLanguage = sharedPrefs.getString("selected_language", null)
-                if (savedLanguage != language) {
-                    sharedPrefs.edit().putString("selected_language", language).apply()
+                val languageFromDataStore = preferences[KEY_LANGUAGE]   // null = not explicitly set
+                val language = languageFromDataStore ?: "en"
+
+                // Sync language to SharedPreferences for LocaleHelper ONLY when the user has
+                // explicitly chosen a language (key present in DataStore).
+                // Skipping the sync on first launch preserves the auto-detected system language
+                // (ru/uk) that LocaleHelper derives from the OS locale.
+                if (languageFromDataStore != null) {
+                    val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+                    val savedLanguage = sharedPrefs.getString("selected_language", null)
+                    if (savedLanguage != languageFromDataStore) {
+                        sharedPrefs.edit().putString("selected_language", languageFromDataStore).apply()
+                    }
                 }
                 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)

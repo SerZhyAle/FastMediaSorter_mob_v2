@@ -19,6 +19,10 @@ import timber.log.Timber
 @AndroidEntryPoint
 class DropboxFolderPickerActivity : BaseActivity<ActivityDropboxFolderPickerBinding>() {
 
+    companion object {
+        const val EXTRA_ACCOUNT_EMAIL = "extra_account_email"
+    }
+
     private val viewModel: DropboxFolderPickerViewModel by viewModels()
     private lateinit var folderAdapter: DropboxFolderAdapter
 

@@ -181,6 +181,7 @@ Detailed guides are available in multiple languages:
 - [Quick Start](docs/QUICK_START.md)
 - [FAQ](docs/FAQ.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Program Limitations](docs/LIMITATIONS.md)
 
 **🇷🇺 Русский:**
 
@@ -188,6 +189,7 @@ Detailed guides are available in multiple languages:
 - [Быстрый Старт](docs/QUICK_START_RU.md)
 - [FAQ](docs/FAQ_RU.md)
 - [Устранение неполадок](docs/TROUBLESHOOTING_RU.md)
+- [Ограничения программы](docs/LIMITATIONS_RU.md)
 
 **🇺🇦 Українська:**
 

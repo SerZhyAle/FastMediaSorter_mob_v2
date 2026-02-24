@@ -19,6 +19,10 @@ import timber.log.Timber
 @AndroidEntryPoint
 class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBinding>() {
 
+    companion object {
+        const val EXTRA_ACCOUNT_EMAIL = "extra_account_email"
+    }
+
     private val viewModel: OneDriveFolderPickerViewModel by viewModels()
     private lateinit var folderAdapter: OneDriveFolderAdapter
 

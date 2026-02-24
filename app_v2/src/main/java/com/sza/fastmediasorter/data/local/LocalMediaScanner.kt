@@ -229,7 +229,7 @@ class LocalMediaScanner @Inject constructor(
         }
 
         if (path.startsWith("content://")) {
-            return@withContext getFileCountSAF(path, supportedTypes, sizeFilter)
+            return@withContext getFileCountSAF(path, supportedTypes, sizeFilter, scanSubdirectories)
         }
         
         try {
@@ -243,13 +243,17 @@ class LocalMediaScanner @Inject constructor(
              // ignore
         }
         
-        // Fallback
+        // Fallback using File API, respecting scanSubdirectories
         val folder = File(path)
         if (!folder.exists()) return@withContext 0
-        val files = folder.listFiles() ?: return@withContext 0
-        val visibleFiles = if (showHiddenFiles) files.toList() else files.filter { !it.isHidden }
+        val allFiles = if (scanSubdirectories) {
+            collectFilesRecursively(folder)
+        } else {
+            val children = folder.listFiles() ?: return@withContext 0
+            children.filter { it.isFile }
+        }
+        val visibleFiles = if (showHiddenFiles) allFiles else allFiles.filter { !it.isHidden }
         visibleFiles.count { file ->
-            if (!file.isFile) return@count false
             val type = MediaTypeUtils.getMediaType(file.name) ?: return@count false
             if (type !in supportedTypes) return@count false
             sizeFilter == null || MediaTypeUtils.isFileSizeInRange(file.length(), type, sizeFilter)
@@ -576,10 +580,8 @@ class LocalMediaScanner @Inject constructor(
     }
     
     // ... Repeated helper methods ...
-    private suspend fun getFileCountSAF(uriString: String, supportedTypes: Set<MediaType>, sizeFilter: SizeFilter?): Int {
-         // simplified implementation for brevity in rewrite if needed, but I should try to preserve if possible
-         // effectively calling scanFolderSAF().size
-         return scanFolderSAF(uriString, supportedTypes, sizeFilter, false, null).size
+    private suspend fun getFileCountSAF(uriString: String, supportedTypes: Set<MediaType>, sizeFilter: SizeFilter?, scanSubdirectories: Boolean = false): Int {
+         return scanFolderSAF(uriString, supportedTypes, sizeFilter, scanSubdirectories, null).size
     }
 
     private suspend fun isWritableSAF(uriString: String): Boolean {

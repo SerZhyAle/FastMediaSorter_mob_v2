@@ -23,8 +23,27 @@ object LocaleHelper {
     private const val PREF_SELECTED_LANGUAGE = "selected_language"
     private const val DEFAULT_LANGUAGE = "en"
 
+    /** Languages the app fully supports beyond English. */
+    private val SUPPORTED_NON_DEFAULT_LANGUAGES = setOf("ru", "uk")
+
     /**
-     * Get saved language code from preferences
+     * Detect the system (OS) display language and map it to one of the app's supported languages.
+     * Returns "ru" or "uk" if the OS is set to that language; falls back to "en" for everything else.
+     */
+    fun detectSystemLanguage(): String {
+        val systemLang = Locale.getDefault().language   // ISO 639-1 code, e.g. "ru", "uk", "en"
+        return if (systemLang in SUPPORTED_NON_DEFAULT_LANGUAGES) systemLang else DEFAULT_LANGUAGE
+    }
+
+    /**
+     * Get the active language code for the app.
+     *
+     * Priority:
+     *  1. Android 13+ LocaleManager (per-app language, set by user in System Settings or in-app).
+     *  2. SharedPreferences (persisted by [saveLanguage] when user picks a language in-app).
+     *  3. System OS language — if the OS is set to Russian or Ukrainian, use that automatically
+     *     (first-launch experience; no explicit preference saved yet).
+     *  4. English as final fallback.
      */
     fun getLanguage(context: Context): String = StrictModeHelper.allowDiskReads {
         // Android 13+ (API 33): Try reading from LocaleManager first
@@ -41,12 +60,19 @@ object LocaleHelper {
                 Timber.w(e, "LocaleHelper: Failed to read from LocaleManager, fallback to SharedPreferences")
             }
         }
-        
-        // Fallback: Read from SharedPreferences
+
+        // SharedPreferences — present only after user explicitly chose a language
         val prefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        val languageCode = prefs.getString(PREF_SELECTED_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
-        Timber.d("LocaleHelper: Read language from SharedPreferences: $languageCode")
-        return@allowDiskReads languageCode
+        if (prefs.contains(PREF_SELECTED_LANGUAGE)) {
+            val languageCode = prefs.getString(PREF_SELECTED_LANGUAGE, DEFAULT_LANGUAGE) ?: DEFAULT_LANGUAGE
+            Timber.d("LocaleHelper: Read language from SharedPreferences: $languageCode")
+            return@allowDiskReads languageCode
+        }
+
+        // No explicit preference yet — use system OS language (ru/uk) or fall back to en
+        val systemLanguage = detectSystemLanguage()
+        Timber.d("LocaleHelper: No saved language preference; using system language: $systemLanguage")
+        return@allowDiskReads systemLanguage
     }
 
     /**

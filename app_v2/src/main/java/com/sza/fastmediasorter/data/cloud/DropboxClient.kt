@@ -77,7 +77,8 @@ class DropboxClient @Inject constructor(
     companion object {
         private const val APP_NAME = "FastMediaSorter/2.0"
         private const val PREFS_NAME = "dropbox_credentials"
-        private const val KEY_CREDENTIALS = "credentials_json"
+        private const val KEY_CREDENTIALS = "credentials_json"           // Legacy single-account key
+        private const val KEY_CREDENTIALS_PREFIX = "credentials_json_"   // Per-account key prefix
         
         // Dropbox App Key for credential restoration
         private const val DROPBOX_APP_KEY = "dpy64e70kqobr6x"
@@ -112,18 +113,45 @@ class DropboxClient @Inject constructor(
     }
     
     /**
-     * Save credentials to encrypted storage
+     * Save credentials to encrypted storage.
+     * Saves both to the legacy single-account key and to the per-account key (keyed by accountEmail).
      */
     private fun saveCredentials(json: String) {
-        encryptedPrefs.edit().putString(KEY_CREDENTIALS, json).apply()
-        Timber.d("Dropbox credentials saved to encrypted storage")
+        val edit = encryptedPrefs.edit().putString(KEY_CREDENTIALS, json) // Always update legacy key
+        accountEmail?.let { email ->
+            edit.putString("$KEY_CREDENTIALS_PREFIX$email", json) // Save per-account key
+        }
+        edit.apply()
+        Timber.d("Dropbox credentials saved (account: ${accountEmail ?: "unknown"})")
     }
-    
+
     /**
-     * Load credentials from encrypted storage
+     * Load credentials from encrypted storage.
+     * If [email] is provided, tries per-account key first, then falls back to legacy.
      */
-    private fun loadStoredCredentials(): String? {
+    private fun loadStoredCredentials(email: String? = null): String? {
+        if (email != null) {
+            val perAccount = encryptedPrefs.getString("$KEY_CREDENTIALS_PREFIX$email", null)
+            if (perAccount != null) return perAccount
+        }
         return encryptedPrefs.getString(KEY_CREDENTIALS, null)
+    }
+
+    /**
+     * Try to restore the Dropbox client for a specific account (identified by email).
+     * Used for multi-account support when scanning cloud resources.
+     * Falls back to any stored credentials if no per-account key found.
+     */
+    suspend fun tryRestoreForAccount(email: String): Boolean {
+        if (dbxClient != null && accountEmail == email) return true // Already correct account
+        val stored = loadStoredCredentials(email)
+        if (stored != null) {
+            if (initialize(stored)) {
+                Timber.d("Dropbox client restored for account: $email (current: $accountEmail)")
+                return true
+            }
+        }
+        return tryRestoreFromStorage() // Fallback to any stored credentials
     }
     
     /**
@@ -207,9 +235,8 @@ class DropboxClient @Inject constructor(
                     }
                 }
                 
-                // Need OAuth flow - must be initiated from Activity
-                // This will be handled by ResourceEditorActivity
-                AuthResult.Error("OAuth flow required. Please use ResourceEditorActivity to authenticate.")
+                // Need OAuth flow - must be initiated from Activity via AddResourceActivity
+                AuthResult.Error("Re-authentication required. Please re-add this Dropbox resource.")
             } catch (e: Exception) {
                 Timber.e(e, "Dropbox authentication failed")
                 AuthResult.Error("Authentication failed: ${e.message}")

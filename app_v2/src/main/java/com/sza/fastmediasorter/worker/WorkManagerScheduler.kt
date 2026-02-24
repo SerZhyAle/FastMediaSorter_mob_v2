@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.worker
 
 import android.content.Context
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -11,8 +13,8 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Manager for scheduling and managing WorkManager tasks
- * Currently handles periodic trash cleanup
+ * Manager for scheduling and managing WorkManager tasks.
+ * Handles periodic trash cleanup and background resource sync.
  */
 @Singleton
 class WorkManagerScheduler @Inject constructor(
@@ -54,6 +56,52 @@ class WorkManagerScheduler @Inject constructor(
             Timber.i("WorkManagerScheduler: Cancelled trash cleanup worker")
         } catch (e: Exception) {
             Timber.e(e, "WorkManagerScheduler: Failed to cancel trash cleanup")
+        }
+    }
+
+    /**
+     * Schedule periodic background sync for all resources (local + network).
+     * Network constraint is NOT required so local directories sync even offline.
+     * Network resources are scanned when connectivity is available; failures are non-fatal.
+     *
+     * @param intervalHours How often to sync (minimum 1 hour enforced by WorkManager).
+     */
+    fun scheduleResourcesSync(intervalHours: Long) {
+        try {
+            val effectiveInterval = intervalHours.coerceAtLeast(1L)
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.NOT_REQUIRED) // local sync must work offline
+                .setRequiresBatteryNotLow(true)
+                .build()
+
+            val workRequest = PeriodicWorkRequestBuilder<NetworkFilesSyncWorker>(
+                effectiveInterval, TimeUnit.HOURS
+            )
+                .setConstraints(constraints)
+                .setInitialDelay(5, TimeUnit.MINUTES)
+                .addTag(NetworkFilesSyncWorker.WORK_NAME)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                NetworkFilesSyncWorker.WORK_NAME,
+                ExistingPeriodicWorkPolicy.REPLACE,
+                workRequest
+            )
+            Timber.i("WorkManagerScheduler: Resource sync scheduled every $effectiveInterval h")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: Failed to schedule resource sync")
+        }
+    }
+
+    /**
+     * Cancel the periodic background resource sync worker.
+     */
+    fun cancelResourcesSync() {
+        try {
+            WorkManager.getInstance(context).cancelUniqueWork(NetworkFilesSyncWorker.WORK_NAME)
+            Timber.i("WorkManagerScheduler: Resource sync worker cancelled")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: Failed to cancel resource sync")
         }
     }
 }

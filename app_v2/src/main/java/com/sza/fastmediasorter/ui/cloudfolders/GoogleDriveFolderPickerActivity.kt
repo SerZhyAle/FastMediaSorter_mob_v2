@@ -21,10 +21,16 @@ import timber.log.Timber
 @AndroidEntryPoint
 class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPickerBinding>() {
 
+    companion object {
+        const val EXTRA_ACCOUNT_EMAIL = "extra_account_email"
+        const val EXTRA_FOLDER_ID = "folder_id"
+        const val EXTRA_FOLDER_NAME = "folder_name"
+    }
+
     private val viewModel: GoogleDriveFolderPickerViewModel by viewModels()
     private lateinit var folderAdapter: GoogleDriveFolderAdapter
-    
-    private val reAuthLauncher: ActivityResultLauncher<Intent> = 
+
+    private val reAuthLauncher: ActivityResultLauncher<Intent> =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
                 Timber.i("Re-authorization successful, reloading folders")
@@ -47,11 +53,11 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
             finish()
             return
         }
-        
+
         binding.toolbar.setNavigationOnClickListener {
             handleBackNavigation()
         }
-        
+
         // Handle system back button
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -75,7 +81,7 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
         )
 
         binding.rvFolders.adapter = folderAdapter
-        
+
         binding.cbAddAsDestination.setOnCheckedChangeListener { _, _ ->
             viewModel.toggleDestinationFlag()
         }
@@ -97,17 +103,17 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     folderAdapter.submitList(state.folders)
-                    
+
                     binding.progressBar.isVisible = state.isLoading && !binding.swipeRefresh.isRefreshing
                     binding.swipeRefresh.isRefreshing = state.isLoading && binding.swipeRefresh.isRefreshing
-                    
+
                     binding.tvEmptyState.isVisible = state.folders.isEmpty() && !state.isLoading
                     binding.rvFolders.isVisible = state.folders.isNotEmpty()
-                    
+
                     // Update toolbar title with current path
                     val pathString = state.currentPath.joinToString(" / ") { it.name }
                     binding.toolbar.title = pathString
-                    
+
                     // Update checkboxes
                     binding.cbAddAsDestination.isChecked = state.addAsDestination
                     binding.cbScanSubdirectories.isChecked = state.scanSubdirectories
@@ -123,13 +129,17 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
                             Toast.makeText(this@GoogleDriveFolderPickerActivity, event.message, Toast.LENGTH_SHORT).show()
                         }
                         is GoogleDriveFolderPickerEvent.FolderSelected -> {
-                            Toast.makeText(this@GoogleDriveFolderPickerActivity, 
-                                getString(R.string.resource_added), 
-                                Toast.LENGTH_SHORT).show()
-                            
+                            Toast.makeText(
+                                this@GoogleDriveFolderPickerActivity,
+                                getString(R.string.resource_added),
+                                Toast.LENGTH_SHORT
+                            ).show()
+
                             // Navigate to main activity
-                            val intent = Intent(this@GoogleDriveFolderPickerActivity, 
-                                com.sza.fastmediasorter.ui.main.MainActivity::class.java).apply {
+                            val intent = Intent(
+                                this@GoogleDriveFolderPickerActivity,
+                                com.sza.fastmediasorter.ui.main.MainActivity::class.java
+                            ).apply {
                                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
                             }
                             startActivity(intent)
@@ -145,11 +155,6 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
         }
     }
 
-    companion object {
-        const val EXTRA_FOLDER_ID = "folder_id"
-        const val EXTRA_FOLDER_NAME = "folder_name"
-    }
-    
     private fun handleBackNavigation() {
         if (!viewModel.navigateBack()) {
             finish()

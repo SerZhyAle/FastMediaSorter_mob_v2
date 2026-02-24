@@ -193,6 +193,8 @@ class SmbFileOperationHandler @Inject constructor(
                 val destFilePath = if (destinationPath.endsWith("/")) "$destinationPath$fileName" else "$destinationPath/$fileName"
                 
                 Timber.d("SMB executeMove: [${index + 1}/${operation.sources.size}] Moving $fileName to $destFilePath")
+                progressCallback?.onFileStarted(index + 1, fileName, operation.sources.size)
+
                 
                 when {
                     sourcePath.startsWith("smb:", ignoreCase = true) -> {

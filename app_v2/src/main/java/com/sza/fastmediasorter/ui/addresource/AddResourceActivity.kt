@@ -95,9 +95,22 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         return ActivityAddResourceBinding.inflate(layoutInflater)
     }
     
+    override fun onSaveInstanceState(outState: android.os.Bundle) {
+        super.onSaveInstanceState(outState)
+        // Preserve OAuth flow flags so onResume() can finish auth even after process death / recreation
+        outState.putBoolean(KEY_DROPBOX_AUTH, isDropboxAuthenticated)
+        outState.putBoolean(KEY_ONEDRIVE_AUTH, isOneDriveAuthenticated)
+    }
+
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
+        // Restore OAuth flags after Activity recreation (process death during OAuth redirect)
+        savedInstanceState?.let {
+            isDropboxAuthenticated = it.getBoolean(KEY_DROPBOX_AUTH, false)
+            isOneDriveAuthenticated = it.getBoolean(KEY_ONEDRIVE_AUTH, false)
+        }
+
         // Check if copying existing resource
         copyResourceId = intent.getLongExtra(EXTRA_COPY_RESOURCE_ID, -1L).takeIf { it != -1L }
         
@@ -915,7 +928,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             ).show()
             
             // Navigate to folder selection
-            navigateToGoogleDriveFolderPicker()
+            navigateToGoogleDriveFolderPicker(account.email)
             
         } catch (e: ApiException) {
             Timber.e(e, "Google Sign-In failed: ${e.statusCode}")
@@ -937,8 +950,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
     
-    private fun navigateToGoogleDriveFolderPicker() {
-        val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.GoogleDriveFolderPickerActivity::class.java)
+    private fun navigateToGoogleDriveFolderPicker(accountEmail: String? = null) {
+        val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.GoogleDriveFolderPickerActivity::class.java).apply {
+            accountEmail?.let { putExtra("extra_account_email", it) }
+        }
         startActivity(intent)
     }
     
@@ -947,7 +962,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             .setTitle(getString(R.string.google_drive))
             .setMessage(getString(R.string.connected_as, account.email ?: ""))
             .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
-                navigateToGoogleDriveFolderPicker()
+                navigateToGoogleDriveFolderPicker(account.email)
             }
             .setNegativeButton(R.string.google_drive_sign_out) { _, _ ->
                 signOutGoogleDrive()
@@ -979,13 +994,21 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                             getString(R.string.dropbox_signed_in, result.accountName),
                             Toast.LENGTH_SHORT
                         ).show()
-                        navigateToDropboxFolderPicker()
+                        navigateToDropboxFolderPicker(result.accountName)
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                        showDropboxBetaDialog()
+                        Toast.makeText(
+                            this@AddResourceActivity,
+                            getString(R.string.dropbox_authentication_failed) + ": ${result.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                        showDropboxBetaDialog()
+                        Toast.makeText(
+                            this@AddResourceActivity,
+                            getString(R.string.msg_dropbox_auth_cancelled),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
                 isDropboxAuthenticated = false
@@ -1003,7 +1026,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                             getString(R.string.msg_onedrive_auth_success),
                             Toast.LENGTH_SHORT
                         ).show()
-                        navigateToOneDriveFolderPicker()
+                        navigateToOneDriveFolderPicker(oneDriveClient.get().getAccountEmail())
                     }
                     is com.sza.fastmediasorter.data.cloud.CloudResult.Error -> {
                         Toast.makeText(
@@ -1024,8 +1047,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 // Check if already authenticated
                 val testResult = dropboxClient.get().testConnection()
                 if (testResult is com.sza.fastmediasorter.data.cloud.CloudResult.Success) {
-                    // Already authenticated
-                    showDropboxSignedInOptions()
+                    // Already authenticated — get current account email to pass to folder picker
+                    val email = dropboxClient.get().getAccountEmail()
+                    showDropboxSignedInOptions(email)
                 } else {
                     // Use simple OAuth2 authentication without explicit scopes
                     // Scopes are configured in Dropbox App Console
@@ -1046,33 +1070,19 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
     
-    private fun showDropboxBetaDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dropbox_beta_title)
-            .setMessage(R.string.dropbox_beta_message)
-            .setPositiveButton(R.string.dropbox_beta_send_email) { _, _ ->
-                val intent = android.content.Intent(android.content.Intent.ACTION_SENDTO).apply {
-                    data = android.net.Uri.parse("mailto:serzhyale@gmail.com")
-                    putExtra(android.content.Intent.EXTRA_SUBJECT, getString(R.string.dropbox_beta_email_subject))
-                    putExtra(android.content.Intent.EXTRA_TEXT, getString(R.string.dropbox_beta_email_body))
-                }
-                try { startActivity(intent) } catch (e: Exception) { /* no email client */ }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun navigateToDropboxFolderPicker() {
-        val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.DropboxFolderPickerActivity::class.java)
+    private fun navigateToDropboxFolderPicker(accountEmail: String? = null) {
+        val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.DropboxFolderPickerActivity::class.java).apply {
+            accountEmail?.let { putExtra("extra_account_email", it) }
+        }
         startActivity(intent)
     }
-    
-    private fun showDropboxSignedInOptions() {
+
+    private fun showDropboxSignedInOptions(accountEmail: String? = null) {
         AlertDialog.Builder(this)
             .setTitle(R.string.dropbox)
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.dropbox_select_folder) { _, _ ->
-                navigateToDropboxFolderPicker()
+                navigateToDropboxFolderPicker(accountEmail)
             }
             .setNegativeButton(R.string.dropbox_sign_out) { _, _ ->
                 signOutDropbox()
@@ -1095,19 +1105,20 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             try {
                 val testResult = oneDriveClient.get().testConnection()
                 if (testResult is com.sza.fastmediasorter.data.cloud.CloudResult.Success) {
-                    showOneDriveSignedInOptions()
+                    val email = oneDriveClient.get().getAccountEmail()
+                    showOneDriveSignedInOptions(email)
                 } else {
                     val result = oneDriveClient.get().authenticate()
                     when (result) {
                         is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
-                            navigateToOneDriveFolderPicker()
+                            navigateToOneDriveFolderPicker(result.accountName)
                         }
                         is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
                             if (result.message.contains("Interactive sign-in required")) {
                                 // Trigger interactive sign-in
                                 oneDriveClient.get().signIn(this@AddResourceActivity) { signInResult ->
                                     if (signInResult is com.sza.fastmediasorter.data.cloud.AuthResult.Success) {
-                                        navigateToOneDriveFolderPicker()
+                                        navigateToOneDriveFolderPicker(signInResult.accountName)
                                     } else if (signInResult is com.sza.fastmediasorter.data.cloud.AuthResult.Error) {
                                         Toast.makeText(
                                             this@AddResourceActivity,
@@ -1144,17 +1155,19 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         }
     }
     
-    private fun navigateToOneDriveFolderPicker() {
-        val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.OneDriveFolderPickerActivity::class.java)
+    private fun navigateToOneDriveFolderPicker(accountEmail: String? = null) {
+        val intent = Intent(this, com.sza.fastmediasorter.ui.cloudfolders.OneDriveFolderPickerActivity::class.java).apply {
+            accountEmail?.let { putExtra("extra_account_email", it) }
+        }
         startActivity(intent)
     }
-    
-    private fun showOneDriveSignedInOptions() {
+
+    private fun showOneDriveSignedInOptions(accountEmail: String? = null) {
         AlertDialog.Builder(this)
             .setTitle(R.string.onedrive)
             .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.onedrive_select_folder) { _, _ ->
-                navigateToOneDriveFolderPicker()
+                navigateToOneDriveFolderPicker(accountEmail)
             }
             .setNegativeButton(R.string.onedrive_sign_out) { _, _ ->
                 signOutOneDrive()
@@ -1808,6 +1821,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     companion object {
         private const val EXTRA_COPY_RESOURCE_ID = "extra_copy_resource_id"
         private const val EXTRA_PRESELECTED_TAB = "extra_preselected_tab"
+        private const val KEY_DROPBOX_AUTH = "key_dropbox_authenticated"
+        private const val KEY_ONEDRIVE_AUTH = "key_onedrive_authenticated"
         
         fun createIntent(context: Context, copyResourceId: Long? = null, preselectedTab: com.sza.fastmediasorter.ui.main.ResourceTab? = null): Intent {
             return Intent(context, AddResourceActivity::class.java).apply {

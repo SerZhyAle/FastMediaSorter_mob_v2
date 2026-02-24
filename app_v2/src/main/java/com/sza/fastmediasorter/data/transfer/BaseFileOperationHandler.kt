@@ -74,7 +74,9 @@ abstract class BaseFileOperationHandler(
         var successCount = 0
         
         operation.sources.forEachIndexed { index, source ->
-            Timber.d("executeCopy: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
+            val total = operation.sources.size
+            Timber.d("executeCopy: [${index + 1}/$total] Processing ${source.name}")
+            progressCallback?.onFileStarted(index + 1, source.name, total)
             
             try {
                 val sourcePath = getSafePath(source)
@@ -154,7 +156,9 @@ abstract class BaseFileOperationHandler(
         var successCount = 0
         
         operation.sources.forEachIndexed { index, source ->
-            Timber.d("executeMove: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
+            val total = operation.sources.size
+            Timber.d("executeMove: [${index + 1}/$total] Processing ${source.name}")
+            progressCallback?.onFileStarted(index + 1, source.name, total)
             
             try {
                 val sourcePath = getSafePath(source)

@@ -12,7 +12,16 @@ interface ByteProgressCallback {
      * @param speedBytesPerSecond Current transfer speed in bytes per second
      */
     suspend fun onProgress(bytesTransferred: Long, totalBytes: Long, speedBytesPerSecond: Long)
-    
+
+    /**
+     * Called once at the start of each file being processed.
+     * Used to update the file counter in progress UI.
+     * @param index 1-based index of the current file
+     * @param fileName Name of the current file
+     * @param total Total number of files in the operation
+     */
+    suspend fun onFileStarted(index: Int, fileName: String, total: Int) {}
+
     companion object {
         /**
          * Report progress every 100KB to avoid too frequent UI updates

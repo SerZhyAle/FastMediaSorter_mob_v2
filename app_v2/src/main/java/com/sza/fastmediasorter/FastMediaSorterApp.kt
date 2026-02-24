@@ -157,15 +157,24 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         
         // Defer WorkManager scheduling to background with delay to avoid blocking app startup
         // WorkManager initialization is expensive (~100-200ms), defer until after UI is rendered
-        // applicationScope.launch(Dispatchers.IO) {
-        //     try {
-        //         kotlinx.coroutines.delay(500) // Wait for UI to render first
-        //         workManagerScheduler.scheduleTrashCleanup()
-        //         Timber.d("Background initialization: WorkManager scheduled")
-        //     } catch (e: Exception) {
-        //         Timber.e(e, "Failed to schedule WorkManager in background")
-        //     }
-        // }
+        applicationScope.launch(Dispatchers.IO) {
+            try {
+                kotlinx.coroutines.delay(2000) // Wait for UI to render first
+                val settings = settingsRepository.getSettings().first()
+                if (settings.enableBackgroundSync) {
+                    workManagerScheduler.scheduleResourcesSync(
+                        settings.backgroundSyncIntervalHours.toLong()
+                    )
+                    Timber.i("FastMediaSorterApp: Background resource sync scheduled (${settings.backgroundSyncIntervalHours}h)")
+                } else {
+                    // Ensure legacy scheduled work is cleaned up on first launch after update
+                    workManagerScheduler.cancelResourcesSync()
+                    Timber.d("FastMediaSorterApp: Background sync is disabled, skipping scheduling")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
+            }
+        }
     }
 
     private fun setupDebugStrictMode() {

@@ -14,8 +14,9 @@ import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
 /**
- * Background worker to periodically verify network file existence
- * and update file counts for network resources (SMB, SFTP, FTP)
+ * Background worker to periodically verify file existence and update file counts
+ * for all resources: local directories, network shares (SMB, SFTP, FTP).
+ * Cloud resources (OAuth-dependent) are excluded intentionally.
  */
 @HiltWorker
 class NetworkFilesSyncWorker @AssistedInject constructor(
@@ -27,7 +28,7 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        Timber.d("NetworkFilesSyncWorker: Starting background sync")
+        Timber.d("NetworkFilesSyncWorker: Starting background sync (local + network)")
         
         return try {
             val resources = resourceRepository.getAllResources().first()
@@ -45,19 +46,24 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                 )
             } else null
             
-            // Filter only network resources
-            val networkResources = resources.filter { 
-                it.type == ResourceType.SMB || it.type == ResourceType.SFTP || it.type == ResourceType.FTP
+            // Exclude CLOUD: requires active OAuth tokens, not suitable for background worker
+            val resourcesToSync = resources.filter {
+                it.type == ResourceType.LOCAL ||
+                it.type == ResourceType.SMB ||
+                it.type == ResourceType.SFTP ||
+                it.type == ResourceType.FTP
             }
-            
-            if (networkResources.isEmpty()) {
-                Timber.d("NetworkFilesSyncWorker: No network resources to sync")
+
+            if (resourcesToSync.isEmpty()) {
+                Timber.d("NetworkFilesSyncWorker: No resources to sync")
                 return Result.success()
             }
-            
-            Timber.d("NetworkFilesSyncWorker: Syncing ${networkResources.size} network resources")
-            
-            networkResources.forEach { resource ->
+
+            val localCount = resourcesToSync.count { it.type == ResourceType.LOCAL }
+            val networkCount = resourcesToSync.size - localCount
+            Timber.d("NetworkFilesSyncWorker: Syncing ${resourcesToSync.size} resources (local=$localCount, network=$networkCount)")
+
+            resourcesToSync.forEach { resource ->
                 try {
                     val scanner = mediaScannerFactory.getScanner(resource.type)
                     
@@ -91,9 +97,9 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
                 }
             }
             
-            Timber.i("NetworkFilesSyncWorker: Background sync completed successfully")
+            Timber.i("NetworkFilesSyncWorker: Background sync completed (local + network)")
             Result.success()
-            
+
         } catch (e: Exception) {
             Timber.e(e, "NetworkFilesSyncWorker: Background sync failed")
             Result.failure()

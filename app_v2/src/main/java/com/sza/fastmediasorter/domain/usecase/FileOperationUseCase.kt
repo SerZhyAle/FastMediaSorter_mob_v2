@@ -59,7 +59,7 @@ sealed class FileOperationResult {
     
     /**
      * Cloud provider requires re-authentication
-        * UI should prompt user to re-authenticate via ResourceEditorActivity
+     * UI should prompt user to re-authenticate via AddResourceActivity
      */
     data class AuthenticationRequired(val provider: String, val message: String) : FileOperationResult()
     
@@ -134,11 +134,25 @@ class FileOperationUseCase @Inject constructor(
                 // Use trySend to avoid blocking if channel is full
                 trySend(FileOperationProgress.Processing(
                     currentFile = currentFileName,
-                    currentIndex = currentFileIndex,
+                    currentIndex = currentFileIndex - 1,
                     totalFiles = totalFiles,
                     bytesTransferred = bytesTransferred,
                     totalBytes = totalBytes,
                     speedBytesPerSecond = speedBytesPerSecond
+                ))
+            }
+
+            override suspend fun onFileStarted(index: Int, fileName: String, total: Int) {
+                currentFileIndex = index
+                currentFileName = fileName
+                // Send an immediate Processing update so the dialog shows the new file
+                trySend(FileOperationProgress.Processing(
+                    currentFile = fileName,
+                    currentIndex = index - 1,
+                    totalFiles = total,
+                    bytesTransferred = 0L,
+                    totalBytes = 0L,
+                    speedBytesPerSecond = 0L
                 ))
             }
         }
@@ -152,6 +166,7 @@ class FileOperationUseCase @Inject constructor(
         // Wait for completion
         resultDeferred.join()
     }
+
     
     /**
      * Internal execution without withContext (called from flow with flowOn)
@@ -366,8 +381,8 @@ class FileOperationUseCase @Inject constructor(
                     Timber.d("FileOperation: Using local file operations")
                     // Use local file operations
                     when (operation) {
-                        is FileOperation.Copy -> executeCopy(operation)
-                        is FileOperation.Move -> executeMove(operation)
+                        is FileOperation.Copy -> executeCopy(operation, progressCallback)
+                        is FileOperation.Move -> executeMove(operation, progressCallback)
                         is FileOperation.Rename -> executeRename(operation)
                         is FileOperation.Delete -> executeDelete(operation)
                     }
@@ -410,15 +425,20 @@ class FileOperationUseCase @Inject constructor(
         executeInternal(operation, progressCallback)
     }
     
-    private fun executeCopy(operation: FileOperation.Copy): FileOperationResult {
+    private suspend fun executeCopy(
+        operation: FileOperation.Copy,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult {
         Timber.d("executeCopy: Starting local copy of ${operation.sources.size} files to ${operation.destination.absolutePath}")
         
         val errors = mutableListOf<String>()
         val copiedPaths = mutableListOf<String>()
         var successCount = 0
+        val total = operation.sources.size
         
         operation.sources.forEachIndexed { index, source ->
-            Timber.d("executeCopy: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
+            Timber.d("executeCopy: [${index + 1}/$total] Processing ${source.name}")
+            progressCallback?.onFileStarted(index + 1, source.name, total)
             
             val sourcePath = source.path
             val isContentUri = sourcePath.startsWith("content:/")
@@ -539,15 +559,20 @@ class FileOperationUseCase @Inject constructor(
         com.sza.fastmediasorter.utils.MediaStoreNotifier.notifyFile(context, path, "file-operation")
     }
     
-    private suspend fun executeMove(operation: FileOperation.Move): FileOperationResult {
+    private suspend fun executeMove(
+        operation: FileOperation.Move,
+        progressCallback: ByteProgressCallback? = null
+    ): FileOperationResult {
         Timber.d("executeMove: Starting local move of ${operation.sources.size} files to ${operation.destination.absolutePath}")
         
         val errors = mutableListOf<String>()
         val movedPaths = mutableListOf<String>()
         var successCount = 0
+        val total = operation.sources.size
         
         operation.sources.forEachIndexed { index, source ->
-            Timber.d("executeMove: [${index + 1}/${operation.sources.size}] Processing ${source.name}")
+            Timber.d("executeMove: [${index + 1}/$total] Processing ${source.name}")
+            progressCallback?.onFileStarted(index + 1, source.name, total)
             
             val sourcePath = source.path
             val isContentUri = sourcePath.startsWith("content:/")

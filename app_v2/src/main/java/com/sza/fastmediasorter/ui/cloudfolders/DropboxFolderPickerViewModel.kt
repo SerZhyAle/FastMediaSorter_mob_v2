@@ -8,10 +8,13 @@ import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
+import kotlinx.coroutines.flow.first
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,8 +48,13 @@ class DropboxFolderPickerViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val dropboxClient: DropboxClient,
     private val resourceRepository: ResourceRepository,
-    private val addResourceUseCase: AddResourceUseCase
+    private val settingsRepository: SettingsRepository,
+    private val addResourceUseCase: AddResourceUseCase,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    /** Account email passed from AddResourceActivity — stored as credentialsId in the resource */
+    private val accountEmail: String? = savedStateHandle["extra_account_email"]
 
     private val _state = MutableStateFlow(DropboxFolderPickerState())
     val state: StateFlow<DropboxFolderPickerState> = _state.asStateFlow()
@@ -108,6 +116,10 @@ class DropboxFolderPickerViewModel @Inject constructor(
             val scanSubdirectories = _state.value.scanSubdirectories
 
             try {
+                // Read globally enabled media types from settings (same logic as GoogleDrive picker)
+                val settings = settingsRepository.getSettings().first()
+                val supportedTypes = settings.getGloballyEnabledMediaTypes()
+
                 val resource = com.sza.fastmediasorter.domain.model.MediaResource(
                     id = 0,
                     type = ResourceType.CLOUD,
@@ -118,7 +130,9 @@ class DropboxFolderPickerViewModel @Inject constructor(
                     displayOrder = 0,
                     cloudProvider = CloudProvider.DROPBOX,
                     cloudFolderId = folder.id,
-                    isWritable = true // Cloud storage is writable
+                    credentialsId = accountEmail, // Links resource to the authenticated Dropbox account
+                    isWritable = true, // Cloud storage is writable
+                    supportedMediaTypes = supportedTypes
                 )
                 
                 val result = addResourceUseCase.addMultiple(listOf(resource))

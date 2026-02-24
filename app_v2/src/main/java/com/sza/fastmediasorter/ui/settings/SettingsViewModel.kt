@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.ResetSmbConnectionsUseCase
 import com.sza.fastmediasorter.domain.usecase.SyncNetworkResourcesUseCase
+import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +53,8 @@ class SettingsViewModel @Inject constructor(
     val exportSettingsUseCase: ExportSettingsUseCase,
     val importSettingsUseCase: ImportSettingsUseCase,
     val resetSmbConnectionsUseCase: ResetSmbConnectionsUseCase,
-    private val syncNetworkResourcesUseCase: SyncNetworkResourcesUseCase
+    private val syncNetworkResourcesUseCase: SyncNetworkResourcesUseCase,
+    private val workManagerScheduler: WorkManagerScheduler
 ) : ViewModel() {
 
     private val _manualNetworkSyncState = MutableStateFlow(ManualNetworkSyncUiState())
@@ -74,13 +76,31 @@ class SettingsViewModel @Inject constructor(
         )
 
     fun updateSettings(settings: AppSettings) {
+        val prev = this.settings.value
         viewModelScope.launch {
             try {
                 settingsRepository.updateSettings(settings)
-                // Settings updated
+                // Reschedule background sync when relevant settings change
+                if (settings.enableBackgroundSync != prev.enableBackgroundSync ||
+                    settings.backgroundSyncIntervalHours != prev.backgroundSyncIntervalHours) {
+                    applyBackgroundSyncSchedule(
+                        enabled = settings.enableBackgroundSync,
+                        intervalHours = settings.backgroundSyncIntervalHours.toLong()
+                    )
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Error updating settings")
             }
+        }
+    }
+
+    private fun applyBackgroundSyncSchedule(enabled: Boolean, intervalHours: Long) {
+        if (enabled) {
+            workManagerScheduler.scheduleResourcesSync(intervalHours)
+            Timber.i("SettingsViewModel: Background sync enabled, interval=${intervalHours}h")
+        } else {
+            workManagerScheduler.cancelResourcesSync()
+            Timber.i("SettingsViewModel: Background sync disabled")
         }
     }
 
@@ -279,7 +299,8 @@ class SettingsViewModel @Inject constructor(
                 getResourcesUseCase().first()
                     .asSequence()
                     .filter {
-                        it.type == ResourceType.SMB ||
+                        it.type == ResourceType.LOCAL ||
+                            it.type == ResourceType.SMB ||
                             it.type == ResourceType.SFTP ||
                             it.type == ResourceType.FTP
                     }
@@ -288,7 +309,7 @@ class SettingsViewModel @Inject constructor(
                     .maxOrNull()
             }
         } catch (e: Exception) {
-            Timber.e(e, "Error getting last network sync timestamp")
+            Timber.e(e, "Error getting last sync timestamp")
             null
         }
     }

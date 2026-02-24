@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.google.android.gms.auth.UserRecoverableAuthException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,8 +62,12 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
     private val googleDriveClient: GoogleDriveRestClient,
     private val resourceRepository: ResourceRepository,
     private val addResourceUseCase: AddResourceUseCase,
-    private val settingsRepository: com.sza.fastmediasorter.domain.repository.SettingsRepository
+    private val settingsRepository: com.sza.fastmediasorter.domain.repository.SettingsRepository,
+    private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    /** Account email passed from AddResourceActivity — stored as credentialsId in the resource */
+    private val accountEmail: String? = savedStateHandle["extra_account_email"]
 
     private val _state = MutableStateFlow(GoogleDriveFolderPickerState())
     val state: StateFlow<GoogleDriveFolderPickerState> = _state.asStateFlow()
@@ -147,6 +152,7 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
                     displayOrder = 0,
                     cloudProvider = CloudProvider.GOOGLE_DRIVE,
                     cloudFolderId = folder.id,
+                    credentialsId = accountEmail, // Links resource to the authenticated Google account
                     isWritable = true, // Cloud storage is writable
                     supportedMediaTypes = supportedTypes
                 )
