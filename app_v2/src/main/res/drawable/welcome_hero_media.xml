@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Welcome hero: media files organized concept -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0" />
+
+    <!-- Photo frame 1 (tilted left) -->
+    <group
+        android:pivotX="65"
+        android:pivotY="85"
+        android:rotation="-12">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M35,55 L95,55 L95,115 L35,115 Z"
+            android:strokeColor="#90CAF9"
+            android:strokeWidth="2" />
+        <!-- Mountain landscape icon -->
+        <path
+            android:fillColor="#66BB6A"
+            android:pathData="M35,100 L55,75 L70,90 L80,80 L95,100 L95,115 L35,115 Z" />
+        <path
+            android:fillColor="#FDD835"
+            android:pathData="M78,65 m-5,0 a5,5 0,1 1,10 0 a5,5 0,1 1,-10 0" />
+    </group>
+
+    <!-- Video frame (center, slightly tilted right) -->
+    <group
+        android:pivotX="110"
+        android:pivotY="75"
+        android:rotation="5">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M85,50 L145,50 L145,100 L85,100 Z"
+            android:strokeColor="#CE93D8"
+            android:strokeWidth="2" />
+        <!-- Play triangle -->
+        <path
+            android:fillColor="#AB47BC"
+            android:pathData="M108,65 L125,75 L108,85 Z" />
+    </group>
+
+    <!-- Music note card (bottom right) -->
+    <group
+        android:pivotX="140"
+        android:pivotY="125"
+        android:rotation="8">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M115,105 L165,105 L165,145 L115,145 Z"
+            android:strokeColor="#80CBC4"
+            android:strokeWidth="2" />
+        <!-- Music note -->
+        <path
+            android:fillColor="#26A69A"
+            android:pathData="M135,115 L135,135 M135,135 m-5,0 a5,3 0,1 1,10 0 a5,3 0,1 1,-10 0 M135,115 L150,112 L150,130 M150,130 m-5,0 a5,3 0,1 1,10 0 a5,3 0,1 1,-10 0"
+            android:strokeColor="#26A69A"
+            android:strokeWidth="2" />
+    </group>
+
+    <!-- Document card (bottom left) -->
+    <group
+        android:pivotX="55"
+        android:pivotY="135"
+        android:rotation="-5">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M30,120 L80,120 L80,155 L30,155 Z"
+            android:strokeColor="#FFB74D"
+            android:strokeWidth="2" />
+        <!-- Text lines -->
+        <path
+            android:fillColor="#FFB74D"
+            android:pathData="M36,130 L74,130"
+            android:strokeColor="#FFB74D"
+            android:strokeWidth="2" />
+        <path
+            android:fillColor="#FFB74D"
+            android:pathData="M36,137 L65,137"
+            android:strokeColor="#FFB74D"
+            android:strokeWidth="2" />
+        <path
+            android:fillColor="#FFB74D"
+            android:pathData="M36,144 L70,144"
+            android:strokeColor="#FFB74D"
+            android:strokeWidth="2" />
+    </group>
+
+    <!-- Sparkle decorations -->
+    <path
+        android:fillColor="#FDD835"
+        android:pathData="M160,40 L163,48 L170,48 L164,53 L166,60 L160,56 L154,60 L156,53 L150,48 L157,48 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M35,35 L37,40 L42,40 L38,43 L39,48 L35,45 L31,48 L32,43 L28,40 L33,40 Z" />
+
+</vector>

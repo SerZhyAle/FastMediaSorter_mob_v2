@@ -1,12 +1,15 @@
 package com.sza.fastmediasorter.ui.welcome
 
 import android.Manifest
+import android.animation.ValueAnimator
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
@@ -77,37 +80,52 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private fun setupViewPager() {
         val pages = mutableListOf(
+            // Page 1: Welcome (Enhanced with feature cards)
             WelcomePage(
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.welcome_hero_media,
                 titleRes = R.string.welcome_title_1,
-                descriptionRes = R.string.welcome_description_1
+                descriptionRes = R.string.welcome_description_1,
+                featureCards = listOf(
+                    FeatureCard(R.drawable.ic_image, R.string.welcome_feature_photos),
+                    FeatureCard(R.drawable.ic_resource_cloud, R.string.welcome_feature_cloud),
+                    FeatureCard(R.drawable.ic_swap_horizontal, R.string.welcome_feature_sorting)
+                )
             ),
+            // Page 2: Resource Types
             WelcomePage(
                 iconRes = R.drawable.resource_types,
                 titleRes = R.string.welcome_title_2,
                 descriptionRes = R.string.welcome_description_2
             ),
+            // Page 3: Touch Zones
             WelcomePage(
                 iconRes = R.mipmap.ic_launcher,
                 titleRes = R.string.welcome_title_3,
                 descriptionRes = R.string.welcome_description_3,
                 showTouchZonesScheme = true
             ),
+            // Page 4: Resources & Destinations
             WelcomePage(
                 iconRes = R.drawable.destinations,
                 titleRes = R.string.welcome_title_4,
                 descriptionRes = R.string.welcome_description_4
             ),
+            // Page 5: Additional Features (Enhanced with feature cards)
             WelcomePage(
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.welcome_hero_features,
                 titleRes = R.string.welcome_title_5,
-                descriptionRes = R.string.welcome_description_5
+                descriptionRes = R.string.welcome_description_5,
+                featureCards = listOf(
+                    FeatureCard(R.drawable.ic_ocr, R.string.welcome_feature_ocr),
+                    FeatureCard(R.drawable.ic_audio, R.string.welcome_feature_audio),
+                    FeatureCard(R.drawable.ic_book, R.string.welcome_feature_ebook)
+                )
             ),
-            // Permissions Page
+            // Page 6: Permissions
             WelcomePage(
-                iconRes = 0, // Not used for permission page type
-                titleRes = 0, // Not used
-                descriptionRes = 0, // Not used
+                iconRes = 0,
+                titleRes = 0,
+                descriptionRes = 0,
                 isPermissionsPage = true,
                 onGrantClick = { requestPermissions() }
             )
@@ -125,34 +143,72 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         setupIndicators(pages.size)
     }
 
+    private val indicatorDotSize by lazy {
+        resources.getDimensionPixelSize(R.dimen.indicator_size)
+    }
+    private val indicatorPillWidth by lazy {
+        (indicatorDotSize * 3) // Active pill is 3x wider
+    }
+    private val indicatorMarginPx by lazy {
+        resources.getDimensionPixelSize(R.dimen.indicator_margin)
+    }
+
     private fun setupIndicators(count: Int) {
         binding.layoutIndicator.removeAllViews()
-        val indicatorSize = resources.getDimensionPixelSize(R.dimen.indicator_size)
-        val indicatorMargin = resources.getDimensionPixelSize(R.dimen.indicator_margin)
 
         for (i in 0 until count) {
+            val isActive = i == 0
             val indicator = View(this).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    indicatorSize,
-                    indicatorSize
+                layoutParams = LinearLayout.LayoutParams(
+                    if (isActive) indicatorPillWidth else indicatorDotSize,
+                    indicatorDotSize
                 ).apply {
-                    setMargins(indicatorMargin, 0, indicatorMargin, 0)
+                    setMargins(indicatorMarginPx, 0, indicatorMarginPx, 0)
                 }
-                setBackgroundResource(R.drawable.indicator_inactive)
+                setBackgroundResource(
+                    if (isActive) R.drawable.indicator_active
+                    else R.drawable.indicator_inactive
+                )
             }
             binding.layoutIndicator.addView(indicator)
         }
-
-        updateIndicators()
     }
 
+    private var previousPage = 0
+
     private fun updateIndicators() {
-        for (i in 0 until binding.layoutIndicator.childCount) {
-            val indicator = binding.layoutIndicator.getChildAt(i)
-            indicator.setBackgroundResource(
-                if (i == currentPage) R.drawable.indicator_active
-                else R.drawable.indicator_inactive
-            )
+        if (previousPage == currentPage) return
+
+        val count = binding.layoutIndicator.childCount
+        if (count == 0) return
+
+        // Animate previous indicator: pill → dot
+        if (previousPage in 0 until count) {
+            val prevIndicator = binding.layoutIndicator.getChildAt(previousPage)
+            prevIndicator.setBackgroundResource(R.drawable.indicator_inactive)
+            animateIndicatorWidth(prevIndicator, indicatorPillWidth, indicatorDotSize)
+        }
+
+        // Animate current indicator: dot → pill
+        if (currentPage in 0 until count) {
+            val currIndicator = binding.layoutIndicator.getChildAt(currentPage)
+            currIndicator.setBackgroundResource(R.drawable.indicator_active)
+            animateIndicatorWidth(currIndicator, indicatorDotSize, indicatorPillWidth)
+        }
+
+        previousPage = currentPage
+    }
+
+    private fun animateIndicatorWidth(view: View, from: Int, to: Int) {
+        ValueAnimator.ofInt(from, to).apply {
+            duration = 250
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { animator ->
+                val params = view.layoutParams
+                params.width = animator.animatedValue as Int
+                view.layoutParams = params
+            }
+            start()
         }
     }
 

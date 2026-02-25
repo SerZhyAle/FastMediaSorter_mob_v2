@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    android:background="?attr/colorPrimary">
+    android:background="?attr/colorSurface">
 
     <!-- Top Navigation Bar - Compact -->
     <LinearLayout
@@ -26,7 +26,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/previous"
-            android:textColor="?attr/colorOnPrimary"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7"
             android:textSize="@dimen/welcome_button_text_size"
             android:padding="@dimen/welcome_button_padding"
             android:minHeight="36dp"
@@ -41,12 +42,11 @@
         <!-- Next Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/next"
-            android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/welcome_button_text_size"
             android:padding="@dimen/welcome_button_padding"
             android:minHeight="36dp"
@@ -55,12 +55,11 @@
         <!-- Finish Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinish"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/Widget.Material3.Button.TonalButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/finish"
-            android:textColor="?attr/colorOnPrimary"
             android:textSize="@dimen/welcome_button_text_size"
             android:padding="@dimen/welcome_button_padding"
             android:minHeight="36dp"
@@ -75,7 +74,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/skip"
-            android:textColor="?attr/colorOnPrimary"
+            android:textColor="?attr/colorOnSurface"
+            android:alpha="0.7"
             android:textSize="@dimen/welcome_button_text_size"
             android:padding="@dimen/welcome_button_padding"
             android:minHeight="36dp"

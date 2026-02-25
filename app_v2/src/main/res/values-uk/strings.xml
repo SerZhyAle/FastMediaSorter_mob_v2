@@ -602,21 +602,29 @@
     <string name="next">Далі</string>
     <string name="finish">Готово</string>
     <string name="welcome_title_1">Ласкаво просимо до FastMediaSorter!</string>
-    <string name="welcome_description_1">Ефективна організація медіафайлів:\n\n• Перегляд фото, відео, GIF, аудіо\n• Сортування та фільтрація\n• Копіювання/переміщення жестами\n• Локальні, мережеві (SMB/S/FTP) та хмарні папки\n• До 30 швидких папок призначення\n• Режим слайд-шоу\n\nПочнемо!</string>
+    <string name="welcome_description_1">Ваш універсальний медіаорганайзер.\nПереглядайте, сортуйте та керуйте файлами на локальних, мережевих та хмарних сховищах — все за допомогою інтуїтивних жестів.</string>
     <string name="welcome_title_2">Типи ресурсів</string>
-    <string name="welcome_description_2">Підтримувані типи ресурсів:\n\n📱 ЛОКАЛЬНІ: Пам\'ять пристрою, SD-карти\n\n🌐 МЕРЕЖЕВІ: SMB/CIFS, SFTP, FTP\n\n☁️ ХМАРНІ: Google Drive, OneDrive, Dropbox\n\nДодавайте ресурси в Налаштуваннях!</string>
+    <string name="welcome_description_2">Підключайтеся до будь-якого сховища:\n\n📱 ЛОКАЛЬНІ — Папки пристрою, SD-карти\n\n🌐 МЕРЕЖЕВІ — SMB/CIFS, SFTP, FTP\n\n☁️ ХМАРНІ — Google Drive, OneDrive, Dropbox\n\nДодавайте ресурси в Налаштуваннях у будь-який час.</string>
     <string name="welcome_title_3">Сенсорні зони (Зображення/Відео)\nвикористовувати в повноекранному режимі</string>
     <string name="welcome_description_3" formatted="false">Програвач використовує 9 сенсорних зон (сітка 3×3) для швидких дій. Натискайте на зони для навігації, копіювання, переміщення, видалення файлів або доступу до командної панелі. Схему показано вище.</string>
     <string name="welcome_title_4">Ресурси та призначення</string>
-    <string name="welcome_description_4">РЕСУРСИ: Додавайте папки з локального сховища, мережевих ресурсів або хмарних сервісів.\n\nПРИЗНАЧЕННЯ: Налаштуйте до 30 швидких папок з кольоровим маркуванням для операцій копіювання/переміщення.\n\nНалаштовуйте в будь-який час!</string>
-    <string name="welcome_title_5">Додаткові функції</string>
-    <string name="welcome_description_5">📝 ТЕКСТ І PDF: Перегляд та редагування текстових файлів, експорт сторінок PDF у JPG\n\n🔤 OCR І ПЕРЕКЛАД: Витягування тексту із зображень та переклад на вашу мову\n\n📚 EPUB: Читання електронних книг з налаштовуваним розміром шрифту\n\n🎵 АУДІО: Відтворення музики з обкладинками з iTunes\n\n✨ І багато іншого!\n\nНалаштування в Налаштуваннях далі…</string>
+    <string name="welcome_description_4">РЕСУРСИ — Папки з будь-якого типу сховища.\n\nШВИДКЕ СОРТУВАННЯ — До 30 папок призначення з кольоровим маркуванням для швидких операцій копіювання/переміщення.\n\nНалаштовуйте в Налаштуваннях у будь-який час!</string>
+    <string name="welcome_title_5">Додаткові можливості</string>
+    <string name="welcome_description_5">Не лише перегляд медіа — FastMediaSorter містить професійні інструменти для тексту, документів та аудіо.</string>
     <string name="welcome_permissions_title">Доступ до медіафайлів</string>
     <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
     <string name="grant_permissions">Надати доступ</string>
     <string name="permissions_denied_title">Потрібен дозвіл</string>
     <string name="permissions_denied_warning">Без доступу до медіафайлів основний функціонал додатка буде недоступний.</string>
     <string name="continue_anyway">Продовжити без дозволів</string>
+
+    <!-- Welcome Feature Card Labels -->
+    <string name="welcome_feature_photos">Фото і Відео</string>
+    <string name="welcome_feature_cloud">Хмарне сховище</string>
+    <string name="welcome_feature_sorting">Розумне сортування</string>
+    <string name="welcome_feature_ocr">OCR і Переклад</string>
+    <string name="welcome_feature_audio">Аудіоплеєр</string>
+    <string name="welcome_feature_ebook">Книги і PDF</string>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ до сховища</string>

@@ -606,21 +606,29 @@
     <string name="next">Далее</string>
     <string name="finish">Готово</string>
     <string name="welcome_title_1">Добро пожаловать в FastMediaSorter!</string>
-    <string name="welcome_description_1">Эффективная организация медиафайлов:\n\n• Просмотр фото, видео, GIF, аудио\n• Сортировка и фильтрация\n• Копирование/перемещение жестами\n• Локальные, сетевые (SMB/S/FTP) и облачные папки\n• До 30 быстрых папок назначения\n• Режим слайд-шоу\n\nНачнём!</string>
+    <string name="welcome_description_1">Ваш универсальный медиаорганайзер.\nПросматривайте, сортируйте и управляйте файлами на локальных, сетевых и облачных хранилищах — всё с помощью интуитивных жестов.</string>
     <string name="welcome_title_2">Типы ресурсов</string>
-    <string name="welcome_description_2">Поддерживаемые типы ресурсов:\n\n📱 ЛОКАЛЬНЫЕ: Память устройства, SD-карты\n\n🌐 СЕТЕВЫЕ: SMB/CIFS, SFTP, FTP\n\n☁️ ОБЛАЧНЫЕ: Google Drive, OneDrive, Dropbox\n\nДобавляйте ресурсы в Настройках!</string>
+    <string name="welcome_description_2">Подключайтесь к любому хранилищу:\n\n📱 ЛОКАЛЬНЫЕ — Папки устройства, SD-карты\n\n🌐 СЕТЕВЫЕ — SMB/CIFS, SFTP, FTP\n\n☁️ ОБЛАЧНЫЕ — Google Drive, OneDrive, Dropbox\n\nДобавляйте ресурсы в Настройках в любое время.</string>
     <string name="welcome_title_3">Сенсорные зоны (Изображения/Видео)\nиспользовать в полноэкранном режиме</string>
     <string name="welcome_description_3" formatted="false">Проигрыватель использует 9 сенсорных зон (сетка 3×3) для быстрых действий. Нажимайте на зоны для навигации, копирования, перемещения, удаления файлов или доступа к командной панели. Схема показана выше.</string>
     <string name="welcome_title_4">Ресурсы и назначения</string>
-    <string name="welcome_description_4">РЕСУРСЫ: Добавляйте папки с локального хранилища, сетевых ресурсов или облачных сервисов.\n\nНАЗНАЧЕНИЯ: Настройте до 30 быстрых папок с цветовой маркировкой для операций копирования/перемещения.\n\nНастраивайте в любое время!</string>
-    <string name="welcome_title_5">Дополнительные функции</string>
-    <string name="welcome_description_5">📝 ТЕКСТ И PDF: Просмотр и редактирование текстовых файлов, экспорт страниц PDF в JPG\n\n🔤 OCR И ПЕРЕВОД: Извлечение текста из изображений и перевод на ваш язык\n\n📚 EPUB: Чтение электронных книг с настраиваемым размером шрифта\n\n🎵 АУДИО: Воспроизведение музыки с обложками из iTunes\n\n✨ И многое другое!\n\nНастройка в Настройках далее…</string>
+    <string name="welcome_description_4">РЕСУРСЫ — Папки из любого типа хранилища.\n\nБЫСТРАЯ СОРТИРОВКА — До 30 папок назначения с цветовой маркировкой для быстрых операций копирования/перемещения.\n\nНастраивайте в Настройках в любое время!</string>
+    <string name="welcome_title_5">Дополнительные возможности</string>
+    <string name="welcome_description_5">Не только просмотр медиа — FastMediaSorter содержит профессиональные инструменты для текста, документов и аудио.</string>
     <string name="welcome_permissions_title">Доступ к медиафайлам</string>
     <string name="welcome_permissions_description">FastMediaSorter требуется доступ к вашим фото, видео и аудиофайлам для сканирования и отображения медиа. Мы не передаём ваши файлы третьим лицам.</string>
     <string name="grant_permissions">Предоставить доступ</string>
     <string name="permissions_denied_title">Требуется разрешение</string>
     <string name="permissions_denied_warning">Без доступа к медиафайлам основной функционал приложения будет недоступен.</string>
     <string name="continue_anyway">Продолжить без разрешений</string>
+
+    <!-- Welcome Feature Card Labels -->
+    <string name="welcome_feature_photos">Фото и Видео</string>
+    <string name="welcome_feature_cloud">Облачное хранилище</string>
+    <string name="welcome_feature_sorting">Умная сортировка</string>
+    <string name="welcome_feature_ocr">OCR и Перевод</string>
+    <string name="welcome_feature_audio">Аудиоплеер</string>
+    <string name="welcome_feature_ebook">Книги и PDF</string>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Доступ к хранилищу</string>

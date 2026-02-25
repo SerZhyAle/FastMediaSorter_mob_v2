@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Welcome page 5: Additional features (OCR, translation, audio, ebook) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background circle -->
+    <path
+        android:fillColor="#F1F8E9"
+        android:pathData="M100,100m-90,0a90,90 0,1 1,180 0a90,90 0,1 1,-180 0" />
+
+    <!-- OCR/Text recognition card (top left) -->
+    <group
+        android:pivotX="60"
+        android:pivotY="65"
+        android:rotation="-8">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M30,40 L90,40 L90,90 L30,90 Z"
+            android:strokeColor="#42A5F5"
+            android:strokeWidth="2" />
+        <!-- Camera/scan icon -->
+        <path
+            android:fillColor="#42A5F5"
+            android:pathData="M45,50 L75,50 L78,55 L82,55 L82,78 L38,78 L38,55 L42,55 Z" />
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M60,58 m-8,0 a8,8 0,1 1,16 0 a8,8 0,1 1,-16 0" />
+        <!-- OCR text lines coming out -->
+        <path
+            android:strokeColor="#42A5F5"
+            android:strokeWidth="1.5"
+            android:pathData="M48,83 L72,83" />
+        <path
+            android:strokeColor="#42A5F5"
+            android:strokeWidth="1.5"
+            android:pathData="M52,87 L68,87" />
+    </group>
+
+    <!-- Translation card (top right) -->
+    <group
+        android:pivotX="145"
+        android:pivotY="60"
+        android:rotation="6">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M115,35 L175,35 L175,85 L115,85 Z"
+            android:strokeColor="#AB47BC"
+            android:strokeWidth="2" />
+        <!-- "A" letter -->
+        <path
+            android:fillColor="#AB47BC"
+            android:pathData="M128,72 L135,48 L142,72 M131,65 L139,65"
+            android:strokeColor="#AB47BC"
+            android:strokeWidth="2.5" />
+        <!-- Arrow -->
+        <path
+            android:fillColor="#AB47BC"
+            android:pathData="M146,60 L155,60"
+            android:strokeColor="#AB47BC"
+            android:strokeWidth="2" />
+        <path
+            android:fillColor="#AB47BC"
+            android:pathData="M152,56 L156,60 L152,64"
+            android:strokeColor="#AB47BC"
+            android:strokeWidth="2" />
+        <!-- Cyrillic "Б" style letter -->
+        <path
+            android:fillColor="#AB47BC"
+            android:pathData="M160,48 L160,72 M160,48 L170,48 M160,60 L168,60 L170,66 L168,72 L160,72"
+            android:strokeColor="#AB47BC"
+            android:strokeWidth="2.5" />
+    </group>
+
+    <!-- Audio/Music card (bottom left) -->
+    <group
+        android:pivotX="55"
+        android:pivotY="140"
+        android:rotation="-4">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M25,115 L85,115 L85,165 L25,165 Z"
+            android:strokeColor="#26A69A"
+            android:strokeWidth="2" />
+        <!-- Headphones -->
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#26A69A"
+            android:strokeWidth="3"
+            android:pathData="M40,145 L40,135 Q40,125 55,125 Q70,125 70,135 L70,145" />
+        <path
+            android:fillColor="#26A69A"
+            android:pathData="M36,140 L44,140 L44,152 L36,152 Z" />
+        <path
+            android:fillColor="#26A69A"
+            android:pathData="M66,140 L74,140 L74,152 L66,152 Z" />
+        <!-- Music waves -->
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#80CBC4"
+            android:strokeWidth="1.5"
+            android:pathData="M50,130 Q53,127 56,130 Q59,133 62,130" />
+    </group>
+
+    <!-- eBook card (bottom right) -->
+    <group
+        android:pivotX="145"
+        android:pivotY="135"
+        android:rotation="7">
+        <path
+            android:fillColor="#FFFFFF"
+            android:pathData="M115,110 L175,110 L175,160 L115,160 Z"
+            android:strokeColor="#FF7043"
+            android:strokeWidth="2" />
+        <!-- Open book -->
+        <path
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FF7043"
+            android:strokeWidth="2"
+            android:pathData="M145,120 L125,123 L125,152 L145,148 L165,152 L165,123 Z" />
+        <path
+            android:strokeColor="#FF7043"
+            android:strokeWidth="1.5"
+            android:pathData="M145,120 L145,148" />
+        <!-- Text lines on pages -->
+        <path
+            android:strokeColor="#FFAB91"
+            android:strokeWidth="1"
+            android:pathData="M129,130 L141,128" />
+        <path
+            android:strokeColor="#FFAB91"
+            android:strokeWidth="1"
+            android:pathData="M129,135 L141,133" />
+        <path
+            android:strokeColor="#FFAB91"
+            android:strokeWidth="1"
+            android:pathData="M149,128 L161,130" />
+        <path
+            android:strokeColor="#FFAB91"
+            android:strokeWidth="1"
+            android:pathData="M149,133 L161,135" />
+    </group>
+
+    <!-- Sparkle decorations -->
+    <path
+        android:fillColor="#FDD835"
+        android:pathData="M100,25 L103,33 L110,33 L104,38 L106,45 L100,41 L94,45 L96,38 L90,33 L97,33 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M170,170 L172,175 L177,175 L173,178 L174,183 L170,180 L166,183 L167,178 L163,175 L168,175 Z" />
+
+</vector>

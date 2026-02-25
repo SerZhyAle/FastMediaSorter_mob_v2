@@ -518,21 +518,29 @@
     <string name="next">Next</string>
     <string name="finish">Finish</string>
     <string name="welcome_title_1">Welcome to FastMediaSorter!</string>
-    <string name="welcome_description_1">Organize your media and other files efficiently:\n\n• Browse photos, videos, GIFs, and audio\n• Sort and filter by name, date, or size\n• Copy/move with touch gestures\n• Local, network (SMB/S/FTP), and cloud storage\n• Up to 30 quick destination folders\n• Slideshow mode\n\nLet\'s get started!</string>
+    <string name="welcome_description_1">Your all-in-one media organizer.\nBrowse, sort, and manage files across local, network, and cloud storage — all with intuitive touch gestures.</string>
     <string name="welcome_title_2">Resource Types</string>
-    <string name="welcome_description_2">Supported resource types:\n\n📱 LOCAL: Device storage, SD cards\n\n🌐 NETWORK: SMB/CIFS, SFTP, FTP\n\n☁️ CLOUD: Google Drive, OneDrive, Dropbox\n\nSetup content of resources in Settings.</string>
+    <string name="welcome_description_2">Connect to any storage:\n\n📱 LOCAL — Device folders, SD cards\n\n🌐 NETWORK — SMB/CIFS, SFTP, FTP\n\n☁️ CLOUD — Google Drive, OneDrive, Dropbox\n\nAdd resources in Settings anytime.</string>
     <string name="welcome_title_3">Touch Zones (Images/Video)\nuse in full screen view mode</string>
     <string name="welcome_description_3" formatted="false">Player uses 9 touch zones (3×3 grid) for quick actions. Tap zones to navigate, copy, move, delete files, or access the command panel. See the scheme above for details.</string>
     <string name="welcome_title_4">Resources and Destinations</string>
-    <string name="welcome_description_4">RESOURCES: Add folders from local storage, network shares, or cloud services.\n\nDESTINATIONS: Set up to 30 quick-access folders with color coding for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
-    <string name="welcome_title_5">Additional Features</string>
-    <string name="welcome_description_5">📝 TEXT &amp; PDF: View and edit text files, export PDF pages to JPG\n\n🔤 OCR &amp; TRANSLATION: Extract text from images and translate to your language\n\n📚 EPUB: Read e-books with adjustable font size\n\n🎵 AUDIO: Play music with album covers from iTunes\n\n✨ And much more to discover!\n\nSetup in Settings next…</string>
+    <string name="welcome_description_4">RESOURCES — Folders from any storage type.\n\nQUICK SORT — Up to 30 color-coded destination folders for fast copy/move operations.\n\nConfigure in Settings anytime!</string>
+    <string name="welcome_title_5">Powerful Extras</string>
+    <string name="welcome_description_5">Go beyond simple media viewing — FastMediaSorter packs professional tools for text, documents, and audio.</string>
     <string name="welcome_permissions_title">Media Files Access</string>
     <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
     <string name="grant_permissions">Grant Access</string>
     <string name="permissions_denied_title">Permission Required</string>
     <string name="permissions_denied_warning">Without media access, core app features will be unavailable.</string>
     <string name="continue_anyway">Continue anyway</string>
+
+    <!-- Welcome Feature Card Labels -->
+    <string name="welcome_feature_photos">Photos &amp; Video</string>
+    <string name="welcome_feature_cloud">Cloud Storage</string>
+    <string name="welcome_feature_sorting">Smart Sorting</string>
+    <string name="welcome_feature_ocr">OCR &amp; Translate</string>
+    <string name="welcome_feature_audio">Audio Player</string>
+    <string name="welcome_feature_ebook">eBooks &amp; PDF</string>
 
     <!-- Permissions -->
     <string name="permission_storage_title">Storage Access</string>
