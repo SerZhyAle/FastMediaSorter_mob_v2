@@ -76,10 +76,22 @@
     <dimen name="item_grid_min_width">120dp</dimen>
 
     <!-- Welcome Screen overrides -->
+    <dimen name="welcome_button_text_size">16sp</dimen>
+    <dimen name="welcome_button_padding">10dp</dimen>
+    <dimen name="welcome_top_nav_padding">12dp</dimen>
+    <dimen name="welcome_indicator_margin_bottom">20dp</dimen>
     <dimen name="welcome_title_text_size">32sp</dimen>
     <dimen name="welcome_description_text_size">20sp</dimen>
     <dimen name="welcome_icon_size">180dp</dimen>
+    <dimen name="welcome_icon_margin_top">32dp</dimen>
+    <dimen name="welcome_title_margin_top">24dp</dimen>
+    <dimen name="welcome_description_margin_top">16dp</dimen>
     <dimen name="welcome_page_padding">48dp</dimen>
+    <dimen name="welcome_feature_card_icon_size">40dp</dimen>
+    <dimen name="welcome_feature_card_text_size">14sp</dimen>
+    <dimen name="welcome_feature_card_padding">16dp</dimen>
+    <dimen name="welcome_feature_card_margin">8dp</dimen>
+    <dimen name="welcome_content_max_width">800dp</dimen>
 
     <!-- Grid columns for tablets (defined in integers.xml) -->
 </resources>

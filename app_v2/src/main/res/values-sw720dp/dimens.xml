@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- ===== TV / LARGE TABLET DIMENSIONS (sw >= 720dp) ===== -->
+    <!-- Covers Android TV (720p/1080p), 10"+ tablets in landscape. -->
+    <!-- Text sizes are deliberately large for TV viewing distance. -->
+
+    <!-- Base spacing - scaled up 2x vs default for large screens -->
+    <dimen name="padding_tiny">8dp</dimen>
+    <dimen name="padding_small">16dp</dimen>
+    <dimen name="padding_normal">24dp</dimen>
+    <dimen name="padding_large">32dp</dimen>
+
+    <dimen name="margin_tiny">8dp</dimen>
+    <dimen name="margin_small">16dp</dimen>
+    <dimen name="margin_large">32dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+
+    <!-- Text sizes - scaled up for TV readability -->
+    <dimen name="text_size_small">18sp</dimen>
+    <dimen name="text_size_large">24sp</dimen>
+
+    <!-- Touch targets - larger for TV remote navigation -->
+    <dimen name="button_height">64dp</dimen>
+    <dimen name="control_button_size">64dp</dimen>
+
+    <!-- Dialog dimensions -->
+    <dimen name="dialog_min_width">480dp</dimen>
+    <dimen name="dialog_max_width">900dp</dimen>
+    <dimen name="dialog_padding_large">40dp</dimen>
+
+    <!-- Item layouts -->
+    <dimen name="item_padding">32dp</dimen>
+    <dimen name="item_padding_vertical">20dp</dimen>
+    <dimen name="item_padding_horizontal">32dp</dimen>
+    <dimen name="item_padding_small">16dp</dimen>
+    <dimen name="item_icon_size">88dp</dimen>
+    <dimen name="item_icon_size_medium">64dp</dimen>
+    <dimen name="item_icon_size_small">48dp</dimen>
+    <dimen name="item_icon_size_tiny">24dp</dimen>
+    <dimen name="item_thumbnail_size">200dp</dimen>
+    <dimen name="item_grid_thumbnail_size">260dp</dimen>
+    <dimen name="item_title_text_size">22sp</dimen>
+    <dimen name="item_subtitle_text_size">20sp</dimen>
+    <dimen name="item_detail_text_size">16sp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
+    <dimen name="card_elevation">6dp</dimen>
+
+    <!-- Welcome Screen - TV layout -->
+    <!-- Title/desc are big for TV viewing distance (2+ meters) -->
+    <dimen name="welcome_button_text_size">20sp</dimen>
+    <dimen name="welcome_button_padding">14dp</dimen>
+    <dimen name="welcome_top_nav_padding">16dp</dimen>
+    <dimen name="welcome_indicator_margin_bottom">28dp</dimen>
+    <dimen name="welcome_title_text_size">42sp</dimen>
+    <dimen name="welcome_description_text_size">26sp</dimen>
+    <dimen name="welcome_icon_size">240dp</dimen>
+    <dimen name="welcome_icon_margin_top">48dp</dimen>
+    <dimen name="welcome_title_margin_top">32dp</dimen>
+    <dimen name="welcome_description_margin_top">24dp</dimen>
+    <dimen name="welcome_page_padding">64dp</dimen>
+    <dimen name="welcome_feature_card_icon_size">56dp</dimen>
+    <dimen name="welcome_feature_card_text_size">18sp</dimen>
+    <dimen name="welcome_feature_card_padding">24dp</dimen>
+    <dimen name="welcome_feature_card_margin">12dp</dimen>
+    <!-- max content width keeps text readable; centred on TV -->
+    <dimen name="welcome_content_max_width">960dp</dimen>
+    <!-- D-pad focusable button target size -->
+    <dimen name="welcome_button_min_height">64dp</dimen>
+
+    <!-- Grid columns guidance (referenced by integers.xml if present) -->
+</resources>

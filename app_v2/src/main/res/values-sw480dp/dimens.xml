@@ -63,11 +63,16 @@
     <dimen name="welcome_indicator_margin_bottom">14dp</dimen>
     <dimen name="welcome_page_padding">14dp</dimen>
     <dimen name="welcome_icon_size">72dp</dimen>
-    <dimen name="welcome_icon_margin_top">12dp</dimen>
-    <dimen name="welcome_title_margin_top">10dp</dimen>
-    <dimen name="welcome_title_text_size">16sp</dimen>
-    <dimen name="welcome_description_margin_top">8dp</dimen>
-    <dimen name="welcome_description_text_size">12sp</dimen>
+    <dimen name="welcome_icon_margin_top">10dp</dimen>
+    <dimen name="welcome_title_margin_top">8dp</dimen>
+    <dimen name="welcome_title_text_size">17sp</dimen>
+    <dimen name="welcome_description_margin_top">6dp</dimen>
+    <dimen name="welcome_description_text_size">13sp</dimen>
+    <dimen name="welcome_feature_card_icon_size">26dp</dimen>
+    <dimen name="welcome_feature_card_text_size">11sp</dimen>
+    <dimen name="welcome_feature_card_padding">8dp</dimen>
+    <dimen name="welcome_feature_card_margin">4dp</dimen>
+    <dimen name="welcome_content_max_width">500dp</dimen>
     
     <!-- Resource list items -->
     <dimen name="resource_item_padding">9dp</dimen>

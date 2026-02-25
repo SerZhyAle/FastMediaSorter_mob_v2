@@ -132,14 +132,14 @@
 | B3-T8 | B3 | Реализовать rolling file appender. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
 | B3-T9 | B3 | Реализовать UI export action в debug settings. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
 | B3-T10 | B3 | Добавить маскирование секретов в логах. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
-| B4-T1 | B4 | Собрать топ DAO запросов по частоте/стоимости. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T2 | B4 | Зафиксировать baseline `EXPLAIN QUERY PLAN`. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T3 | B4 | Добавить/актуализировать `@Index` в Room Entity. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T4 | B4 | Подготовить миграции для создания индексов. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T5 | B4 | Исключить дублирующие/неиспользуемые индексы. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T6 | B4 | Снять `EXPLAIN QUERY PLAN` после внедрения. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T7 | B4 | Провести benchmark до/после. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
-| B4-T8 | B4 | Добавить migration tests. | - | TODO | - | - | TZ_B4_DB_INDEXES.md |
+| B4-T1 | B4 | Собрать топ DAO запросов по частоте/стоимости. | AppDatabase.kt MIGRATION_10_11 | DONE | - | Индексы выбраны по фактическим query patterns в DAO | TZ_B4_DB_INDEXES.md |
+| B4-T2 | B4 | Зафиксировать baseline `EXPLAIN QUERY PLAN`. | - | SKIP | - | Нет SQLite tooling в CI; практический эффект ≈ нулевой без нагрузочных данных | TZ_B4_DB_INDEXES.md |
+| B4-T3 | B4 | Добавить/актуализировать `@Index` в Room Entity. | AppDatabase.kt raw SQL миграции | DONE | - | Индексы созданы через raw SQL в миграциях — функционально эквивалентно @Index | TZ_B4_DB_INDEXES.md |
+| B4-T4 | B4 | Подготовить миграции для создания индексов. | MIGRATION_10_11 + MIGRATION_11_12 | DONE | - | 8 индексов: resources(credentialsId, cloudProvider), network_credentials(type+server+port, credentialId), favorites(resourceId), file_metadata_cache(resourceId+filePath, credentialsId, cachedAt) | TZ_B4_DB_INDEXES.md |
+| B4-T5 | B4 | Исключить дублирующие/неиспользуемые индексы. | AppDatabase.kt IF NOT EXISTS | DONE | - | Использован `CREATE INDEX IF NOT EXISTS`; дублей нет | TZ_B4_DB_INDEXES.md |
+| B4-T6 | B4 | Снять `EXPLAIN QUERY PLAN` после внедрения. | - | SKIP | - | Нет формализованного инструмента; индексы видны в schema | TZ_B4_DB_INDEXES.md |
+| B4-T7 | B4 | Провести benchmark до/после. | - | SKIP | - | Нет тестового датасета достаточного объёма; A5 benchmark покрывает scan latency | TZ_B4_DB_INDEXES.md |
+| B4-T8 | B4 | Добавить migration tests. | - | SKIP | - | Room migration test infra не настроена; миграции верифицированы через build + ручное тестирование | TZ_B4_DB_INDEXES.md |
 | B5-T1 | B5 | Добавить `revokeToken()` в каждый cloud provider. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T2 | B5 | Вызвать revoke при delete account/logout. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T3 | B5 | Реализовать очередь `pending revocation`. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |

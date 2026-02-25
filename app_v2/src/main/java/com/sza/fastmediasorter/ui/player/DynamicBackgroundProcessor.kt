@@ -16,6 +16,7 @@ import androidx.core.view.isVisible
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -65,6 +66,18 @@ class DynamicBackgroundProcessor(
 
         /** Alpha value for the background overlay (0-255). Slightly transparent for subtlety. */
         private const val BACKGROUND_ALPHA = 220
+
+        /**
+         * Debounce delay (ms) before starting pixel analysis.
+         * Prevents redundant processing when images change rapidly (Spec §5.2).
+         */
+        private const val DEBOUNCE_MS = 150L
+
+        /**
+         * Fraction of outlier color values to trim from each channel when checking uniformity.
+         * Removes hot pixels and sensor noise before variance analysis (Spec §3.3).
+         */
+        private const val OUTLIER_TRIM_FRACTION = 0.07f
     }
 
     /**
@@ -85,6 +98,10 @@ class DynamicBackgroundProcessor(
 
         processingJob = coroutineScope.launch(Dispatchers.Default) {
             try {
+                // Debounce: if a new image arrives within DEBOUNCE_MS, the previous job
+                // is cancelled before this delay completes, so no wasted work (Spec §5.2).
+                delay(DEBOUNCE_MS)
+
                 val sourceBitmap = drawableToBitmap(drawable) ?: run {
                     Timber.w("DynamicBg: Could not convert drawable to bitmap")
                     return@launch
@@ -93,7 +110,7 @@ class DynamicBackgroundProcessor(
                 val bgBitmap = buildBackgroundBitmap(sourceBitmap, screenWidth, screenHeight)
 
                 withContext(Dispatchers.Main) {
-                    if (!backgroundView.context.let { it == null }) {
+                    if (backgroundView.context != null) {
                         applyBackground(bgBitmap)
                     }
                 }
@@ -229,20 +246,28 @@ class DynamicBackgroundProcessor(
         return colors
     }
 
+    /**
+     * Returns true if the sampled colors are visually uniform (solid background).
+     *
+     * Implements Spec §3.3:
+     * 1. Sort R, G, B components independently.
+     * 2. Trim top and bottom [OUTLIER_TRIM_FRACTION] to remove noise/hot pixels.
+     * 3. Compute TotalDeviation = diffR + diffG + diffB.
+     * 4. Compare against threshold (≈4% of max color distance per channel).
+     */
     private fun isUniform(colors: List<Int>): Boolean {
         if (colors.isEmpty()) return true
-        var minR = 255; var maxR = 0
-        var minG = 255; var maxG = 0
-        var minB = 255; var maxB = 0
-        for (c in colors) {
-            val r = Color.red(c); val g = Color.green(c); val b = Color.blue(c)
-            if (r < minR) minR = r; if (r > maxR) maxR = r
-            if (g < minG) minG = g; if (g > maxG) maxG = g
-            if (b < minB) minB = b; if (b > maxB) maxB = b
-        }
-        return (maxR - minR) < UNIFORMITY_THRESHOLD &&
-            (maxG - minG) < UNIFORMITY_THRESHOLD &&
-            (maxB - minB) < UNIFORMITY_THRESHOLD
+        val n = colors.size
+        val reds   = IntArray(n) { Color.red(colors[it]) }.also { it.sort() }
+        val greens = IntArray(n) { Color.green(colors[it]) }.also { it.sort() }
+        val blues  = IntArray(n) { Color.blue(colors[it]) }.also { it.sort() }
+        // Trim outliers: discard top/bottom OUTLIER_TRIM_FRACTION of sorted values
+        val trim = (n * OUTLIER_TRIM_FRACTION).toInt().coerceAtLeast(0)
+        val lo = trim
+        val hi = (n - 1 - trim).coerceAtLeast(lo)
+        val totalDeviation = (reds[hi] - reds[lo]) + (greens[hi] - greens[lo]) + (blues[hi] - blues[lo])
+        // Threshold: UNIFORMITY_THRESHOLD per channel × 3 channels
+        return totalDeviation < UNIFORMITY_THRESHOLD * 3
     }
 
     private fun averageColor(colors: List<Int>): Int {
@@ -306,7 +331,10 @@ class DynamicBackgroundProcessor(
     }
 
     private fun applyBackground(bgBitmap: Bitmap) {
+        // Recycle previous background bitmap before replacing to prevent OOM (Spec §5.3)
+        val previousBitmap = (backgroundView.drawable as? BitmapDrawable)?.bitmap
         backgroundView.setImageBitmap(bgBitmap)
+        previousBitmap?.takeIf { !it.isRecycled }?.recycle()
         // Apply hardware blur on API 31+ for a smooth look
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             backgroundView.setRenderEffect(

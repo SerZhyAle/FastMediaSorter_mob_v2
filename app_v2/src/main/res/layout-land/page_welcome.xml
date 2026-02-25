@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Landscape layout for welcome pages -->
-<!-- Left: App icon (compact, centered vertically) -->
-<!-- Right: Title + scrollable description (uses full available height) -->
+<!-- Landscape welcome page: icon left, title + scrollable description right.
+     maxWidth constraint keeps the two-column layout from going too wide on TV. -->
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -9,55 +8,68 @@
     android:layout_height="match_parent"
     android:padding="@dimen/welcome_page_padding">
 
-    <!-- Icon on the Left (smaller in landscape, centered vertically) -->
-    <ImageView
-        android:id="@+id/ivIcon"
-        android:layout_width="@dimen/welcome_icon_size"
-        android:layout_height="@dimen/welcome_icon_size"
-        android:contentDescription="@string/app_name"
-        android:src="@mipmap/ic_launcher"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <!-- Centred content column capped at welcome_content_max_width -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutContent"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Title on the Right (aligned to top) -->
-    <TextView
-        android:id="@+id/tvTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/margin_large"
-        android:gravity="start"
-        android:textColor="?attr/colorOnPrimary"
-        android:textSize="@dimen/welcome_title_text_size"
-        android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/ivIcon"
         app:layout_constraintTop_toTopOf="parent"
-        tools:text="Welcome to FastMediaSorter" />
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <!-- Scrollable Description (uses full remaining height) -->
-    <ScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="@dimen/margin_large"
-        android:layout_marginTop="@dimen/welcome_description_margin_top"
-        android:fillViewport="true"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/ivIcon"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle">
+        <!-- Icon on the Left (vertically centred) -->
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/welcome_icon_size"
+            android:layout_height="@dimen/welcome_icon_size"
+            android:contentDescription="@string/app_name"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Title on the Right (aligned to top) -->
         <TextView
-            android:id="@+id/tvDescription"
-            android:layout_width="match_parent"
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:maxWidth="@dimen/dialog_max_width"
-            android:gravity="start|top"
-            android:textColor="?attr/colorOnPrimary"
-            android:textSize="@dimen/welcome_description_text_size"
-            android:lineSpacingMultiplier="1.3"
-            tools:text="• Browse photos, videos, GIFs, and audio\n• Sort files into custom folders\n• Network storage support (SMB, FTP, SFTP)\n• Image editing with filters\n• Translation and OCR support" />
+            android:layout_marginStart="@dimen/margin_large"
+            android:gravity="start"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="@dimen/welcome_title_text_size"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Welcome to FastMediaSorter" />
 
-    </ScrollView>
+        <!-- Scrollable Description (uses full remaining height) -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/margin_large"
+            android:layout_marginTop="@dimen/welcome_description_margin_top"
+            android:fillViewport="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle">
+
+            <TextView
+                android:id="@+id/tvDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxWidth="@dimen/dialog_max_width"
+                android:gravity="start|top"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/welcome_description_text_size"
+                android:lineSpacingMultiplier="1.3"
+                tools:text="• Browse photos, videos, GIFs, and audio\n• Sort files into custom folders\n• Network storage support (SMB, FTP, SFTP)\n• Image editing with filters\n• Translation and OCR support" />
+
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
