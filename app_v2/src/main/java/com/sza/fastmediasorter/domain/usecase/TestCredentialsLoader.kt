@@ -33,86 +33,27 @@ class TestCredentialsLoader @Inject constructor(
     
     /**
      * Load test credentials - HARDCODED for reliable testing.
-     * No JSON file dependency.
+     * Credentials are loaded from test_credentials.json (external storage or assets).
+     * No hardcoded secrets — see test_credentials.json.template for format.
      */
     suspend fun loadCredentials(): List<TestCredential> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("Loading hardcoded test credentials")
-            
-            val credentials = listOf(
-                // SMB — credentials from sza_resources.xml (test_media resource)
-                TestCredential(
-                    type = ResourceType.SMB,
-                    server = "192.168.1.100",
-                    port = 445,
-                    username = "sza",
-                    password = "SerZhyA25",
-                    shareName = "test_media",
-                    folder = "", // Root folder
-                    domain = null
-                ),
-                // SFTP
-                TestCredential(
-                    type = ResourceType.SFTP,
-                    server = "193.178.50.43",
-                    port = 22,
-                    username = "sza",
-                    password = "SerZhyA25SerZhyA25",
-                    shareName = null,
-                    folder = "", // Root folder
-                    domain = null
-                ),
-                // FTP
-                TestCredential(
-                    type = ResourceType.FTP,
-                    server = "193.178.50.43",
-                    port = 21,
-                    username = "sza",
-                    password = "SerZhyA25SerZhyA25",
-                    shareName = null,
-                    folder = "", // Root folder
-                    domain = null
-                ),
-                // Google Drive
-                TestCredential(
-                    type = ResourceType.CLOUD,
-                    server = "drive.google.com",
-                    port = null,
-                    username = "user@example.com", // Not used for OAuth
-                    password = "", // Not used for OAuth
-                    shareName = null,
-                    folder = "", // Root folder
-                    domain = null,
-                    cloudProvider = CloudProvider.GOOGLE_DRIVE
-                ),
-                // OneDrive
-                TestCredential(
-                    type = ResourceType.CLOUD,
-                    server = "onedrive.live.com",
-                    port = null,
-                    username = "user@example.com", // Not used for OAuth
-                    password = "", // Not used for OAuth
-                    shareName = null,
-                    folder = "", // Root folder
-                    domain = null,
-                    cloudProvider = CloudProvider.ONEDRIVE
-                ),
-                // Dropbox
-                TestCredential(
-                    type = ResourceType.CLOUD,
-                    server = "dropbox.com",
-                    port = null,
-                    username = "user@example.com", // Not used for OAuth
-                    password = "", // Not used for OAuth
-                    shareName = null,
-                    folder = "", // Root folder
-                    domain = null,
-                    cloudProvider = CloudProvider.DROPBOX
-                )
+            // Try external storage first (device-local, not committed to git)
+            val jsonContent = tryLoadFromExternalStorage()
+                ?: tryLoadFromAssets()
+
+            if (jsonContent != null) {
+                val loaded = parseCredentials(jsonContent)
+                Timber.d("Loaded ${loaded.size} test credentials from file")
+                return@withContext loaded
+            }
+
+            Timber.w(
+                "test_credentials.json not found in external storage or assets. " +
+                    "Integration tests requiring network credentials will be skipped. " +
+                    "See test_credentials.json.template for setup instructions."
             )
-            
-            Timber.d("Successfully loaded ${credentials.size} hardcoded credentials")
-            credentials
+            emptyList()
         } catch (e: Exception) {
             Timber.e(e, "Failed to load credentials")
             emptyList()

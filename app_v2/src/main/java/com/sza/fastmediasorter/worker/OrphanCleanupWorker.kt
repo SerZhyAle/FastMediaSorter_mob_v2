@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
+import java.util.UUID
 
 /**
  * Background worker for cleaning up orphaned data records (B5: Security Hardening).
@@ -34,14 +35,15 @@ class OrphanCleanupWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
-        Timber.d("OrphanCleanupWorker: starting orphan cleanup")
+        val correlationId = UUID.randomUUID().toString().take(8)
+        Timber.d("[orphan-cleanup/$correlationId] starting orphan cleanup")
         return try {
-            cleanOrphanedCaches()
-            auditOrphanedCredentials()
-            Timber.i("OrphanCleanupWorker: completed successfully")
+            cleanOrphanedCaches(correlationId)
+            auditOrphanedCredentials(correlationId)
+            Timber.i("[orphan-cleanup/$correlationId] completed successfully")
             Result.success()
         } catch (e: Exception) {
-            Timber.e(e, "OrphanCleanupWorker: failed")
+            Timber.e(e, "[orphan-cleanup/$correlationId] failed")
             Result.failure()
         }
     }
@@ -50,12 +52,12 @@ class OrphanCleanupWorker @AssistedInject constructor(
      * Delete cached file list entries whose parent resource was deleted.
      * Safe to auto-delete — these are transient cache records only.
      */
-    private suspend fun cleanOrphanedCaches() {
+    private suspend fun cleanOrphanedCaches(correlationId: String) {
         val deleted = cachedFileListDao.deleteOrphaned()
         if (deleted > 0) {
-            Timber.i("OrphanCleanupWorker: removed $deleted orphaned file-list cache entries")
+            Timber.i("[orphan-cleanup/$correlationId] removed $deleted orphaned file-list cache entries")
         } else {
-            Timber.d("OrphanCleanupWorker: no orphaned file-list cache entries found")
+            Timber.d("[orphan-cleanup/$correlationId] no orphaned file-list cache entries found")
         }
     }
 
@@ -64,14 +66,14 @@ class OrphanCleanupWorker @AssistedInject constructor(
      * Does NOT auto-delete — credentials might be re-associated or the user
      * may want them retained for future resources.
      */
-    private suspend fun auditOrphanedCredentials() {
+    private suspend fun auditOrphanedCredentials(correlationId: String) {
         val orphaned = networkCredentialsDao.getOrphanedCredentials()
         if (orphaned.isEmpty()) {
-            Timber.d("OrphanCleanupWorker: no orphaned network credentials found")
+            Timber.d("[orphan-cleanup/$correlationId] no orphaned network credentials found")
             return
         }
         Timber.w(
-            "OrphanCleanupWorker: found ${orphaned.size} orphaned credential(s) " +
+            "[orphan-cleanup/$correlationId] found ${orphaned.size} orphaned credential(s) " +
                 "(not referenced by any resource). " +
                 "Credential IDs: ${orphaned.joinToString { it.credentialId }}"
         )
