@@ -20,7 +20,7 @@
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | TODO | - | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
-| B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T6+T11 DONE | - |
+| B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | B5-T7 DONE | - |
@@ -111,17 +111,17 @@
 | B1-T7 | B1 | Подключить общий `TokenManager` к provider implementations. | - | TODO | - | - | TZ_B1_CLOUD_AUTH_UNIFICATION.md |
 | B1-T8 | B1 | Реализовать единый callback entrypoint для OAuth redirect. | - | TODO | - | - | TZ_B1_CLOUD_AUTH_UNIFICATION.md |
 | B1-T9 | B1 | Добавить маршрутизацию по provider type и uniform error handling. | - | TODO | - | - | TZ_B1_CLOUD_AUTH_UNIFICATION.md |
-| B2-T1 | B2 | Создать `NetworkError` sealed class. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T2 | B2 | Реализовать `NetworkErrorClassifier` (`Exception -> NetworkError`). | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T3 | B2 | Добавить покрытие для `IOException`, HTTP ошибок и cloud-specific исключений. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T4 | B2 | Создать `RetryPolicy`. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T5 | B2 | Реализовать `withRetry` с backoff/jitter. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T6 | B2 | Встроить respect `Retry-After` и условный retry по classifier. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T7 | B2 | Создать map `NetworkError -> string resource`. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T8 | B2 | Добавить ресурсы EN/RU/UK. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T1 | B2 | Создать `NetworkError` sealed class. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T2 | B2 | Реализовать `NetworkErrorClassifier` (`Exception -> NetworkError`). | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T3 | B2 | Добавить покрытие для `IOException`, HTTP ошибок и cloud-specific исключений. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T4 | B2 | Создать `RetryPolicy`. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T5 | B2 | Реализовать `withRetry` с backoff/jitter. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T6 | B2 | Встроить respect `Retry-After` и условный retry по classifier. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T7 | B2 | Создать map `NetworkError -> string resource`. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T8 | B2 | Добавить ресурсы EN/RU/UK. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T9 | B2 | Перевести UI на единый `showNetworkError()` контракт. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T10 | B2 | Заменить разрозненные try/catch в SMB/SFTP/FTP/Google/OneDrive/Dropbox. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T11 | B2 | Добавить unit-тесты для всех типов ошибок и retry поведения. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T11 | B2 | Добавить unit-тесты для всех типов ошибок и retry поведения. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B3-T1 | B3 | Реализовать `StructuredLogger`. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
 | B3-T2 | B3 | Реализовать `CorrelationContext` для coroutine propagation. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
 | B3-T3 | B3 | Подключить adapter к Timber. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |

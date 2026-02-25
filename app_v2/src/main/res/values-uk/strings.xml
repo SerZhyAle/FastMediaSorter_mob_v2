@@ -214,6 +214,16 @@
     <string name="error_cloud_auth_suggestion">Будь ласка, повторно увійдіть у ваш хмарний обліковий запис у Налаштування → Редагувати ресурс</string>
     <string name="error_cloud_connection_failed">Не вдається отримати доступ до \"%1$s\" - помилка підключення до хмарного сховища</string>
 
+    <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
+    <string name="error_network_timeout">З\'єднання вичерпано. Перевірте мережу та повторіть спробу.</string>
+    <string name="error_network_access_denied">Доступ заборонено. Перевірте облікові дані.</string>
+    <string name="error_network_not_found">Файл або ресурс не знайдено.</string>
+    <string name="error_network_connection_lost">З\'єднання перервано. Будь ласка, повторіть спробу.</string>
+    <string name="error_network_rate_limit">Забагато запитів. Зачекайте та спробуйте ще раз.</string>
+    <string name="error_network_server_error">Помилка сервера. Спробуйте пізніше.</string>
+    <string name="error_network_unsupported">Операція не підтримується цим сервером.</string>
+    <string name="error_network_generic">Помилка мережі. Будь ласка, спробуйте ще раз.</string>
+
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>
     <string name="error_details_path">Шлях</string>

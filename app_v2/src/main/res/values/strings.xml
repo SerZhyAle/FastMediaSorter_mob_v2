@@ -512,6 +512,16 @@
     <string name="error_connection_share_not_found">Cannot connect to \"%1$s\" - share not found.\n\nVerify share name on server.</string>
     <string name="error_connection_server_generic">Cannot connect to server.\n\n%1$s</string>
 
+    <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
+    <string name="error_network_timeout">Connection timed out. Check your network and try again.</string>
+    <string name="error_network_access_denied">Access denied. Check your credentials.</string>
+    <string name="error_network_not_found">File or resource not found.</string>
+    <string name="error_network_connection_lost">Connection interrupted. Please retry.</string>
+    <string name="error_network_rate_limit">Too many requests. Please wait and try again.</string>
+    <string name="error_network_server_error">Server error. Please try again later.</string>
+    <string name="error_network_unsupported">Operation not supported by this server.</string>
+    <string name="error_network_generic">Network error. Please try again.</string>
+
     <!-- Welcome Screen -->
     <string name="skip">Skip</string>
     <string name="previous">Previous</string>

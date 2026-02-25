@@ -219,6 +219,16 @@
     <string name="error_connection_share_not_found">Не удаётся подключиться к \"%1$s\" - папка не найдена.\n\nПроверьте имя общей папки на сервере.</string>
     <string name="error_connection_server_generic">Не удаётся подключиться к серверу.\n\n%1$s</string>
 
+    <!-- B2: Generic network error messages for NetworkErrorMessageMapper -->
+    <string name="error_network_timeout">Соединение истекло. Проверьте сеть и повторите попытку.</string>
+    <string name="error_network_access_denied">Доступ запрещён. Проверьте учётные данные.</string>
+    <string name="error_network_not_found">Файл или ресурс не найден.</string>
+    <string name="error_network_connection_lost">Соединение прервано. Пожалуйста, повторите попытку.</string>
+    <string name="error_network_rate_limit">Слишком много запросов. Подождите и попробуйте ещё раз.</string>
+    <string name="error_network_server_error">Ошибка сервера. Попробуйте позже.</string>
+    <string name="error_network_unsupported">Операция не поддерживается этим сервером.</string>
+    <string name="error_network_generic">Ошибка сети. Пожалуйста, попробуйте ещё раз.</string>
+
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>
     <string name="error_details_path">Путь</string>
