@@ -24,7 +24,7 @@
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11 DONE | - |
-| C1 | C1-T1..C1-T7 | 7 | PARTIAL | T2+T4+T5+T6 DONE | - |
+| C1 | C1-T1..C1-T7 | 7 | PARTIAL | T1+T2+T3+T4+T5+T6 DONE | - |
 | C2 | C2-T1..C2-T8 | 8 | PARTIAL | T4+T5 DONE | - |
 
 ## Task Registry
@@ -151,9 +151,9 @@
 | B5-T9 | B5 | Выполнить аудит hardcoded secrets в коде. | temp/SECRET_AUDIT_REPORT.md | DONE | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T10 | B5 | Перенести найденные секреты в защищённые источники. | TestCredentialsLoader: hardcoded passwords removed, JSON-file approach restored + .gitignore | DONE | Build OK | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T11 | B5 | Добавить проверку маскирования токенов/паролей в логах. | Audit: no leakage found, defaultPassword masked OK | DONE | - | - | TZ_B5_SECURITY_HARDENING.md |
-| C1-T1 | C1 | Зафиксировать release policy и правила sign-off. | - | TODO | - | - | TZ_C1_RELEASE_TRAIN.md |
+| C1-T1 | C1 | Зафиксировать release policy и правила sign-off. | dev/RELEASE_POLICY.md | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T2 | C1 | Подготовить `RELEASE_CHECKLIST.md` как обязательный шаблон. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
-| C1-T3 | C1 | Согласовать ownership и точки контроля по checklist. | - | TODO | - | - | TZ_C1_RELEASE_TRAIN.md |
+| C1-T3 | C1 | Согласовать ownership и точки контроля по checklist. | RELEASE_POLICY.md §8 sign-off table, RELEASE_CHECKLIST.md updated | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T4 | C1 | Реализовать script version bump. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T5 | C1 | Реализовать script generate changelog. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T6 | C1 | Реализовать automation RC build/tag. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |

@@ -1,7 +1,7 @@
 # RELEASE CHECKLIST — FastMediaSorter v2
 
 > Template for every release candidate. All items must be ✅ before release sign-off.
-> Updated: see TZ_C1_RELEASE_TRAIN.md for process ownership.
+> Process, ownership, and versioning policy: see [RELEASE_POLICY.md](RELEASE_POLICY.md).
 
 ---
 
