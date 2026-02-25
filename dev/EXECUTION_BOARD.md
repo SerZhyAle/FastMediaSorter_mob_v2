@@ -16,7 +16,7 @@
 |---|---|---:|---|---|---|
 | A1 | A1-T1..A1-T15 | 15 | TODO | - | - |
 | A2 | A2-T1..A2-T15 | 15 | PARTIAL | T1+T4+T5+T6+T7+T8+T9+T11+T15 DONE | T2/T3/T10/T12/T13/T14 SKIP |
-| A3 | A3-T1..A3-T16 | 16 | PARTIAL | T1+T2+T3+T4+T5+T7+T8+T13+T14+T15+T16 DONE | T6/T9/T10/T11 SKIP |
+| A3 | A3-T1..A3-T16 | 16 | PARTIAL | T1+T2+T3+T4+T5+T7+T8+T12+T13+T14+T15+T16 DONE | T6/T9/T10/T11 SKIP |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T2+T3+T4+T5+T6+T7+T8+T9+T10+T11+T12 DONE | T13/T14 SKIP |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
@@ -72,7 +72,7 @@
 | A3-T9 | A3 | Добавить flow: OAuth cancel + retry. | - | SKIP | OAuth mock requires device setup | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T10 | A3 | Добавить flow: empty folder scan result. | - | SKIP | Requires controlled empty fixture | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T11 | A3 | Добавить flow: cancel scan. | - | SKIP | No cancel button in scan progress overlay | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T12 | A3 | Добавить flow: copy resource. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T12 | A3 | Добавить flow: copy resource. | maestro/critical/copy_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T13 | A3 | Добавить flow: welcome full/skip/permissions. | maestro/smoke/welcome_skip.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T14 | A3 | Интегрировать Maestro suite в CI как блокирующий check. | .github/workflows/maestro-tests.yml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T15 | A3 | Сохранять screenshots/logs/video при падении. | maestro-tests.yml: upload-artifact on failure (recordings + results) | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |

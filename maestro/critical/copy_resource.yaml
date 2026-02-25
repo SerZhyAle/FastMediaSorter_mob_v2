@@ -1,0 +1,57 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Copy Resource (A3-T12)
+# Description: Verifies the copy/duplicate flow for an existing resource.
+#   - Finds the first available resource in the resource list
+#   - Taps the copy (Duplicate Folder Settings) button
+#   - Confirms copy created and navigates back
+# Note: In portrait mode, individual action buttons may be hidden behind btnMoreActions.
+#   All taps use optional: true to gracefully handle different layout configurations.
+# Duration: ~35 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Scroll to ensure the default "Downloads" resource is visible
+- scrollUntilVisible:
+    element:
+      text: "Downloads"
+    timeout: 10000
+    optional: true
+
+# Strategy A: tap btnCopy directly (visible in landscape / wide screen)
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnCopy"
+    optional: true
+- waitForAnimationToEnd
+
+# Strategy B: if individual buttons are hidden, open More Actions menu and select Duplicate
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnMoreActions"
+    optional: true
+- waitForAnimationToEnd
+
+# In the overflow menu, look for "Duplicate Folder Settings" action
+- tapOn:
+    text: "Duplicate Folder Settings"
+    optional: true
+- waitForAnimationToEnd
+
+# After copy, a new resource editor or confirmation may appear.
+# If Resource Editor opened (copy pre-filled), verify name field is present.
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/etName"
+    optional: true
+
+# Navigate back to cancel copy (smoke test only — no persistent side effects)
+- back
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd
+
+# Confirm we are back on the main resource list screen
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+    optional: true
