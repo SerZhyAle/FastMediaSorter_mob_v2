@@ -1,0 +1,168 @@
+name: Android CI Quality Gate
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: Android Lint — blocks merge on failure
+  # ─────────────────────────────────────────────
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run Android Lint (standard flavor)
+        run: ./gradlew lintStandardDebug --stacktrace
+
+      - name: Upload Lint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app_v2/build/reports/lint-results-*.html
+          retention-days: 14
+
+  # ─────────────────────────────────────────────
+  # Job 2: Unit Tests — blocks merge on failure
+  # ─────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: lint
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run unit tests
+        run: ./gradlew testStandardDebugUnitTest --stacktrace
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: |
+            app_v2/build/reports/tests/
+            app_v2/build/test-results/
+          retention-days: 14
+
+      - name: Publish test report summary
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit Test Results
+          path: app_v2/build/test-results/**/*.xml
+          reporter: java-junit
+          fail-on-error: true
+
+  # ─────────────────────────────────────────────
+  # Job 3: Build checks — all flavors
+  # ─────────────────────────────────────────────
+  build:
+    name: Build (${{ matrix.flavor }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: unit-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [ standard, lite, photos, legacy ]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build ${{ matrix.flavor }} debug
+        run: ./gradlew assemble${{ matrix.flavor }}Debug --stacktrace
+        env:
+          # Dropbox App Key — override with secret if available
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
+
+      - name: Upload ${{ matrix.flavor }} APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-${{ matrix.flavor }}-debug
+          path: app_v2/build/outputs/apk/${{ matrix.flavor }}/debug/*.apk
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # Job 4: ProGuard/R8 release build check
+  # ─────────────────────────────────────────────
+  build-release-check:
+    name: Release Build (ProGuard/R8 check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: unit-tests
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build standard release (unsigned)
+        run: ./gradlew assembleStandardRelease --stacktrace
+        env:
+          # Skip signing — only verify R8/ProGuard compiles
+          SKIP_SIGNING: true
+
+      - name: Upload release build mapping
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-mapping
+          path: app_v2/build/outputs/mapping/
+          retention-days: 14

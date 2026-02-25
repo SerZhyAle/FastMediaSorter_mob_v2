@@ -258,13 +258,21 @@ android {
 
     lint {
         checkAllWarnings = false
-        abortOnError = false
+        // Fail CI on lint ERRORs; warnings only produce report
+        abortOnError = true
         checkReleaseBuilds = false
         disable += "InvalidPackage"
         disable += "MissingTranslation"
         disable += "NewApi"
         disable += "UnsafeOptInUsageError"
+        // False positive: 0dp with layout_weight in LinearLayout or as ConstraintLayout child
+        disable += "Suspicious0dp"
         baseline = file("lint-baseline.xml")
+        // HTML report for CI artifact upload
+        htmlReport = true
+        htmlOutput = file("build/reports/lint-results.html")
+        xmlReport = true
+        xmlOutput = file("build/reports/lint-results.xml")
     }
 }
 

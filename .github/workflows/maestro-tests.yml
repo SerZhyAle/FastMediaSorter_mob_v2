@@ -1,4 +1,4 @@
- did name: Maestro E2E Tests
+name: Maestro E2E Tests
 
 on:
   push:
@@ -85,7 +85,7 @@ jobs:
             
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maestro-smoke-results
           path: |
@@ -95,7 +95,7 @@ jobs:
           
       - name: Upload test recordings
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maestro-recordings
           path: ~/.maestro/tests/**/*.mp4
@@ -146,7 +146,7 @@ jobs:
             
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maestro-critical-results
           path: ~/.maestro/tests/

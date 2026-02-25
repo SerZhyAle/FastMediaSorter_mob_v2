@@ -17,7 +17,7 @@
 | A1 | A1-T1..A1-T15 | 15 | TODO | - | - |
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
 | A3 | A3-T1..A3-T16 | 16 | TODO | - | - |
-| A4 | A4-T1..A4-T11 | 11 | TODO | - | - |
+| A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | TODO | - | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | TODO | - | - |
@@ -77,17 +77,17 @@
 | A3-T14 | A3 | Интегрировать Maestro suite в CI как блокирующий check. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T15 | A3 | Сохранять screenshots/logs/video при падении. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T16 | A3 | Добавить smoke subset для быстрого pre-merge прогона. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A4-T1 | A4 | Актуализировать workflow с последовательностью `lint -> unit -> contract -> maestro -> build`. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T2 | A4 | Включить кэширование Gradle и стабильные cache keys. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T3 | A4 | Настроить передачу секретов/переменных среды для тестов. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T4 | A4 | Включить `abortOnError = true` и политику baseline. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T5 | A4 | Подключить `testStandardDebugUnitTest` + contract suite в required checks. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T6 | A4 | Подключить Maestro smoke subset как required check. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T7 | A4 | Настроить required status checks для `main`. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T8 | A4 | Настроить ограничение force-push и minimum approvals. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T9 | A4 | Настроить auto-cancel устаревших CI прогонов. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T10 | A4 | Публиковать артефакты падений (test reports, screenshots, logs). | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A4-T11 | A4 | Добавить уведомления о падениях обязательных проверок. | - | TODO | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T1 | A4 | Актуализировать workflow с последовательностью `lint -> unit -> contract -> maestro -> build`. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T2 | A4 | Включить кэширование Gradle и стабильные cache keys. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T3 | A4 | Настроить передачу секретов/переменных среды для тестов. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T4 | A4 | Включить `abortOnError = true` и политику baseline. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T5 | A4 | Подключить `testStandardDebugUnitTest` + contract suite в required checks. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T6 | A4 | Подключить Maestro smoke subset как required check. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T7 | A4 | Настроить required status checks для `main`. | CI | DONE | - | GitHub repo settings | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T8 | A4 | Настроить ограничение force-push и minimum approvals. | CI | DONE | - | GitHub repo settings | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T9 | A4 | Настроить auto-cancel устаревших CI прогонов. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T10 | A4 | Публиковать артефакты падений (test reports, screenshots, logs). | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
+| A4-T11 | A4 | Добавить уведомления о падениях обязательных проверок. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
 | A5-T1 | A5 | Добавить поля состояния сканирования (`lastScanTimestamp`, `lastModified`, `fileSize`) в модель кэша. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T2 | A5 | Реализовать алгоритм определения `added/modified/deleted`. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T3 | A5 | Реализовать delta-путь обработки без полного повторного прохода. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |

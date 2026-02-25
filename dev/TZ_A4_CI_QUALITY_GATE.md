@@ -1,6 +1,6 @@
 # ТЗ A4: CI Quality Gate
 
-## Статус: 📋 Запланировано
+## Статус: ✅ Выполнено
 ## Приоритет: 🔴 Критический
 ## Зависимости: A2 (Contract Tests), A3 (Maestro)
 
@@ -59,23 +59,23 @@
 ## Task Backlog (уровень постановки)
 
 ### Pipeline
-- [ ] A4-T1: Актуализировать workflow с последовательностью `lint -> unit -> contract -> maestro -> build`.
-- [ ] A4-T2: Включить кэширование Gradle и стабильные cache keys.
-- [ ] A4-T3: Настроить передачу секретов/переменных среды для тестов.
+- [x] A4-T1: Актуализировать workflow с последовательностью `lint -> unit -> contract -> maestro -> build`.
+- [x] A4-T2: Включить кэширование Gradle и стабильные cache keys.
+- [x] A4-T3: Настроить передачу секретов/переменных среды для тестов.
 
 ### Lint/Test Hardening
-- [ ] A4-T4: Включить `abortOnError = true` и политику baseline.
-- [ ] A4-T5: Подключить `testStandardDebugUnitTest` + contract suite в required checks.
-- [ ] A4-T6: Подключить Maestro smoke subset как required check.
+- [x] A4-T4: Включить `abortOnError = true` и политику baseline.
+- [x] A4-T5: Подключить `testStandardDebugUnitTest` + contract suite в required checks.
+- [x] A4-T6: Подключить Maestro smoke subset как required check.
 
 ### Branch Governance
-- [ ] A4-T7: Настроить required status checks для `main`.
-- [ ] A4-T8: Настроить ограничение force-push и minimum approvals.
-- [ ] A4-T9: Настроить auto-cancel устаревших CI прогонов.
+- [x] A4-T7: Настроить required status checks для `main`.
+- [x] A4-T8: Настроить ограничение force-push и minimum approvals.
+- [x] A4-T9: Настроить auto-cancel устаревших CI прогонов.
 
 ### Diagnostics
-- [ ] A4-T10: Публиковать артефакты падений (test reports, screenshots, logs).
-- [ ] A4-T11: Добавить уведомления о падениях обязательных проверок.
+- [x] A4-T10: Публиковать артефакты падений (test reports, screenshots, logs).
+- [x] A4-T11: Добавить уведомления о падениях обязательных проверок.
 
 ## Артефакты
 

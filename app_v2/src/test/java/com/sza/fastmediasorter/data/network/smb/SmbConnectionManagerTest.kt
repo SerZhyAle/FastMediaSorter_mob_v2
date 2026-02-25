@@ -10,11 +10,14 @@ import com.sza.fastmediasorter.data.network.SmbConnectionManager
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
 import io.mockk.*
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
+import java.net.InetSocketAddress
+import java.net.Socket
 
 /**
  * Unit tests for SmbConnectionManager.
@@ -49,7 +52,12 @@ class SmbConnectionManagerTest {
         mockkConstructor(SMBClient::class)
         every { anyConstructed<SMBClient>().connect(any(), any()) } returns mockConnection
         every { anyConstructed<SMBClient>().close() } just Runs
-        
+
+        // Mock Socket to prevent real TCP connectivity checks in unit tests
+        mockkConstructor(Socket::class)
+        every { anyConstructed<Socket>().connect(any<InetSocketAddress>(), any<Int>()) } just Runs
+        every { anyConstructed<Socket>().close() } just Runs
+
         // Create manager instance
         connectionManager = SmbConnectionManager(mockNetworkStateMonitor)
     }
@@ -58,6 +66,7 @@ class SmbConnectionManagerTest {
     fun tearDown() {
         connectionManager.close()
         unmockkConstructor(SMBClient::class)
+        unmockkConstructor(Socket::class)
         clearAllMocks()
     }
     
@@ -267,7 +276,10 @@ class SmbConnectionManagerTest {
             
             // Clear pool
             connectionManager.clearConnectionPool()
-            
+
+            // closeAllConnections runs async via CoroutineScope — wait for IO dispatcher
+            delay(500)
+
             // Verify resources were closed
             verify(atLeast = 1) { mockShare.close() }
             verify(atLeast = 1) { mockSession.close() }
