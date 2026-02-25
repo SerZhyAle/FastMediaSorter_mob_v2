@@ -14,9 +14,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         FavoritesEntity::class,
         PlaybackPositionEntity::class,
         ThumbnailCacheEntity::class,
-        CachedFileListEntity::class
+        CachedFileListEntity::class,
+        FileMetadataCacheEntity::class
     ],
-    version = 11,
+    version = 12,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -27,6 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun playbackPositionDao(): PlaybackPositionDao
     abstract fun thumbnailCacheDao(): ThumbnailCacheDao
     abstract fun cachedFileListDao(): CachedFileListDao
+    abstract fun fileMetadataCacheDao(): FileMetadataCacheDao
     
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -310,6 +312,39 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // favorites indexes
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_favorites_resource_id ON favorites (resourceId)")
+            }
+        }
+
+        /**
+         * v11 → v12: Add file_metadata_cache table for incremental scan and
+         * per-file metadata caching (A5: Scan Optimization).
+         *
+         * Stores per-file metadata (mtime, size, thumbnail path, duration, resolution,
+         * EXIF) indexed by (resourceId, filePath) for O(1) cache lookups during scan.
+         */
+        val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS file_metadata_cache (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        resourceId INTEGER NOT NULL,
+                        filePath TEXT NOT NULL,
+                        provider TEXT NOT NULL,
+                        credentialsId TEXT,
+                        lastModified INTEGER NOT NULL,
+                        fileSize INTEGER NOT NULL,
+                        cachedAt INTEGER NOT NULL,
+                        thumbnailPath TEXT,
+                        durationMs INTEGER,
+                        width INTEGER,
+                        height INTEGER,
+                        exifJson TEXT,
+                        FOREIGN KEY(resourceId) REFERENCES resources(id) ON DELETE CASCADE
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_fmc_resource_path ON file_metadata_cache (resourceId, filePath)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_fmc_credentials_id ON file_metadata_cache (credentialsId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_fmc_cached_at ON file_metadata_cache (cachedAt)")
             }
         }
     }

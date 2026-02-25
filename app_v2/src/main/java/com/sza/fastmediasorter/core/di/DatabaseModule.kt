@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
+import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
@@ -38,7 +39,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_7_8,
                 AppDatabase.MIGRATION_8_9,
                 AppDatabase.MIGRATION_9_10,
-                AppDatabase.MIGRATION_10_11
+                AppDatabase.MIGRATION_10_11,
+                AppDatabase.MIGRATION_11_12
             )
             .build()
     }
@@ -77,5 +79,11 @@ object DatabaseModule {
     @Singleton
     fun provideCachedFileListDao(database: AppDatabase): CachedFileListDao {
         return database.cachedFileListDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFileMetadataCacheDao(database: AppDatabase): FileMetadataCacheDao {
+        return database.fileMetadataCacheDao()
     }
 }
