@@ -18,7 +18,7 @@
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
 | A3 | A3-T1..A3-T16 | 16 | PARTIAL | T4+T5+T8+T13 flows added | - |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
-| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T5 DONE | - |
+| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T5+T9+T10+T11 DONE | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
@@ -96,9 +96,9 @@
 | A5-T6 | A5 | Реализовать запись кэша в scan pipeline. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T7 | A5 | Реализовать чтение кэша при отображении с fallback. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T8 | A5 | Реализовать TTL policy + cleanup job. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
-| A5-T9 | A5 | Ввести `ScanDispatcher` с лимитами по source type. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
-| A5-T10 | A5 | Реализовать ограничение через `Semaphore`/dispatcher. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
-| A5-T11 | A5 | Вынести лимиты в `ScanSettings`. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T9 | A5 | Ввести `ScanDispatcher` с лимитами по source type. | ScanDispatcher.kt | DONE | Build OK | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T10 | A5 | Реализовать ограничение через `Semaphore`/dispatcher. | ScanDispatcher: Semaphore per source category | DONE | Build OK | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T11 | A5 | Вынести лимиты в `ScanSettings`. | ScanSettings.kt (LOCAL=4, NETWORK=2, CLOUD=1) | DONE | Build OK | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T12 | A5 | Unit-тесты для delta decision logic. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T13 | A5 | Integration test `scan -> modify -> rescan`. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T14 | A5 | Benchmark до/после на стандартизованном тестовом наборе. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
