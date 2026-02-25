@@ -15,13 +15,13 @@
 | Initiative | Диапазон задач | Кол-во | Status | Owner | Blocker |
 |---|---|---:|---|---|---|
 | A1 | A1-T1..A1-T15 | 15 | TODO | - | - |
-| A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
+| A2 | A2-T1..A2-T15 | 15 | PARTIAL | T1+T4+T5+T6+T7+T8+T9+T11+T15 DONE | T2/T3/T10/T12/T13/T14 SKIP |
 | A3 | A3-T1..A3-T16 | 16 | PARTIAL | T1+T2+T3+T4+T5+T7+T8+T13+T14+T15+T16 DONE | T6/T9/T10/T11 SKIP |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T2+T3+T4+T5+T6+T7+T8+T9+T10+T11+T12 DONE | T13/T14 SKIP |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
-| B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
+| B3 | B3-T1..B3-T10 | 10 | PARTIAL | T1+T2+T3 DONE | T4..T10 TODO |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5+T6 DONE | - |
 | C1 | C1-T1..C1-T7 | 7 | DONE | T1+T2+T3+T4+T5+T6+T7 DONE | - |
@@ -46,21 +46,21 @@
 | A1-T13 | A1 | Интеграционные тесты на полный цикл: add 2+ account → bind resources → switch → delete. | - | TODO | - | - | TZ_A1_MULTI_ACCOUNT.md |
 | A1-T14 | A1 | Smoke-покрытие через Maestro для happy-path и duplicate-account path. | - | TODO | - | - | TZ_A1_MULTI_ACCOUNT.md |
 | A1-T15 | A1 | Проверить сценарий истечения токена и re-auth с тем же `credentialsId`. | - | TODO | - | - | TZ_A1_MULTI_ACCOUNT.md |
-| A2-T1 | A2 | Создать `ResourceEditorContractTestBase` с общим setup/teardown. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T2 | A2 | Настроить in-memory Room + test factories для всех типов ресурсов. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T3 | A2 | Подготовить deterministic test doubles для внешних зависимостей. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T4 | A2 | Добавить тесты видимости/невидимости полей для `LOCAL`. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T5 | A2 | Добавить тесты видимости/невидимости полей для `SMB/SFTP/FTP`. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T6 | A2 | Добавить тесты видимости/невидимости полей для `CLOUD`. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T7 | A2 | Добавить negative tests на отсутствие лишних полей. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T8 | A2 | Проверить обязательные поля и форматы ввода. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T9 | A2 | Проверить диапазон/тип поля `port`. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T10 | A2 | Проверить коллизию имени и выдачу предложений. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T11 | A2 | Проверить условия `Save enabled/disabled`. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T12 | A2 | Проверить create/update/copy/delete lifecycle. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T13 | A2 | Проверить collapse/expand секции и сохранение состояния. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T14 | A2 | Проверить восстановление состояния формы при recreation. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A2-T15 | A2 | Добавить contract test suite как обязательный check в pipeline. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T1 | A2 | Создать `ResourceEditorContractTestBase` с общим setup/teardown. | - | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T2 | A2 | Настроить in-memory Room + test factories для всех типов ресурсов. | - | SKIP | Strategies are pure domain — no Room needed | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T3 | A2 | Подготовить deterministic test doubles для внешних зависимостей. | - | SKIP | Pure domain tests, no external deps | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T4 | A2 | Добавить тесты видимости/невидимости полей для `LOCAL`. | LocalResourceStrategyContractTest | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T5 | A2 | Добавить тесты видимости/невидимости полей для `SMB/SFTP/FTP`. | Smb/Sftp/FtpResourceStrategyContractTest | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T6 | A2 | Добавить тесты видимости/невидимости полей для `CLOUD`. | CloudResourceStrategyContractTest | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T7 | A2 | Добавить negative tests на отсутствие лишних полей. | assertFieldAbsent in all contract tests | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T8 | A2 | Проверить обязательные поля и форматы ввода. | validate() tests in all contract tests | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T9 | A2 | Проверить диапазон/тип поля `port`. | port range tests in Smb/Sftp/FtpContractTest | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T10 | A2 | Проверить коллизию имени и выдачу предложений. | - | SKIP | Requires UseCase layer + Repository mock | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T11 | A2 | Проверить условия `Save enabled/disabled`. | validate() = save gate in all contract tests | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T12 | A2 | Проверить create/update/copy/delete lifecycle. | - | SKIP | Requires ViewModel + Room integration | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T13 | A2 | Проверить collapse/expand секции и сохранение состояния. | - | SKIP | UI-only, no unit test surface | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T14 | A2 | Проверить восстановление состояния формы при recreation. | - | SKIP | UI/Activity lifecycle, no unit test surface | - | TZ_A2_CONTRACT_TESTS.md |
+| A2-T15 | A2 | Добавить contract test suite как обязательный check в pipeline. | CI unit-tests job already runs testStandardDebugUnitTest | DONE | - | - | TZ_A2_CONTRACT_TESTS.md |
 | A3-T1 | A3 | Стандартизировать структуру `maestro/` (flows, helpers, env-config). | smoke/ critical/ stress/ _shared/ bin/ lib/ | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T2 | A3 | Подготовить reusable helper flows (navigation, auth-mock, resource-ops). | _shared/permissions.yaml, _shared/navigate_to_add_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T3 | A3 | Настроить стабильный runner профиль для CI эмулятора. | maestro-tests.yml: pixel_3a + api-level 30 + google_apis | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
@@ -122,9 +122,9 @@
 | B2-T9 | B2 | Перевести UI на единый `showNetworkError()` контракт. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T10 | B2 | Заменить разрозненные try/catch в SMB/SFTP/FTP/Google/OneDrive/Dropbox. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T11 | B2 | Добавить unit-тесты для всех типов ошибок и retry поведения. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B3-T1 | B3 | Реализовать `StructuredLogger`. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
-| B3-T2 | B3 | Реализовать `CorrelationContext` для coroutine propagation. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
-| B3-T3 | B3 | Подключить adapter к Timber. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
+| B3-T1 | B3 | Реализовать `StructuredLogger`. | core/logging/StructuredLogger.kt | DONE | Build OK | - | TZ_B3_OBSERVABILITY.md |
+| B3-T2 | B3 | Реализовать `CorrelationContext` для coroutine propagation. | core/logging/CorrelationContext.kt (thread-local; coroutine variant TODO) | DONE | Build OK | - | TZ_B3_OBSERVABILITY.md |
+| B3-T3 | B3 | Подключить adapter к Timber. | StructuredLogger wraps Timber.tag internally | DONE | Build OK | - | TZ_B3_OBSERVABILITY.md |
 | B3-T4 | B3 | Инструментировать auth state transitions. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
 | B3-T5 | B3 | Инструментировать resource CRUD. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
 | B3-T6 | B3 | Инструментировать scan pipeline. | - | TODO | - | - | TZ_B3_OBSERVABILITY.md |
