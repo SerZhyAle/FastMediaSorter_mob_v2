@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.di
 import android.content.Context
 import androidx.room.Room
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
@@ -87,4 +88,10 @@ object DatabaseModule {
     fun provideFileMetadataCacheDao(database: AppDatabase): FileMetadataCacheDao {
         return database.fileMetadataCacheDao()
     }
+
+    @Provides
+    @Singleton
+    fun provideCachedMediaMetadataExtractor(
+        dao: FileMetadataCacheDao
+    ): CachedMediaMetadataExtractor = CachedMediaMetadataExtractor(dao)
 }

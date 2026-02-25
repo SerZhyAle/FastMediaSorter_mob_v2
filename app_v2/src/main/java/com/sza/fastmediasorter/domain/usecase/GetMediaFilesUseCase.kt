@@ -13,8 +13,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.domain.repository.FavoritesRepository
+import com.sza.fastmediasorter.domain.usecase.scan.IncrementalScanStrategy
+import com.sza.fastmediasorter.domain.usecase.scan.ScanDispatcher
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 
 data class SizeFilter(
     val imageSizeMin: Long,
@@ -98,7 +104,10 @@ interface MediaScanner {
 class GetMediaFilesUseCase @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory,
     private val favoritesRepository: FavoritesRepository,
-    private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+    private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
+    private val cachedFileListRepository: CachedFileListRepository,
+    private val scanDispatcher: ScanDispatcher,
+    private val metadataExtractor: CachedMediaMetadataExtractor
 ) {
     companion object {
         private const val LARGE_FOLDER_THRESHOLD = 1000
@@ -120,19 +129,23 @@ class GetMediaFilesUseCase @Inject constructor(
          * Default is false (normal cache-aware behaviour).
          */
         forceFullScan: Boolean = false
-    ): Flow<List<MediaFile>> = flow {
-        timber.log.Timber.d("GetMediaFilesUseCase: START invoke - resource='${resource.name}' (id=${resource.id}), type=${resource.type}, showHiddenFiles=$showHiddenFiles, currentPath=$currentPath, isSubfolderMode=$isSubfolderMode, forceFullScan=$forceFullScan")
-        timber.log.Timber.d("GetMediaFilesUseCase: path='${resource.path}', useChunked=$useChunkedLoading, sortMode=$sortMode")
+    ): Flow<List<MediaFile>> {
+        val contextElement = CorrelationContext.asContextElement(
+            operation = "get-media-files",
+            extras = mapOf("resourceId" to resource.id.toString(), "type" to resource.type.name)
+        )
+        return flow {
+        StructuredLogger.d("START invoke", "resource" to resource.name, "showHiddenFiles" to showHiddenFiles, "forceFullScan" to forceFullScan)
 
         // If forced, evict any cached data for this resource before scanning.
         if (forceFullScan) {
             MediaFilesCacheManager.clearCache(resource.id)
-            timber.log.Timber.i("GetMediaFilesUseCase: forceFullScan=true — cleared in-memory cache for resource ${resource.id}")
+            StructuredLogger.i("forceFullScan=true — cleared in-memory cache")
         }
         
         // Handle virtual Favorites resource
         if (resource.id == -100L) {
-            timber.log.Timber.d("GetMediaFilesUseCase: Loading Favorites from repository")
+            StructuredLogger.d("Loading Favorites from repository")
             val favorites = favoritesRepository.getAllFavorites().first()
             val favoriteFiles = favorites.map { entity ->
                 MediaFile(
@@ -162,7 +175,7 @@ class GetMediaFilesUseCase @Inject constructor(
             val cleanPath = resource.path.trim()
             if (cleanPath.startsWith("smb://", ignoreCase = true)) {
                 // Path is already a full SMB URL, use it as-is
-                timber.log.Timber.d("GetMediaFilesUseCase: Using existing SMB URL: $cleanPath")
+                StructuredLogger.d("Using existing SMB URL", "path" to cleanPath)
                 cleanPath
             } else {
                 // Build full smb://server:port/share/path from components
@@ -194,10 +207,10 @@ class GetMediaFilesUseCase @Inject constructor(
                         path = relativePath,
                         port = port
                     )
-                    timber.log.Timber.d("GetMediaFilesUseCase: Built full SMB path: $builtPath (from ${resource.path}, relativePath='$relativePath')")
+                    StructuredLogger.d("Built full SMB path", "path" to builtPath, "relativePath" to relativePath)
                     builtPath
                 } else {
-                    timber.log.Timber.w("GetMediaFilesUseCase: Credentials not found or invalid for credentialsId=${resource.credentialsId}, using raw path")
+                    StructuredLogger.w("Credentials not found or invalid", "credentialsId" to resource.credentialsId)
                     resource.path
                 }
             }
@@ -207,7 +220,7 @@ class GetMediaFilesUseCase @Inject constructor(
         
         // Determine effective path: use currentPath if in subfolder mode, otherwise use resource path
         val effectivePath = if (isSubfolderMode && currentPath != null) {
-            timber.log.Timber.d("GetMediaFilesUseCase: Using currentPath for subfolder navigation: $currentPath")
+            StructuredLogger.d("Using currentPath for subfolder navigation", "path" to currentPath)
             currentPath
         } else {
             fullPath
@@ -215,59 +228,80 @@ class GetMediaFilesUseCase @Inject constructor(
         
         val scanner = mediaScannerFactory.getScanner(resource.type)
         
-        timber.log.Timber.d("GetMediaFilesUseCase: Got scanner type=${scanner.javaClass.simpleName}")
+        StructuredLogger.d("Got scanner", "scannerType" to scanner.javaClass.simpleName)
         
         // Apply flavor-specific media type restrictions
         val flavorFilteredTypes = applyFlavorMediaTypeRestrictions(resource.supportedMediaTypes)
-        timber.log.Timber.d("GetMediaFilesUseCase: Calling scanner with supportedTypes=${flavorFilteredTypes.map { it.name }} (original: ${resource.supportedMediaTypes.map { it.name }})")
+        StructuredLogger.d("Calling scanner", "types" to flavorFilteredTypes.map { it.name })
         
-        // In subfolder mode: list directory contents (files + folders in current directory only)
-        // Otherwise: scan recursively (traditional behavior)
-        val files = if (isSubfolderMode) {
-            timber.log.Timber.d("GetMediaFilesUseCase: Using listDirectoryContents for subfolder mode, path=$effectivePath")
-            scanner.listDirectoryContents(
-                path = effectivePath,
-                supportedTypes = flavorFilteredTypes,
-                sizeFilter = sizeFilter,
-                credentialsId = resource.credentialsId,
-                showHiddenFiles = showHiddenFiles
-            )
-        } else if (useChunkedLoading && scanner is com.sza.fastmediasorter.data.network.SmbMediaScanner) {
-            timber.log.Timber.d("GetMediaFilesUseCase: Using chunked loading, maxFiles=$maxFiles")
-            // Use chunked loading for SMB to quickly show first files
-            scanner.scanFolderChunked(
-                path = effectivePath,
-                supportedTypes = flavorFilteredTypes,
-                sizeFilter = sizeFilter,
-                maxFiles = maxFiles,
-                credentialsId = resource.credentialsId,
-                scanSubdirectories = resource.scanSubdirectories,
-                showHiddenFiles = showHiddenFiles
-            )
+        // Check if we can skip the scan (A5-T2, A5-T3)
+        val cachedEntity = cachedFileListRepository.getEntityByResourceId(resource.id)
+        val canSkip = !forceFullScan && !isSubfolderMode && resource.rememberFileList && 
+            IncrementalScanStrategy.canSkipScan(cachedEntity, effectivePath, resource.type)
+
+        val files = if (canSkip) {
+            StructuredLogger.i("IncrementalScan: cache is valid, skipping physical scan", "resource" to resource.name)
+            cachedFileListRepository.getCachedFiles(resource.id) ?: emptyList()
         } else {
-            timber.log.Timber.d("GetMediaFilesUseCase: Using standard loading")
-            // Standard full scan for other types with progress reporting
-            val metricsToken = ScanMetricsRecorder.beginScan(resource.id, resource.type)
-            val result = scanner.scanFolder(
-                path = effectivePath,
-                supportedTypes = flavorFilteredTypes,
-                sizeFilter = sizeFilter,
-                credentialsId = resource.credentialsId,
-                scanSubdirectories = resource.scanSubdirectories,
-                showHiddenFiles = showHiddenFiles,
-                onProgress = onProgress
-            )
-            ScanMetricsRecorder.endScan(metricsToken, result.size)
-            result
+            // Physical scan (with parallelism control A5-T10)
+            scanDispatcher.withScanPermit(resource.type) {
+                if (isSubfolderMode) {
+                    StructuredLogger.d("Using listDirectoryContents for subfolder mode", "path" to effectivePath)
+                    scanner.listDirectoryContents(
+                        path = effectivePath,
+                        supportedTypes = flavorFilteredTypes,
+                        sizeFilter = sizeFilter,
+                        credentialsId = resource.credentialsId,
+                        showHiddenFiles = showHiddenFiles
+                    )
+                } else if (useChunkedLoading && scanner is com.sza.fastmediasorter.data.network.SmbMediaScanner) {
+                    StructuredLogger.d("Using chunked loading", "maxFiles" to maxFiles)
+                    scanner.scanFolderChunked(
+                        path = effectivePath,
+                        supportedTypes = flavorFilteredTypes,
+                        sizeFilter = sizeFilter,
+                        maxFiles = maxFiles,
+                        credentialsId = resource.credentialsId,
+                        scanSubdirectories = resource.scanSubdirectories,
+                        showHiddenFiles = showHiddenFiles
+                    )
+                } else {
+                    StructuredLogger.d("Using standard loading")
+                    val metricsToken = ScanMetricsRecorder.beginScan(resource.id, resource.type)
+                    val result = scanner.scanFolder(
+                        path = effectivePath,
+                        supportedTypes = flavorFilteredTypes,
+                        sizeFilter = sizeFilter,
+                        credentialsId = resource.credentialsId,
+                        scanSubdirectories = resource.scanSubdirectories,
+                        showHiddenFiles = showHiddenFiles,
+                        onProgress = onProgress
+                    )
+                    ScanMetricsRecorder.endScan(metricsToken, result.size)
+                    
+                    // Update persistent cache if enabled (A5-T1, A5-T6)
+                    if (resource.rememberFileList) {
+                        val now = System.currentTimeMillis()
+                        val folderMtime = IncrementalScanStrategy.currentFolderMtime(effectivePath)
+                        cachedFileListRepository.saveCachedFiles(
+                            resourceId = resource.id,
+                            files = result,
+                            lastScanTimestamp = now,
+                            lastModifiedFolder = folderMtime
+                        )
+                    }
+                    result
+                }
+            }
         }
         
-        timber.log.Timber.d("GetMediaFilesUseCase: Scanner returned ${files.size} files")
+        StructuredLogger.d("Scanner returned files", "count" to files.size)
         
         // Fetch favorites to mark files
         val favoriteUris = try {
             favoritesRepository.getAllFavorites().first().map { it.uri }.toSet()
         } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to fetch favorites")
+            StructuredLogger.e(e, "Failed to fetch favorites")
             emptySet<String>()
         }
         
@@ -288,30 +322,32 @@ class GetMediaFilesUseCase @Inject constructor(
 
         // Enrich metadata when rememberFileList is enabled OR when sort mode requires
         // audio/image metadata fields (artist, title, duration, exifDateTime).
-        // Without enrichment those fields are null, making metadata-based sorts
-        // indistinguishable from NAME_ASC.
         val metadataReadyFiles = if (resource.rememberFileList || needsMetadataForSort(sortMode)) {
-            filesWithFavorites.map { file ->
-                CachedMediaMetadataExtractor.enrichForCache(file)
-            }.also { CachedMediaMetadataExtractor.logSessionDiagnostics("scan resource=${resource.id}") }
+            metadataExtractor.enrichBatch(
+                resourceId = resource.id,
+                resourceType = resource.type,
+                credentialsId = resource.credentialsId,
+                files = filesWithFavorites
+            ).also { metadataExtractor.logSessionDiagnostics("scan resource=${resource.id}") }
         } else {
             filesWithFavorites
         }
         
         // Skip sorting for large folders (> 1000 files) - improves performance
         val sortedFiles = if (metadataReadyFiles.size > LARGE_FOLDER_THRESHOLD) {
-            timber.log.Timber.d("GetMediaFilesUseCase: Large folder (${metadataReadyFiles.size} files), skipping sort for better performance")
+            StructuredLogger.d("Large folder, skipping sort for performance", "count" to metadataReadyFiles.size)
             metadataReadyFiles  // Return unsorted for large folders
         } else {
-            timber.log.Timber.d("GetMediaFilesUseCase: Small folder (${metadataReadyFiles.size} files), sorting by $sortMode")
+            StructuredLogger.d("Small folder, sorting", "count" to metadataReadyFiles.size, "sortMode" to sortMode)
             sortFiles(metadataReadyFiles, sortMode)
         }
         
-        timber.log.Timber.d("GetMediaFilesUseCase: Emitting ${sortedFiles.size} files to flow")
+        StructuredLogger.d("Emitting files", "count" to sortedFiles.size)
         emit(sortedFiles)
         
-        timber.log.Timber.d("GetMediaFilesUseCase: COMPLETE - flow emission done")
-    }.flowOn(Dispatchers.IO) // Execute scanning and sorting on IO thread
+        StructuredLogger.d("COMPLETE - flow emission done")
+    }.flowOn(Dispatchers.IO + contextElement) // Execute scanning and sorting on IO thread
+    }
 
     /**
      * Returns true when the sort mode relies on metadata fields that require

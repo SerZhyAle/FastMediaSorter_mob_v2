@@ -1,8 +1,8 @@
 package com.sza.fastmediasorter.domain.usecase.scan
 
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.data.local.db.CachedFileListEntity
 import com.sza.fastmediasorter.domain.model.ResourceType
-import timber.log.Timber
 import java.io.File
 
 /**
@@ -72,26 +72,23 @@ object IncrementalScanStrategy {
         nowMs: Long = System.currentTimeMillis()
     ): Boolean {
         if (entity == null) {
-            Timber.d("IncrementalScan: no cache → full scan required (resourcePath=$resourcePath)")
+            StructuredLogger.d("IncrementalScan: no cache → full scan", "path" to resourcePath)
             return false
         }
 
         // Non-LOCAL resources: skip the optimisation — see KDoc for rationale.
         if (enableForLocalOnly && resourceType != ResourceType.LOCAL) {
-            Timber.d(
-                "IncrementalScan: type=${resourceType.name} → optimisation disabled " +
-                    "(enableForLocalOnly=true)"
-            )
+            StructuredLogger.d("IncrementalScan: non-local → optimisation disabled", "type" to resourceType.name)
             return false
         }
 
         // Age check.
         val lastScan = entity.lastScanTimestamp
         if (lastScan == null || maxCacheAgeMs > 0 && (nowMs - lastScan) > maxCacheAgeMs) {
-            Timber.d(
-                "IncrementalScan: cache too old " +
-                    "(age=${nowMs - (lastScan ?: 0)}ms > maxCacheAgeMs=$maxCacheAgeMs) " +
-                    "→ full scan required"
+            StructuredLogger.d(
+                "IncrementalScan: cache too old",
+                "age" to "${nowMs - (lastScan ?: 0)}ms",
+                "limit" to "${maxCacheAgeMs}ms"
             )
             return false
         }
@@ -102,32 +99,33 @@ object IncrementalScanStrategy {
             val currentFolderMtime = currentFolderMtime(resourcePath)
 
             if (cachedFolderMtime == null || currentFolderMtime == null) {
-                Timber.d(
-                    "IncrementalScan: folder mtime unavailable " +
-                        "(cached=$cachedFolderMtime, current=$currentFolderMtime) " +
-                        "→ full scan required"
+                StructuredLogger.d(
+                    "IncrementalScan: folder mtime unavailable",
+                    "cached" to cachedFolderMtime,
+                    "current" to currentFolderMtime
                 )
                 return false
             }
 
             if (currentFolderMtime != cachedFolderMtime) {
-                Timber.d(
-                    "IncrementalScan: folder mtime changed " +
-                        "(cached=$cachedFolderMtime, current=$currentFolderMtime) " +
-                        "→ full scan required"
+                StructuredLogger.d(
+                    "IncrementalScan: folder mtime changed",
+                    "cached" to cachedFolderMtime,
+                    "current" to currentFolderMtime
                 )
                 return false
             }
 
-            Timber.d(
-                "IncrementalScan: folder mtime unchanged → cache valid " +
-                    "(mtime=$cachedFolderMtime, resourcePath=$resourcePath)"
+            StructuredLogger.d(
+                "IncrementalScan: folder mtime unchanged → cache valid",
+                "mtime" to cachedFolderMtime,
+                "path" to resourcePath
             )
             return true
         }
 
         // Fallback for non-LOCAL when enableForLocalOnly=false: rely on age alone.
-        Timber.d("IncrementalScan: age-only check passed → cache valid (type=${resourceType.name})")
+        StructuredLogger.d("IncrementalScan: age-only check passed → cache valid", "type" to resourceType.name)
         return true
     }
 
@@ -142,7 +140,7 @@ object IncrementalScanStrategy {
             val file = File(path)
             if (file.exists() && file.isDirectory) file.lastModified() else null
         } catch (e: SecurityException) {
-            Timber.w("IncrementalScan: cannot read mtime for path=$path: ${e.message}")
+            StructuredLogger.w(e, "IncrementalScan: cannot read mtime", "path" to path)
             null
         }
     }

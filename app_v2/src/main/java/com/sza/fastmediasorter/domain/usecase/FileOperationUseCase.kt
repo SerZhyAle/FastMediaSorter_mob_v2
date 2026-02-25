@@ -25,6 +25,8 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import timber.log.Timber
 import java.io.File
 import java.io.IOException
@@ -108,7 +110,13 @@ class FileOperationUseCase @Inject constructor(
      * Supports cancellation via coroutine job cancellation
      */
     fun executeWithProgress(operation: FileOperation): Flow<FileOperationProgress> = channelFlow {
-        Timber.d("FileOperation.executeWithProgress: Starting ${operation.javaClass.simpleName}")
+        val contextElement = CorrelationContext.asContextElement(
+             operation = "file-operation",
+             extras = mapOf("opType" to operation.javaClass.simpleName)
+        )
+        
+        withContext(contextElement) {
+            StructuredLogger.d("START executeWithProgress")
         
         val totalFiles = when (operation) {
             is FileOperation.Copy -> operation.sources.size
@@ -165,6 +173,7 @@ class FileOperationUseCase @Inject constructor(
         
         // Wait for completion
         resultDeferred.join()
+        }
     }
 
     
@@ -390,11 +399,11 @@ class FileOperationUseCase @Inject constructor(
             }
             
             when (result) {
-                is FileOperationResult.Success -> Timber.i("FileOperation: SUCCESS - processed ${result.processedCount} files")
-                is FileOperationResult.PartialSuccess -> Timber.w("FileOperation: PARTIAL SUCCESS - ${result.processedCount} ok, ${result.failedCount} failed. Errors: ${result.errors}")
-                is FileOperationResult.Failure -> Timber.e("FileOperation: FAILURE - ${result.error}")
-                is FileOperationResult.AuthenticationRequired -> Timber.w("FileOperation: AUTH REQUIRED - ${result.provider}: ${result.message}")
-                is FileOperationResult.PermissionRequired -> Timber.i("FileOperation: PERMISSION REQUIRED - Batch delete permission needed for ${result.fileUris.size} file(s)")
+                is FileOperationResult.Success -> StructuredLogger.i("SUCCESS", "count" to result.processedCount)
+                is FileOperationResult.PartialSuccess -> StructuredLogger.w("PARTIAL SUCCESS", "processed" to result.processedCount, "failed" to result.failedCount)
+                is FileOperationResult.Failure -> StructuredLogger.e("FAILURE", "error" to result.error)
+                is FileOperationResult.AuthenticationRequired -> StructuredLogger.w("AUTH REQUIRED", "provider" to result.provider)
+                is FileOperationResult.PermissionRequired -> StructuredLogger.i("PERMISSION REQUIRED", "uris" to result.fileUris.size)
             }
             
             lastOperation = OperationHistory(operation, result)
@@ -402,18 +411,18 @@ class FileOperationUseCase @Inject constructor(
             
         } catch (e: BatchDeletePermissionRequiredException) {
             // Handle batch delete permission specially
-            Timber.i("FileOperation: Batch delete permission required, creating PermissionRequired result")
+            StructuredLogger.i("Batch delete permission required")
             val result = FileOperationResult.PermissionRequired(e.pendingIntent, e.uris)
             lastOperation = OperationHistory(operation, result)
             return result
         } catch (e: android.app.RecoverableSecurityException) {
             // Handle Android 10 RecoverableSecurityException
-            Timber.i("FileOperation: RecoverableSecurityException caught, creating PermissionRequired result")
+            StructuredLogger.i("RecoverableSecurityException caught")
             val result = FileOperationResult.PermissionRequired(e.userAction.actionIntent, emptyList())
             lastOperation = OperationHistory(operation, result)
             return result
         } catch (e: Exception) {
-            Timber.e(e, "FileOperation: EXCEPTION in executeInternal()")
+            StructuredLogger.e(e, "EXCEPTION in executeInternal")
             return FileOperationResult.Failure("${e.javaClass.simpleName}: ${e.message}")
         }
     }
@@ -421,7 +430,7 @@ class FileOperationUseCase @Inject constructor(
     suspend fun execute(
         operation: FileOperation,
         progressCallback: ByteProgressCallback? = null
-    ): FileOperationResult = withContext(Dispatchers.IO) {
+    ): FileOperationResult = withContext(Dispatchers.IO + CorrelationContext.asContextElement("file-operation-sync")) {
         executeInternal(operation, progressCallback)
     }
     

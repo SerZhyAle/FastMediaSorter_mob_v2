@@ -71,6 +71,12 @@ data class FileMetadataCacheEntity(
     /** Video/image height in pixels. */
     val height: Int?,
 
+    /** Video rotation angle (0, 90, 180, 270). */
+    val videoRotation: Int?,
+
+    /** Photo capture timestamp from EXIF (milliseconds). */
+    val exifDateTime: Long?,
+
     /** EXIF metadata serialised as a JSON object string. */
     val exifJson: String?
 )

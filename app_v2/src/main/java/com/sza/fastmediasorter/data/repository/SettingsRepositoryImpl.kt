@@ -135,6 +135,9 @@ class SettingsRepositoryImpl @Inject constructor(
         
         // UI State keys
         private val KEY_IS_RESOURCE_GRID_MODE = booleanPreferencesKey("is_resource_grid_mode")
+        
+        // Dynamic Background Expansion
+        private val KEY_DYNAMIC_BACKGROUND_EXTENSION = booleanPreferencesKey("dynamic_background_extension")
     }
 
     override fun getSettings(): Flow<AppSettings> {
@@ -292,7 +295,10 @@ class SettingsRepositoryImpl @Inject constructor(
                     lastUsedResourceId = preferences[KEY_LAST_USED_RESOURCE_ID] ?: -1L,
                     
                     // File list caching
-                    defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false
+                    defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false,
+                    
+                    // Dynamic Background Expansion
+                    dynamicBackgroundExtension = preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] ?: false
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -427,6 +433,9 @@ class SettingsRepositoryImpl @Inject constructor(
             
             // UI State
             preferences[KEY_IS_RESOURCE_GRID_MODE] = settings.isResourceGridMode
+            
+            // Dynamic Background Expansion
+            preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
         }
     }
 

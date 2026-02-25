@@ -431,6 +431,15 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
+        <!-- Dynamic Background Extension layer (behind all other views) -->
+        <ImageView
+            android:id="@+id/ivDynamicBackground"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:scaleType="centerCrop"
+            android:contentDescription="@null" />
+
         <androidx.media3.ui.PlayerView
             android:id="@+id/playerView"
             android:layout_width="match_parent"

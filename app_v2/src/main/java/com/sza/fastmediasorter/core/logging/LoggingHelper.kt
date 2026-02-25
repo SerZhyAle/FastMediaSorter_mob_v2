@@ -16,9 +16,15 @@ import java.util.Locale
  * Handles both console logging (Logcat) and file logging for debugging.
  */
 object LoggingHelper {
-    
+
     // Renderer diagnostics tags (D.7 - Stabilization)
     private const val TAG_RENDERER = "StaticImageRenderer"
+
+    /** Retained instance of FileLoggingTree to expose log file access. */
+    private var fileLoggingTree: FileLoggingTree? = null
+
+    /** Returns all log files managed by the file logging tree. */
+    fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
     private const val TAG_PREFETCH = "PrefetchQueue"
     
     /**
@@ -95,7 +101,9 @@ object LoggingHelper {
                 }
             })
             // Also log to file for debugging without ADB connection
-            Timber.plant(FileLoggingTree(context))
+            val fileTree = FileLoggingTree(context)
+            fileLoggingTree = fileTree
+            Timber.plant(fileTree)
         } else {
             // Release build: only warnings and errors
             Timber.plant(object : Timber.Tree() {
@@ -152,6 +160,9 @@ object LoggingHelper {
             // Use allowDiskIO (not just allowDiskWrites) because we also check file.exists() and file.length()
             StrictModeHelper.allowDiskIO {
                 try {
+                    // Sanitize message for security
+                    val sanitizedMessage = com.sza.fastmediasorter.core.security.SecretMasker.sanitize(message)
+
                     // Downgrade "unimportant" errors to WARN
                     var effectivePriority = priority
                     if (priority == android.util.Log.ERROR && isUnimportantError(t)) {
@@ -182,17 +193,19 @@ object LoggingHelper {
                         
                         if (effectivePriority == android.util.Log.WARN) {
                             // Warnings: single line, compact exception info
-                            var logLine = "$timestamp $priorityChar/${tag ?: "App"}: $message"
+                            var logLine = "$timestamp $priorityChar/${tag ?: "App"}: $sanitizedMessage"
                             if (t != null) {
                                 logLine += " [${t.javaClass.simpleName}: ${t.message}]"
                             }
                             printWriter?.println(logLine)
                         } else {
                             // Other levels: standard format with stacktrace for errors
-                            val logLine = "$timestamp $priorityChar/${tag ?: "App"}: $message"
+                            val logLine = "$timestamp $priorityChar/${tag ?: "App"}: $sanitizedMessage"
                             printWriter?.println(logLine)
                             t?.let { throwable ->
-                                printWriter?.println(getCompactStackTrace(throwable))
+                                val stackTrace = getCompactStackTrace(throwable)
+                                val sanitizedStackTrace = com.sza.fastmediasorter.core.security.SecretMasker.sanitize(stackTrace)
+                                printWriter?.println(sanitizedStackTrace)
                             }
                         }
                         printWriter?.flush()
@@ -265,6 +278,14 @@ object LoggingHelper {
             } catch (e: Exception) {
                 // Ignore rotation errors
             }
+        }
+
+        fun getLogDir(): File = logDir
+        
+        fun getLogFiles(): List<File> {
+            return logDir.listFiles { file -> 
+                file.isFile && file.name.startsWith("fastmediasorter_") && file.name.endsWith(".log")
+            }?.sortedByDescending { it.lastModified() } ?: emptyList()
         }
     }
 }

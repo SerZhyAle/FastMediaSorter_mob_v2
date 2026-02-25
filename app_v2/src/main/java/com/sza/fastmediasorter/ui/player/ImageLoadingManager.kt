@@ -104,6 +104,8 @@ class ImageLoadingManager(
     private var currentTargetView: android.widget.ImageView? = null
     private var currentIsAnimatedContent: Boolean = false
     private val animatedImageController = AnimatedImageController()
+    private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
+    private var isDynamicBackgroundEnabled: Boolean = false
     private val staticImageRenderer: StaticImageRenderer = DualSurfaceStaticImageRenderer(
         surfaceA = binding.photoView,
         surfaceB = binding.photoViewSurfaceB
@@ -135,6 +137,29 @@ class ImageLoadingManager(
         prefetchQueue.slideshowBias = enabled
         Timber.d("ImageLoadingManager: Slideshow bias set to $enabled")
     }
+
+    /**
+     * Enable or disable the dynamic background extension effect.
+     * When enabled, a [DynamicBackgroundProcessor] is created and attached to [ivDynamicBackground].
+     * When disabled, the processor is cleared and the background view is hidden.
+     *
+     * NOTE: [binding.ivDynamicBackground] must exist in the layout (it is always added, just gone by default).
+     */
+    fun setDynamicBackgroundEnabled(enabled: Boolean) {
+        isDynamicBackgroundEnabled = enabled
+        Timber.d("ImageLoadingManager: Dynamic background enabled=$enabled")
+        if (enabled) {
+            if (dynamicBackgroundProcessor == null) {
+                dynamicBackgroundProcessor = DynamicBackgroundProcessor(
+                    backgroundView = binding.ivDynamicBackground,
+                    coroutineScope = lifecycleScope
+                )
+            }
+        } else {
+            dynamicBackgroundProcessor?.clear()
+            // Keep the processor instance to avoid re-creation churn on rapid toggles
+        }
+    }
     
     /**
      * Cleanup all resources - cancel Glide requests and pending handlers.
@@ -142,6 +167,9 @@ class ImageLoadingManager(
      */
     fun cleanup() {
         Timber.d("ImageLoadingManager: Cleaning up resources")
+        
+        // Cancel any dynamic background processing
+        dynamicBackgroundProcessor?.clear()
         
         // Cancel all pending handlers
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
@@ -164,6 +192,7 @@ class ImageLoadingManager(
         currentIsAnimatedContent = false
         callback.setAnimatedBadgeVisible(false)
         staticImageRenderer.release()
+        dynamicBackgroundProcessor = null
         
         Timber.d("ImageLoadingManager: Cleanup complete")
     }
@@ -303,6 +332,11 @@ class ImageLoadingManager(
         callback.releasePlayer()
         animatedImageController.prepareForNewContent()
         binding.playerView.isVisible = false
+        
+        // Clear dynamic background from previous image
+        if (!isDynamicBackgroundEnabled) {
+            dynamicBackgroundProcessor?.clear()
+        }
         
         // Hide audio-related views
         Timber.d("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
@@ -876,7 +910,16 @@ class ImageLoadingManager(
                     
                     // Log memory state AFTER successful image load
                     logMemoryStats("AFTER onResourceReady")
-                    
+
+                    // Trigger dynamic background extension if enabled
+                    if (isDynamicBackgroundEnabled) {
+                        dynamicBackgroundProcessor?.process(
+                            drawable = resource,
+                            screenWidth = currentDeviceWidth,
+                            screenHeight = currentDeviceHeight
+                        )
+                    }
+
                     preloadNextImageIfNeeded()
                 }
                 return false

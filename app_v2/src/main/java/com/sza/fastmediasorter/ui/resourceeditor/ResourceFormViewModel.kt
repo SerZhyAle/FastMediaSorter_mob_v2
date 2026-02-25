@@ -159,7 +159,6 @@ class ResourceFormViewModel @Inject constructor(
                 Timber.e(error, "ResourceFormViewModel: initialize failed")
                 _events.emit(
                     ResourceEditorUiEvent.ShowError(
-                        message = error.message,
                         messageResId = R.string.resource_editor_init_failed
                     )
                 )
@@ -357,7 +356,6 @@ class ResourceFormViewModel @Inject constructor(
                 _uiState.update { it.copy(isSaving = false) }
                 _events.emit(
                     ResourceEditorUiEvent.ShowError(
-                        message = error.message,
                         messageResId = R.string.error_save_failed
                     )
                 )

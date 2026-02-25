@@ -115,7 +115,10 @@ data class AppSettings(
     val lastUsedResourceId: Long = -1L,
     
     // File list caching
-    val defaultRememberFileList: Boolean = false
+    val defaultRememberFileList: Boolean = false,
+    
+    // Dynamic Background Effect
+    val dynamicBackgroundExtension: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

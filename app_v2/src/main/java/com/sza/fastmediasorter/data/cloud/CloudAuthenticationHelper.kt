@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.data.cloud
 
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -44,24 +46,24 @@ class CloudAuthenticationHelper @Inject constructor(
             return CloudClientResult.Success(client)
         }
         
-        // Try to restore from client's own encrypted storage
-        val restored = when (provider) {
-            CloudProvider.DROPBOX -> (client as? DropboxClient)?.tryRestoreFromStorage() == true
-            CloudProvider.GOOGLE_DRIVE -> (client as? GoogleDriveRestClient)?.tryRestoreFromStorage() == true
-            CloudProvider.ONEDRIVE -> {
-                 // OneDrive uses MSAL which manages its own cache, try to initialize with empty credentials
-                 // to hit the silent auth check inside initialize()
-                 (client as? OneDriveRestClient)?.initialize("{}") == true
+        return CorrelationContext.start("cloud-restore", mapOf("provider" to provider.name)) {
+            // Try to restore from client's own encrypted storage
+            val restored = when (provider) {
+                CloudProvider.DROPBOX -> (client as? DropboxClient)?.tryRestoreFromStorage() == true
+                CloudProvider.GOOGLE_DRIVE -> (client as? GoogleDriveRestClient)?.tryRestoreFromStorage() == true
+                CloudProvider.ONEDRIVE -> {
+                     (client as? OneDriveRestClient)?.initialize("{}") == true
+                }
+            }
+            
+            if (restored) {
+                StructuredLogger.i("Auto-restored client", "provider" to provider.name)
+                CloudClientResult.Success(client)
+            } else {
+                StructuredLogger.w("Failed to restore client", "provider" to provider.name)
+                CloudClientResult.AuthRequired(provider)
             }
         }
-        
-        if (restored) {
-            Timber.d("Auto-restored $provider client from encrypted storage")
-            return CloudClientResult.Success(client)
-        }
-        
-        Timber.w("$provider client not authenticated and no stored credentials")
-        return CloudClientResult.AuthRequired(provider)
     }
 
     /**
@@ -93,33 +95,35 @@ class CloudAuthenticationHelper @Inject constructor(
         
         // Check if authentication error
         if (result is CloudResult.Error && result.message.contains("Not authenticated", ignoreCase = true)) {
-            Timber.w("executeWithAutoReauth: Authentication error, attempting silent re-authentication")
+            StructuredLogger.w("Auth error detected, attempting silent re-auth", "provider" to provider.name)
             
-            // Attempt silent re-authentication
-            val reAuthResult = when (provider) {
-                CloudProvider.GOOGLE_DRIVE -> {
-                    try {
-                        googleDriveClient.authenticate()
-                    } catch (e: Exception) {
-                        Timber.e(e, "Silent re-authentication failed")
-                        AuthResult.Error("Re-authentication failed: ${e.message}")
+            return CorrelationContext.start("cloud-reauth", mapOf("provider" to provider.name)) {
+                // Attempt silent re-authentication
+                val reAuthResult = when (provider) {
+                    CloudProvider.GOOGLE_DRIVE -> {
+                        try {
+                            googleDriveClient.authenticate()
+                        } catch (e: Exception) {
+                            StructuredLogger.e(e, "Silent re-auth failed")
+                            AuthResult.Error("Re-authentication failed: ${e.message}")
+                        }
                     }
+                    else -> AuthResult.Error("Auto re-authentication not supported for $provider")
                 }
-                else -> AuthResult.Error("Auto re-authentication not supported for $provider")
-            }
-            
-            return when (reAuthResult) {
-                is AuthResult.Success -> {
-                    Timber.i("executeWithAutoReauth: Silent re-authentication successful, retrying operation")
-                    operation(client)  // Retry once
-                }
-                is AuthResult.Error -> {
-                    Timber.e("executeWithAutoReauth: Re-authentication failed - ${reAuthResult.message}")
-                    null
-                }
-                is AuthResult.Cancelled -> {
-                    Timber.w("executeWithAutoReauth: Re-authentication cancelled by user")
-                    null
+                
+                when (reAuthResult) {
+                    is AuthResult.Success -> {
+                        StructuredLogger.i("Silent re-auth successful, retrying")
+                        operation(client)  // Retry once
+                    }
+                    is AuthResult.Error -> {
+                        StructuredLogger.e("Re-auth failed", "msg" to reAuthResult.message)
+                        null
+                    }
+                    is AuthResult.Cancelled -> {
+                        StructuredLogger.w("Re-auth cancelled")
+                        null
+                    }
                 }
             }
         }

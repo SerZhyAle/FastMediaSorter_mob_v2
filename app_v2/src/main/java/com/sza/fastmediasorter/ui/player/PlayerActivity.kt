@@ -1991,6 +1991,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         currentSettings = settings
                         loadFullSizeImages = settings.loadFullSizeImages
                         
+                        // Enable/disable the dynamic background extension effect
+                        imageLoadingManager.setDynamicBackgroundEnabled(settings.dynamicBackgroundExtension)
+                        
                         // Setup PiP button visibility based on settings
                         pipManager?.setupPipButton(settings.enablePictureInPicture)
                         

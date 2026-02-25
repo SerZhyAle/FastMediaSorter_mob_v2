@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class AddMultipleResult(
@@ -20,24 +23,28 @@ class AddResourceUseCase @Inject constructor(
         const val MAX_DESTINATIONS = 10
     }
     
-    suspend operator fun invoke(resource: MediaResource): Result<Long> {
-        return try {
+    suspend operator fun invoke(resource: MediaResource): Result<Long> = withContext(CorrelationContext.asContextElement("add-resource")) {
+        try {
+            StructuredLogger.d("START add resource", "name" to resource.name, "type" to resource.type.name)
             // Set displayOrder to max + 1
             val existingResources = repository.getAllResources().first()
             val maxDisplayOrder = existingResources.maxOfOrNull { it.displayOrder } ?: -1
             val resourceWithOrder = resource.copy(displayOrder = maxDisplayOrder + 1)
             
             val id = repository.addResource(resourceWithOrder)
+            StructuredLogger.i("SUCCESS add resource", "id" to id)
             OperationMetricsRecorder.recordResourceSave(success = true)
             Result.success(id)
         } catch (e: Exception) {
+            StructuredLogger.e(e, "FAILURE add resource")
             OperationMetricsRecorder.recordResourceSave(success = false)
             Result.failure(e)
         }
     }
 
-    suspend fun addMultiple(resources: List<MediaResource>): Result<AddMultipleResult> {
-        return try {
+    suspend fun addMultiple(resources: List<MediaResource>): Result<AddMultipleResult> = withContext(CorrelationContext.asContextElement("add-multiple-resources")) {
+        try {
+            StructuredLogger.d("START add multiple", "count" to resources.size)
             val existingResources = repository.getAllResources().first()
             val currentDestinations = existingResources.count { it.isDestination }
             var availableDestinationSlots = MAX_DESTINATIONS - currentDestinations
@@ -73,6 +80,7 @@ class AddResourceUseCase @Inject constructor(
             
             resourcesToAdd.forEach { repository.addResource(it) }
             
+            StructuredLogger.i("SUCCESS add multiple", "added" to resourcesToAdd.size, "skipped" to skippedDestinations)
             Result.success(
                 AddMultipleResult(
                     addedCount = resourcesToAdd.size,
@@ -81,6 +89,7 @@ class AddResourceUseCase @Inject constructor(
                 )
             )
         } catch (e: Exception) {
+            StructuredLogger.e(e, "FAILURE add multiple")
             Result.failure(e)
         }
     }

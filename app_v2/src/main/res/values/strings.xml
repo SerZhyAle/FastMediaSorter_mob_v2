@@ -97,6 +97,7 @@
     <string name="delete_failed">Delete failed: %1$s</string>
     <string name="deleting_files">Deleting Files</string>
     <string name="deleting_n_files">Deleting %1$d files, please wait…</string>
+    <string name="export_logs">Export Debug Logs</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Copied %1$d file(s)</string>
@@ -256,6 +257,10 @@
     <string name="load_full_size_images_hint">Enables pinch-to-zoom and rotation gestures in command panel mode, but uses more data and memory. Off by default (loads 1920px resolution).</string>
     <string name="pref_crop_images_fullscreen_title">Crop images to fill screen</string>
     <string name="pref_crop_images_fullscreen_summary">When showing fullscreen or slideshow, crop images to fill screen if orientations match</string>
+    <string name="pref_dynamic_background_title">Dynamic Background Extension</string>
+    <string name="pref_dynamic_background_summary">Fill \"black bars\" by extending image edge colors (Ambilight effect)</string>
+    <string name="tooltip_dynamic_background_title">Dynamic Background Extension</string>
+    <string name="tooltip_dynamic_background_message">This feature fills the empty space (letterboxing/pillarboxing) by dynamically extending the colors from the image edges. It creates an immersive look when an image doesn\'t match the screen aspect ratio. For solid backgrounds, it uses a uniform fill; for complex backgrounds, it uses a perspective extension (streaks).</string>
     <string name="tooltip_crop_images_fullscreen_title">Image Crop Behavior</string>
     <string name="tooltip_crop_images_fullscreen_message">When enabled: In fullscreen or slideshow mode, if the image and device have matching orientations (both landscape or both portrait), the image will be cropped to fill the entire screen. When disabled: All images will fit within the screen boundaries without cropping.</string>
     <string name="image_size_limit">Image size limit</string>

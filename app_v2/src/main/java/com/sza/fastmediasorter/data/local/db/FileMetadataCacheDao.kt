@@ -31,6 +31,10 @@ interface FileMetadataCacheDao {
     @Query("SELECT COUNT(*) FROM file_metadata_cache WHERE resourceId = :resourceId")
     suspend fun countForResource(resourceId: Long): Int
 
+    /** Returns all complete entities for a resource (for batch enrichment). */
+    @Query("SELECT * FROM file_metadata_cache WHERE resourceId = :resourceId")
+    suspend fun getAllForResource(resourceId: Long): List<FileMetadataCacheEntity>
+
     // ── Write ─────────────────────────────────────────────────────────────────
 
     /**

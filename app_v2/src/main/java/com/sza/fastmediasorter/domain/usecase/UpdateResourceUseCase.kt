@@ -1,25 +1,27 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.logging.CorrelationContext
+import com.sza.fastmediasorter.core.logging.StructuredLogger
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import timber.log.Timber
 
 class UpdateResourceUseCase @Inject constructor(
     private val repository: ResourceRepository
 ) {
-    suspend operator fun invoke(resource: MediaResource): Result<Unit> {
-        return try {
-            Timber.d("UpdateResourceUseCase: Updating resource '${resource.name}', scanSubdirectories=${resource.scanSubdirectories}, showSubfoldersAsItems=${resource.showSubfoldersAsItems}, allFiles=${resource.allFiles}, type=${resource.type}")
-            Timber.i("╔═══ UPDATE RESOURCE usecase ═══")
-            Timber.i("║ supportedMediaTypes: ${resource.supportedMediaTypes.map { it.name }}")
-            Timber.i("║ Size: ${resource.supportedMediaTypes.size}/7")
-            Timber.i("╚═══════════════════════════════")
+    suspend operator fun invoke(resource: MediaResource): Result<Unit> = withContext(CorrelationContext.asContextElement("update-resource")) {
+        try {
+            StructuredLogger.d("START update resource", 
+                "name" to resource.name, 
+                "type" to resource.type.name,
+                "supportedTypesCount" to resource.supportedMediaTypes.size
+            )
             repository.updateResource(resource)
-            Timber.d("UpdateResourceUseCase: Successfully updated resource '${resource.name}'")
+            StructuredLogger.i("SUCCESS update resource")
             Result.success(Unit)
         } catch (e: Exception) {
-            Timber.e(e, "UpdateResourceUseCase: Failed to update resource '${resource.name}'")
+            StructuredLogger.e(e, "FAILURE update resource")
             Result.failure(e)
         }
     }

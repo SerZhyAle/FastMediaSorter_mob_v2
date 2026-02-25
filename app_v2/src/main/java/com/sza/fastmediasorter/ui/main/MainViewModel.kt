@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourceFilterManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceNavigationCoordinator
 import com.sza.fastmediasorter.ui.main.helpers.ResourceOrderManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
-import com.sza.fastmediasorter.util.ConnectionErrorFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -298,11 +297,8 @@ class MainViewModel @Inject constructor(
     }
     
     private suspend fun validateAndOpenResource(resource: MediaResource, slideshowMode: Boolean = false) {
-        val settings = settingsRepository.getSettings().first()
-        val showDetails = settings.showDetailedErrors
-        
         // Delegate validation to navigation coordinator
-        when (val result = navigationCoordinator.validateAndNavigate(resource, slideshowMode, showDetails)) {
+        when (val result = navigationCoordinator.validateAndNavigate(resource, slideshowMode)) {
             is ResourceNavigationCoordinator.NavigationResult.Navigate -> {
                 when (val destination = result.destination) {
                     is ResourceNavigationCoordinator.NavigationDestination.Browse -> {

@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.core.logging
 
+import kotlinx.coroutines.asContextElement
 import java.util.UUID
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Thread-local correlation context for tracing a logical operation
@@ -8,9 +10,14 @@ import java.util.UUID
  *
  * Usage:
  * ```
+ * // For synchronous code:
  * CorrelationContext.start("copy-file") {
- *     // All Timber logs inside this block can access the correlation ID
  *     fileOperationUseCase.copy(…)
+ * }
+ *
+ * // For coroutines:
+ * withContext(CorrelationContext.asContextElement("smb-scan")) {
+ *     repository.scan()
  * }
  * ```
  */
@@ -28,11 +35,7 @@ object CorrelationContext {
         get() = current?.correlationId ?: ""
 
     /**
-     * Start a new correlation scope. Nesting is supported —
-     * the outer scope is restored when the inner scope ends.
-     *
-     * @param operation Human-readable label (e.g. "copy-file", "smb-list")
-     * @param extras Additional key-value pairs attached to every log in this scope.
+     * Start a new correlation scope for synchronous code.
      */
     inline fun <T> start(
         operation: String,
@@ -40,12 +43,7 @@ object CorrelationContext {
         block: () -> T
     ): T {
         val parent = threadLocal.get()
-        val ctx = ContextData(
-            correlationId = parent?.correlationId ?: UUID.randomUUID().toString().take(8),
-            operation = operation,
-            extras = parent?.extras.orEmpty() + extras,
-            depth = (parent?.depth ?: 0) + 1
-        )
+        val ctx = createChildContext(parent, operation, extras)
         threadLocal.set(ctx)
         try {
             return block()
@@ -55,10 +53,31 @@ object CorrelationContext {
     }
 
     /**
-     * Suspend-compatible variant using coroutine context would go here;
-     * for now the thread-local approach covers most use cases since
-     * Timber calls happen on the calling thread.
+     * Propagate the current (or new) correlation context into a coroutine's context.
+     * Use with `withContext()`.
      */
+    fun asContextElement(
+        operation: String,
+        extras: Map<String, String> = emptyMap()
+    ): CoroutineContext {
+        val parent = threadLocal.get()
+        val ctx = createChildContext(parent, operation, extras)
+        return threadLocal.asContextElement(ctx)
+    }
+
+    @PublishedApi
+    internal fun createChildContext(
+        parent: ContextData?,
+        operation: String,
+        extras: Map<String, String>
+    ): ContextData {
+        return ContextData(
+            correlationId = parent?.correlationId ?: UUID.randomUUID().toString().take(8),
+            operation = operation,
+            extras = parent?.extras.orEmpty() + extras,
+            depth = (parent?.depth ?: 0) + 1
+        )
+    }
 
     data class ContextData(
         val correlationId: String,

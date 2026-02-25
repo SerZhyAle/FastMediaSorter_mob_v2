@@ -3,9 +3,10 @@ package com.sza.fastmediasorter.ui.main.helpers
 import android.content.Context
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
+import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorMessageMapper
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
-import com.sza.fastmediasorter.util.ConnectionErrorFormatter
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
@@ -58,16 +59,14 @@ class ResourceNavigationCoordinator(
     
     /**
      * Validate resource and determine navigation action.
-     * 
+     *
      * @param resource Resource to validate
      * @param slideshowMode True for slideshow, false for browse
-     * @param showDetailedErrors Whether to show technical error details
      * @return NavigationResult indicating next action
      */
     suspend fun validateAndNavigate(
         resource: MediaResource,
-        slideshowMode: Boolean,
-        showDetailedErrors: Boolean
+        slideshowMode: Boolean
     ): NavigationResult {
         // Handle Favorites special case
         if (resource.id == FAVORITES_RESOURCE_ID) {
@@ -92,7 +91,7 @@ class ResourceNavigationCoordinator(
         )
         
         if (isNetworkResource) {
-            return testConnectionAndNavigate(resource, slideshowMode, showDetailedErrors)
+            return testConnectionAndNavigate(resource, slideshowMode)
         }
         
         // Local resource - navigate directly
@@ -104,8 +103,7 @@ class ResourceNavigationCoordinator(
      */
     private suspend fun testConnectionAndNavigate(
         resource: MediaResource,
-        slideshowMode: Boolean,
-        showDetailedErrors: Boolean
+        slideshowMode: Boolean
     ): NavigationResult {
         return try {
             val testResult = resourceRepository.testConnection(resource)
@@ -137,15 +135,10 @@ class ResourceNavigationCoordinator(
                         updateResourceUseCase(updatedResource)
                     }
                     
-                    // Format error message
-                    val (userMessage, technicalDetails) = ConnectionErrorFormatter.formatConnectionError(
-                        context = context,
-                        resource = resource,
-                        error = error,
-                        showTechnicalDetails = showDetailedErrors
-                    )
-                    
-                    NavigationResult.Error(userMessage, technicalDetails)
+                    // Format error message via NetworkErrorClassifier
+                    val classifiedError = NetworkErrorClassifier.classify(error)
+                    val userMessage = context.getString(NetworkErrorMessageMapper.toMessageRes(classifiedError))
+                    NavigationResult.Error(userMessage, null)
                 }
             )
         } catch (e: Exception) {
@@ -157,15 +150,10 @@ class ResourceNavigationCoordinator(
                 updateResourceUseCase(updatedResource)
             }
             
-            // Format error message
-            val (userMessage, technicalDetails) = ConnectionErrorFormatter.formatConnectionError(
-                context = context,
-                resource = resource,
-                error = e,
-                showTechnicalDetails = showDetailedErrors
-            )
-            
-            NavigationResult.Error(userMessage, technicalDetails)
+            // Format error message via NetworkErrorClassifier
+            val classifiedError = NetworkErrorClassifier.classify(e)
+            val userMessage = context.getString(NetworkErrorMessageMapper.toMessageRes(classifiedError))
+            NavigationResult.Error(userMessage, null)
         }
     }
     

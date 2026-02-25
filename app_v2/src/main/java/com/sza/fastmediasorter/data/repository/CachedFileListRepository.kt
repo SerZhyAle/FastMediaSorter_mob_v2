@@ -33,7 +33,12 @@ class CachedFileListRepository @Inject constructor(
     // ── Public API ────────────────────────────────────────────────────────────
 
     /** Save the full file list for a resource as a single GZIP-compressed JSON blob. */
-    suspend fun saveCachedFiles(resourceId: Long, files: List<MediaFile>) {
+    suspend fun saveCachedFiles(
+        resourceId: Long,
+        files: List<MediaFile>,
+        lastScanTimestamp: Long? = null,
+        lastModifiedFolder: Long? = null
+    ) {
         if (files.size > 1_000_000) {
             Timber.w("CachedFileList: file count ${files.size} exceeds limit for resource $resourceId — skipping")
             return
@@ -43,16 +48,22 @@ class CachedFileListRepository @Inject constructor(
             val entity = CachedFileListEntity(
                 resourceId = resourceId,
                 compressedData = compressed,
-                fileCount = files.size
+                fileCount = files.size,
+                lastScanTimestamp = lastScanTimestamp,
+                lastModifiedFolder = lastModifiedFolder
             )
             // insertOrReplace handles the unique index on resourceId
             cachedFileListDao.insertOrReplace(entity)
-            Timber.d("CachedFileList: saved ${files.size} files (${compressed.size} bytes) for resource $resourceId")
+            Timber.d("CachedFileList: saved ${files.size} files (${compressed.size} bytes) for resource $resourceId (lastScan=$lastScanTimestamp)")
         } catch (e: Exception) {
             Timber.e(e, "CachedFileList: failed to save files for resource $resourceId")
             throw e
         }
     }
+
+    /** Returns the raw database entity for a resource (used for A5 cache validation). */
+    suspend fun getEntityByResourceId(resourceId: Long): CachedFileListEntity? =
+        cachedFileListDao.getByResourceId(resourceId)
 
     /** Load the file list for a resource, or return null if nothing is cached. */
     suspend fun getCachedFiles(resourceId: Long): List<MediaFile>? {

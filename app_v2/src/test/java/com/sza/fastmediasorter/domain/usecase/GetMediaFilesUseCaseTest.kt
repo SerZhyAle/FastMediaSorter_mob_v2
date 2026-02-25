@@ -1,6 +1,10 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.network.SmbMediaScanner
+import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
+import com.sza.fastmediasorter.data.repository.CachedFileListRepository
+import com.sza.fastmediasorter.domain.usecase.scan.ScanDispatcher
+import com.sza.fastmediasorter.domain.usecase.scan.ScanSettings
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -33,6 +37,9 @@ class GetMediaFilesUseCaseTest {
     private val mediaScannerFactory: MediaScannerFactory = mockk()
     private val favoritesRepository: FavoritesRepository = mockk()
     private val credentialsRepository: NetworkCredentialsRepository = mockk()
+    private val cachedFileListRepository: CachedFileListRepository = mockk()
+    private val scanDispatcher: ScanDispatcher = ScanDispatcher(ScanSettings())
+    private val metadataExtractor: CachedMediaMetadataExtractor = mockk()
     private val smbScanner: SmbMediaScanner = mockk()
     private val testDispatcher = StandardTestDispatcher()
 
@@ -42,12 +49,23 @@ class GetMediaFilesUseCaseTest {
         useCase = GetMediaFilesUseCase(
             mediaScannerFactory,
             favoritesRepository,
-            credentialsRepository
+            credentialsRepository,
+            cachedFileListRepository,
+            scanDispatcher,
+            metadataExtractor
         )
         
         // Default mocks
         every { mediaScannerFactory.getScanner(ResourceType.SMB) } returns smbScanner
-        coEvery { favoritesRepository.getAllFavorites() } returns flowOf(emptyList()) // Return empty list instead of empty flow
+        coEvery { favoritesRepository.getAllFavorites() } returns flowOf(emptyList())
+        coEvery { cachedFileListRepository.getEntityByResourceId(any()) } returns null
+        coEvery { cachedFileListRepository.getCachedFiles(any()) } returns null
+        coEvery { cachedFileListRepository.saveCachedFiles(any(), any(), any(), any()) } returns Unit
+        coEvery { metadataExtractor.enrichBatch(any(), any(), any(), any()) } coAnswers {
+            @Suppress("UNCHECKED_CAST")
+            args[3] as List<com.sza.fastmediasorter.domain.model.MediaFile>
+        }
+        every { metadataExtractor.logSessionDiagnostics(any()) } returns Unit
     }
 
     @After

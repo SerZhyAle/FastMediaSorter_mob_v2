@@ -20,7 +20,7 @@
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T2+T3+T4+T5+T6+T7+T8+T9+T10+T11+T12 DONE | T13/T14 SKIP |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
-| B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
+| B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | PARTIAL | T1+T2+T3 DONE | T4..T10 TODO |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5+T6 DONE | - |
@@ -119,8 +119,8 @@
 | B2-T6 | B2 | Встроить respect `Retry-After` и условный retry по classifier. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T7 | B2 | Создать map `NetworkError -> string resource`. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T8 | B2 | Добавить ресурсы EN/RU/UK. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T9 | B2 | Перевести UI на единый `showNetworkError()` контракт. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
-| B2-T10 | B2 | Заменить разрозненные try/catch в SMB/SFTP/FTP/Google/OneDrive/Dropbox. | - | TODO | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T9 | B2 | Перевести UI на единый `showNetworkError()` контракт. | ResourceNavigationCoordinator.kt, ResourceFormViewModel.kt | DONE | Build OK, 249 tests pass | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
+| B2-T10 | B2 | Заменить разрозненные try/catch в SMB/SFTP/FTP/Google/OneDrive/Dropbox. | ConnectionErrorFormatter → NetworkErrorClassifier+MessageMapper | DONE | Build OK | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B2-T11 | B2 | Добавить unit-тесты для всех типов ошибок и retry поведения. | - | DONE | - | - | TZ_B2_NETWORK_ERROR_NORMALIZATION.md |
 | B3-T1 | B3 | Реализовать `StructuredLogger`. | core/logging/StructuredLogger.kt | DONE | Build OK | - | TZ_B3_OBSERVABILITY.md |
 | B3-T2 | B3 | Реализовать `CorrelationContext` для coroutine propagation. | core/logging/CorrelationContext.kt (thread-local; coroutine variant TODO) | DONE | Build OK | - | TZ_B3_OBSERVABILITY.md |
@@ -154,7 +154,7 @@
 | C1-T1 | C1 | Зафиксировать release policy и правила sign-off. | dev/RELEASE_POLICY.md | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T2 | C1 | Подготовить `RELEASE_CHECKLIST.md` как обязательный шаблон. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T3 | C1 | Согласовать ownership и точки контроля по checklist. | RELEASE_POLICY.md §8 sign-off table, RELEASE_CHECKLIST.md updated | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
-| C1-T4 | C1 | Реализовать script version bump. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
+| C1-T4 | C1 | Реализовать script version bump. | dev/build-with-version.ps1 (bump embedded in versioned build; no standalone script) | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T5 | C1 | Реализовать script generate changelog. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T6 | C1 | Реализовать automation RC build/tag. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T7 | C1 | Добавить уведомления о статусе release pipeline. | .github/workflows/android-ci.yml: notify-status job | DONE | GitHub Step Summary + PR failure comment (actions/github-script) | - | TZ_C1_RELEASE_TRAIN.md |

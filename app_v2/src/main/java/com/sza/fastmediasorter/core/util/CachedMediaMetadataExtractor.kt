@@ -2,45 +2,75 @@ package com.sza.fastmediasorter.core.util
 
 import android.media.MediaMetadataRetriever
 import androidx.exifinterface.media.ExifInterface
+import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
+import com.sza.fastmediasorter.data.local.db.FileMetadataCacheEntity
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Locale
-import java.util.TimeZone
+import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
 
-object CachedMediaMetadataExtractor {
+/**
+ * Extracts and caches media file metadata (A5-T5..T8).
+ * Provided as singleton via [com.sza.fastmediasorter.core.di.DatabaseModule].
+ */
+class CachedMediaMetadataExtractor(
+    private val fileMetadataCacheDao: FileMetadataCacheDao
+) {
 
     private val successCount = AtomicInteger(0)
     private val failCount = AtomicInteger(0)
+    private val cacheHitCount = AtomicInteger(0)
 
-    /** Logs and resets per-session extraction diagnostics. Call once per scan batch. */
+    /** Logs and resets per-session extraction diagnostics. */
     fun logSessionDiagnostics(tag: String = "") {
         val label = if (tag.isNotBlank()) " [$tag]" else ""
-        Timber.d("CachedMediaMetadataExtractor$label diagnostics: success=${successCount.getAndSet(0)}, fail=${failCount.getAndSet(0)}")
+        Timber.d("CachedMediaMetadataExtractor$label: success=${successCount.getAndSet(0)}, hits=${cacheHitCount.getAndSet(0)}, fail=${failCount.getAndSet(0)}")
     }
 
-    suspend fun enrichForCache(file: MediaFile): MediaFile = withContext(Dispatchers.IO) {
-        if (file.isDirectory) return@withContext file
+    /**
+     * Enriches a list of files with metadata, using Room cache when available and valid.
+     */
+    suspend fun enrichBatch(
+        resourceId: Long,
+        resourceType: ResourceType,
+        credentialsId: String?,
+        files: List<MediaFile>
+    ): List<MediaFile> = withContext(Dispatchers.IO) {
+        val cache = fileMetadataCacheDao.getAllForResource(resourceId).associateBy { it.filePath }
+        val toUpdate = mutableListOf<FileMetadataCacheEntity>()
 
-        if (!isLocalPath(file.path)) {
-            return@withContext file
+        val enriched = files.map { file ->
+            if (file.isDirectory || !isLocalPath(file.path)) return@map file
+
+            val cached = cache[file.path]
+            if (cached != null && cached.lastModified == file.createdDate && cached.fileSize == file.size) {
+                cacheHitCount.incrementAndGet()
+                file.copy(
+                    duration = cached.durationMs ?: file.duration,
+                    width = cached.width ?: file.width,
+                    height = cached.height ?: file.height,
+                    videoRotation = cached.videoRotation ?: file.videoRotation,
+                    exifDateTime = cached.exifDateTime ?: file.exifDateTime
+                )
+            } else {
+                val freshlyEnriched = enrichInternal(file)
+                if (freshlyEnriched != file) {
+                    toUpdate.add(mapToEntity(resourceId, resourceType, credentialsId, freshlyEnriched))
+                }
+                freshlyEnriched
+            }
         }
 
-        if (!File(file.path).exists()) {
-            return@withContext file
+        if (toUpdate.isNotEmpty()) {
+            fileMetadataCacheDao.upsertAll(toUpdate)
         }
-
-        return@withContext when (file.type) {
-            MediaType.AUDIO -> enrichAudio(file)
-            MediaType.VIDEO -> enrichVideo(file)
-            MediaType.IMAGE, MediaType.GIF -> enrichImage(file)
-            else -> file
-        }
+        enriched
     }
 
     private fun isLocalPath(path: String): Boolean {
@@ -49,6 +79,17 @@ object CachedMediaMetadataExtractor {
             !path.startsWith("ftp://", ignoreCase = true) &&
             !path.startsWith("cloud://", ignoreCase = true) &&
             !path.startsWith("content://", ignoreCase = true)
+    }
+
+    private suspend fun enrichInternal(file: MediaFile): MediaFile {
+        if (!File(file.path).exists()) return file
+
+        return when (file.type) {
+            MediaType.AUDIO -> enrichAudio(file)
+            MediaType.VIDEO -> enrichVideo(file)
+            MediaType.IMAGE, MediaType.GIF -> enrichImage(file)
+            else -> file
+        }
     }
 
     private fun enrichAudio(file: MediaFile): MediaFile {
@@ -63,10 +104,8 @@ object CachedMediaMetadataExtractor {
                 )
             }
         }.onSuccess { successCount.incrementAndGet() }
-        .onFailure {
-            failCount.incrementAndGet()
-            Timber.d("CachedMediaMetadataExtractor audio skipped: ${sanitizePath(file.path)}")
-        }.getOrElse { file }
+        .onFailure { failCount.incrementAndGet() }
+        .getOrElse { file }
     }
 
     private fun enrichVideo(file: MediaFile): MediaFile {
@@ -81,10 +120,8 @@ object CachedMediaMetadataExtractor {
                 )
             }
         }.onSuccess { successCount.incrementAndGet() }
-        .onFailure {
-            failCount.incrementAndGet()
-            Timber.d("CachedMediaMetadataExtractor video skipped: ${sanitizePath(file.path)}")
-        }.getOrElse { file }
+        .onFailure { failCount.incrementAndGet() }
+        .getOrElse { file }
     }
 
     private fun enrichImage(file: MediaFile): MediaFile {
@@ -107,27 +144,44 @@ object CachedMediaMetadataExtractor {
                 exifDateTime = exifDateTime
             )
         }.onSuccess { successCount.incrementAndGet() }
-        .onFailure {
-            failCount.incrementAndGet()
-            Timber.d("CachedMediaMetadataExtractor image skipped: ${sanitizePath(file.path)}")
-        }.getOrElse { file }
+        .onFailure { failCount.incrementAndGet() }
+        .getOrElse { file }
+    }
+
+    private fun mapToEntity(
+        resourceId: Long,
+        resourceType: ResourceType,
+        credentialsId: String?,
+        file: MediaFile
+    ): FileMetadataCacheEntity {
+        return FileMetadataCacheEntity(
+            resourceId = resourceId,
+            filePath = file.path,
+            provider = resourceType.name,
+            credentialsId = credentialsId,
+            lastModified = file.createdDate,
+            fileSize = file.size,
+            cachedAt = System.currentTimeMillis(),
+            thumbnailPath = null, // Handled separately or in future task
+            durationMs = file.duration,
+            width = file.width,
+            height = file.height,
+            videoRotation = file.videoRotation,
+            exifDateTime = file.exifDateTime,
+            exifJson = null // Could serialize full EXIF here if needed
+        )
     }
 
     private fun parseExifDateTime(value: String?): Long? {
         if (value.isNullOrBlank()) return null
-
         val patterns = listOf("yyyy:MM:dd HH:mm:ss", "yyyy-MM-dd HH:mm:ss")
         for (pattern in patterns) {
-            val parsed = runCatching {
-                SimpleDateFormat(pattern, Locale.US).apply { timeZone = TimeZone.getDefault() }.parse(value)?.time
-            }.getOrNull()
-            if (parsed != null) return parsed
+            try {
+                return SimpleDateFormat(pattern, Locale.US).apply { 
+                    timeZone = TimeZone.getDefault() 
+                }.parse(value)?.time
+            } catch (e: Exception) { /* continue */ }
         }
-
         return null
-    }
-
-    private fun sanitizePath(path: String): String {
-        return path.takeLast(64)
     }
 }

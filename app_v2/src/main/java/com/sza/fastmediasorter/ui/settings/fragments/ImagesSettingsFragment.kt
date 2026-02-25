@@ -99,6 +99,22 @@ class ImagesSettingsFragment : Fragment() {
             )
         }
 
+        // Dynamic Background Extension
+        binding.switchDynamicBackground.setOnCheckedChangeListener { _, isChecked ->
+            if (!isUpdatingFromSettings) {
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(dynamicBackgroundExtension = isChecked))
+            }
+        }
+
+        binding.iconHelpDynamicBackground.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                com.sza.fastmediasorter.R.string.tooltip_dynamic_background_title,
+                com.sza.fastmediasorter.R.string.tooltip_dynamic_background_message
+            )
+        }
+
         // Image Size Min
         binding.etImageSizeMin.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -172,6 +188,7 @@ class ImagesSettingsFragment : Fragment() {
                     binding.switchSupportGifs.isChecked = settings.supportGifs
                     binding.switchLoadFullSizeImages.isChecked = settings.loadFullSizeImages
                     binding.switchCropImagesToFullscreen.isChecked = settings.cropImagesToFullscreen
+                    binding.switchDynamicBackground.isChecked = settings.dynamicBackgroundExtension
 
                     val minKb = settings.imageSizeMin / KB_TO_BYTES
                     val maxKb = settings.imageSizeMax / KB_TO_BYTES

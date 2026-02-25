@@ -693,6 +693,10 @@ class GeneralSettingsFragment : Fragment() {
         binding.btnShowSessionLog.setOnClickListener {
             showLogDialog(fullLog = false)
         }
+
+        binding.btnExportLogs?.setOnClickListener {
+            com.sza.fastmediasorter.core.logging.LogExportHelper.exportLogs(requireContext())
+        }
         
         // Cache Management
         binding.btnAutoCalculateCache.setOnClickListener {

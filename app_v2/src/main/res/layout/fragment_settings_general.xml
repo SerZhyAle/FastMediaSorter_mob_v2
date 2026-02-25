@@ -629,6 +629,17 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <!-- Debug Logs Export -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnExportLogs"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:text="@string/export_logs"
+                        android:textSize="12sp"
+                        app:icon="@android:drawable/ic_menu_save" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
