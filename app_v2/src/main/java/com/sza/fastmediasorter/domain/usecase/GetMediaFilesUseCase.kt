@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.metrics.ScanMetricsRecorder
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -246,7 +247,7 @@ class GetMediaFilesUseCase @Inject constructor(
         } else {
             timber.log.Timber.d("GetMediaFilesUseCase: Using standard loading")
             // Standard full scan for other types with progress reporting
-            val scanStartTime = System.currentTimeMillis()
+            val metricsToken = ScanMetricsRecorder.beginScan(resource.id, resource.type)
             val result = scanner.scanFolder(
                 path = effectivePath,
                 supportedTypes = flavorFilteredTypes,
@@ -256,8 +257,7 @@ class GetMediaFilesUseCase @Inject constructor(
                 showHiddenFiles = showHiddenFiles,
                 onProgress = onProgress
             )
-            val scanDuration = System.currentTimeMillis() - scanStartTime
-            timber.log.Timber.d("GetMediaFilesUseCase: scanFolder completed in ${scanDuration}ms")
+            ScanMetricsRecorder.endScan(metricsToken, result.size)
             result
         }
         

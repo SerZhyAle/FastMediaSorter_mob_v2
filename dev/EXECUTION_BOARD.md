@@ -16,7 +16,7 @@
 |---|---|---:|---|---|---|
 | A1 | A1-T1..A1-T15 | 15 | TODO | - | - |
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
-| A3 | A3-T1..A3-T16 | 16 | PARTIAL | T4+T5+T8+T13+T14+T16 DONE | T11 SKIP (no UI cancel) |
+| A3 | A3-T1..A3-T16 | 16 | PARTIAL | T1+T2+T3+T4+T5+T7+T8+T13+T14+T15+T16 DONE | T6/T9/T10/T11 SKIP |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T4+T5+T8+T9+T10+T11 DONE | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
@@ -25,7 +25,7 @@
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5+T6 DONE | - |
 | C1 | C1-T1..C1-T7 | 7 | PARTIAL | T1+T2+T3+T4+T5+T6 DONE | - |
-| C2 | C2-T1..C2-T8 | 8 | PARTIAL | T4+T5+T6 DONE | - |
+| C2 | C2-T1..C2-T8 | 8 | PARTIAL | T1+T4+T5+T6 DONE | - |
 
 ## Task Registry
 
@@ -61,9 +61,9 @@
 | A2-T13 | A2 | Проверить collapse/expand секции и сохранение состояния. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
 | A2-T14 | A2 | Проверить восстановление состояния формы при recreation. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
 | A2-T15 | A2 | Добавить contract test suite как обязательный check в pipeline. | - | TODO | - | - | TZ_A2_CONTRACT_TESTS.md |
-| A3-T1 | A3 | Стандартизировать структуру `maestro/` (flows, helpers, env-config). | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T2 | A3 | Подготовить reusable helper flows (navigation, auth-mock, resource-ops). | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T3 | A3 | Настроить стабильный runner профиль для CI эмулятора. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T1 | A3 | Стандартизировать структуру `maestro/` (flows, helpers, env-config). | smoke/ critical/ stress/ _shared/ bin/ lib/ | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T2 | A3 | Подготовить reusable helper flows (navigation, auth-mock, resource-ops). | _shared/permissions.yaml, _shared/navigate_to_add_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T3 | A3 | Настроить стабильный runner профиль для CI эмулятора. | maestro-tests.yml: pixel_3a + api-level 30 + google_apis | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T4 | A3 | Добавить flow: add local resource. | maestro/critical/add_local_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T5 | A3 | Добавить flow: add SMB resource. | maestro/critical/add_smb_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T6 | A3 | Добавить flow: add cloud resource (mock OAuth). | - | SKIP | OAuth mock requires device setup | - | TZ_A3_MAESTRO_REGRESSIONS.md |
@@ -75,7 +75,7 @@
 | A3-T12 | A3 | Добавить flow: copy resource. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T13 | A3 | Добавить flow: welcome full/skip/permissions. | maestro/smoke/welcome_skip.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T14 | A3 | Интегрировать Maestro suite в CI как блокирующий check. | .github/workflows/maestro-tests.yml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T15 | A3 | Сохранять screenshots/logs/video при падении. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T15 | A3 | Сохранять screenshots/logs/video при падении. | maestro-tests.yml: upload-artifact on failure (recordings + results) | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T16 | A3 | Добавить smoke subset для быстрого pre-merge прогона. | maestro/smoke/ folder (8 flows) | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A4-T1 | A4 | Актуализировать workflow с последовательностью `lint -> unit -> contract -> maestro -> build`. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
 | A4-T2 | A4 | Включить кэширование Gradle и стабильные cache keys. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
@@ -158,7 +158,7 @@
 | C1-T5 | C1 | Реализовать script generate changelog. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T6 | C1 | Реализовать automation RC build/tag. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T7 | C1 | Добавить уведомления о статусе release pipeline. | - | TODO | - | - | TZ_C1_RELEASE_TRAIN.md |
-| C2-T1 | C2 | Добавить timing instrumentation для scan/auth/startup. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
+| C2-T1 | C2 | Добавить timing instrumentation для scan/auth/startup. | core/metrics/ScanMetricsRecorder.kt (object), GetMediaFilesUseCase.kt | DONE | beginScan/endScan, slow-scan warn >6s, p50/p95 summary | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T2 | C2 | Добавить success/failure counters для auth/resource save. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T3 | C2 | Определить формат хранения и экспорта метрик. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T4 | C2 | Зафиксировать baseline для всех KPI. | dev/QUALITY_BASELINE.md | DONE | - | - | TZ_C2_QUALITY_METRICS.md |
