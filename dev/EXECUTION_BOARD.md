@@ -18,7 +18,7 @@
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
 | A3 | A3-T1..A3-T16 | 16 | PARTIAL | T1+T2+T3+T4+T5+T7+T8+T13+T14+T15+T16 DONE | T6/T9/T10/T11 SKIP |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
-| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T2+T3+T4+T5+T8+T9+T10+T11+T12 DONE | T13/T14 SKIP |
+| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T2+T3+T4+T5+T6+T7+T8+T9+T10+T11+T12 DONE | T13/T14 SKIP |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
@@ -93,8 +93,8 @@
 | A5-T3 | A5 | Реализовать delta-путь обработки без полного повторного прохода. | domain/usecase/scan/IncrementalScanStrategy.kt | DONE | canSkipScan (LOCAL: folder mtime check; NETWORK/CLOUD: false); maxCacheAgeMs=5min | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T4 | A5 | Добавить `forceFullScan` в API/UseCase/UI. | GetMediaFilesUseCase: `forceFullScan: Boolean = false` param + MediaFilesCacheManager.clearCache | DONE | Build OK, tests pass | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T5 | A5 | Добавить `FileMetadataCache` Entity и DAO запросы с учётом `provider` и `credentialsId`. | FileMetadataCacheEntity + FileMetadataCacheDao + MIGRATION_11_12 | DONE | Build OK | Tests OK | TZ_A5_SCAN_OPTIMIZATION.md |
-| A5-T6 | A5 | Реализовать запись кэша в scan pipeline. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
-| A5-T7 | A5 | Реализовать чтение кэша при отображении с fallback. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T6 | A5 | Реализовать запись кэша в scan pipeline. | BrowseViewModel.kt L1745: onFilesLoaded → cachedFileListRepository.saveCachedFiles | DONE | Пре-ехистинг реализация подтверждена при аудите | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T7 | A5 | Реализовать чтение кэша при отображении с fallback. | BrowseViewModel.kt L1366-1389: getCachedFiles → early-return if !empty; fallback to full scan | DONE | Пре-ехистинг | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T8 | A5 | Реализовать TTL policy + cleanup job. | OrphanCleanupWorker: cleanMetadataCache (30d TTL, deleteExpired + deleteOrphaned) | DONE | Build OK | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T9 | A5 | Ввести `ScanDispatcher` с лимитами по source type. | ScanDispatcher.kt | DONE | Build OK | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T10 | A5 | Реализовать ограничение через `Semaphore`/dispatcher. | ScanDispatcher: Semaphore per source category | DONE | Build OK | - | TZ_A5_SCAN_OPTIMIZATION.md |
