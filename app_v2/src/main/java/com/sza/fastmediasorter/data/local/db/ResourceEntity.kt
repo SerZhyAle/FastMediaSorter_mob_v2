@@ -12,7 +12,9 @@ import com.sza.fastmediasorter.domain.model.SortMode
         Index(value = ["displayOrder", "name"], name = "idx_resources_display_order_name"),
         Index(value = ["type", "displayOrder", "name"], name = "idx_resources_type_display_order_name"),
         Index(value = ["isDestination", "destinationOrder"], name = "idx_resources_is_destination_order"),
-        Index(value = ["supportedMediaTypesFlags"], name = "idx_resources_media_types")
+        Index(value = ["supportedMediaTypesFlags"], name = "idx_resources_media_types"),
+        Index(value = ["credentialsId"], name = "idx_resources_credentials_id"),
+        Index(value = ["cloudProvider"], name = "idx_resources_cloud_provider")
     ]
 )
 data class ResourceEntity(

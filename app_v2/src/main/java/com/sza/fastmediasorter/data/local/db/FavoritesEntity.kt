@@ -8,7 +8,8 @@ import androidx.room.PrimaryKey
     tableName = "favorites",
     indices = [
         Index(value = ["uri"], unique = true, name = "idx_favorites_uri"),
-        Index(value = ["addedTimestamp"], name = "idx_favorites_addedTimestamp")
+        Index(value = ["addedTimestamp"], name = "idx_favorites_addedTimestamp"),
+        Index(value = ["resourceId"], name = "idx_favorites_resource_id")
     ]
 )
 data class FavoritesEntity(

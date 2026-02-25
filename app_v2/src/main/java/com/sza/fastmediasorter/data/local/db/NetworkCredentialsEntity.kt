@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.local.db
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Ignore
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import timber.log.Timber
 
@@ -11,7 +12,13 @@ import timber.log.Timber
  * Credentials are stored separately from resources for security and reusability.
  * Password field is manually encrypted/decrypted using CryptoHelper before storing.
  */
-@Entity(tableName = "network_credentials")
+@Entity(
+    tableName = "network_credentials",
+    indices = [
+        Index(value = ["credentialId"], unique = true, name = "idx_credentials_credential_id"),
+        Index(value = ["type", "server", "port"], name = "idx_credentials_type_server_port")
+    ]
+)
 data class NetworkCredentialsEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,

@@ -16,7 +16,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ThumbnailCacheEntity::class,
         CachedFileListEntity::class
     ],
-    version = 10,
+    version = 11,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -289,6 +289,27 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 // Add resource profile field for quick-setup presets
                 db.execSQL("ALTER TABLE resources ADD COLUMN profile TEXT NOT NULL DEFAULT 'NONE'")
+            }
+        }
+
+        /**
+         * v10 → v11: Add missing indexes for query optimization (B4).
+         * - network_credentials: credentialId (unique), type+server+port (composite)
+         * - resources: credentialsId, cloudProvider
+         * - favorites: resourceId
+         */
+        val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // network_credentials indexes
+                db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_credential_id ON network_credentials (credentialId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_credentials_type_server_port ON network_credentials (type, server, port)")
+
+                // resources indexes
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_credentials_id ON resources (credentialsId)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_resources_cloud_provider ON resources (cloudProvider)")
+
+                // favorites indexes
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_favorites_resource_id ON favorites (resourceId)")
             }
         }
     }
