@@ -45,4 +45,15 @@ interface NetworkCredentialsDao {
     
     @Query("DELETE FROM network_credentials")
     suspend fun deleteAll()
+
+    /**
+     * Returns credentials that have no associated resources (B5: orphan audit).
+     * Returns credential IDs not referenced by any resource's credentialsId.
+     */
+    @Query(
+        """SELECT nc.* FROM network_credentials nc
+        WHERE nc.credentialId NOT IN
+            (SELECT DISTINCT credentialsId FROM resources WHERE credentialsId IS NOT NULL AND credentialsId != '')"""
+    )
+    suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity>
 }

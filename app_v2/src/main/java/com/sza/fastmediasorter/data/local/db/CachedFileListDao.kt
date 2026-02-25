@@ -24,5 +24,12 @@ interface CachedFileListDao {
 
     @Query("SELECT file_count FROM cached_file_lists WHERE resourceId = :resourceId LIMIT 1")
     suspend fun getFileCount(resourceId: Long): Int?
+
+    /**
+     * Delete cached file lists whose parent resource no longer exists (B5: orphan cleanup).
+     * Returns the number of rows deleted.
+     */
+    @Query("DELETE FROM cached_file_lists WHERE resourceId NOT IN (SELECT id FROM resources)")
+    suspend fun deleteOrphaned(): Int
 }
 

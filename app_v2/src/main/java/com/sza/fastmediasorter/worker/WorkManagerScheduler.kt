@@ -104,4 +104,29 @@ class WorkManagerScheduler @Inject constructor(
             Timber.e(e, "WorkManagerScheduler: Failed to cancel resource sync")
         }
     }
+
+    /**
+     * Schedule periodic orphan cleanup worker.
+     * Runs once per day to remove cached file lists that reference deleted resources,
+     * and to audit credentials that have no associated resource.
+     */
+    fun scheduleOrphanCleanup() {
+        try {
+            val workRequest = PeriodicWorkRequestBuilder<OrphanCleanupWorker>(
+                repeatInterval = 24,
+                repeatIntervalTimeUnit = TimeUnit.HOURS
+            )
+                .setInitialDelay(10, TimeUnit.MINUTES)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                OrphanCleanupWorker.WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+            Timber.i("WorkManagerScheduler: Orphan cleanup scheduled (every 24 h, first run in 10 min)")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: Failed to schedule orphan cleanup")
+        }
+    }
 }

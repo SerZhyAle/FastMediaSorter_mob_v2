@@ -171,6 +171,8 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                     workManagerScheduler.cancelResourcesSync()
                     Timber.d("FastMediaSorterApp: Background sync is disabled, skipping scheduling")
                 }
+                // Orphan cleanup runs regardless of sync setting — lightweight maintenance task
+                workManagerScheduler.scheduleOrphanCleanup()
             } catch (e: Exception) {
                 Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
             }
