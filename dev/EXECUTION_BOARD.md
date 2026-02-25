@@ -25,7 +25,7 @@
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11 DONE | - |
 | C1 | C1-T1..C1-T7 | 7 | PARTIAL | T2+T4+T5+T6 DONE | - |
-| C2 | C2-T1..C2-T8 | 8 | TODO | - | - |
+| C2 | C2-T1..C2-T8 | 8 | PARTIAL | T4+T5 DONE | - |
 
 ## Task Registry
 
@@ -161,8 +161,8 @@
 | C2-T1 | C2 | Добавить timing instrumentation для scan/auth/startup. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T2 | C2 | Добавить success/failure counters для auth/resource save. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T3 | C2 | Определить формат хранения и экспорта метрик. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
-| C2-T4 | C2 | Зафиксировать baseline для всех KPI. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
-| C2-T5 | C2 | Реализовать генератор metrics report. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
+| C2-T4 | C2 | Зафиксировать baseline для всех KPI. | dev/QUALITY_BASELINE.md | DONE | - | - | TZ_C2_QUALITY_METRICS.md |
+| C2-T5 | C2 | Реализовать генератор metrics report. | scripts/utils/generate-quality-report.ps1 | DONE | Script OK (143/143 tests, APK 239.8 MB) | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T6 | C2 | Реализовать сравнение текущих значений с baseline. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T7 | C2 | Проверить интеграцию с Crashlytics dashboard. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T8 | C2 | Настроить алерты при деградации KPI. | - | TODO | - | - | TZ_C2_QUALITY_METRICS.md |
