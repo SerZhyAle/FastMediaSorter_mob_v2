@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CachedFileListEntity::class,
         FileMetadataCacheEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -345,6 +345,17 @@ abstract class AppDatabase : RoomDatabase() {
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_fmc_resource_path ON file_metadata_cache (resourceId, filePath)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_fmc_credentials_id ON file_metadata_cache (credentialsId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_fmc_cached_at ON file_metadata_cache (cachedAt)")
+            }
+        }
+        /**
+         * v12 → v13: Add scan state fields to cached_file_lists (A5-T1).
+         * - last_scan_timestamp: when the most recent scan completed (epoch ms, nullable).
+         * - last_modified_folder: folder mtime at scan time for change detection (nullable).
+         */
+        val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_scan_timestamp INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_modified_folder INTEGER DEFAULT NULL")
             }
         }
     }

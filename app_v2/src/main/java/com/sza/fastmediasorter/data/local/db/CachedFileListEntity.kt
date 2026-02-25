@@ -11,6 +11,11 @@ import androidx.room.*
  *
  * Schema change (migration 8→9): replaced N-rows-per-resource design
  * (one row per MediaFile, plain TEXT) with a single BLOB row per resource.
+ *
+ * Schema change (migration 12→13, A5-T1): Added scan state fields:
+ * - [lastScanTimestamp]: when the most recent scan completed (epoch ms).
+ * - [lastModifiedFolder]: mtime of the source folder at scan time (epoch ms).
+ *   Used for quick change detection — if folder mtime unchanged, skip full rescan.
  */
 @Entity(
     tableName = "cached_file_lists",
@@ -41,7 +46,25 @@ data class CachedFileListEntity(
     val fileCount: Int,
 
     @ColumnInfo(name = "created_at")
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+
+    // ── A5 scan state fields (A5-T1) ─────────────────────────────────────────
+
+    /**
+     * Epoch ms timestamp when the last successful scan completed.
+     * Null for entries created before A5 migration (treat as "never scanned incrementally").
+     */
+    @ColumnInfo(name = "last_scan_timestamp")
+    val lastScanTimestamp: Long? = null,
+
+    /**
+     * Modification time (epoch ms) of the source folder/root at the time of the last scan.
+     * For LOCAL: the folder's `lastModified()` value.
+     * For NETWORK/CLOUD: may reflect content-change token or listing ETag.
+     * Null = unknown / not yet populated.
+     */
+    @ColumnInfo(name = "last_modified_folder")
+    val lastModifiedFolder: Long? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

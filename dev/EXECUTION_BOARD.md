@@ -18,7 +18,7 @@
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
 | A3 | A3-T1..A3-T16 | 16 | PARTIAL | T4+T5+T8+T13 flows added | - |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
-| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T5 DONE | - |
+| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T5 DONE | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
@@ -88,7 +88,7 @@
 | A4-T9 | A4 | Настроить auto-cancel устаревших CI прогонов. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
 | A4-T10 | A4 | Публиковать артефакты падений (test reports, screenshots, logs). | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
 | A4-T11 | A4 | Добавить уведомления о падениях обязательных проверок. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
-| A5-T1 | A5 | Добавить поля состояния сканирования (`lastScanTimestamp`, `lastModified`, `fileSize`) в модель кэша. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T1 | A5 | Добавить поля состояния сканирования (`lastScanTimestamp`, `lastModified`, `fileSize`) в модель кэша. | CachedFileListEntity: lastScanTimestamp+lastModifiedFolder + MIGRATION_12_13 (DB v13) | DONE | Build OK | Tests OK | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T2 | A5 | Реализовать алгоритм определения `added/modified/deleted`. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T3 | A5 | Реализовать delta-путь обработки без полного повторного прохода. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T4 | A5 | Добавить `forceFullScan` в API/UseCase/UI. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
