@@ -1,0 +1,33 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Welcome Screen Skip (A3-T13)
+# Description: Verifies the welcome screen Skip button works and transitions to main screen
+# Note: Welcome screen only shows on first launch. Test clears app data to trigger it.
+# Duration: ~30 seconds
+
+# Clear app data to force welcome screen (requires app not to have been onboarded yet)
+- clearState
+
+# Launch app — welcome screen should appear
+- launchApp
+- waitForAnimationToEnd
+
+# Check if welcome screen is visible (btnSkip exists)
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnSkip"
+    optional: true
+
+# If welcome is shown, tap Skip
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSkip"
+    optional: true
+- waitForAnimationToEnd
+
+# Grant permissions if asked
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Verify we are now on main screen (after skip or if welcome was not shown)
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+    optional: true

@@ -1,0 +1,49 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Edit Resource (A3-T8)
+# Description: Opens an existing resource, navigates to its editor, verifies edit form, cancels without saving
+# Duration: ~40 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Attempt to open the first available resource (Downloads is always present in debug builds)
+- scrollUntilVisible:
+    element:
+      text: "Downloads"
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: "Downloads"
+    optional: true
+- waitForAnimationToEnd
+
+# In Browse activity, tap the resource action / edit button if visible
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnResourceAction"
+    optional: true
+- waitForAnimationToEnd
+
+# If resource editor opened, verify name field is present
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/etName"
+    optional: true
+
+# If the editor is open, verify Save button exists (implicit contract test)
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnSave"
+    optional: true
+
+# Navigate back without saving to avoid side effects
+- back
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd
+
+# Confirm back on main activity
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+    optional: true

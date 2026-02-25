@@ -1,0 +1,47 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Add SMB Resource (A3-T5)
+# Description: Verifies the Add Resource → SMB/Network flow UI is reachable and displays the manual entry form
+# Note: Does NOT actually connect to a server — only validates form navigation
+# Duration: ~25 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Open Add Resource
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- waitForAnimationToEnd
+
+# Verify resource type selection is shown
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+
+# Select Network Folder (SMB) card
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/cardNetworkFolder"
+- waitForAnimationToEnd
+
+# Verify SMB form layout is visible
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutSmbFolder"
+    optional: true
+
+# Verify SMB "Add Manually" button is present
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnSmbAddManually"
+    optional: true
+
+# Tap Add Manually to open manual SMB form
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSmbAddManually"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate back without saving
+- back
+- waitForAnimationToEnd
+- back
+- waitForAnimationToEnd

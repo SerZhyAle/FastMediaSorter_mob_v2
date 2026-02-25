@@ -1,0 +1,12 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Helper: Navigate to Add Resource screen
+# Requires: app is on main screen
+
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"

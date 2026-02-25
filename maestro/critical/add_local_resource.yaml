@@ -1,0 +1,53 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Add Local Resource (A3-T4)
+# Description: Verifies the flow for adding a local folder resource
+# Covers: open "Add Resource" → select "Local Folder" → Scan → verify resource type screen
+# Duration: ~30 seconds
+
+- launchApp
+- waitForAnimationToEnd
+- runFlow: ../_shared/permissions.yaml
+- waitForAnimationToEnd
+
+# Open Add Resource screen
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+- waitForAnimationToEnd
+
+# Verify resource type selection screen is shown
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/layoutResourceTypes"
+
+# Select Local Folder card
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/cardLocalFolder"
+- waitForAnimationToEnd
+
+# Verify local folder form is now visible
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnScan"
+
+# Tap Scan button to scan for local folders
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnScan"
+- waitForAnimationToEnd
+
+# Wait up to 10s for scan or folders to appear
+- waitForAnimationToEnd:
+    timeout: 10000
+
+# If scan produced results, try to add; otherwise use manual add as fallback
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnAddManually"
+    optional: true
+- waitForAnimationToEnd
+
+# Navigate back without saving to avoid side effects during regression
+- back
+- waitForAnimationToEnd
+
+# Confirm we are back on the main resource type selection or main screen
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/btnAddResource"
+    optional: true
