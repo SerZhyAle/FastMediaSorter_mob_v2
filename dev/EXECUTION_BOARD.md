@@ -24,7 +24,7 @@
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5+T6 DONE | - |
-| C1 | C1-T1..C1-T7 | 7 | PARTIAL | T1+T2+T3+T4+T5+T6 DONE | - |
+| C1 | C1-T1..C1-T7 | 7 | DONE | T1+T2+T3+T4+T5+T6+T7 DONE | - |
 | C2 | C2-T1..C2-T8 | 8 | PARTIAL | T1+T2+T3+T4+T5+T6+T8 DONE | T7 SKIP (Crashlytics ext) |
 
 ## Task Registry
@@ -157,7 +157,7 @@
 | C1-T4 | C1 | Реализовать script version bump. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T5 | C1 | Реализовать script generate changelog. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
 | C1-T6 | C1 | Реализовать automation RC build/tag. | - | DONE | - | - | TZ_C1_RELEASE_TRAIN.md |
-| C1-T7 | C1 | Добавить уведомления о статусе release pipeline. | - | TODO | - | - | TZ_C1_RELEASE_TRAIN.md |
+| C1-T7 | C1 | Добавить уведомления о статусе release pipeline. | .github/workflows/android-ci.yml: notify-status job | DONE | GitHub Step Summary + PR failure comment (actions/github-script) | - | TZ_C1_RELEASE_TRAIN.md |
 | C2-T1 | C2 | Добавить timing instrumentation для scan/auth/startup. | core/metrics/ScanMetricsRecorder.kt (object), GetMediaFilesUseCase.kt | DONE | beginScan/endScan, slow-scan warn >6s, p50/p95 summary | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T2 | C2 | Добавить success/failure counters для auth/resource save. | core/metrics/OperationMetricsRecorder.kt; AddResourceUseCase.kt; ResourceEditorUseCase.kt | DONE | AtomicLong counters per type; SMB/SFTP/FTP/CLOUD conn tests + resource save | - | TZ_C2_QUALITY_METRICS.md |
 | C2-T3 | C2 | Определить формат хранения и экспорта метрик. | core/metrics/MetricsExporter.kt (object); MetricsReport, ScanTypeStats, ConnectionTypeStats | DONE | JSON export, Logcat export, per-type breakdown | - | TZ_C2_QUALITY_METRICS.md |
