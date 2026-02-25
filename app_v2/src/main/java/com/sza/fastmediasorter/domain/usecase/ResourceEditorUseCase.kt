@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
 import com.sza.fastmediasorter.core.di.IoDispatcher
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.DisplayMode
@@ -69,6 +70,7 @@ class ResourceEditorUseCase @Inject constructor(
                 password = normalized.password,
                 port = normalized.port ?: 445
             )
+            OperationMetricsRecorder.recordConnectionTest(ResourceType.SMB, result.isSuccess)
             if (result.isSuccess) {
                 ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
             } else {
@@ -87,6 +89,7 @@ class ResourceEditorUseCase @Inject constructor(
                 username = normalized.username,
                 password = normalized.password
             )
+            OperationMetricsRecorder.recordConnectionTest(ResourceType.SFTP, result.isSuccess)
             if (result.isSuccess) {
                 ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
             } else {
@@ -105,6 +108,7 @@ class ResourceEditorUseCase @Inject constructor(
                 username = normalized.username,
                 password = normalized.password
             )
+            OperationMetricsRecorder.recordConnectionTest(ResourceType.FTP, result.isSuccess)
             if (result.isSuccess) {
                 ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
             } else {
@@ -119,6 +123,7 @@ class ResourceEditorUseCase @Inject constructor(
             val normalized = normalizeForStrategy(form)
             val candidate = buildPersistenceModel(normalized)
             val result = resourceRepository.testConnection(candidate)
+            OperationMetricsRecorder.recordConnectionTest(ResourceType.CLOUD, result.isSuccess)
             if (result.isSuccess) {
                 ResourceConnectionTestResult(ResourceConnectionStatus.SUCCESS)
             } else {

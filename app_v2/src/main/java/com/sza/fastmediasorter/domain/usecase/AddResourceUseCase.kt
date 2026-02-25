@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase
 
+import com.sza.fastmediasorter.core.metrics.OperationMetricsRecorder
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -27,8 +28,10 @@ class AddResourceUseCase @Inject constructor(
             val resourceWithOrder = resource.copy(displayOrder = maxDisplayOrder + 1)
             
             val id = repository.addResource(resourceWithOrder)
+            OperationMetricsRecorder.recordResourceSave(success = true)
             Result.success(id)
         } catch (e: Exception) {
+            OperationMetricsRecorder.recordResourceSave(success = false)
             Result.failure(e)
         }
     }
