@@ -200,6 +200,10 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         return dao.getAllCredentials()
     }
 
+    override suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity> {
+        return dao.getOrphanedCredentials()
+    }
+
     private suspend fun applyDefaultCredentialsIfNeeded(entity: NetworkCredentialsEntity?): NetworkCredentialsEntity? {
         if (entity == null) return null
 

@@ -15,4 +15,6 @@ interface NetworkCredentialsRepository {
     suspend fun update(credentials: NetworkCredentialsEntity)
     suspend fun delete(credentials: NetworkCredentialsEntity)
     fun getAllCredentials(): kotlinx.coroutines.flow.Flow<List<NetworkCredentialsEntity>>
+    /** Returns credentials that have no associated resources (orphaned). */
+    suspend fun getOrphanedCredentials(): List<NetworkCredentialsEntity>
 }

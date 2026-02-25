@@ -23,7 +23,7 @@
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
-| B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11 DONE | - |
+| B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5 DONE | - |
 | C1 | C1-T1..C1-T7 | 7 | PARTIAL | T1+T2+T3+T4+T5+T6 DONE | - |
 | C2 | C2-T1..C2-T8 | 8 | PARTIAL | T4+T5+T6 DONE | - |
 
@@ -143,8 +143,8 @@
 | B5-T1 | B5 | Добавить `revokeToken()` в каждый cloud provider. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T2 | B5 | Вызвать revoke при delete account/logout. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T3 | B5 | Реализовать очередь `pending revocation`. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
-| B5-T4 | B5 | Реализовать `CredentialAuditor`. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
-| B5-T5 | B5 | Помечать expired credentials и прокидывать сигнал в UI. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
+| B5-T4 | B5 | Реализовать `CredentialAuditor`. | CredentialAuditor @Singleton, CredentialAuditReport/Entry/Status (domain model) | DONE | Build OK, tests pass | - | TZ_B5_SECURITY_HARDENING.md |
+| B5-T5 | B5 | Помечать expired credentials и прокидывать сигнал в UI. | CredentialAuditor.auditAsFlow(): Flow<CredentialAuditReport> — reactive, for ViewModel/UI | DONE | Build OK | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T6 | B5 | Реализовать policy обработки неиспользуемых credentials. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T7 | B5 | Реализовать `OrphanCleanupJob` для cache/credentials/destinations. | OrphanCleanupWorker + DAO queries + WorkManagerScheduler | DONE | Build OK | Tests OK | TZ_B5_SECURITY_HARDENING.md |
 | B5-T8 | B5 | Добавить логи очистки с correlation ID. | OrphanCleanupWorker correlation ID | DONE | - | - | TZ_B5_SECURITY_HARDENING.md |
