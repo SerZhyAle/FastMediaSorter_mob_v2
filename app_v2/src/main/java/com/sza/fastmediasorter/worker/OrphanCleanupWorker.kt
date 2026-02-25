@@ -5,6 +5,7 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
+import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -16,6 +17,7 @@ import java.util.UUID
  *
  * Responsibilities:
  * - Delete `cached_file_lists` rows whose parent resource no longer exists.
+ * - Delete expired / orphaned entries from `file_metadata_cache` (A5-T8: TTL cleanup).
  * - Log network credentials that have no associated resources (orphan audit).
  *   Credentials are NOT auto-deleted — manual cleanup is intentional to avoid
  *   accidental data loss.
@@ -27,11 +29,15 @@ class OrphanCleanupWorker @AssistedInject constructor(
     @Assisted context: Context,
     @Assisted workerParams: WorkerParameters,
     private val cachedFileListDao: CachedFileListDao,
-    private val networkCredentialsDao: NetworkCredentialsDao
+    private val networkCredentialsDao: NetworkCredentialsDao,
+    private val fileMetadataCacheDao: FileMetadataCacheDao
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
         const val WORK_NAME = "orphan_cleanup_worker"
+
+        /** Metadata cache entries older than this are considered stale and purged. */
+        private const val METADATA_TTL_MS = 30L * 24 * 60 * 60 * 1000 // 30 days
     }
 
     override suspend fun doWork(): Result {
@@ -39,6 +45,7 @@ class OrphanCleanupWorker @AssistedInject constructor(
         Timber.d("[orphan-cleanup/$correlationId] starting orphan cleanup")
         return try {
             cleanOrphanedCaches(correlationId)
+            cleanMetadataCache(correlationId)
             auditOrphanedCredentials(correlationId)
             Timber.i("[orphan-cleanup/$correlationId] completed successfully")
             Result.success()
@@ -58,6 +65,29 @@ class OrphanCleanupWorker @AssistedInject constructor(
             Timber.i("[orphan-cleanup/$correlationId] removed $deleted orphaned file-list cache entries")
         } else {
             Timber.d("[orphan-cleanup/$correlationId] no orphaned file-list cache entries found")
+        }
+    }
+
+    /**
+     * Purge stale and orphaned entries from the per-file metadata cache (A5-T8).
+     *
+     * Two passes:
+     * 1. TTL expiry — entries not refreshed within [METADATA_TTL_MS].
+     * 2. Orphan sweep — entries whose parent resource row was deleted (FK cascade
+     *    may already handle this, but an explicit pass is a safety net).
+     */
+    private suspend fun cleanMetadataCache(correlationId: String) {
+        val cutoff = System.currentTimeMillis() - METADATA_TTL_MS
+        val expired  = fileMetadataCacheDao.deleteExpired(cutoff)
+        val orphaned = fileMetadataCacheDao.deleteOrphaned()
+
+        if (expired > 0 || orphaned > 0) {
+            Timber.i(
+                "[orphan-cleanup/$correlationId] metadata cache purge: " +
+                    "$expired expired (TTL=${METADATA_TTL_MS / 86_400_000}d), $orphaned orphaned"
+            )
+        } else {
+            Timber.d("[orphan-cleanup/$correlationId] metadata cache is clean (no expired/orphaned entries)")
         }
     }
 
