@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
@@ -111,10 +112,22 @@ class GetMediaFilesUseCase @Inject constructor(
         showHiddenFiles: Boolean = false,
         onProgress: ScanProgressCallback? = null,
         currentPath: String? = null,
-        isSubfolderMode: Boolean = false
+        isSubfolderMode: Boolean = false,
+        /**
+         * When true, bypasses any in-memory cache and forces a fresh full scan
+         * of the resource folder (A5-T4 API surface).
+         * Default is false (normal cache-aware behaviour).
+         */
+        forceFullScan: Boolean = false
     ): Flow<List<MediaFile>> = flow {
-        timber.log.Timber.d("GetMediaFilesUseCase: START invoke - resource='${resource.name}' (id=${resource.id}), type=${resource.type}, showHiddenFiles=$showHiddenFiles, currentPath=$currentPath, isSubfolderMode=$isSubfolderMode")
+        timber.log.Timber.d("GetMediaFilesUseCase: START invoke - resource='${resource.name}' (id=${resource.id}), type=${resource.type}, showHiddenFiles=$showHiddenFiles, currentPath=$currentPath, isSubfolderMode=$isSubfolderMode, forceFullScan=$forceFullScan")
         timber.log.Timber.d("GetMediaFilesUseCase: path='${resource.path}', useChunked=$useChunkedLoading, sortMode=$sortMode")
+
+        // If forced, evict any cached data for this resource before scanning.
+        if (forceFullScan) {
+            MediaFilesCacheManager.clearCache(resource.id)
+            timber.log.Timber.i("GetMediaFilesUseCase: forceFullScan=true — cleared in-memory cache for resource ${resource.id}")
+        }
         
         // Handle virtual Favorites resource
         if (resource.id == -100L) {

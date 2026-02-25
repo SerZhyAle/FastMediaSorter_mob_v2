@@ -18,7 +18,7 @@
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
 | A3 | A3-T1..A3-T16 | 16 | PARTIAL | T4+T5+T8+T13 flows added | - |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
-| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T5+T8+T9+T10+T11 DONE | - |
+| A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T4+T5+T8+T9+T10+T11 DONE | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
@@ -91,7 +91,7 @@
 | A5-T1 | A5 | Добавить поля состояния сканирования (`lastScanTimestamp`, `lastModified`, `fileSize`) в модель кэша. | CachedFileListEntity: lastScanTimestamp+lastModifiedFolder + MIGRATION_12_13 (DB v13) | DONE | Build OK | Tests OK | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T2 | A5 | Реализовать алгоритм определения `added/modified/deleted`. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T3 | A5 | Реализовать delta-путь обработки без полного повторного прохода. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
-| A5-T4 | A5 | Добавить `forceFullScan` в API/UseCase/UI. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
+| A5-T4 | A5 | Добавить `forceFullScan` в API/UseCase/UI. | GetMediaFilesUseCase: `forceFullScan: Boolean = false` param + MediaFilesCacheManager.clearCache | DONE | Build OK, tests pass | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T5 | A5 | Добавить `FileMetadataCache` Entity и DAO запросы с учётом `provider` и `credentialsId`. | FileMetadataCacheEntity + FileMetadataCacheDao + MIGRATION_11_12 | DONE | Build OK | Tests OK | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T6 | A5 | Реализовать запись кэша в scan pipeline. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
 | A5-T7 | A5 | Реализовать чтение кэша при отображении с fallback. | - | TODO | - | - | TZ_A5_SCAN_OPTIMIZATION.md |
