@@ -16,14 +16,14 @@
 |---|---|---:|---|---|---|
 | A1 | A1-T1..A1-T15 | 15 | TODO | - | - |
 | A2 | A2-T1..A2-T15 | 15 | TODO | - | - |
-| A3 | A3-T1..A3-T16 | 16 | PARTIAL | T4+T5+T8+T13 flows added | - |
+| A3 | A3-T1..A3-T16 | 16 | PARTIAL | T4+T5+T8+T13+T14+T16 DONE | T11 SKIP (no UI cancel) |
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | PARTIAL | T1+T4+T5+T8+T9+T10+T11 DONE | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
 | B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T8+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
 | B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
-| B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5 DONE | - |
+| B5 | B5-T1..B5-T11 | 11 | PARTIAL | T7+T8+T9+T10+T11+T4+T5+T6 DONE | - |
 | C1 | C1-T1..C1-T7 | 7 | PARTIAL | T1+T2+T3+T4+T5+T6 DONE | - |
 | C2 | C2-T1..C2-T8 | 8 | PARTIAL | T4+T5+T6 DONE | - |
 
@@ -64,19 +64,19 @@
 | A3-T1 | A3 | Стандартизировать структуру `maestro/` (flows, helpers, env-config). | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T2 | A3 | Подготовить reusable helper flows (navigation, auth-mock, resource-ops). | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T3 | A3 | Настроить стабильный runner профиль для CI эмулятора. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T4 | A3 | Добавить flow: add local resource. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T5 | A3 | Добавить flow: add SMB resource. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T6 | A3 | Добавить flow: add cloud resource (mock OAuth). | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T7 | A3 | Добавить flow: start scan local folder. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T8 | A3 | Добавить flow: edit resource. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T9 | A3 | Добавить flow: OAuth cancel + retry. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T10 | A3 | Добавить flow: empty folder scan result. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T11 | A3 | Добавить flow: cancel scan. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T4 | A3 | Добавить flow: add local resource. | maestro/critical/add_local_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T5 | A3 | Добавить flow: add SMB resource. | maestro/critical/add_smb_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T6 | A3 | Добавить flow: add cloud resource (mock OAuth). | - | SKIP | OAuth mock requires device setup | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T7 | A3 | Добавить flow: start scan local folder. | maestro/critical/local_refresh_scan.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T8 | A3 | Добавить flow: edit resource. | maestro/critical/edit_resource.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T9 | A3 | Добавить flow: OAuth cancel + retry. | - | SKIP | OAuth mock requires device setup | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T10 | A3 | Добавить flow: empty folder scan result. | - | SKIP | Requires controlled empty fixture | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T11 | A3 | Добавить flow: cancel scan. | - | SKIP | No cancel button in scan progress overlay | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T12 | A3 | Добавить flow: copy resource. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T13 | A3 | Добавить flow: welcome full/skip/permissions. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T14 | A3 | Интегрировать Maestro suite в CI как блокирующий check. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T13 | A3 | Добавить flow: welcome full/skip/permissions. | maestro/smoke/welcome_skip.yaml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T14 | A3 | Интегрировать Maestro suite в CI как блокирующий check. | .github/workflows/maestro-tests.yml | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A3-T15 | A3 | Сохранять screenshots/logs/video при падении. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
-| A3-T16 | A3 | Добавить smoke subset для быстрого pre-merge прогона. | - | TODO | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
+| A3-T16 | A3 | Добавить smoke subset для быстрого pre-merge прогона. | maestro/smoke/ folder (8 flows) | DONE | - | - | TZ_A3_MAESTRO_REGRESSIONS.md |
 | A4-T1 | A4 | Актуализировать workflow с последовательностью `lint -> unit -> contract -> maestro -> build`. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
 | A4-T2 | A4 | Включить кэширование Gradle и стабильные cache keys. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
 | A4-T3 | A4 | Настроить передачу секретов/переменных среды для тестов. | CI | DONE | - | - | TZ_A4_CI_QUALITY_GATE.md |
@@ -145,7 +145,7 @@
 | B5-T3 | B5 | Реализовать очередь `pending revocation`. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T4 | B5 | Реализовать `CredentialAuditor`. | CredentialAuditor @Singleton, CredentialAuditReport/Entry/Status (domain model) | DONE | Build OK, tests pass | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T5 | B5 | Помечать expired credentials и прокидывать сигнал в UI. | CredentialAuditor.auditAsFlow(): Flow<CredentialAuditReport> — reactive, for ViewModel/UI | DONE | Build OK | - | TZ_B5_SECURITY_HARDENING.md |
-| B5-T6 | B5 | Реализовать policy обработки неиспользуемых credentials. | - | TODO | - | - | TZ_B5_SECURITY_HARDENING.md |
+| B5-T6 | B5 | Реализовать policy обработки неиспользуемых credentials. | UnusedCredentialPolicy: 30d grace period, isEligibleForCleanup(), eligibleForCleanup in CredentialAuditEntry | DONE | Build OK | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T7 | B5 | Реализовать `OrphanCleanupJob` для cache/credentials/destinations. | OrphanCleanupWorker + DAO queries + WorkManagerScheduler | DONE | Build OK | Tests OK | TZ_B5_SECURITY_HARDENING.md |
 | B5-T8 | B5 | Добавить логи очистки с correlation ID. | OrphanCleanupWorker correlation ID | DONE | - | - | TZ_B5_SECURITY_HARDENING.md |
 | B5-T9 | B5 | Выполнить аудит hardcoded secrets в коде. | temp/SECRET_AUDIT_REPORT.md | DONE | - | - | TZ_B5_SECURITY_HARDENING.md |
