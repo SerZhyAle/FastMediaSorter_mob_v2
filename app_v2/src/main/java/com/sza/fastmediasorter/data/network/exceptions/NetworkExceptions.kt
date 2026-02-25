@@ -36,3 +36,18 @@ class NetworkConnectionLostException(message: String = "Connection lost", cause:
  */
 class NetworkUnsupportedOperationException(message: String = "Unsupported operation", cause: Throwable? = null) : 
     NetworkException(message, cause)
+
+/**
+ * HTTP 5xx server-side errors
+ */
+class NetworkServerErrorException(val statusCode: Int = 500, message: String = "Server error", cause: Throwable? = null) :
+    NetworkException("HTTP $statusCode: $message", cause)
+
+/**
+ * HTTP 429 Rate limit exceeded; may carry Retry-After delay hint (seconds).
+ */
+class NetworkRateLimitException(
+    val retryAfterSeconds: Long? = null,
+    message: String = "Rate limit exceeded",
+    cause: Throwable? = null
+) : NetworkException(message, cause)

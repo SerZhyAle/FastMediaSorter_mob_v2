@@ -70,10 +70,15 @@ suspend fun <T> withRetry(
                 throw classified
             }
 
-            val delayMs = min(
-                policy.maxDelayMs,
-                (policy.initialDelayMs * policy.backoffMultiplier.pow((attempt - 1).toDouble())).toLong()
-            )
+            val delayMs = when {
+                // Respect server-side Retry-After hint for rate limit errors
+                classified is NetworkRateLimitException && classified.retryAfterSeconds != null ->
+                    min(policy.maxDelayMs, classified.retryAfterSeconds * 1_000)
+                else -> min(
+                    policy.maxDelayMs,
+                    (policy.initialDelayMs * policy.backoffMultiplier.pow((attempt - 1).toDouble())).toLong()
+                )
+            }
             Timber.d("$tag: Attempt $attempt failed (${classified.javaClass.simpleName}), retrying in ${delayMs}ms")
             delay(delayMs)
         }

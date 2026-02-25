@@ -62,6 +62,23 @@ object NetworkErrorClassifier {
             throwable.messageContains("not found", "STATUS_OBJECT_NAME_NOT_FOUND", "STATUS_OBJECT_PATH_NOT_FOUND", "404") ->
                 NetworkFileNotFoundException(throwable.message ?: "Not found", throwable)
 
+            throwable.messageContains("rate limit", "rate_limit", "too many requests", "429") ->
+                NetworkRateLimitException(
+                    retryAfterSeconds = throwable.extractRetryAfter(),
+                    message = throwable.message ?: "Rate limit exceeded",
+                    cause = throwable
+                )
+
+            throwable.extractHttpStatus() in 500..599 ->
+                NetworkServerErrorException(
+                    statusCode = throwable.extractHttpStatus(),
+                    message = throwable.message ?: "Server error",
+                    cause = throwable
+                )
+
+            throwable.messageContains("server error", "internal server error", "service unavailable", "bad gateway", "500", "502", "503", "504") ->
+                NetworkServerErrorException(message = throwable.message ?: "Server error", cause = throwable)
+
             throwable.messageContains("timeout", "timed out") ->
                 NetworkTimeoutException(throwable.message ?: "Timeout", throwable)
 
@@ -87,7 +104,10 @@ object NetworkErrorClassifier {
      */
     fun isTransient(throwable: Throwable): Boolean {
         val classified = if (throwable is NetworkException) throwable else classify(throwable)
-        return classified is NetworkTimeoutException || classified is NetworkConnectionLostException
+        return classified is NetworkTimeoutException ||
+                classified is NetworkConnectionLostException ||
+                classified is NetworkRateLimitException ||
+                classified is NetworkServerErrorException
     }
 
     // ── helpers ──────────────────────────────────────────────────────
@@ -113,5 +133,23 @@ object NetworkErrorClassifier {
         val msg = message ?: return "unknown"
         val match = Regex("STATUS_([A-Z_]+)").find(msg)
         return match?.value ?: msg.take(80)
+    }
+
+    /**
+     * Extracts HTTP status code from exception message (e.g. "HTTP 429: ...", "Response code: 503").
+     * Returns -1 if no HTTP status code is detected.
+     */
+    private fun Throwable.extractHttpStatus(): Int {
+        val msg = message ?: return -1
+        return Regex("""(?:HTTP|response code)[:\s]+(\d{3})""", RegexOption.IGNORE_CASE)
+            .find(msg)?.groupValues?.get(1)?.toIntOrNull() ?: -1
+    }
+
+    /**
+     * Extracts `Retry-After` hint (seconds) from exception message when available.
+     */
+    private fun Throwable.extractRetryAfter(): Long? {
+        val msg = message ?: return null
+        return Regex("""[Rr]etry-[Aa]fter[:\s]+(\d+)""").find(msg)?.groupValues?.get(1)?.toLongOrNull()
     }
 }

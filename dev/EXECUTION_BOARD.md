@@ -20,9 +20,9 @@
 | A4 | A4-T1..A4-T11 | 11 | DONE | CI | - |
 | A5 | A5-T1..A5-T14 | 14 | TODO | - | - |
 | B1 | B1-T1..B1-T9 | 9 | TODO | - | - |
-| B2 | B2-T1..B2-T11 | 11 | TODO | - | - |
+| B2 | B2-T1..B2-T11 | 11 | PARTIAL | T1-T6+T11 DONE | - |
 | B3 | B3-T1..B3-T10 | 10 | TODO | - | - |
-| B4 | B4-T1..B4-T8 | 8 | TODO | - | - |
+| B4 | B4-T1..B4-T8 | 8 | DONE | DB indexes + MIGRATION_10_11 | - |
 | B5 | B5-T1..B5-T11 | 11 | PARTIAL | B5-T7 DONE | - |
 | C1 | C1-T1..C1-T7 | 7 | TODO | - | - |
 | C2 | C2-T1..C2-T8 | 8 | TODO | - | - |
