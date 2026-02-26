@@ -103,6 +103,8 @@ class ImageLoadingManager(
     private var currentDeviceHeight: Int = 0
     private var currentTargetView: android.widget.ImageView? = null
     private var currentIsAnimatedContent: Boolean = false
+    /** True while image mode is active; false when video/audio took over via [clearForVideoTransition]. */
+    private var isInImageDisplayMode: Boolean = false
     private val animatedImageController = AnimatedImageController()
     private var dynamicBackgroundProcessor: DynamicBackgroundProcessor? = null
     private var isDynamicBackgroundEnabled: Boolean = false
@@ -161,6 +163,61 @@ class ImageLoadingManager(
         }
     }
     
+    /**
+     * Explicitly clear dynamic background lines.
+     * Called when switching to video playback so stale image lines don't persist
+     * until the first video frame is ready.
+     */
+    fun clearDynamicBackground() {
+        dynamicBackgroundProcessor?.clear()
+    }
+
+    /**
+     * Cancel all in-flight image loads and clear image views immediately.
+     * Must be called when transitioning FROM image TO video/audio so that:
+     * 1. Stale Glide callbacks cannot re-apply the dynamic background after clear.
+     * 2. photoView / imageView don't hold large bitmaps while video is playing.
+     */
+    fun clearForVideoTransition() {
+        isInImageDisplayMode = false
+
+        // Cancel any in-flight Glide requests to prevent stale onResourceReady callbacks
+        // from re-showing the dynamic background after we clear it.
+        try {
+            val appContext = binding.root.context.applicationContext
+            Glide.with(appContext).clear(binding.imageView)
+            Glide.with(appContext).clear(binding.photoView)
+        } catch (e: Exception) {
+            Timber.w(e, "ImageLoadingManager.clearForVideoTransition: Error clearing Glide requests")
+        }
+        binding.imageView.setImageDrawable(null)
+        binding.photoView.setImageDrawable(null)
+
+        // Clear blurred background so stripes from the previous image are not visible
+        // in the video player pillarbox areas.
+        dynamicBackgroundProcessor?.clear()
+
+        // Cancel pending loading indicators
+        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+        loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+        binding.progressBar.isVisible = false
+
+        Timber.d("ImageLoadingManager.clearForVideoTransition: Glide cleared, dynamic background cleared")
+    }
+
+    /**
+     * Trigger dynamic background processing from a decoded video frame bitmap.
+     * Called by [VideoPlayerManager] (via [PlayerMediaLoaderManager]) on first frame rendered.
+     * No-op when dynamic background is disabled or screen dimensions not yet resolved.
+     */
+    fun triggerVideoBackground(bitmap: android.graphics.Bitmap) {
+        if (!isDynamicBackgroundEnabled) return
+        val w = currentDeviceWidth.takeIf { it > 0 } ?: return
+        val h = currentDeviceHeight.takeIf { it > 0 } ?: return
+        Timber.d("ImageLoadingManager: triggerVideoBackground frame=${bitmap.width}x${bitmap.height} screen=${w}x${h}")
+        dynamicBackgroundProcessor?.processFromBitmap(bitmap, w, h)
+    }
+
     /**
      * Cleanup all resources - cancel Glide requests and pending handlers.
      * Called from PlayerLifecycleManager.onDestroy() to prevent memory leaks.
@@ -299,6 +356,7 @@ class ImageLoadingManager(
      * Display image in ImageView or PhotoView based on settings
      */
     fun displayImage(path: String) {
+        isInImageDisplayMode = true
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
         
         // Log memory state BEFORE loading new image
@@ -911,8 +969,11 @@ class ImageLoadingManager(
                     // Log memory state AFTER successful image load
                     logMemoryStats("AFTER onResourceReady")
 
-                    // Trigger dynamic background extension if enabled
-                    if (isDynamicBackgroundEnabled) {
+                    // Trigger dynamic background extension if enabled.
+                    // Guard with isInImageDisplayMode: a stale Glide request that completes
+                    // after the user has navigated to video would otherwise re-show the
+                    // previous image's blurred background over the video pillarbox areas.
+                    if (isDynamicBackgroundEnabled && isInImageDisplayMode) {
                         dynamicBackgroundProcessor?.process(
                             drawable = resource,
                             screenWidth = currentDeviceWidth,

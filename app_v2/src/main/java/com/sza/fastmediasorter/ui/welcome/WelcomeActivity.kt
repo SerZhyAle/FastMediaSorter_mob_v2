@@ -424,6 +424,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 )
             }
 
+            // API 28 (Android 9): requires both READ and WRITE at runtime
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.P -> {
+                arrayOf(
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                )
+            }
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
                 arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
             }

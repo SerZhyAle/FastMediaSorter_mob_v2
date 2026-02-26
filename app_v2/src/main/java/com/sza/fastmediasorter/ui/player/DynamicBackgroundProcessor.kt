@@ -2,12 +2,7 @@ package com.sza.fastmediasorter.ui.player
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.LinearGradient
 import android.graphics.Paint
-import android.graphics.PorterDuff
-import android.graphics.RenderEffect
-import android.graphics.Shader
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
@@ -18,28 +13,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.withContext
+import kotlin.math.floor
+import kotlin.math.min
 import timber.log.Timber
 
 /**
  * DynamicBackgroundProcessor
  *
- * Implements the "Ambilight" / Dynamic Background Extension effect.
+ * Implements edge-pixel line extension for letterbox/pillarbox areas.
  *
- * When an image is displayed and it doesn't fill the entire screen (creating letterboxing
- * or pillarboxing), this processor samples the edge colors of the image and renders a
- * blurred, extended background to fill the black bars — creating an immersive look.
- *
- * Algorithm:
- * 1. Sample a thin strip of pixels from each edge of the source drawable.
- * 2. Analyze uniformity: if all sampled colors are within a threshold → solid fill.
- *    Otherwise → gradient/smear extension.
- * 3. Render the result into the background [backgroundView] which sits behind the main image view.
- *
- * Performance:
- * - All pixel analysis happens on [Dispatchers.Default] (background thread).
- * - The result is a small [Bitmap] applied to the view on the main thread.
- * - A debounce [Job] prevents rapid successive calls from processing every frame.
+ * The entire bitmap (including software blur) is built on Dispatchers.Default.
+ * The main thread only atomically swaps the bitmap and makes the view visible —
+ * no progressive GPU rendering artifacts.
  */
 class DynamicBackgroundProcessor(
     private val backgroundView: ImageView,
@@ -49,57 +36,32 @@ class DynamicBackgroundProcessor(
     private var processingJob: Job? = null
 
     companion object {
-        /** Number of pixels to sample along each edge strip. */
-        private const val SAMPLE_SIZE = 20
-
-        /** How many pixels deep to sample from each edge. */
-        private const val EDGE_DEPTH = 4
-
-        /** Blur radius (pixels) applied to the background bitmap on API 31+. */
-        private const val BLUR_RADIUS_PX = 40f
-
         /**
-         * Color uniformity threshold (0-255 per channel).
-         * If all sampled colors are within this range, treat the background as uniform.
+         * Blur approximation factor: the bitmap is scaled down by this factor and then
+         * scaled back up with bilinear filtering. 8× gives a smooth, blurry look while
+         * keeping the software path very cheap.
          */
-        private const val UNIFORMITY_THRESHOLD = 30
-
-        /** Alpha value for the background overlay (0-255). Slightly transparent for subtlety. */
-        private const val BACKGROUND_ALPHA = 220
+        private const val BLUR_DOWN_SCALE = 8
 
         /**
          * Debounce delay (ms) before starting pixel analysis.
-         * Prevents redundant processing when images change rapidly (Spec §5.2).
          */
         private const val DEBOUNCE_MS = 150L
-
-        /**
-         * Fraction of outlier color values to trim from each channel when checking uniformity.
-         * Removes hot pixels and sensor noise before variance analysis (Spec §3.3).
-         */
-        private const val OUTLIER_TRIM_FRACTION = 0.07f
     }
 
     /**
      * Process [drawable] and apply the dynamic background effect to [backgroundView].
-     * Call from any thread — processing offloads to a background dispatcher automatically.
-     *
-     * @param drawable The image drawable that was just loaded into the main image view.
-     * @param screenWidth Width of the screen in pixels.
-     * @param screenHeight Height of the screen in pixels.
+     * Call from any thread — all heavy work runs on Dispatchers.Default.
      */
     fun process(
         drawable: Drawable,
         screenWidth: Int,
         screenHeight: Int
     ) {
-        // Cancel any existing processing from a previous image
         processingJob?.cancel()
 
         processingJob = coroutineScope.launch(Dispatchers.Default) {
             try {
-                // Debounce: if a new image arrives within DEBOUNCE_MS, the previous job
-                // is cancelled before this delay completes, so no wasted work (Spec §5.2).
                 delay(DEBOUNCE_MS)
 
                 val sourceBitmap = drawableToBitmap(drawable) ?: run {
@@ -107,13 +69,17 @@ class DynamicBackgroundProcessor(
                     return@launch
                 }
 
-                val bgBitmap = buildBackgroundBitmap(sourceBitmap, screenWidth, screenHeight)
+                // Build line-extension bitmap fully off-screen, then blur it — all on Default.
+                val rawBitmap = buildBackgroundBitmap(sourceBitmap, screenWidth, screenHeight)
+                val bgBitmap = blurBitmap(rawBitmap)
 
                 withContext(Dispatchers.Main) {
                     if (backgroundView.context != null) {
                         applyBackground(bgBitmap)
                     }
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "DynamicBg: Error processing background")
             }
@@ -128,7 +94,6 @@ class DynamicBackgroundProcessor(
         processingJob = null
         backgroundView.isVisible = false
         backgroundView.setImageDrawable(null)
-        // Remove RenderEffect if previously applied
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             backgroundView.setRenderEffect(null)
         }
@@ -164,186 +129,87 @@ class DynamicBackgroundProcessor(
         val sw = screenWidth.coerceAtLeast(1)
         val sh = screenHeight.coerceAtLeast(1)
 
-        // Sample edge strips
-        val topColors = sampleEdge(source, Edge.TOP, srcW, srcH)
-        val bottomColors = sampleEdge(source, Edge.BOTTOM, srcW, srcH)
-        val leftColors = sampleEdge(source, Edge.LEFT, srcW, srcH)
-        val rightColors = sampleEdge(source, Edge.RIGHT, srcW, srcH)
+        val scale = min(sw.toFloat() / srcW.toFloat(), sh.toFloat() / srcH.toFloat())
+        val displayedW = (srcW * scale).toInt().coerceAtLeast(1)
+        val displayedH = (srcH * scale).toInt().coerceAtLeast(1)
+        val imgLeft = ((sw - displayedW) / 2).coerceAtLeast(0)
+        val imgTop = ((sh - displayedH) / 2).coerceAtLeast(0)
 
-        val allColors = topColors + bottomColors + leftColors + rightColors
-
-        // Build a small output bitmap (we'll scale it or use a blurred version)
         val outBitmap = Bitmap.createBitmap(sw, sh, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(outBitmap)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeWidth = 1f }
 
-        if (isUniform(allColors)) {
-            // Solid fill with the average color
-            val avg = averageColor(allColors)
-            paint.color = avg
-            paint.alpha = BACKGROUND_ALPHA
-            canvas.drawRect(0f, 0f, sw.toFloat(), sh.toFloat(), paint)
-        } else {
-            // Gradient extension: use edge gradients to paint into each quadrant
-            renderGradientBackground(
-                canvas, paint,
-                sw.toFloat(), sh.toFloat(),
-                topColors, bottomColors, leftColors, rightColors
-            )
+        val leftEdge  = IntArray(srcH) { y -> source.getPixel(0, y) }
+        val rightEdge = IntArray(srcH) { y -> source.getPixel(srcW - 1, y) }
+        val topEdge   = IntArray(srcW) { x -> source.getPixel(x, 0) }
+        val bottomEdge = IntArray(srcW) { x -> source.getPixel(x, srcH - 1) }
+
+        // Pillarbox bars — full-width horizontal lines, image layer sits on top.
+        if (imgLeft > 0) {
+            for (vpY in 0 until sh) {
+                val localY = (vpY - imgTop).coerceIn(0, displayedH - 1)
+                val srcY = floor(localY.toFloat() * srcH / displayedH).toInt().coerceIn(0, srcH - 1)
+                paint.color = leftEdge[srcY]
+                canvas.drawLine(0f, vpY + 0.5f, sw / 2f, vpY + 0.5f, paint)
+                paint.color = rightEdge[srcY]
+                canvas.drawLine(sw / 2f, vpY + 0.5f, sw.toFloat(), vpY + 0.5f, paint)
+            }
+        }
+
+        // Letterbox bars — full-height vertical lines.
+        if (imgTop > 0) {
+            for (vpX in 0 until sw) {
+                val localX = (vpX - imgLeft).coerceIn(0, displayedW - 1)
+                val srcX = floor(localX.toFloat() * srcW / displayedW).toInt().coerceIn(0, srcW - 1)
+                paint.color = topEdge[srcX]
+                canvas.drawLine(vpX + 0.5f, 0f, vpX + 0.5f, sh / 2f, paint)
+                paint.color = bottomEdge[srcX]
+                canvas.drawLine(vpX + 0.5f, sh / 2f, vpX + 0.5f, sh.toFloat(), paint)
+            }
         }
 
         return outBitmap
     }
 
-    private enum class Edge { TOP, BOTTOM, LEFT, RIGHT }
+    /**
+     * Software blur via scale-down / scale-up with bilinear filtering.
+     * Runs entirely on the calling thread (Dispatchers.Default) — no GPU involvement.
+     * The result looks like a Gaussian blur of radius ≈ [BLUR_DOWN_SCALE] × 4 px.
+     */
+    private fun blurBitmap(src: Bitmap): Bitmap {
+        val sw = src.width
+        val sh = src.height
+        val smallW = (sw / BLUR_DOWN_SCALE).coerceAtLeast(1)
+        val smallH = (sh / BLUR_DOWN_SCALE).coerceAtLeast(1)
 
-    private fun sampleEdge(bmp: Bitmap, edge: Edge, w: Int, h: Int): List<Int> {
-        val colors = mutableListOf<Int>()
-        val depth = EDGE_DEPTH.coerceAtMost(
-            if (edge == Edge.TOP || edge == Edge.BOTTOM) h / 2 else w / 2
-        ).coerceAtLeast(1)
-        val samples = SAMPLE_SIZE.coerceAtMost(
-            if (edge == Edge.TOP || edge == Edge.BOTTOM) w else h
-        )
-        when (edge) {
-            Edge.TOP -> {
-                val step = (w.toFloat() / samples).coerceAtLeast(1f)
-                for (i in 0 until samples) {
-                    val x = (i * step).toInt().coerceIn(0, w - 1)
-                    for (d in 0 until depth) {
-                        colors.add(bmp.getPixel(x, d.coerceIn(0, h - 1)))
-                    }
-                }
-            }
-            Edge.BOTTOM -> {
-                val step = (w.toFloat() / samples).coerceAtLeast(1f)
-                for (i in 0 until samples) {
-                    val x = (i * step).toInt().coerceIn(0, w - 1)
-                    for (d in 0 until depth) {
-                        colors.add(bmp.getPixel(x, (h - 1 - d).coerceIn(0, h - 1)))
-                    }
-                }
-            }
-            Edge.LEFT -> {
-                val step = (h.toFloat() / samples).coerceAtLeast(1f)
-                for (i in 0 until samples) {
-                    val y = (i * step).toInt().coerceIn(0, h - 1)
-                    for (d in 0 until depth) {
-                        colors.add(bmp.getPixel(d.coerceIn(0, w - 1), y))
-                    }
-                }
-            }
-            Edge.RIGHT -> {
-                val step = (h.toFloat() / samples).coerceAtLeast(1f)
-                for (i in 0 until samples) {
-                    val y = (i * step).toInt().coerceIn(0, h - 1)
-                    for (d in 0 until depth) {
-                        colors.add(bmp.getPixel((w - 1 - d).coerceIn(0, w - 1), y))
-                    }
-                }
-            }
-        }
-        return colors
+        // Scale down with bilinear filtering (FILTER_BITMAP_FLAG is default in createScaledBitmap)
+        val small = Bitmap.createScaledBitmap(src, smallW, smallH, true)
+        if (small !== src) src.recycle()
+
+        // Scale back up
+        val blurred = Bitmap.createScaledBitmap(small, sw, sh, true)
+        if (blurred !== small) small.recycle()
+
+        return blurred
     }
 
     /**
-     * Returns true if the sampled colors are visually uniform (solid background).
-     *
-     * Implements Spec §3.3:
-     * 1. Sort R, G, B components independently.
-     * 2. Trim top and bottom [OUTLIER_TRIM_FRACTION] to remove noise/hot pixels.
-     * 3. Compute TotalDeviation = diffR + diffG + diffB.
-     * 4. Compare against threshold (≈4% of max color distance per channel).
+     * Convenience overload for video first-frame bitmaps.
      */
-    private fun isUniform(colors: List<Int>): Boolean {
-        if (colors.isEmpty()) return true
-        val n = colors.size
-        val reds   = IntArray(n) { Color.red(colors[it]) }.also { it.sort() }
-        val greens = IntArray(n) { Color.green(colors[it]) }.also { it.sort() }
-        val blues  = IntArray(n) { Color.blue(colors[it]) }.also { it.sort() }
-        // Trim outliers: discard top/bottom OUTLIER_TRIM_FRACTION of sorted values
-        val trim = (n * OUTLIER_TRIM_FRACTION).toInt().coerceAtLeast(0)
-        val lo = trim
-        val hi = (n - 1 - trim).coerceAtLeast(lo)
-        val totalDeviation = (reds[hi] - reds[lo]) + (greens[hi] - greens[lo]) + (blues[hi] - blues[lo])
-        // Threshold: UNIFORMITY_THRESHOLD per channel × 3 channels
-        return totalDeviation < UNIFORMITY_THRESHOLD * 3
-    }
-
-    private fun averageColor(colors: List<Int>): Int {
-        if (colors.isEmpty()) return Color.BLACK
-        var r = 0; var g = 0; var b = 0
-        for (c in colors) { r += Color.red(c); g += Color.green(c); b += Color.blue(c) }
-        val n = colors.size
-        return Color.rgb(r / n, g / n, b / n)
-    }
-
-    private fun renderGradientBackground(
-        canvas: Canvas,
-        paint: Paint,
-        w: Float,
-        h: Float,
-        topColors: List<Int>,
-        bottomColors: List<Int>,
-        leftColors: List<Int>,
-        rightColors: List<Int>
-    ) {
-        // Clear with black first
-        canvas.drawColor(Color.BLACK, PorterDuff.Mode.SRC)
-
-        val topAvg = averageColor(topColors)
-        val bottomAvg = averageColor(bottomColors)
-        val leftAvg = averageColor(leftColors)
-        val rightAvg = averageColor(rightColors)
-
-        // Paint four gradient rectangles from each edge toward center, overlaid with alpha
-        paint.alpha = BACKGROUND_ALPHA
-
-        // Top strip
-        paint.shader = LinearGradient(
-            0f, 0f, 0f, h * 0.5f,
-            topAvg, Color.TRANSPARENT, Shader.TileMode.CLAMP
-        )
-        canvas.drawRect(0f, 0f, w, h * 0.5f, paint)
-
-        // Bottom strip
-        paint.shader = LinearGradient(
-            0f, h, 0f, h * 0.5f,
-            bottomAvg, Color.TRANSPARENT, Shader.TileMode.CLAMP
-        )
-        canvas.drawRect(0f, h * 0.5f, w, h, paint)
-
-        // Left strip
-        paint.shader = LinearGradient(
-            0f, 0f, w * 0.5f, 0f,
-            leftAvg, Color.TRANSPARENT, Shader.TileMode.CLAMP
-        )
-        canvas.drawRect(0f, 0f, w * 0.5f, h, paint)
-
-        // Right strip
-        paint.shader = LinearGradient(
-            w, 0f, w * 0.5f, 0f,
-            rightAvg, Color.TRANSPARENT, Shader.TileMode.CLAMP
-        )
-        canvas.drawRect(w * 0.5f, 0f, w, h, paint)
-
-        paint.shader = null
+    fun processFromBitmap(bitmap: Bitmap, screenWidth: Int, screenHeight: Int) {
+        val drawable = BitmapDrawable(backgroundView.resources, bitmap)
+        process(drawable, screenWidth, screenHeight)
     }
 
     private fun applyBackground(bgBitmap: Bitmap) {
-        // Recycle previous background bitmap before replacing to prevent OOM (Spec §5.3)
         val previousBitmap = (backgroundView.drawable as? BitmapDrawable)?.bitmap
+        // Apply bitmap and make visible atomically — no GPU effect applied after the fact.
+        backgroundView.isVisible = false
         backgroundView.setImageBitmap(bgBitmap)
         previousBitmap?.takeIf { !it.isRecycled }?.recycle()
-        // Apply hardware blur on API 31+ for a smooth look
+        // Remove any leftover RenderEffect from a previous session
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            backgroundView.setRenderEffect(
-                RenderEffect.createBlurEffect(
-                    BLUR_RADIUS_PX,
-                    BLUR_RADIUS_PX,
-                    Shader.TileMode.CLAMP
-                )
-            )
+            backgroundView.setRenderEffect(null)
         }
         backgroundView.isVisible = true
         Timber.d("DynamicBg: Background applied")

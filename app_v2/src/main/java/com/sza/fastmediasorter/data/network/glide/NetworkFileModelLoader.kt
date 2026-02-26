@@ -221,7 +221,7 @@ class NetworkFileDataFetcher(
 
                 var finalBytes = bytes
                 // Validate image data before passing to Glide to prevent SIGSEGV in disk cache.
-                // For FTP, do one automatic retry before failing.
+                // For FTP and SMB, do one automatic retry before failing.
                 if (!isValidImageData(finalBytes)) {
                     if (data.path.startsWith("ftp://", ignoreCase = true)) {
                         val retryMaxBytes = if (!data.loadFullImage && isJpegFile(fileName)) {
@@ -238,6 +238,17 @@ class NetworkFileDataFetcher(
                             finalBytes = retryBytes
                         } else {
                             Timber.w("NetworkFileDataFetcher: FTP retry returned null for $fileName")
+                        }
+                    } else if (data.path.startsWith("smb://", ignoreCase = true) &&
+                        !data.loadFullImage && isJpegFile(fileName)) {
+                        // SMB JPEG thumbnail was likely truncated at the size limit; retry with full file.
+                        Timber.w("NetworkFileDataFetcher: JPEG thumbnail failed validation on SMB, retrying with full-size read for $fileName")
+                        val retryBytes = fetchBytesFromSmb(Long.MAX_VALUE)
+                        if (retryBytes != null) {
+                            Timber.d("NetworkFileDataFetcher: SMB retry fetch complete for $fileName, read ${retryBytes.size / 1024}KB")
+                            finalBytes = retryBytes
+                        } else {
+                            Timber.w("NetworkFileDataFetcher: SMB retry returned null for $fileName")
                         }
                     }
                 }
@@ -520,19 +531,25 @@ class NetworkFileDataFetcher(
         
         // Check JPEG signature: FF D8 FF
         if (bytes[0] == 0xFF.toByte() && bytes[1] == 0xD8.toByte() && bytes[2] == 0xFF.toByte()) {
-            // Some FTP servers/files can contain trailing bytes after EOI.
-            // Accept JPEG when EOI marker exists near tail, not strictly at the last 2 bytes.
+            // Motion photos (Google, Samsung) append an MP4 video stream after the JPEG EOI,
+            // so the FF D9 marker can be several MB before the end of the file.
+            // Use a 4 MB tail window to accommodate large embedded video chunks while
+            // still avoiding false-positive acceptance of data with only an EXIF thumbnail marker.
             if (bytes.size < 4) return false
 
-            val searchWindow = 64 * 1024
+            val searchWindow = 4 * 1024 * 1024 // 4 MB
             val startIndex = maxOf(2, bytes.size - searchWindow)
             for (index in (bytes.size - 1) downTo startIndex) {
                 if (bytes[index - 1] == 0xFF.toByte() && bytes[index] == 0xD9.toByte()) {
+                    val distanceFromEnd = bytes.size - index
+                    if (distanceFromEnd > 64 * 1024) {
+                        Timber.d("isValidImageData: JPEG EOI found ${distanceFromEnd / 1024}KB from end - likely motion photo (size=${bytes.size})")
+                    }
                     return true
                 }
             }
 
-            Timber.w("isValidImageData: JPEG without EOI marker in tail window (size=${bytes.size})")
+            Timber.w("isValidImageData: JPEG without EOI marker in 4MB tail window (size=${bytes.size})")
             return false
         }
         

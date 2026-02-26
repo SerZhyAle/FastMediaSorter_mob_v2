@@ -144,6 +144,11 @@ class FileOperationProgressDialog(
 
     override fun onStart() {
         super.onStart()
+        // Set dialog width to 90% of screen width — default Dialog window is too narrow
+        window?.setLayout(
+            (context.resources.displayMetrics.widthPixels * 0.90).toInt(),
+            android.view.WindowManager.LayoutParams.WRAP_CONTENT
+        )
         // Apply any progress that arrived before the dialog was shown
         pendingProgress?.let { applyProgressToUI(it) }
     }

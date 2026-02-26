@@ -60,6 +60,13 @@ class PlayerMediaLoaderManager(
         }
     }
 
+    init {
+        // Wire first-frame extraction to dynamic background when video is opened
+        videoPlayerManager.onFirstFrameReady = { bitmap ->
+            imageLoadingManager.triggerVideoBackground(bitmap)
+        }
+    }
+
     companion object {
         private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
     }
@@ -118,7 +125,12 @@ class PlayerMediaLoaderManager(
         
         // Hide all image-related views (keep audio cover art for audio files)
         hideImageViews(keepAudioCover = isAudioFile)
-        
+
+        // Cancel stale Glide image loads and clear dynamic background.
+        // This prevents in-flight Glide callbacks from re-showing the previous image's
+        // blurred background (stripes) over the video player pillarbox areas.
+        imageLoadingManager.clearForVideoTransition()
+
         // Hide text viewer controls
         hideTextViewerControls()
         

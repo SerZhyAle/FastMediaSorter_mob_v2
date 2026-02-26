@@ -376,13 +376,13 @@ class GeneralSettingsFragment : Fragment() {
             viewModel.updateSettings(current.copy(showSubfoldersAsItems = isChecked))
         }
 
-        binding.switchDefaultRememberFileList?.setOnCheckedChangeListener { _, isChecked ->
+        binding.switchDefaultRememberFileList.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingSpinner) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
         }
 
-        binding.btnHelpRememberFileList?.setOnClickListener {
+        binding.btnHelpRememberFileList.setOnClickListener {
             showRememberFileListHelpDialog()
         }
 
@@ -615,7 +615,7 @@ class GeneralSettingsFragment : Fragment() {
             }
         }
 
-        binding.btnOpenSourceLicenses?.setOnClickListener {
+        binding.btnOpenSourceLicenses.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(android.R.id.content, OpenSourceLicensesFragment())
                 .addToBackStack(null)
@@ -631,8 +631,8 @@ class GeneralSettingsFragment : Fragment() {
             showResetGeneralSectionConfirmation()
         }
 
-        binding.headerDebugSettings?.isVisible = BuildConfig.DEBUG
-        binding.containerDebugSettings?.isVisible = BuildConfig.DEBUG
+        binding.headerDebugSettings.isVisible = BuildConfig.DEBUG
+        binding.containerDebugSettings.isVisible = BuildConfig.DEBUG
         
         // Integration Tests Button (DEBUG only)
         if (BuildConfig.DEBUG && com.sza.fastmediasorter.ui.settings.IntegrationTestDialog.isAvailable()) {
@@ -773,10 +773,8 @@ class GeneralSettingsFragment : Fragment() {
                     if (binding.switchShowSubfoldersAsItems.isChecked != settings.showSubfoldersAsItems) {
                         binding.switchShowSubfoldersAsItems.isChecked = settings.showSubfoldersAsItems
                     }
-                    binding.switchDefaultRememberFileList?.let { rememberSwitch ->
-                        if (rememberSwitch.isChecked != settings.defaultRememberFileList) {
-                            rememberSwitch.isChecked = settings.defaultRememberFileList
-                        }
+                    if (binding.switchDefaultRememberFileList.isChecked != settings.defaultRememberFileList) {
+                        binding.switchDefaultRememberFileList.isChecked = settings.defaultRememberFileList
                     }
                     
                     // Safe Mode (Phase 2.1)
@@ -1819,52 +1817,36 @@ class GeneralSettingsFragment : Fragment() {
     private fun setupExpandableSections() {
         val savedStates = getSavedSectionStates()
         
-        binding.headerInterface?.let { header ->
-            binding.containerInterface?.let { container ->
-                bindSectionToggle(
-                    header, 
-                    container, 
-                    getString(R.string.settings_category_interface),
-                    KEY_INTERFACE_EXPANDED,
-                    savedStates[KEY_INTERFACE_EXPANDED] ?: false
-                )
-            }
-        }
-        binding.headerFiles?.let { header ->
-            binding.containerFiles?.let { container ->
-                bindSectionToggle(
-                    header, 
-                    container, 
-                    getString(R.string.settings_category_files),
-                    KEY_FILES_EXPANDED,
-                    savedStates[KEY_FILES_EXPANDED] ?: false
-                )
-            }
-        }
-        binding.headerSystem?.let { header ->
-            binding.containerSystem?.let { container ->
-                bindSectionToggle(
-                    header, 
-                    container, 
-                    getString(R.string.settings_category_system),
-                    KEY_SYSTEM_EXPANDED,
-                    savedStates[KEY_SYSTEM_EXPANDED] ?: false
-                )
-            }
-        }
+        bindSectionToggle(
+            binding.headerInterface,
+            binding.containerInterface,
+            getString(R.string.settings_category_interface),
+            KEY_INTERFACE_EXPANDED,
+            savedStates[KEY_INTERFACE_EXPANDED] ?: false
+        )
+        bindSectionToggle(
+            binding.headerFiles,
+            binding.containerFiles,
+            getString(R.string.settings_category_files),
+            KEY_FILES_EXPANDED,
+            savedStates[KEY_FILES_EXPANDED] ?: false
+        )
+        bindSectionToggle(
+            binding.headerSystem,
+            binding.containerSystem,
+            getString(R.string.settings_category_system),
+            KEY_SYSTEM_EXPANDED,
+            savedStates[KEY_SYSTEM_EXPANDED] ?: false
+        )
 
         if (BuildConfig.DEBUG) {
-            binding.headerDebugSettings?.let { header ->
-                binding.containerDebugSettings?.let { container ->
-                    bindSectionToggle(
-                        header,
-                        container,
-                        getString(R.string.debug_settings_title),
-                        KEY_DEBUG_EXPANDED,
-                        savedStates[KEY_DEBUG_EXPANDED] ?: false
-                    )
-                }
-            }
+            bindSectionToggle(
+                binding.headerDebugSettings,
+                binding.containerDebugSettings,
+                getString(R.string.debug_settings_title),
+                KEY_DEBUG_EXPANDED,
+                savedStates[KEY_DEBUG_EXPANDED] ?: false
+            )
         }
     }
 

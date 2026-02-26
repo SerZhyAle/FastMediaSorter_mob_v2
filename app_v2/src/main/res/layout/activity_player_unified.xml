@@ -437,7 +437,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
-            android:scaleType="centerCrop"
+            android:scaleType="fitXY"
             android:contentDescription="@null" />
 
         <androidx.media3.ui.PlayerView

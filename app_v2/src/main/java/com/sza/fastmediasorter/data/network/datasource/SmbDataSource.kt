@@ -202,7 +202,14 @@ class SmbDataSource(
                 bytesRemaining
             }
         } catch (e: Exception) {
-            Timber.e(e, "SmbDataSource: Error opening SMB file")
+            if (isInterruptionOrTimeout(e)) {
+                // Normal during rapid file switching or player release — not an error
+                Timber.d("SmbDataSource.open: Interrupted/timeout during open (player released?) - ${e.message}")
+                // Restore interrupt flag consumed by Thread.interrupted() earlier
+                if (e is InterruptedException) Thread.currentThread().interrupt()
+            } else {
+                Timber.e(e, "SmbDataSource: Error opening SMB file")
+            }
             close()
             throw IOException("Failed to open SMB file: ${e.message}", e)
         }

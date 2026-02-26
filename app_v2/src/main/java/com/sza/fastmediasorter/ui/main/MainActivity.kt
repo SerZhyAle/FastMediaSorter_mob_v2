@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.ui.main
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -804,6 +806,23 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             }
         }
     }
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        // Forward mouse wheel scroll events to the resource list.
+        if (event.action == MotionEvent.ACTION_SCROLL &&
+            event.isFromSource(InputDevice.SOURCE_CLASS_POINTER)
+        ) {
+            val vScroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+            if (vScroll != 0f) {
+                val rv = binding.rvResources
+                val scrollFactor = rv.context.resources.displayMetrics.density * 64f
+                rv.scrollBy(0, (-vScroll * scrollFactor).toInt())
+                return true
+            }
+        }
+        return super.onGenericMotionEvent(event)
+    }
+
     companion object {
         const val ACTION_START_SLIDESHOW = "com.sza.fastmediasorter.ACTION_START_SLIDESHOW"
     }

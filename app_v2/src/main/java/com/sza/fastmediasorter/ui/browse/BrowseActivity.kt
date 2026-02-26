@@ -7,7 +7,9 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
+import android.view.InputDevice
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -1532,6 +1534,23 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return keyboardNavigationManager.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
+    }
+
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        // Forward mouse wheel scroll events to RecyclerView.
+        // SwipeRefreshLayout does not propagate ACTION_SCROLL to children on all API levels.
+        if (event.action == MotionEvent.ACTION_SCROLL &&
+            event.isFromSource(InputDevice.SOURCE_CLASS_POINTER)
+        ) {
+            val vScroll = event.getAxisValue(MotionEvent.AXIS_VSCROLL)
+            if (vScroll != 0f) {
+                val rv = binding.rvMediaFiles
+                val scrollFactor = rv.context.resources.displayMetrics.density * 64f
+                rv.scrollBy(0, (-vScroll * scrollFactor).toInt())
+                return true
+            }
+        }
+        return super.onGenericMotionEvent(event)
     }
     
     private fun getCurrentFocusPosition(): Int {

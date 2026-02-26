@@ -516,14 +516,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             try {
-                // Delegate scanning to coordinator
+                // Delegate scanning to coordinator — result is reflected in the resource list UI
                 val result = scanCoordinator.scanAllResources()
-                
-                // Show summary message using string resource + format args
-                sendEvent(MainEvent.ShowResourceMessage(
-                    resId = result.getSummaryMessageResId(),
-                    args = result.getSummaryMessageArgs()
-                ))
+                Timber.d("Scan complete: ${result.availableCount} available, ${result.unavailableCount} unavailable")
             } catch (e: Exception) {
                 Timber.e(e, "Error scanning resources")
                 handleError(e)

@@ -155,7 +155,14 @@ class VideoPlayerManager(
     
     // Coroutine scope for async operations
     private val managerScope = CoroutineScope(Dispatchers.Main + Job())
-    
+
+    /**
+     * Optional callback invoked with the first decoded video frame bitmap.
+     * Only fires for local files (MediaMetadataRetriever does not support SMB/SFTP/FTP/cloud).
+     * Consumed by PlayerMediaLoaderManager to feed DynamicBackgroundProcessor.
+     */
+    var onFirstFrameReady: ((android.graphics.Bitmap) -> Unit)? = null
+
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) {
@@ -374,6 +381,40 @@ class VideoPlayerManager(
                     }
                     playerCallback.showError(errorMessage)
                     playerCallback.onPlaybackError(error)
+                }
+            }
+        }
+
+        override fun onRenderedFirstFrame() {
+            Timber.d("VideoPlayerManager: onRenderedFirstFrame")
+            val path = currentFilePath ?: return
+            val callback = onFirstFrameReady ?: return
+            // MediaMetadataRetriever only supports local files; skip for network/cloud sources
+            if (path.startsWith("smb://") || path.startsWith("sftp://") ||
+                path.startsWith("ftp://") || path.startsWith("cloud://")) {
+                Timber.d("VideoPlayerManager: Skipping first-frame capture for network/cloud source")
+                return
+            }
+            managerScope.launch(Dispatchers.IO) {
+                try {
+                    val retriever = android.media.MediaMetadataRetriever()
+                    try {
+                        retriever.setDataSource(path)
+                        val bitmap = retriever.getFrameAtTime(
+                            0L,
+                            android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC
+                        )
+                        if (bitmap != null) {
+                            Timber.d("VideoPlayerManager: First frame extracted (${bitmap.width}x${bitmap.height})")
+                            withContext(Dispatchers.Main) { callback(bitmap) }
+                        } else {
+                            Timber.w("VideoPlayerManager: getFrameAtTime returned null for $path")
+                        }
+                    } finally {
+                        retriever.release()
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "VideoPlayerManager: Failed to extract first frame from $path")
                 }
             }
         }
