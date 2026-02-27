@@ -1,6 +1,11 @@
 package com.sza.fastmediasorter.core.init
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
+import android.os.Environment
+import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
@@ -33,6 +38,7 @@ class AppStartupInitializer(
      */
     fun initialize() {
         syncCacheSizeToSharedPreferences()
+        if (BuildConfig.DEBUG) logPermissionsStatus()
         fixCloudResourcesWritableFlag()
         fixLocalResourcesWritableFlag()
         cleanupPlaybackPositions()
@@ -172,6 +178,52 @@ class AppStartupInitializer(
         Timber.i("====================================================")
     }
     
+    /**
+     * Log status of all runtime permissions at startup (DEBUG builds only).
+     */
+    private fun logPermissionsStatus() {
+        Timber.i("========== PERMISSIONS STATUS AT STARTUP (DEBUG) ==========")
+        try {
+            fun granted(perm: String) =
+                ContextCompat.checkSelfPermission(context, perm) == PackageManager.PERMISSION_GRANTED
+
+            // Media / storage permissions — depends on API level
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // API 33+
+                Timber.i("%-40s = %s", "READ_MEDIA_IMAGES", granted(Manifest.permission.READ_MEDIA_IMAGES))
+                Timber.i("%-40s = %s", "READ_MEDIA_VIDEO", granted(Manifest.permission.READ_MEDIA_VIDEO))
+                Timber.i("%-40s = %s", "READ_MEDIA_AUDIO", granted(Manifest.permission.READ_MEDIA_AUDIO))
+            } else {
+                Timber.i("%-40s = %s", "READ_EXTERNAL_STORAGE", granted(Manifest.permission.READ_EXTERNAL_STORAGE))
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) { // API <= 28
+                    Timber.i("%-40s = %s", "WRITE_EXTERNAL_STORAGE", granted(Manifest.permission.WRITE_EXTERNAL_STORAGE))
+                }
+            }
+
+            // All Files Access — MANAGE_EXTERNAL_STORAGE (API 30+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Timber.i("%-40s = %s", "MANAGE_EXTERNAL_STORAGE (AllFiles)", Environment.isExternalStorageManager())
+            }
+
+            // Manage Media (API 31+)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val canManage = try {
+                    android.provider.MediaStore.canManageMedia(context)
+                } catch (e: Exception) {
+                    Timber.w(e, "Cannot check MANAGE_MEDIA")
+                    false
+                }
+                Timber.i("%-40s = %s", "MANAGE_MEDIA", canManage)
+            }
+
+            // Normal permissions
+            Timber.i("%-40s = %s", "INTERNET", granted(Manifest.permission.INTERNET))
+
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to log permissions status")
+        }
+        Timber.i("===========================================================")
+    }
+
     /**
      * Fix cloud resources: set isWritable = true for existing CLOUD resources.
      * Migration fix for older app versions.

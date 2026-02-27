@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
+import android.content.res.Configuration
 import android.content.res.Resources
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -72,21 +73,17 @@ class BrowseRecyclerViewManager(
         
         val newLayoutManager = when (mode) {
             DisplayMode.LIST -> {
-                // Use multi-column grid for tablets and landscape
-                // Tablets (sw600dp+): minimum 3 columns for better space utilization
-                // Landscape: 2 columns
-                val useMultiColumn = isLandscape || screenWidthDp >= 600f
-                if (useMultiColumn) {
-                    val columnCount = if (screenWidthDp >= 600f) {
-                        // Tablet: 3 columns minimum (from integers.xml: grid_column_count_list = 3)
-                        resources.getInteger(R.integer.grid_column_count_list)
-                    } else {
-                        // Landscape phone: 2 columns
-                        2
-                    }
-                    Timber.d("updateDisplayMode: Using $columnCount-column Grid for LIST mode (landscape=$isLandscape, widthDp=$screenWidthDp)")
+                val columnCount = calculateListSpanCount(screenWidthDp, isLandscape)
+                if (columnCount > 1) {
+                    Timber.d(
+                        "UI_LAYOUT LIST wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} span=$columnCount"
+                    )
+                    Timber.d("updateDisplayMode: LIST dynamic columns=$columnCount (landscape=$isLandscape, widthDp=$screenWidthDp, fontScale=${resources.configuration.fontScale})")
                     GridLayoutManager(recyclerView.context, columnCount)
                 } else {
+                    Timber.d(
+                        "UI_LAYOUT LIST wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} span=1"
+                    )
                     Timber.d("updateDisplayMode: Using Linear for LIST mode (widthDp=$screenWidthDp)")
                     LinearLayoutManager(recyclerView.context)
                 }
@@ -113,6 +110,10 @@ class BrowseRecyclerViewManager(
                     // Phone: minimum 1 column
                     calculatedSpanCount.coerceAtLeast(1)
                 }
+
+                Timber.d(
+                    "UI_LAYOUT GRID wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} item=${"%.0f".format(itemWidthDp)} span=$spanCount"
+                )
                 
                 Timber.d("updateDisplayMode: Grid calculation - screenWidth=${screenWidthDp}dp, showThumbnails=$showVideoThumbnails, itemWidth=${itemWidthDp}dp, spanCount=$spanCount (calculated=$calculatedSpanCount)")
                 GridLayoutManager(recyclerView.context, spanCount)
@@ -135,5 +136,25 @@ class BrowseRecyclerViewManager(
     
     fun cleanup() {
         // Release adapter resources if needed
+    }
+
+    private fun calculateListSpanCount(screenWidthDp: Float, isLandscape: Boolean): Int {
+        val configuration = resources.configuration
+        val isTelevision =
+            (configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) == Configuration.UI_MODE_TYPE_TELEVISION
+
+        val horizontalPaddingDp = 8f
+        val availableWidthDp = (screenWidthDp - horizontalPaddingDp).coerceAtLeast(0f)
+
+        val baseMinCellWidthDp = when {
+            isTelevision -> 320f
+            isLandscape -> 420f
+            else -> 460f
+        }
+        val adjustedMinCellWidthDp = baseMinCellWidthDp * configuration.fontScale.coerceIn(1.0f, 1.35f)
+
+        val calculated = (availableWidthDp / adjustedMinCellWidthDp).toInt().coerceAtLeast(1)
+        val maxColumns = if (isTelevision) 8 else 6
+        return calculated.coerceIn(1, maxColumns)
     }
 }

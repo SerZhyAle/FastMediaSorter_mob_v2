@@ -791,6 +791,7 @@
     <string name="file_date_label">Date: %1$s</string>
     <string name="file_type_label">Type: %1$s</string>
     <string name="file_path_label">Path: %1$s</string>
+    <string name="file_cloud_id_label">Cloud ID: %1$s</string>
     <string name="exif_datetime_label">Taken: %1$s</string>
     <string name="exif_orientation_label">Orientation: %1$s</string>
     <string name="exif_gps_label">GPS: %1$s</string>

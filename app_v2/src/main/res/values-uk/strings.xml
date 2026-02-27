@@ -121,6 +121,7 @@
     <string name="file_date_label">Дата: %1$s</string>
     <string name="file_type_label">Тип: %1$s</string>
     <string name="file_path_label">Шлях: %1$s</string>
+    <string name="file_cloud_id_label">Cloud ID: %1$s</string>
     <string name="exif_datetime_label">Знято: %1$s</string>
     <string name="exif_orientation_label">Орієнтація: %1$s</string>
     <string name="exif_gps_label">GPS: %1$s</string>

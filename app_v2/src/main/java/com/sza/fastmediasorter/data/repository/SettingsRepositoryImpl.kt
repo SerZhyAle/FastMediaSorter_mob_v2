@@ -140,6 +140,11 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_DYNAMIC_BACKGROUND_EXTENSION = booleanPreferencesKey("dynamic_background_extension")
     }
 
+    // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
+    private val glidePrefs by lazy {
+        context.getSharedPreferences("app_settings_glide", Context.MODE_PRIVATE)
+    }
+
     override fun getSettings(): Flow<AppSettings> {
         return dataStore.data
             .catch { exception ->
@@ -153,22 +158,15 @@ class SettingsRepositoryImpl @Inject constructor(
             .map { preferences ->
                 val languageFromDataStore = preferences[KEY_LANGUAGE]   // null = not explicitly set
                 val language = languageFromDataStore ?: "en"
-
-                // Sync language to SharedPreferences for LocaleHelper ONLY when the user has
-                // explicitly chosen a language (key present in DataStore).
-                // Skipping the sync on first launch preserves the auto-detected system language
-                // (ru/uk) that LocaleHelper derives from the OS locale.
-                if (languageFromDataStore != null) {
-                    val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-                    val savedLanguage = sharedPrefs.getString("selected_language", null)
-                    if (savedLanguage != languageFromDataStore) {
-                        sharedPrefs.edit().putString("selected_language", languageFromDataStore).apply()
-                    }
-                }
+                // NOTE: Do NOT sync language to SharedPreferences here.
+                // LocaleHelper.getLanguage() manages SharedPreferences independently:
+                // - Falls back to system locale (uk/ru) when no preference saved yet
+                // - SharedPreferences is updated only via explicit LocaleHelper.saveLanguage() calls
+                // Syncing here would overwrite the system-locale fallback with the DataStore default "en".
                 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
+                // glidePrefs is a lazy singleton field — no disk access on every emission
                 val cacheSizeMb = preferences[KEY_CACHE_SIZE_MB] ?: 2048
-                val glidePrefs = context.getSharedPreferences("app_settings_glide", Context.MODE_PRIVATE)
                 val savedCacheSize = glidePrefs.getInt("cache_size_mb_cached", 0)
                 if (savedCacheSize != cacheSizeMb) {
                     glidePrefs.edit().putInt("cache_size_mb_cached", cacheSizeMb).apply()
@@ -192,9 +190,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Network sync
                     enableBackgroundSync = preferences[KEY_ENABLE_BACKGROUND_SYNC] ?: false,
                     backgroundSyncIntervalHours = preferences[KEY_BACKGROUND_SYNC_INTERVAL_HOURS] ?: 4,
-                    allFiles = (preferences[KEY_ALL_FILES] ?: false).also { value ->
-                        Timber.d("SettingsRepo: getSettings() returning allFiles=$value from DataStore")
-                    },
+                    allFiles = preferences[KEY_ALL_FILES] ?: false,
                     showHiddenFiles = preferences[KEY_SHOW_HIDDEN_FILES] ?: false,
                     showSubfoldersAsItems = preferences[KEY_SHOW_SUBFOLDERS_AS_ITEMS] ?: false,
                     
@@ -306,10 +302,9 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateSettings(settings: AppSettings) {
         Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
-        // Sync language to SharedPreferences for LocaleHelper (synchronous access in attachBaseContext)
-        val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putString("selected_language", settings.language).apply()
-        
+        // NOTE: Language is NOT synced to SharedPreferences here.
+        // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
+        // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
         dataStore.edit { preferences ->
             // General
             preferences[KEY_LANGUAGE] = settings.language

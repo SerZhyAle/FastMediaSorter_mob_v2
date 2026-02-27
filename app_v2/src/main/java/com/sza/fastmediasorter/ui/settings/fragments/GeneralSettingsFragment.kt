@@ -1067,8 +1067,8 @@ class GeneralSettingsFragment : Fragment() {
                     .putInt("cache_size_mb", newCacheSizeMb)
                     .apply()
                 
-                // Save current language to ensure it persists after restart
-                LocaleHelper.saveLanguage(requireContext(), viewModel.settings.value.language)
+                // Save the currently active language (resolved by LocaleHelper, not DataStore default)
+                LocaleHelper.saveLanguage(requireContext(), LocaleHelper.getLanguage(requireContext()))
                 
                 // Restart app
                 LocaleHelper.restartApp(requireActivity())

@@ -30,6 +30,12 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
      * @return Result with count of deleted files or failure
      */
     suspend operator fun invoke(directoryPath: String): Result<Int> = withContext(Dispatchers.IO) {
+        // Cloud paths (cloud://) have no concept of local temp files — nothing to clean
+        if (directoryPath.startsWith("cloud://", ignoreCase = true)) {
+            Timber.d("CleanupOrphanedTempFilesUseCase: Skipping cloud path: $directoryPath")
+            return@withContext Result.success(0)
+        }
+
         Timber.d("CleanupOrphanedTempFilesUseCase: Starting cleanup in: $directoryPath")
         
         try {

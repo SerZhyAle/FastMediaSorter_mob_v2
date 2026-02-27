@@ -132,7 +132,9 @@ class CloudMediaScanner @Inject constructor(
                             size = 0L,
                             createdDate = cloudFile.modifiedDate,
                             isDirectory = true,
-                            childCount = 0 // Expensive to calculate for Cloud, setting to 0
+                            childCount = 0, // Expensive to calculate for Cloud, setting to 0
+                            cloudDisplayPath = cloudFile.path,
+                            cloudItemId = cloudFile.id
                         )
                     } else {
                         null
@@ -161,7 +163,9 @@ class CloudMediaScanner @Inject constructor(
                             size = cloudFile.size,
                             createdDate = cloudFile.modifiedDate,
                             thumbnailUrl = cloudFile.thumbnailUrl,
-                            webViewUrl = cloudFile.webViewUrl
+                            webViewUrl = cloudFile.webViewUrl,
+                            cloudDisplayPath = cloudFile.path,
+                            cloudItemId = cloudFile.id
                         )
                     } else null
                 }

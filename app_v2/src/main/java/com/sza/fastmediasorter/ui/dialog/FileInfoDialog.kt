@@ -92,6 +92,29 @@ class FileInfoDialog(
                !mediaFile.path.startsWith("sftp://") &&
                !mediaFile.path.startsWith("ftp://")
     }
+
+    private fun isCloudFile(): Boolean {
+        return mediaFile.path.startsWith("cloud://") ||
+            mediaFile.path.startsWith("cloud:/")
+    }
+
+    private fun buildPathInfoText(): String {
+        if (!isCloudFile()) {
+            return context.getString(R.string.file_path_label, mediaFile.path)
+        }
+
+        val readablePath = mediaFile.cloudDisplayPath
+            ?.takeIf { it.isNotBlank() }
+            ?: mediaFile.path
+        val basePathLine = context.getString(R.string.file_path_label, readablePath)
+        val cloudId = mediaFile.cloudItemId?.takeIf { it.isNotBlank() }
+
+        return if (cloudId != null) {
+            basePathLine + "\n" + context.getString(R.string.file_cloud_id_label, cloudId)
+        } else {
+            basePathLine
+        }
+    }
     
     private fun openInExternalPlayer() {
         timber.log.Timber.d("FileInfoDialog.openInExternalPlayer: Opening file ${mediaFile.name} (path=${mediaFile.path})")
@@ -205,7 +228,7 @@ class FileInfoDialog(
             formatDate(mediaFile.createdDate)
         )
         binding.tvFileType.text = context.getString(R.string.file_type_label, mediaFile.type.name)
-        binding.tvFilePath.text = context.getString(R.string.file_path_label, mediaFile.path)
+        binding.tvFilePath.text = buildPathInfoText()
 
         // EXIF Information (for images/GIFs) - show section for all images, hide later if no data
         if (mediaFile.type == MediaType.IMAGE || mediaFile.type == MediaType.GIF) {

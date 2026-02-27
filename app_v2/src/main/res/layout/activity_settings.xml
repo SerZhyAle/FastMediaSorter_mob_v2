@@ -1,167 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:fitsSystemWindows="true">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:fitsSystemWindows="true">
 
     <!-- Toolbar container: Title on first row, tabs on second row (portrait) -->
-    <LinearLayout
-        android:id="@+id/toolbarContainer"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="?attr/colorPrimary"
-        android:elevation="@dimen/toolbar_elevation"
-        app:layout_constraintTop_toTopOf="parent">
+    <LinearLayout android:id="@+id/toolbarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:layout_constraintTop_toTopOf="parent">
 
         <!-- Title row with back button and settings text -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/toolbar_elevation"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:orientation="horizontal" android:gravity="center_vertical">
 
             <!-- Back button -->
-            <ImageButton
-                android:id="@+id/backButton"
-                android:layout_width="?attr/actionBarSize"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_arrow_back"
-                android:background="?attr/colorPrimary"
-                android:elevation="@dimen/toolbar_elevation"
-                android:contentDescription="@string/back"
-                app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/backButton" android:layout_width="?attr/actionBarSize" android:layout_height="match_parent" android:src="@drawable/ic_arrow_back" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" android:contentDescription="@string/back" app:tint="?attr/colorOnPrimary" />
 
             <!-- Settings title -->
-            <TextView
-                android:id="@+id/titleText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings"
-                android:textColor="?attr/colorOnPrimary"
-                android:textSize="@dimen/activity_player_btnInfo_textSize"
-                android:textStyle="bold"
-                tools:ignore="SpUsage" />
+            <TextView android:id="@+id/titleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings" android:textColor="?attr/colorOnPrimary" android:textSize="@dimen/activity_player_btnInfo_textSize" android:textStyle="bold" tools:ignore="SpUsage" />
 
-            <View
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+            <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1" />
 
-            <ImageButton
-                android:id="@+id/searchButton"
-                android:layout_width="?attr/actionBarSize"
-                android:layout_height="match_parent"
-                android:background="?attr/colorPrimary"
-                android:contentDescription="@string/settings_search_open"
-                android:src="@android:drawable/ic_menu_search"
-                app:tint="?attr/colorOnPrimary" />
+            <ImageButton android:id="@+id/searchButton" android:layout_width="?attr/actionBarSize" android:layout_height="match_parent" android:background="?attr/colorPrimary" android:contentDescription="@string/settings_search_open" android:src="@android:drawable/ic_menu_search" app:tint="?attr/colorOnPrimary" />
 
         </LinearLayout>
 
         <!-- Tabs row -->
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            android:elevation="@dimen/toolbar_elevation"
-            app:tabTextColor="?attr/colorOnPrimary"
-            app:tabSelectedTextColor="?attr/colorOnPrimary"
-            app:tabIndicatorColor="@color/white"
-            app:tabIndicatorHeight="@dimen/tab_indicator_height"
-            app:tabIndicatorFullWidth="false"
-            app:tabMode="scrollable"
-            app:tabGravity="start">
+        <com.google.android.material.tabs.TabLayout android:id="@+id/tabLayout" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:tabTextColor="?attr/colorOnPrimary" app:tabSelectedTextColor="?attr/colorOnPrimary" app:tabIndicatorColor="@color/white" app:tabIndicatorHeight="@dimen/tab_indicator_height" app:tabIndicatorFullWidth="false" app:tabMode="scrollable" app:tabGravity="start">
 
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_tab_general" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_general" />
 
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_tab_media" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_media" />
 
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_tab_playback" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_playback" />
 
-            <com.google.android.material.tabs.TabItem
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_tab_destinations" />
+            <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/settings_tab_destinations" />
 
         </com.google.android.material.tabs.TabLayout>
 
     </LinearLayout>
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
-        app:layout_constraintBottom_toBottomOf="parent" />
+    <androidx.viewpager2.widget.ViewPager2 android:id="@+id/viewPager" android:layout_width="match_parent" android:layout_height="0dp" app:layout_constraintTop_toBottomOf="@id/toolbarContainer" app:layout_constraintBottom_toBottomOf="parent" />
 
-    <LinearLayout
-        android:id="@+id/searchOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:background="?attr/colorSurface"
-        android:elevation="@dimen/elevation_player_overlay"
-        android:orientation="vertical"
-        android:padding="@dimen/settings_padding"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/toolbarContainer"
-        app:layout_constraintBottom_toBottomOf="parent">
+    <LinearLayout android:id="@+id/searchOverlay" android:layout_width="match_parent" android:layout_height="0dp" android:background="?attr/colorSurface" android:elevation="@dimen/elevation_player_overlay" android:orientation="vertical" android:padding="@dimen/settings_padding" android:visibility="gone" app:layout_constraintTop_toBottomOf="@id/toolbarContainer" app:layout_constraintBottom_toBottomOf="parent">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
 
-            <EditText
-                android:id="@+id/searchInput"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:hint="@string/settings_search_hint"
-                android:imeOptions="actionSearch"
-                android:inputType="text"
-                android:maxLines="1" />
+            <EditText android:id="@+id/searchInput" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="@string/settings_search_hint" android:imeOptions="actionSearch" android:inputType="text" android:maxLines="1" />
 
-            <ImageButton
-                android:id="@+id/searchCloseButton"
-                android:layout_width="@dimen/button_height"
-                android:layout_height="@dimen/button_height"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/settings_search_close"
-                android:src="@android:drawable/ic_menu_close_clear_cancel"
-                app:tint="?attr/colorOnSurface" />
+            <ImageButton android:id="@+id/searchCloseButton" android:layout_width="@dimen/button_height" android:layout_height="@dimen/button_height" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/settings_search_close" android:src="@android:drawable/ic_menu_close_clear_cancel" app:tint="?attr/colorOnSurface" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/searchEmptyText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_medium"
-            android:text="@string/settings_search_no_results"
-            android:textColor="?attr/colorOnSurface"
-            android:visibility="gone" />
+        <TextView android:id="@+id/searchEmptyText" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_medium" android:text="@string/settings_search_no_results" android:textColor="?attr/colorOnSurface" android:visibility="gone" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/searchResultsRecycler"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_marginTop="@dimen/margin_small"
-            android:layout_weight="1"
-            tools:listitem="@layout/item_settings_search_result" />
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/searchResultsRecycler" android:layout_width="match_parent" android:layout_height="0dp" android:layout_marginTop="@dimen/margin_small" android:layout_weight="1" tools:listitem="@layout/item_settings_search_result" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
