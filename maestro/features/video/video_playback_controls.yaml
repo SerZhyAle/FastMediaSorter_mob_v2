@@ -22,7 +22,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(mp4|mkv|avi|mov|webm)$"
-    timeout: 15000
     optional: true
 
 # Play video

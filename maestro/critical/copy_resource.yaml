@@ -18,7 +18,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Downloads"
-    timeout: 10000
     optional: true
 
 # Strategy A: tap btnCopy directly (visible in landscape / wide screen)

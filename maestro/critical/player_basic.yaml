@@ -12,7 +12,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Downloads"
-    timeout: 10000
 
 - tapOn:
     text: "Downloads"
@@ -21,7 +20,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(jpg|jpeg|png|webp|mp4|mkv|mov)$"
-    timeout: 15000
     optional: true
 
 - tapOn:

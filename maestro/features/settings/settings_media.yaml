@@ -44,8 +44,7 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Scroll to view more options
-- scroll:
-    direction: DOWN
+- scroll
 - waitForAnimationToEnd
 
 # Close settings

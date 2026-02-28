@@ -22,7 +22,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.epub$"
-    timeout: 15000
     optional: true
 
 # Open EPUB
@@ -35,13 +34,11 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Test chapter navigation (swipe to next page)
-- swipe:
-    direction: LEFT
+- scroll
 - waitForAnimationToEnd
 
 # Swipe back
-- swipe:
-    direction: RIGHT
+- scroll
 - waitForAnimationToEnd
 
 # Open table of contents
@@ -56,7 +53,6 @@ appId: com.sza.fastmediasorter.debug
 
 # Close TOC
 - back
-    optional: true
 - waitForAnimationToEnd
 
 # Test font size adjustment

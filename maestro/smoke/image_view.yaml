@@ -21,7 +21,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(jpg|jpeg|png|gif|webp)$"
-    timeout: 15000
     optional: true
 
 # Tap on image to open viewer

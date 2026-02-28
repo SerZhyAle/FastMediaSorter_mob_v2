@@ -1714,11 +1714,19 @@ class MediaFileAdapter(
                     (sizeDp * root.context.resources.displayMetrics.density).toInt() // User preference
                 }
                 
-                // Set fixed height for consistent grid appearance
-                // Width is match_parent from XML, adjustViewBounds handles aspect ratio
+                // Apply user-defined icon size to thumbnail container and image.
+                // Container controls effective cell height; updating only ImageView is not enough.
+                val containerParams = flThumbnailContainer.layoutParams
+                if (containerParams.height != sizeInPx) {
+                    containerParams.height = sizeInPx
+                    flThumbnailContainer.layoutParams = containerParams
+                }
+
                 val imgParams = ivThumbnail.layoutParams
-                imgParams.height = sizeInPx
-                ivThumbnail.layoutParams = imgParams
+                if (imgParams.height != sizeInPx) {
+                    imgParams.height = sizeInPx
+                    ivThumbnail.layoutParams = imgParams
+                }
                 
                 // Highlight selected items
                 cvCard.setCardBackgroundColor(

@@ -13,7 +13,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Downloads"
-    timeout: 10000
     optional: true
 
 - tapOn:

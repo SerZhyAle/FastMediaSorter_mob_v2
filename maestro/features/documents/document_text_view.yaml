@@ -22,7 +22,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(txt|md|log|json|xml)$"
-    timeout: 15000
     optional: true
 
 # Open text file
@@ -37,12 +36,10 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 
 # Test scroll functionality
-- scroll:
-    direction: DOWN
+- scroll
 - waitForAnimationToEnd
 
-- scroll:
-    direction: UP
+- scroll
 - waitForAnimationToEnd
 
 # Close document

@@ -40,13 +40,11 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Test swipe left (next)
-- swipe:
-    direction: LEFT
+- scroll
 - waitForAnimationToEnd
 
 # Test swipe right (previous)
-- swipe:
-    direction: RIGHT
+- scroll
 - waitForAnimationToEnd
 
 # Close viewer

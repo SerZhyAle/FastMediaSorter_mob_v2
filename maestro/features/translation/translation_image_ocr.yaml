@@ -51,7 +51,6 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     text: ".*[Tt]ext.*"
     optional: true
-    timeout: 15000
 
 # Select target language
 - tapOn:

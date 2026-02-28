@@ -23,7 +23,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(mp3|flac|m4a)$"
-    timeout: 15000
     optional: true
 
 # Play audio file
@@ -51,7 +50,6 @@ appId: com.sza.fastmediasorter.debug
 
 # Close lyrics view
 - back
-    optional: true
 - waitForAnimationToEnd
 
 # Close player

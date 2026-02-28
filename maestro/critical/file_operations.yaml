@@ -15,7 +15,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Downloads"
-    timeout: 10000
 
 - tapOn:
     text: "Downloads"
@@ -29,7 +28,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "FastMediaSorter_Test"
-    timeout: 10000
 
 - tapOn:
     text: "FastMediaSorter_Test"
@@ -38,7 +36,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "_ops_src"
-    timeout: 10000
 
 - tapOn:
     text: "_ops_src"
@@ -48,7 +45,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "ops_copy_1.jpg"
-    timeout: 10000
 
 - longPressOn:
     text: "ops_copy_1.jpg"
@@ -86,7 +82,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "ops_move_1.jpg"
-    timeout: 10000
 
 - longPressOn:
     text: "ops_move_1.jpg"

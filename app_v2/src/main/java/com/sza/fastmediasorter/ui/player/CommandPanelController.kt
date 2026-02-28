@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player
 
 import android.annotation.SuppressLint
 import android.content.res.Configuration
+import android.graphics.Rect
 import android.net.Uri
 import android.view.View
 import androidx.appcompat.widget.PopupMenu
@@ -380,6 +381,8 @@ class CommandPanelController(
         
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
+
+        logPanelGeometrySnapshot("decision")
         
         // CRITICAL FIX: Force layout recalculation when panel visibility changes
         // Problem: mediaContentArea has layout_weight=1 and takes all available space
@@ -401,19 +404,54 @@ class CommandPanelController(
             }
         }
         
-        // DEBUG: Log actual panel state after visibility change
+        // DEBUG: Log actual panel state after visibility change (single + delayed snapshot)
         safeViews.copyToPanel.post {
-            val location = IntArray(2)
-            safeViews.copyToPanel.getLocationOnScreen(location)
-            Timber.d("CommandPanelController: ACTUAL copyToPanel state - visibility=${safeViews.copyToPanel.visibility}, isVisible=${safeViews.copyToPanel.isVisible}, width=${safeViews.copyToPanel.width}, height=${safeViews.copyToPanel.height}, Y=${location[1]}, parent=${safeViews.copyToPanel.parent?.javaClass?.simpleName}, background=${safeViews.copyToPanel.background}")
-        }
-        safeViews.moveToPanel.post {
-            val location = IntArray(2)
-            safeViews.moveToPanel.getLocationOnScreen(location)
-            Timber.d("CommandPanelController: ACTUAL moveToPanel state - visibility=${safeViews.moveToPanel.visibility}, isVisible=${safeViews.moveToPanel.isVisible}, width=${safeViews.moveToPanel.width}, height=${safeViews.moveToPanel.height}, Y=${location[1]}, parent=${safeViews.moveToPanel.parent?.javaClass?.simpleName}, background=${safeViews.moveToPanel.background}")
+            logPanelGeometrySnapshot("post")
+            binding.root.post {
+                logPanelGeometrySnapshot("post+1")
+            }
         }
         
 
+    }
+
+    private fun logPanelGeometrySnapshot(stage: String) {
+        val visibleFrame = Rect()
+        binding.root.getWindowVisibleDisplayFrame(visibleFrame)
+
+        val rootLoc = IntArray(2)
+        val mediaLoc = IntArray(2)
+        val bottomLoc = IntArray(2)
+        val copyLoc = IntArray(2)
+        val moveLoc = IntArray(2)
+
+        binding.root.getLocationOnScreen(rootLoc)
+        binding.mediaContentArea.getLocationOnScreen(mediaLoc)
+        safeViews.bottomPanelsContainer.getLocationOnScreen(bottomLoc)
+        safeViews.copyToPanel.getLocationOnScreen(copyLoc)
+        safeViews.moveToPanel.getLocationOnScreen(moveLoc)
+
+        val copyGlobalRect = Rect()
+        val moveGlobalRect = Rect()
+        val copyLocalRect = Rect()
+        val moveLocalRect = Rect()
+
+        val copyGlobalVisible = safeViews.copyToPanel.getGlobalVisibleRect(copyGlobalRect)
+        val moveGlobalVisible = safeViews.moveToPanel.getGlobalVisibleRect(moveGlobalRect)
+        val copyLocalVisible = safeViews.copyToPanel.getLocalVisibleRect(copyLocalRect)
+        val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)
+
+        Timber.d(
+            "PanelGeom[$stage]: visibleFrame=[${visibleFrame.left},${visibleFrame.top}..${visibleFrame.right},${visibleFrame.bottom}] h=${visibleFrame.height()} | root=(x=${rootLoc[0]},y=${rootLoc[1]},w=${binding.root.width},h=${binding.root.height}) | media=(x=${mediaLoc[0]},y=${mediaLoc[1]},w=${binding.mediaContentArea.width},h=${binding.mediaContentArea.height}) | bottom=(x=${bottomLoc[0]},y=${bottomLoc[1]},w=${safeViews.bottomPanelsContainer.width},h=${safeViews.bottomPanelsContainer.height},vis=${safeViews.bottomPanelsContainer.visibility})"
+        )
+
+        Timber.d(
+            "PanelGeom[$stage]: copy=(vis=${safeViews.copyToPanel.visibility},isVisible=${safeViews.copyToPanel.isVisible},x=${copyLoc[0]},y=${copyLoc[1]},w=${safeViews.copyToPanel.width},h=${safeViews.copyToPanel.height},globalVisible=$copyGlobalVisible,globalRect=$copyGlobalRect,localVisible=$copyLocalVisible,localRect=$copyLocalRect,childRows=${safeViews.copyToButtonsGrid.childCount})"
+        )
+
+        Timber.d(
+            "PanelGeom[$stage]: move=(vis=${safeViews.moveToPanel.visibility},isVisible=${safeViews.moveToPanel.isVisible},x=${moveLoc[0]},y=${moveLoc[1]},w=${safeViews.moveToPanel.width},h=${safeViews.moveToPanel.height},globalVisible=$moveGlobalVisible,globalRect=$moveGlobalRect,localVisible=$moveLocalVisible,localRect=$moveLocalRect,childRows=${safeViews.moveToButtonsGrid.childCount})"
+        )
     }
     
     /**

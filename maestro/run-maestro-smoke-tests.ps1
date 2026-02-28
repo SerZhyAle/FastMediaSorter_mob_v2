@@ -9,7 +9,8 @@ param(
     
     [switch]$Debug,
     [switch]$NoInstall,
-    [switch]$Interactive
+    [switch]$Interactive,
+    [switch]$AllowPmClear
 )
 
 $ErrorActionPreference = "Stop"
@@ -29,6 +30,8 @@ OPTIONS:
   -Debug                 Show debug output during test execution
   
   -NoInstall             Don't rebuild/install app before testing
+
+    -AllowPmClear          Explicitly allow `adb shell pm clear ...` (DANGEROUS: wipes app data)
   
   -Interactive           Use interactive mode (maestro studio)
   
@@ -103,7 +106,13 @@ function Check-Prerequisites {
 function Build-And-Install-App {
     Write-Host "`n📦 Building and installing app..."
     
-    # Clear app data
+    if (-not $AllowPmClear) {
+        Write-Host "❌ Refusing to run 'pm clear' without explicit -AllowPmClear flag." -ForegroundColor Red
+        Write-Host "   Re-run with -AllowPmClear ONLY if data wipe is intended." -ForegroundColor Yellow
+        exit 2
+    }
+
+    # Clear app data (explicitly allowed)
     adb shell pm clear com.sza.fastmediasorter
     
     # Build

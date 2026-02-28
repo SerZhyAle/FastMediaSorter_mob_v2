@@ -22,7 +22,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(mp3|flac|aac|ogg|m4a|wma|opus)$"
-    timeout: 15000
     optional: true
 
 - tapOn:

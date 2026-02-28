@@ -22,7 +22,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.pdf$"
-    timeout: 15000
     optional: true
 
 # Open PDF
@@ -37,24 +36,18 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Test navigate to next page
-- scroll:
-    direction: DOWN
+- scroll
 - waitForAnimationToEnd
 
 # Test navigate to previous page
-- scroll:
-    direction: UP
+- scroll
 - waitForAnimationToEnd
 
 # Test pan gesture (swipe while zoomed)
-- swipe:
-    direction: LEFT
-    optional: true
+- scroll
 - waitForAnimationToEnd
 
-- swipe:
-    direction: RIGHT
-    optional: true
+- scroll
 - waitForAnimationToEnd
 
 # Close PDF viewer

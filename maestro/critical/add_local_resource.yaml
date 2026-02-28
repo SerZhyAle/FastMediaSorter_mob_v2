@@ -34,8 +34,7 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Wait up to 10s for scan or folders to appear
-- waitForAnimationToEnd:
-    timeout: 10000
+- waitForAnimationToEnd
 
 # If scan produced results, try to add; otherwise use manual add as fallback
 - tapOn:

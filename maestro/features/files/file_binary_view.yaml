@@ -55,8 +55,7 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 
 # Close context menu
-- back:
-    optional: true
+- back
 - waitForAnimationToEnd
 
 # Test completed

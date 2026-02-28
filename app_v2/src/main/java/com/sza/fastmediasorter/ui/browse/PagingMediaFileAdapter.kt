@@ -509,11 +509,17 @@ class PagingMediaFileAdapter(
 
                 val sizeInPx = (thumbnailSize * root.context.resources.displayMetrics.density).toInt()
                 
-                // Set fixed height for consistent grid appearance
-                // Width is match_parent from XML
+                val containerParams = flThumbnailContainer.layoutParams
+                if (containerParams.height != sizeInPx) {
+                    containerParams.height = sizeInPx
+                    flThumbnailContainer.layoutParams = containerParams
+                }
+
                 val imgParams = ivThumbnail.layoutParams
-                imgParams.height = sizeInPx
-                ivThumbnail.layoutParams = imgParams
+                if (imgParams.height != sizeInPx) {
+                    imgParams.height = sizeInPx
+                    ivThumbnail.layoutParams = imgParams
+                }
 
                 cvCard.setCardBackgroundColor(
                     if (isSelected) {

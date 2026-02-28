@@ -49,8 +49,7 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Close app (simulate app kill)
-- back:
-    optional: true
+- back
 
 - waitForAnimationToEnd
 

@@ -16,7 +16,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "p2512"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -31,7 +30,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(jpg|jpeg|png|webp)$"
-    timeout: 15000
     optional: true
 
 - tapOn:

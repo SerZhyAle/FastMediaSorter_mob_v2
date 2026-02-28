@@ -28,7 +28,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*[Ss]lideshow.*[Mm]usic.*"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -50,7 +49,6 @@ appId: com.sza.fastmediasorter.debug
 - back
 - waitForAnimationToEnd
 - back
-    optional: true
 - waitForAnimationToEnd
 
 # Navigate to image folder

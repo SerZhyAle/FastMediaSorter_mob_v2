@@ -12,7 +12,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "SFTP"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -25,7 +24,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "FTP"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -38,7 +36,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "test_media"
-    timeout: 10000
     optional: true
 
 - tapOn:

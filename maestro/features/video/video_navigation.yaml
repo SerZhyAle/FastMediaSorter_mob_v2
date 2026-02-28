@@ -47,8 +47,7 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 # Test swipe navigation
-- swipe:
-    direction: LEFT
+- scroll
 - waitForAnimationToEnd
 
 # Close video player

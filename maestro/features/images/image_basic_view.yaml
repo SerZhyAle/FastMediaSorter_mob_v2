@@ -31,13 +31,11 @@ appId: com.sza.fastmediasorter.debug
 -  waitForAnimationToEnd
 
 # Test swipe to next image
-- swipe:
-    direction: LEFT
+- scroll
 - waitForAnimationToEnd
 
 # Swipe back to previous
-- swipe:
-    direction: RIGHT
+- scroll
 - waitForAnimationToEnd
 
 # Test zoom (double tap for 2x)

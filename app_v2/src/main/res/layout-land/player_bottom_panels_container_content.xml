@@ -1,109 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/bottomPanelsContainer"
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:baselineAligned="false"
-    android:orientation="vertical"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/bottomPanelsContainer" android:layout_width="0dp" android:layout_height="wrap_content" android:baselineAligned="false" android:orientation="vertical" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintEnd_toEndOf="parent" app:layout_constraintStart_toStartOf="parent">
 
-    <LinearLayout
-        android:id="@+id/copyToPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="#CC004D00"
-        android:orientation="vertical"
-        android:paddingHorizontal="4dp"
-        android:paddingVertical="@dimen/player_cmd_padding_vertical"
-        android:visibility="gone">
+    <LinearLayout android:id="@+id/copyToPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#CC004D00" android:orientation="vertical" android:paddingHorizontal="4dp" android:paddingVertical="@dimen/player_cmd_padding_vertical" android:visibility="gone">
 
-        <LinearLayout
-            android:id="@+id/copyToPanelHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="horizontal"
-            android:paddingBottom="2dp">
+        <LinearLayout android:id="@+id/copyToPanelHeader" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:orientation="horizontal" android:paddingBottom="2dp">
 
-            <TextView
-                android:id="@+id/copyToPanelIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="0dp"
-                android:paddingEnd="4dp"
-                android:text="@string/panel_indicator_collapsed"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
+            <TextView android:id="@+id/copyToPanelIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="0dp" android:paddingEnd="4dp" android:text="@string/panel_indicator_collapsed" android:textColor="@color/white" android:textSize="@dimen/text_size_small" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/panel_copy_to"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/panel_copy_to" android:textColor="@color/white" android:textSize="@dimen/text_size_small" />
         </LinearLayout>
 
-        <GridLayout
-            android:id="@+id/copyToButtonsGrid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:columnCount="1"
-            android:orientation="vertical" />
+        <GridLayout android:id="@+id/copyToButtonsGrid" android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="1" android:orientation="vertical" />
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/moveToPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:background="#CC00004D"
-        android:orientation="vertical"
-        android:paddingHorizontal="4dp"
-        android:paddingVertical="@dimen/player_cmd_padding_vertical"
-        android:visibility="gone">
+    <LinearLayout android:id="@+id/moveToPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="#CC00004D" android:orientation="vertical" android:paddingHorizontal="4dp" android:paddingVertical="@dimen/player_cmd_padding_vertical" android:visibility="gone">
 
-        <LinearLayout
-            android:id="@+id/moveToPanelHeader"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackground"
-            android:clickable="true"
-            android:focusable="true"
-            android:orientation="horizontal"
-            android:paddingBottom="2dp">
+        <LinearLayout android:id="@+id/moveToPanelHeader" android:layout_width="match_parent" android:layout_height="wrap_content" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true" android:orientation="horizontal" android:paddingBottom="2dp">
 
-            <TextView
-                android:id="@+id/moveToPanelIndicator"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="0dp"
-                android:paddingEnd="4dp"
-                android:text="@string/panel_indicator_collapsed"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
+            <TextView android:id="@+id/moveToPanelIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="0dp" android:paddingEnd="4dp" android:text="@string/panel_indicator_collapsed" android:textColor="@color/white" android:textSize="@dimen/text_size_small" />
 
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/panel_move_to"
-                android:textColor="@color/white"
-                android:textSize="@dimen/text_size_small" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/panel_move_to" android:textColor="@color/white" android:textSize="@dimen/text_size_small" />
         </LinearLayout>
 
-        <GridLayout
-            android:id="@+id/moveToButtonsGrid"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:columnCount="1"
-            android:orientation="vertical" />
+        <GridLayout android:id="@+id/moveToButtonsGrid" android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="1" android:orientation="vertical" />
     </LinearLayout>
 
 </LinearLayout>
