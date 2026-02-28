@@ -16,7 +16,8 @@ import timber.log.Timber
     tableName = "network_credentials",
     indices = [
         Index(value = ["credentialId"], unique = true, name = "idx_credentials_credential_id"),
-        Index(value = ["type", "server", "port"], name = "idx_credentials_type_server_port")
+        Index(value = ["type", "server", "port"], name = "idx_credentials_type_server_port"),
+        Index(value = ["accountId"], name = "idx_credentials_account_id")
     ]
 )
 data class NetworkCredentialsEntity(
@@ -35,6 +36,7 @@ data class NetworkCredentialsEntity(
     val domain: String = "", // For SMB domain authentication
     val shareName: String? = null, // For SMB: share name
     val sshPrivateKey: String? = null, // For SFTP: SSH private key (encrypted, PEM format)
+    val accountId: String = "", // Used for Cloud Auth Multi-Account mapping (e.g. Google Drive / OneDrive email)
     val createdDate: Long = System.currentTimeMillis()
 ) {
     /**
@@ -101,6 +103,7 @@ data class NetworkCredentialsEntity(
             domain: String = "",
             shareName: String? = null,
             sshPrivateKey: String? = null,
+            accountId: String = "",
             id: Long = 0
         ): NetworkCredentialsEntity {
             return NetworkCredentialsEntity(
@@ -113,7 +116,8 @@ data class NetworkCredentialsEntity(
                 encryptedPassword = CryptoHelper.encrypt(plaintextPassword) ?: "",
                 domain = domain,
                 shareName = shareName,
-                sshPrivateKey = sshPrivateKey?.let { CryptoHelper.encrypt(it) }
+                sshPrivateKey = sshPrivateKey?.let { CryptoHelper.encrypt(it) },
+                accountId = accountId
             )
         }
     }

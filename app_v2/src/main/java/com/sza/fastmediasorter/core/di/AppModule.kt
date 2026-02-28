@@ -113,9 +113,10 @@ object AppModule {
         @ApplicationContext context: Context,
         credentialsManager: GoogleDriveCredentialsManager,
         httpClient: GoogleDriveHttpClient,
-        pendingRevocationDao: com.sza.fastmediasorter.data.local.db.PendingRevocationDao
+        pendingRevocationDao: com.sza.fastmediasorter.data.local.db.PendingRevocationDao,
+        networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
     ): GoogleDriveRestClient {
-        return GoogleDriveRestClient(context, credentialsManager, httpClient, pendingRevocationDao)
+        return GoogleDriveRestClient(context, credentialsManager, httpClient, pendingRevocationDao, networkCredentialsRepository)
     }
     
     @Provides

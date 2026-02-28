@@ -327,8 +327,8 @@ class ResourceAdapter(
                 tvResourceName.text = resource.name
                 // For cloud resources, show provider name instead of folder ID
                 tvResourcePath.text = if (resource.type == ResourceType.CLOUD && resource.cloudProvider != null) {
-                    // Show provider name and account email (credentialsId) for cloud resources
-                    val account = resource.credentialsId?.takeIf { it.isNotEmpty() }
+                    // Show provider name and account email (accountId) for cloud resources
+                    val account = resource.accountId?.takeIf { it.isNotEmpty() }
                     if (account != null) {
                         "${resource.cloudProvider.name} ($account)"
                     } else {

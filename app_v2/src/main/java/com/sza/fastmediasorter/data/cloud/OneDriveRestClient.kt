@@ -15,6 +15,7 @@ import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -30,6 +31,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.coroutines.resume
@@ -58,7 +60,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 @Singleton
 class OneDriveRestClient @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val pendingRevocationDao: PendingRevocationDao
+    private val pendingRevocationDao: PendingRevocationDao,
+    private val networkCredentialsRepository: NetworkCredentialsRepository
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.ONEDRIVE
@@ -331,6 +334,25 @@ class OneDriveRestClient @Inject constructor(
             accessToken = result.accessToken
             tokenTimestamp = System.currentTimeMillis()
             accountEmail = result.account.username
+            
+            // Make sure this account is registered in NetworkCredentialsEntity for multi-account picker
+            accountEmail?.let { email ->
+                val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.ONEDRIVE.name, email)
+                if (existing == null) {
+                    val entity = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
+                        credentialId = java.util.UUID.randomUUID().toString(),
+                        type = CloudProvider.ONEDRIVE.name,
+                        server = "",
+                        port = 0,
+                        username = email,
+                        plaintextPassword = "", // MSAL handles its own token cache
+                        accountId = email
+                    )
+                    networkCredentialsRepository.insert(entity)
+                    Timber.d("Registered OneDrive account in database: $email")
+                }
+            }
+            
             AuthResult.Success(
                 accountName = accountEmail ?: "Unknown",
                 credentialsJson = serializeAccount(result.account)

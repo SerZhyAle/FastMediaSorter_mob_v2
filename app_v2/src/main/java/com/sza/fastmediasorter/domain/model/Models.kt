@@ -139,6 +139,7 @@ data class MediaResource(
     val credentialsId: String? = null,
     val cloudProvider: com.sza.fastmediasorter.data.cloud.CloudProvider? = null,
     val cloudFolderId: String? = null,
+    val accountId: String? = null,
     val supportedMediaTypes: Set<MediaType> = setOf(MediaType.IMAGE, MediaType.VIDEO),
     val sortMode: SortMode = SortMode.NAME_ASC,
     val displayMode: DisplayMode = DisplayMode.LIST,

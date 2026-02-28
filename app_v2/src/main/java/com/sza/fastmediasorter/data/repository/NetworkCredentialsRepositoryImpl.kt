@@ -206,6 +206,11 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
         return applyDefaultCredentialsIfNeeded(entity)
     }
 
+    override suspend fun getByTypeAndAccountId(type: String, accountId: String): NetworkCredentialsEntity? {
+        val entity = dao.getByTypeAndAccountId(type, accountId)
+        return applyDefaultCredentialsIfNeeded(entity)
+    }
+
     override suspend fun update(credentials: NetworkCredentialsEntity) {
         shareCredentialCache.clear()
         dao.update(credentials)

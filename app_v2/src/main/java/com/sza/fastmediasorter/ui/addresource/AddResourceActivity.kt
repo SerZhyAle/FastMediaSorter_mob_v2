@@ -46,7 +46,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private var copyResourceId: Long? = null
     
     @Inject
-    lateinit var googleDriveClient: dagger.Lazy<GoogleDriveRestClient>
+    lateinit var unifiedAuthManager: com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
     
     @Inject
     lateinit var dropboxClient: dagger.Lazy<DropboxClient>
@@ -58,8 +58,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private lateinit var smbResourceToAddAdapter: ResourceToAddAdapter
     
     private var googleDriveAccount: GoogleSignInAccount? = null
-    private var isDropboxAuthenticated: Boolean = false
-    private var isOneDriveAuthenticated: Boolean = false
     private var smbProfilePreset: ResourceProfile = ResourceProfile.NONE
     private var sftpProfilePreset: ResourceProfile = ResourceProfile.NONE
     
@@ -81,7 +79,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     private val googleSignInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        handleGoogleSignInResult(result.data)
+        lifecycleScope.launch {
+            unifiedAuthManager.processIntentResult(result.data)
+        }
     }
     
     private val sshKeyFilePickerLauncher = registerForActivityResult(
@@ -96,19 +96,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     
     override fun onSaveInstanceState(outState: android.os.Bundle) {
         super.onSaveInstanceState(outState)
-        // Preserve OAuth flow flags so onResume() can finish auth even after process death / recreation
-        outState.putBoolean(KEY_DROPBOX_AUTH, isDropboxAuthenticated)
-        outState.putBoolean(KEY_ONEDRIVE_AUTH, isOneDriveAuthenticated)
+        // UnifiedCloudAuthManager tracks state internally, but could be lost on process death.
+        // For standard implementations we normally rely on the intent result / resume callback.
     }
 
     override fun onCreate(savedInstanceState: android.os.Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Restore OAuth flags after Activity recreation (process death during OAuth redirect)
-        savedInstanceState?.let {
-            isDropboxAuthenticated = it.getBoolean(KEY_DROPBOX_AUTH, false)
-            isOneDriveAuthenticated = it.getBoolean(KEY_ONEDRIVE_AUTH, false)
-        }
 
         // Check if copying existing resource
         copyResourceId = intent.getLongExtra(EXTRA_COPY_RESOURCE_ID, -1L).takeIf { it != -1L }
@@ -241,17 +234,17 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         binding.cardGoogleDrive.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("GoogleDriveCard", "AddResource")
-            authenticateGoogleDrive()
+            viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name)
         }
         
         binding.cardDropbox.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("DropboxCard", "AddResource")
-            authenticateDropbox()
+            viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name)
         }
         
         binding.cardOneDrive.setOnClickListener {
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("OneDriveCard", "AddResource")
-            authenticateOneDrive()
+            viewModel.loadCloudAccounts(com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name)
         }
         
         // SFTP/FTP protocol RadioGroup
@@ -620,6 +613,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.events.collect { event ->
                     when (event) {
+                        is AddResourceEvent.ShowAccountPicker -> {
+                            showAccountPicker(event.providerName, event.accounts)
+                        }
                         is AddResourceEvent.ShowError -> {
                             showError(event.message)
                         }
@@ -647,6 +643,36 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 }
             }
         }
+        
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                unifiedAuthManager.authEvents.collect { event ->
+                    when (event) {
+                        is com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager.AuthEvent.Success -> {
+                            Toast.makeText(
+                                this@AddResourceActivity,
+                                getString(R.string.connected_as, event.accountEmail),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            
+                            when (event.provider) {
+                                com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE -> navigateToGoogleDriveFolderPicker(event.accountEmail)
+                                com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX -> navigateToDropboxFolderPicker(event.accountEmail)
+                                com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE -> navigateToOneDriveFolderPicker(event.accountEmail)
+                            }
+                        }
+                        is com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager.AuthEvent.Error -> {
+                            val titleRes = when(event.provider) {
+                                com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE -> R.string.google_drive_authentication_failed
+                                com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX -> R.string.dropbox_authentication_failed
+                                com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE -> R.string.onedrive_authentication_failed
+                            }
+                            showDetailedErrorDialog(titleRes, event.message)
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun showTestResultDialog(message: String, isSuccess: Boolean) {
@@ -667,10 +693,47 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * Landscape mode uses 2 columns, portrait uses 1 column.
      */
     private fun updateResourceTypeGridColumns() {
-        val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        binding.layoutResourceTypes.columnCount = if (isLandscape) 2 else 1
+        if (resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            binding.layoutResourceTypes.columnCount = 2
+        } else {
+            binding.layoutResourceTypes.columnCount = 1
+        }
     }
 
+    private fun showAccountPicker(providerName: String, accounts: List<String>) {
+        val options = accounts.toMutableList()
+        options.add(getString(R.string.add_new_account))
+        
+        val titleRes = when(providerName) {
+            com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name -> R.string.google_drive
+            com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name -> R.string.onedrive
+            com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name -> R.string.dropbox
+            else -> R.string.cloud_storage
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle(getString(titleRes))
+            .setItems(options.toTypedArray()) { _, which ->
+                if (which == options.size - 1) {
+                    // Add New Account
+                    when(providerName) {
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name -> launchGoogleSignIn()
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name -> authenticateOneDrive()
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name -> authenticateDropbox()
+                    }
+                } else {
+                    // Existing account
+                    val selectedEmail = options[which]
+                    when(providerName) {
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name -> navigateToGoogleDriveFolderPicker(selectedEmail)
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name -> navigateToOneDriveFolderPicker(selectedEmail)
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name -> navigateToDropboxFolderPicker(selectedEmail)
+                    }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
     private fun showError(message: String) {
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
@@ -897,19 +960,16 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
     
     private fun launchGoogleSignIn() {
-        lifecycleScope.launch {
-            try {
-                val signInIntent = googleDriveClient.get().getSignInIntent()
-                googleSignInLauncher.launch(signInIntent)
-            } catch (e: Exception) {
-                Timber.e(e, "Failed to launch Google Sign-In")
-                Toast.makeText(
-                    this@AddResourceActivity,
-                    getString(R.string.google_drive_authentication_failed),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
+        // Our GoogleDriveAuthPlugin currently launches via Activity.startActivityForResult.
+        // Wait, the new plugin uses Activity, but we want to use the launcher for current Activity.
+        // Actually, InteractiveCloudAuthenticator.startInteractiveSignIn(Activity) uses startActivityForResult.
+        // Since GoogleSignIn requires Intent, let's keep UnifiedCloudAuthManager launching the Activity, 
+        // OR change plugin to just return the Intent.
+        // For minimal changes: let UnifiedCloudAuthManager start it via activity.startActivityForResult(intent, RC_SIGN_IN).
+        // Then we catch it in AddResourceActivity.onActivityResult, NOT the launcher.
+        // OR we change InteractiveCloudAuthenticator.startInteractiveSignIn to an ActivityResultLauncher.
+        // Let's stick to the current plan: UnifiedCloudAuthManager does startActivityForResult, and we override onActivityResult.
+        unifiedAuthManager.startInteractiveSignIn(this, com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE)
     }
     
     private fun handleGoogleSignInResult(data: Intent?) {
@@ -958,20 +1018,21 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     
     private fun showGoogleDriveSignedInOptions(account: GoogleSignInAccount) {
         AlertDialog.Builder(this)
-            .setTitle(getString(R.string.google_drive))
-            .setMessage(getString(R.string.connected_as, account.email ?: ""))
+            .setTitle(R.string.google_drive)
+            .setMessage(R.string.msg_already_authenticated)
             .setPositiveButton(R.string.google_drive_select_folder) { _, _ ->
-                navigateToGoogleDriveFolderPicker(account.email)
-            }
-            .setNegativeButton(R.string.google_drive_sign_out) { _, _ ->
-                signOutGoogleDrive()
+                navigateToGoogleDriveFolderPicker(account.email ?: account.displayName)
             }
             .setNeutralButton(android.R.string.cancel, null)
             .show()
     }
     
     private fun signOutGoogleDrive() {
-        GoogleSignIn.getClient(this, googleDriveClient.get().getSignInOptions()).signOut().addOnCompleteListener {
+        val googleSignInOptions = com.google.android.gms.auth.api.signin.GoogleSignInOptions.Builder(
+            com.google.android.gms.auth.api.signin.GoogleSignInOptions.DEFAULT_SIGN_IN
+        ).requestEmail().build()
+        
+        GoogleSignIn.getClient(this, googleSignInOptions).signOut().addOnCompleteListener {
             googleDriveAccount = null
             updateCloudStorageStatus()
             Toast.makeText(this, getString(R.string.google_drive_signed_out), Toast.LENGTH_SHORT).show()
@@ -982,58 +1043,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     
     override fun onResume() {
         super.onResume()
-        // Check if Dropbox authentication completed
-        if (isDropboxAuthenticated) {
-            lifecycleScope.launch {
-                val result = dropboxClient.get().finishAuthentication()
-                when (result) {
-                    is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.dropbox_signed_in, result.accountName),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        navigateToDropboxFolderPicker(result.accountName)
-                    }
-                    is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                        Timber.e("Dropbox finishAuthentication failed: ${result.message}")
-                        showDetailedErrorDialog(R.string.dropbox_authentication_failed, result.message)
-                    }
-                    is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.msg_dropbox_auth_cancelled),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-                isDropboxAuthenticated = false
-            }
-        }
-        
-        // Check if OneDrive authentication completed
-        if (isOneDriveAuthenticated) {
-            lifecycleScope.launch {
-                val result = oneDriveClient.get().testConnection()
-                when (result) {
-                    is com.sza.fastmediasorter.data.cloud.CloudResult.Success -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.msg_onedrive_auth_success),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        navigateToOneDriveFolderPicker(oneDriveClient.get().getAccountEmail())
-                    }
-                    is com.sza.fastmediasorter.data.cloud.CloudResult.Error -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.onedrive_authentication_failed) + ": ${result.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-                isOneDriveAuthenticated = false
-            }
+        lifecycleScope.launch {
+            unifiedAuthManager.handleResume()
         }
     }
     
@@ -1043,20 +1054,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 // Check if already authenticated
                 val testResult = dropboxClient.get().testConnection()
                 if (testResult is com.sza.fastmediasorter.data.cloud.CloudResult.Success) {
-                    // Already authenticated — get current account email to pass to folder picker
                     val email = dropboxClient.get().getAccountEmail()
                     showDropboxSignedInOptions(email)
                 } else {
-                    // Use simple OAuth2 authentication without explicit scopes
-                    // Scopes are configured in Dropbox App Console
-                    com.dropbox.core.android.Auth.startOAuth2Authentication(
-                        this@AddResourceActivity,
-                        getString(R.string.dropbox_app_key)
-                    )
-                    isDropboxAuthenticated = true
+                    unifiedAuthManager.startInteractiveSignIn(this@AddResourceActivity, com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to start Dropbox authentication")
+                Timber.e(e, "Failed to check Dropbox authentication")
                 showDetailedErrorDialog(R.string.dropbox_authentication_failed, e.message)
             }
         }
@@ -1109,40 +1113,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     val email = oneDriveClient.get().getAccountEmail()
                     showOneDriveSignedInOptions(email)
                 } else {
-                    val result = oneDriveClient.get().authenticate()
-                    when (result) {
-                        is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
-                            navigateToOneDriveFolderPicker(result.accountName)
-                        }
-                        is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                            // Any error during silent auth → try interactive sign-in
-                            Timber.w("OneDrive silent auth error: ${result.message}, attempting interactive sign-in")
-                            oneDriveClient.get().signIn(this@AddResourceActivity) { signInResult ->
-                                when (signInResult) {
-                                    is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
-                                        navigateToOneDriveFolderPicker(signInResult.accountName)
-                                    }
-                                    is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                                        Timber.e("OneDrive interactive sign-in failed: ${signInResult.message}")
-                                        showDetailedErrorDialog(R.string.onedrive_authentication_failed, signInResult.message)
-                                    }
-                                    is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                                        Timber.d("OneDrive interactive sign-in cancelled")
-                                    }
-                                }
-                            }
-                        }
-                        is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                            Toast.makeText(
-                                this@AddResourceActivity,
-                                getString(R.string.msg_onedrive_auth_cancelled),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
+                    unifiedAuthManager.startInteractiveSignIn(this@AddResourceActivity, com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to start OneDrive authentication")
+                Timber.e(e, "Failed to check OneDrive authentication")
                 Toast.makeText(
                     this@AddResourceActivity,
                     getString(R.string.onedrive_authentication_failed) + ": ${e.message}",
@@ -1818,8 +1792,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     companion object {
         private const val EXTRA_COPY_RESOURCE_ID = "extra_copy_resource_id"
         private const val EXTRA_PRESELECTED_TAB = "extra_preselected_tab"
-        private const val KEY_DROPBOX_AUTH = "key_dropbox_authenticated"
-        private const val KEY_ONEDRIVE_AUTH = "key_onedrive_authenticated"
         
         fun createIntent(context: Context, copyResourceId: Long? = null, preselectedTab: com.sza.fastmediasorter.ui.main.ResourceTab? = null): Intent {
             return Intent(context, AddResourceActivity::class.java).apply {

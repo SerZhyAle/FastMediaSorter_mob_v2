@@ -28,6 +28,9 @@ interface NetworkCredentialsDao {
     @Query("SELECT * FROM network_credentials WHERE server = :host LIMIT 1")
     suspend fun getCredentialsByHost(host: String): NetworkCredentialsEntity?
     
+    @Query("SELECT * FROM network_credentials WHERE type = :type AND accountId = :accountId LIMIT 1")
+    suspend fun getByTypeAndAccountId(type: String, accountId: String): NetworkCredentialsEntity?
+    
     @Query("SELECT * FROM network_credentials WHERE type = :type")
     fun getCredentialsByType(type: String): Flow<List<NetworkCredentialsEntity>>
     

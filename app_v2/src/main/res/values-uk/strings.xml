@@ -92,6 +92,11 @@
     <string name="delete_failed">Помилка видалення: %1$s</string>
     <string name="deleting_files">Видалення файлів</string>
     <string name="deleting_n_files">Видалення %1$d файлів, будь ласка зачекайте…</string>
+    <string name="export_logs_subject">Діагностичні логи FastMediaSorter</string>
+    <string name="title_export_logs_chooser">Експорт логів через…</string>
+    <string name="export_logs_no_files">Немає файлів логів для експорту</string>
+    <string name="export_logs_no_share_target">Немає застосунку для надсилання архіву логів</string>
+    <string name="export_logs_failed">Не вдалося експортувати логи</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопійовано %1$d файл(ів)</string>
@@ -1334,7 +1339,7 @@
     <string name="tooltip_crop_images_fullscreen_message">Коли увімкнено: В повноекранному режимі або слайдшоу, якщо зображення та пристрій мають однакові орієнтації (обидва альбомні або обидва портретні), зображення буде обрізано для заповнення всього екрану. Коли вимкнено: Всі зображення будуть вписуватися в межі екрану без обрізання.</string>
 
 
-    <!-- Auto-generated from layout files - TODO: Translate below -->
+    <!-- Auto-generated from layout files -->
     <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_dropbox_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_edit_resource_tvRecThreads_text">-</string>

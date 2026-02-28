@@ -18,7 +18,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         FileMetadataCacheEntity::class,
         PendingRevocationEntity::class
     ],
-    version = 14,
+    version = 15,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -379,6 +379,17 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_pending_rev_provider ON pending_revocations (provider)")
+            }
+        }
+
+        /**
+         * v14 → v15: Add accountId column to network_credentials table for Cloud Multi-Account support (A1).
+         * Used to map credentials to specific cloud accounts (e.g. email).
+         */
+        val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE network_credentials ADD COLUMN accountId TEXT NOT NULL DEFAULT ''")
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_credentials_account_id ON network_credentials (accountId)")
             }
         }
     }

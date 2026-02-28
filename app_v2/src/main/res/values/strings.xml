@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMediaSorter</string>
+    <string name="add_new_account">Add New Account</string>
     <string name="start_player">Start Player</string>
     <string name="add">Add</string>
     <string name="settings">Settings</string>
@@ -98,6 +99,11 @@
     <string name="deleting_files">Deleting Files</string>
     <string name="deleting_n_files">Deleting %1$d files, please wait…</string>
     <string name="export_logs">Export Debug Logs</string>
+    <string name="export_logs_subject">FastMediaSorter Debug Logs</string>
+    <string name="title_export_logs_chooser">Export Logs via…</string>
+    <string name="export_logs_no_files">No log files available for export</string>
+    <string name="export_logs_no_share_target">No app available to share log archive</string>
+    <string name="export_logs_failed">Failed to export logs</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Copied %1$d file(s)</string>

@@ -1,0 +1,34 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Test: Cloud Scan Benchmark Probe
+# Description: Open a configured cloud resource to trigger scan logs
+# Usage: maestro test -e CLOUD_RESOURCE_NAME="<name>" maestro/scan_benchmark.yml
+
+- launchApp
+- waitForAnimationToEnd
+
+- runFlow: _shared/permissions.yaml
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvResources"
+
+- scrollUntilVisible:
+    element:
+      text: ${CLOUD_RESOURCE_NAME}
+      below:
+        id: "com.sza.fastmediasorter.debug:id/rvResources"
+
+- tapOn:
+    text: ${CLOUD_RESOURCE_NAME}
+
+- waitForAnimationToEnd
+
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/rvMediaFiles"
+
+# Keep screen stable while loading continues and logs are emitted.
+- repeat:
+    times: 6
+    commands:
+      - waitForAnimationToEnd

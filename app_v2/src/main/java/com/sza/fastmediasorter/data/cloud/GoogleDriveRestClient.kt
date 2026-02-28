@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -29,6 +30,7 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.google.android.gms.tasks.Tasks
@@ -55,7 +57,8 @@ class GoogleDriveRestClient @Inject constructor(
     @ApplicationContext private val context: Context,
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val httpClient: GoogleDriveHttpClient,
-    private val pendingRevocationDao: PendingRevocationDao
+    private val pendingRevocationDao: PendingRevocationDao,
+    private val networkCredentialsRepository: NetworkCredentialsRepository
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.GOOGLE_DRIVE
@@ -257,6 +260,25 @@ class GoogleDriveRestClient @Inject constructor(
                 val credentials = credentialsManager.serializeAccount(account)
                 // Save to encrypted storage for automatic restoration (both legacy and per-account key)
                 credentialsManager.saveCredentials(credentials, account.email)
+                
+                // Make sure this account is registered in NetworkCredentialsEntity for multi-account picker
+                account.email?.let { email ->
+                    val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.GOOGLE_DRIVE.name, email)
+                    if (existing == null) {
+                        val entity = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
+                            credentialId = UUID.randomUUID().toString(),
+                            type = CloudProvider.GOOGLE_DRIVE.name,
+                            server = "",
+                            port = 0,
+                            username = email,
+                            plaintextPassword = "", // Drive uses its own credentialsManager for the actual token, so leave empty
+                            accountId = email
+                        )
+                        networkCredentialsRepository.insert(entity)
+                        Timber.d("Registered Google Drive account in database: $email")
+                    }
+                }
+                
                 AuthResult.Success(
                     accountName = accountEmail ?: "Unknown",
                     credentialsJson = credentials

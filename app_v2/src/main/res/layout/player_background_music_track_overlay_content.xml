@@ -1,18 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/tvBackgroundMusicTrack"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom|start"
-    android:layout_marginStart="@dimen/activity_player_unified_tvBackgroundMusicTrack_layout_marginStart"
-    android:layout_marginBottom="@dimen/activity_player_unified_tvBackgroundMusicTrack_layout_marginBottom"
-    android:textSize="@dimen/activity_edit_resource_tvLastTestDate_textSize"
-    android:textColor="@color/activity_player_unified_tvBackgroundMusicTrack_textColor"
-    android:background="@color/activity_player_unified_tvBackgroundMusicTrack_background"
-    android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
-    android:paddingVertical="@dimen/activity_player_unified_tvBackgroundMusicTrack_paddingVertical"
-    android:maxLines="1"
-    android:includeFontPadding="true"
-    android:ellipsize="end"
-    android:maxWidth="@dimen/activity_player_unified_tvBackgroundMusicTrack_maxWidth"
-    android:visibility="gone" />
+<TextView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/tvBackgroundMusicTrack" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|start" android:layout_marginStart="@dimen/activity_player_unified_tvBackgroundMusicTrack_layout_marginStart" android:layout_marginBottom="@dimen/activity_player_unified_tvBackgroundMusicTrack_layout_marginBottom" android:textSize="@dimen/activity_edit_resource_tvLastTestDate_textSize" android:textColor="@color/activity_player_unified_tvBackgroundMusicTrack_textColor" android:background="@color/activity_player_unified_tvBackgroundMusicTrack_background" android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal" android:paddingVertical="@dimen/activity_player_unified_tvBackgroundMusicTrack_paddingVertical" android:maxLines="1" android:includeFontPadding="true" android:ellipsize="end" android:maxWidth="@dimen/activity_player_unified_tvBackgroundMusicTrack_maxWidth" android:visibility="gone" />

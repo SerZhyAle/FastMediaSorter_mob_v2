@@ -13,6 +13,8 @@ import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -29,28 +31,57 @@ class ResourceRepositoryImpl @Inject constructor(
 ) : ResourceRepository {
     
     override fun getAllResources(): Flow<List<MediaResource>> {
-        return resourceDao.getAllResources().map { entities ->
-            entities.map { it.toDomain() }
+        return combine(
+            resourceDao.getAllResources(),
+            credentialsRepository.getAllCredentials()
+        ) { resources, credentials ->
+            val credMap = credentials.associateBy { it.credentialId }
+            resources.map { entity ->
+                val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+                entity.toDomain(accountId)
+            }
         }
     }
     
     override suspend fun getAllResourcesSync(): List<MediaResource> {
-        return resourceDao.getAllResourcesSync().map { it.toDomain() }
+        val entities = resourceDao.getAllResourcesSync()
+        val credentials = credentialsRepository.getAllCredentials().first()
+        val credMap = credentials.associateBy { it.credentialId }
+        return entities.map { entity ->
+            val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+            entity.toDomain(accountId)
+        }
     }
     
     override suspend fun getResourceById(id: Long): MediaResource? {
-        return resourceDao.getResourceByIdSync(id)?.toDomain()
+        val entity = resourceDao.getResourceByIdSync(id) ?: return null
+        val accountId = entity.credentialsId?.let { credentialsRepository.getByCredentialId(it)?.accountId }
+        return entity.toDomain(accountId)
     }
     
     override fun getResourcesByType(type: ResourceType): Flow<List<MediaResource>> {
-        return resourceDao.getResourcesByType(type).map { entities ->
-            entities.map { it.toDomain() }
+        return combine(
+            resourceDao.getResourcesByType(type),
+            credentialsRepository.getAllCredentials()
+        ) { resources, credentials ->
+            val credMap = credentials.associateBy { it.credentialId }
+            resources.map { entity ->
+                val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+                entity.toDomain(accountId)
+            }
         }
     }
     
     override fun getDestinations(): Flow<List<MediaResource>> {
-        return resourceDao.getDestinations().map { entities ->
-            entities.map { it.toDomain() }
+        return combine(
+            resourceDao.getDestinations(),
+            credentialsRepository.getAllCredentials()
+        ) { resources, credentials ->
+            val credMap = credentials.associateBy { it.credentialId }
+            resources.map { entity ->
+                val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+                entity.toDomain(accountId)
+            }
         }
     }
     
@@ -70,9 +101,15 @@ class ResourceRepositoryImpl @Inject constructor(
                 resourceDao.searchResourcesFts(ftsQuery)
             }
             
+            val credentials = credentialsRepository.getAllCredentials().first()
+            val credMap = credentials.associateBy { it.credentialId }
+            
             // Apply other filters in memory (fast enough for <10k items)
             return searchResults.asSequence()
-                .map { it.toDomain() }
+                .map { entity ->
+                    val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+                    entity.toDomain(accountId)
+                }
                 .filter { resource ->
                     // Filter by Type
                     if (filterByType != null && filterByType.isNotEmpty()) {
@@ -166,7 +203,13 @@ class ResourceRepositoryImpl @Inject constructor(
             resourceDao.getResourcesRaw(query)
         }
         
-        return entities.map { it.toDomain() }
+        val credentials = credentialsRepository.getAllCredentials().first()
+        val credMap = credentials.associateBy { it.credentialId }
+        
+        return entities.map { entity ->
+            val accountId = entity.credentialsId?.let { credMap[it]?.accountId }
+            entity.toDomain(accountId)
+        }
     }
 
     private fun getComparator(sortMode: SortMode): Comparator<MediaResource> {
@@ -344,7 +387,7 @@ class ResourceRepositoryImpl @Inject constructor(
         )
     }
     
-    private fun ResourceEntity.toDomain(): MediaResource {
+    private fun ResourceEntity.toDomain(accountId: String? = null): MediaResource {
         val mediaTypes = mutableSetOf<MediaType>()
         if (supportedMediaTypesFlags and 0b0001 != 0) mediaTypes.add(MediaType.IMAGE)
         if (supportedMediaTypesFlags and 0b0010 != 0) mediaTypes.add(MediaType.VIDEO)
@@ -397,6 +440,7 @@ class ResourceRepositoryImpl @Inject constructor(
             rememberFileList = rememberFileList,
             accessPin = accessPin,
             comment = comment,
+            accountId = accountId,
             profile = runCatching { ResourceProfile.valueOf(profile) }.getOrDefault(ResourceProfile.NONE),
             readSpeedMbps = readSpeedMbps,
             writeSpeedMbps = writeSpeedMbps,

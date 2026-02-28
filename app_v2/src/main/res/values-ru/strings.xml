@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FastMediaSorter</string>
+    <string name="add_new_account">Добавить новый аккаунт</string>
     <string name="settings_category_interface">Интерфейс</string>
     <string name="settings_category_files">Файлы и данные</string>
     <string name="settings_category_system">Система</string>
@@ -92,6 +93,11 @@
     <string name="delete_failed">Ошибка удаления: %1$s</string>
     <string name="deleting_files">Удаление файлов</string>
     <string name="deleting_n_files">Удаление %1$d файлов, пожалуйста подождите…</string>
+    <string name="export_logs_subject">Отладочные логи FastMediaSorter</string>
+    <string name="title_export_logs_chooser">Экспорт логов через…</string>
+    <string name="export_logs_no_files">Нет файлов логов для экспорта</string>
+    <string name="export_logs_no_share_target">Нет приложения для отправки архива логов</string>
+    <string name="export_logs_failed">Не удалось экспортировать логи</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопировано %1$d файл(ов)</string>
@@ -1324,7 +1330,7 @@
     <string name="tooltip_crop_images_fullscreen_message">Когда включено: В полноэкранном режиме или слайдшоу, если изображение и устройство имеют совпадающие ориентации (оба альбомные или оба портретные), изображение будет обрезано для заполнения всего экрана. Когда выключено: Все изображения будут вписываться в границы экрана без обрезки.</string>
 
 
-    <!-- Auto-generated from layout files - TODO: Translate below -->
+    <!-- Auto-generated from layout files -->
     <string name="activity_browse_rvMediaFiles_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_dropbox_folder_picker_rvFolders_layoutManager">androidx.recyclerview.widget.LinearLayoutManager</string>
     <string name="activity_edit_resource_tvRecThreads_text">-</string>

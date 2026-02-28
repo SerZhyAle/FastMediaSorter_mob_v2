@@ -695,7 +695,17 @@ class GeneralSettingsFragment : Fragment() {
         }
 
         binding.btnExportLogs?.setOnClickListener {
-            com.sza.fastmediasorter.core.logging.LogExportHelper.exportLogs(requireContext())
+            when (val result = com.sza.fastmediasorter.core.logging.LogExportHelper.exportLogs(requireContext())) {
+                com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.Success -> {
+                    Unit
+                }
+                com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.NoLogs -> {
+                    Toast.makeText(requireContext(), getString(R.string.export_logs_no_files), Toast.LENGTH_SHORT).show()
+                }
+                is com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.Error -> {
+                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
         
         // Cache Management

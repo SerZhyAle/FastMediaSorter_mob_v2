@@ -46,6 +46,10 @@ sealed class AddResourceEvent {
         val sshKey: String? = null,
         val sshPassphrase: String? = null
     ) : AddResourceEvent()
+    data class ShowAccountPicker(
+        val providerName: String,
+        val accounts: List<String>
+    ) : AddResourceEvent()
     object ResourcesAdded : AddResourceEvent()
 }
 
@@ -58,6 +62,7 @@ class AddResourceViewModel @Inject constructor(
 
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val discoverNetworkResourcesUseCase: com.sza.fastmediasorter.domain.usecase.DiscoverNetworkResourcesUseCase,
+    private val networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository,
     private val networkSpeedTestUseCase: NetworkSpeedTestUseCase,
@@ -150,6 +155,23 @@ class AddResourceViewModel @Inject constructor(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load resource for copy: $resourceId")
                 sendEvent(AddResourceEvent.ShowError("Failed to load resource: ${e.message}"))
+            }
+        }
+    }
+
+    fun loadCloudAccounts(providerName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            try {
+                // Fetch all credentials for this provider
+                val credentialsFlow = networkCredentialsRepository.getAllCredentials()
+                val allCreds = credentialsFlow.first()
+                val providerCreds = allCreds.filter { it.type == providerName }
+                val emails = providerCreds.mapNotNull { it.accountId }.filter { it.isNotEmpty() }.distinct()
+                
+                sendEvent(AddResourceEvent.ShowAccountPicker(providerName, emails))
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load cloud accounts for $providerName")
+                sendEvent(AddResourceEvent.ShowError("Failed to load accounts"))
             }
         }
     }

@@ -53,7 +53,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class DropboxClient @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.DROPBOX
@@ -311,6 +312,8 @@ class DropboxClient @Inject constructor(
                 val account = dbxClient!!.users().currentAccount
                 accountEmail = account.email
                 
+                accountEmail?.let { registerAccountInDatabase(it) }
+                
                 // Save credentials to encrypted storage for later restoration
                 val credentialsJson = serializeCredential(credential)
                 saveCredentials(credentialsJson)
@@ -339,6 +342,8 @@ class DropboxClient @Inject constructor(
                 // Get account info to verify connection and get email
                 val account = dbxClient!!.users().currentAccount
                 accountEmail = account.email
+                
+                accountEmail?.let { registerAccountInDatabase(it) }
                 
                 // Save credentials to encrypted storage for later restoration
                 val credentialsJson = serializeAccessToken(accessToken)
@@ -395,6 +400,23 @@ class DropboxClient @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to deserialize Dropbox credential")
             null
+        }
+    }
+
+    private suspend fun registerAccountInDatabase(email: String) {
+        val existing = networkCredentialsRepository.getByTypeAndAccountId(CloudProvider.DROPBOX.name, email)
+        if (existing == null) {
+            val entity = com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity.create(
+                credentialId = java.util.UUID.randomUUID().toString(),
+                type = CloudProvider.DROPBOX.name,
+                server = "",
+                port = 0,
+                username = email,
+                plaintextPassword = "", // Dropbox uses EncryptedSharedPreferences
+                accountId = email
+            )
+            networkCredentialsRepository.insert(entity)
+            Timber.d("Registered Dropbox account in database: $email")
         }
     }
 
