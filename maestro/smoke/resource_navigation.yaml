@@ -27,5 +27,4 @@ appId: com.sza.fastmediasorter.debug
 - waitForAnimationToEnd
 
 - scroll
-- swipe:
-    direction: DOWN
+- scroll

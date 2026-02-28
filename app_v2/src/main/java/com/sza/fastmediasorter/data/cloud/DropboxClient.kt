@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.cloud
 
 import android.content.Context
+import android.os.Build
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.dropbox.core.DbxException
@@ -27,6 +28,10 @@ import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.io.OutputStream
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -55,6 +60,8 @@ class DropboxClient @Inject constructor(
     
     private var dbxClient: DbxClientV2? = null
     private var accountEmail: String? = null
+    @Volatile
+    private var lastInitializationError: String? = null
     
     private val encryptedPrefs by lazy {
         try {
@@ -261,7 +268,9 @@ class DropboxClient @Inject constructor(
                             credentialsJson = serializeCredential(credential)
                         )
                     } else {
-                        return@withContext AuthResult.Error("Failed to initialize Dropbox client")
+                        return@withContext AuthResult.Error(
+                            lastInitializationError ?: "Failed to initialize Dropbox client"
+                        )
                     }
                 }
                 
@@ -275,14 +284,16 @@ class DropboxClient @Inject constructor(
                             credentialsJson = serializeAccessToken(accessToken)
                         )
                     } else {
-                        return@withContext AuthResult.Error("Failed to initialize Dropbox client")
+                        return@withContext AuthResult.Error(
+                            lastInitializationError ?: "Failed to initialize Dropbox client"
+                        )
                     }
                 }
                 
                 AuthResult.Cancelled
             } catch (e: Exception) {
                 Timber.e(e, "Failed to finish Dropbox authentication")
-                AuthResult.Error("Authentication failed: ${e.message}")
+                AuthResult.Error(buildUserFriendlyErrorMessage(e))
             }
         }
     }
@@ -303,11 +314,14 @@ class DropboxClient @Inject constructor(
                 // Save credentials to encrypted storage for later restoration
                 val credentialsJson = serializeCredential(credential)
                 saveCredentials(credentialsJson)
+                lastInitializationError = null
                 
                 Timber.d("Dropbox client initialized for account: ${account.email}")
                 true
             } catch (e: Exception) {
                 Timber.e(e, "Failed to initialize Dropbox client")
+                logTlsDiagnostics(e, "initialize_with_credential")
+                lastInitializationError = buildUserFriendlyErrorMessage(e)
                 false
             }
         }
@@ -329,11 +343,14 @@ class DropboxClient @Inject constructor(
                 // Save credentials to encrypted storage for later restoration
                 val credentialsJson = serializeAccessToken(accessToken)
                 saveCredentials(credentialsJson)
+                lastInitializationError = null
                 
                 Timber.d("Dropbox client initialized with access token for account: ${account.email}")
                 true
             } catch (e: Exception) {
                 Timber.e(e, "Failed to initialize Dropbox client with access token")
+                logTlsDiagnostics(e, "initialize_with_access_token")
+                lastInitializationError = buildUserFriendlyErrorMessage(e)
                 false
             }
         }
@@ -378,6 +395,76 @@ class DropboxClient @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Failed to deserialize Dropbox credential")
             null
+        }
+    }
+
+    private fun buildUserFriendlyErrorMessage(error: Throwable): String {
+        val chain = generateSequence(error) { it.cause }
+            .mapNotNull { it.message }
+            .joinToString(" | ")
+
+        return when {
+            chain.contains("Trust anchor for certification path not found", ignoreCase = true) ||
+                chain.contains("SSLHandshakeException", ignoreCase = true) ||
+                chain.contains("CertPathValidatorException", ignoreCase = true) -> {
+                logTlsDiagnostics(error, "dropbox_tls_validation")
+                "TLS/SSL certificate validation failed. Device/emulator trust store cannot validate Dropbox certificate. " +
+                    "Check date/time, proxy/VPN/antivirus interception, and update CA certificates/system image."
+            }
+            chain.contains("timeout", ignoreCase = true) -> {
+                "Network timeout while connecting to Dropbox. Check internet connection and retry."
+            }
+            chain.contains("network", ignoreCase = true) || chain.contains("connection", ignoreCase = true) -> {
+                "Network connection error while contacting Dropbox. Check internet/proxy settings and retry."
+            }
+            else -> {
+                val rawMessage = error.message?.takeIf { it.isNotBlank() }
+                    ?: error.cause?.message
+                    ?: "Unknown Dropbox authentication error"
+                "Dropbox authentication failed: $rawMessage"
+            }
+        }
+    }
+
+    private fun logTlsDiagnostics(error: Throwable, stage: String) {
+        try {
+            val nowIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.US).apply {
+                timeZone = TimeZone.getDefault()
+            }.format(Date())
+
+            val exceptionChain = generateSequence(error) { it.cause }
+                .joinToString(" -> ") { throwable ->
+                    val msg = throwable.message?.replace("\n", " ") ?: "<no-message>"
+                    "${throwable::class.java.simpleName}: $msg"
+                }
+
+            val isEmulator = Build.FINGERPRINT.contains("generic", ignoreCase = true) ||
+                Build.MODEL.contains("Emulator", ignoreCase = true) ||
+                Build.PRODUCT.contains("sdk", ignoreCase = true)
+
+            val httpProxyHost = System.getProperty("http.proxyHost")
+            val httpProxyPort = System.getProperty("http.proxyPort")
+            val httpsProxyHost = System.getProperty("https.proxyHost")
+            val httpsProxyPort = System.getProperty("https.proxyPort")
+
+            Timber.e(
+                "DROPBOX_TLS_DIAG stage=%s now=%s tz=%s sdk=%s device=%s/%s model=%s emulator=%s httpProxy=%s:%s httpsProxy=%s:%s exceptions=%s",
+                stage,
+                nowIso,
+                TimeZone.getDefault().id,
+                Build.VERSION.SDK_INT,
+                Build.MANUFACTURER,
+                Build.BRAND,
+                Build.MODEL,
+                isEmulator,
+                httpProxyHost ?: "<none>",
+                httpProxyPort ?: "<none>",
+                httpsProxyHost ?: "<none>",
+                httpsProxyPort ?: "<none>",
+                exceptionChain
+            )
+        } catch (diagnosticError: Exception) {
+            Timber.e(diagnosticError, "DROPBOX_TLS_DIAG failed")
         }
     }
     
@@ -469,10 +556,12 @@ class DropboxClient @Inject constructor(
                 CloudResult.Success(true)
             } catch (e: DbxException) {
                 Timber.e(e, "Dropbox connection test failed")
-                CloudResult.Error("Connection test failed: ${e.message}", e)
+                logTlsDiagnostics(e, "test_connection_dbx_exception")
+                CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             } catch (e: Exception) {
                 Timber.e(e, "Unexpected error during connection test")
-                CloudResult.Error("Unexpected error: ${e.message}", e)
+                logTlsDiagnostics(e, "test_connection_exception")
+                CloudResult.Error(buildUserFriendlyErrorMessage(e), e)
             }
         }
     }

@@ -27,7 +27,6 @@ appId: com.sza.fastmediasorter.debug
 # Long press on file
 - longPressOn:
     text: ".*\\.(jpg|jpeg|png)$"
-    duration: 1000
     optional: true
 - waitForAnimationToEnd
 
@@ -55,6 +54,5 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     text: "renamed_test_image"
     optional: true
-    timeout: 5000
 
 # Test completed

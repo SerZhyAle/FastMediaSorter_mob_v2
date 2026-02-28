@@ -4,8 +4,6 @@ package com.sza.fastmediasorter.ui.addresource
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.ClipData
-import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -33,6 +31,7 @@ import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.ui.dialog.ErrorDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -997,11 +996,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         navigateToDropboxFolderPicker(result.accountName)
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                        Toast.makeText(
-                            this@AddResourceActivity,
-                            getString(R.string.dropbox_authentication_failed) + ": ${result.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Timber.e("Dropbox finishAuthentication failed: ${result.message}")
+                        showDetailedErrorDialog(R.string.dropbox_authentication_failed, result.message)
                     }
                     is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
                         Toast.makeText(
@@ -1061,11 +1057,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to start Dropbox authentication")
-                Toast.makeText(
-                    this@AddResourceActivity,
-                    getString(R.string.dropbox_authentication_failed) + ": ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
+                showDetailedErrorDialog(R.string.dropbox_authentication_failed, e.message)
             }
         }
     }
@@ -1097,6 +1089,15 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             Toast.makeText(this@AddResourceActivity, getString(R.string.dropbox_signed_out), Toast.LENGTH_SHORT).show()
         }
     }
+
+    private fun showDetailedErrorDialog(titleRes: Int, details: String?) {
+        val message = details?.takeIf { it.isNotBlank() } ?: getString(R.string.error_unknown)
+        ErrorDialog.show(
+            context = this,
+            title = getString(titleRes),
+            message = message
+        )
+    }
     
     // ========== OneDrive Methods ==========
     
@@ -1114,25 +1115,21 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                             navigateToOneDriveFolderPicker(result.accountName)
                         }
                         is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                            if (result.message.contains("Interactive sign-in required")) {
-                                // Trigger interactive sign-in
-                                oneDriveClient.get().signIn(this@AddResourceActivity) { signInResult ->
-                                    if (signInResult is com.sza.fastmediasorter.data.cloud.AuthResult.Success) {
+                            // Any error during silent auth → try interactive sign-in
+                            Timber.w("OneDrive silent auth error: ${result.message}, attempting interactive sign-in")
+                            oneDriveClient.get().signIn(this@AddResourceActivity) { signInResult ->
+                                when (signInResult) {
+                                    is com.sza.fastmediasorter.data.cloud.AuthResult.Success -> {
                                         navigateToOneDriveFolderPicker(signInResult.accountName)
-                                    } else if (signInResult is com.sza.fastmediasorter.data.cloud.AuthResult.Error) {
-                                        Toast.makeText(
-                                            this@AddResourceActivity,
-                                            getString(R.string.onedrive_authentication_failed) + ": ${signInResult.message}",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                                    }
+                                    is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
+                                        Timber.e("OneDrive interactive sign-in failed: ${signInResult.message}")
+                                        showDetailedErrorDialog(R.string.onedrive_authentication_failed, signInResult.message)
+                                    }
+                                    is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
+                                        Timber.d("OneDrive interactive sign-in cancelled")
                                     }
                                 }
-                            } else {
-                                Toast.makeText(
-                                    this@AddResourceActivity,
-                                    getString(R.string.onedrive_authentication_failed) + ": ${result.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
                             }
                         }
                         is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {

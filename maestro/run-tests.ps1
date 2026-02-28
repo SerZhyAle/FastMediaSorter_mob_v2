@@ -4,7 +4,8 @@
 
 param(
     [string]$Suite = "all",
-    [switch]$DebugMode
+    [switch]$DebugMode,
+    [int]$MaxMinutes = 20
 )
 
 $MaestroDir = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -140,6 +141,41 @@ Write-Host ""
 Write-Host "Running test suite: $Suite" -ForegroundColor Cyan
 Write-Host ""
 
+function Invoke-MaestroWithWatchdog {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments,
+        [Parameter(Mandatory = $true)]
+        [int]$TimeoutMinutes
+    )
+
+    $joinedArgs = ($Arguments | ForEach-Object { $_.Trim() }) -join " "
+    Write-Host "Executing: $maestroCmdName $joinedArgs" -ForegroundColor DarkGray
+
+    $process = Start-Process -FilePath $env:ComSpec `
+        -ArgumentList "/c", "$maestroCmdName $joinedArgs" `
+        -NoNewWindow `
+        -PassThru
+
+    $startedAt = Get-Date
+    $deadline = $startedAt.AddMinutes($TimeoutMinutes)
+
+    while (-not $process.HasExited) {
+        Start-Sleep -Seconds 2
+        if ((Get-Date) -gt $deadline) {
+            Write-Host "❌ Timeout: Maestro exceeded $TimeoutMinutes minutes. Killing process..." -ForegroundColor Red
+            try {
+                Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue
+            } catch {
+                Write-Host "⚠ Failed to stop Maestro process cleanly: $($_.Exception.Message)" -ForegroundColor Yellow
+            }
+            return 124
+        }
+    }
+
+    return $process.ExitCode
+}
+
 # Run tests based on suite parameter
 $testPath = ""
 switch ($Suite.ToLower()) {
@@ -208,8 +244,54 @@ switch ($Suite.ToLower()) {
         }
     }
     "all" {
-        $testPath = $MaestroDir
-        Write-Host "Running all tests..." -ForegroundColor Yellow
+        Write-Host "Running all tests (smoke + critical + features)..." -ForegroundColor Yellow
+
+        $allSuites = @(
+            @{ Name = "smoke"; Path = "$MaestroDir\smoke" },
+            @{ Name = "critical"; Path = "$MaestroDir\critical" },
+            @{ Name = "features"; Path = "$MaestroDir\features" }
+        )
+
+        $startTime = Get-Date
+        $overallExit = 0
+
+        foreach ($suiteItem in $allSuites) {
+            Write-Host "" 
+            Write-Host "--- Running $($suiteItem.Name) ---" -ForegroundColor Cyan
+
+            $suiteArgs = @("test")
+            if ($DebugMode) {
+                $suiteArgs += "--flatten-debug-output"
+            }
+            $suiteArgs += $suiteItem.Path
+
+            $suiteExit = Invoke-MaestroWithWatchdog -Arguments $suiteArgs -TimeoutMinutes $MaxMinutes
+            if ($suiteExit -ne 0) {
+                $overallExit = $suiteExit
+                break
+            }
+        }
+
+        $endTime = Get-Date
+        $duration = $endTime - $startTime
+
+        Write-Host ""
+        Write-Host "==========================================" -ForegroundColor Cyan
+        Write-Host "Test Duration: $($duration.ToString('mm\:ss'))" -ForegroundColor Cyan
+
+        if ($overallExit -eq 0) {
+            Write-Host "✅ All tests passed!" -ForegroundColor Green
+        }
+        else {
+            if ($overallExit -eq 124) {
+                Write-Host "❌ Tests aborted by timeout watchdog!" -ForegroundColor Red
+            }
+            else {
+                Write-Host "❌ Some tests failed!" -ForegroundColor Red
+            }
+        }
+
+        exit $overallExit
     }
     default {
         Write-Host "❌ Unknown test suite: $Suite" -ForegroundColor Red
@@ -219,12 +301,6 @@ switch ($Suite.ToLower()) {
 }
 
 Write-Host ""
-
-# Run Maestro tests
-$startTime = Get-Date
-
-# Run Maestro tests
-$startTime = Get-Date
 
 # Run Maestro tests
 $startTime = Get-Date
@@ -240,11 +316,7 @@ else {
     $cmdArgs += $testPath
 }
 
-# Maestro sometimes needs explicit iteration for arguments in PS
-Write-Host "Executing: $maestroCmdName $cmdArgs" -ForegroundColor DarkGray
-& $maestroCmdName $cmdArgs
-
-$exitCode = $LASTEXITCODE
+$exitCode = Invoke-MaestroWithWatchdog -Arguments $cmdArgs -TimeoutMinutes $MaxMinutes
 $endTime = Get-Date
 $duration = $endTime - $startTime
 

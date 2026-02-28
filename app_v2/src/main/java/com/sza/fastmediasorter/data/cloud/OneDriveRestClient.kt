@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import androidx.annotation.Keep
 import com.microsoft.identity.client.AuthenticationCallback
 import com.microsoft.identity.client.IAccount
@@ -68,7 +69,7 @@ class OneDriveRestClient @Inject constructor(
     
     companion object {
         private const val GRAPH_API_BASE = "https://graph.microsoft.com/v1.0"
-        private const val SCOPES = "Files.ReadWrite.All offline_access"
+        val SCOPES = arrayOf("Files.ReadWrite.All", "offline_access")
         
         // MIME types for filtering
         private const val FOLDER_MIME_TYPE = "application/vnd.microsoft.folder"
@@ -122,21 +123,27 @@ class OneDriveRestClient @Inject constructor(
                 
                 // Check if already signed in
                 val account = app.currentAccount.currentAccount
+                Timber.d("OneDrive authenticate: cachedAccount=${account?.username ?: "none"}")
                 if (account != null) {
                     // Try silent authentication
                     val result = acquireTokenSilently(account)
                     if (result != null) {
                         accessToken = result.accessToken
+                        tokenTimestamp = System.currentTimeMillis()
                         accountEmail = result.account.username
+                        Timber.i("OneDrive silent auth success: $accountEmail")
                         return@withContext AuthResult.Success(
                             accountName = accountEmail ?: "Unknown",
                             credentialsJson = serializeAccount(result.account)
                         )
                     }
+                    Timber.w("OneDrive silent auth failed, interactive sign-in required")
+                } else {
+                    Timber.d("OneDrive: no cached account, interactive sign-in required")
                 }
                 
                 // Need interactive authentication - must be initiated from Activity via AddResourceActivity
-                AuthResult.Error("Re-authentication required. Please re-add this OneDrive resource.")
+                AuthResult.Error("Interactive sign-in required")
             } catch (e: Exception) {
                 Timber.e(e, "OneDrive authentication failed")
                 AuthResult.Error("Authentication failed: ${e.message}")
@@ -185,9 +192,9 @@ class OneDriveRestClient @Inject constructor(
         app: ISingleAccountPublicClientApplication,
         callback: (AuthResult) -> Unit
     ) {
-        val scopes = arrayOf(SCOPES)
+        Timber.d("OneDrive signInInternal: starting interactive login, scopes=${SCOPES.toList()}")
         @Suppress("DEPRECATION")
-        app.signIn(activity, null, scopes, object : AuthenticationCallback {
+        app.signIn(activity, null, SCOPES, object : AuthenticationCallback {
             override fun onSuccess(authenticationResult: IAuthenticationResult) {
                 // Handle result on background dispatcher because handleAuthenticationResult updates token/email
                 kotlinx.coroutines.GlobalScope.launch(Dispatchers.Main) {
@@ -254,7 +261,7 @@ class OneDriveRestClient @Inject constructor(
      */
     private suspend fun acquireTokenSilently(
         account: IAccount, 
-        scopes: Array<String> = arrayOf(SCOPES)
+        scopes: Array<String> = SCOPES
     ): IAuthenticationResult? {
         return suspendCancellableCoroutine { continuation ->
             val app = msalApp ?: run {
@@ -262,7 +269,7 @@ class OneDriveRestClient @Inject constructor(
                 return@suspendCancellableCoroutine
             }
             
-            val scopesToUse = scopes.ifEmpty { arrayOf(SCOPES) }
+            val scopesToUse = scopes.ifEmpty { SCOPES }
             
             @Suppress("DEPRECATION")
             app.acquireTokenSilentAsync(
@@ -496,6 +503,32 @@ class OneDriveRestClient @Inject constructor(
         return idOrName
     }
 
+    private fun normalizeCloudItemReference(fileId: String): String {
+        return if (fileId.startsWith("cloud://onedrive/")) {
+            fileId.substringAfter("cloud://onedrive/")
+        } else {
+            fileId
+        }
+    }
+
+    private suspend fun buildItemUrlFromReference(fileRef: String): URL {
+        val actualRef = normalizeCloudItemReference(fileRef)
+
+        return if (actualRef.contains("/")) {
+            val parts = actualRef.split("/", limit = 2)
+            val resolvedFolderId = resolveOrEnsureFolder(parts[0])
+            val encodedFileName = Uri.encode(parts[1])
+
+            if (resolvedFolderId.isNullOrEmpty()) {
+                URL("$GRAPH_API_BASE/me/drive/root:/$encodedFileName:")
+            } else {
+                URL("$GRAPH_API_BASE/me/drive/items/$resolvedFolderId:/$encodedFileName:")
+            }
+        } else {
+            URL("$GRAPH_API_BASE/me/drive/items/$actualRef")
+        }
+    }
+
     override suspend fun listFiles(
         folderId: String?,
         pageToken: String?
@@ -619,36 +652,12 @@ class OneDriveRestClient @Inject constructor(
                 
                 val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
-                // Strip cloud:// prefix if present
-                val actualFileId = if (fileId.startsWith("cloud://onedrive/")) {
-                    fileId.substringAfter("cloud://onedrive/")
-                } else {
-                    fileId
-                }
+                val actualFileId = normalizeCloudItemReference(fileId)
                 
                 Timber.d("OneDrive.downloadFile: Processed fileId='$actualFileId'")
                 Timber.d("OneDrive.downloadFile: File ID analysis - contains '!': ${actualFileId.contains("!")}, contains '/': ${actualFileId.contains("/")}, length: ${actualFileId.length}")
 
-                // Build URL for getting file metadata
-                // If fileId contains "/" it's in format "folderId/filename" - use path-based API
-                val metadataUrl = if (actualFileId.contains("/")) {
-                    val parts = actualFileId.split("/", limit = 2)
-                    val folderId = parts[0]
-                    val fileName = parts[1]
-                    Timber.d("OneDrive.downloadFile: Path-based format detected - folderId='$folderId', fileName='$fileName'")
-                    
-                    // Handle empty folder ID (root folder)
-                    if (folderId.isEmpty()) {
-                        URL("$GRAPH_API_BASE/me/drive/root:/$fileName")
-                    } else {
-                        // Use path-based addressing: /items/{folderId}:/{filename}
-                        URL("$GRAPH_API_BASE/me/drive/items/$folderId:/$fileName")
-                    }
-                } else {
-                    Timber.d("OneDrive.downloadFile: Item ID format detected")
-                    // Pure item ID
-                    URL("$GRAPH_API_BASE/me/drive/items/$actualFileId")
-                }
+                val metadataUrl = buildItemUrlFromReference(fileId)
                 
                 Timber.d("OneDrive.downloadFile: Metadata request URL: $metadataUrl")
                 val metadataResponse = makeAuthenticatedRequest(metadataUrl, "GET", token)
@@ -887,36 +896,10 @@ class OneDriveRestClient @Inject constructor(
                 Timber.d("OneDrive.deleteFile: Original fileId='$fileId'")
                 
                 val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
-                
-                // Strip cloud:// prefix if present
-                val actualFileId = if (fileId.startsWith("cloud://onedrive/")) {
-                    fileId.substringAfter("cloud://onedrive/")
-                } else {
-                    fileId
-                }
+                val actualFileId = normalizeCloudItemReference(fileId)
                 
                 Timber.d("OneDrive.deleteFile: Processed fileId='$actualFileId'")
-
-                // Build URL for file operation
-                // If fileId contains "/" it's in format "folderId/filename" - use path-based API
-                val url = if (actualFileId.contains("/")) {
-                    val parts = actualFileId.split("/", limit = 2)
-                    val folderId = parts[0]
-                    val fileName = parts[1]
-                    Timber.d("OneDrive.deleteFile: Path-based format - folderId='$folderId', fileName='$fileName'")
-                    
-                    // Handle empty folder ID (root folder)
-                    if (folderId.isEmpty()) {
-                        URL("$GRAPH_API_BASE/me/drive/root:/$fileName")
-                    } else {
-                        // Use path-based addressing: /items/{folderId}:/{filename}
-                        URL("$GRAPH_API_BASE/me/drive/items/$folderId:/$fileName")
-                    }
-                } else {
-                    Timber.d("OneDrive.deleteFile: Item ID format")
-                    // Pure item ID
-                    URL("$GRAPH_API_BASE/me/drive/items/$actualFileId")
-                }
+                val url = buildItemUrlFromReference(fileId)
                 
                 Timber.d("OneDrive.deleteFile: Request URL: $url")
                 val response = makeAuthenticatedRequest(url, "DELETE", token)
@@ -946,35 +929,10 @@ class OneDriveRestClient @Inject constructor(
                     put("name", newName)
                 }.toString()
                 
-                // Strip cloud:// prefix if present
-                val actualFileId = if (fileId.startsWith("cloud://onedrive/")) {
-                    fileId.substringAfter("cloud://onedrive/")
-                } else {
-                    fileId
-                }
+                val actualFileId = normalizeCloudItemReference(fileId)
                 
                 Timber.d("OneDrive.renameFile: Processed fileId='$actualFileId'")
-
-                // Build URL for file operation
-                // If fileId contains "/" it's in format "folderId/filename" - use path-based API
-                val url = if (actualFileId.contains("/")) {
-                    val parts = actualFileId.split("/", limit = 2)
-                    val folderId = parts[0]
-                    val fileName = parts[1]
-                    Timber.d("OneDrive.renameFile: Path-based format - folderId='$folderId', fileName='$fileName'")
-                    
-                    // Handle empty folder ID (root folder)
-                    if (folderId.isEmpty()) {
-                        URL("$GRAPH_API_BASE/me/drive/root:/$fileName")
-                    } else {
-                        // Use path-based addressing: /items/{folderId}:/{filename}
-                        URL("$GRAPH_API_BASE/me/drive/items/$folderId:/$fileName")
-                    }
-                } else {
-                    Timber.d("OneDrive.renameFile: Item ID format")
-                    // Pure item ID
-                    URL("$GRAPH_API_BASE/me/drive/items/$actualFileId")
-                }
+                val url = buildItemUrlFromReference(fileId)
                 
                 Timber.d("OneDrive.renameFile: Request URL: $url")
                 val response = makeAuthenticatedRequest(url, "PATCH", token, requestBody)
@@ -1006,25 +964,7 @@ class OneDriveRestClient @Inject constructor(
                     })
                 }.toString()
                 
-                // Strip cloud:// prefix if present
-                val actualFileId = if (fileId.startsWith("cloud://onedrive/")) {
-                    fileId.substringAfter("cloud://onedrive/")
-                } else {
-                    fileId
-                }
-
-                // Build URL for file operation
-                // If fileId contains "/" it's in format "folderId/filename" - use path-based API
-                val url = if (actualFileId.contains("/")) {
-                    val parts = actualFileId.split("/", limit = 2)
-                    val folderId = parts[0]
-                    val fileName = parts[1]
-                    // Use path-based addressing: /items/{folderId}:/{filename}
-                    URL("$GRAPH_API_BASE/me/drive/items/$folderId:/$fileName")
-                } else {
-                    // Pure item ID
-                    URL("$GRAPH_API_BASE/me/drive/items/$actualFileId")
-                }
+                val url = buildItemUrlFromReference(fileId)
                 
                 val response = makeAuthenticatedRequest(url, "PATCH", token, requestBody)
                 
@@ -1208,17 +1148,8 @@ class OneDriveRestClient @Inject constructor(
                 
                 Timber.d("OneDrive.getFileInputStream: Processed fileId='$actualFileId'")
                 
-                // Construct download URL
-                val url = if (actualFileId.contains("/")) {
-                    // Path format: folderId/filename
-                    val parts = actualFileId.split("/", limit = 2)
-                    Timber.d("OneDrive.getFileInputStream: Path format - folderId='${parts[0]}', fileName='${parts[1]}'")
-                    URL("$GRAPH_API_BASE/me/drive/items/${parts[0]}:/${parts[1]}:/content")
-                } else {
-                    // Direct item ID
-                    Timber.d("OneDrive.getFileInputStream: Direct item ID format")
-                    URL("$GRAPH_API_BASE/me/drive/items/$actualFileId/content")
-                }
+                val metadataUrl = buildItemUrlFromReference(fileId)
+                val url = URL("${metadataUrl}/content")
                 
                 Timber.d("OneDrive.getFileInputStream: Request URL: $url")
                 

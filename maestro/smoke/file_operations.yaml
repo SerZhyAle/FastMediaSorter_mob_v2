@@ -1,4 +1,4 @@
-appId: com.sza.fastmediasorter
+appId: com.sza.fastmediasorter.debug
 ---
 # Test: File Operations (Copy)
 # Objective: Verify copy, move, delete operations
@@ -10,28 +10,25 @@ appId: com.sza.fastmediasorter
 
 # Navigate to Browse tab
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/browse_tab"
+    id: ".*:id/browse_tab"
 
 - tapOn:
-    id: "com.sza.fastmediasorter:id/browse_tab"
+    id: ".*:id/browse_tab"
 
 - waitForAnimationToEnd
 
 # Verify file list
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/file_list"
+    id: ".*:id/file_list"
 
 # Scroll to find a file
-- scroll:
-    direction: DOWN
-    duration: 500
+- scroll
 
 - waitForAnimationToEnd
 
 # Long-tap file to open context menu
-- tapOn:
+- longPressOn:
     index: 0
-    long: true
     optional: true
 
 - waitForAnimationToEnd
@@ -62,7 +59,7 @@ appId: com.sza.fastmediasorter
 
 # Try pasting (long-tap to bring up menu or tap paste icon)
 - tapOn:
-    id: "com.sza.fastmediasorter:id/paste_button"
+    id: ".*:id/paste_button"
     optional: true
 
 - tapOn:
@@ -73,13 +70,12 @@ appId: com.sza.fastmediasorter
 
 # Verify operation completed (check for confirmation or verify file appears)
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/file_list"
+    id: ".*:id/file_list"
     optional: true
 
 # Try Move operation (if available)
-- tapOn:
+- longPressOn:
     index: 0
-    long: true
     optional: true
 
 - waitForAnimationToEnd
@@ -91,9 +87,8 @@ appId: com.sza.fastmediasorter
 - waitForAnimationToEnd
 
 # Try Delete operation (if available)
-- tapOn:
+- longPressOn:
     index: 0
-    long: true
     optional: true
 
 - waitForAnimationToEnd
@@ -121,4 +116,4 @@ appId: com.sza.fastmediasorter
 
 # Verify we're still in file list
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/file_list"
+    id: ".*:id/file_list"

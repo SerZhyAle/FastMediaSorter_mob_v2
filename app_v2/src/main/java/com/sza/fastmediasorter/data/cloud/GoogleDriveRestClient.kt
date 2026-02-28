@@ -571,7 +571,11 @@ class GoogleDriveRestClient @Inject constructor(
         // If we have a folder/filename split
         if (potentialFolderId != null && potentialFilename != null) {
             // Handle empty folder ID as root
-            val targetFolderId = if (potentialFolderId.isEmpty()) "root" else potentialFolderId
+            val targetFolderId = if (potentialFolderId.isEmpty()) {
+                "root"
+            } else {
+                resolveFolderId(potentialFolderId) ?: potentialFolderId
+            }
             
             // Check if first part looks like a Google Drive ID
             if (potentialFolderId.isEmpty() || (targetFolderId.length > 25 && targetFolderId.matches(Regex("^[a-zA-Z0-9_-]+$")))) {
@@ -581,8 +585,7 @@ class GoogleDriveRestClient @Inject constructor(
                     is CloudResult.Success -> resolveResult.data
                     is CloudResult.Error -> {
                         Timber.w("Could not resolve '$potentialFilename' in folder '$targetFolderId': ${resolveResult.message}")
-                        // Try treating the whole thing as a file ID
-                        actualInput
+                        null
                     }
                 }
             }
@@ -876,12 +879,8 @@ class GoogleDriveRestClient @Inject constructor(
                 val currentParentId = metadataResult.data.path.substringBeforeLast("/")
                 
                 val fields = URLEncoder.encode("id, name, mimeType, size, modifiedTime, parents", "UTF-8")
-                // Strip cloud:// prefix if present
-                val actualFileId = if (fileId.startsWith("cloud://google_drive/")) {
-                    fileId.substringAfter("cloud://google_drive/")
-                } else {
-                    fileId
-                }
+                val actualFileId = parseAndResolveFileId(fileId)
+                    ?: return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
 
                 val urlString = buildString {
                     append("$DRIVE_API_BASE/files/$actualFileId")
@@ -924,12 +923,8 @@ class GoogleDriveRestClient @Inject constructor(
                     }
                 }.toString()
                 
-                // Strip cloud:// prefix if present
-                val actualFileId = if (fileId.startsWith("cloud://google_drive/")) {
-                    fileId.substringAfter("cloud://google_drive/")
-                } else {
-                    fileId
-                }
+                val actualFileId = parseAndResolveFileId(fileId)
+                    ?: return@withContext CloudResult.Error("Could not resolve file ID from: $fileId")
 
                 val url = URL("$DRIVE_API_BASE/files/$actualFileId/copy")
                 val response = makeAuthenticatedRequest(url, "POST", token, requestBody)

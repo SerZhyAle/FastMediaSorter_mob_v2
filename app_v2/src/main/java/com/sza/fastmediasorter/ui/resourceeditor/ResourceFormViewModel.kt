@@ -121,6 +121,12 @@ class ResourceFormViewModel @Inject constructor(
                 existingResourceNames = withContext(Dispatchers.IO) {
                     resourceEditorUseCase.getExistingResourceNames(formData.id)
                 }
+                val currentNameNormalized = formData.name.trim()
+                if (currentNameNormalized.isNotEmpty()) {
+                    existingResourceNames = existingResourceNames
+                        .filterNot { it.trim().equals(currentNameNormalized, ignoreCase = true) }
+                        .toSet()
+                }
                 existingPathKeys = withContext(Dispatchers.IO) {
                     resourceEditorUseCase.getExistingPathKeys(formData.id)
                 }
@@ -445,11 +451,12 @@ class ResourceFormViewModel @Inject constructor(
         val warnings = buildWarnings(state.formData, state.originalSnapshot)
         val normalizedName = state.formData.name.trim()
         val originalName = state.originalSnapshot?.name?.trim()
-        // In EDIT mode the original (unchanged) name never collides with itself.
-        val isOriginalNameUnchanged = state.formData.mode == ResourceEditorMode.EDIT &&
-            normalizedName == originalName
+        // The initial snapshot name is already accepted for this form session and must never
+        // be treated as a duplicate of itself (mode-agnostic, case-insensitive).
+        val isOriginalNameUnchanged = !originalName.isNullOrEmpty() &&
+            normalizedName.equals(originalName, ignoreCase = true)
         val hasNameCollision = normalizedName.isNotBlank() &&
-            existingResourceNames.contains(normalizedName) &&
+            existingResourceNames.any { it.trim().equals(normalizedName, ignoreCase = true) } &&
             !isOriginalNameUnchanged
 
         val suggestions = if (hasNameCollision) {

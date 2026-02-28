@@ -28,8 +28,7 @@ appId: com.sza.fastmediasorter.debug
 - scroll
 
 # Scroll back
-- swipe:
-    direction: DOWN
+- scroll
     
 # Try to tap a list item
 - tapOn:

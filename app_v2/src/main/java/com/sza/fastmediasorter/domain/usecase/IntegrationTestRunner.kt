@@ -960,14 +960,14 @@ class IntegrationTestRunner @Inject constructor(
             }
             
             // 1. Ensure source file exists on SFTP
-            val folderPath = credential.folder?.let { "/$it" } ?: ""
+            val folderPath = normalizedRemoteFolderPrefix(credential.folder)
             // Clean path: sftp://host:port/...
             val sftpPath = "sftp://${credential.server}:${credential.port}${folderPath}/test_integration/test_sftp_upload.txt"
             val sftpFile = File(sftpPath)
             
             log("[$testName] Ensuring source exists at: $sftpPath")
             
-            val tempUploadFile = createTestFile("temp_upload_for_sftp_dl.txt", "Content for SFTP download test")
+            val tempUploadFile = createTestFile("test_sftp_upload.txt", "Content for SFTP download test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
                 destination = File(sftpFile.parent!!),
@@ -1030,7 +1030,7 @@ class IntegrationTestRunner @Inject constructor(
             }
             
             // 1. Ensure source file exists
-            val folderPath = credential.folder?.let { "/$it" } ?: ""
+            val folderPath = normalizedRemoteFolderPrefix(credential.folder)
             // Clean path: ftp://host:port/...
             val ftpPath = "ftp://${credential.server}:${credential.port}${folderPath}/test_integration/test_ftp_upload.txt"
             val ftpFile = File(ftpPath)
@@ -1123,7 +1123,7 @@ class IntegrationTestRunner @Inject constructor(
             tempUploadFile.delete()
 
             // 2. Perform Cross-Protocol Copy
-            val folderPath = sftpCred.folder?.let { "/$it" } ?: ""
+            val folderPath = normalizedRemoteFolderPrefix(sftpCred.folder)
             // Clean path: sftp://host:port/...
             val sftpDestPath = "sftp://${sftpCred.server}:${sftpCred.port}${folderPath}/test_integration"
             val sftpDestDir = File(sftpDestPath)
@@ -1168,14 +1168,14 @@ class IntegrationTestRunner @Inject constructor(
             }
             
             // 1. Ensure source file exists on SFTP
-            val sftpFolderPath = sftpCred.folder?.let { "/$it" } ?: ""
+            val sftpFolderPath = normalizedRemoteFolderPrefix(sftpCred.folder)
             // Clean path
             val sftpPath = "sftp://${sftpCred.server}:${sftpCred.port}${sftpFolderPath}/test_integration/test_sftp_upload.txt"
             val sftpFile = File(sftpPath)
             
             log("[$testName] Ensuring source exists at: $sftpPath")
             
-            val tempUploadFile = createTestFile("temp_upload_for_sftp_ftp.txt", "Content for SFTP->FTP copy test")
+            val tempUploadFile = createTestFile("test_sftp_upload.txt", "Content for SFTP->FTP copy test")
             val uploadOp = FileOperation.Copy(
                 sources = listOf(tempUploadFile),
                 destination = File(sftpFile.parent!!),
@@ -1191,7 +1191,7 @@ class IntegrationTestRunner @Inject constructor(
             tempUploadFile.delete()
 
             // 2. Perform Cross-Protocol Copy
-            val ftpFolderPath = ftpCred.folder?.let { "/$it" } ?: ""
+            val ftpFolderPath = normalizedRemoteFolderPrefix(ftpCred.folder)
             // Clean path
             val ftpDestPath = "ftp://${ftpCred.server}:${ftpCred.port}${ftpFolderPath}/test_integration"
             val ftpDestDir = File(ftpDestPath)
@@ -1236,7 +1236,7 @@ class IntegrationTestRunner @Inject constructor(
             }
             
             // 1. Ensure source file exists on FTP
-            val folderPath = ftpCred.folder?.let { "/$it" } ?: ""
+            val folderPath = normalizedRemoteFolderPrefix(ftpCred.folder)
             // Clean path
             val ftpPath = "ftp://${ftpCred.server}:${ftpCred.port}${folderPath}/test_integration/test_ftp_upload.txt"
             val ftpFile = File(ftpPath)
@@ -1382,8 +1382,12 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
-            val folderPath = credential.folder?.let { "/$it" } ?: ""
-            val sftpFile = File("sftp:///${credential.server}:${credential.port}${folderPath}/test_integration/test_sftp_upload.txt")
+            val folderPath = normalizedRemoteFolderPrefix(credential.folder)
+            val sftpFile = File(com.sza.fastmediasorter.utils.SftpPathUtils.buildSftpPath(
+                host = credential.server,
+                path = "${folderPath}/test_integration/test_sftp_upload.txt",
+                port = credential.port ?: 22
+            ))
             val newName = "test_sftp_renamed.txt"
             
             val operation = FileOperation.Rename(
@@ -1399,8 +1403,12 @@ class IntegrationTestRunner @Inject constructor(
                     details = "Renamed to $newName on SFTP")
                 
                 // Rename back
-                val folderPath2 = credential.folder?.let { "/$it" } ?: ""
-                val renamedFile = File("sftp:///${credential.server}:${credential.port}${folderPath2}/test_integration/$newName")
+                val folderPath2 = normalizedRemoteFolderPrefix(credential.folder)
+                val renamedFile = File(com.sza.fastmediasorter.utils.SftpPathUtils.buildSftpPath(
+                    host = credential.server,
+                    path = "${folderPath2}/test_integration/$newName",
+                    port = credential.port ?: 22
+                ))
                 fileOperationUseCase.execute(FileOperation.Rename(renamedFile, "test_sftp_upload.txt"))
             } else {
                 recordResult(testName, "Rename", "SFTP", null, false, duration,
@@ -1427,8 +1435,12 @@ class IntegrationTestRunner @Inject constructor(
                 return
             }
             
-            val folderPath = credential.folder?.let { "/$it" } ?: ""
-            val sftpFile = File("sftp:///${credential.server}:${credential.port}${folderPath}/test_integration/test_sftp_upload.txt")
+            val folderPath = normalizedRemoteFolderPrefix(credential.folder)
+            val sftpFile = File(com.sza.fastmediasorter.utils.SftpPathUtils.buildSftpPath(
+                host = credential.server,
+                path = "${folderPath}/test_integration/test_sftp_upload.txt",
+                port = credential.port ?: 22
+            ))
             
             val operation = FileOperation.Delete(
                 files = listOf(sftpFile),
@@ -1461,19 +1473,19 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCredential(ResourceType.CLOUD)
-            if (credential == null) {
+            val cloudResource = resourceRepository
+                .getAllResourcesSync()
+                .firstOrNull { it.type == ResourceType.CLOUD && it.path.startsWith("cloud://") }
+            if (cloudResource == null) {
                 recordResult(testName, "Copy", "Local", "Cloud", false, 0,
-                    error = "Cloud credentials not found in test_credentials.json")
+                    error = "Cloud resource not found in database")
                 return
             }
             
             // Create local test file
             val localFile = createTestFile("test_cloud_upload.txt", "Cloud upload test content")
             
-            // Create cloud destination path
-            // Format: cloud://provider/path (e.g., cloud://gdrive/test_integration/file.txt)
-            val cloudDestDir = File("cloud://${credential.server}/test_integration")
+            val cloudDestDir = File("${cloudResource.path.trimEnd('/')}/test_integration")
             
             val operation = FileOperation.Copy(
                 sources = listOf(localFile),
@@ -1486,7 +1498,7 @@ class IntegrationTestRunner @Inject constructor(
             
             if (result is FileOperationResult.Success) {
                 recordResult(testName, "Copy", "Local", "Cloud", true, duration,
-                    details = "Uploaded to ${credential.server}/test_integration")
+                    details = "Uploaded to ${cloudResource.path}/test_integration")
             } else {
                 recordResult(testName, "Copy", "Local", "Cloud", false, duration,
                     error = (result as? FileOperationResult.Failure)?.error)
@@ -1508,15 +1520,17 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCredential(ResourceType.CLOUD)
-            if (credential == null) {
+            val cloudResource = resourceRepository
+                .getAllResourcesSync()
+                .firstOrNull { it.type == ResourceType.CLOUD && it.path.startsWith("cloud://") }
+            if (cloudResource == null) {
                 recordResult(testName, "Copy", "Cloud", "Local", false, 0,
-                    error = "Cloud credentials not found")
+                    error = "Cloud resource not found in database")
                 return
             }
             
             // Assume test file exists from previous upload test
-            val cloudFile = File("cloud://${credential.server}/test_integration/test_cloud_upload.txt")
+            val cloudFile = File("${cloudResource.path.trimEnd('/')}/test_integration/test_cloud_upload.txt")
             val localDestDir = File(context.cacheDir, "test_cloud_download")
             localDestDir.mkdirs()
             
@@ -1534,7 +1548,7 @@ class IntegrationTestRunner @Inject constructor(
                 val success = downloadedFile.exists()
                 
                 recordResult(testName, "Copy", "Cloud", "Local", success, duration,
-                    details = "Downloaded from ${credential.server}")
+                    details = "Downloaded from ${cloudResource.path}")
                 
                 // Cleanup
                 downloadedFile.delete()
@@ -1557,14 +1571,17 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCredential(ResourceType.CLOUD)
-            if (credential == null) {
+            val cloudResource = resourceRepository
+                .getAllResourcesSync()
+                .firstOrNull { it.type == ResourceType.CLOUD && it.path.startsWith("cloud://") }
+            if (cloudResource == null) {
                 recordResult(testName, "Rename", "Cloud", null, false, 0,
-                    error = "Cloud credentials not found")
+                    error = "Cloud resource not found in database")
                 return
             }
             
-            val cloudFile = File("cloud://${credential.server}/test_integration/test_cloud_upload.txt")
+            val cloudBasePath = cloudResource.path.trimEnd('/')
+            val cloudFile = File("$cloudBasePath/test_integration/test_cloud_upload.txt")
             val newName = "test_cloud_renamed.txt"
             
             val operation = FileOperation.Rename(
@@ -1577,10 +1594,10 @@ class IntegrationTestRunner @Inject constructor(
             
             if (result is FileOperationResult.Success) {
                 recordResult(testName, "Rename", "Cloud", null, true, duration,
-                    details = "Renamed to $newName on ${credential.server}")
+                    details = "Renamed to $newName on ${cloudResource.path}")
                 
                 // Rename back for other tests
-                val renamedFile = File("cloud://${credential.server}/test_integration/$newName")
+                val renamedFile = File("$cloudBasePath/test_integration/$newName")
                 fileOperationUseCase.execute(FileOperation.Rename(renamedFile, "test_cloud_upload.txt"))
             } else {
                 recordResult(testName, "Rename", "Cloud", null, false, duration,
@@ -1600,14 +1617,16 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCredential(ResourceType.CLOUD)
-            if (credential == null) {
+            val cloudResource = resourceRepository
+                .getAllResourcesSync()
+                .firstOrNull { it.type == ResourceType.CLOUD && it.path.startsWith("cloud://") }
+            if (cloudResource == null) {
                 recordResult(testName, "Delete", "Cloud", null, false, 0,
-                    error = "Cloud credentials not found")
+                    error = "Cloud resource not found in database")
                 return
             }
             
-            val cloudFile = File("cloud://${credential.server}/test_integration/test_cloud_upload.txt")
+            val cloudFile = File("${cloudResource.path.trimEnd('/')}/test_integration/test_cloud_upload.txt")
             
             val operation = FileOperation.Delete(
                 files = listOf(cloudFile),
@@ -1619,7 +1638,7 @@ class IntegrationTestRunner @Inject constructor(
             
             if (result is FileOperationResult.Success) {
                 recordResult(testName, "Delete", "Cloud", null, true, duration,
-                    details = "Deleted from ${credential.server}")
+                    details = "Deleted from ${cloudResource.path}")
             } else {
                 recordResult(testName, "Delete", "Cloud", null, false, duration,
                     error = (result as? FileOperationResult.Failure)?.error)
@@ -1970,6 +1989,15 @@ class IntegrationTestRunner @Inject constructor(
             }
         }
     }
+
+    private fun normalizedRemoteFolderPrefix(folder: String?): String {
+        val normalized = folder
+            ?.trim()
+            ?.removePrefix("/")
+            ?.removeSuffix("/")
+            .orEmpty()
+        return if (normalized.isEmpty()) "" else "/$normalized"
+    }
     
     /**
      * Build path for a resource type using the correct protocol prefix.
@@ -1993,7 +2021,7 @@ class IntegrationTestRunner @Inject constructor(
             }
             ResourceType.SFTP -> {
                 val cred = credentialsLoader.getCredential(ResourceType.SFTP) ?: return null
-                val folderPath = cred.folder?.let { "/$it" } ?: ""
+                val folderPath = normalizedRemoteFolderPrefix(cred.folder)
                 val sftpPath = com.sza.fastmediasorter.utils.SftpPathUtils.buildSftpPath(
                     host = cred.server,
                     path = "$folderPath/$subPath",
@@ -2003,16 +2031,24 @@ class IntegrationTestRunner @Inject constructor(
             }
             ResourceType.FTP -> {
                 val cred = credentialsLoader.getCredential(ResourceType.FTP) ?: return null
-                val folderPath = cred.folder?.let { "/$it" } ?: ""
+                val folderPath = normalizedRemoteFolderPrefix(cred.folder)
                 File("ftp:///${cred.server}:${cred.port}$folderPath/$subPath")
             }
             ResourceType.CLOUD -> {
-                // For CLOUD, we must use the folder ID from credentials since cloud storage
-                // doesn't support creating arbitrary folders without API calls.
-                // The subPath is ignored for CLOUD - we use the pre-configured test folder.
-                val cred = credentialsLoader.getCredential(ResourceType.CLOUD) ?: return null
-                val cloudFolder = cred.folder ?: return null // folder ID is required for cloud
-                File("cloud://${cred.server}/$cloudFolder")
+                // Resolve CLOUD base path from configured DB resources (same source as provider tests).
+                // This avoids hard dependency on a generic CLOUD credential entry.
+                val cloudResource = resourceRepository
+                    .getAllResourcesSync()
+                    .firstOrNull { it.type == ResourceType.CLOUD && it.path.startsWith("cloud://") }
+                    ?: return null
+
+                val basePath = cloudResource.path.trimEnd('/')
+                val normalizedSubPath = subPath.trim().trimStart('/')
+                if (normalizedSubPath.isBlank()) {
+                    File(basePath)
+                } else {
+                    File("$basePath/$normalizedSubPath")
+                }
             }
         }
     }
@@ -2224,7 +2260,7 @@ class IntegrationTestRunner @Inject constructor(
     }
     
     private fun getCurrentTimestamp(): String {
-        return SimpleDateFormat("yyyy-MM-DD HH:mm:ss", Locale.getDefault()).format(Date())
+        return SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
     }
     
     // ========== IMAGE EDIT TEST IMPLEMENTATIONS ==========
@@ -3042,12 +3078,11 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            // Check if this provider is configured
-            val credential = credentialsLoader.getCloudCredential(provider)
-            if (credential == null) {
+            val cloudResource = findCloudResource(provider)
+            if (cloudResource == null) {
                 recordResult(testName, "Rename", provider.name, null, false, 0,
-                    error = "${provider.name} credentials not configured - test skipped")
-                log("[$testName] Skipped - no credentials")
+                    error = "${provider.name} test resource not found in database - test skipped")
+                log("[$testName] Skipped - no resource configured")
                 return
             }
             
@@ -3058,9 +3093,9 @@ class IntegrationTestRunner @Inject constructor(
             val originalName = testFile.name
             val newName = "renamed_${originalName}"
             
-            val cloudFolder = credential.folder ?: "test"
-            val cloudPath = "cloud://${provider.name.lowercase()}/$cloudFolder/$originalName"
-            val newCloudPath = "cloud://${provider.name.lowercase()}/$cloudFolder/$newName"
+            val cloudBasePath = cloudResource.path.trimEnd('/')
+            val cloudPath = "$cloudBasePath/$originalName"
+            val newCloudPath = "$cloudBasePath/$newName"
             
             log("[$testName] Step 1: Uploading $originalName to ${provider.name}...")
             
@@ -3128,11 +3163,11 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCloudCredential(provider)
-            if (credential == null) {
+            val cloudResource = findCloudResource(provider)
+            if (cloudResource == null) {
                 recordResult(testName, "Upload", provider.name, null, false, 0,
-                    error = "${provider.name} credentials not configured - test skipped")
-                log("[$testName] Skipped - no credentials")
+                    error = "${provider.name} test resource not found in database - test skipped")
+                log("[$testName] Skipped - no resource configured")
                 return
             }
             
@@ -3140,9 +3175,8 @@ class IntegrationTestRunner @Inject constructor(
             val testFile = createTestFile("cloud_upload_${provider.name.lowercase()}_${System.currentTimeMillis()}.txt", 
                 "Upload test for ${provider.name}")
             
-            // Use folder from credential as cloud folder ID
-            val cloudFolder = credential.folder ?: "test"
-            val cloudPath = "cloud://${provider.name.lowercase()}/$cloudFolder/${testFile.name}"
+            val cloudBasePath = cloudResource.path.trimEnd('/')
+            val cloudPath = "$cloudBasePath/${testFile.name}"
             
             log("[$testName] Uploading ${testFile.name} to $cloudPath")
             
@@ -3190,11 +3224,11 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCloudCredential(provider)
-            if (credential == null) {
+            val cloudResource = findCloudResource(provider)
+            if (cloudResource == null) {
                 recordResult(testName, "Download", provider.name, null, false, 0,
-                    error = "${provider.name} credentials not configured - test skipped")
-                log("[$testName] Skipped - no credentials")
+                    error = "${provider.name} test resource not found in database - test skipped")
+                log("[$testName] Skipped - no resource configured")
                 return
             }
             
@@ -3202,9 +3236,8 @@ class IntegrationTestRunner @Inject constructor(
             val testFile = createTestFile("cloud_download_test_${System.currentTimeMillis()}.txt", 
                 "Download test for ${provider.name}")
             
-            // Use folder from credential as cloud folder ID
-            val cloudFolder = credential.folder ?: "test"
-            val cloudPath = "cloud://${provider.name.lowercase()}/$cloudFolder/${testFile.name}"
+            val cloudBasePath = cloudResource.path.trimEnd('/')
+            val cloudPath = "$cloudBasePath/${testFile.name}"
             
             log("[$testName] Step 1: Uploading test file...")
             
@@ -3280,11 +3313,11 @@ class IntegrationTestRunner @Inject constructor(
         log("[$testName] Starting...")
         
         try {
-            val credential = credentialsLoader.getCloudCredential(provider)
-            if (credential == null) {
+            val cloudResource = findCloudResource(provider)
+            if (cloudResource == null) {
                 recordResult(testName, "Delete", provider.name, null, false, 0,
-                    error = "${provider.name} credentials not configured - test skipped")
-                log("[$testName] Skipped - no credentials")
+                    error = "${provider.name} test resource not found in database - test skipped")
+                log("[$testName] Skipped - no resource configured")
                 return
             }
             
@@ -3292,9 +3325,8 @@ class IntegrationTestRunner @Inject constructor(
             val testFile = createTestFile("cloud_delete_test_${System.currentTimeMillis()}.txt", 
                 "Delete test for ${provider.name}")
             
-            // Use folder from credential as cloud folder ID
-            val cloudFolder = credential.folder ?: "test"
-            val cloudPath = "cloud://${provider.name.lowercase()}/$cloudFolder/${testFile.name}"
+            val cloudBasePath = cloudResource.path.trimEnd('/')
+            val cloudPath = "$cloudBasePath/${testFile.name}"
             
             log("[$testName] Step 1: Uploading test file...")
             
@@ -3522,8 +3554,15 @@ class IntegrationTestRunner @Inject constructor(
             
             val remoteFolderPath = when (protocol) {
                 "SMB" -> "smb://${credential.server}/${credential.shareName ?: "test_media"}"
-                "SFTP" -> "sftp://${credential.server}${credential.folder ?: ""}"
-                "FTP" -> "ftp://${credential.server}${credential.folder ?: ""}"
+                "SFTP" -> com.sza.fastmediasorter.utils.SftpPathUtils.buildSftpPath(
+                    host = credential.server,
+                    path = credential.folder ?: "/",
+                    port = credential.port ?: 22
+                )
+                "FTP" -> {
+                    val folderPath = normalizedRemoteFolderPrefix(credential.folder)
+                    "ftp://${credential.server}:${credential.port ?: 21}$folderPath"
+                }
                 else -> ""
             }
             

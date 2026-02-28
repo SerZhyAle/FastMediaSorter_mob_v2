@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
+import com.sza.fastmediasorter.ui.dialog.ErrorDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
 import java.io.File
 import java.text.SimpleDateFormat
@@ -323,14 +324,11 @@ class BrowseDialogHelper(
     }
     
     private fun showErrorDetailsDialog(details: String) {
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.error_details_title)
-            .setMessage(details)
-            .setPositiveButton(android.R.string.ok, null)
-            .setNeutralButton(R.string.copy) { _, _ ->
-                copyToClipboard(details)
-            }
-            .show()
+        ErrorDialog.show(
+            context = activity,
+            title = activity.getString(R.string.error_details_title),
+            message = details
+        )
     }
     
     fun showCloudAuthenticationDialog(provider: com.sza.fastmediasorter.data.cloud.CloudProvider, resourceName: String) {

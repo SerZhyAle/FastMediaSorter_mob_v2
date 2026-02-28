@@ -32,7 +32,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(zip|rar|apk|iso|exe)$"
-    timeout: 15000
     optional: true
 
 # Verify thumbnail with extension is shown
@@ -43,7 +42,6 @@ appId: com.sza.fastmediasorter.debug
 # Long press to open context menu
 - longPressOn:
     text: ".*\\.(zip|apk).*"
-    duration: 1000
     optional: true
 - waitForAnimationToEnd
 
@@ -57,7 +55,7 @@ appId: com.sza.fastmediasorter.debug
     optional: true
 
 # Close context menu
-- back
+- back:
     optional: true
 - waitForAnimationToEnd
 

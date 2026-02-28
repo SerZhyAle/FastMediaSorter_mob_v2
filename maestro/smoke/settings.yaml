@@ -1,4 +1,4 @@
-appId: com.sza.fastmediasorter
+appId: com.sza.fastmediasorter.debug
 ---
 # Test: Settings Persistence
 # Objective: Verify settings are saved and persist across app restarts
@@ -10,10 +10,10 @@ appId: com.sza.fastmediasorter
 
 # Navigate to Settings tab
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/settings_tab"
+    id: ".*:id/settings_tab"
 
 - tapOn:
-    id: "com.sza.fastmediasorter:id/settings_tab"
+    id: ".*:id/settings_tab"
 
 - waitForAnimationToEnd
 
@@ -28,30 +28,28 @@ appId: com.sza.fastmediasorter
 
 # Look for a toggle or setting to change
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/dark_mode_toggle"
+    id: ".*:id/dark_mode_toggle"
     optional: true
 
 # Try changing a setting (dark mode toggle)
 - tapOn:
-    id: "com.sza.fastmediasorter:id/dark_mode_toggle"
+    id: ".*:id/dark_mode_toggle"
     optional: true
 
 - waitForAnimationToEnd
 
 # Scroll to view more settings
-- scroll:
-    direction: DOWN
+- scroll
 
 - waitForAnimationToEnd
 
 # Scroll back
-- scroll:
-    direction: UP
+- scroll
 
 - waitForAnimationToEnd
 
 # Close app (simulate app kill)
-- backPress:
+- back:
     optional: true
 
 - waitForAnimationToEnd
@@ -63,13 +61,13 @@ appId: com.sza.fastmediasorter
 
 # Navigate to Settings again
 - tapOn:
-    id: "com.sza.fastmediasorter:id/settings_tab"
+    id: ".*:id/settings_tab"
 
 - waitForAnimationToEnd
 
 # Verify setting persisted
 - assertVisible:
-    id: "com.sza.fastmediasorter:id/dark_mode_toggle"
+    id: ".*:id/dark_mode_toggle"
     optional: true
 
 # Verify Settings screen is still intact

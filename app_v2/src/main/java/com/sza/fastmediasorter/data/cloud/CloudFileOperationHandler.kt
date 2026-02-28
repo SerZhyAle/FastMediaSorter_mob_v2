@@ -124,6 +124,30 @@ class CloudFileOperationHandler @Inject constructor(
         }
     }
 
+    private fun extractSftpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String {
+        val normalized = normalizeNetworkPath(path)
+        val withPortPrefix = "sftp://${credentials.server}:${credentials.port}"
+        val withoutPortPrefix = "sftp://${credentials.server}"
+
+        return when {
+            normalized.startsWith(withPortPrefix) -> normalized.removePrefix(withPortPrefix)
+            normalized.startsWith(withoutPortPrefix) -> normalized.removePrefix(withoutPortPrefix)
+            else -> normalized.substringAfter("sftp://")
+        }
+    }
+
+    private fun extractFtpRemotePath(path: String, credentials: NetworkCredentialsResolver.NetworkCredentials): String {
+        val normalized = normalizeNetworkPath(path)
+        val withPortPrefix = "ftp://${credentials.server}:${credentials.port}"
+        val withoutPortPrefix = "ftp://${credentials.server}"
+
+        return when {
+            normalized.startsWith(withPortPrefix) -> normalized.removePrefix(withPortPrefix)
+            normalized.startsWith(withoutPortPrefix) -> normalized.removePrefix(withoutPortPrefix)
+            else -> normalized.substringAfter("ftp://")
+        }
+    }
+
     // ========== Core Operations ==========
 
     override suspend fun executeCopy(
@@ -566,8 +590,7 @@ class CloudFileOperationHandler @Inject constructor(
                         Timber.e("downloadFromCloudTo: No credentials for SFTP path $normalizedDestPath")
                         return false
                     }
-                    val prefix = "sftp://${credentials.server}:${credentials.port}"
-                    val remotePath = normalizedDestPath.removePrefix(prefix)
+                    val remotePath = extractSftpRemotePath(normalizedDestPath, credentials)
                     val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") fileName else "$remotePath/$fileName"
                     
                     val uploadResult = sftpClient.uploadFile(
@@ -610,8 +633,7 @@ class CloudFileOperationHandler @Inject constructor(
                     }
                     
                     try {
-                        val prefix = "ftp://${credentials.server}:${credentials.port}"
-                        val remotePath = normalizedDestPath.removePrefix(prefix)
+                        val remotePath = extractFtpRemotePath(normalizedDestPath, credentials)
                         val remoteFilePath = if (remotePath.isEmpty() || remotePath == "/") fileName else "$remotePath/$fileName"
                         
                         val uploadResult = ftpClient.uploadFile(
@@ -819,7 +841,7 @@ class CloudFileOperationHandler @Inject constructor(
                         tempFile?.delete()
                         return null
                     }
-                    val remotePath = normalizedSourcePath.substringAfter("sftp://${credentials.server}:${credentials.port}")
+                    val remotePath = extractSftpRemotePath(normalizedSourcePath, credentials)
                     Timber.d("uploadToCloudFromPath: SFTP - extracted remotePath='$remotePath' from sourcePath='$normalizedSourcePath'")
                     
                     val outputStream = tempFile!!.outputStream()
@@ -864,7 +886,7 @@ class CloudFileOperationHandler @Inject constructor(
                     }
                     
                     try {
-                        val remotePath = normalizedSourcePath.substringAfter("ftp://${credentials.server}:${credentials.port}")
+                        val remotePath = extractFtpRemotePath(normalizedSourcePath, credentials)
                         Timber.d("uploadToCloudFromPath: FTP - extracted remotePath='$remotePath' from sourcePath='$normalizedSourcePath'")
                         
                         val outputStream = tempFile!!.outputStream()

@@ -22,7 +22,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "Download"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -34,7 +33,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: "FastMediaSorter_Test"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -50,7 +48,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(jpg|jpeg|png|webp)$"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -63,14 +60,12 @@ appId: com.sza.fastmediasorter.debug
     point: "50%,50%"
 - waitForAnimationToEnd
 
-# Try swipe to next image
-- swipe:
-    direction: LEFT
+# Try navigate to next image (compat mode)
+- scroll
 - waitForAnimationToEnd
 
-# Swipe back
-- swipe:
-    direction: RIGHT
+# Navigate back (compat mode)
+- scroll
 - waitForAnimationToEnd
 
 # Close image viewer
@@ -85,7 +80,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(mp4|webm|mkv|mov)$"
-    timeout: 10000
     optional: true
 
 - tapOn:
@@ -124,7 +118,6 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       text: ".*\\.(mp3|flac)$"
-    timeout: 10000
     optional: true
 
 - tapOn:

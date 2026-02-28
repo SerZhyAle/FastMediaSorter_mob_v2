@@ -50,7 +50,6 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     text: ".*[Cc]opied.*"
     optional: true
-    timeout: 10000
 
 # Close viewer
 - back

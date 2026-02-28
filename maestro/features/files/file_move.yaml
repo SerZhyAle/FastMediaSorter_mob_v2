@@ -50,7 +50,6 @@ appId: com.sza.fastmediasorter.debug
 - assertVisible:
     text: ".*[Mm]oved.*"
     optional: true
-    timeout: 10000
 
 # Verify file removed from original location
 # (Player should move to next file or close)
