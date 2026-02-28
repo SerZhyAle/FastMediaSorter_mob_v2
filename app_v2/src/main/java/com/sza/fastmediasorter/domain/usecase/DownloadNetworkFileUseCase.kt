@@ -128,7 +128,7 @@ class DownloadNetworkFileUseCase @Inject constructor(
         val filePath = uri.path ?: return false
         
         // Get credentials
-        val credentials = credentialsRepository.getByTypeServerAndPort("sftp", server, port)
+        val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
             ?: return false
         
         val connectionInfo = SftpClient.SftpConnectionInfo(
@@ -173,7 +173,7 @@ class DownloadNetworkFileUseCase @Inject constructor(
         val filePath = uri.path ?: return false
         
         // Get credentials
-        val credentials = credentialsRepository.getByTypeServerAndPort("ftp", server, port)
+        val credentials = credentialsRepository.getByTypeServerAndPort("FTP", server, port)
             ?: return false
         
         // Connect to FTP

@@ -447,4 +447,64 @@ class PlayerControlsSetupManager(
         safeViews.btnDocumentFullscreenExit.visibility = 
             if (isFullscreen && isDocument) android.view.View.VISIBLE else android.view.View.GONE
     }
+
+    /**
+     * Setup toolbar with navigation, WindowInsets for status bar / nav bar overlap avoidance,
+     * and bottom panels container insets.
+     * Extracted from PlayerActivity.setupToolbar().
+     */
+    fun setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener {
+            Timber.d("PlayerActivity: toolbar navigation (back) clicked")
+            activity.finish()
+        }
+
+        // Apply WindowInsets to toolbar to avoid overlap with status bar
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { view, insets ->
+            val statusBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            view.setPadding(
+                view.paddingLeft,
+                statusBarInsets.top,
+                view.paddingRight,
+                view.paddingBottom
+            )
+            Timber.d("Toolbar: Applied status bar insets - top=${statusBarInsets.top}")
+            insets
+        }
+
+        // Apply WindowInsets to topCommandPanel
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
+            val statusBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(
+                navBarInsets.left,
+                statusBarInsets.top,
+                navBarInsets.right,
+                view.paddingBottom
+            )
+            Timber.d("TopCommandPanel: Applied insets - statusBar.top=${statusBarInsets.top}, navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}")
+            insets
+        }
+
+        // Force insets application after View is attached to window
+        binding.topCommandPanel.post {
+            binding.topCommandPanel.requestApplyInsets()
+            Timber.d("TopCommandPanel: Requested apply insets in setupToolbar() [posted]")
+        }
+
+        // Apply WindowInsets to bottomPanelsContainer
+        safeViews.bottomPanelsContainer.let { container ->
+            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
+                val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
+                view.setPadding(
+                    systemBarsInsets.left,
+                    view.paddingTop,
+                    systemBarsInsets.right,
+                    systemBarsInsets.bottom
+                )
+                Timber.d("BottomPanelsContainer: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
+                insets
+            }
+        }
+    }
 }

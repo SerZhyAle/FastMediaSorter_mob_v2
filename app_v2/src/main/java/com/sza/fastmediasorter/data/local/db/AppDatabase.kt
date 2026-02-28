@@ -18,7 +18,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         FileMetadataCacheEntity::class,
         PendingRevocationEntity::class
     ],
-    version = 15,
+    version = 17,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -304,6 +304,19 @@ abstract class AppDatabase : RoomDatabase() {
          */
         val MIGRATION_10_11 = object : Migration(10, 11) {
             override fun migrate(db: SupportSQLiteDatabase) {
+                // Some legacy databases may contain duplicate credentialId values.
+                // Keep one row per credentialId before creating UNIQUE index.
+                db.execSQL(
+                    """
+                    DELETE FROM network_credentials
+                    WHERE id NOT IN (
+                        SELECT MIN(id)
+                        FROM network_credentials
+                        GROUP BY credentialId
+                    )
+                    """.trimIndent()
+                )
+
                 // network_credentials indexes
                 db.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS idx_credentials_credential_id ON network_credentials (credentialId)")
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_credentials_type_server_port ON network_credentials (type, server, port)")
@@ -390,6 +403,41 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE network_credentials ADD COLUMN accountId TEXT NOT NULL DEFAULT ''")
                 db.execSQL("CREATE INDEX IF NOT EXISTS idx_credentials_account_id ON network_credentials (accountId)")
+            }
+        }
+
+        /**
+         * v15 → v16: Add videoRotation and exifDateTime columns to file_metadata_cache (A5).
+         * These nullable columns were added to FileMetadataCacheEntity but the original
+         * MIGRATION_11_12 that created the table did not include them.
+         */
+        val MIGRATION_15_16 = object : Migration(15, 16) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN videoRotation INTEGER DEFAULT NULL")
+                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN exifDateTime INTEGER DEFAULT NULL")
+            }
+        }
+
+        /**
+         * v16 → v17: Fix pending_revocations table schema mismatch.
+         * MIGRATION_13_14 created wrong index name (idx_pending_rev_provider) and
+         * set DEFAULT 0 for attemptCount, but Room expects no DEFAULT (defaultValue='undefined').
+         * Table is drop-and-recreated; pending revocation queue is ephemeral.
+         */
+        val MIGRATION_16_17 = object : Migration(16, 17) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS pending_revocations")
+                db.execSQL("""
+                    CREATE TABLE pending_revocations (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        provider TEXT NOT NULL,
+                        token TEXT NOT NULL,
+                        revokeUrl TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        attemptCount INTEGER NOT NULL
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_pending_revocations_provider ON pending_revocations (provider)")
             }
         }
     }

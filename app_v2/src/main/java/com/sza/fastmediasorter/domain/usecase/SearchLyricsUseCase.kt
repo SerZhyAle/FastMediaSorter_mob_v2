@@ -246,7 +246,7 @@ class SearchLyricsUseCase @Inject constructor(
         val remotePath = uri.path ?: throw IllegalArgumentException("Invalid SFTP path: ${mediaFile.path}")
         
         // Get credentials
-        val credentials = credentialsRepository.getByTypeServerAndPort("sftp", server, port)
+        val credentials = credentialsRepository.getByTypeServerAndPort("SFTP", server, port)
             ?: throw IllegalStateException("No credentials found for SFTP: $server:$port")
         
         val connectionInfo = com.sza.fastmediasorter.data.remote.sftp.SftpClient.SftpConnectionInfo(
@@ -282,7 +282,7 @@ class SearchLyricsUseCase @Inject constructor(
         val remotePath = uri.path ?: throw IllegalArgumentException("Invalid FTP path: ${mediaFile.path}")
         
         // Get credentials
-        val credentials = credentialsRepository.getByTypeServerAndPort("ftp", server, port)
+        val credentials = credentialsRepository.getByTypeServerAndPort("FTP", server, port)
             ?: throw IllegalStateException("No credentials found for FTP: $server:$port")
         
         // Connect to FTP

@@ -22,16 +22,16 @@ interface NetworkCredentialsDao {
     @Query("SELECT * FROM network_credentials WHERE server = :server AND shareName = :shareName LIMIT 1")
     suspend fun getByServerAndShare(server: String, shareName: String): NetworkCredentialsEntity?
     
-    @Query("SELECT * FROM network_credentials WHERE type = :type AND server = :server AND port = :port LIMIT 1")
+    @Query("SELECT * FROM network_credentials WHERE type = :type COLLATE NOCASE AND server = :server AND port = :port LIMIT 1")
     suspend fun getByTypeServerAndPort(type: String, server: String, port: Int): NetworkCredentialsEntity?
     
     @Query("SELECT * FROM network_credentials WHERE server = :host LIMIT 1")
     suspend fun getCredentialsByHost(host: String): NetworkCredentialsEntity?
     
-    @Query("SELECT * FROM network_credentials WHERE type = :type AND accountId = :accountId LIMIT 1")
+    @Query("SELECT * FROM network_credentials WHERE type = :type COLLATE NOCASE AND accountId = :accountId LIMIT 1")
     suspend fun getByTypeAndAccountId(type: String, accountId: String): NetworkCredentialsEntity?
     
-    @Query("SELECT * FROM network_credentials WHERE type = :type")
+    @Query("SELECT * FROM network_credentials WHERE type = :type COLLATE NOCASE")
     fun getCredentialsByType(type: String): Flow<List<NetworkCredentialsEntity>>
     
     @Query("SELECT * FROM network_credentials")

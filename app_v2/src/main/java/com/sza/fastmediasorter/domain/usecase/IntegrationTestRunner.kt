@@ -3560,7 +3560,10 @@ class IntegrationTestRunner @Inject constructor(
                     port = credential.port ?: 22
                 )
                 "FTP" -> {
-                    val folderPath = normalizedRemoteFolderPrefix(credential.folder)
+                    // Use credential folder if set; fall back to "test_integration" to avoid
+                    // writing to FTP root (which many servers disallow or misconfigure)
+                    val effectiveFolder = credential.folder?.takeIf { it.isNotBlank() } ?: "test_integration"
+                    val folderPath = normalizedRemoteFolderPrefix(effectiveFolder)
                     "ftp://${credential.server}:${credential.port ?: 21}$folderPath"
                 }
                 else -> ""

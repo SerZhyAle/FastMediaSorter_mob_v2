@@ -50,6 +50,12 @@ class PlayerDialogAndUiStateManager(
      * When true, audio files should NOT force command panel / system bars visible.
      */
     var isAudioSlideshowPhotoMode: Boolean = false
+
+    /**
+     * Reference to AudioSlideshowPhotoModeManager, set after both managers are initialized.
+     * Required for updateBackgroundMusicTrackDisplay() delegation.
+     */
+    var audioSlideshowPhotoModeManager: AudioSlideshowPhotoModeManager? = null
     
     // ========================================
     // Dialog Operations with Business Logic
@@ -373,5 +379,81 @@ class PlayerDialogAndUiStateManager(
      */
     fun updateAudioTouchZonesVisibility() {
         mediaLoaderManager.updateAudioTouchZonesVisibility()
+    }
+
+    // ========================================
+    // Slideshow / Countdown / Music UI State
+    // ========================================
+
+    /**
+     * Update slideshow button appearance based on active state.
+     * Alpha + color reflect whether slideshow is running.
+     * Also forwards state to commandPanelController button.
+     * Extracted from PlayerActivity.updateSlideShowButton().
+     */
+    fun updateSlideShowButton() {
+        val isActive = viewModel.state.value.isSlideShowActive
+        Timber.d("updateSlideShowButton: START - isActive=$isActive")
+        binding.btnSlideShow.alpha = if (isActive) 1.0f else 0.5f
+        if (isActive) {
+            binding.btnSlideShow.setTextColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.RED))
+            binding.btnSlideShow.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#33FF0000"))
+        } else {
+            binding.btnSlideShow.setTextColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE))
+            binding.btnSlideShow.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+        }
+        commandPanelController.updateSlideshowButtonColor(isActive)
+        Timber.d("updateSlideShowButton: END")
+    }
+
+    /**
+     * Update countdown display for slideshow (called by NavigationManager).
+     * Hides countdown in audio slideshow photo mode.
+     * Extracted from PlayerActivity.updateCountdownDisplay().
+     */
+    fun updateCountdownDisplay(seconds: Int) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            Timber.w("updateCountdownDisplay: Activity finishing/destroyed, skipping UI update")
+            return
+        }
+
+        if (isAudioSlideshowPhotoMode) {
+            safeViews.tvCountdown.isVisible = false
+            return
+        }
+
+        safeViews.tvCountdown.text = "$seconds.."
+        safeViews.tvCountdown.isVisible = true
+        if (seconds == 0) {
+            safeViews.tvCountdown.isVisible = false
+        }
+    }
+
+    /**
+     * Update background music track name display.
+     * Shows track name in bottom-left corner during slideshow with music.
+     * In audio slideshow photo mode, delegates to audioSlideshowPhotoModeManager.
+     * Extracted from PlayerActivity.updateBackgroundMusicTrackDisplay().
+     *
+     * @param trackName track name without extension, or null to hide
+     */
+    fun updateBackgroundMusicTrackDisplay(trackName: String?) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            return
+        }
+
+        if (isAudioSlideshowPhotoMode) {
+            audioSlideshowPhotoModeManager?.updateCurrentSongLabel()
+            return
+        }
+
+        if (trackName != null) {
+            safeViews.tvBackgroundMusicTrack.text = "♪ $trackName"
+            safeViews.tvBackgroundMusicTrack.isVisible = true
+            Timber.d("BackgroundMusic: Showing track name: $trackName")
+        } else {
+            safeViews.tvBackgroundMusicTrack.isVisible = false
+            Timber.d("BackgroundMusic: Hiding track name")
+        }
     }
 }

@@ -117,6 +117,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     private val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
+    internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
     
@@ -224,7 +225,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var isFirstResume = true // Track first onResume to avoid duplicate load
     private var hasShownFirstRunHint = false // Track if first-run hint has been shown in this session
     private var slideshowModeRequested = false // Auto-start slideshow when files are loaded
-    private var isAudioSlideshowPhotoMode = false // Fullscreen photo mode during audio slideshow
     private var isExplicitFullscreenMode = false // User requested fullscreen via button
     
     // Retry logic for network stream errors
@@ -481,15 +481,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Initialize Audio Background Photos Manager
         audioBackgroundPhotosManager.initialize()
         audioBackgroundPhotosManager.setOnPhotoChangedListener { photo ->
-            if (photo != null && isAudioSlideshowPhotoMode) {
-                loadBackgroundPhotoIntoImageView(photo)
-                updateAudioSlideshowPhotoLabel(photo)
+            if (photo != null && audioSlideshowPhotoModeManager.isActive) {
+                audioSlideshowPhotoModeManager.loadBackgroundPhoto(photo)
+                audioSlideshowPhotoModeManager.updatePhotoLabel(photo)
             } else if (photo == null) {
                 // Clear ImageView when feature is deactivated
                 binding.imageView.setImageDrawable(null)
-                if (isAudioSlideshowPhotoMode) {
-                    updateAudioSlideshowPhotoLabel(null)
-                    exitAudioSlideshowPhotoMode()
+                if (audioSlideshowPhotoModeManager.isActive) {
+                    audioSlideshowPhotoModeManager.updatePhotoLabel(null)
+                    audioSlideshowPhotoModeManager.exit()
                 }
             }
         }
@@ -739,12 +739,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         state.enablePhotosDuringAudio &&
                         state.audioBackgroundPhotosResourceId != null
                     
-                    Timber.d("PlayerActivity: enterAudioSlideshowPhotoModeIfNeeded - isAudio=${currentFile?.type == MediaType.AUDIO}, enablePhotos=${state.enablePhotosDuringAudio}, resourceId=${state.audioBackgroundPhotosResourceId}, slideshowActive=${state.isSlideShowActive}, alreadyInMode=$isAudioSlideshowPhotoMode")
+                    Timber.d("PlayerActivity: enterAudioSlideshowPhotoModeIfNeeded - isAudio=${currentFile?.type == MediaType.AUDIO}, enablePhotos=${state.enablePhotosDuringAudio}, resourceId=${state.audioBackgroundPhotosResourceId}, slideshowActive=${state.isSlideShowActive}, alreadyInMode=${audioSlideshowPhotoModeManager.isActive}")
                     
-                    if (isAudioWithPhotos && state.isSlideShowActive && !isAudioSlideshowPhotoMode) {
+                    if (isAudioWithPhotos && state.isSlideShowActive && !audioSlideshowPhotoModeManager.isActive) {
                         Timber.i("PlayerActivity: ✓ Auto-entering audio slideshow photo mode")
                         backgroundMusicManager.isAudioSlideshowPhotoMode = true
-                        enterAudioSlideshowPhotoMode()
+                        audioSlideshowPhotoModeManager.enter()
                     } else {
                         Timber.d("PlayerActivity: ✗ Not entering audio slideshow photo mode (conditions not met)")
                     }
@@ -1005,11 +1005,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     if (!wasActive && isNowActive) {
                         showSlideshowEnabledMessage()
                         if (isAudioWithPhotos) {
-                            enterAudioSlideshowPhotoMode()
+                            audioSlideshowPhotoModeManager.enter()
                         }
                     } else if (wasActive && !isNowActive) {
-                        if (isAudioSlideshowPhotoMode) {
-                            exitAudioSlideshowPhotoMode()
+                        if (audioSlideshowPhotoModeManager.isActive) {
+                            audioSlideshowPhotoModeManager.exit()
                         }
                     }
                     
@@ -1536,6 +1536,27 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             lifecycleScope = lifecycleScope
         )
 
+        audioSlideshowPhotoModeManager = com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager(
+            activity = this,
+            binding = binding,
+            viewModel = viewModel,
+            audioBackgroundPhotosManager = audioBackgroundPhotosManager,
+            backgroundMusicManager = backgroundMusicManager,
+            dialogAndUiStateManager = dialogAndUiStateManager,
+            settingsRepository = settingsRepository,
+            lifecycleScope = lifecycleScope,
+            callback = object : com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager.Callback {
+                override fun updateSlideShowButton() = this@PlayerActivity.updateSlideShowButton()
+                override fun updateSystemBarsForPlayer(showCommandPanel: Boolean) = this@PlayerActivity.updateSystemBarsForPlayer(showCommandPanel)
+                override fun toggleSlideshow() = navigationManager.toggleSlideshow()
+                override fun updateSlideshowState() = navigationManager.updateSlideshowState()
+                override fun getSupportActionBar() = this@PlayerActivity.supportActionBar
+            }
+        )
+
+        // Wire audioSlideshowPhotoModeManager into dialogAndUiStateManager (created earlier)
+        dialogAndUiStateManager.audioSlideshowPhotoModeManager = audioSlideshowPhotoModeManager
+
         // 8. Setup Managers
         controlsSetupManager = com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager(
             activity = this,
@@ -1802,71 +1823,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             .show()
     }
 
-    private fun setupToolbar() {
-        binding.toolbar.setNavigationOnClickListener {
-            Timber.d("PlayerActivity: toolbar navigation (back) clicked")
-            finish()
-        }
-        
-        // Apply WindowInsets to toolbar to avoid overlap with status bar
-        // CRITICAL: When exiting fullscreen mode, toolbar needs explicit padding update
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { view, insets ->
-            val statusBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-            view.setPadding(
-                view.paddingLeft,
-                statusBarInsets.top, // Apply status bar top padding
-                view.paddingRight,
-                view.paddingBottom
-            )
-            Timber.d("Toolbar: Applied status bar insets - top=${statusBarInsets.top}")
-            insets
-        }
-        
-        // Apply WindowInsets to topCommandPanel (main command panel for Image/Video/PDF/EPUB)
-        // CRITICAL: This panel is shown in command panel mode and needs to avoid status bar overlap
-        // In landscape mode, navigation bar is on the left, so we need horizontal insets too
-        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            // Use statusBars() for status bar, navigationBars() for navigation bar
-            // This ensures correct insets even when systemBars() returns 0 in fullscreen transitions
-            val statusBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-            val navBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(
-                navBarInsets.left,       // Navigation bar on left (landscape)
-                statusBarInsets.top,     // Status bar on top (ALWAYS apply in non-fullscreen)
-                navBarInsets.right,      // Navigation bar on right (some devices)
-                view.paddingBottom
-            )
-            Timber.d("TopCommandPanel: Applied insets - statusBar.top=${statusBarInsets.top}, navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}")
-            insets
-        }
-        
-        // CRITICAL: Force insets application after View is attached to window
-        // Using post{} ensures View is fully attached before requesting insets
-        binding.topCommandPanel.post {
-            binding.topCommandPanel.requestApplyInsets()
-            Timber.d("TopCommandPanel: Requested apply insets in setupToolbar() [posted]")
-        }
-        
-        // Apply WindowInsets to bottomPanelsContainer (wraps both Copy and Move panels)
-        // This unified container ensures consistent bottom padding regardless of which panel is visible.
-        // It prevents the "double padding" issue where a panel sitting above another one would get unnecessary bottom padding.
-        safeViews.bottomPanelsContainer.let { container ->
-            androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(container) { view, insets ->
-                val systemBarsInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.systemBars())
-                
-                // Apply insets to the container
-                // The container wraps the panels, so we apply padding to it to push everything above the nav bar.
-                view.setPadding(
-                    systemBarsInsets.left,   // Navigation bar on left (landscape)
-                    view.paddingTop,         // Keep original top padding (likely 0)
-                    systemBarsInsets.right,  // Navigation bar on right (landscape)
-                    systemBarsInsets.bottom  // Navigation bar on bottom
-                )
-                Timber.d("BottomPanelsContainer: Applied system bar insets - left=${systemBarsInsets.left}, right=${systemBarsInsets.right}, bottom=${systemBarsInsets.bottom}")
-                insets
-            }
-        }
-    }
+    private fun setupToolbar() = controlsSetupManager.setupToolbar()
 
     private fun setupControls() {
         // Delegate all button setup to PlayerControlsSetupManager
@@ -2021,8 +1978,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             sleepTimerManager?.stopVinylAnimation()
         }
         // GUARD: After state observers update views, re-enforce audio slideshow photo mode UI
-        if (isAudioSlideshowPhotoMode) {
-            enforceAudioSlideshowPhotoModeUI()
+        if (audioSlideshowPhotoModeManager.isActive) {
+            audioSlideshowPhotoModeManager.enforceUI()
         }
     }
 
@@ -2059,7 +2016,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         val shouldHideSystemBars = hideSystemUiEnabled && (
             isExplicitFullscreenMode ||
             viewModel.state.value.isSlideShowActive ||
-            isAudioSlideshowPhotoMode
+            audioSlideshowPhotoModeManager.isActive
         )
 
         if (shouldHideSystemBars) {
@@ -2171,49 +2128,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
     }
 
-    internal fun updateSlideShowButton() {
-        val isActive = viewModel.state.value.isSlideShowActive
-        Timber.d("updateSlideShowButton: START - isActive=$isActive, commandPanelController.isInitialized=${::commandPanelController.isInitialized}")
-        binding.btnSlideShow.alpha = if (isActive) 1.0f else 0.5f
-        // Bright red when slideshow is active, default white when inactive
-        // Use ColorStateList for MaterialButton compatibility
-        if (isActive) {
-            binding.btnSlideShow.setTextColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.RED))
-            binding.btnSlideShow.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.parseColor("#33FF0000"))
-        } else {
-            binding.btnSlideShow.setTextColor(android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE))
-            binding.btnSlideShow.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
-        }
-        // Also update command panel button if initialized
-        if (::commandPanelController.isInitialized) {
-            commandPanelController.updateSlideshowButtonColor(isActive)
-        } else {
-            Timber.d("updateSlideShowButton: commandPanelController NOT initialized yet")
-        }
-        Timber.d("updateSlideShowButton: END")
-    }
+    internal fun updateSlideShowButton() = dialogAndUiStateManager.updateSlideShowButton()
 
     /**
      * Update countdown display for slideshow (called by NavigationManager)
      */
-    internal fun updateCountdownDisplay(seconds: Int) {
-        if (isFinishing || isDestroyed) {
-            Timber.w("updateCountdownDisplay: Activity finishing/destroyed, skipping UI update")
-            return
-        }
-        
-        // Don't show countdown in audio slideshow photo mode
-        if (isAudioSlideshowPhotoMode) {
-            safeViews.tvCountdown.isVisible = false
-            return
-        }
-        
-        safeViews.tvCountdown.text = "$seconds.."
-        safeViews.tvCountdown.isVisible = true
-        if (seconds == 0) {
-            safeViews.tvCountdown.isVisible = false
-        }
-    }
+    internal fun updateCountdownDisplay(seconds: Int) = dialogAndUiStateManager.updateCountdownDisplay(seconds)
     
     /**
      * Clear Glide memory cache to prevent OOM during long slideshows.
@@ -2270,26 +2190,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Shows track name in bottom-left corner during slideshow with music
      * @param trackName track name without extension, or null to hide
      */
-    private fun updateBackgroundMusicTrackDisplay(trackName: String?) {
-        if (isFinishing || isDestroyed) {
-            return
-        }
-        
-        // In audio slideshow photo mode, show current song info instead of background music
-        if (isAudioSlideshowPhotoMode) {
-            updateAudioSlideshowCurrentSongLabel()
-            return
-        }
-        
-        if (trackName != null) {
-            safeViews.tvBackgroundMusicTrack.text = "♪ $trackName"
-            safeViews.tvBackgroundMusicTrack.isVisible = true
-            Timber.d("BackgroundMusic: Showing track name: $trackName")
-        } else {
-            safeViews.tvBackgroundMusicTrack.isVisible = false
-            Timber.d("BackgroundMusic: Hiding track name")
-        }
-    }
+    private fun updateBackgroundMusicTrackDisplay(trackName: String?) =
+        dialogAndUiStateManager.updateBackgroundMusicTrackDisplay(trackName)
 
     /**
      * Adjust player volume by delta (e.g., +0.2 or -0.2)
@@ -3060,327 +2962,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     /**
-     * Load background photo into ImageView during audio slideshow
-     */
-    private fun loadBackgroundPhotoIntoImageView(photo: MediaFile) {
-        Timber.d("PlayerActivity: Loading background photo: ${photo.name}")
-        
-        try {
-            // Use photo resource type/credentials (not current audio resource)
-            val resourceType = audioBackgroundPhotosManager.getPhotoResourceType() ?: ResourceType.LOCAL
-            val credentialsId = audioBackgroundPhotosManager.getPhotoCredentialsId()
-            
-            val glideRequest = when (resourceType) {
-                ResourceType.LOCAL -> {
-                    val file = File(photo.path)
-                    Glide.with(this).load(file)
-                }
-                ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
-                    val networkData = NetworkFileData(
-                        path = photo.path,
-                        credentialsId = credentialsId,
-                        loadFullImage = true,
-                        highPriority = true,
-                        size = photo.size,
-                        createdDate = photo.createdDate
-                    )
-                    Glide.with(this)
-                        .load(networkData)
-                        .signature(ObjectKey(networkData.getCacheKey()))
-                }
-                else -> {
-                    Timber.w("PlayerActivity: Unsupported resource type for background photo: $resourceType")
-                    return
-                }
-            }
-            
-            glideRequest
-                .priority(Priority.HIGH)
-                .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                // No animation - instant photo change
-                .transition(com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade(0))
-                // Keep current image as placeholder to avoid showing PlayerView icon between photos
-                .placeholder(binding.imageView.drawable)
-                .listener(object : com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable> {
-                    override fun onResourceReady(
-                        resource: android.graphics.drawable.Drawable,
-                        model: Any,
-                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>?,
-                        dataSource: com.bumptech.glide.load.DataSource,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        // Apply scale type based on orientation match and user setting
-                        val imageWidth = resource.intrinsicWidth
-                        val imageHeight = resource.intrinsicHeight
-                        
-                        if (imageWidth > 0 && imageHeight > 0) {
-                            lifecycleScope.launch(Dispatchers.Main) {
-                                try {
-                                    val settings = settingsRepository.getSettings().first()
-                                    // Get device dimensions (API 28+ compatible)
-                                    val (deviceWidth, deviceHeight) = WindowMetricsCompat.getScreenSize(
-                                        windowManager
-                                    )
-                                    
-                                    val scaleType = com.sza.fastmediasorter.ui.image.ImageDisplayUtils.determineImageScaleType(
-                                        cropImagesToFullscreen = settings.cropImagesToFullscreen,
-                                        isFullscreenOrSlideshow = true, // Always fullscreen in audio slideshow
-                                        imageWidth = imageWidth,
-                                        imageHeight = imageHeight,
-                                        deviceWidth = deviceWidth,
-                                        deviceHeight = deviceHeight
-                                    )
-                                    
-                                    binding.imageView.scaleType = scaleType
-                                    Timber.d("AudioSlideshow: Applied scale type $scaleType (image: ${imageWidth}x${imageHeight}, device: ${deviceWidth}x${deviceHeight})")
-                                } catch (e: Exception) {
-                                    Timber.e(e, "AudioSlideshow: Error determining scale type, using FIT_CENTER")
-                                    binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                                }
-                            }
-                        } else {
-                            // Fallback to FIT_CENTER if dimensions unavailable
-                            binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-                        }
-                        
-                        // Photo loaded successfully - preload next photo for smooth transition
-                        preloadNextAudioSlideshowPhoto()
-                        return false // Let Glide display the drawable
-                    }
-
-                    override fun onLoadFailed(
-                        e: com.bumptech.glide.load.engine.GlideException?,
-                        model: Any?,
-                        target: com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable>,
-                        isFirstResource: Boolean
-                    ): Boolean {
-                        Timber.e(e, "Failed to load audio slideshow photo")
-                        return false
-                    }
-                })
-                .into(binding.imageView)
-            
-        } catch (e: Exception) {
-            Timber.e(e, "PlayerActivity: Error loading background photo")
-        }
-    }
-
-    /**
-     * Preload next photo for smooth transitions in audio slideshow mode
-     */
-    private fun preloadNextAudioSlideshowPhoto() {
-        try {
-            val nextPhoto = audioBackgroundPhotosManager.getNextPhoto() ?: return
-            val resourceType = audioBackgroundPhotosManager.getPhotoResourceType() ?: ResourceType.LOCAL
-            val credentialsId = audioBackgroundPhotosManager.getPhotoCredentialsId()
-
-            Timber.d("AudioSlideshow: Preloading next photo: ${nextPhoto.name}")
-
-            when (resourceType) {
-                ResourceType.LOCAL -> {
-                    val file = File(nextPhoto.path)
-                    Glide.with(this)
-                        .load(file)
-                        .priority(Priority.HIGH)
-                        .preload()
-                }
-                ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
-                    val networkData = NetworkFileData(
-                        path = nextPhoto.path,
-                        credentialsId = credentialsId,
-                        loadFullImage = true,
-                        highPriority = true,
-                        size = nextPhoto.size,
-                        createdDate = nextPhoto.createdDate
-                    )
-                    Glide.with(this)
-                        .load(networkData)
-                        .signature(ObjectKey(networkData.getCacheKey()))
-                        .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-                        .priority(Priority.HIGH)
-                        .preload()
-                }
-                else -> {
-                    Timber.w("AudioSlideshow: Unsupported resource type for preload: $resourceType")
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "AudioSlideshow: Error preloading next photo")
-        }
-    }
-
-    /**
-     * Enter fullscreen photo mode for audio slideshow.
-    * Hides audio player UI, shows photo fullscreen with photo path/name in corner.
-     * Tap on photo exits back to normal audio player.
-     */
-    private fun enterAudioSlideshowPhotoMode() {
-        if (isAudioSlideshowPhotoMode) return
-        isAudioSlideshowPhotoMode = true
-        dialogAndUiStateManager.isAudioSlideshowPhotoMode = true
-        backgroundMusicManager.isAudioSlideshowPhotoMode = true
-        Timber.d("PlayerActivity: Entering audio slideshow photo mode")
-
-        // Hide audio player UI
-        binding.playerView.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-
-        // Show imageView fullscreen
-        // Note: Scale type will be determined dynamically in loadBackgroundPhotoIntoImageView
-        // based on cropImagesToFullscreen setting and orientation match
-        binding.imageView.isVisible = true
-
-        // Show current photo path/name overlay
-        val photo = audioBackgroundPhotosManager.getCurrentPhoto()
-        updateAudioSlideshowPhotoLabel(photo)
-
-        // Load current photo if available
-        if (photo != null) {
-            loadBackgroundPhotoIntoImageView(photo)
-            // Preload next 2 photos immediately for instant transitions
-            preloadNextAudioSlideshowPhoto()
-        }
-
-        // Tap on imageView to return to normal audio player
-        binding.imageView.setOnClickListener {
-            exitAudioSlideshowPhotoMode()
-            // Also stop slideshow
-            if (viewModel.state.value.isSlideShowActive) {
-                navigationManager.toggleSlideshow()
-                navigationManager.updateSlideshowState()
-                updateSlideShowButton()
-            }
-        }
-
-        // Hide command panel for fullscreen experience
-        if (viewModel.state.value.showCommandPanel) {
-            viewModel.toggleCommandPanel()
-        }
-
-        // Hide toolbar to avoid showing music file name (oda.mp3)
-        binding.toolbar.isVisible = false
-        supportActionBar?.hide()
-        updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
-        
-        // Hide overlays that could cover the photo
-        binding.controlsOverlay.isVisible = false
-        binding.topCommandPanel.isVisible = false
-        
-        // Show current song info in bottom-left corner
-        updateAudioSlideshowCurrentSongLabel()
-    }
-
-    /**
-     * Exit fullscreen photo mode and return to normal audio player UI.
-     */
-    private fun exitAudioSlideshowPhotoMode() {
-        if (!isAudioSlideshowPhotoMode) return
-        isAudioSlideshowPhotoMode = false
-        dialogAndUiStateManager.isAudioSlideshowPhotoMode = false
-        backgroundMusicManager.isAudioSlideshowPhotoMode = false
-        Timber.d("PlayerActivity: Exiting audio slideshow photo mode")
-
-        // Hide photo overlay
-        binding.imageView.isVisible = false
-        binding.imageView.setImageDrawable(null)
-        binding.imageView.scaleType = android.widget.ImageView.ScaleType.FIT_CENTER
-        binding.imageView.setOnClickListener(null)
-        binding.audioSlideshowSongLabel.isVisible = false
-
-        // Hide countdown and background music label that may linger
-        safeViews.tvCountdown.isVisible = false
-        safeViews.tvBackgroundMusicTrack.isVisible = false
-
-        // Restore audio player UI
-        binding.playerView.isVisible = true
-        binding.audioCoverArtView.isVisible = true
-        binding.audioInfoOverlay.isVisible = true
-
-        // Restore command panel
-        if (!viewModel.state.value.showCommandPanel) {
-            viewModel.toggleCommandPanel()
-        }
-
-        // Restore toolbar
-        binding.toolbar.isVisible = true
-        supportActionBar?.show()
-        updateSystemBarsForPlayer(viewModel.state.value.showCommandPanel)
-    }
-
-    /**
-     * Enforce correct UI state for audio slideshow photo mode.
-     * Called after every updateUI() to override any state observer side effects.
-     */
-    private fun enforceAudioSlideshowPhotoModeUI() {
-        // Ensure photo views are correctly configured
-        binding.imageView.isVisible = true
-        binding.playerView.isVisible = false
-        binding.audioCoverArtView.isVisible = false
-        binding.audioInfoOverlay.isVisible = false
-        
-        // Hide all overlays and panels that could cover the photo
-        binding.controlsOverlay.isVisible = false
-        binding.topCommandPanel.isVisible = false
-        safeViews.tvCountdown.isVisible = false
-        safeViews.copyToPanel.isVisible = false
-        safeViews.moveToPanel.isVisible = false
-        
-        // Keep song info label visible in bottom-left
-        // (tvBackgroundMusicTrack is NOT hidden here - shows current song)
-        
-        // Enforce fullscreen
-        supportActionBar?.hide()
-    }
-
-    /**
      * Advance to next photo for audio background photos feature
      * Called by PlayerNavigationManager on slideshow timer tick
      */
-    fun advanceAudioBackgroundPhoto() {
-        val intervalSec = (viewModel.state.value.slideShowInterval / 1000).toInt()
-        Timber.d("AudioSlideshow: advanceAudioBackgroundPhoto called (interval=${intervalSec}s)")
-        audioBackgroundPhotosManager.advanceToNextPhoto()
-    }
-
-    private fun updateAudioSlideshowPhotoLabel(photo: MediaFile?) {
-        val labelText = when {
-            photo == null -> ""
-            photo.name.isNotBlank() -> photo.name.substringBeforeLast('.')
-            photo.path.isNotBlank() -> photo.path.substringAfterLast('/').substringBeforeLast('.')
-            else -> ""
-        }
-        binding.audioSlideshowSongLabel.text = labelText
-        binding.audioSlideshowSongLabel.isVisible = isAudioSlideshowPhotoMode && labelText.isNotBlank()
-    }
+    fun advanceAudioBackgroundPhoto() = audioSlideshowPhotoModeManager.advancePhoto()
 
     /**
-     * Update the current song label (tvBackgroundMusicTrack) during audio slideshow photo mode.
-     * Shows "♪ Artist - Track" from audio metadata, or falls back to file name.
-     * Called when entering mode, changing tracks, or updating metadata.
+     * Update current song label in audio slideshow photo mode.
+     * Called by PlayerNavigationManager on track change.
      */
-    internal fun updateAudioSlideshowCurrentSongLabel() {
-        if (!isAudioSlideshowPhotoMode) return
-        
-        // Try audio metadata first (Artist - Track from online lookup)
-        val metadata = safeViews.audioMetadata.text?.toString()
-        val songText = if (!metadata.isNullOrBlank()) {
-            "♪ $metadata"
-        } else {
-            // Fall back to current file name WITHOUT extension
-            val currentFile = viewModel.state.value.currentFile
-            if (currentFile != null) {
-                "♪ ${currentFile.name.substringBeforeLast('.')}"
-            } else ""
-        }
-        
-        if (songText.isNotBlank()) {
-            safeViews.tvBackgroundMusicTrack.text = songText
-            safeViews.tvBackgroundMusicTrack.isVisible = true
-        } else {
-            safeViews.tvBackgroundMusicTrack.isVisible = false
-        }
-    }
+    internal fun updateAudioSlideshowCurrentSongLabel() = audioSlideshowPhotoModeManager.updateCurrentSongLabel()
 
     override fun onDestroy() {
         // Release background music manager
@@ -3542,7 +3133,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Used by PlayerGestureSetupManager to allow tap-to-exit in this mode.
      */
     internal fun isInAudioSlideshowPhotoMode(): Boolean {
-        return isAudioSlideshowPhotoMode
+        return audioSlideshowPhotoModeManager.isActive
     }
     
     /**
@@ -3577,8 +3168,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 Timber.d("Audio metadata displayed: ${metadataLines.joinToString(" | ")}")
                 
                 // Update song label in audio slideshow photo mode if active
-                if (isAudioSlideshowPhotoMode) {
-                    updateAudioSlideshowCurrentSongLabel()
+                if (audioSlideshowPhotoModeManager.isActive) {
+                    audioSlideshowPhotoModeManager.updateCurrentSongLabel()
                 }
             } else {
                 safeViews.audioMetadata.visibility = View.GONE
