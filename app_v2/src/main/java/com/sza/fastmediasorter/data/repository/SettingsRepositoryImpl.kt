@@ -439,14 +439,25 @@ class SettingsRepositoryImpl @Inject constructor(
     }
     
     override suspend fun setPlayerFirstRun(isFirstRun: Boolean) {
-        val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        sharedPrefs.edit().putBoolean("is_player_first_run", isFirstRun).apply()
+        // Migrated from SharedPreferences to DataStore (P0-2): avoids synchronous disk I/O on callers
+        // that may run on a non-IO coroutine context.
+        dataStore.edit { preferences ->
+            preferences[KEY_IS_PLAYER_FIRST_RUN] = isFirstRun
+        }
     }
     
     override suspend fun isPlayerFirstRun(): Boolean {
-        val sharedPrefs = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-        // Default to true for first launch
-        return sharedPrefs.getBoolean("is_player_first_run", true)
+        // Migrated from SharedPreferences to DataStore (P0-2).
+        return dataStore.data.map { preferences ->
+            preferences[KEY_IS_PLAYER_FIRST_RUN] ?: true // Default: true on first launch
+        }.catch { exception ->
+            if (exception is IOException) {
+                Timber.e(exception, "Error reading isPlayerFirstRun from DataStore")
+                emit(true)
+            } else {
+                throw exception
+            }
+        }.first()
     }
     
     override suspend fun saveLastUsedResourceId(resourceId: Long) {
