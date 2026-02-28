@@ -8,10 +8,11 @@
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center_horizontal" android:padding="0dp">
 
             <!-- Thumbnail area: overlay controls live here so they sit ON the thumbnail,
-                 not below the filename, and z-order is guaranteed correct. -->
-            <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content">
+                 not below the filename, and z-order is guaranteed correct.
+                 Fixed height prevents portrait images from inflating the cell to enormous size. -->
+            <FrameLayout android:layout_width="match_parent" android:layout_height="@dimen/item_grid_thumbnail_size">
 
-                <ImageView android:id="@+id/ivThumbnail" android:layout_width="match_parent" android:layout_height="wrap_content" android:adjustViewBounds="true" android:scaleType="centerCrop" android:contentDescription="@string/thumbnail" android:background="?android:selectableItemBackground" tools:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/ivThumbnail" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:contentDescription="@string/thumbnail" android:background="?android:selectableItemBackground" tools:src="@android:drawable/ic_menu_gallery" />
 
                 <!-- Select checkbox: bottom-left of thumbnail -->
                 <CheckBox android:id="@+id/cbSelect" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="bottom|start" android:layout_margin="0dp" android:padding="0dp" />

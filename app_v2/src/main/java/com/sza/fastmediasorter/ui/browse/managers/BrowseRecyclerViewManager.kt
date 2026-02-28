@@ -78,7 +78,7 @@ class BrowseRecyclerViewManager(
                     Timber.d(
                         "UI_LAYOUT LIST wDp=${"%.0f".format(screenWidthDp)} fs=${"%.2f".format(resources.configuration.fontScale)} span=$columnCount"
                     )
-                    Timber.d("updateDisplayMode: LIST dynamic columns=$columnCount (landscape=$isLandscape, widthDp=$screenWidthDp, fontScale=${resources.configuration.fontScale})")
+                    Timber.d("updateDisplayMode: LIST dynamic columns=$columnCount (landscape=$isLandscape, widthDp=$screenWidthDp)")
                     GridLayoutManager(recyclerView.context, columnCount)
                 } else {
                     Timber.d(
@@ -148,7 +148,7 @@ class BrowseRecyclerViewManager(
 
         val baseMinCellWidthDp = when {
             isTelevision -> 320f
-            isLandscape -> 420f
+            isLandscape -> 580f
             else -> 460f
         }
         val adjustedMinCellWidthDp = baseMinCellWidthDp * configuration.fontScale.coerceIn(1.0f, 1.35f)

@@ -118,7 +118,7 @@
     <string name="copy_resource">Duplicate Folder Settings</string>
     <string name="exit">Exit</string>
     <string name="sort">Sort</string>
-    <string name="toggle_view">Toggle View</string>
+    <string name="toggle_view">View</string>
     <string name="toggle_view_short">List/Grid</string>
     <string name="select_all_short">All</string>
     <string name="play">Play</string>

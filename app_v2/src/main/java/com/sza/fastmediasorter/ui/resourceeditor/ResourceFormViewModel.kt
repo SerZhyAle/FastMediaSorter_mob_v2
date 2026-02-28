@@ -444,8 +444,13 @@ class ResourceFormViewModel @Inject constructor(
         val hasChanges = state.originalSnapshot?.let { it != state.formData } ?: false
         val warnings = buildWarnings(state.formData, state.originalSnapshot)
         val normalizedName = state.formData.name.trim()
+        val originalName = state.originalSnapshot?.name?.trim()
+        // In EDIT mode the original (unchanged) name never collides with itself.
+        val isOriginalNameUnchanged = state.formData.mode == ResourceEditorMode.EDIT &&
+            normalizedName == originalName
         val hasNameCollision = normalizedName.isNotBlank() &&
-            existingResourceNames.contains(normalizedName)
+            existingResourceNames.contains(normalizedName) &&
+            !isOriginalNameUnchanged
 
         val suggestions = if (hasNameCollision) {
             resourceEditorUseCase.buildNameSuggestions(normalizedName, existingResourceNames)
