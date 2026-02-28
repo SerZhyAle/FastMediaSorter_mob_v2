@@ -20,6 +20,8 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.util.Optional
+import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 class NetworkCredentialsRepositoryImpl @Inject constructor(
@@ -28,6 +30,12 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     private val resourceDao: ResourceDao,
     private val settingsRepository: SettingsRepository
 ) : NetworkCredentialsRepository {
+
+    // P0-4: Session-level cache for share-specific SMB credential lookups.
+    // Eliminates repeated DAO queries for shares that have no specific credentials (NULL result).
+    // Key: "server:shareName", Value: Optional.empty() for confirmed-null, Optional.of(entity) for found.
+    // Invalidated on any credential insert/update/delete.
+    private val shareCredentialCache = ConcurrentHashMap<String, Optional<NetworkCredentialsEntity>>()
 
     init {
         if (BuildConfig.DEBUG) {
@@ -153,6 +161,7 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun insert(credentials: NetworkCredentialsEntity): Long {
+        shareCredentialCache.clear()
         return dao.insert(credentials)
     }
 
@@ -176,9 +185,19 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getByServerAndShare(server: String, shareName: String): NetworkCredentialsEntity? {
+        val cacheKey = "$server:$shareName"
+        val cached = shareCredentialCache[cacheKey]
+        if (cached != null) {
+            val result = if (cached.isPresent) cached.get() else null
+            Timber.v("NetworkCredentialsRepository: getByServerAndShare cache hit for '$cacheKey': ${if (result != null) "FOUND" else "NULL"}")
+            return applyDefaultCredentialsIfNeeded(result)
+        }
+
         Timber.d("NetworkCredentialsRepository: getByServerAndShare(server='$server', share='$shareName')")
         val entity = dao.getByServerAndShare(server, shareName)
         Timber.d("NetworkCredentialsRepository: DAO returned ${if (entity != null) "FOUND (id=${entity.credentialId})" else "NULL"}")
+
+        shareCredentialCache[cacheKey] = if (entity != null) Optional.of(entity) else Optional.empty()
         return applyDefaultCredentialsIfNeeded(entity)
     }
 
@@ -188,10 +207,12 @@ class NetworkCredentialsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun update(credentials: NetworkCredentialsEntity) {
+        shareCredentialCache.clear()
         dao.update(credentials)
     }
 
     override suspend fun delete(credentials: NetworkCredentialsEntity) {
+        shareCredentialCache.clear()
         // DAO doesn't have delete by entity, use deleteByCredentialId
         dao.deleteByCredentialId(credentials.credentialId)
     }

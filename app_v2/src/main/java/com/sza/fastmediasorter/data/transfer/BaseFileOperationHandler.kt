@@ -408,6 +408,16 @@ abstract class BaseFileOperationHandler(
     ): Result<String> {
         Timber.d("copyCrossProtocol: Bridging transfer $sourcePath -> $destPath")
 
+        // P0-3: Early existence check — avoid downloading if destination exists and overwrite=false
+        if (!overwrite) {
+            val existsResult = destStrategy.exists(destPath)
+            if (existsResult.getOrNull() == true) {
+                val fileName = destPath.substringAfterLast('/')
+                Timber.w("copyCrossProtocol: Destination exists and overwrite=false, aborting early: $destPath")
+                return Result.failure(FileExistsException(fileName, destPath))
+            }
+        }
+
         // Create temp file
         val fileName = extractFileName(sourcePath, sourcePath.substringAfterLast('/'))
         val tempFile = File(context.cacheDir, "transfer_${System.currentTimeMillis()}_$fileName")
