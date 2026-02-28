@@ -14,6 +14,8 @@ import com.google.android.gms.common.api.Scope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveHttpClient
+import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
+import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -52,7 +54,8 @@ import com.google.android.gms.tasks.Tasks
 class GoogleDriveRestClient @Inject constructor(
     @ApplicationContext private val context: Context,
     private val credentialsManager: GoogleDriveCredentialsManager,
-    private val httpClient: GoogleDriveHttpClient
+    private val httpClient: GoogleDriveHttpClient,
+    private val pendingRevocationDao: PendingRevocationDao
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.GOOGLE_DRIVE
@@ -68,6 +71,7 @@ class GoogleDriveRestClient @Inject constructor(
         private const val DRIVE_UPLOAD_BASE = "https://www.googleapis.com/upload/drive/v3"
         private const val SCOPE_DRIVE = "https://www.googleapis.com/auth/drive"
         private const val SCOPE_DRIVE_READONLY = "https://www.googleapis.com/auth/drive.readonly"
+        private const val GOOGLE_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
         
         // MIME types
         private const val MIME_TYPE_FOLDER = "application/vnd.google-apps.folder"
@@ -1149,19 +1153,62 @@ class GoogleDriveRestClient @Inject constructor(
     }
     
     override suspend fun signOut(): CloudResult<Boolean> {
-        return withContext(Dispatchers.Main) {
+        // Capture token before clearing — revoke call happens off-Main
+        val tokenToRevoke = accessToken
+
+        // Local sign-out on Main thread; capture any failure to return early
+        var signOutError: CloudResult.Error? = null
+        withContext(Dispatchers.Main) {
             try {
                 val signInClient = GoogleSignIn.getClient(context, getSignInOptions())
                 signInClient.signOut()
-                
                 accessToken = null
                 accountEmail = null
-                CloudResult.Success(true)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign out")
-                CloudResult.Error("Sign-out failed: ${e.message}", e)
+                signOutError = CloudResult.Error("Sign-out failed: ${e.message}", e)
             }
         }
+        if (signOutError != null) return signOutError!!
+
+        // Server-side revocation — performed on IO after local state is cleared
+        if (tokenToRevoke != null) {
+            withContext(Dispatchers.IO) {
+                try {
+                    val url = URL("$GOOGLE_REVOKE_URL?token=$tokenToRevoke")
+                    val conn = url.openConnection() as HttpURLConnection
+                    conn.requestMethod = "POST"
+                    conn.connectTimeout = 10_000
+                    conn.readTimeout = 10_000
+                    conn.connect()
+                    val code = conn.responseCode
+                    conn.disconnect()
+                    if (code == 200 || code == 400) {
+                        Timber.i("GoogleDriveRestClient: token revoked (HTTP $code)")
+                    } else {
+                        Timber.w("GoogleDriveRestClient: revoke returned HTTP $code — queuing for retry")
+                        pendingRevocationDao.insert(
+                            PendingRevocationEntity(
+                                provider = "google",
+                                token = tokenToRevoke,
+                                revokeUrl = GOOGLE_REVOKE_URL
+                            )
+                        )
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "GoogleDriveRestClient: revoke network error — queuing for retry")
+                    pendingRevocationDao.insert(
+                        PendingRevocationEntity(
+                            provider = "google",
+                            token = tokenToRevoke,
+                            revokeUrl = GOOGLE_REVOKE_URL
+                        )
+                    )
+                }
+            }
+        }
+
+        return CloudResult.Success(true)
     }
     
     /**

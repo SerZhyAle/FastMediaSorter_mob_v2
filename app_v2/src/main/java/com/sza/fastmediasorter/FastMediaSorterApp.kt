@@ -173,6 +173,8 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 }
                 // Orphan cleanup runs regardless of sync setting — lightweight maintenance task
                 workManagerScheduler.scheduleOrphanCleanup()
+                // Retry any OAuth token revocations that failed during sign-out (B5-T3)
+                workManagerScheduler.schedulePendingRevocation()
             } catch (e: Exception) {
                 Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
             }

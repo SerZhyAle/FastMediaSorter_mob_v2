@@ -129,4 +129,33 @@ class WorkManagerScheduler @Inject constructor(
             Timber.e(e, "WorkManagerScheduler: Failed to schedule orphan cleanup")
         }
     }
+
+    /**
+     * Schedule periodic worker to retry OAuth token revocations that failed at sign-out time (B5-T3).
+     * Requires network. Runs every 6 hours; first attempt delayed 2 minutes after app launch.
+     */
+    fun schedulePendingRevocation() {
+        try {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build()
+
+            val workRequest = PeriodicWorkRequestBuilder<PendingRevocationWorker>(
+                repeatInterval = 6,
+                repeatIntervalTimeUnit = TimeUnit.HOURS
+            )
+                .setConstraints(constraints)
+                .setInitialDelay(2, TimeUnit.MINUTES)
+                .build()
+
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+                PendingRevocationWorker.WORK_NAME,
+                ExistingPeriodicWorkPolicy.KEEP,
+                workRequest
+            )
+            Timber.i("WorkManagerScheduler: Pending revocation worker scheduled (every 6 h)")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: Failed to schedule pending revocation worker")
+        }
+    }
 }

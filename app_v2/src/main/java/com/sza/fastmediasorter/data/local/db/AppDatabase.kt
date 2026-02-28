@@ -15,15 +15,17 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PlaybackPositionEntity::class,
         ThumbnailCacheEntity::class,
         CachedFileListEntity::class,
-        FileMetadataCacheEntity::class
+        FileMetadataCacheEntity::class,
+        PendingRevocationEntity::class
     ],
-    version = 13,
+    version = 14,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun resourceDao(): ResourceDao
     abstract fun networkCredentialsDao(): NetworkCredentialsDao
+    abstract fun pendingRevocationDao(): PendingRevocationDao
     abstract fun favoritesDao(): FavoritesDao
     abstract fun playbackPositionDao(): PlaybackPositionDao
     abstract fun thumbnailCacheDao(): ThumbnailCacheDao
@@ -356,6 +358,27 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_scan_timestamp INTEGER DEFAULT NULL")
                 db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_modified_folder INTEGER DEFAULT NULL")
+            }
+        }
+
+        /**
+         * v13 → v14: Add pending_revocations table for deferred OAuth token revocation (B5-T3).
+         * Stores tokens that could not be revoked synchronously during sign-out;
+         * WorkManager retries until the provider acknowledges (HTTP 200/400 invalid = done).
+         */
+        val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("""
+                    CREATE TABLE IF NOT EXISTS pending_revocations (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        provider TEXT NOT NULL,
+                        token TEXT NOT NULL,
+                        revokeUrl TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        attemptCount INTEGER NOT NULL DEFAULT 0
+                    )
+                """.trimIndent())
+                db.execSQL("CREATE INDEX IF NOT EXISTS idx_pending_rev_provider ON pending_revocations (provider)")
             }
         }
     }

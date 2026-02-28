@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
+import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
@@ -42,7 +43,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_9_10,
                 AppDatabase.MIGRATION_10_11,
                 AppDatabase.MIGRATION_11_12,
-                AppDatabase.MIGRATION_12_13
+                AppDatabase.MIGRATION_12_13,
+                AppDatabase.MIGRATION_13_14
             )
             .build()
     }
@@ -87,6 +89,12 @@ object DatabaseModule {
     @Singleton
     fun provideFileMetadataCacheDao(database: AppDatabase): FileMetadataCacheDao {
         return database.fileMetadataCacheDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePendingRevocationDao(database: AppDatabase): PendingRevocationDao {
+        return database.pendingRevocationDao()
     }
 
     @Provides

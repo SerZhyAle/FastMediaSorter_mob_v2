@@ -13,6 +13,8 @@ import com.microsoft.identity.client.PublicClientApplication
 import com.microsoft.identity.client.SilentAuthenticationCallback
 import com.microsoft.identity.client.exception.MsalDeclinedScopeException
 import com.microsoft.identity.client.exception.MsalException
+import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
+import com.sza.fastmediasorter.data.local.db.PendingRevocationEntity
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -55,7 +57,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 
 @Singleton
 class OneDriveRestClient @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val pendingRevocationDao: PendingRevocationDao
 ) : CloudStorageClient {
     
     override val provider = CloudProvider.ONEDRIVE
@@ -70,6 +73,9 @@ class OneDriveRestClient @Inject constructor(
     companion object {
         private const val GRAPH_API_BASE = "https://graph.microsoft.com/v1.0"
         val SCOPES = arrayOf("Files.ReadWrite.All", "offline_access")
+        /** Best-effort token revoke endpoint; POST token=<accessToken> form-encoded */
+        private const val MSONLINE_REVOKE_URL =
+            "https://login.microsoftonline.com/common/oauth2/v2.0/logout"
         
         // MIME types for filtering
         private const val FOLDER_MIME_TYPE = "application/vnd.microsoft.folder"
@@ -1188,26 +1194,51 @@ class OneDriveRestClient @Inject constructor(
     }
     
     override suspend fun signOut(): CloudResult<Boolean> {
-        return withContext(Dispatchers.Main) {
+        // Capture token before clearing — best-effort server-side revocation queued to DB
+        val tokenToRevoke = accessToken
+
+        // Local sign-out on Main thread
+        var signOutError: CloudResult.Error? = null
+        withContext(Dispatchers.Main) {
             try {
                 msalApp?.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
                     override fun onSignOut() {
                         Timber.d("OneDrive sign-out successful")
                     }
-                    
+
                     override fun onError(exception: MsalException) {
                         Timber.e(exception, "Sign-out error")
                     }
                 })
-                
                 accessToken = null
                 accountEmail = null
-                CloudResult.Success(true)
             } catch (e: Exception) {
                 Timber.e(e, "Failed to sign out")
-                CloudResult.Error("Sign-out failed: ${e.message}", e)
+                signOutError = CloudResult.Error("Sign-out failed: ${e.message}", e)
             }
         }
+        if (signOutError != null) return signOutError!!
+
+        // Queue access token for best-effort revocation (MSAL clears refresh token locally).
+        // Access tokens are short-lived (~1 h) but queuing provides an extra safety layer.
+        if (tokenToRevoke != null) {
+            withContext(Dispatchers.IO) {
+                try {
+                    pendingRevocationDao.insert(
+                        PendingRevocationEntity(
+                            provider = "onedrive",
+                            token = tokenToRevoke,
+                            revokeUrl = MSONLINE_REVOKE_URL
+                        )
+                    )
+                    Timber.d("OneDriveRestClient: access token queued for revocation")
+                } catch (e: Exception) {
+                    Timber.w(e, "OneDriveRestClient: failed to queue token for revocation")
+                }
+            }
+        }
+
+        return CloudResult.Success(true)
     }
     
     /**
