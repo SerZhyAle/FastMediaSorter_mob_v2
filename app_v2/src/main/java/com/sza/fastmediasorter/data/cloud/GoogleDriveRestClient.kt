@@ -65,6 +65,9 @@ class GoogleDriveRestClient @Inject constructor(
     private var tokenTimestamp: Long = 0L  // Track when token was obtained
 
     override fun isAuthenticated(): Boolean = accessToken != null
+
+    /** Returns the email of the currently authenticated account, or null if not authenticated. */
+    fun getAccountEmail(): String? = accountEmail
     
     companion object {
         private const val DRIVE_API_BASE = "https://www.googleapis.com/drive/v3"

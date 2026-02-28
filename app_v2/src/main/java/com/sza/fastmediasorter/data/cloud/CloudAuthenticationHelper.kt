@@ -2,23 +2,26 @@ package com.sza.fastmediasorter.data.cloud
 
 import com.sza.fastmediasorter.core.logging.CorrelationContext
 import com.sza.fastmediasorter.core.logging.StructuredLogger
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * Helper class for cloud storage authentication management.
- * 
+ *
  * Handles:
  * - Getting authenticated cloud clients with auto-restoration
  * - Automatic silent re-authentication on auth failures
  * - Retrying operations after successful re-auth
+ *
+ * Delegates state tracking to [CloudAuthStateMachine] (P3 / B1 Unified Auth).
  */
 @Singleton
 class CloudAuthenticationHelper @Inject constructor(
     private val googleDriveClient: GoogleDriveRestClient,
     private val dropboxClient: DropboxClient,
-    private val oneDriveClient: OneDriveRestClient
+    private val oneDriveClient: OneDriveRestClient,
+    /** Unified auth state machine — updated on every auth/restore outcome. */
+    private val authStateMachine: CloudAuthStateMachine
 ) {
 
     /**
@@ -31,8 +34,10 @@ class CloudAuthenticationHelper @Inject constructor(
     }
 
     /**
-     * Get cloud client for provider, initializing from stored credentials if needed
-     * @return CloudClientResult with client if authenticated, AuthRequired if needs auth, NotSupported if provider unknown
+     * Get cloud client for provider, initializing from stored credentials if needed.
+     * Also updates [CloudAuthStateMachine] state for observability.
+     *
+     * @return CloudClientResult with client if authenticated, AuthRequired if needs auth
      */
     suspend fun getCloudClientResult(provider: CloudProvider): CloudClientResult {
         val client = when (provider) {
@@ -40,34 +45,31 @@ class CloudAuthenticationHelper @Inject constructor(
             CloudProvider.DROPBOX -> dropboxClient
             CloudProvider.ONEDRIVE -> oneDriveClient
         }
-        
+
         // Check if already authenticated
         if (client.isAuthenticated()) {
             return CloudClientResult.Success(client)
         }
-        
+
         return CorrelationContext.start("cloud-restore", mapOf("provider" to provider.name)) {
-            // Try to restore from client's own encrypted storage
-            val restored = when (provider) {
-                CloudProvider.DROPBOX -> (client as? DropboxClient)?.tryRestoreFromStorage() == true
-                CloudProvider.GOOGLE_DRIVE -> (client as? GoogleDriveRestClient)?.tryRestoreFromStorage() == true
-                CloudProvider.ONEDRIVE -> {
-                     (client as? OneDriveRestClient)?.initialize("{}") == true
+            // Delegate restore to the unified auth state machine
+            val smResult = authStateMachine.authenticateOrRestore(provider)
+
+            when (smResult) {
+                is CloudResult.Success -> {
+                    StructuredLogger.i("Auto-restored client via state machine", "provider" to provider.name, "account" to smResult.data)
+                    CloudClientResult.Success(client)
                 }
-            }
-            
-            if (restored) {
-                StructuredLogger.i("Auto-restored client", "provider" to provider.name)
-                CloudClientResult.Success(client)
-            } else {
-                StructuredLogger.w("Failed to restore client", "provider" to provider.name)
-                CloudClientResult.AuthRequired(provider)
+                is CloudResult.Error -> {
+                    StructuredLogger.w("State machine failed to restore client", "provider" to provider.name, "msg" to smResult.message)
+                    CloudClientResult.AuthRequired(provider)
+                }
             }
         }
     }
 
     /**
-     * Get cloud client for provider, initializing from stored credentials if needed
+     * Get cloud client for provider, initializing from stored credentials if needed.
      * @return CloudStorageClient if authenticated, null otherwise
      */
     suspend fun getCloudClient(provider: CloudProvider): CloudStorageClient? {
@@ -80,7 +82,7 @@ class CloudAuthenticationHelper @Inject constructor(
     /**
      * Execute operation with automatic re-authentication on auth errors.
      * If operation fails with authentication error, attempts silent re-authentication and retries once.
-     * 
+     *
      * @param provider Cloud provider
      * @param operation Suspending operation that returns CloudResult<T>
      * @return Operation result or null if re-auth failed/cancelled
@@ -90,44 +92,33 @@ class CloudAuthenticationHelper @Inject constructor(
         operation: suspend (CloudStorageClient) -> CloudResult<T>
     ): CloudResult<T>? {
         val client = getCloudClient(provider) ?: return null
-        
+
         val result = operation(client)
-        
+
         // Check if authentication error
         if (result is CloudResult.Error && result.message.contains("Not authenticated", ignoreCase = true)) {
             StructuredLogger.w("Auth error detected, attempting silent re-auth", "provider" to provider.name)
-            
+            authStateMachine.onAuthError(provider, result.message)
+
             return CorrelationContext.start("cloud-reauth", mapOf("provider" to provider.name)) {
-                // Attempt silent re-authentication
-                val reAuthResult = when (provider) {
-                    CloudProvider.GOOGLE_DRIVE -> {
-                        try {
-                            googleDriveClient.authenticate()
-                        } catch (e: Exception) {
-                            StructuredLogger.e(e, "Silent re-auth failed")
-                            AuthResult.Error("Re-authentication failed: ${e.message}")
-                        }
-                    }
-                    else -> AuthResult.Error("Auto re-authentication not supported for $provider")
-                }
-                
-                when (reAuthResult) {
-                    is AuthResult.Success -> {
+                // Attempt silent re-authentication via state machine
+                val smResult = authStateMachine.authenticateOrRestore(provider)
+
+                when (smResult) {
+                    is CloudResult.Success -> {
                         StructuredLogger.i("Silent re-auth successful, retrying")
                         operation(client)  // Retry once
                     }
-                    is AuthResult.Error -> {
-                        StructuredLogger.e("Re-auth failed", "msg" to reAuthResult.message)
-                        null
-                    }
-                    is AuthResult.Cancelled -> {
-                        StructuredLogger.w("Re-auth cancelled")
+                    is CloudResult.Error -> {
+                        StructuredLogger.e("Re-auth failed", "msg" to smResult.message)
                         null
                     }
                 }
             }
         }
-        
+
         return result
     }
 }
+
+
