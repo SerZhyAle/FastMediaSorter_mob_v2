@@ -116,6 +116,21 @@ class DropboxFolderPickerViewModel @Inject constructor(
             val scanSubdirectories = _state.value.scanSubdirectories
 
             try {
+                // Deduplication check: prevent adding the same folder twice
+                val existingResources = resourceRepository.getAllResourcesSync()
+                val duplicate = existingResources.find {
+                    it.cloudProvider == CloudProvider.DROPBOX && it.cloudFolderId == folder.id
+                }
+                if (duplicate != null) {
+                    Timber.w("DropboxFolderPicker: folder ${folder.id} already added as '${duplicate.name}'")
+                    _events.send(
+                        DropboxFolderPickerEvent.ShowError(
+                            "Folder \"${folder.name}\" already added as resource \"${duplicate.name}\". Remove it first if you want to re-add."
+                        )
+                    )
+                    return@launch
+                }
+
                 // Read globally enabled media types from settings (same logic as GoogleDrive picker)
                 val settings = settingsRepository.getSettings().first()
                 val supportedTypes = settings.getGloballyEnabledMediaTypes()

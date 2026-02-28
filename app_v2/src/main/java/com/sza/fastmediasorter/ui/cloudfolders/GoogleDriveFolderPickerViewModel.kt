@@ -138,6 +138,21 @@ class GoogleDriveFolderPickerViewModel @Inject constructor(
             val scanSubdirectories = _state.value.scanSubdirectories
 
             try {
+                // Deduplication check: prevent adding the same folder twice
+                val existingResources = resourceRepository.getAllResourcesSync()
+                val duplicate = existingResources.find {
+                    it.cloudProvider == CloudProvider.GOOGLE_DRIVE && it.cloudFolderId == folder.id
+                }
+                if (duplicate != null) {
+                    Timber.w("GoogleDriveFolderPicker: folder ${folder.id} already added as '${duplicate.name}'")
+                    _events.send(
+                        GoogleDriveFolderPickerEvent.ShowError(
+                            "Folder \"${folder.name}\" already added as resource \"${duplicate.name}\". Remove it first if you want to re-add."
+                        )
+                    )
+                    return@launch
+                }
+
                 // Get globally enabled media types from settings
                 val settings = settingsRepository.getSettings().first()
                 val supportedTypes = settings.getGloballyEnabledMediaTypes()

@@ -111,7 +111,32 @@ class GoogleDriveRestClient @Inject constructor(
         Timber.w("Failed to restore Google Drive authentication")
         return false
     }
-    
+
+    /**
+     * Try to restore the Google Drive client for a specific account (identified by email).
+     * Used for multi-account support when scanning cloud resources.
+     * Falls back to any stored credentials if no per-account key found.
+     *
+     * @param email Account email (stored as credentialsId in ResourceEntity for cloud resources)
+     * @return true if client successfully restored or already active for this account
+     */
+    suspend fun tryRestoreForAccount(email: String): Boolean {
+        // Already authenticated with the correct account
+        if (isAuthenticated() && accountEmail == email) return true
+
+        // Try per-account stored credentials
+        val perAccountStored = credentialsManager.loadStoredCredentials(email)
+        if (perAccountStored != null) {
+            if (initialize(perAccountStored)) {
+                Timber.d("Google Drive client restored for account: $email (current: $accountEmail)")
+                return true
+            }
+        }
+
+        // Fallback: try silent sign-in (may be for a different account)
+        return tryRestoreFromStorage()
+    }
+
     /**
      * Get Google Sign-In options
      * Uses Web Client ID from Google Cloud Console for ID token
@@ -227,8 +252,8 @@ class GoogleDriveRestClient @Inject constructor(
                 tokenTimestamp = System.currentTimeMillis()
                 accountEmail = account.email
                 val credentials = credentialsManager.serializeAccount(account)
-                // Save to encrypted storage for automatic restoration
-                credentialsManager.saveCredentials(credentials)
+                // Save to encrypted storage for automatic restoration (both legacy and per-account key)
+                credentialsManager.saveCredentials(credentials, account.email)
                 AuthResult.Success(
                     accountName = accountEmail ?: "Unknown",
                     credentialsJson = credentials
@@ -335,8 +360,8 @@ class GoogleDriveRestClient @Inject constructor(
                         accessToken = token
                         tokenTimestamp = System.currentTimeMillis()
                         accountEmail = account.email
-                        // Save to encrypted storage for future automatic restoration
-                        credentialsManager.saveCredentials(credentialsJson)
+                        // Save to encrypted storage for future automatic restoration (per-account key too)
+                        credentialsManager.saveCredentials(credentialsJson, account.email)
                         Timber.d("Initialized Google Drive for account: $email")
                         true
                     } else {

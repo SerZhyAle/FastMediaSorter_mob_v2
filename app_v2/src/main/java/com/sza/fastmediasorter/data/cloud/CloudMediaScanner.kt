@@ -294,6 +294,14 @@ class CloudMediaScanner @Inject constructor(
     ) {
         when (provider) {
             CloudProvider.GOOGLE_DRIVE -> {
+                // For Google Drive: restore for the specific account linked to this resource
+                if (credentialsId != null) {
+                    if (googleDriveClient.tryRestoreForAccount(credentialsId)) {
+                        Timber.d("CloudMediaScanner: Google Drive restored for account $credentialsId")
+                        return
+                    }
+                    Timber.w("CloudMediaScanner: Could not restore Google Drive account $credentialsId, falling back")
+                }
                 // Try to authenticate (will use cached account or fail)
                 when (val result = client.authenticate()) {
                     is AuthResult.Success -> {

@@ -22,7 +22,8 @@ class GoogleDriveCredentialsManager @Inject constructor(
 ) {
     companion object {
         private const val PREFS_NAME = "google_drive_credentials"
-        private const val KEY_CREDENTIALS = "credentials"
+        private const val KEY_CREDENTIALS = "credentials"               // Legacy single-account key
+        private const val KEY_CREDENTIALS_PREFIX = "credentials_"      // Per-account key prefix
     }
 
     /**
@@ -80,13 +81,19 @@ class GoogleDriveCredentialsManager @Inject constructor(
 
     /**
      * Save credentials to encrypted storage.
+     * Saves both to the legacy single-account key and to the per-account key (keyed by accountEmail).
      *
      * @param credentialsJson Serialized credentials (from serializeAccount)
+     * @param accountEmail Optional account email for per-account key storage
      */
-    fun saveCredentials(credentialsJson: String) {
+    fun saveCredentials(credentialsJson: String, accountEmail: String? = null) {
         try {
-            prefs.edit().putString(KEY_CREDENTIALS, credentialsJson).apply()
-            Timber.d("Credentials saved successfully")
+            val edit = prefs.edit().putString(KEY_CREDENTIALS, credentialsJson) // Always update legacy key
+            if (!accountEmail.isNullOrEmpty()) {
+                edit.putString("$KEY_CREDENTIALS_PREFIX$accountEmail", credentialsJson) // Save per-account key
+            }
+            edit.apply()
+            Timber.d("Credentials saved successfully (account: ${accountEmail ?: "unknown"})")
         } catch (e: Exception) {
             Timber.e(e, "Failed to save credentials")
         }
@@ -94,11 +101,17 @@ class GoogleDriveCredentialsManager @Inject constructor(
 
     /**
      * Load stored credentials from encrypted storage.
+     * If [accountEmail] is provided, tries per-account key first, then falls back to legacy.
      *
+     * @param accountEmail Optional account email for per-account key lookup
      * @return Stored credentials JSON or null if not found
      */
-    fun loadStoredCredentials(): String? {
+    fun loadStoredCredentials(accountEmail: String? = null): String? {
         return try {
+            if (!accountEmail.isNullOrEmpty()) {
+                val perAccount = prefs.getString("$KEY_CREDENTIALS_PREFIX$accountEmail", null)
+                if (perAccount != null) return perAccount
+            }
             prefs.getString(KEY_CREDENTIALS, null)
         } catch (e: Exception) {
             Timber.e(e, "Failed to load credentials")
