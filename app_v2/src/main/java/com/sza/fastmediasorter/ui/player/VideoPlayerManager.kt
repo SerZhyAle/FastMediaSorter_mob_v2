@@ -17,6 +17,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.ui.PlayerView
@@ -454,7 +455,12 @@ class VideoPlayerManager(
             .setUsage(C.USAGE_MEDIA)
             .build()
         
-        val player = ExoPlayer.Builder(context)
+        // P1-1: Enable SW decoder fallback so HW codec failures (e.g., VP8 on API 28) are
+        // handled transparently without surface-mode errors or startup freezes.
+        val renderersFactory = DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+
+        val player = ExoPlayer.Builder(context, renderersFactory)
             .setLoadControl(loadControl)
             .setAudioAttributes(audioAttributes, true) // handleAudioFocus=true
             .build()

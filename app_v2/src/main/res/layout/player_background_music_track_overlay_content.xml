@@ -12,6 +12,7 @@
     android:paddingHorizontal="@dimen/activity_player_btnSlideShow_paddingHorizontal"
     android:paddingVertical="@dimen/activity_player_unified_tvBackgroundMusicTrack_paddingVertical"
     android:maxLines="1"
+    android:includeFontPadding="true"
     android:ellipsize="end"
     android:maxWidth="@dimen/activity_player_unified_tvBackgroundMusicTrack_maxWidth"
     android:visibility="gone" />

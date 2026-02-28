@@ -49,6 +49,7 @@
             android:textSize="@dimen/item_detail_text_size"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:maxLines="1"
+            android:includeFontPadding="true"
             android:ellipsize="end"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="@+id/etName"
