@@ -55,7 +55,9 @@ class UnifiedCloudAuthManager @Inject constructor(
         
         try {
             plugin.startInteractiveSignIn(activity)
+            StructuredLogger.d("Interactive signIn launched", "provider" to provider.name)
         } catch (e: Exception) {
+            StructuredLogger.e(e, "Failed to start sign-in", "provider" to provider.name)
             handleFailedAuth(provider, "Failed to start sign-in: ${e.message}")
         }
     }
@@ -65,7 +67,11 @@ class UnifiedCloudAuthManager @Inject constructor(
      * To be called from `AddResourceActivity` ActivityResultLauncher.
      */
     suspend fun processIntentResult(data: Intent?) {
-        val provider = activeProvider ?: return
+        val provider = activeProvider
+        if (provider == null) {
+            StructuredLogger.w("processIntentResult called but activeProvider is null — result dropped")
+            return
+        }
         StructuredLogger.d("Handling unified intent result", "provider" to provider.name)
         
         val plugin = plugins[provider] ?: return

@@ -111,6 +111,8 @@ class GetMediaFilesUseCase @Inject constructor(
 ) {
     companion object {
         private const val LARGE_FOLDER_THRESHOLD = 1000
+        /** Minimum file count from chunked scan to trigger progressive emission */
+        private const val PROGRESSIVE_BATCH_SIZE = 1000
     }
     
     operator fun invoke(
@@ -128,7 +130,15 @@ class GetMediaFilesUseCase @Inject constructor(
          * of the resource folder (A5-T4 API surface).
          * Default is false (normal cache-aware behaviour).
          */
-        forceFullScan: Boolean = false
+        forceFullScan: Boolean = false,
+        /**
+         * When true, emits an early partial batch (first ~1000 files without
+         * metadata extraction) for SMB resources before the complete scan finishes.
+         * This lets the UI display files within seconds while the full scan
+         * continues in the background. Default is false for backward compatibility
+         * (.first() callers receive only the complete result).
+         */
+        progressiveLoading: Boolean = false
     ): Flow<List<MediaFile>> {
         val contextElement = CorrelationContext.asContextElement(
             operation = "get-media-files",
@@ -243,6 +253,34 @@ class GetMediaFilesUseCase @Inject constructor(
             StructuredLogger.i("IncrementalScan: cache is valid, skipping physical scan", "resource" to resource.name)
             cachedFileListRepository.getCachedFiles(resource.id) ?: emptyList()
         } else {
+            // Progressive loading: emit a fast partial batch for large SMB folders
+            // before the full (metadata-heavy) scan starts. This gives the UI files
+            // within seconds while the complete scan continues in the background.
+            if (progressiveLoading && !isSubfolderMode && !useChunkedLoading
+                && scanner is com.sza.fastmediasorter.data.network.SmbMediaScanner
+            ) {
+                try {
+                    val quickFiles = scanner.scanFolderChunked(
+                        path = effectivePath,
+                        supportedTypes = flavorFilteredTypes,
+                        sizeFilter = sizeFilter,
+                        maxFiles = PROGRESSIVE_BATCH_SIZE,
+                        credentialsId = resource.credentialsId,
+                        scanSubdirectories = resource.scanSubdirectories,
+                        showHiddenFiles = showHiddenFiles
+                    )
+                    if (quickFiles.size >= PROGRESSIVE_BATCH_SIZE) {
+                        StructuredLogger.d("Progressive: emitting early batch", "count" to quickFiles.size)
+                        val tagged = quickFiles.map { it.copy(resourceId = resource.id) }
+                        emit(tagged)
+                    } else {
+                        StructuredLogger.d("Progressive: folder small (${quickFiles.size}), skipping early emit")
+                    }
+                } catch (e: Exception) {
+                    StructuredLogger.w(e, "Progressive partial scan failed, continuing with full scan")
+                }
+            }
+
             // Physical scan (with parallelism control A5-T10)
             scanDispatcher.withScanPermit(resource.type) {
                 if (isSubfolderMode) {

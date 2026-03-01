@@ -48,29 +48,36 @@ data class NetworkCredentialsEntity(
         get() = try {
             // Try to decrypt assuming it's Base64-encoded
             val decrypted = CryptoHelper.decrypt(encryptedPassword)
-            if (decrypted.isNullOrEmpty()) {
-                // Decryption returned empty - check if stored value is also empty
-                Timber.w("Password decryption returned empty for credentialId: $credentialId (storedLength=${encryptedPassword.length})")
-                // If encryptedPassword is empty, decryption is correct (empty password stored)
-                // If encryptedPassword is not empty, it's plaintext - use it
-                if (encryptedPassword.isEmpty()) {
-                    Timber.e("Empty password stored for credentialId: $credentialId")
+            when {
+                // CryptoHelper returns null only on decryption error (e.g. Keystore key invalidated).
+                // Do NOT fall back to raw encryptedPassword – sending ciphertext as a password
+                // would silently fail auth (STATUS_LOGON_FAILURE) with no actionable log.
+                decrypted == null -> {
+                    Timber.e("Password decryption returned null for credentialId: $credentialId – Keystore key may be invalidated. Returning empty string.")
                     ""
-                } else {
-                    Timber.i("Using plaintext password fallback")
-                    encryptedPassword
                 }
-            } else {
-                decrypted
+                // CryptoHelper returns "" for empty-string input (valid empty password stored).
+                decrypted.isEmpty() -> {
+                    if (encryptedPassword.isEmpty()) {
+                        Timber.w("Empty password stored for credentialId: $credentialId")
+                        ""
+                    } else {
+                        // Non-empty encryptedPassword decrypted to "" is unexpected – treat the
+                        // stored value as plaintext (migration / pre-encryption legacy).
+                        Timber.i("Decryption produced empty string for non-empty stored value – using plaintext fallback for credentialId: $credentialId")
+                        encryptedPassword
+                    }
+                }
+                else -> decrypted
             }
         } catch (e: IllegalArgumentException) {
-            // Base64 decode error - password is plaintext (migration case)
+            // Base64 decode error – password is plaintext (migration case, no Base64 prefix)
             Timber.i("Password is plaintext for credentialId: $credentialId (migration, storedLength=${encryptedPassword.length})")
             encryptedPassword
         } catch (e: Exception) {
-            // Other decryption errors - treat as plaintext fallback
-            Timber.e(e, "Decryption failed for credentialId: $credentialId, treating as plaintext")
-            encryptedPassword
+            // Unexpected error – return empty rather than leaking encrypted bytes as password
+            Timber.e(e, "Unexpected error in password getter for credentialId: $credentialId – returning empty string")
+            ""
         }
     
     /**

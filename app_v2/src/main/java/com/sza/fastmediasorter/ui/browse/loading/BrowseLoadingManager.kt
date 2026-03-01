@@ -118,6 +118,13 @@ class BrowseLoadingManager(
         Timber.d("BrowseLoadingManager: START loading - resource='${resource.name}' (id=${resource.id}), type=${resource.type}, showHiddenFiles=$showHiddenFiles, currentPath=$currentPath, isSubfolderMode=$isSubfolderMode")
         Timber.d("BrowseLoadingManager: supportedTypes=${resource.supportedMediaTypes.map { it.name }}, sortMode=$sortMode")
         
+        // Enable progressive loading for network resources so the UI shows
+        // an early batch (~1000 files) while the full scan continues.
+        val isNetworkResource = resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SMB
+                || resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP
+                || resource.type == com.sza.fastmediasorter.domain.model.ResourceType.FTP
+        val useProgressiveLoading = isNetworkResource && !isSubfolderMode
+        
         // Progress callback to update UI every 50 files for better performance
         var lastReportedProgress = 0
         val progressCallback = object : ScanProgressCallback {
@@ -139,8 +146,13 @@ class BrowseLoadingManager(
             }
         }
         
-        Timber.d("BrowseLoadingManager: Calling GetMediaFilesUseCase...")
+        Timber.d("BrowseLoadingManager: Calling GetMediaFilesUseCase (progressive=$useProgressiveLoading)...")
         val flowStartTime = System.currentTimeMillis()
+        
+        // Collect all emissions — for progressive loading the flow may emit
+        // an early partial batch followed by the complete list.
+        var latestFiles: List<MediaFile> = emptyList()
+        
         getMediaFilesUseCase(
             resource = resource,
             sortMode = sortMode,
@@ -150,7 +162,8 @@ class BrowseLoadingManager(
             showHiddenFiles = showHiddenFiles,
             onProgress = progressCallback,
             currentPath = currentPath,
-            isSubfolderMode = isSubfolderMode
+            isSubfolderMode = isSubfolderMode,
+            progressiveLoading = useProgressiveLoading
         )
             .catch { e ->
                 Timber.e(e, "BrowseLoadingManager: ERROR in flow - Exception (after ${System.currentTimeMillis() - flowStartTime}ms)")
@@ -159,88 +172,102 @@ class BrowseLoadingManager(
                 callbacks.handleLoadingError(resource, e)
             }
             .collect { files ->
-                Timber.d("BrowseLoadingManager: Flow COLLECT triggered after ${System.currentTimeMillis() - flowStartTime}ms")
-                Timber.d("BrowseLoadingManager: Flow COLLECTED ${files.size} files")
+                val elapsed = System.currentTimeMillis() - flowStartTime
+                Timber.d("BrowseLoadingManager: Flow COLLECT after ${elapsed}ms — ${files.size} files")
+                latestFiles = files
                 
-                // Apply sorting for large folders (GetMediaFilesUseCase skipped it for performance)
-                val sortedFiles = if (files.size > paginationThreshold) {
-                    Timber.d("BrowseLoadingManager: Large folder detected (${files.size} files), applying sort: $sortMode")
-                    callbacks.sortFiles(files, sortMode, forceSort = true)
-                } else {
-                    Timber.d("BrowseLoadingManager: Small folder (${files.size} files), using pre-sorted list")
-                    files  // Already sorted by GetMediaFilesUseCase
-                }
-                
-                val paths = sortedFiles.map { it.path }
-                val favoritesLookupStart = System.currentTimeMillis()
-                val favoritesMap = favoritesUseCase.getFavoritesForPaths(paths)
-                val favoritesLookupDuration = System.currentTimeMillis() - favoritesLookupStart
-                val hasFavoriteFlags = favoritesMap.values.any { it }
-
-                val finalFiles = if (hasFavoriteFlags) {
-                    sortedFiles.map { file ->
-                        if (favoritesMap[file.path] == true) file.copy(isFavorite = true) else file
-                    }
-                } else {
-                    sortedFiles
-                }
-
-                val shouldUseTwoPhaseFallback = favoritesLookupDuration > FAVORITES_FIRST_FRAME_TARGET_MS && sortedFiles.isNotEmpty()
-
-                if (!shouldUseTwoPhaseFallback) {
-                    Timber.d(
-                        "BrowseLoadingManager: Single-phase render with batch favorites (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
-                    )
-                    callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
-                    progressJob?.cancel()
-                    callbacks.setLoading(false)
-                    MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
-                } else {
-                    Timber.d(
-                        "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target ${FAVORITES_FIRST_FRAME_TARGET_MS}ms, using two-phase fallback"
-                    )
-                    callbacks.updateState(sortedFiles, false, 0, sortedFiles.size, false)
-                    progressJob?.cancel()
-                    callbacks.setLoading(false)
-
-                    viewModelScope.launch(ioDispatcher) {
-                        MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
-                        if (hasFavoriteFlags) {
-                            callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
-                        }
-                    }
-                }
-                
-                Timber.d("BrowseLoadingManager: COMPLETE - ${finalFiles.size} files loaded and displayed")
-
-                // Count subdirectories discovered during this scan.
-                // Collect all unique parent-directory paths (and explicit directory items)
-                // that lie under the resource root — this mirrors the logic in
-                // ResourceEditorUseCase.inferSubfolderCount() but runs on the live list.
-                val rootPath = resource.path.trim().trimEnd('/')
-                val discoveredDirs = mutableSetOf<String>()
-                for (file in sortedFiles) {
-                    val filePath = file.path.trim().trimEnd('/')
-                    if (file.isDirectory) discoveredDirs.add(filePath)
-                    val parentIdx = filePath.lastIndexOf('/')
-                    if (parentIdx > 0) {
-                        val parent = filePath.substring(0, parentIdx).trimEnd('/')
-                        if (parent.isNotBlank() && parent != rootPath &&
-                            (rootPath.isBlank() || parent.startsWith("$rootPath/")))
-                        {
-                            discoveredDirs.add(parent)
-                        }
-                    }
-                }
-                val subfolderCount = discoveredDirs.size
-                Timber.d("BrowseLoadingManager: Discovered $subfolderCount subfolders during scan")
-
-                // Update resource metadata (fileCount, lastBrowseDate, subfolderCount) after successful load
-                callbacks.updateResourceMetadata(resource, sortedFiles.size, subfolderCount)
-                callbacks.onFilesLoaded(resource, finalFiles)
-                
-                // Start FileObserver for local resources
-                callbacks.startFileObserver()
+                // Show every intermediate emission immediately so the user sees
+                // files as soon as possible. Final post-processing (favorites,
+                // caching, metadata update) happens after the flow completes.
+                callbacks.updateState(files, false, files.size, files.size, true)
+                callbacks.updateLoadingProgress(files.size)
             }
+        
+        // --- Flow completed — final processing on the last emission ---
+        val files = latestFiles
+        val totalElapsed = System.currentTimeMillis() - flowStartTime
+        Timber.d("BrowseLoadingManager: Flow COMPLETE after ${totalElapsed}ms — final batch: ${files.size} files")
+        
+        if (files.isEmpty()) {
+            callbacks.updateState(emptyList(), false, 0, 0, false)
+            progressJob?.cancel()
+            callbacks.setLoading(false)
+            return
+        }
+        
+        // Apply sorting for large folders (GetMediaFilesUseCase skips it for performance)
+        val sortedFiles = if (files.size > paginationThreshold) {
+            Timber.d("BrowseLoadingManager: Large folder (${files.size} files), applying sort: $sortMode")
+            callbacks.sortFiles(files, sortMode, forceSort = true)
+        } else {
+            Timber.d("BrowseLoadingManager: Small folder (${files.size} files), using pre-sorted list")
+            files
+        }
+        
+        // Favorites lookup
+        val paths = sortedFiles.map { it.path }
+        val favoritesLookupStart = System.currentTimeMillis()
+        val favoritesMap = favoritesUseCase.getFavoritesForPaths(paths)
+        val favoritesLookupDuration = System.currentTimeMillis() - favoritesLookupStart
+        val hasFavoriteFlags = favoritesMap.values.any { it }
+
+        val finalFiles = if (hasFavoriteFlags) {
+            sortedFiles.map { file ->
+                if (favoritesMap[file.path] == true) file.copy(isFavorite = true) else file
+            }
+        } else {
+            sortedFiles
+        }
+
+        val shouldUseTwoPhaseFallback = favoritesLookupDuration > FAVORITES_FIRST_FRAME_TARGET_MS && sortedFiles.isNotEmpty()
+
+        if (!shouldUseTwoPhaseFallback) {
+            Timber.d(
+                "BrowseLoadingManager: Single-phase render (latency=${favoritesLookupDuration}ms, files=${finalFiles.size})"
+            )
+            callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+            progressJob?.cancel()
+            callbacks.setLoading(false)
+            MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
+        } else {
+            Timber.d(
+                "BrowseLoadingManager: Batch favorites latency ${favoritesLookupDuration}ms exceeds target, two-phase fallback"
+            )
+            callbacks.updateState(sortedFiles, false, 0, sortedFiles.size, false)
+            progressJob?.cancel()
+            callbacks.setLoading(false)
+
+            viewModelScope.launch(ioDispatcher) {
+                MediaFilesCacheManager.setCachedList(resourceId, finalFiles)
+                if (hasFavoriteFlags) {
+                    callbacks.updateState(finalFiles, false, 0, finalFiles.size, false)
+                }
+            }
+        }
+
+        Timber.d("BrowseLoadingManager: COMPLETE - ${finalFiles.size} files loaded and displayed")
+
+        // Count subdirectories discovered during this scan
+        val rootPath = resource.path.trim().trimEnd('/')
+        val discoveredDirs = mutableSetOf<String>()
+        for (file in sortedFiles) {
+            val filePath = file.path.trim().trimEnd('/')
+            if (file.isDirectory) discoveredDirs.add(filePath)
+            val parentIdx = filePath.lastIndexOf('/')
+            if (parentIdx > 0) {
+                val parent = filePath.substring(0, parentIdx).trimEnd('/')
+                if (parent.isNotBlank() && parent != rootPath &&
+                    (rootPath.isBlank() || parent.startsWith("$rootPath/")))
+                {
+                    discoveredDirs.add(parent)
+                }
+            }
+        }
+        val subfolderCount = discoveredDirs.size
+        Timber.d("BrowseLoadingManager: Discovered $subfolderCount subfolders during scan")
+
+        callbacks.updateResourceMetadata(resource, sortedFiles.size, subfolderCount)
+        callbacks.onFilesLoaded(resource, finalFiles)
+        callbacks.startFileObserver()
     }
 }

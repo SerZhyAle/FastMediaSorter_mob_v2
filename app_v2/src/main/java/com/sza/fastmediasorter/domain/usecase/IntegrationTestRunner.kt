@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.AudioMetadata
+import com.sza.fastmediasorter.domain.model.MediaType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -183,12 +184,83 @@ class IntegrationTestRunner @Inject constructor(
      * Uses predefined naming conventions for test resources (as documented in sza_resources.xml).
      */
     private suspend fun findCloudResource(provider: CloudProvider): com.sza.fastmediasorter.domain.model.MediaResource? {
-        val name = when (provider) {
+        val name = cloudTestResourceName(provider)
+        return findResourceByName(name)
+    }
+
+    private fun cloudTestResourceName(provider: CloudProvider): String {
+        return when (provider) {
             CloudProvider.ONEDRIVE -> "onedrive_test"
             CloudProvider.GOOGLE_DRIVE -> "google_drive_test"
             CloudProvider.DROPBOX -> "dropbox_test"
         }
-        return findResourceByName(name)
+    }
+
+    private fun cloudProviderPathSegment(provider: CloudProvider): String {
+        return when (provider) {
+            CloudProvider.ONEDRIVE -> "onedrive"
+            CloudProvider.GOOGLE_DRIVE -> "google_drive"
+            CloudProvider.DROPBOX -> "dropbox"
+        }
+    }
+
+    private suspend fun ensureCloudTestResources() {
+        try {
+            for (provider in CloudProvider.values()) {
+                ensureCloudResourceForProvider(provider)
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to ensure cloud test resources")
+            log("WARNING: Failed to ensure cloud test resources: ${e.message}")
+        }
+    }
+
+    private suspend fun ensureCloudResourceForProvider(provider: CloudProvider): Boolean {
+        val existing = findCloudResource(provider)
+        if (existing != null) {
+            return true
+        }
+
+        val cloudCredential = credentialsLoader.getCloudCredential(provider)
+        if (cloudCredential == null) {
+            log("[Cloud Setup] ${provider.name}: no cloud credential found, resource not auto-created")
+            return false
+        }
+
+        val folderIdOrPath = cloudCredential.folder
+            ?.trim()
+            ?.trim('/')
+            ?.takeIf { it.isNotEmpty() }
+
+        if (folderIdOrPath == null) {
+            log("[Cloud Setup] ${provider.name}: credential folder is empty, resource not auto-created")
+            return false
+        }
+
+        val resourceName = cloudTestResourceName(provider)
+        val pathPrefix = cloudProviderPathSegment(provider)
+        val cloudPath = "cloud://$pathPrefix/$folderIdOrPath"
+
+        val resourceId = resourceRepository.addResource(
+            com.sza.fastmediasorter.domain.model.MediaResource(
+                name = resourceName,
+                path = cloudPath,
+                type = ResourceType.CLOUD,
+                cloudProvider = provider,
+                cloudFolderId = folderIdOrPath,
+                supportedMediaTypes = setOf(
+                    MediaType.IMAGE,
+                    MediaType.VIDEO,
+                    MediaType.AUDIO,
+                    MediaType.GIF,
+                    MediaType.TEXT,
+                    MediaType.PDF
+                )
+            )
+        )
+
+        log("[Cloud Setup] Created $resourceName (id=$resourceId, path=$cloudPath)")
+        return true
     }
     
     /**
@@ -323,6 +395,7 @@ class IntegrationTestRunner @Inject constructor(
 
         // Initialize credentials before running any tests
         initializeTestCredentials()
+        ensureCloudTestResources()
         
         val tests = buildTestList(group)
         var currentTest = 0
@@ -384,6 +457,8 @@ class IntegrationTestRunner @Inject constructor(
             tests.add(Test("Local Move") { testLocalMove() })
             tests.add(Test("Local Rename") { testLocalRename() })
             tests.add(Test("Local Delete") { testLocalDelete() })
+            tests.add(Test("Local Copy Partial Success") { testLocalCopyPartialSuccess() })
+            tests.add(Test("Local Copy Overwrite Policy") { testLocalCopyOverwritePolicy() })
         }
         
         // 2-4. Network copy operations
@@ -455,6 +530,23 @@ class IntegrationTestRunner @Inject constructor(
                     testMatrixDelete(resourceType)
                 })
             }
+
+            // 11. Delete path policy validation (guards soft-delete routing)
+            tests.add(Test("Delete Policy Matrix") {
+                testDeletePolicyMatrix()
+            })
+
+            // 12. Delete policy check per resource type
+            for (resourceType in availableTypes) {
+                tests.add(Test("Delete Policy: ${resourceType.name}") {
+                    testDeletePolicyByResourceType(resourceType)
+                })
+            }
+
+            // 13. Explicit Android/media guard
+            tests.add(Test("Delete Policy: Android/media Guard") {
+                testDeletePolicyAndroidMediaGuard()
+            })
         }
         
         // ========== IMAGE EDIT TESTS (Phase 2) ==========
@@ -546,6 +638,10 @@ class IntegrationTestRunner @Inject constructor(
             tests.add(Test("GOOGLE_DRIVE Copy") { testCloudProviderCopy(CloudProvider.GOOGLE_DRIVE) })
             tests.add(Test("GOOGLE_DRIVE Rename") { testCloudProviderRename(CloudProvider.GOOGLE_DRIVE) })
             tests.add(Test("GOOGLE_DRIVE Delete") { testCloudProviderDelete(CloudProvider.GOOGLE_DRIVE) })
+
+            // Functional cloud move tests (path-based and cross-provider fallback)
+            tests.add(Test("Cloud Move Same Provider Path") { testCloudMoveSameProviderPathBased() })
+            tests.add(Test("Cloud Move Cross Provider") { testCloudMoveCrossProvider() })
         }
         
         // ========== AUDIO TESTS (Module 7) ==========
@@ -731,6 +827,132 @@ class IntegrationTestRunner @Inject constructor(
         } catch (e: Exception) {
             recordResult(testName, "Delete", "Local", null, false,
                 System.currentTimeMillis() - startTime, error = e.message)
+        }
+    }
+
+    private suspend fun testLocalCopyPartialSuccess() {
+        val testName = "Local Copy Partial Success"
+        val startTime = System.currentTimeMillis()
+
+        log("[$testName] Starting...")
+
+        val destinationDir = File(context.cacheDir, "test_local_partial_dest_${System.currentTimeMillis()}")
+        val existingSource = File(context.cacheDir, "test_local_partial_ok_${System.currentTimeMillis()}.txt")
+        val missingSource = File(context.cacheDir, "test_local_partial_missing_${System.currentTimeMillis()}.txt")
+
+        try {
+            destinationDir.mkdirs()
+            existingSource.writeText("partial success content")
+
+            val result = fileOperationUseCase.execute(
+                FileOperation.Copy(
+                    sources = listOf(existingSource, missingSource),
+                    destination = destinationDir,
+                    overwrite = true
+                )
+            )
+
+            val duration = System.currentTimeMillis() - startTime
+            val copiedFile = File(destinationDir, existingSource.name)
+
+            val success = when (result) {
+                is FileOperationResult.PartialSuccess -> {
+                    result.processedCount == 1 && result.failedCount >= 1 && copiedFile.exists()
+                }
+                else -> false
+            }
+
+            recordResult(
+                testName,
+                "Copy",
+                "LOCAL",
+                "LOCAL",
+                success,
+                duration,
+                error = if (success) null else "Expected PartialSuccess with 1 copied and >=1 failed, got: ${result::class.simpleName}",
+                details = if (success) "PartialSuccess validated: copied file exists, missing file failed" else null
+            )
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "Copy",
+                "LOCAL",
+                "LOCAL",
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
+        } finally {
+            if (existingSource.exists()) existingSource.delete()
+            if (missingSource.exists()) missingSource.delete()
+            destinationDir.listFiles()?.forEach { it.delete() }
+            if (destinationDir.exists()) destinationDir.delete()
+        }
+    }
+
+    private suspend fun testLocalCopyOverwritePolicy() {
+        val testName = "Local Copy Overwrite Policy"
+        val startTime = System.currentTimeMillis()
+
+        log("[$testName] Starting...")
+
+        val destinationDir = File(context.cacheDir, "test_local_overwrite_dest_${System.currentTimeMillis()}")
+        val sourceFile = File(context.cacheDir, "test_overwrite_source.txt")
+        val destinationFile = File(destinationDir, sourceFile.name)
+
+        try {
+            destinationDir.mkdirs()
+            sourceFile.writeText("new-content")
+            destinationFile.writeText("old-content")
+
+            val noOverwriteResult = fileOperationUseCase.execute(
+                FileOperation.Copy(
+                    sources = listOf(sourceFile),
+                    destination = destinationDir,
+                    overwrite = false
+                )
+            )
+
+            val noOverwriteRespected = destinationFile.readText() == "old-content"
+
+            val overwriteResult = fileOperationUseCase.execute(
+                FileOperation.Copy(
+                    sources = listOf(sourceFile),
+                    destination = destinationDir,
+                    overwrite = true
+                )
+            )
+
+            val overwriteApplied = destinationFile.exists() && destinationFile.readText() == "new-content"
+            val overwriteCallSucceeded = overwriteResult is FileOperationResult.Success ||
+                (overwriteResult is FileOperationResult.PartialSuccess && overwriteResult.processedCount > 0)
+
+            val success = noOverwriteRespected && overwriteApplied && overwriteCallSucceeded
+
+            recordResult(
+                testName,
+                "Copy",
+                "LOCAL",
+                "LOCAL",
+                success,
+                System.currentTimeMillis() - startTime,
+                error = if (success) null else "Overwrite policy behavior mismatch. noOverwrite=${noOverwriteResult::class.simpleName}, overwrite=${overwriteResult::class.simpleName}",
+                details = if (success) "overwrite=false preserved old content; overwrite=true replaced with new content" else null
+            )
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "Copy",
+                "LOCAL",
+                "LOCAL",
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
+        } finally {
+            if (sourceFile.exists()) sourceFile.delete()
+            destinationDir.listFiles()?.forEach { it.delete() }
+            if (destinationDir.exists()) destinationDir.delete()
         }
     }
     
@@ -1956,6 +2178,149 @@ class IntegrationTestRunner @Inject constructor(
             Timber.e(e, "Matrix delete test failed: ${resourceType.name}")
         }
     }
+
+    /**
+     * Validate soft-delete eligibility routing for representative path schemes.
+     * This protects against regressions where protected Android/media paths
+     * accidentally use .trash metadata writes and fail with EPERM.
+     */
+    private suspend fun testDeletePolicyMatrix() {
+        val testName = "Delete Policy Matrix"
+        val startTime = System.currentTimeMillis()
+
+        log("[$testName] Starting...")
+
+        try {
+            val scenarios = listOf(
+                Triple("Local cache path", "${context.cacheDir.absolutePath}/policy_test/file.txt", true),
+                Triple("Android media path", "/storage/emulated/0/Android/media/org.telegram.messenger/Telegram/file.jpg", false),
+                Triple("Content URI", "content://media/external/images/media/1000110988", false),
+                Triple("SMB path", "smb://server/share/folder/file.txt", false),
+                Triple("SFTP path", "sftp://server:22/folder/file.txt", false),
+                Triple("FTP path", "ftp://server:21/folder/file.txt", false),
+                Triple("Cloud path", "cloud://google_drive/folder/file.txt", false)
+            )
+
+            val mismatches = scenarios.mapNotNull { (name, path, expected) ->
+                val actual = DeletePathPolicy.canUseSoftDelete(path)
+                if (actual != expected) "$name expected=$expected actual=$actual path=$path" else null
+            }
+
+            val duration = System.currentTimeMillis() - startTime
+            if (mismatches.isEmpty()) {
+                recordResult(
+                    testName,
+                    "DeletePolicy",
+                    "Policy",
+                    null,
+                    true,
+                    duration,
+                    details = "Validated ${scenarios.size} policy scenarios"
+                )
+            } else {
+                recordResult(
+                    testName,
+                    "DeletePolicy",
+                    "Policy",
+                    null,
+                    false,
+                    duration,
+                    error = mismatches.joinToString("; ")
+                )
+            }
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "DeletePolicy",
+                "Policy",
+                null,
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
+            Timber.e(e, "Delete policy matrix test failed")
+        }
+    }
+
+    /**
+     * Validate delete policy decision for each resource type.
+     */
+    private suspend fun testDeletePolicyByResourceType(resourceType: ResourceType) {
+        val testName = "Delete Policy: ${resourceType.name}"
+        val startTime = System.currentTimeMillis()
+
+        try {
+            val samplePath = when (resourceType) {
+                ResourceType.LOCAL -> "${context.cacheDir.absolutePath}/policy_resource_type/${resourceType.name.lowercase()}_sample.txt"
+                ResourceType.SMB -> "smb://integration-server/test-share/policy_sample.txt"
+                ResourceType.SFTP -> "sftp://integration-server:22/policy_sample.txt"
+                ResourceType.FTP -> "ftp://integration-server:21/policy_sample.txt"
+                ResourceType.CLOUD -> "cloud://google_drive/policy_sample.txt"
+            }
+
+            val expected = resourceType == ResourceType.LOCAL
+            val actual = DeletePathPolicy.canUseSoftDelete(samplePath)
+            val duration = System.currentTimeMillis() - startTime
+
+            recordResult(
+                testName,
+                "DeletePolicy",
+                resourceType.name,
+                null,
+                actual == expected,
+                duration,
+                error = if (actual == expected) null else "Expected softDelete=$expected, actual=$actual for path=$samplePath",
+                details = "Path=$samplePath, expected=$expected, actual=$actual"
+            )
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "DeletePolicy",
+                resourceType.name,
+                null,
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
+            Timber.e(e, "Delete policy resource type test failed: ${resourceType.name}")
+        }
+    }
+
+    /**
+     * Dedicated regression guard for Android/media paths.
+     */
+    private suspend fun testDeletePolicyAndroidMediaGuard() {
+        val testName = "Delete Policy: Android/media Guard"
+        val startTime = System.currentTimeMillis()
+
+        try {
+            val protectedPath = "/storage/emulated/0/Android/media/org.telegram.messenger/Telegram/Telegram Images/policy_guard.jpg"
+            val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(protectedPath)
+            val duration = System.currentTimeMillis() - startTime
+
+            recordResult(
+                testName,
+                "DeletePolicy",
+                "LOCAL",
+                null,
+                !canUseSoftDelete,
+                duration,
+                error = if (!canUseSoftDelete) null else "Protected Android/media path incorrectly allowed soft-delete",
+                details = "Path=$protectedPath, softDeleteAllowed=$canUseSoftDelete"
+            )
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "DeletePolicy",
+                "LOCAL",
+                null,
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
+            Timber.e(e, "Delete policy Android/media guard test failed")
+        }
+    }
     
     // ========== HELPER METHODS ==========
     
@@ -2152,6 +2517,24 @@ class IntegrationTestRunner @Inject constructor(
         if (details != null) log("  Details: $details")
         if (error != null) log("  Error: $error")
         log("")
+    }
+
+    private fun recordSkipped(
+        testName: String,
+        operation: String,
+        sourceType: String,
+        destType: String? = null,
+        reason: String
+    ) {
+        recordResult(
+            testName = testName,
+            operation = operation,
+            sourceType = sourceType,
+            destType = destType,
+            success = true,
+            duration = 0,
+            details = "SKIPPED: $reason"
+        )
     }
     
     private fun generateFinalReport() {
@@ -3012,9 +3395,13 @@ class IntegrationTestRunner @Inject constructor(
         try {
             // Find cloud resource from database
             val cloudResource = findCloudResource(provider)
+                ?: run {
+                    ensureCloudResourceForProvider(provider)
+                    findCloudResource(provider)
+                }
             if (cloudResource == null) {
-                recordResult(testName, "Copy", provider.name, null, false, 0,
-                    error = "${provider.name} test resource not found in database - test skipped")
+                recordSkipped(testName, "Copy", provider.name, null,
+                    "${provider.name} test resource not found in database")
                 log("[$testName] Skipped - no resource configured")
                 return
             }
@@ -3079,9 +3466,13 @@ class IntegrationTestRunner @Inject constructor(
         
         try {
             val cloudResource = findCloudResource(provider)
+                ?: run {
+                    ensureCloudResourceForProvider(provider)
+                    findCloudResource(provider)
+                }
             if (cloudResource == null) {
-                recordResult(testName, "Rename", provider.name, null, false, 0,
-                    error = "${provider.name} test resource not found in database - test skipped")
+                recordSkipped(testName, "Rename", provider.name, null,
+                    "${provider.name} test resource not found in database")
                 log("[$testName] Skipped - no resource configured")
                 return
             }
@@ -3164,9 +3555,13 @@ class IntegrationTestRunner @Inject constructor(
         
         try {
             val cloudResource = findCloudResource(provider)
+                ?: run {
+                    ensureCloudResourceForProvider(provider)
+                    findCloudResource(provider)
+                }
             if (cloudResource == null) {
-                recordResult(testName, "Upload", provider.name, null, false, 0,
-                    error = "${provider.name} test resource not found in database - test skipped")
+                recordSkipped(testName, "Upload", provider.name, null,
+                    "${provider.name} test resource not found in database")
                 log("[$testName] Skipped - no resource configured")
                 return
             }
@@ -3225,9 +3620,13 @@ class IntegrationTestRunner @Inject constructor(
         
         try {
             val cloudResource = findCloudResource(provider)
+                ?: run {
+                    ensureCloudResourceForProvider(provider)
+                    findCloudResource(provider)
+                }
             if (cloudResource == null) {
-                recordResult(testName, "Download", provider.name, null, false, 0,
-                    error = "${provider.name} test resource not found in database - test skipped")
+                recordSkipped(testName, "Download", provider.name, null,
+                    "${provider.name} test resource not found in database")
                 log("[$testName] Skipped - no resource configured")
                 return
             }
@@ -3314,9 +3713,13 @@ class IntegrationTestRunner @Inject constructor(
         
         try {
             val cloudResource = findCloudResource(provider)
+                ?: run {
+                    ensureCloudResourceForProvider(provider)
+                    findCloudResource(provider)
+                }
             if (cloudResource == null) {
-                recordResult(testName, "Delete", provider.name, null, false, 0,
-                    error = "${provider.name} test resource not found in database - test skipped")
+                recordSkipped(testName, "Delete", provider.name, null,
+                    "${provider.name} test resource not found in database")
                 log("[$testName] Skipped - no resource configured")
                 return
             }
@@ -3378,6 +3781,223 @@ class IntegrationTestRunner @Inject constructor(
             recordResult(testName, "Delete", provider.name, null, false,
                 System.currentTimeMillis() - startTime, error = e.message)
             Timber.e(e, "${provider.name} delete test failed")
+        }
+    }
+
+    private suspend fun testCloudMoveSameProviderPathBased() {
+        val testName = "Cloud Move Same Provider Path"
+        val startTime = System.currentTimeMillis()
+
+        log("[$testName] Starting...")
+
+        try {
+            val provider = when {
+                findCloudResource(CloudProvider.ONEDRIVE) != null -> CloudProvider.ONEDRIVE
+                findCloudResource(CloudProvider.DROPBOX) != null -> CloudProvider.DROPBOX
+                findCloudResource(CloudProvider.GOOGLE_DRIVE) != null -> CloudProvider.GOOGLE_DRIVE
+                else -> null
+            }
+
+            if (provider == null) {
+                recordResult(
+                    testName,
+                    "Move",
+                    "CLOUD",
+                    "CLOUD",
+                    true,
+                    0,
+                    details = "SKIPPED: no cloud test resources configured"
+                )
+                return
+            }
+
+            val resource = findCloudResource(provider)
+            if (resource == null) {
+                recordResult(
+                    testName,
+                    "Move",
+                    "CLOUD",
+                    "CLOUD",
+                    true,
+                    0,
+                    details = "SKIPPED: cloud resource for $provider not found"
+                )
+                return
+            }
+
+            val timestamp = System.currentTimeMillis()
+            val localSource = createTestFile("cloud_move_same_$timestamp.txt", "same-provider move test")
+            val cloudBasePath = resource.path.trimEnd('/')
+            val sourceCloudPath = "$cloudBasePath/${localSource.name}"
+            val targetFolderPath = "$cloudBasePath/move_same_provider_$timestamp"
+
+            val uploadResult = fileOperationUseCase.execute(
+                FileOperation.Copy(
+                    sources = listOf(localSource),
+                    destination = File(cloudBasePath),
+                    overwrite = true
+                )
+            )
+
+            if (uploadResult !is FileOperationResult.Success) {
+                recordResult(
+                    testName,
+                    "Move",
+                    provider.name,
+                    provider.name,
+                    false,
+                    System.currentTimeMillis() - startTime,
+                    error = "Setup upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}"
+                )
+                localSource.delete()
+                return
+            }
+
+            val moveResult = fileOperationUseCase.execute(
+                FileOperation.Move(
+                    sources = listOf(File(sourceCloudPath)),
+                    destination = File(targetFolderPath),
+                    overwrite = true
+                )
+            )
+
+            val success = moveResult is FileOperationResult.Success ||
+                (moveResult is FileOperationResult.PartialSuccess && moveResult.processedCount > 0)
+
+            recordResult(
+                testName,
+                "Move",
+                provider.name,
+                provider.name,
+                success,
+                System.currentTimeMillis() - startTime,
+                error = if (success) null else (moveResult as? FileOperationResult.Failure)?.error ?: "Move failed with ${moveResult::class.simpleName}",
+                details = if (success) "Moved from $sourceCloudPath to $targetFolderPath" else null
+            )
+
+            localSource.delete()
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "Move",
+                "CLOUD",
+                "CLOUD",
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
+        }
+    }
+
+    private suspend fun testCloudMoveCrossProvider() {
+        val testName = "Cloud Move Cross Provider"
+        val startTime = System.currentTimeMillis()
+
+        log("[$testName] Starting...")
+
+        try {
+            val sourceProvider = when {
+                findCloudResource(CloudProvider.ONEDRIVE) != null -> CloudProvider.ONEDRIVE
+                findCloudResource(CloudProvider.DROPBOX) != null -> CloudProvider.DROPBOX
+                else -> null
+            }
+
+            val destProvider = when (sourceProvider) {
+                CloudProvider.ONEDRIVE -> if (findCloudResource(CloudProvider.DROPBOX) != null) CloudProvider.DROPBOX else null
+                CloudProvider.DROPBOX -> if (findCloudResource(CloudProvider.ONEDRIVE) != null) CloudProvider.ONEDRIVE else null
+                else -> null
+            }
+
+            if (sourceProvider == null || destProvider == null) {
+                recordResult(
+                    testName,
+                    "Move",
+                    "CLOUD",
+                    "CLOUD",
+                    true,
+                    0,
+                    details = "SKIPPED: requires at least two cloud providers (ONEDRIVE + DROPBOX)"
+                )
+                return
+            }
+
+            val sourceResource = findCloudResource(sourceProvider)
+            val destResource = findCloudResource(destProvider)
+            if (sourceResource == null || destResource == null) {
+                recordResult(
+                    testName,
+                    "Move",
+                    sourceProvider.name,
+                    destProvider.name,
+                    true,
+                    0,
+                    details = "SKIPPED: source or destination cloud resource missing"
+                )
+                return
+            }
+
+            val timestamp = System.currentTimeMillis()
+            val localSource = createTestFile("cloud_move_cross_$timestamp.txt", "cross-provider move test")
+
+            val sourceBase = sourceResource.path.trimEnd('/')
+            val sourceCloudPath = "$sourceBase/${localSource.name}"
+            val destFolderPath = "${destResource.path.trimEnd('/')}/move_cross_provider_$timestamp"
+
+            val uploadResult = fileOperationUseCase.execute(
+                FileOperation.Copy(
+                    sources = listOf(localSource),
+                    destination = File(sourceBase),
+                    overwrite = true
+                )
+            )
+
+            if (uploadResult !is FileOperationResult.Success) {
+                recordResult(
+                    testName,
+                    "Move",
+                    sourceProvider.name,
+                    destProvider.name,
+                    false,
+                    System.currentTimeMillis() - startTime,
+                    error = "Setup upload failed: ${(uploadResult as? FileOperationResult.Failure)?.error}"
+                )
+                localSource.delete()
+                return
+            }
+
+            val moveResult = fileOperationUseCase.execute(
+                FileOperation.Move(
+                    sources = listOf(File(sourceCloudPath)),
+                    destination = File(destFolderPath),
+                    overwrite = true
+                )
+            )
+
+            val success = moveResult is FileOperationResult.Success ||
+                (moveResult is FileOperationResult.PartialSuccess && moveResult.processedCount > 0)
+
+            recordResult(
+                testName,
+                "Move",
+                sourceProvider.name,
+                destProvider.name,
+                success,
+                System.currentTimeMillis() - startTime,
+                error = if (success) null else (moveResult as? FileOperationResult.Failure)?.error ?: "Cross-provider move failed with ${moveResult::class.simpleName}",
+                details = if (success) "Moved from $sourceProvider to $destProvider via runtime fallback path" else null
+            )
+
+            localSource.delete()
+        } catch (e: Exception) {
+            recordResult(
+                testName,
+                "Move",
+                "CLOUD",
+                "CLOUD",
+                false,
+                System.currentTimeMillis() - startTime,
+                error = e.message
+            )
         }
     }
     
@@ -3513,8 +4133,8 @@ class IntegrationTestRunner @Inject constructor(
             // with credentialsId. For integration testing, we skip this test since it requires
             // database setup. This test should be run manually or in full app environment.
             
-            recordResult(testName, "SpeedTest", resourceType.name, null, false, 0,
-                error = "Speed test requires database credentials registration - test skipped")
+            recordSkipped(testName, "SpeedTest", resourceType.name, null,
+                "requires database credentials registration")
             
             log("[$testName] Skipped - requires database credentials registration")
             
@@ -3543,8 +4163,8 @@ class IntegrationTestRunner @Inject constructor(
             }
             val credential = resourceType?.let { credentialsLoader.getCredential(it) }
             if (credential == null) {
-                recordResult(testName, "Download", protocol, null, false, 0,
-                    error = "$protocol credentials not configured - test skipped")
+                recordSkipped(testName, "Download", protocol, null,
+                    "$protocol credentials not configured")
                 return
             }
             

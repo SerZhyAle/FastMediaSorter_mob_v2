@@ -86,7 +86,7 @@ class NetworkVideoFrameDecoder(
         }
         
         if (cachedThumbnail != null && cachedThumbnail.exists()) {
-            Timber.d("Using CACHED thumbnail for: ${source.path.substringAfterLast('/')}")
+            Timber.v("Using CACHED thumbnail for: ${source.path.substringAfterLast('/')}")
             return try {
                 val bitmap = BitmapFactory.decodeFile(cachedThumbnail.absolutePath)
                 if (bitmap != null) {
@@ -107,12 +107,12 @@ class NetworkVideoFrameDecoder(
         
         // Check if this file previously failed extraction (unified cache with NetworkFileDataFetcher)
         if (NetworkFileDataFetcher.isVideoFailed(source.path)) {
-            Timber.d("Skipping video thumbnail extraction - cached failure: ${source.path.substringAfterLast('/')}")
+            Timber.v("Skipping video thumbnail extraction - cached failure: ${source.path.substringAfterLast('/')}")
             return null
         }
 
         val startTime = System.currentTimeMillis()
-        Timber.d("Starting video frame extraction for: ${source.path.substringAfterLast('/')}")
+        Timber.v("Starting video frame extraction for: ${source.path.substringAfterLast('/')}")
 
         return try {
             val mediaDataSource = NetworkMediaDataSource(
@@ -142,7 +142,7 @@ class NetworkVideoFrameDecoder(
                 null
             } else {
                 val totalTime = System.currentTimeMillis() - startTime
-                Timber.d("Successfully extracted video thumbnail in ${totalTime}ms: ${source.path.substringAfterLast('/')}")
+                Timber.v("Successfully extracted video thumbnail in ${totalTime}ms: ${source.path.substringAfterLast('/')}")
                 
                 // Save to cache
                 runBlocking {
@@ -150,7 +150,7 @@ class NetworkVideoFrameDecoder(
                         val cachedFile = saveThumbnailToCache(source.path, bitmap)
                         if (cachedFile != null) {
                             thumbnailCacheRepository.saveThumbnail(source.path, cachedFile)
-                            Timber.d("Saved thumbnail to cache: ${source.path.substringAfterLast('/')}")
+                            Timber.v("Saved thumbnail to cache: ${source.path.substringAfterLast('/')}")
                         }
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to save thumbnail to cache: ${source.path}")

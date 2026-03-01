@@ -97,7 +97,7 @@ class CloudFileOperationHandler @Inject constructor(
     private fun getResourceType(path: String): ResourceType {
         val normalized = normalizeNetworkPath(path)
         return when {
-            normalized.startsWith("cloud://") -> ResourceType.CLOUD
+            cloudPathParser.isCloudPath(normalized) -> ResourceType.CLOUD
             normalized.startsWith("smb://") -> ResourceType.SMB
             normalized.startsWith("sftp://") -> ResourceType.SFTP
             normalized.startsWith("ftp://") -> ResourceType.FTP
@@ -117,6 +117,7 @@ class CloudFileOperationHandler @Inject constructor(
         var normalized = if (path.startsWith("/")) path.substring(1) else path
         
         return when {
+            normalized.startsWith("cloud:/") && !normalized.startsWith("cloud://") -> normalized.replaceFirst("cloud:/", "cloud://")
             normalized.startsWith("smb:/") && !normalized.startsWith("smb://") -> normalized.replaceFirst("smb:/", "smb://")
             normalized.startsWith("sftp:/") && !normalized.startsWith("sftp://") -> normalized.replaceFirst("sftp:/", "sftp://")
             normalized.startsWith("ftp:/") && !normalized.startsWith("ftp://") -> normalized.replaceFirst("ftp:/", "ftp://")
@@ -1167,8 +1168,15 @@ class CloudFileOperationHandler @Inject constructor(
                 "cloud://${destInfo.provider}/${result.data.path}"
             }
             is CloudResult.Error -> {
-                Timber.e("moveCloudToCloud: FAILED - ${result.message}")
-                null
+                Timber.w("moveCloudToCloud: Native move failed (${result.message}), fallback to copy+delete")
+                val copied = copyCloudToCloud(sourcePath, destPath)
+                if (copied != null && deleteFromCloud(sourcePath)) {
+                    Timber.i("moveCloudToCloud: SUCCESS - fallback copy+delete")
+                    copied
+                } else {
+                    Timber.e("moveCloudToCloud: FAILED - fallback copy+delete unsuccessful")
+                    null
+                }
             }
             null -> {
                 Timber.e("moveCloudToCloud: Re-authentication failed or cancelled")

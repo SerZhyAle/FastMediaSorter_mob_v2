@@ -164,34 +164,53 @@ class OneDriveRestClient @Inject constructor(
      * Start interactive sign-in flow
      */
     fun signIn(activity: Activity, callback: (AuthResult) -> Unit) {
-        val app = msalApp ?: run {
-            callback(AuthResult.Error("MSAL initialization failed"))
+        if (msalApp == null) {
+            Timber.d("MSAL not yet initialized, initializing before signIn...")
+            PublicClientApplication.createSingleAccountPublicClientApplication(
+                context,
+                com.sza.fastmediasorter.R.raw.msal_config,
+                object : IPublicClientApplication.ISingleAccountApplicationCreatedListener {
+                    override fun onCreated(application: ISingleAccountPublicClientApplication) {
+                        msalApp = application
+                        Timber.d("MSAL initialized successfully in signIn, proceeding")
+                        signInWithApp(activity, application, callback)
+                    }
+
+                    override fun onError(exception: MsalException) {
+                        Timber.e(exception, "MSAL initialization failed in signIn")
+                        callback(AuthResult.Error("MSAL initialization failed: ${exception.message}"))
+                    }
+                }
+            )
             return
         }
-        
-        // If an account is already signed in (but we are here, so auth failed), sign out first to allow fresh login
-        // This handles "MsalClientException: An account is already signed in"
+        val app = msalApp!!
+        signInWithApp(activity, app, callback)
+    }
+
+    /**
+     * Proceed with sign-in after MSAL is confirmed initialized.
+     * Handles sign-out of existing account if needed, then calls signInInternal.
+     */
+    private fun signInWithApp(activity: Activity, app: ISingleAccountPublicClientApplication, callback: (AuthResult) -> Unit) {
         val currentAccount = try {
-             app.currentAccount.currentAccount
+            app.currentAccount.currentAccount
         } catch (e: Exception) { null }
-        
+
         if (currentAccount != null) {
             Timber.d("Account already exists, signing out before interactive sign-in")
             app.signOut(object : ISingleAccountPublicClientApplication.SignOutCallback {
                 override fun onSignOut() {
-                    // Sign out successful, proceed to sign in
                     signInInternal(activity, app, callback)
                 }
-                
+
                 override fun onError(exception: MsalException) {
                     Timber.e(exception, "Sign-out failed during re-login attempt")
-                    // Try to sign in anyway, or report error? 
-                    // If sign-out fails, sign-in will likely fail too.
                     callback(AuthResult.Error("Re-login failed during sign-out: ${exception.message}"))
                 }
             })
         } else {
-             signInInternal(activity, app, callback)
+            signInInternal(activity, app, callback)
         }
     }
 

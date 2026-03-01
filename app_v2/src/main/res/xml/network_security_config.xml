@@ -18,4 +18,26 @@
         <domain includeSubdomains="true">localhost</domain>
         <domain includeSubdomains="true">127.0.0.1</domain>
     </domain-config>
+
+    <!-- Trust user-installed CAs for Dropbox/OneDrive cloud domains -->
+    <!-- Fixes CertPathValidatorException on devices with MITM-intercepting -->
+    <!-- proxies (AdGuard, corporate MDM, antivirus) that use user CAs -->
+    <domain-config>
+        <domain includeSubdomains="true">dropbox.com</domain>
+        <domain includeSubdomains="true">dropboxapi.com</domain>
+        <domain includeSubdomains="true">graph.microsoft.com</domain>
+        <domain includeSubdomains="true">login.microsoftonline.com</domain>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Debug builds: trust user CAs globally for easier testing -->
+    <debug-overrides>
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </debug-overrides>
 </network-security-config>

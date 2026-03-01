@@ -226,7 +226,7 @@
     <string name="error_network_not_found">Файл або ресурс не знайдено.</string>
     <string name="error_network_connection_lost">З\'єднання перервано. Будь ласка, повторіть спробу.</string>
     <string name="error_network_rate_limit">Забагато запитів. Зачекайте та спробуйте ще раз.</string>
-    <string name="error_network_server_error">Помилка сервера. Спробуйте пізніше.</string>
+    <string name="error_network_server_error">Помилка сервера. Немає відповіді.</string>
     <string name="error_network_unsupported">Операція не підтримується цим сервером.</string>
     <string name="error_network_generic">Помилка мережі. Будь ласка, спробуйте ще раз.</string>
 

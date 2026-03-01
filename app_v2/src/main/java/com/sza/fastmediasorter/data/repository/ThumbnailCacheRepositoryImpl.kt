@@ -51,7 +51,7 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             // Update access timestamp
             thumbnailCacheDao.updateAccessTime(filePath, System.currentTimeMillis())
             
-            Timber.d("ThumbnailCache: Cache HIT for $filePath")
+            Timber.v("ThumbnailCache: Cache HIT for $filePath")
             thumbnailFile
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error getting cached thumbnail for $filePath")
@@ -76,7 +76,7 @@ class ThumbnailCacheRepositoryImpl @Inject constructor(
             )
             
             thumbnailCacheDao.insertThumbnail(cacheEntry)
-            Timber.d("ThumbnailCache: Saved thumbnail for $filePath (${thumbnailFile.length()} bytes)")
+            Timber.v("ThumbnailCache: Saved thumbnail for $filePath (${thumbnailFile.length()} bytes)")
         } catch (e: Exception) {
             Timber.e(e, "ThumbnailCache: Error saving thumbnail for $filePath")
         }

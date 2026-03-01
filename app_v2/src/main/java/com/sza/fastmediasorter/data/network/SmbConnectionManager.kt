@@ -318,7 +318,11 @@ class SmbConnectionManager @Inject constructor(
         Timber.d("SMB connect to ${connectionInfo.server}:${connectionInfo.port} took ${connectTime}ms (degraded=$useDegradedTimeout)")
         
         val finalDomain = connectionInfo.domain.trim().ifEmpty { null }
-        Timber.d("SMB Auth: hasUser=${connectionInfo.username.isNotEmpty()}, hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=${connectionInfo.password.length}")
+        val pwdLen = connectionInfo.password.length
+        Timber.d("SMB Auth: user='${connectionInfo.username}', hasDomain=${!finalDomain.isNullOrBlank()}, pwdLen=$pwdLen")
+        if (connectionInfo.username.isNotEmpty() && pwdLen == 0) {
+            Timber.e("SMB Auth: password is EMPTY for non-anonymous user '${connectionInfo.username}' – possible Keystore decryption failure")
+        }
         
         val authContext = if (connectionInfo.username.isEmpty()) {
             AuthenticationContext.anonymous()
@@ -331,7 +335,12 @@ class SmbConnectionManager @Inject constructor(
         }
         
         val authStartTime = System.currentTimeMillis()
-        val session = connection.authenticate(authContext)
+        val session = try {
+            connection.authenticate(authContext)
+        } catch (e: com.hierynomus.mssmb2.SMBApiException) {
+            Timber.e("SMB STATUS_LOGON_FAILURE for user='${connectionInfo.username}', pwdLen=$pwdLen, domain=${finalDomain ?: "<none>"}, server=${connectionInfo.server}:${connectionInfo.port}")
+            throw e
+        }
         val authTime = System.currentTimeMillis() - authStartTime
         Timber.d("SMB authenticate took ${authTime}ms")
         

@@ -187,6 +187,15 @@ class PlayerGestureSetupManager(
                     return@setOnTouchListener false // Let toolbar/command panel buttons handle it
                 }
             }
+
+            // In command panel mode: don't intercept touches on bottom panels (Copy/Move sections)
+            // Let panel headers and destination buttons handle their own clicks.
+            if (!isInFullscreenMode && event.action == MotionEvent.ACTION_DOWN) {
+                if (safeViews.bottomPanelsContainer.isVisible && event.y >= safeViews.bottomPanelsContainer.top) {
+                    Timber.d("PlayerActivity.root.onTouch: touch in bottomPanelsContainer - passing through")
+                    return@setOnTouchListener false
+                }
+            }
             
             
             // For images: Only delegate to PhotoView/ImageView if they're actually visible

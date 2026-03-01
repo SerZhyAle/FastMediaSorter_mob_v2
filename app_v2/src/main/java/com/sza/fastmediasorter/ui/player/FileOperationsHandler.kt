@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.ui.player.helpers.FileCopyProgressDialog
@@ -219,12 +220,9 @@ class FileOperationsHandler(
                 
                 Timber.d("FileOperationsHandler.performDelete: Source file created: ${sourceFile.path}")
                 
-                // Determine if soft-delete is possible (only for local files, not SAF/network/cloud)
-                val canUseSoftDelete = !currentFile.path.startsWith("content:/") && 
-                                      !currentFile.path.startsWith("smb://") && 
-                                      !currentFile.path.startsWith("sftp://") && 
-                                      !currentFile.path.startsWith("ftp://") && 
-                                      !currentFile.path.startsWith("cloud://")
+                // Determine if soft-delete is possible (writable local paths only).
+                // Android/media and non-local schemes must go through direct delete flow.
+                val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(currentFile.path)
                 
                 Timber.d("FileOperationsHandler.performDelete: canUseSoftDelete=$canUseSoftDelete")
                 

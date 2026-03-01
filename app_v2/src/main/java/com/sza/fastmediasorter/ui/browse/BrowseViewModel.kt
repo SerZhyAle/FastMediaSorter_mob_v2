@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.MediaExtensions
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.data.observer.MediaFileObserver
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -611,57 +612,68 @@ class BrowseViewModel @Inject constructor(
 
     override fun onCleared() {
         Timber.d("BrowseViewModel.onCleared: START - resourceId=$resourceId, fileCount=${state.value.mediaFiles.size}")
-        // Save current filter state before clearing
-        val currentFilter = state.value.filter
-        viewModelScope.launch(ioDispatcher) {
-            browseStateDataStore.saveFilter(currentFilter)
-        }
-
-        inlineStop() // Release MediaPlayer before super.onCleared()
-
-        super.onCleared()
         
-        // Cancel all active network operations for this resource to prevent conflicts
-        val resource = state.value.resource
-        if (resource != null && resource.type != ResourceType.LOCAL) {
-            val resourceKey = when (resource.type) {
-                ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
-                    // Extract host:port from path (e.g., "smb://192.168.1.112:445/share")
-                    val uri = java.net.URI(resource.path)
-                    "${uri.scheme}://${uri.host}:${uri.port.takeIf { it != -1 } ?: 445}"
-                }
-                ResourceType.CLOUD -> "cloud://${resource.cloudProvider}/${resource.cloudFolderId}"
-                else -> null
-            }
-            resourceKey?.let { 
-                ConnectionThrottleManager.cancelAllForResource(it)
-                Timber.d("BrowseViewModel.onCleared: Cancelled all operations for $it")
-            }
-        }
-        
-        // Explicitly cancel active jobs to stop network requests immediately
-        // This ensures browsing stops but doesn't affect background copy/move operations
-        // which run in their own scope (e.g. CopyToDialog scope)
+        // ---- 1. Cancel all active jobs BEFORE super.onCleared() ----
+        // This stops network I/O, scan flows, and progress timers immediately.
         loadFilesJob?.cancel()
         loadResourceJob?.cancel()
         reloadFilesJob?.cancel()
         reloadDebounceJob?.cancel()
         stopButtonTimerJob?.cancel()
         playerWarmupJob?.cancel()
-        cancelScan() // Set flag for graceful stop
+        shouldStopScan.set(true) // Graceful stop flag for any in-flight scanner
         
         stopFileObserver()
         
-        // Cleanup trash folders when leaving resource (background, maxAge=0 = delete all)
-        if (resource != null) {
-            viewModelScope.launch(ioDispatcher) {
-                cleanupTrashOnBackground(resource, maxAgeMs = 0L)
+        // Cancel all active network operations for this resource (thumbnails, scans)
+        val resource = state.value.resource
+        if (resource != null && resource.type != ResourceType.LOCAL) {
+            val resourceKey = when (resource.type) {
+                ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP -> {
+                    val uri = java.net.URI(resource.path)
+                    "${uri.scheme}://${uri.host}:${uri.port.takeIf { it != -1 } ?: 445}"
+                }
+                ResourceType.CLOUD -> "cloud://${resource.cloudProvider}/${resource.cloudFolderId}"
+                else -> null
+            }
+            resourceKey?.let {
+                ConnectionThrottleManager.cancelAllForResource(it)
+                Timber.d("BrowseViewModel.onCleared: Cancelled all operations for $it")
             }
         }
         
-        // Clear PDF thumbnail cache - full PDF files no longer needed after leaving Browse
-        // Bitmap thumbnails remain in Glide disk cache for fast reload
-        clearPdfThumbnailCache()
+        // ---- 2. Save state & release resources (still on live scope) ----
+        val currentFilter = state.value.filter
+        viewModelScope.launch(ioDispatcher) {
+            browseStateDataStore.saveFilter(currentFilter)
+        }
+        
+        inlineStop() // Release MediaPlayer
+        
+        // Clear directory cache to free memory
+        directoryCache.clear()
+        
+        // ---- 3. Fire-and-forget cleanup with NonCancellable context ----
+        // These must survive viewModelScope cancellation.
+        if (resource != null) {
+            kotlinx.coroutines.CoroutineScope(ioDispatcher + kotlinx.coroutines.NonCancellable).launch {
+                try {
+                    cleanupTrashOnBackground(resource, maxAgeMs = 0L)
+                } catch (e: Exception) {
+                    Timber.w(e, "onCleared: trash cleanup failed")
+                }
+                try {
+                    unifiedCache.clearAll()
+                    Timber.d("onCleared: Cleared UnifiedFileCache")
+                } catch (e: Exception) {
+                    Timber.w(e, "onCleared: UnifiedFileCache cleanup failed")
+                }
+            }
+        }
+        
+        // ---- 4. Call super last — cancels viewModelScope ----
+        super.onCleared()
+        Timber.d("BrowseViewModel.onCleared: COMPLETE")
     }
     
     /**
@@ -869,16 +881,26 @@ class BrowseViewModel @Inject constructor(
         }
     }
 
-    fun cancelScan() {
-        // Setting graceful stop flag
-        // Set flag to signal scanner to stop gracefully and return partial results
+    /**
+     * Cancel active scan. For network resources the job is killed immediately
+     * to stop SMB/SFTP/FTP I/O. For local resources the scanner is allowed
+     * to finish gracefully so partial results can be displayed.
+     */
+    fun cancelScan(forceCancel: Boolean = false) {
         shouldStopScan.set(true)
         reloadDebounceJob?.cancel()
         reloadFilesJob?.cancel()
         playerWarmupJob?.cancel()
         
-        // Don't cancel the job - let it complete gracefully
-        // loadFilesJob will finish and emit partial results
+        // For network resources (or forced cancel e.g. onStop), kill the job
+        // to immediately release network connections and stop I/O.
+        val isNetwork = state.value.resource?.type.let {
+            it == ResourceType.SMB || it == ResourceType.SFTP || it == ResourceType.FTP
+        }
+        if (forceCancel || isNetwork) {
+            loadFilesJob?.cancel()
+            Timber.d("cancelScan: loadFilesJob cancelled (forceCancel=$forceCancel, network=$isNetwork)")
+        }
     }
 
     private suspend fun schedulePlayerWarmupIfEligible(mediaFiles: List<MediaFile>) {
@@ -964,6 +986,10 @@ class BrowseViewModel @Inject constructor(
             Timber.d("BrowseViewModel.navigateBack: At root, returning false")
             return false // At root, let activity handle back
         }
+        
+        // Cancel any running scan/load before navigating back
+        loadFilesJob?.cancel()
+        shouldStopScan.set(true)
         
         val parentPath = pathStack.last()
         val newStack = pathStack.dropLast(1)
@@ -2200,11 +2226,7 @@ class BrowseViewModel @Inject constructor(
             }
             
             // Determine if soft-delete is possible (only for local files, not SAF/network/cloud)
-            val canUseSoftDelete = selectedPaths.all { path ->
-                !path.startsWith("content:/") && !path.startsWith("smb://") && 
-                !path.startsWith("sftp://") && !path.startsWith("ftp://") && 
-                !path.startsWith("cloud://")
-            }
+            val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(selectedPaths)
             
             // Use FileOperationUseCase for delete (soft-delete for local, hard-delete for SAF/network/cloud)
             Timber.d("Deleting ${filesToDelete.size} files via FileOperationUseCase (softDelete=$canUseSoftDelete)")
@@ -3068,6 +3090,10 @@ class BrowseViewModel @Inject constructor(
         
         Timber.d("navigateToFolder: Navigating to ${folder.path}, stack depth: ${newStack.size}")
         
+        // Cancel any running scan/load before switching folder
+        loadFilesJob?.cancel()
+        shouldStopScan.set(true)
+        
         updateState {
             it.copy(
                 currentPath = folder.path,
@@ -3096,6 +3122,10 @@ class BrowseViewModel @Inject constructor(
      */
     fun navigateUp(): Boolean {
         if (!canNavigateUp()) return false
+        
+        // Cancel any running scan/load before navigating up
+        loadFilesJob?.cancel()
+        shouldStopScan.set(true)
         
         val stack = state.value.pathStack
         val newPath = stack.lastOrNull()

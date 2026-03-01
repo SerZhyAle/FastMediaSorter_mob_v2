@@ -60,6 +60,8 @@ class SmbMediaScanner @Inject constructor(
 
     companion object {
         // Extensions moved to MediaTypeUtils
+        /** Skip per-file EXIF/video metadata extraction when folder exceeds this count */
+        private const val METADATA_SKIP_THRESHOLD = 500
     }
 
     override suspend fun scanFolder(
@@ -120,6 +122,12 @@ class SmbMediaScanner @Inject constructor(
                     // Convert SmbFileInfo to MediaFile
                     // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
                     // val isAllFilesMode = supportedTypes.size == 7 // Already calculated above
+                    // Skip per-file metadata extraction for large folders to avoid
+                    // tens of minutes of individual SMB reads (EXIF / video probes).
+                    val skipMetadataExtraction = result.data.size > METADATA_SKIP_THRESHOLD
+                    if (skipMetadataExtraction) {
+                        Timber.d("Large folder (${result.data.size} files) — skipping per-file EXIF/video metadata extraction")
+                    }
                     result.data.mapNotNull { fileInfo ->
                         // Skip hidden files if not requested (files starting with ".")
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
@@ -138,13 +146,13 @@ class SmbMediaScanner @Inject constructor(
                                 return@mapNotNull null
                             }
 
-                            val exifMetadata = if (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF) {
+                            val exifMetadata = if (!skipMetadataExtraction && (mediaType == MediaType.IMAGE || mediaType == MediaType.GIF)) {
                                 extractExifMetadata(connectionInfo.connectionInfo, fileInfo.path)
                             } else {
                                 null
                             }
 
-                            val videoMetadata = if (mediaType == MediaType.VIDEO) {
+                            val videoMetadata = if (!skipMetadataExtraction && mediaType == MediaType.VIDEO) {
                                 extractVideoMetadata(connectionInfo.connectionInfo, fileInfo.path)
                             } else {
                                 null

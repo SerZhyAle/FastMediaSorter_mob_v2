@@ -603,7 +603,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         binding.btnStopScan.setOnClickListener {
             UserActionLogger.logButtonClick("StopScan", "BrowseActivity")
             Timber.d("Stop scan requested by user")
-            viewModel.cancelScan()
+            viewModel.cancelScan(forceCancel = true)
             val fileCount = viewModel.state.value.mediaFiles.size
             Toast.makeText(this, getString(R.string.scan_stopped, fileCount), Toast.LENGTH_SHORT).show()
         }
@@ -1026,8 +1026,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val filter = state.filter
                     val resource = state.resource
                     
-                    Timber.d("Filter badge check: filter=$filter")
-                    Timber.d("Filter badge check: resource.supportedMediaTypes=${resource?.supportedMediaTypes}")
+                    Timber.v("Filter badge check: filter=$filter")
+                    Timber.v("Filter badge check: resource.supportedMediaTypes=${resource?.supportedMediaTypes}")
                     
                     val isUserFilter = filter != null && !filter.isEmpty() && (
                         !filter.nameContains.isNullOrBlank() ||
@@ -1038,7 +1038,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
                     )
                     
-                    Timber.d("Filter badge check: isUserFilter=$isUserFilter (nameContains='${filter?.nameContains}', minDate=${filter?.minDate}, maxDate=${filter?.maxDate}, minSize=${filter?.minSizeMb}, maxSize=${filter?.maxSizeMb}, mediaTypes=${filter?.mediaTypes})")
+                    Timber.v("Filter badge check: isUserFilter=$isUserFilter (nameContains='${filter?.nameContains}', minDate=${filter?.minDate}, maxDate=${filter?.maxDate}, minSize=${filter?.minSizeMb}, maxSize=${filter?.maxSizeMb}, mediaTypes=${filter?.mediaTypes})")
                     
                     if (isUserFilter) {
                         // Show short toast instead of permanent warning line
@@ -1051,10 +1051,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     // Update filter badge (show red circle ONLY for user-defined filters)
                     if (isUserFilter) {
                         val filterCount = state.filter?.activeFilterCount() ?: 0
-                        Timber.d("Filter badge: SHOWING badge with count=$filterCount")
+                        Timber.v("Filter badge: SHOWING badge with count=$filterCount")
                         binding.btnFilter.setBadgeText(filterCount.toString())
                     } else {
-                        Timber.d("Filter badge: CLEARING badge (isUserFilter=false)")
+                        Timber.v("Filter badge: CLEARING badge (isUserFilter=false)")
                         binding.btnFilter.clearBadge()
                     }
 
@@ -2042,16 +2042,20 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             viewModel.inlineStop()
         }
         
-        // Cancel scan if Activity is going into background (not finishing)
-        // This prevents resource waste when:
-        // 1. User opens another BrowseActivity (navigation to different resource)
+        // Cancel scan and all loading tasks when Activity goes into background.
+        // For network resources the job is killed immediately (no point keeping
+        // SMB/FTP connections alive in background). For local resources the scan
+        // is stopped gracefully via shouldStop flag.
+        //
+        // Scenarios covered:
+        // 1. User opens another BrowseActivity (different resource)
         // 2. User minimizes app (Home button)
-        // 3. PlayerActivity is opening (scan will resume after return if needed)
-        // 
-        // If isFinishing=true, scan will be cancelled in onDestroy/onCleared anyway
+        // 3. PlayerActivity opens (scan resumes on return if needed)
+        // 4. User exits app (onDestroy/onCleared will also fire)
         if (!isFinishing) {
-            Timber.d("BrowseActivity.onStop: Activity going to background, stopping scan gracefully")
-            viewModel.cancelScan()
+            Timber.d("BrowseActivity.onStop: Activity going to background, cancelling scan")
+            viewModel.cancelScan(forceCancel = true)
+            viewModel.cancelBackgroundThumbnailLoading()
         } else {
             Timber.d("BrowseActivity.onStop: Activity finishing, scan will be cancelled in onDestroy")
         }

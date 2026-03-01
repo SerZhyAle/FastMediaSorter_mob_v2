@@ -12,9 +12,14 @@ class DeleteFilesUseCase @Inject constructor(
     suspend operator fun invoke(files: List<File>): FileOperationResult {
         val settings = settingsRepository.getSettings().first()
         val useTrash = settings.useTrash
+
+        val canUseSoftDeleteForAllFiles = DeletePathPolicy.canUseSoftDelete(
+            files.map { it.absolutePath }
+        )
+        val effectiveSoftDelete = useTrash && canUseSoftDeleteForAllFiles
         
         return fileOperationUseCase.execute(
-            FileOperation.Delete(files, softDelete = useTrash)
+            FileOperation.Delete(files, softDelete = effectiveSoftDelete)
         )
     }
 }

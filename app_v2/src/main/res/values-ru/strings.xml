@@ -232,7 +232,7 @@
     <string name="error_network_not_found">Файл или ресурс не найден.</string>
     <string name="error_network_connection_lost">Соединение прервано. Пожалуйста, повторите попытку.</string>
     <string name="error_network_rate_limit">Слишком много запросов. Подождите и попробуйте ещё раз.</string>
-    <string name="error_network_server_error">Ошибка сервера. Попробуйте позже.</string>
+    <string name="error_network_server_error">Ошибка сервера. Нет ответа.</string>
     <string name="error_network_unsupported">Операция не поддерживается этим сервером.</string>
     <string name="error_network_generic">Ошибка сети. Пожалуйста, попробуйте ещё раз.</string>
 

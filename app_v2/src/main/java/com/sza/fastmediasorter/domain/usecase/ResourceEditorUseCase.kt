@@ -14,6 +14,8 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
 import com.sza.fastmediasorter.domain.model.ResourceVerificationStatus
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.data.local.db.CryptoHelper
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.strategy.CloudResourceStrategy
@@ -51,6 +53,7 @@ class ResourceEditorUseCase @Inject constructor(
     private val addResourceUseCase: AddResourceUseCase,
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
+    private val credentialsRepository: NetworkCredentialsRepository,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
@@ -231,7 +234,13 @@ class ResourceEditorUseCase @Inject constructor(
             }
 
             val preparedFormData = ensureDestinationMetadata(formData)
-            var model = buildPersistenceModel(preparedFormData)
+            // Normalize fields (trim host, fix slashes, etc.) before persisting credentials
+            // so that credential lookup keys (server, port) are canonical.
+            val normalizedFormData = normalizeForStrategy(preparedFormData)
+            // Persist network credentials (SMB/SFTP/FTP) before building the MediaResource model
+            // so that the generated or updated credentialsId is embedded in the model.
+            val formDataWithCredentials = persistNetworkCredentials(normalizedFormData)
+            var model = buildPersistenceModel(formDataWithCredentials)
 
             val resourceId: Long = when {
                 formData.mode == ResourceEditorMode.EDIT -> {
@@ -285,6 +294,110 @@ class ResourceEditorUseCase @Inject constructor(
 
     private fun strategyFor(type: ResourceType): ResourceStrategy {
         return strategies[type] ?: LocalResourceStrategy()
+    }
+
+    /**
+     * Saves or updates network credentials (SMB/SFTP/FTP) for the given form data and returns
+     * a copy of the form data with [ResourceFormData.credentialsId] set to the persisted ID.
+     * For LOCAL and CLOUD resource types the form data is returned unchanged.
+     *
+     * Strategy:
+     * - EDIT mode (credentialsId present): update the EXISTING credential row directly by UUID
+     *   to avoid stale records when server+share lookup would miss.
+     * - CREATE mode (no credentialsId): delegate to SmbOperationsUseCase which does
+     *   insert-or-update by server+share / type+port key.
+     */
+    private suspend fun persistNetworkCredentials(formData: ResourceFormData): ResourceFormData {
+        if (formData.type !in setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)) {
+            return formData
+        }
+
+        val existingCredentialId = formData.credentialsId
+        if (existingCredentialId != null) {
+            // EDIT: update in-place by UUID; skip server+share lookup that may miss.
+            return updateCredentialInPlace(formData, existingCredentialId)
+        }
+
+        // CREATE: delegate to SmbOperationsUseCase (insert-or-update by server key)
+        val credentialId: String? = when (formData.type) {
+            ResourceType.SMB -> {
+                Timber.d("persistNetworkCredentials: CREATE SMB for host=${formData.host}")
+                smbOperationsUseCase.saveCredentials(
+                    server = formData.host,
+                    shareName = formData.path,
+                    username = formData.username,
+                    password = formData.password,
+                    domain = "", // ResourceFormData has no domain field; SMB domain not exposed in the editor
+                    port = formData.port ?: 445
+                ).onFailure { e -> Timber.e(e, "persistNetworkCredentials: SMB insert failed") }
+                    .getOrNull()
+            }
+            ResourceType.SFTP -> {
+                Timber.d("persistNetworkCredentials: CREATE SFTP for host=${formData.host}")
+                smbOperationsUseCase.saveSftpCredentials(
+                    host = formData.host,
+                    port = formData.port ?: 22,
+                    username = formData.username,
+                    password = formData.password
+                ).onFailure { e -> Timber.e(e, "persistNetworkCredentials: SFTP insert failed") }
+                    .getOrNull()
+            }
+            ResourceType.FTP -> {
+                Timber.d("persistNetworkCredentials: CREATE FTP for host=${formData.host}")
+                smbOperationsUseCase.saveFtpCredentials(
+                    host = formData.host,
+                    port = formData.port ?: 21,
+                    username = formData.username,
+                    password = formData.password
+                ).onFailure { e -> Timber.e(e, "persistNetworkCredentials: FTP insert failed") }
+                    .getOrNull()
+            }
+            else -> null
+        }
+        return if (credentialId != null) formData.copy(credentialsId = credentialId) else formData
+    }
+
+    /**
+     * Updates an existing [NetworkCredentialsEntity] in-place by its UUID.
+     * If the record is not found (e.g. was deleted externally), falls back to
+     * insert-or-update path by passing null credentialsId.
+     */
+    private suspend fun updateCredentialInPlace(
+        formData: ResourceFormData,
+        credentialId: String
+    ): ResourceFormData {
+        return try {
+            val existing = credentialsRepository.getByCredentialId(credentialId)
+            if (existing == null) {
+                Timber.w("updateCredentialInPlace: $credentialId not found, falling back to insert")
+                return persistNetworkCredentials(formData.copy(credentialsId = null))
+            }
+            val defaultPort = when (formData.type) {
+                ResourceType.SMB -> 445
+                ResourceType.SFTP -> 22
+                ResourceType.FTP -> 21
+                else -> existing.port
+            }
+            // Only re-encrypt when user actually typed something; otherwise keep the old hash.
+            val newEncryptedPwd = if (formData.password.isNotEmpty()) {
+                CryptoHelper.encrypt(formData.password) ?: existing.encryptedPassword
+            } else {
+                existing.encryptedPassword
+            }
+            val updated = existing.copy(
+                server = formData.host,
+                port = formData.port ?: defaultPort,
+                username = formData.username,
+                encryptedPassword = newEncryptedPwd,
+                domain = existing.domain // ResourceFormData has no domain field; preserve existing value
+            )
+            credentialsRepository.update(updated)
+            Timber.d("updateCredentialInPlace: OK id=$credentialId type=${formData.type} host=${formData.host} pwdChanged=${formData.password.isNotEmpty()}")
+            formData // credentialsId is already correct
+        } catch (e: Exception) {
+            Timber.e(e, "updateCredentialInPlace: failed for $credentialId")
+            formData
+        }
     }
 
     private suspend fun ensureDestinationMetadata(formData: ResourceFormData): ResourceFormData {

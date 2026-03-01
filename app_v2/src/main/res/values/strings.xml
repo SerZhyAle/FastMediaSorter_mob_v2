@@ -529,7 +529,7 @@
     <string name="error_network_not_found">File or resource not found.</string>
     <string name="error_network_connection_lost">Connection interrupted. Please retry.</string>
     <string name="error_network_rate_limit">Too many requests. Please wait and try again.</string>
-    <string name="error_network_server_error">Server error. Please try again later.</string>
+    <string name="error_network_server_error">Server error. No response.</string>
     <string name="error_network_unsupported">Operation not supported by this server.</string>
     <string name="error_network_generic">Network error. Please try again.</string>
 

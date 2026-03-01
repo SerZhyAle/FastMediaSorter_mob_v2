@@ -354,32 +354,32 @@ class MediaFileAdapter(
     
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int, payloads: MutableList<Any>) {
         val file = getItem(position)
-        Timber.d("onBindViewHolder WITH PAYLOADS: position=$position, file=${file.name}, payloads=$payloads, isEmpty=${payloads.isEmpty()}, skipFlag=$skipInitialThumbnailLoad")
+        Timber.v("onBindViewHolder WITH PAYLOADS: position=$position, file=${file.name}, payloads=$payloads, isEmpty=${payloads.isEmpty()}, skipFlag=$skipInitialThumbnailLoad")
         
         if (payloads.isEmpty()) {
             // Standard full bind
-            Timber.d("onBindViewHolder: payloads EMPTY, calling super (full bind) for ${file.name}")
+            Timber.v("onBindViewHolder: payloads EMPTY, calling super (full bind) for ${file.name}")
             super.onBindViewHolder(holder, position, payloads)
         } else {
             // Handle multiple payloads - process each one
             if (payloads.contains("LOAD_THUMBNAILS")) {
                 // For audio/text files: load extension bitmap (fast path in loadThumbnail handles this)
                 // For other types: load full thumbnail via Glide
-                Timber.d("onBindViewHolder: LOAD_THUMBNAILS payload detected for ${file.name}, calling loadThumbnailOnly")
+                Timber.v("onBindViewHolder: LOAD_THUMBNAILS payload detected for ${file.name}, calling loadThumbnailOnly")
                 when (holder) {
                     is ListViewHolder -> {
-                        Timber.d(">>> Calling ListViewHolder.loadThumbnailOnly for ${file.name}")
+                        Timber.v(">>> Calling ListViewHolder.loadThumbnailOnly for ${file.name}")
                         holder.loadThumbnailOnly(file)
                     }
                     is GridViewHolder -> {
-                        Timber.d(">>> Calling GridViewHolder.loadThumbnailOnly for ${file.name}")
+                        Timber.v(">>> Calling GridViewHolder.loadThumbnailOnly for ${file.name}")
                         holder.loadThumbnailOnly(file)
                     }
                 }
             }
             if (payloads.contains("FAVORITE_CHANGED")) {
                 // Partial bind: only update favorite icon
-                Timber.d("onBindViewHolder: FAVORITE_CHANGED payload detected for ${file.name}, updating icon only")
+                Timber.v("onBindViewHolder: FAVORITE_CHANGED payload detected for ${file.name}, updating icon only")
                 when (holder) {
                     is ListViewHolder -> {
                         holder.itemView.findViewById<android.widget.ImageButton>(R.id.btnFavorite)?.setImageResource(
@@ -401,7 +401,7 @@ class MediaFileAdapter(
             }
             // If no known payloads were handled, fall back to super
             if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED") && !payloads.contains(PAYLOAD_PLAYBACK_STATE)) {
-                Timber.d("onBindViewHolder: UNKNOWN payloads=$payloads, calling super")
+                Timber.v("onBindViewHolder: UNKNOWN payloads=$payloads, calling super")
                 super.onBindViewHolder(holder, position, payloads)
             }
         }
@@ -646,26 +646,26 @@ class MediaFileAdapter(
             // Note: credentialsId removed from key - it's session-specific and shouldn't affect cache
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
             
-            Timber.d("=== CACHE_KEY_DEBUG: loadThumbnailOnly called ===")
-            Timber.d("  File: ${file.name}")
-            Timber.d("  New Key: ${newKey.take(120)}")
-            Timber.d("  Last Key: ${lastLoadedKey?.take(120)}")
-            Timber.d("  refreshVersion: $refreshVersion")
+            Timber.v("=== CACHE_KEY_DEBUG: loadThumbnailOnly called ===")
+            Timber.v("  File: ${file.name}")
+            Timber.v("  New Key: ${newKey.take(120)}")
+            Timber.v("  Last Key: ${lastLoadedKey?.take(120)}")
+            Timber.v("  refreshVersion: $refreshVersion")
             
             // Only skip reload if the key is exactly the same (meaning thumbnail already loaded for this version)
             if (lastLoadedKey == newKey) {
-                Timber.d("  Result: SKIPPED - key matches (thumbnail already loaded)")
+                Timber.v("  Result: SKIPPED - key matches (thumbnail already loaded)")
                 return
             }
             
-            Timber.d("  Result: LOADING - key mismatch (will call loadThumbnail)")
+            Timber.v("  Result: LOADING - key mismatch (will call loadThumbnail)")
             loadThumbnail(file)
         }
 
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             // Note: Glide automatically cancels previous request when load() is called on same ImageView
             
-            Timber.d("ListViewHolder.bind: START file=${file.name}, isDirectory=${file.isDirectory}, childCount=${file.childCount}")
+            Timber.v("ListViewHolder.bind: START file=${file.name}, isDirectory=${file.isDirectory}, childCount=${file.childCount}")
             
             binding.apply {
                 val isSelected = file.path in selectedPaths
@@ -716,7 +716,7 @@ class MediaFileAdapter(
                 // Load thumbnail or folder icon
                 if (isFolder) {
                     // ALWAYS show folder icon, regardless of skipInitialThumbnailLoad
-                    Timber.d("ListViewHolder.bind: Setting folder icon for ${file.name}, isDirectory=${file.isDirectory}")
+                    Timber.v("ListViewHolder.bind: Setting folder icon for ${file.name}, isDirectory=${file.isDirectory}")
                     ivThumbnail.setImageResource(R.drawable.ic_folder)
                     ivThumbnail.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
                     ivThumbnail.setBackgroundColor(Color.TRANSPARENT)
@@ -727,7 +727,7 @@ class MediaFileAdapter(
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
                     } else {
-                        Timber.d("ListViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
+                        Timber.v("ListViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
                     }
                 }
                 // audioOnlyFile: thumbnail is GONE, nothing to load
@@ -766,7 +766,7 @@ class MediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             // Skip thumbnail loading during fast scroll
             if (isScrolling) {
-                Timber.d("loadThumbnail: SKIPPED during scroll for ${file.name}")
+                Timber.v("loadThumbnail: SKIPPED during scroll for ${file.name}")
                 return
             }
             
@@ -776,7 +776,7 @@ class MediaFileAdapter(
                 val extension = file.name.substringAfterLast('.', "").uppercase()
                 binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
                 applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                Timber.d("loadThumbnail: AUDIO extension bitmap for ${file.name} ($extension)")
+                Timber.v("loadThumbnail: AUDIO extension bitmap for ${file.name} ($extension)")
                 return
             }
 
@@ -796,7 +796,7 @@ class MediaFileAdapter(
                     val thumbnail = generator.generateThumbnail(extension, file.type, thumbnailSize)
                     binding.ivThumbnail.setImageBitmap(thumbnail)
                     resetThumbnailStyle(binding.ivThumbnail)
-                    Timber.d("Binary file thumbnail generated for ${file.name}")
+                    Timber.v("Binary file thumbnail generated for ${file.name}")
                 } ?: run {
                     val ext = extension.uppercase()
                     binding.ivThumbnail.setImageBitmap(createExtensionBitmap(ext))
@@ -807,11 +807,11 @@ class MediaFileAdapter(
             
             // Don't load thumbnails for directories - they use folder icon
             if (file.isDirectory) {
-                Timber.d("loadThumbnail: SKIPPED for directory ${file.name}")
+                Timber.v("loadThumbnail: SKIPPED for directory ${file.name}")
                 return
             }
             
-            Timber.d("loadThumbnail: START file=${file.name}")
+            Timber.v("loadThumbnail: START file=${file.name}")
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
             if (lastLoadedKey == newKey) {
                 return
@@ -827,7 +827,7 @@ class MediaFileAdapter(
             
             // If thumbnails disabled, show only extension-based icons (no Glide loading)
             if (this@MediaFileAdapter.disableThumbnails) {
-                Timber.d("THUMBNAIL_DEBUG: Skipping thumbnail load for ${file.name} - disableThumbnails=true")
+                Timber.v("THUMBNAIL_DEBUG: Skipping thumbnail load for ${file.name} - disableThumbnails=true")
                 when (file.type) {
                     MediaType.IMAGE -> {
                         showGeneratedPlaceholder(imageView, file)
@@ -872,7 +872,7 @@ class MediaFileAdapter(
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
 
             if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
-                Timber.d("THUMBNAIL_DEBUG: Document preview disabled on LOW memory for ${file.name}")
+                Timber.v("THUMBNAIL_DEBUG: Document preview disabled on LOW memory for ${file.name}")
                 when (file.type) {
                     MediaType.PDF -> {
                         showGeneratedPlaceholder(imageView, file)
@@ -979,7 +979,7 @@ class MediaFileAdapter(
                         } else {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.d("Skipping EPUB cover load for ${file.name} (cached as failed)")
+                                Timber.v("Skipping EPUB cover load for ${file.name} (cached as failed)")
                                 showGeneratedPlaceholder(imageView, file)
                             } else {
                                 // File size OK - use NetworkEpubCoverLoader
@@ -1038,7 +1038,7 @@ class MediaFileAdapter(
                     // PDF thumbnails are always shown when PDF support is enabled
                     // getShowPdfThumbnails() controls size limits (Large PDF Thumbnails setting)
                     val largePdfThumbnails = getShowPdfThumbnails()
-                    Timber.d("PDF_THUMB_DEBUG: Loading PDF thumbnail for ${file.name}, largePdfMode=$largePdfThumbnails, isNetwork=$isNetworkPath, isCloud=$isCloudPath, size=${file.size}")
+                    Timber.v("PDF_THUMB_DEBUG: Loading PDF thumbnail for ${file.name}, largePdfMode=$largePdfThumbnails, isNetwork=$isNetworkPath, isCloud=$isCloudPath, size=${file.size}")
                     
                     // Load PDF thumbnail using Glide (PdfPageDecoder registered in GlideAppModule)
                     if (!isCloudPath && !isNetworkPath) {
@@ -1065,20 +1065,20 @@ class MediaFileAdapter(
                             // "Large PDF Thumbnails" disabled - use normal limits
                             if (isSmbPath) SMB_PDF_NORMAL_MAX_SIZE else NETWORK_PDF_NORMAL_MAX_SIZE
                         }
-                        Timber.d("PDF_THUMB_DEBUG: Network PDF ${file.name}, size=${file.size}, maxSize=$maxSize, isSMB=$isSmbPath, largePdfMode=$largePdfThumbnails")
+                        Timber.v("PDF_THUMB_DEBUG: Network PDF ${file.name}, size=${file.size}, maxSize=$maxSize, isSMB=$isSmbPath, largePdfMode=$largePdfThumbnails")
                         
                         if (file.size > maxSize) {
                             // File too large - show placeholder icon without downloading
-                            Timber.d("PDF_THUMB_DEBUG: PDF too large, showing placeholder for ${file.name}")
+                            Timber.v("PDF_THUMB_DEBUG: PDF too large, showing placeholder for ${file.name}")
                             showGeneratedPlaceholder(imageView, file)
                         } else {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.d("Skipping PDF thumbnail load for ${file.name} (cached as failed)")
+                                Timber.v("Skipping PDF thumbnail load for ${file.name} (cached as failed)")
                                 showGeneratedPlaceholder(imageView, file)
                             } else {
                                 // File size OK - use NetworkPdfThumbnailLoader
-                                Timber.d("PDF_THUMB_DEBUG: Loading network PDF thumbnail via Glide for ${file.name}")
+                                Timber.v("PDF_THUMB_DEBUG: Loading network PDF thumbnail via Glide for ${file.name}")
                                 Glide.with(context)
                                     .asBitmap()
                                     .load(NetworkFileData(
@@ -1180,7 +1180,7 @@ class MediaFileAdapter(
                         isNetworkPath -> {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.d("Skipping thumbnail load for ${file.name} (cached as failed)")
+                                Timber.v("Skipping thumbnail load for ${file.name} (cached as failed)")
                                 showGeneratedPlaceholder(imageView, file)
                                 return
                             }
@@ -1217,7 +1217,7 @@ class MediaFileAdapter(
                                         isFirstResource: Boolean
                                     ): Boolean {
                                         com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.d("CACHE_HIT_DEBUG: Network image loaded from ${dataSource.name} for ${file.name}")
+                                        Timber.v("CACHE_HIT_DEBUG: Network image loaded from ${dataSource.name} for ${file.name}")
                                         resetThumbnailStyle(imageView)
                                         return false
                                     }
@@ -1262,7 +1262,7 @@ class MediaFileAdapter(
                                         isFirstResource: Boolean
                                     ): Boolean {
                                         com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.d("CACHE_HIT_DEBUG: Local image loaded from ${dataSource.name} for ${file.name}")
+                                        Timber.v("CACHE_HIT_DEBUG: Local image loaded from ${dataSource.name} for ${file.name}")
                                         resetThumbnailStyle(imageView)
                                         return false
                                     }
@@ -1343,7 +1343,7 @@ class MediaFileAdapter(
                                         // Check if this is a video decoder failure
                                         if (isVideoDecoderException(e)) {
                                             NetworkFileDataFetcher.markVideoAsFailed(file.path)
-                                            Timber.d("Thumbnail load failed: ${file.name} (decoder error, cached)")
+                                            Timber.v("Thumbnail load failed: ${file.name} (decoder error, cached)")
                                         } else if (e != null) {
                                             Timber.w("Thumbnail load failed: ${file.name}, ${e.message}")
                                         }
@@ -1359,7 +1359,7 @@ class MediaFileAdapter(
                                         isFirstResource: Boolean
                                     ): Boolean {
                                         com.sza.fastmediasorter.utils.GlideCacheStats.recordLoad(dataSource)
-                                        Timber.d("CACHE_HIT_DEBUG: Video loaded from ${dataSource.name} for ${file.name}")
+                                        Timber.v("CACHE_HIT_DEBUG: Video loaded from ${dataSource.name} for ${file.name}")
                                         resetThumbnailStyle(imageView)
                                         return false
                                     }
@@ -1687,7 +1687,7 @@ class MediaFileAdapter(
         fun bind(file: MediaFile, selectedPaths: Set<String>) {
             // Note: Glide automatically cancels previous request when load() is called on same ImageView
             
-            Timber.d("GridViewHolder.bind: START file=${file.name}, isDirectory=${file.isDirectory}, childCount=${file.childCount}")
+            Timber.v("GridViewHolder.bind: START file=${file.name}, isDirectory=${file.isDirectory}, childCount=${file.childCount}")
             
             binding.apply {
                 val isSelected = file.path in selectedPaths
@@ -1742,7 +1742,7 @@ class MediaFileAdapter(
                 // Load thumbnail or folder icon
                 if (isFolder) {
                     // ALWAYS show folder icon, regardless of skipInitialThumbnailLoad
-                    Timber.d("GridViewHolder.bind: Setting folder icon for ${file.name}, isDirectory=${file.isDirectory}")
+                    Timber.v("GridViewHolder.bind: Setting folder icon for ${file.name}, isDirectory=${file.isDirectory}")
                     ivThumbnail.setImageResource(R.drawable.ic_folder)
                     ivThumbnail.scaleType = android.widget.ImageView.ScaleType.CENTER_INSIDE
                     ivThumbnail.setBackgroundColor(Color.TRANSPARENT)
@@ -1753,7 +1753,7 @@ class MediaFileAdapter(
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
                     } else {
-                        Timber.d("GridViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
+                        Timber.v("GridViewHolder.bind: SKIPPED initial thumbnail load for ${file.name} (waiting for payload)")
                     }
                 }
                 
@@ -1781,13 +1781,13 @@ class MediaFileAdapter(
         private fun loadThumbnail(file: MediaFile) {
             // Skip thumbnail loading during fast scroll
             if (isScrolling) {
-                Timber.d("loadThumbnail (Grid): SKIPPED during scroll for ${file.name}")
+                Timber.v("loadThumbnail (Grid): SKIPPED during scroll for ${file.name}")
                 return
             }
             
             // Skip thumbnail loading for directories (folders have static icons)
             if (file.isDirectory) {
-                Timber.d("loadThumbnail: SKIP directory ${file.name}")
+                Timber.v("loadThumbnail: SKIP directory ${file.name}")
                 return
             }
             
@@ -1797,7 +1797,7 @@ class MediaFileAdapter(
                 val extension = file.name.substringAfterLast('.', "").uppercase()
                 binding.ivThumbnail.setImageBitmap(createExtensionBitmap(extension))
                 applyPlaceholderStyle(binding.ivThumbnail, file.type, true)
-                Timber.d("loadThumbnail (Grid): AUDIO extension bitmap for ${file.name} ($extension)")
+                Timber.v("loadThumbnail (Grid): AUDIO extension bitmap for ${file.name} ($extension)")
                 return
             }
 
@@ -1817,7 +1817,7 @@ class MediaFileAdapter(
                     val thumbnail = generator.generateThumbnail(extension, file.type, thumbnailSize)
                     binding.ivThumbnail.setImageBitmap(thumbnail)
                     resetThumbnailStyle(binding.ivThumbnail)
-                    Timber.d("Binary file thumbnail generated for ${file.name}")
+                    Timber.v("Binary file thumbnail generated for ${file.name}")
                 } ?: run {
                     val ext = extension.uppercase()
                     binding.ivThumbnail.setImageBitmap(createExtensionBitmap(ext))
@@ -1826,7 +1826,7 @@ class MediaFileAdapter(
                 return
             }
             
-            Timber.d("loadThumbnail: START file=${file.name}")
+            Timber.v("loadThumbnail: START file=${file.name}")
             val newKey = "${file.path}_${file.size}_${disableThumbnails}_${getShowVideoThumbnails()}_${getShowPdfThumbnails()}_${refreshVersion}"
             if (lastLoadedKey == newKey) {
                 return
@@ -1874,7 +1874,7 @@ class MediaFileAdapter(
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
 
             if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
-                Timber.d("THUMBNAIL_DEBUG: Grid document preview disabled on LOW memory for ${file.name}")
+                Timber.v("THUMBNAIL_DEBUG: Grid document preview disabled on LOW memory for ${file.name}")
                 when (file.type) {
                     MediaType.PDF -> imageView.setImageBitmap(createExtensionBitmap("PDF"))
                     MediaType.EPUB -> {
@@ -1956,7 +1956,7 @@ class MediaFileAdapter(
                         isNetworkPath -> {
                             // Check if thumbnail loading previously failed for this file
                             if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-                                Timber.d("Skipping thumbnail load for ${file.name} (cached as failed)")
+                                Timber.v("Skipping thumbnail load for ${file.name} (cached as failed)")
                                 showGeneratedPlaceholder(imageView, file)
                                 return
                             }
@@ -2108,7 +2108,7 @@ class MediaFileAdapter(
                                         // Check if this is a video decoder failure
                                         if (isVideoDecoderException(e)) {
                                             NetworkFileDataFetcher.markVideoAsFailed(file.path)
-                                            Timber.d("Thumbnail load failed: ${file.name} (decoder error, cached)")
+                                            Timber.v("Thumbnail load failed: ${file.name} (decoder error, cached)")
                                         } else if (e != null) {
                                             Timber.w("Thumbnail load failed: ${file.name}, ${e.message}")
                                         }

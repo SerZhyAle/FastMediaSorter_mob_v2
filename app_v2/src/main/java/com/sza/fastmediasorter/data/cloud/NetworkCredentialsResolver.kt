@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import kotlinx.coroutines.flow.first
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -87,9 +89,12 @@ class NetworkCredentialsResolver @Inject constructor(
         val shareName = parts[1]
         
         // Try multiple lookup strategies for better matching
-        val creds = credentialsRepository.getByServerAndShare(server, shareName)
-            ?: credentialsRepository.getCredentialsByHost(server)
-            ?: credentialsRepository.getByTypeServerAndPort("SMB", server, port)
+        val creds = pickBestValidCandidate(
+            resolveBestCredential(type = "SMB", host = server, port = port),
+            credentialsRepository.getByServerAndShare(server, shareName),
+            credentialsRepository.getByTypeServerAndPort("SMB", server, port),
+            credentialsRepository.getCredentialsByHost(server)
+        )
         
         return creds?.let {
             NetworkCredentials(
@@ -117,8 +122,11 @@ class NetworkCredentialsResolver @Inject constructor(
         val host = hostPort[0]
         val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 22 else 22
         
-        val creds = credentialsRepository.getByTypeServerAndPort("SFTP", host, port)
-            ?: credentialsRepository.getCredentialsByHost(host)
+        val creds = pickBestValidCandidate(
+            resolveBestCredential(type = "SFTP", host = host, port = port),
+            credentialsRepository.getByTypeServerAndPort("SFTP", host, port),
+            credentialsRepository.getCredentialsByHost(host)
+        )
         
         return creds?.let {
             NetworkCredentials(
@@ -146,8 +154,11 @@ class NetworkCredentialsResolver @Inject constructor(
         val host = hostPort[0]
         val port = if (hostPort.size > 1) hostPort[1].toIntOrNull() ?: 21 else 21
         
-        val creds = credentialsRepository.getByTypeServerAndPort("FTP", host, port)
-            ?: credentialsRepository.getCredentialsByHost(host)
+        val creds = pickBestValidCandidate(
+            resolveBestCredential(type = "FTP", host = host, port = port),
+            credentialsRepository.getByTypeServerAndPort("FTP", host, port),
+            credentialsRepository.getCredentialsByHost(host)
+        )
         
         return creds?.let {
             NetworkCredentials(
@@ -206,5 +217,75 @@ class NetworkCredentialsResolver @Inject constructor(
             password = password,
             privateKey = privateKey
         )
+    }
+
+    private suspend fun resolveBestCredential(
+        type: String,
+        host: String,
+        port: Int
+    ): NetworkCredentialsEntity? {
+        val allCredentials = credentialsRepository.getAllCredentials().first()
+
+        val strictMatches = allCredentials.filter {
+            it.type.equals(type, ignoreCase = true) &&
+                it.server.equals(host, ignoreCase = true) &&
+                it.port == port
+        }
+
+        val hostMatches = if (strictMatches.isEmpty()) {
+            allCredentials.filter {
+                it.type.equals(type, ignoreCase = true) &&
+                    it.server.equals(host, ignoreCase = true)
+            }
+        } else {
+            emptyList()
+        }
+
+        val candidates = if (strictMatches.isNotEmpty()) strictMatches else hostMatches
+        if (candidates.isEmpty()) return null
+
+        val validCandidates = candidates.filter(::isCredentialUsable)
+        if (validCandidates.isEmpty()) {
+            Timber.w("resolveBestCredential: no valid credentials for type=$type host=$host port=$port (all candidates have empty username/password)")
+            return null
+        }
+
+        return validCandidates.maxWithOrNull(
+            compareBy<NetworkCredentialsEntity> {
+                if (it.password.isNotBlank()) 1 else 0
+            }.thenBy {
+                if (it.username.isNotBlank()) 1 else 0
+            }.thenBy {
+                if (it.shareName?.isNotBlank() == true) 1 else 0
+            }.thenBy { it.id }
+        )
+    }
+
+    private fun pickBestValidCandidate(vararg candidates: NetworkCredentialsEntity?): NetworkCredentialsEntity? {
+        val validCandidates = candidates
+            .filterNotNull()
+            .filter(::isCredentialUsable)
+
+        return validCandidates.maxWithOrNull(
+            compareBy<NetworkCredentialsEntity> {
+                if (it.password.isNotBlank()) 1 else 0
+            }.thenBy {
+                if (it.username.isNotBlank()) 1 else 0
+            }.thenBy {
+                if (it.shareName?.isNotBlank() == true) 1 else 0
+            }.thenBy { it.id }
+        )
+    }
+
+    private fun isCredentialUsable(entity: NetworkCredentialsEntity): Boolean {
+        val hasUsername = entity.username.isNotBlank()
+        val hasPassword = entity.password.isNotBlank()
+        if (!hasUsername || !hasPassword) {
+            Timber.w(
+                "Skipping invalid credential id=${entity.id} type=${entity.type} server=${entity.server}:${entity.port} " +
+                    "(usernameBlank=${!hasUsername}, passwordBlank=${!hasPassword})"
+            )
+        }
+        return hasUsername && hasPassword
     }
 }

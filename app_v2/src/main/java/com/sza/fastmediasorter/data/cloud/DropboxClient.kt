@@ -7,6 +7,9 @@ import androidx.security.crypto.MasterKey
 import com.dropbox.core.DbxException
 import com.dropbox.core.DbxRequestConfig
 import com.dropbox.core.android.Auth
+import com.dropbox.core.http.OkHttp3Requestor
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import com.dropbox.core.oauth.DbxCredential
 import com.dropbox.core.v2.DbxClientV2
 import com.dropbox.core.v2.files.CreateFolderErrorException
@@ -64,6 +67,22 @@ class DropboxClient @Inject constructor(
     @Volatile
     private var lastInitializationError: String? = null
     
+    /**
+     * Shared DbxRequestConfig using app-bundled OkHttp3 instead of system's
+     * com.android.okhttp (StandardHttpRequestor). Fixes TLS validation issues
+     * on devices with outdated system OkHttp or MITM-intercepting proxies.
+     */
+    private val dbxRequestConfig by lazy {
+        val okHttpClient = OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build()
+        DbxRequestConfig.newBuilder(APP_NAME)
+            .withHttpRequestor(OkHttp3Requestor(okHttpClient))
+            .build()
+    }
+
     private val encryptedPrefs by lazy {
         try {
             val masterKey = MasterKey.Builder(context)
@@ -305,8 +324,7 @@ class DropboxClient @Inject constructor(
     private suspend fun initializeWithCredential(credential: DbxCredential): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val config = DbxRequestConfig.newBuilder(APP_NAME).build()
-                dbxClient = DbxClientV2(config, credential)
+                dbxClient = DbxClientV2(dbxRequestConfig, credential)
                 
                 // Get account info to verify connection and get email
                 val account = dbxClient!!.users().currentAccount
@@ -336,8 +354,7 @@ class DropboxClient @Inject constructor(
     private suspend fun initializeWithAccessToken(accessToken: String): Boolean {
         return withContext(Dispatchers.IO) {
             try {
-                val config = DbxRequestConfig.newBuilder(APP_NAME).build()
-                dbxClient = DbxClientV2(config, accessToken)
+                dbxClient = DbxClientV2(dbxRequestConfig, accessToken)
                 
                 // Get account info to verify connection and get email
                 val account = dbxClient!!.users().currentAccount

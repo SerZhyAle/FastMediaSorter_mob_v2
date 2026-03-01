@@ -8,6 +8,7 @@ import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogDeleteBinding
 import com.sza.fastmediasorter.domain.usecase.FileOperation
+import com.sza.fastmediasorter.domain.usecase.DeletePathPolicy
 import com.sza.fastmediasorter.domain.usecase.FileOperationResult
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
@@ -75,7 +76,14 @@ class DeleteDialog(
                     }
                 }
                 
-                val operation = FileOperation.Delete(filesWithPreservedPaths)
+                val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(
+                    filesWithPreservedPaths.map { it.absolutePath }
+                )
+
+                val operation = FileOperation.Delete(
+                    files = filesWithPreservedPaths,
+                    softDelete = canUseSoftDelete
+                )
                 
                 // Show FileOperationProgressDialog with cancel support
                 val progressDialog = FileOperationProgressDialog.show(

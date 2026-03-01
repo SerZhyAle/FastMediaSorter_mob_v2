@@ -715,12 +715,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             .setTitle(getString(titleRes))
             .setItems(options.toTypedArray()) { _, which ->
                 if (which == options.size - 1) {
-                    // Add New Account
-                    when(providerName) {
-                        com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name -> launchGoogleSignIn()
-                        com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name -> authenticateOneDrive()
-                        com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name -> authenticateDropbox()
+                    // Add New Account — go directly to interactive sign-in, skip testConnection
+                    val provider = when(providerName) {
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE.name -> com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE.name -> com.sza.fastmediasorter.data.cloud.CloudProvider.ONEDRIVE
+                        com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX.name -> com.sza.fastmediasorter.data.cloud.CloudProvider.DROPBOX
+                        else -> return@setItems
                     }
+                    unifiedAuthManager.startInteractiveSignIn(this@AddResourceActivity, provider)
                 } else {
                     // Existing account
                     val selectedEmail = options[which]
@@ -1040,7 +1042,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
     
     // ========== Dropbox Methods ==========
-    
+
     override fun onResume() {
         super.onResume()
         lifecycleScope.launch {
@@ -1784,6 +1786,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                         getString(R.string.folder_selection_limitations),
                         Toast.LENGTH_LONG
                     ).show()
+                }
+            }
+            com.sza.fastmediasorter.data.cloud.GoogleDriveAuthPlugin.RC_SIGN_IN -> {
+                timber.log.Timber.i("Google Sign-In onActivityResult: resultCode=$resultCode, hasData=${data != null}")
+                lifecycleScope.launch {
+                    unifiedAuthManager.processIntentResult(data)
                 }
             }
         }
