@@ -403,7 +403,7 @@ class AddResourceViewModel @Inject constructor(
                 } else {
                     uri.path ?: ""
                 }
-                val name = uri.lastPathSegment ?: "Unknown"
+                val name = suggestLocalResourceName(uri)
                 
                 val supportedTypes = getSupportedMediaTypes()
                 
@@ -1542,5 +1542,30 @@ class AddResourceViewModel @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "Automatic speed test failed for ${resource.name}")
         }
+    }
+
+    /**
+     * Suggest a display name for a locally selected folder URI.
+     *
+     * Uses the last two path segments when the parent segment is short (< 15 chars),
+     * which prevents collisions like "Pictures/Telegram" vs "Movies/Telegram".
+     *
+     * For SAF content URIs the path encoded in lastPathSegment has the form
+     * "primary:Pictures/Telegram" — we strip the volume prefix before splitting.
+     */
+    private fun suggestLocalResourceName(uri: android.net.Uri): String {
+        val rawSegment = uri.lastPathSegment ?: return "Folder"
+
+        // Strip volume prefix (e.g. "primary:" or "0000-0000:")
+        val pathPart = if (rawSegment.contains(':')) rawSegment.substringAfter(':') else rawSegment
+
+        val segments = pathPart.split('/').filter { it.isNotEmpty() }
+        if (segments.isEmpty()) return rawSegment
+
+        val folderName = segments.last()
+        if (segments.size < 2) return folderName
+
+        val parentName = segments[segments.size - 2]
+        return if (parentName.length < 15) "$parentName/$folderName" else folderName
     }
 }

@@ -55,7 +55,15 @@ class UnifiedCloudAuthManager @Inject constructor(
         
         try {
             plugin.startInteractiveSignIn(activity)
-            StructuredLogger.d("Interactive signIn launched", "provider" to provider.name)
+            // Check for synchronous failures (e.g. MSAL cert hash mismatch fires onError
+            // before any Activity transition, so onResume never triggers handleResume).
+            val immediateResult = plugin.consumeImmediateResult()
+            if (immediateResult != null) {
+                StructuredLogger.w("Immediate auth failure detected (no UI shown)", "provider" to provider.name)
+                processPluginResult(provider, immediateResult)
+            } else {
+                StructuredLogger.d("Interactive signIn launched", "provider" to provider.name)
+            }
         } catch (e: Exception) {
             StructuredLogger.e(e, "Failed to start sign-in", "provider" to provider.name)
             handleFailedAuth(provider, "Failed to start sign-in: ${e.message}")

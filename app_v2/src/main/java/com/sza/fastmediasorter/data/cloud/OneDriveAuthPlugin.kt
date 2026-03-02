@@ -30,6 +30,19 @@ class OneDriveAuthPlugin @Inject constructor(
         }
     }
 
+    /**
+     * MSAL may call onError synchronously (e.g. cert hash mismatch, broker failure)
+     * before the Activity ever leaves the foreground, so onResume never fires.
+     * This method allows the caller to drain the deferred right after startInteractiveSignIn returns.
+     */
+    @OptIn(ExperimentalCoroutinesApi::class)
+    override fun consumeImmediateResult(): AuthResult? {
+        val d = authDeferred ?: return null
+        if (!d.isCompleted) return null
+        authDeferred = null
+        return d.getCompleted()
+    }
+
     override suspend fun processIntentResult(data: Intent?): AuthResult? {
         // MSAL handles its own internal ActivityResult; we just wait for the callback in handleResume
         return null

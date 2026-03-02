@@ -82,7 +82,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/WdRIvjP3wXJ5jte7TPUOqtT59es=" />
+                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/FYsxzaNPAAPFK3rigkV29z+r0es=" />
             </intent-filter>
         </activity>
 

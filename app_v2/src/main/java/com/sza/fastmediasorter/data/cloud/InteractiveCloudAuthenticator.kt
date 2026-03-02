@@ -39,4 +39,11 @@ interface InteractiveCloudAuthenticator {
      * @return [AuthResult] if an authentication result was processed, or null otherwise.
      */
     suspend fun handleResume(): AuthResult?
+
+    /**
+     * Returns a result if the auth flow failed synchronously before any Activity transition
+     * (e.g. MSAL certificate hash mismatch causing an immediate onError callback).
+     * Default implementation returns null (most providers don't fail before leaving the screen).
+     */
+    fun consumeImmediateResult(): AuthResult? = null
 }

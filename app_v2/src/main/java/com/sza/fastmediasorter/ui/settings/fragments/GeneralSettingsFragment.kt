@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
@@ -185,13 +186,25 @@ class GeneralSettingsFragment : Fragment() {
             val intent = DebugToolsBridge.maybeCreateDebugMenuIntent(requireContext())
             if (intent != null) {
                 startActivity(intent)
-                true
             } else {
-                false
+                // Release build: share logs instead of opening debug menu
+                shareLogs()
             }
+            true
         }
     }
     
+    private fun shareLogs() {
+        val result = LogExportHelper.exportLogs(requireActivity())
+        when (result) {
+            is LogExportHelper.ExportResult.NoLogs ->
+                Toast.makeText(requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
+            is LogExportHelper.ExportResult.Error ->
+                Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
+            is LogExportHelper.ExportResult.Success -> { /* share chooser launched */ }
+        }
+    }
+
     private fun openEmailClient() {
         val version = com.sza.fastmediasorter.BuildConfig.VERSION_NAME
         val subject = "About FastImageSorter (mobile) $version"

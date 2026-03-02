@@ -105,7 +105,7 @@ object LoggingHelper {
             fileLoggingTree = fileTree
             Timber.plant(fileTree)
         } else {
-            // Release build: only warnings and errors
+            // Release build: WARN/ERROR to Logcat
             Timber.plant(object : Timber.Tree() {
                 override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
                     // Filter: only WARN and ERROR in release
@@ -115,6 +115,10 @@ object LoggingHelper {
                     }
                 }
             })
+            // Also persist WARN/ERROR to file so users can share diagnostics without ADB
+            val fileTree = FileLoggingTree(context, minPriority = android.util.Log.WARN)
+            fileLoggingTree = fileTree
+            Timber.plant(fileTree)
         }
     }
     
@@ -125,7 +129,11 @@ object LoggingHelper {
      * Logs are rotated: keeps last 5 log files, max 5MB each.
      * File naming: fastmediasorter_YYYYMMDD_HHmmss.log
      */
-    private class FileLoggingTree(context: Context) : Timber.Tree() {
+    private class FileLoggingTree(
+        context: Context,
+        /** Minimum log priority to persist. VERBOSE by default (log everything). */
+        private val minPriority: Int = android.util.Log.VERBOSE
+    ) : Timber.Tree() {
         
         private val logDir: File = File(context.getExternalFilesDir(null), "logs")
         private val maxFileSize = 5 * 1024 * 1024L // 5 MB
@@ -155,6 +163,7 @@ object LoggingHelper {
         }
         
         override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+            if (priority < minPriority) return  // Skip below threshold (e.g. VERBOSE/DEBUG in release)
             // Wrap file I/O in StrictModeHelper to avoid violations
             // File logging is an expected debug operation, not a bug
             // Use allowDiskIO (not just allowDiskWrites) because we also check file.exists() and file.length()

@@ -84,8 +84,9 @@ class ResourceToAddAdapter(
                 }
                 
                 etName.removeTextChangedListener(nameWatcher)
-                // Only update if text differs to avoid cursor position issues
-                if (etName.text.toString() != resource.name) {
+                // Skip setText when field has focus — user is actively editing,
+                // resetting text would jump the cursor to position 0.
+                if (!etName.hasFocus() && etName.text.toString() != resource.name) {
                     etName.setText(resource.name)
                 }
                 etName.addTextChangedListener(nameWatcher)

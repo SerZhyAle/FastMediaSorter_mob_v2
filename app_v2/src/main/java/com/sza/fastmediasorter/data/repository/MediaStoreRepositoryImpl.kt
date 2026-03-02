@@ -84,8 +84,20 @@ class MediaStoreRepositoryImpl @Inject constructor(
                         
                         // Filter out hidden folders (starting with dot)
                         if (parentName.startsWith(".")) continue
-                        
-                        val builder = folderMap.getOrPut(parentPath) { FolderBuilder(parentPath, parentName) }
+
+                        // Use two-segment name when parent folder name is short (< 15 chars)
+                        // to avoid ambiguity (e.g. "Telegram" inside both Movies and Pictures).
+                        val grandParentName = File(parentPath).parentFile?.name.orEmpty()
+                        val folderDisplayName = if (grandParentName.isNotEmpty()
+                            && !grandParentName.startsWith(".")
+                            && grandParentName.length < 15
+                        ) {
+                            "$grandParentName/$parentName"
+                        } else {
+                            parentName
+                        }
+
+                        val builder = folderMap.getOrPut(parentPath) { FolderBuilder(parentPath, folderDisplayName) }
                         builder.count++
                         builder.types.add(type)
                     }
