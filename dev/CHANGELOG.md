@@ -20,3 +20,7 @@ Format: | datetime | file | target | description |
 | 2026-03-02 01:12:20 | `AGENTS.md` | `AGENTS` | Added TECH_REQUIREMENTS.md to research order and tech requirements directive |
 | 2026-03-02 01:12:20 | `.github/copilot-instructions.md` | `copilot-instructions` | Added TECH_REQUIREMENTS.md to routing rules and research shortcuts |
 | 2026-03-02 01:12:20 | `dev/universal_copilot_instructions.md` | `universal_copilot_instructions` | Added TECH_REQUIREMENTS.md to fast routing section |
+| 2026-03-02 01:41:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Fixed credential import overwriting existing passwords with empty string - now preserves DB password when import XML has no password (OnConflictStrategy.REPLACE was destroying working FTP/SFTP/SMB credentials) |
+| 2026-03-02 01:55:50 | `scripts/builders/build-aab-release.ps1` | `build-aab-release.ps1` | Fixed: ZIP always contained previous build - now deletes old ZIP before recreating + uses 7z -w flag to store only filename (not full path) in archive |
+| 2026-03-02 02:08:42 | `scripts/builders/build-aab-release.ps1` | `build-aab-release.ps1` | Fixed empty ZIP: replaced incorrect 7z -w flag with Push-Location/Pop-Location so 7z archives file by relative name |
+| 2026-03-02 02:21:25 | `scripts/builders/build-aab-release.ps1` | `build-aab-release.ps1` | Added assembleStandardRelease build step - ZIP now contains both AAB and APK release files |

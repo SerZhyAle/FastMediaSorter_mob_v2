@@ -316,15 +316,14 @@ class ImportSettingsUseCase @Inject constructor(
                 credentials.forEach { credential ->
                     val existing = existingCredMap[credential.credentialId]
                     if (existing != null) {
-                         // Update existing (preserve ID and password if not present in import which is always true)
-                         // But since we can't easily validly merge password from DB with non-password from import in one entity object here without complexity...
-                         // We will Skip if exists to avoid overwriting password with empty string? 
-                         // OR update only non-password fields?
-                         // The Repository insert likely uses OnConflictStrategy.REPLACE.
-                         // For now, let's just insert proper.
-                         // If user is restoring to same device, ID collision replaces it -> password lost.
-                         // This is acceptable limitation of XML backup without secrets.
-                         credentialsRepository.insert(credential)
+                        // Preserve existing password: import XML never contains passwords,
+                        // so overwriting with empty encryptedPassword would destroy working credentials.
+                        // Merge: take metadata from import, keep password (and ID) from DB.
+                        val merged = credential.copy(
+                            id = existing.id,
+                            encryptedPassword = existing.encryptedPassword
+                        )
+                        credentialsRepository.update(merged)
                     } else {
                         credentialsRepository.insert(credential)
                     }

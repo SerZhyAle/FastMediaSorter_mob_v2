@@ -1,7 +1,7 @@
-# Release AAB (Android App Bundle) build script
+# Release AAB + APK build script
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151)
 
-Write-Host "Building release AAB (auto-versioned)..." -ForegroundColor Cyan
+Write-Host "Building release AAB + APK (auto-versioned)..." -ForegroundColor Cyan
 
 # Generate version
 $now = Get-Date
@@ -44,11 +44,22 @@ Write-Host "Running: gradlew bundleStandardRelease" -ForegroundColor Yellow
 & $gradlew bundleStandardRelease
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "`nBuild Failed! Exiting..." -ForegroundColor Red
+    Write-Host "`nAAB Build Failed! Exiting..." -ForegroundColor Red
     exit $LASTEXITCODE
 }
 
-Write-Host "`nBuild Successful!" -ForegroundColor Green
+Write-Host "`nAAB Build Successful!" -ForegroundColor Green
+
+# Build APK as well
+Write-Host "Running: gradlew assembleStandardRelease" -ForegroundColor Yellow
+& $gradlew assembleStandardRelease
+
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "`nAPK Build Failed! Exiting..." -ForegroundColor Red
+    exit $LASTEXITCODE
+}
+
+Write-Host "`nAPK Build Successful!" -ForegroundColor Green
 
 # Find the AAB file
 $aabDir = Join-Path $projectRoot "app_v2\build\outputs\bundle\standardRelease"
@@ -71,9 +82,24 @@ $destAabPath = Join-Path $downloadsDir "FastMediaSorter_standard_release.aab"
 Copy-Item -Path $aabPath.FullName -Destination $destAabPath -Force
 Write-Host "AAB copied to $destAabPath" -ForegroundColor Green
 
-# Get file size
+# Get AAB file size
 $aabSize = [math]::Round($aabPath.Length / 1MB, 2)
 Write-Host "AAB size: $aabSize MB" -ForegroundColor Cyan
+
+# Find the APK file
+$apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\release"
+$apkPath = Get-ChildItem -Path $apkDir -Filter *.apk -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+if (-not $apkPath) {
+    Write-Host "Warning: APK not found in $apkDir" -ForegroundColor Yellow
+} else {
+    Write-Host "APK location: $($apkPath.FullName)" -ForegroundColor Green
+    $destApkPath = Join-Path $downloadsDir "FastMediaSorter_standard_release.apk"
+    Copy-Item -Path $apkPath.FullName -Destination $destApkPath -Force
+    Write-Host "APK copied to $destApkPath" -ForegroundColor Green
+    $apkSize = [math]::Round($apkPath.Length / 1MB, 2)
+    Write-Host "APK size: $apkSize MB" -ForegroundColor Cyan
+}
 
 # Try to copy to Google Drive if path exists
 $gdPath = "c:\GD\WORK\FastMediaSorter"
@@ -83,21 +109,41 @@ if (Test-Path -Path $gdPath) {
         $sevenZipPath = "C:\Program Files\7-Zip\7z.exe"
         if (Test-Path -Path $sevenZipPath) {
             $zipPath = Join-Path $gdPath "FastMediaSorter_standard_release.zip"
+            # Remove old ZIP first to guarantee fresh archive (7z 'a' updates in-place
+            # and may keep the old .aab entry if paths differ between runs)
+            if (Test-Path -Path $zipPath) {
+                Remove-Item -Path $zipPath -Force
+                Write-Host "Removed old ZIP (will recreate fresh)" -ForegroundColor Gray
+            }
             Write-Host "Creating password-protected ZIP..." -ForegroundColor Yellow
-            & $sevenZipPath a -tzip -p1 -mem=AES256 $zipPath $destAabPath | Out-Null
+            # Push-Location into downloads dir so 7z receives relative filenames
+            # and stores them without full paths inside the archive
+            Push-Location -Path $downloadsDir
+            $filesToZip = @("FastMediaSorter_standard_release.aab")
+            if (Test-Path "FastMediaSorter_standard_release.apk") {
+                $filesToZip += "FastMediaSorter_standard_release.apk"
+            }
+            & $sevenZipPath a -tzip -p1 -mem=AES256 $zipPath @filesToZip | Out-Null
+            Pop-Location
             if ($LASTEXITCODE -eq 0) {
-                Write-Host "AAB zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Green
+                Write-Host "AAB+APK zipped with password and copied to Google Drive: $zipPath" -ForegroundColor Green
                 # Write-Host "Password: 1" -ForegroundColor Yellow
             }
             else {
                 Write-Host "Warning: Failed to create password-protected ZIP" -ForegroundColor Yellow
                 Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
-                Write-Host "AAB copied to Google Drive (unprotected): $gdPath" -ForegroundColor Green
+                if (Test-Path -Path $destApkPath) {
+                    Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.apk") -Force
+                }
+                Write-Host "AAB+APK copied to Google Drive (unprotected): $gdPath" -ForegroundColor Green
             }
         }
         else {
             Copy-Item -Path $destAabPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.aab") -Force
-            Write-Host "AAB copied to Google Drive: $gdPath" -ForegroundColor Green
+            if (Test-Path -Path $destApkPath) {
+                Copy-Item -Path $destApkPath -Destination (Join-Path $gdPath "FastMediaSorter_standard_release.apk") -Force
+            }
+            Write-Host "AAB+APK copied to Google Drive: $gdPath" -ForegroundColor Green
         }
     }
     catch {
@@ -107,9 +153,10 @@ if (Test-Path -Path $gdPath) {
 
 # Log to builds journal
 $journalPath = Join-Path $downloadsDir "builds_versions.lst"
-$buildInfo = "AAB Release - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - Size: $aabSize MB - Path: $destAabPath"
+$apkSizeStr = if ($apkPath) { ", APK: $apkSize MB" } else { "" }
+$buildInfo = "AAB+APK Release - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - AAB: $aabSize MB$apkSizeStr - Version: $versionName"
 Add-Content -Path $journalPath -Value $buildInfo
 Write-Host "Build logged to journal" -ForegroundColor Cyan
 
-Write-Host "`nAAB build complete!" -ForegroundColor Green
+Write-Host "`nAAB + APK build complete!" -ForegroundColor Green
 Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan
