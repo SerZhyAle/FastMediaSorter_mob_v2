@@ -30,9 +30,10 @@ import java.io.InputStream
 /**
  * Glide configuration module.
  * Registers custom ModelLoader for network files (SMB/SFTP/FTP).
- * 
- * Memory cache: 40% of available RAM
- * Disk cache: Configurable via AppSettings (default 2GB)
+ *
+ * Memory cache: 10% of Java heap (maxMemory), capped at 64MB.
+ * Disk cache: Configurable via AppSettings (default 2GB).
+ * RGB_565: enabled globally on LOW-tier devices (heap < 256MB).
  */
 @GlideModule
 class GlideAppModule : AppGlideModule() {
@@ -41,13 +42,12 @@ class GlideAppModule : AppGlideModule() {
         // Set log level to ERROR to suppress verbose "Load failed for" messages
         builder.setLogLevel(android.util.Log.ERROR)
         
-        // Memory cache: 40% of available memory (same as Coil was configured)
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-        val memoryInfo = android.app.ActivityManager.MemoryInfo()
-        activityManager.getMemoryInfo(memoryInfo)
-        val availableMemory = memoryInfo.availMem
-        val memoryCacheSize = (availableMemory * 0.40).toLong()
-        
+        // Memory cache: 10% of Java heap limit, capped at 64MB.
+        // IMPORTANT: Use maxMemory() (heap limit per process), NOT availMem (system free RAM).
+        // availMem * 40% was a critical bug — it reserved 160MB from a 512MB heap → 32%.
+        val maxHeapBytes = Runtime.getRuntime().maxMemory()
+        val memoryCacheSize = minOf((maxHeapBytes * 0.10).toLong(), 64L * 1024 * 1024)
+
         builder.setMemoryCache(LruResourceCache(memoryCacheSize))
         
         // Disk cache: Read from SharedPreferences (synchronous and reliable)
@@ -63,14 +63,22 @@ class GlideAppModule : AppGlideModule() {
         val diskCacheSize = diskCacheSizeMb.toLong() * 1024L * 1024L // Convert MB to bytes
         builder.setDiskCache(InternalCacheDiskCacheFactory(context, "image_cache", diskCacheSize))
         
+        // Detect device tier using heap size (after GlideModule is initialized, Context is available)
+        val tier = com.sza.fastmediasorter.core.util.MemoryTier.detect(context)
+
         // Disable bitmap reuse to prevent IllegalArgumentException with mismatched sizes
-        // especially for network sources where image dimensions may vary
-        builder.setDefaultRequestOptions(
-            com.bumptech.glide.request.RequestOptions()
-                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.RESOURCE)
-        )
-        
-        Timber.i("GlideAppModule: *** CACHE CONFIGURED *** Memory=${memoryCacheSize / 1024 / 1024}MB, Disk=${diskCacheSizeMb}MB, bitmap reuse disabled")
+        // especially for network sources where image dimensions may vary.
+        // On LOW/STANDARD tier devices: use PREFER_RGB_565 globally (50% less memory per decoded bitmap).
+        val baseOptions = com.bumptech.glide.request.RequestOptions()
+            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.RESOURCE)
+        val defaultOptions = if (tier == com.sza.fastmediasorter.core.util.MemoryTier.LOW) {
+            baseOptions.format(com.bumptech.glide.load.DecodeFormat.PREFER_RGB_565)
+        } else {
+            baseOptions
+        }
+        builder.setDefaultRequestOptions(defaultOptions)
+
+        Timber.i("GlideAppModule: *** CACHE CONFIGURED *** Memory=${memoryCacheSize / 1024 / 1024}MB (heap=${maxHeapBytes / 1024 / 1024}MB), Disk=${diskCacheSizeMb}MB, tier=$tier, rgb565=${tier == com.sza.fastmediasorter.core.util.MemoryTier.LOW}")
     }
     
     override fun registerComponents(context: Context, glide: Glide, registry: Registry) {

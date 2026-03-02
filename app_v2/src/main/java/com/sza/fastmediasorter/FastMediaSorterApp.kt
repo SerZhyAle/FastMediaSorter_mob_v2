@@ -315,20 +315,24 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 // DO NOT clear disk cache here - it should persist between app launches
                 // Disk cache is cleared: manually in settings, on file delete/move/rename, or by FIFO eviction
             }
-            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW,
-            ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE,
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_LOW -> {
+                // App is FOREGROUND but system RAM is low — clear Glide memory cache to avoid OOM kill.
+                // Disk cache is preserved for fast reload.
+                Timber.w("LOW memory (foreground): level=$level($levelName), mem=$memInfo, clearing Glide memory cache")
+                Glide.get(this).clearMemory()
+            }
+            ComponentCallbacks2.TRIM_MEMORY_RUNNING_MODERATE -> {
+                // App is FOREGROUND, moderate pressure — trim Glide to free LRU bitmaps.
+                Timber.w("MODERATE memory (foreground): level=$level($levelName), mem=$memInfo, trimming Glide")
+                Glide.get(this).trimMemory(level)
+            }
             ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
-                // Low priority memory pressure - DO NOT clear cache, let it persist
-                // Large cache is intentional for instant thumbnail reloading in Browse
-                if (isInForeground) {
-                    Timber.d("Low priority memory pressure (FOREGROUND): level=$level($levelName), mem=$memInfo, preserving cache")
-                } else {
-                    // In background - log less frequently to reduce logcat spam
-                    if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
-                        Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, preserving cache")
-                    }
+                // App is in background — trim to release LRU bitmaps, preserve hot items.
+                if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
+                    Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, trimming Glide")
+                    Glide.get(this).trimMemory(level)
                 }
             }
         }

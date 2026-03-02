@@ -988,6 +988,14 @@
     <string name="sort_mode_size_desc">Розмір (Великі)</string>
     <string name="sort_mode_type_asc">Тип (А-Я)</string>
     <string name="sort_mode_type_desc">Тип (Я-А)</string>
+    <string name="sort_mode_artist_asc">Артист (А-Я)</string>
+    <string name="sort_mode_artist_desc">Артист (Я-А)</string>
+    <string name="sort_mode_title_asc">Назва (А-Я)</string>
+    <string name="sort_mode_title_desc">Назва (Я-А)</string>
+    <string name="sort_mode_duration_asc">Тривалість (Коротше)</string>
+    <string name="sort_mode_duration_desc">Тривалість (Довше)</string>
+    <string name="sort_mode_date_taken_asc">Дата зйомки (Старі)</string>
+    <string name="sort_mode_date_taken_desc">Дата зйомки (Нові)</string>
     <string name="sort_mode_random">Випадково</string>
 
     <!-- Settings Messages -->

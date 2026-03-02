@@ -53,6 +53,9 @@ Resources for developers, QA, and contributors.
 - **[Warnings Analysis](WARNINGS_ANALYSIS.md)** - Static analysis reports.
 - **[Warnings Summary](WARNINGS_SUMMARY.md)** - Summary of codebase warnings.
 
+### Technical Specifications
+- **[Tech Requirements & Stack](../dev/TECH_REQUIREMENTS.md)** - Full tech stack, library inventory, platform constraints, min/recommended requirements.
+
 ### Cloud Integration (in `/dev` folder)
 - **[Cloud Documentation Index](../dev/CLOUD_DOCUMENTATION_INDEX.md)** - Entry point for cloud docs.
 - **[Cloud Quick Fix](../dev/CLOUD_QUICK_FIX.md)** - Rapid troubleshooting for cloud issues.

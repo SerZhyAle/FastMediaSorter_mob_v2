@@ -856,7 +856,7 @@ class BrowseViewModel @Inject constructor(
             Timber.i("BrowseViewModel.refreshResourceMetadata: START - loading updated resource from database")
             val updatedResource = getResourcesUseCase.getById(resourceId)
             if (updatedResource != null) {
-                val effectiveResource = if ((updatedResource.isAudioOnly() || updatedResource.isOnlyImage()) && updatedResource.displayMode != DisplayMode.LIST) {
+                val effectiveResource = if (updatedResource.isAudioOnly() && updatedResource.displayMode != DisplayMode.LIST) {
                     updatedResource.copy(displayMode = DisplayMode.LIST)
                 } else {
                     updatedResource
@@ -1350,7 +1350,7 @@ class BrowseViewModel @Inject constructor(
             val initialSubfolderMode = resource.scanSubdirectories && resource.showSubfoldersAsItems
             Timber.d("BrowseViewModel.loadResource: initialSubfolderMode=$initialSubfolderMode (scanSubdirectories=${resource.scanSubdirectories}, showSubfoldersAsItems=${resource.showSubfoldersAsItems})")
             
-            val effectiveDisplayMode = if (resource.isAudioOnly() || resource.isOnlyImage()) DisplayMode.LIST else resource.displayMode
+            val effectiveDisplayMode = if (resource.isAudioOnly()) DisplayMode.LIST else resource.displayMode
             val effectiveResource = if (resource.displayMode != effectiveDisplayMode) {
                 resource.copy(displayMode = effectiveDisplayMode)
             } else {
@@ -2029,7 +2029,7 @@ class BrowseViewModel @Inject constructor(
     fun toggleDisplayMode() {
         val resource = state.value.resource ?: return
 
-        if (resource.isAudioOnly() || resource.isOnlyImage()) {
+        if (resource.isAudioOnly()) {
             if (state.value.displayMode != DisplayMode.LIST || resource.displayMode != DisplayMode.LIST) {
                 val updatedResource = resource.copy(displayMode = DisplayMode.LIST)
                 updateState { it.copy(displayMode = DisplayMode.LIST, resource = updatedResource) }
@@ -2039,12 +2039,7 @@ class BrowseViewModel @Inject constructor(
                     }
                 }
             }
-            val resourceType = when {
-                resource.isAudioOnly() -> "audio-only"
-                resource.isOnlyImage() -> "image-only"
-                else -> "single-type"
-            }
-            Timber.d("toggleDisplayMode ignored for $resourceType resource: ${resource.name}")
+            Timber.d("toggleDisplayMode ignored for audio-only resource: ${resource.name}")
             return
         }
         

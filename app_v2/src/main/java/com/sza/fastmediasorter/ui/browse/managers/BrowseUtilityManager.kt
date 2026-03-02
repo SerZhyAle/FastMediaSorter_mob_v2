@@ -56,14 +56,14 @@ class BrowseUtilityManager(
             SortMode.SIZE_DESC -> context.getString(R.string.sort_by_size_desc)
             SortMode.TYPE_ASC -> context.getString(R.string.sort_by_type_asc)
             SortMode.TYPE_DESC -> context.getString(R.string.sort_by_type_desc)
-            SortMode.ARTIST_ASC -> "Artist (A-Z)"
-            SortMode.ARTIST_DESC -> "Artist (Z-A)"
-            SortMode.TITLE_ASC -> "Title (A-Z)"
-            SortMode.TITLE_DESC -> "Title (Z-A)"
-            SortMode.DURATION_ASC -> "Duration (Short first)"
-            SortMode.DURATION_DESC -> "Duration (Long first)"
-            SortMode.DATE_TAKEN_ASC -> "Date taken (Old first)"
-            SortMode.DATE_TAKEN_DESC -> "Date taken (New first)"
+            SortMode.ARTIST_ASC -> context.getString(R.string.sort_mode_artist_asc)
+            SortMode.ARTIST_DESC -> context.getString(R.string.sort_mode_artist_desc)
+            SortMode.TITLE_ASC -> context.getString(R.string.sort_mode_title_asc)
+            SortMode.TITLE_DESC -> context.getString(R.string.sort_mode_title_desc)
+            SortMode.DURATION_ASC -> context.getString(R.string.sort_mode_duration_asc)
+            SortMode.DURATION_DESC -> context.getString(R.string.sort_mode_duration_desc)
+            SortMode.DATE_TAKEN_ASC -> context.getString(R.string.sort_mode_date_taken_asc)
+            SortMode.DATE_TAKEN_DESC -> context.getString(R.string.sort_mode_date_taken_desc)
             SortMode.MANUAL -> context.getString(R.string.sort_by_manual)
             SortMode.RANDOM -> context.getString(R.string.sort_by_random)
         }

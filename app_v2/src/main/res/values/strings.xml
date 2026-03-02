@@ -1007,6 +1007,14 @@
     <string name="sort_mode_size_desc">Size (Large first)</string>
     <string name="sort_mode_type_asc">Type (A-Z)</string>
     <string name="sort_mode_type_desc">Type (Z-A)</string>
+    <string name="sort_mode_artist_asc">Artist (A-Z)</string>
+    <string name="sort_mode_artist_desc">Artist (Z-A)</string>
+    <string name="sort_mode_title_asc">Title (A-Z)</string>
+    <string name="sort_mode_title_desc">Title (Z-A)</string>
+    <string name="sort_mode_duration_asc">Duration (Short first)</string>
+    <string name="sort_mode_duration_desc">Duration (Long first)</string>
+    <string name="sort_mode_date_taken_asc">Date taken (Old first)</string>
+    <string name="sort_mode_date_taken_desc">Date taken (New first)</string>
     <string name="sort_mode_random">Random</string>
 
     <!-- Settings Messages -->

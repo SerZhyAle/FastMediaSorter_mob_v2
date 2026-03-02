@@ -421,14 +421,14 @@ class PlaybackSettingsFragment : Fragment() {
             SortMode.SIZE_DESC -> getString(R.string.sort_mode_size_desc)
             SortMode.TYPE_ASC -> getString(R.string.sort_mode_type_asc)
             SortMode.TYPE_DESC -> getString(R.string.sort_mode_type_desc)
-            SortMode.ARTIST_ASC -> "Artist (A-Z)"
-            SortMode.ARTIST_DESC -> "Artist (Z-A)"
-            SortMode.TITLE_ASC -> "Title (A-Z)"
-            SortMode.TITLE_DESC -> "Title (Z-A)"
-            SortMode.DURATION_ASC -> "Duration (Short first)"
-            SortMode.DURATION_DESC -> "Duration (Long first)"
-            SortMode.DATE_TAKEN_ASC -> "Date taken (Old first)"
-            SortMode.DATE_TAKEN_DESC -> "Date taken (New first)"
+            SortMode.ARTIST_ASC -> getString(R.string.sort_mode_artist_asc)
+            SortMode.ARTIST_DESC -> getString(R.string.sort_mode_artist_desc)
+            SortMode.TITLE_ASC -> getString(R.string.sort_mode_title_asc)
+            SortMode.TITLE_DESC -> getString(R.string.sort_mode_title_desc)
+            SortMode.DURATION_ASC -> getString(R.string.sort_mode_duration_asc)
+            SortMode.DURATION_DESC -> getString(R.string.sort_mode_duration_desc)
+            SortMode.DATE_TAKEN_ASC -> getString(R.string.sort_mode_date_taken_asc)
+            SortMode.DATE_TAKEN_DESC -> getString(R.string.sort_mode_date_taken_desc)
             SortMode.RANDOM -> getString(R.string.sort_mode_random)
         }
     }

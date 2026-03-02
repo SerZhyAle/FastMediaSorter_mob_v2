@@ -7,6 +7,7 @@
   - Architecture/data flow -> `docs/ARCHITECTURE.md`
   - Build/flavors/flags/scripts -> `docs/DEV_OPS.md`
   - Libraries/protocol/network specifics -> `docs/TECH_STACK.md`
+  - Full dependency inventory, constraints, requirements -> `dev/TECH_REQUIREMENTS.md`
   - Workflow/phases/gates -> `dev/AGENT_WORKFLOW.md`
 - **SOURCE_OF_TRUTH_DEPENDENCIES**:
   - Check `gradle/libs.versions.toml`
@@ -161,6 +162,7 @@
 - **ARTIFACT MANAGEMENT**: Use persistent Markdown files (`task.md`, `implementation_plan.md`) to track progress for complex tasks. Update them strictly to maintain state across sessions.
 - **NO HALLUCINATION**: If an API signature or file content is unknown, you MUST use tools to read the codebase. Never guess the implementation.
 - **ROOT CLEANLINESS**: All agent scratching, planning files, and logs MUST go to `temp/` or equivalent temporary directories. Keep project root clean.
+- **DEV CHANGELOG (MANDATORY)**: After EVERY code/config file modification, log the change via `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"`. The script appends a timestamped row to `dev/CHANGELOG.md`. Execute AFTER each modification, BEFORE moving to next step. NO exceptions.
 
 ---
 

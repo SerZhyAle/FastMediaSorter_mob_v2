@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.cloud
 
 import com.sza.fastmediasorter.domain.model.ResourceType
+import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -95,8 +96,13 @@ class CloudFileOperationHandlerTest {
     private fun createHandler(): CloudFileOperationHandler {
         // We only need a shell instance for testing these private methods, 
         // so we can mock everything.
+        val cloudPathParser = mockk<CloudPathParser>()
+        every { cloudPathParser.isCloudPath(any()) } answers {
+            val path = firstArg<String>()
+            path.startsWith("cloud://")
+        }
         return CloudFileOperationHandler(
-            context = mockk(),
+            context = mockk(relaxed = true),
             googleDriveClient = mockk(),
             dropboxClient = mockk(),
             oneDriveClient = mockk(),
@@ -104,7 +110,7 @@ class CloudFileOperationHandlerTest {
             sftpClient = mockk(),
             ftpClient = mockk(),
             credentialsRepository = mockk(),
-            cloudPathParser = mockk(),
+            cloudPathParser = cloudPathParser,
             networkCredentialsResolver = mockk(),
             cloudAuthHelper = mockk()
         )

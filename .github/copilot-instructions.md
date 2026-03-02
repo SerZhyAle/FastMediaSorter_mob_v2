@@ -10,6 +10,7 @@
      - Project Architecture & Dataflow: ALWAYS READ `docs/ARCHITECTURE.md`
      - PowerShell Scripts, Build/Deploy commands, Feature Flags: ALWAYS READ `docs/DEV_OPS.md`
      - Specific Libraries, DB/Network rules: ALWAYS READ `docs/TECH_STACK.md`
+     - Full tech stack, dependencies, constraints, min/recommended requirements: ALWAYS READ `dev/TECH_REQUIREMENTS.md`
      - Tools/Libraries versions: CHECK `gradle/libs.versions.toml`; if missing, USE `app_v2/build.gradle.kts` and `wear/build.gradle.kts` as source of truth
      - Model selection (Haiku/Sonnet/Opus): ALWAYS CHECK `ChoiceModelRules.md` 
   </routing_rules>
@@ -48,7 +49,7 @@
       - Open `dev/PROJECT_OPERATIONS_INDEX.md` first for workspace/module routing.
       - If task is architecture/data-flow -> open `docs/ARCHITECTURE.md` first.
       - If task is build/flags/flavors/scripts -> open `docs/DEV_OPS.md` and `app_v2/build.gradle.kts`.
-      - If task is dependency/protocol specifics -> open `docs/TECH_STACK.md` + module `build.gradle.kts`.
+      - If task is dependency/protocol specifics -> open `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md` + module `build.gradle.kts`.
       - If task is process/phase compliance -> open `dev/AGENT_WORKFLOW.md`.
       - If task is doc discovery -> open `docs/DOCS_MAP.md`.
     </research_shortcuts>
@@ -68,6 +69,7 @@
     <constraint>READ_ONLY_ZONES: DO NOT MODIFY `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.</constraint>
     <constraint>SAFETY_BACKUP: IF modifying file > 500 lines, FIRST create backup in `temp/` with timestamp.</constraint>
     <constraint>COMMON_PITFALLS: NO player code in `PlayerActivity.kt`. Use `Dispatchers.IO` for Coroutines. FTP MUST handle timeouts. NO file saves in root.</constraint>
+    <constraint>DEV_CHANGELOG: MANDATORY. After EVERY code/config modification, run `.\scripts\add_to_dev_log.ps1 "path" "target" "description"` to log the change to `dev/CHANGELOG.md`. Execute AFTER each modification step, BEFORE moving to next task. Applies to ALL agents.</constraint>
   </strict_constraints>
 
   <workflow_stages>

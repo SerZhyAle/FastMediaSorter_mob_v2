@@ -610,7 +610,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
         binding.btnToggleView.setOnClickListener {
             val resource = viewModel.state.value.resource
-            if (resource?.isAudioOnly() == true || resource?.isOnlyImage() == true) {
+            if (resource?.isAudioOnly() == true) {
                 return@setOnClickListener
             }
             UserActionLogger.logButtonClick("ToggleView", "BrowseActivity")
@@ -999,6 +999,16 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             
                             // Update scroll buttons visibility based on file count
                             updateScrollButtonsVisibility(itemCount)
+
+                            // Heap protection: if heap >85% used after loading, trim Glide memory cache.
+                            // Prevents silent OOM kills on devices with limited heap (e.g., 512MB).
+                            val maxMem = Runtime.getRuntime().maxMemory()
+                            val usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+                            val heapPct = (usedMem * 100L / maxMem).toInt()
+                            if (heapPct > 85) {
+                                Timber.w("HEAP_MONITOR: ${heapPct}% used (${usedMem/1024/1024}MB/${maxMem/1024/1024}MB) — clearing Glide memory cache")
+                                com.bumptech.glide.Glide.get(this@BrowseActivity).clearMemory()
+                            }
                         }
                     }
                     // No log for skipped submitList - reduces log spam during large folder loading
@@ -1072,7 +1082,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnUndo.isVisible = state.lastOperation != null
                     binding.btnShare.isVisible = hasSelection
 
-                    val shouldDisableToggle = resource?.isAudioOnly() == true || resource?.isOnlyImage() == true
+                    val shouldDisableToggle = resource?.isAudioOnly() == true
                     updateToggleViewAvailability(shouldDisableToggle)
 
                     // Update display mode when either mode OR audio-only state changed.
@@ -1624,7 +1634,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private suspend fun updateDisplayMode(mode: DisplayMode) {
         val settings = settingsRepository.getSettings().first()
         val currentResource = viewModel.state.value.resource
-        val shouldForceList = currentResource?.isAudioOnly() == true || currentResource?.isOnlyImage() == true
+        val shouldForceList = currentResource?.isAudioOnly() == true
         val effectiveMode = if (shouldForceList) DisplayMode.LIST else mode
         val iconSize = if (shouldForceList) {
             48
@@ -1759,14 +1769,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             SortMode.SIZE_DESC -> getString(R.string.sort_mode_size_desc)
             SortMode.TYPE_ASC -> getString(R.string.sort_mode_type_asc)
             SortMode.TYPE_DESC -> getString(R.string.sort_mode_type_desc)
-            SortMode.ARTIST_ASC -> "Artist (A-Z)"
-            SortMode.ARTIST_DESC -> "Artist (Z-A)"
-            SortMode.TITLE_ASC -> "Title (A-Z)"
-            SortMode.TITLE_DESC -> "Title (Z-A)"
-            SortMode.DURATION_ASC -> "Duration (Short first)"
-            SortMode.DURATION_DESC -> "Duration (Long first)"
-            SortMode.DATE_TAKEN_ASC -> "Date taken (Old first)"
-            SortMode.DATE_TAKEN_DESC -> "Date taken (New first)"
+            SortMode.ARTIST_ASC -> getString(R.string.sort_mode_artist_asc)
+            SortMode.ARTIST_DESC -> getString(R.string.sort_mode_artist_desc)
+            SortMode.TITLE_ASC -> getString(R.string.sort_mode_title_asc)
+            SortMode.TITLE_DESC -> getString(R.string.sort_mode_title_desc)
+            SortMode.DURATION_ASC -> getString(R.string.sort_mode_duration_asc)
+            SortMode.DURATION_DESC -> getString(R.string.sort_mode_duration_desc)
+            SortMode.DATE_TAKEN_ASC -> getString(R.string.sort_mode_date_taken_asc)
+            SortMode.DATE_TAKEN_DESC -> getString(R.string.sort_mode_date_taken_desc)
             SortMode.RANDOM -> getString(R.string.sort_mode_random)
         }
     }

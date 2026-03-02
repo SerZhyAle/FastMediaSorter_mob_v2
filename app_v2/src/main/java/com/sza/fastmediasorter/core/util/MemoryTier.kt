@@ -45,24 +45,29 @@ enum class MemoryTier {
          */
         fun detect(context: Context): MemoryTier {
             val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            
+
             // Check if device is marked as low-RAM by system (API 19+)
             val isLowRamDevice = activityManager.isLowRamDevice
-            
+
             // Get total device RAM in GB
             val memoryInfo = ActivityManager.MemoryInfo()
             activityManager.getMemoryInfo(memoryInfo)
             val totalRamBytes = memoryInfo.totalMem
             val totalRamGb = totalRamBytes / (1024.0 * 1024.0 * 1024.0)
-            
+
+            // CRITICAL: Also check Java heap limit (maxMemory).
+            // Devices with 6GB RAM may have a 512MB heap limit per process.
+            // Physical RAM alone is NOT sufficient to avoid OOM — heap limit is the real bottleneck.
+            val maxHeapMb = Runtime.getRuntime().maxMemory() / 1024 / 1024
+
             val tier = when {
-                isLowRamDevice || totalRamGb < 3.0 -> LOW
-                totalRamGb < 6.0 -> STANDARD
+                isLowRamDevice || totalRamGb < 3.0 || maxHeapMb < 256 -> LOW
+                totalRamGb < 6.0 || maxHeapMb < 512 -> STANDARD
                 else -> HIGH
             }
-            
-            Timber.i("MemoryTier.detect: device=$tier, totalRAM=${"%.2f".format(totalRamGb)}GB, isLowRamDevice=$isLowRamDevice, API=${Build.VERSION.SDK_INT}")
-            
+
+            Timber.i("MemoryTier.detect: tier=$tier, totalRAM=${"%.2f".format(totalRamGb)}GB, heapMax=${maxHeapMb}MB, isLowRamDevice=$isLowRamDevice, API=${Build.VERSION.SDK_INT}")
+
             return tier
         }
     }

@@ -267,24 +267,24 @@ class BrowseDialogHelper(
     
     private fun getSortModeName(mode: SortMode): String {
         return when (mode) {
-            SortMode.MANUAL -> "Manual Order"
-            SortMode.NAME_ASC -> "Name (A-Z)"
-            SortMode.NAME_DESC -> "Name (Z-A)"
-            SortMode.DATE_ASC -> "Date (Old first)"
-            SortMode.DATE_DESC -> "Date (New first)"
-            SortMode.SIZE_ASC -> "Size (Small first)"
-            SortMode.SIZE_DESC -> "Size (Large first)"
-            SortMode.TYPE_ASC -> "Type (A-Z)"
-            SortMode.TYPE_DESC -> "Type (Z-A)"
-            SortMode.ARTIST_ASC -> "Artist (A-Z)"
-            SortMode.ARTIST_DESC -> "Artist (Z-A)"
-            SortMode.TITLE_ASC -> "Title (A-Z)"
-            SortMode.TITLE_DESC -> "Title (Z-A)"
-            SortMode.DURATION_ASC -> "Duration (Short first)"
-            SortMode.DURATION_DESC -> "Duration (Long first)"
-            SortMode.DATE_TAKEN_ASC -> "Date taken (Old first)"
-            SortMode.DATE_TAKEN_DESC -> "Date taken (New first)"
-            SortMode.RANDOM -> "Random"
+            SortMode.MANUAL -> activity.getString(R.string.sort_mode_manual)
+            SortMode.NAME_ASC -> activity.getString(R.string.sort_mode_name_asc)
+            SortMode.NAME_DESC -> activity.getString(R.string.sort_mode_name_desc)
+            SortMode.DATE_ASC -> activity.getString(R.string.sort_mode_date_asc)
+            SortMode.DATE_DESC -> activity.getString(R.string.sort_mode_date_desc)
+            SortMode.SIZE_ASC -> activity.getString(R.string.sort_mode_size_asc)
+            SortMode.SIZE_DESC -> activity.getString(R.string.sort_mode_size_desc)
+            SortMode.TYPE_ASC -> activity.getString(R.string.sort_mode_type_asc)
+            SortMode.TYPE_DESC -> activity.getString(R.string.sort_mode_type_desc)
+            SortMode.ARTIST_ASC -> activity.getString(R.string.sort_mode_artist_asc)
+            SortMode.ARTIST_DESC -> activity.getString(R.string.sort_mode_artist_desc)
+            SortMode.TITLE_ASC -> activity.getString(R.string.sort_mode_title_asc)
+            SortMode.TITLE_DESC -> activity.getString(R.string.sort_mode_title_desc)
+            SortMode.DURATION_ASC -> activity.getString(R.string.sort_mode_duration_asc)
+            SortMode.DURATION_DESC -> activity.getString(R.string.sort_mode_duration_desc)
+            SortMode.DATE_TAKEN_ASC -> activity.getString(R.string.sort_mode_date_taken_asc)
+            SortMode.DATE_TAKEN_DESC -> activity.getString(R.string.sort_mode_date_taken_desc)
+            SortMode.RANDOM -> activity.getString(R.string.sort_mode_random)
         }
     }
     

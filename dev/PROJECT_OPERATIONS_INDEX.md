@@ -60,6 +60,7 @@ Dependency version policy:
 - Architecture/data flow: `docs/ARCHITECTURE.md`
 - Build/scripts/flavors/flags: `docs/DEV_OPS.md` + module `build.gradle.kts`
 - Libraries/protocol specifics: `docs/TECH_STACK.md`
+- Full tech stack, dependencies, constraints, min/recommended requirements: `dev/TECH_REQUIREMENTS.md`
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
 - Documentation map: `docs/DOCS_MAP.md`
 

@@ -992,6 +992,14 @@
     <string name="sort_mode_size_desc">Размер (Большие)</string>
     <string name="sort_mode_type_asc">Тип (А-Я)</string>
     <string name="sort_mode_type_desc">Тип (Я-А)</string>
+    <string name="sort_mode_artist_asc">Исполнитель (А-Я)</string>
+    <string name="sort_mode_artist_desc">Исполнитель (Я-А)</string>
+    <string name="sort_mode_title_asc">Название (А-Я)</string>
+    <string name="sort_mode_title_desc">Название (Я-А)</string>
+    <string name="sort_mode_duration_asc">Продолжительность (Короче)</string>
+    <string name="sort_mode_duration_desc">Продолжительность (Дольше)</string>
+    <string name="sort_mode_date_taken_asc">Дата снимка (Старые)</string>
+    <string name="sort_mode_date_taken_desc">Дата снимка (Новые)</string>
     <string name="sort_mode_random">Случайно</string>
 
     <!-- Settings Messages -->
