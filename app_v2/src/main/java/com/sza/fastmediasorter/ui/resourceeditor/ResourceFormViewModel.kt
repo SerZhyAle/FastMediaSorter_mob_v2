@@ -314,9 +314,9 @@ class ResourceFormViewModel @Inject constructor(
             // Refresh statistics from DB after successful test in EDIT mode
             // (catches any data updated since the editor was opened)
             val refreshedStatistics = if (result.status == ResourceConnectionStatus.SUCCESS &&
-                mode == ResourceEditorMode.EDIT && resourceId != null) {
+                currentForm.mode == ResourceEditorMode.EDIT && currentForm.id != null) {
                 withContext(Dispatchers.IO) {
-                    resourceEditorUseCase.getResourceStatistics(resourceId)
+                    resourceEditorUseCase.getResourceStatistics(currentForm.id)
                 }
             } else {
                 _uiState.value.statistics
