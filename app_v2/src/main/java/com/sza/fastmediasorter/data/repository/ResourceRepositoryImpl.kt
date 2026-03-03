@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import com.sza.fastmediasorter.utils.FtpPathUtils
 import com.sza.fastmediasorter.utils.SftpPathUtils
+import com.sza.fastmediasorter.utils.SmbPathUtils
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -302,11 +303,23 @@ class ResourceRepositoryImpl @Inject constructor(
         
         val connectionInfo = connectionInfoResult.getOrNull()
             ?: return Result.failure(Exception("Connection info is null after successful result"))
-        
+
+        // Derive shareName from the stored resource path (authoritative source) to self-heal
+        // stale credentials where shareName was not updated on EDIT (e.g. renamed share).
+        val parsedPath = SmbPathUtils.parseSmbPath(resource.path)
+        val effectiveShareName = parsedPath?.connectionInfo?.shareName
+            ?.takeIf { it.isNotEmpty() } ?: connectionInfo.shareName
+        if (effectiveShareName != connectionInfo.shareName) {
+            Timber.w(
+                "testSmbConnection: credentials shareName='${connectionInfo.shareName}' " +
+                "differs from path shareName='$effectiveShareName' — using path value"
+            )
+        }
+
         // Test connection
         return smbOperationsUseCase.testConnection(
             server = connectionInfo.server,
-            shareName = connectionInfo.shareName,
+            shareName = effectiveShareName,
             username = connectionInfo.username,
             password = connectionInfo.password,
             domain = connectionInfo.domain,
