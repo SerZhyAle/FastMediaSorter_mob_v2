@@ -56,7 +56,10 @@ class CachedMediaMetadataExtractor(
                     width = cached.width ?: file.width,
                     height = cached.height ?: file.height,
                     videoRotation = cached.videoRotation ?: file.videoRotation,
-                    exifDateTime = cached.exifDateTime ?: file.exifDateTime
+                    exifDateTime = cached.exifDateTime ?: file.exifDateTime,
+                    artist = cached.artist ?: file.artist,
+                    album = cached.album ?: file.album,
+                    title = cached.title ?: file.title
                 )
             } else {
                 val freshlyEnriched = enrichInternal(file)
@@ -168,7 +171,10 @@ class CachedMediaMetadataExtractor(
             height = file.height,
             videoRotation = file.videoRotation,
             exifDateTime = file.exifDateTime,
-            exifJson = null // Could serialize full EXIF here if needed
+            exifJson = null, // Could serialize full EXIF here if needed
+            artist = file.artist,
+            album = file.album,
+            title = file.title
         )
     }
 

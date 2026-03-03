@@ -76,7 +76,7 @@
     <color name="player_countdown_text">#AAAAAA</color>
     <color name="player_search_hint_text">#767676</color>
     <color name="player_zone_text">@color/black</color>
-    <color name="player_filename_overlay_text">@color/black</color>
+    <color name="player_filename_overlay_text">@color/white</color>
     <color name="player_music_track_text">#DD000000</color>
 
     <!-- Action buttons -->

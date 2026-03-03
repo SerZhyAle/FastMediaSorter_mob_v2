@@ -78,5 +78,16 @@ data class FileMetadataCacheEntity(
     val exifDateTime: Long?,
 
     /** EXIF metadata serialised as a JSON object string. */
-    val exifJson: String?
+    val exifJson: String?,
+
+    // ── Audio metadata (added in migration 17→18) ─────────────────────────────
+
+    /** Audio track artist (ID3/Vorbis tag). */
+    val artist: String? = null,
+
+    /** Audio track album (ID3/Vorbis tag). */
+    val album: String? = null,
+
+    /** Audio track title (ID3/Vorbis tag). */
+    val title: String? = null
 )

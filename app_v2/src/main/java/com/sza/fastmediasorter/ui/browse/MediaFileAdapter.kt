@@ -205,6 +205,7 @@ class MediaFileAdapter(
         private const val VIEW_TYPE_GRID = 1
         private const val PAYLOAD_VIEW_MODE_CHANGE = "view_mode_change"
         private const val PAYLOAD_PLAYBACK_STATE = "playback_state"
+        private const val PAYLOAD_AUDIO_METADATA = "audio_metadata"
         private const val CACHED_THUMBNAIL_SIZE = 300 // Fixed size for cache stability across List/Grid modes
         private const val AUDIO_ONLY_THUMBNAIL_DP = 48
         
@@ -399,8 +400,14 @@ class MediaFileAdapter(
                     holder.updatePlaybackState(file)
                 }
             }
+            if (payloads.contains(PAYLOAD_AUDIO_METADATA)) {
+                // Partial bind: only update text labels with enriched audio metadata
+                if (holder is ListViewHolder) {
+                    holder.updateAudioMetadataText(file)
+                }
+            }
             // If no known payloads were handled, fall back to super
-            if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED") && !payloads.contains(PAYLOAD_PLAYBACK_STATE)) {
+            if (!payloads.contains("LOAD_THUMBNAILS") && !payloads.contains("FAVORITE_CHANGED") && !payloads.contains(PAYLOAD_PLAYBACK_STATE) && !payloads.contains(PAYLOAD_AUDIO_METADATA)) {
                 Timber.v("onBindViewHolder: UNKNOWN payloads=$payloads, calling super")
                 super.onBindViewHolder(holder, position, payloads)
             }
@@ -583,6 +590,21 @@ class MediaFileAdapter(
                     stopNoteAnimation()
                     stopDownloadAnimation()
                 }
+            }
+        }
+
+        /**
+         * Update only text labels when audio metadata (artist/album/title/duration) is enriched.
+         * Called via PAYLOAD_AUDIO_METADATA partial rebind — avoids thumbnail reload.
+         */
+        fun updateAudioMetadataText(file: MediaFile) {
+            val audioOnlyFile = isAudioOnlyMode && !file.isDirectory
+            if (audioOnlyFile) {
+                binding.tvFileName.text = buildAudioDisplayName(file)
+                binding.tvFileInfo.text = buildAudioDetailLine(file)
+            } else {
+                // Non audio-only mode: filename stays, but info line may include duration
+                binding.tvFileInfo.text = buildFileInfo(file)
             }
         }
 
@@ -2343,6 +2365,21 @@ class MediaFileAdapter(
                 // isFavorite changed - check if everything else is the same
                 if (oldItem.copy(isFavorite = newItem.isFavorite) == newItem) {
                     return "FAVORITE_CHANGED"
+                }
+            }
+            // If only audio metadata changed (artist/album/title/duration), partial text update
+            if (oldItem.type == MediaType.AUDIO &&
+                (oldItem.artist != newItem.artist || oldItem.album != newItem.album ||
+                    oldItem.title != newItem.title || oldItem.duration != newItem.duration)
+            ) {
+                if (oldItem.copy(
+                        artist = newItem.artist,
+                        album = newItem.album,
+                        title = newItem.title,
+                        duration = newItem.duration
+                    ) == newItem
+                ) {
+                    return PAYLOAD_AUDIO_METADATA
                 }
             }
             return null // Full rebind needed for other changes

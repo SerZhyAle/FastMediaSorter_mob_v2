@@ -78,3 +78,33 @@ All build scripts should be run from project root:
 cd c:\GIT\FastMediaSorter_mob_v2
 .\scripts\builders\build-debug.PS1
 ```
+
+
+Last release build notes: 260302034 (2.60.3020.341)
+<en-US>
+• Cloud storage: Google Drive, OneDrive, Dropbox support
+• Network drives: SMB, SFTP, FTP
+• Resource Profiles: adaptive performance for any device
+• Smart metadata sorting: by artist, album, date taken
+• Sort and organize photos, videos, audio from any source
+• Fixed: OneDrive "Add account" did nothing in release builds
+• Long-press version number in Settings to share diagnostic logs
+</en-US>
+<ru-RU>
+• Облачные хранилища: Google Drive, OneDrive, Dropbox
+• Сетевые диски: SMB, SFTP, FTP
+• Профили ресурсов: адаптивная производительность
+• Сортировка по метаданным: исполнитель, альбом, дата съёмки
+• Организация фото, видео, аудио из любых источников
+• Исправлено: OneDrive — «Добавить аккаунт» не реагировал на нажатие
+• Долгое нажатие на версию в Настройках → отправка диагностических логов
+</ru-RU>
+<uk>
+• Хмарні сховища: Google Drive, OneDrive, Dropbox
+• Мережеві диски: SMB, SFTP, FTP
+• Профілі ресурсів: адаптивна продуктивність
+• Сортування за метаданими: виконавець, альбом, дата зйомки
+• Організація фото, відео, аудіо з будь-яких джерел
+• Виправлено: OneDrive — «Додати акаунт» не реагував на натискання
+• Довге натискання на версію в Налаштуваннях → надсилання діагностичних логів
+</uk>

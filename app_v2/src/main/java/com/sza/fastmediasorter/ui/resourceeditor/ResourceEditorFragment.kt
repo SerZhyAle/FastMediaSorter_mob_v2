@@ -568,6 +568,14 @@ class ResourceEditorFragment : Fragment() {
         }
 
         // Media type checkboxes (7 individual types)
+        // Guard: remove listeners before programmatic setChecked to avoid spurious onFieldChanged calls.
+        binding.cbVideo.setOnCheckedChangeListener(null)
+        binding.cbAudio.setOnCheckedChangeListener(null)
+        binding.cbImage.setOnCheckedChangeListener(null)
+        binding.cbGif.setOnCheckedChangeListener(null)
+        binding.cbText.setOnCheckedChangeListener(null)
+        binding.cbPdf.setOnCheckedChangeListener(null)
+        binding.cbEpub.setOnCheckedChangeListener(null)
         binding.cbVideo.isChecked = formData.supportedMediaTypes.contains(MediaType.VIDEO)
         binding.cbAudio.isChecked = formData.supportedMediaTypes.contains(MediaType.AUDIO)
         binding.cbImage.isChecked = formData.supportedMediaTypes.contains(MediaType.IMAGE)
@@ -575,21 +583,44 @@ class ResourceEditorFragment : Fragment() {
         binding.cbText.isChecked = formData.supportedMediaTypes.contains(MediaType.TEXT)
         binding.cbPdf.isChecked = formData.supportedMediaTypes.contains(MediaType.PDF)
         binding.cbEpub.isChecked = formData.supportedMediaTypes.contains(MediaType.EPUB)
+        binding.cbVideo.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbAudio.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbImage.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbGif.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbText.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbPdf.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
+        binding.cbEpub.setOnCheckedChangeListener { _, _ -> updateMediaTypes() }
 
         // Profile selector button label
         binding.btnProfileSelector.setText(getProfileLabelResId(formData.profile))
 
-        // Scanning checkboxes
+        // Scanning checkboxes (guarded from triggering listeners on programmatic updates)
+        binding.cbScanSubdirectories.setOnCheckedChangeListener(null)
+        binding.cbAllFiles.setOnCheckedChangeListener(null)
+        binding.cbDisableThumbnails.setOnCheckedChangeListener(null)
+        binding.cbShowHiddenFiles.setOnCheckedChangeListener(null)
+        binding.cbShowSubfoldersAsItems.setOnCheckedChangeListener(null)
+        binding.cbRememberFileList.setOnCheckedChangeListener(null)
         binding.cbScanSubdirectories.isChecked = formData.scanSubdirectories
         binding.cbAllFiles.isChecked = formData.allFiles
         binding.cbDisableThumbnails.isChecked = formData.disableThumbnails
         binding.cbShowHiddenFiles.isChecked = formData.showHiddenFiles
         binding.cbShowSubfoldersAsItems.isChecked = formData.showSubfoldersAsItems
         binding.cbRememberFileList.isChecked = formData.rememberFileList
+        binding.cbScanSubdirectories.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SCAN_SUBDIRECTORIES, isChecked) }
+        binding.cbAllFiles.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.ALL_FILES, isChecked) }
+        binding.cbDisableThumbnails.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.DISABLE_THUMBNAILS, isChecked) }
+        binding.cbShowHiddenFiles.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SHOW_HIDDEN_FILES, isChecked) }
+        binding.cbShowSubfoldersAsItems.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.SHOW_SUBFOLDERS_AS_ITEMS, isChecked) }
+        binding.cbRememberFileList.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.REMEMBER_FILE_LIST, isChecked) }
 
-        // Destination checkboxes
+        // Destination checkboxes (guarded: programmatic setChecked must NOT fire onFieldChanged)
+        binding.cbIsDestination.setOnCheckedChangeListener(null)
+        binding.cbIsReadOnly.setOnCheckedChangeListener(null)
         binding.cbIsDestination.isChecked = formData.isDestination
         binding.cbIsReadOnly.isChecked = formData.isReadOnly
+        binding.cbIsDestination.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.IS_DESTINATION, isChecked) }
+        binding.cbIsReadOnly.setOnCheckedChangeListener { _, isChecked -> viewModel.onFieldChanged(ResourceFieldKey.IS_READ_ONLY, isChecked) }
 
         // Dependent visibility: showHiddenFiles depends on allFiles, showSubfoldersAsItems depends on scanSubdirectories
         binding.cbShowHiddenFiles.isEnabled = formData.allFiles
@@ -817,7 +848,8 @@ class ResourceEditorFragment : Fragment() {
     private fun renderLoadingStates(isTestingConnection: Boolean, isSaving: Boolean) {
         binding.progressConnection.isVisible = isTestingConnection
         binding.btnTestConnection.isEnabled = !isTestingConnection && !isSaving
-        binding.btnSave.isEnabled = !isTestingConnection && !isSaving
+        // Note: btnSave.isEnabled is controlled exclusively by renderSaveButton(state.canSave),
+        // which already includes !isSaving && !isTestingConnection in the canSave formula.
         binding.progressSave.isVisible = isSaving
     }
 

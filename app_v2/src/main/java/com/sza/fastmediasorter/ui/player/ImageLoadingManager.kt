@@ -1282,15 +1282,33 @@ class ImageLoadingManager(
         
         binding.audioInfoOverlay.isVisible = true
         
-        // Clear previous metadata (will be populated later if found online)
-        safeViews.audioMetadata.visibility = View.GONE
-        safeViews.audioMetadata.text = ""
+        // Check if embedded metadata (artist/title) is already available from scan enrichment
+        val hasEmbeddedArtist = !file.artist.isNullOrBlank()
+        val hasEmbeddedTitle = !file.title.isNullOrBlank()
+        val hasEmbeddedMetadata = hasEmbeddedArtist || hasEmbeddedTitle
         
-        // Display full file name WITHOUT extension
-        // Start with large font (will be reduced if metadata is found)
-        safeViews.audioFileName.text = file.name.substringBeforeLast('.')
-        safeViews.audioFileName.textSize = 22f
-        safeViews.audioFileName.visibility = View.VISIBLE
+        if (hasEmbeddedMetadata) {
+            // Instant display: show artist/title from pre-extracted metadata
+            val lines = mutableListOf<String>()
+            val artistTitle = when {
+                hasEmbeddedArtist && hasEmbeddedTitle -> "${file.artist} - ${file.title}"
+                hasEmbeddedArtist -> file.artist!!
+                else -> file.title!!
+            }
+            lines.add(artistTitle)
+            file.album?.takeIf { it.isNotBlank() }?.let { lines.add(it) }
+            
+            safeViews.audioMetadata.text = lines.joinToString("\n")
+            safeViews.audioMetadata.visibility = View.VISIBLE
+            safeViews.audioFileName.visibility = View.GONE
+        } else {
+            // No embedded metadata — show filename, wait for online search
+            safeViews.audioMetadata.visibility = View.GONE
+            safeViews.audioMetadata.text = ""
+            safeViews.audioFileName.text = file.name.substringBeforeLast('.')
+            safeViews.audioFileName.textSize = 22f
+            safeViews.audioFileName.visibility = View.VISIBLE
+        }
         
         // Get file info asynchronously (size, duration, format)
         lifecycleScope.launch(Dispatchers.IO) {

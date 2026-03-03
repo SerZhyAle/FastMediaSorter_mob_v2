@@ -3141,7 +3141,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) {
         runOnUiThread {
-            // Build metadata display text
+            // Build metadata display text from online source
             val metadataLines = mutableListOf<String>()
             
             if (metadata.artistName != null && metadata.trackName != null) {
@@ -3160,10 +3160,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 metadataLines.add(metadata.releaseYear)
             }
             
+            // If embedded metadata is already displayed and online data is empty/partial,
+            // do not overwrite — only enrich with new information (e.g. release year)
+            val embeddedAlreadyShown = safeViews.audioMetadata.visibility == View.VISIBLE
+                && safeViews.audioMetadata.text.isNotBlank()
+            
             if (metadataLines.isNotEmpty()) {
                 safeViews.audioMetadata.text = metadataLines.joinToString("\n")
                 safeViews.audioMetadata.visibility = View.VISIBLE
-                // Hide filename when we have metadata (redundant)
                 safeViews.audioFileName.visibility = View.GONE
                 Timber.d("Audio metadata displayed: ${metadataLines.joinToString(" | ")}")
                 
@@ -3171,12 +3175,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 if (audioSlideshowPhotoModeManager.isActive) {
                     audioSlideshowPhotoModeManager.updateCurrentSongLabel()
                 }
-            } else {
+            } else if (!embeddedAlreadyShown) {
+                // Only fall back to filename if no embedded metadata was shown either
                 safeViews.audioMetadata.visibility = View.GONE
-                // Show filename (without extension) when no metadata
                 safeViews.audioFileName.visibility = View.VISIBLE
                 safeViews.audioFileName.textSize = 22f
             }
+            // else: keep embedded metadata visible, do nothing
         }
     }
 

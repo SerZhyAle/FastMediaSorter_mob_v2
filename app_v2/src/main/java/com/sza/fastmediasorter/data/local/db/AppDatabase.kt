@@ -18,7 +18,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         FileMetadataCacheEntity::class,
         PendingRevocationEntity::class
     ],
-    version = 17,
+    version = 18,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -438,6 +438,19 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 """.trimIndent())
                 db.execSQL("CREATE INDEX IF NOT EXISTS index_pending_revocations_provider ON pending_revocations (provider)")
+            }
+        }
+
+        /**
+         * v17 → v18: Add audio metadata columns (artist, album, title) to file_metadata_cache.
+         * These were extracted by CachedMediaMetadataExtractor but never persisted,
+         * causing cache-hit reads to lose audio metadata.
+         */
+        val MIGRATION_17_18 = object : Migration(17, 18) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN artist TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN album TEXT DEFAULT NULL")
+                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN title TEXT DEFAULT NULL")
             }
         }
     }

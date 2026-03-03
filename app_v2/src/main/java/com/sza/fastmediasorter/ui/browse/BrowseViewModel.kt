@@ -38,6 +38,7 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.data.observer.MediaFileObserver
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
+import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
 import com.sza.fastmediasorter.domain.usecase.GetMediaFilesUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -132,6 +133,7 @@ class BrowseViewModel @Inject constructor(
     private val googleDriveClient: com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient,
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
+    private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
     private val browseStateDataStore: com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore,
     private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
     private val syncMediaStoreUseCase: com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase,
@@ -238,6 +240,9 @@ class BrowseViewModel @Inject constructor(
     // Optional player warm-up job (feature-flagged)
     private var playerWarmupJob: Job? = null
     private var lastWarmupSignature: String? = null
+
+    // Background audio metadata enrichment job
+    private var audioMetadataEnrichmentJob: Job? = null
 
     // --- Inline Audio Player ---
     private var inlineMediaPlayer: android.media.MediaPlayer? = null
@@ -621,6 +626,7 @@ class BrowseViewModel @Inject constructor(
         reloadDebounceJob?.cancel()
         stopButtonTimerJob?.cancel()
         playerWarmupJob?.cancel()
+        audioMetadataEnrichmentJob?.cancel()
         shouldStopScan.set(true) // Graceful stop flag for any in-flight scanner
         
         stopFileObserver()
@@ -940,6 +946,91 @@ class BrowseViewModel @Inject constructor(
         }
     }
     
+    // ===== BACKGROUND AUDIO METADATA ENRICHMENT =====
+
+    /**
+     * Lazily enriches audio files with metadata (artist, album, title, duration) in background.
+     * Runs after file list is loaded (from DB cache, RAM cache, or fresh scan).
+     * Only processes local audio files that lack metadata. Results update UI via state,
+     * RAM cache, and DB cache. Analogous to thumbnail lazy-loading for images.
+     */
+    private fun enrichAudioMetadataInBackground(resource: MediaResource) {
+        audioMetadataEnrichmentJob?.cancel()
+        audioMetadataEnrichmentJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            // Small delay to let UI settle first (similar to thumbnail loading on IDLE)
+            delay(300L)
+
+            val currentFiles = state.value.mediaFiles
+            val audioFilesWithoutMetadata = currentFiles.filter { file ->
+                !file.isDirectory &&
+                    file.type == MediaType.AUDIO &&
+                    file.artist == null && file.title == null
+            }
+
+            if (audioFilesWithoutMetadata.isEmpty()) {
+                Timber.d("enrichAudioMetadata: No audio files needing enrichment for resource ${resource.id}")
+                return@launch
+            }
+
+            Timber.d("enrichAudioMetadata: Enriching ${audioFilesWithoutMetadata.size} audio files for resource ${resource.id}")
+
+            val enrichedAudio = cachedMediaMetadataExtractor.enrichBatch(
+                resourceId = resource.id,
+                resourceType = resource.type,
+                credentialsId = resource.credentialsId,
+                files = audioFilesWithoutMetadata
+            )
+
+            // Build lookup of enriched files by path
+            val enrichedMap = enrichedAudio.associateBy { it.path }
+
+            // Merge enriched metadata into current state files
+            val latestFiles = state.value.mediaFiles
+            var enrichedCount = 0
+            val updatedFiles = latestFiles.map { file ->
+                val enriched = enrichedMap[file.path]
+                if (enriched != null && enriched !== file &&
+                    (enriched.artist != file.artist || enriched.title != file.title ||
+                        enriched.album != file.album || enriched.duration != file.duration)
+                ) {
+                    enrichedCount++
+                    file.copy(
+                        artist = enriched.artist ?: file.artist,
+                        album = enriched.album ?: file.album,
+                        title = enriched.title ?: file.title,
+                        duration = enriched.duration ?: file.duration
+                    )
+                } else {
+                    file
+                }
+            }
+
+            if (enrichedCount == 0) {
+                Timber.d("enrichAudioMetadata: No new metadata found")
+                return@launch
+            }
+
+            Timber.i("enrichAudioMetadata: Enriched $enrichedCount audio files with metadata")
+
+            // Update state → triggers DiffUtil / adapter rebind
+            updateState { it.copy(mediaFiles = updatedFiles) }
+
+            // Update RAM cache
+            MediaFilesCacheManager.setCachedList(resource.id, updatedFiles)
+
+            // Update DB cache if rememberFileList is enabled
+            if (resource.rememberFileList) {
+                try {
+                    cachedFileListRepository.saveCachedFiles(resource.id, updatedFiles)
+                } catch (e: Exception) {
+                    Timber.e(e, "enrichAudioMetadata: Failed to save enriched files to DB cache")
+                }
+            }
+
+            cachedMediaMetadataExtractor.logSessionDiagnostics("Browse-enrich")
+        }
+    }
+
     // ===== SUBFOLDER NAVIGATION =====
     
     /**
@@ -1407,6 +1498,7 @@ class BrowseViewModel @Inject constructor(
                         schedulePlayerWarmupIfEligible(filteredDbCache)
                         setLoading(false)
                         updateResourceMetadataAfterBrowse(resource, filteredDbCache.size)
+                        enrichAudioMetadataInBackground(resource)
                         Timber.i("BrowseViewModel.loadResource: Loaded ${filteredDbCache.size} files from DB cache for resource ${resource.id}")
                         return@launch
                     }
@@ -1523,6 +1615,7 @@ class BrowseViewModel @Inject constructor(
                     // Update resource metadata (lastBrowseDate) even when loading from cache
                     Timber.d("BrowseViewModel.loadResource: Cache hit, updating metadata for ${resource.name}")
                     updateResourceMetadataAfterBrowse(resource, reconciledFiles.size)
+                    enrichAudioMetadataInBackground(resource)
                     
                     return@launch
                 }
@@ -1773,6 +1866,7 @@ class BrowseViewModel @Inject constructor(
                 } catch (e: Exception) {
                     Timber.e(e, "BrowseViewModel: Failed to save files to DB cache for resource ${resource.id}")
                 }
+                enrichAudioMetadataInBackground(resource)
             }
             
             override fun startFileObserver() {
