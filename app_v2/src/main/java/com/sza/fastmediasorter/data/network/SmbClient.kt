@@ -185,7 +185,9 @@ class SmbClient @Inject constructor(
                     var pathWarning = ""
                     if (targetPath.isNotEmpty()) {
                         try {
-                            if (!share.fileExists(targetPath)) {
+                            // Use folderExists for directories (fileExists() only checks files, not folders in SMBJ)
+                            val pathExists = share.folderExists(targetPath) || share.fileExists(targetPath)
+                            if (!pathExists) {
                                 // Fail if specific subfolder is requested but does not exist
                                 // This prevents users from creating resources pointing to non-existent folders (typos)
                                 return@withConnection SmbResult.Error("Subfolder '$targetPath' does not exist on share '${connectionInfo.shareName}'")
