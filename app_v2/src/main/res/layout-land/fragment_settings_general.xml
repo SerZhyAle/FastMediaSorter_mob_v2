@@ -308,18 +308,62 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- Documentation Links -->
-        <LinearLayout android:id="@+id/containerDocLinks" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="start" android:layout_marginTop="@dimen/margin_tiny" android:layout_marginBottom="@dimen/margin_tiny">
+        <LinearLayout
+            android:id="@+id/containerDocLinks"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:gravity="start|center_vertical"
+            android:orientation="horizontal">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnUserGuide" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/user_guide" android:layout_marginEnd="@dimen/settings_margin_standard" app:icon="@android:drawable/ic_menu_help" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnUserGuide"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_margin_standard"
+                android:text="@string/user_guide"
+                app:icon="@android:drawable/ic_menu_help"
+                app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnPrivacyPolicy" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/privacy_policy" android:layout_marginEnd="@dimen/settings_margin_standard" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPrivacyPolicy"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/settings_margin_standard"
+                android:text="@string/privacy_policy"
+                app:icon="@android:drawable/ic_menu_info_details"
+                app:iconSize="@dimen/settings_icon_size" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnOpenSourceLicenses" style="@style/Widget.MaterialComponents.Button.TextButton.Icon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/open_source_licenses_title" app:icon="@android:drawable/ic_menu_info_details" app:iconSize="@dimen/settings_icon_size" />
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenSourceLicenses"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/open_source_licenses_title"
+                app:icon="@android:drawable/ic_menu_info_details"
+                app:iconSize="@dimen/settings_icon_size" />
 
         </LinearLayout>
 
         <!-- Version Info -->
-        <TextView android:id="@+id/tvVersionInfo" android:layout_width="wrap_content" android:layout_height="wrap_content" android:gravity="center" android:layout_gravity="center_horizontal" android:layout_marginTop="@dimen/margin_large" android:layout_marginBottom="@dimen/margin_medium" android:text="" android:textColor="?android:attr/textColorLink" android:textSize="@dimen/text_size_small" android:clickable="true" android:focusable="true" android:background="?android:attr/selectableItemBackground" android:padding="8dp" />
+        <TextView
+            android:id="@+id/tvVersionInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/margin_large"
+            android:layout_marginBottom="@dimen/margin_medium"
+            android:background="?android:attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="left"
+            android:padding="8dp"
+            android:text=""
+            android:textColor="?android:attr/textColorLink"
+            android:textSize="@dimen/text_size_small" />
 
     </LinearLayout>
 

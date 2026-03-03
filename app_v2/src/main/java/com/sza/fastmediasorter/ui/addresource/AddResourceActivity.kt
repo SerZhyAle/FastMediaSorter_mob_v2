@@ -364,6 +364,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             showProfilePresetDialog(isSmb = false)
         }
 
+        // Remember File List help buttons
+        binding.btnSmbHelpRememberFileList.setOnClickListener {
+            showRememberFileListHelpDialog()
+        }
+        binding.btnSftpHelpRememberFileList.setOnClickListener {
+            showRememberFileListHelpDialog()
+        }
+
         setupCheckboxInteractions()
         applyFlavorRestrictions()
     }
@@ -471,11 +479,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     private fun showProfilePresetDialog(isSmb: Boolean) {
-        val profiles = arrayOf(
-            ResourceProfile.NONE,
-            ResourceProfile.AUDIO_LIBRARY,
-            ResourceProfile.PHOTO_STORAGE
-        )
+        val profiles = ResourceProfile.values()
         val labels = profiles.map { getString(getProfileLabelResId(it)) }.toTypedArray()
         val current = if (isSmb) smbProfilePreset else sftpProfilePreset
         val currentIndex = profiles.indexOf(current).coerceAtLeast(0)
@@ -521,6 +525,16 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.cbSmbSupportText.isChecked = false
                 binding.cbSmbSupportPdf.isChecked = false
                 binding.cbSmbSupportEpub.isChecked = false
+                binding.cbSmbRememberFileList.isChecked = true
+            }
+            ResourceProfile.VIDEO_LIBRARY -> {
+                binding.cbSmbSupportVideo.isChecked = binding.cbSmbSupportVideo.isVisible
+                binding.cbSmbSupportAudio.isChecked = binding.cbSmbSupportAudio.isVisible
+                binding.cbSmbSupportImage.isChecked = false
+                binding.cbSmbSupportGif.isChecked = false
+                binding.cbSmbSupportText.isChecked = false
+                binding.cbSmbSupportPdf.isChecked = false
+                binding.cbSmbSupportEpub.isChecked = false
             }
             ResourceProfile.PHOTO_STORAGE -> {
                 binding.cbSmbSupportImage.isChecked = binding.cbSmbSupportImage.isVisible
@@ -530,6 +544,18 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.cbSmbSupportText.isChecked = false
                 binding.cbSmbSupportPdf.isChecked = false
                 binding.cbSmbSupportEpub.isChecked = false
+            }
+            ResourceProfile.DOCUMENTS -> {
+                binding.cbSmbSupportText.isChecked = binding.cbSmbSupportText.isVisible
+                binding.cbSmbSupportPdf.isChecked = binding.cbSmbSupportPdf.isVisible
+                binding.cbSmbSupportEpub.isChecked = binding.cbSmbSupportEpub.isVisible
+                binding.cbSmbSupportImage.isChecked = false
+                binding.cbSmbSupportVideo.isChecked = false
+                binding.cbSmbSupportAudio.isChecked = false
+                binding.cbSmbSupportGif.isChecked = false
+            }
+            ResourceProfile.ALL_FILES -> {
+                binding.cbSmbAllFiles.isChecked = true
             }
             else -> Unit
         }
@@ -548,6 +574,16 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.cbSftpSupportText.isChecked = false
                 binding.cbSftpSupportPdf.isChecked = false
                 binding.cbSftpSupportEpub.isChecked = false
+                binding.cbSftpRememberFileList.isChecked = true
+            }
+            ResourceProfile.VIDEO_LIBRARY -> {
+                binding.cbSftpSupportVideo.isChecked = binding.cbSftpSupportVideo.isVisible
+                binding.cbSftpSupportAudio.isChecked = binding.cbSftpSupportAudio.isVisible
+                binding.cbSftpSupportImage.isChecked = false
+                binding.cbSftpSupportGif.isChecked = false
+                binding.cbSftpSupportText.isChecked = false
+                binding.cbSftpSupportPdf.isChecked = false
+                binding.cbSftpSupportEpub.isChecked = false
             }
             ResourceProfile.PHOTO_STORAGE -> {
                 binding.cbSftpSupportImage.isChecked = binding.cbSftpSupportImage.isVisible
@@ -557,6 +593,18 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.cbSftpSupportText.isChecked = false
                 binding.cbSftpSupportPdf.isChecked = false
                 binding.cbSftpSupportEpub.isChecked = false
+            }
+            ResourceProfile.DOCUMENTS -> {
+                binding.cbSftpSupportText.isChecked = binding.cbSftpSupportText.isVisible
+                binding.cbSftpSupportPdf.isChecked = binding.cbSftpSupportPdf.isVisible
+                binding.cbSftpSupportEpub.isChecked = binding.cbSftpSupportEpub.isVisible
+                binding.cbSftpSupportImage.isChecked = false
+                binding.cbSftpSupportVideo.isChecked = false
+                binding.cbSftpSupportAudio.isChecked = false
+                binding.cbSftpSupportGif.isChecked = false
+            }
+            ResourceProfile.ALL_FILES -> {
+                binding.cbSftpAllFiles.isChecked = true
             }
             else -> Unit
         }
@@ -673,6 +721,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 }
             }
         }
+    }
+
+    private fun showRememberFileListHelpDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.remember_file_list_help_title)
+            .setMessage(R.string.remember_file_list_help_message)
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
     private fun showTestResultDialog(message: String, isSuccess: Boolean) {
@@ -813,6 +869,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.cbSmbSupportEpub.isEnabled = true
             binding.cbSmbSupportEpub.isVisible = com.sza.fastmediasorter.BuildConfig.ENABLE_EPUB && 
                 (com.sza.fastmediasorter.domain.model.MediaType.EPUB in supportedTypes)
+
+            // Initialize rememberFileList from global default setting
+            val smbSettings = viewModel.getSettings()
+            binding.cbSmbRememberFileList.isChecked = smbSettings.defaultRememberFileList
         }
     }
     
@@ -876,6 +936,10 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             binding.cbSftpSupportEpub.isEnabled = true
             binding.cbSftpSupportEpub.isVisible = com.sza.fastmediasorter.BuildConfig.ENABLE_EPUB && 
                 (com.sza.fastmediasorter.domain.model.MediaType.EPUB in supportedTypes)
+
+            // Initialize rememberFileList from global default setting
+            val sftpSettings = viewModel.getSettings()
+            binding.cbSftpRememberFileList.isChecked = sftpSettings.defaultRememberFileList
         }
     }
     
@@ -1225,7 +1289,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             supportedTypes = getSmbSupportedTypes(),
             isReadOnly = isReadOnly,
             allFiles = binding.cbSmbAllFiles.isChecked,
-            scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked
+            scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked,
+            rememberFileList = binding.cbSmbRememberFileList.isChecked
         )
     }
 
@@ -1397,7 +1462,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     allFiles = binding.cbSftpAllFiles.isChecked,
                     scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
                     addToDestinations = binding.cbSftpAddToDestinations.isChecked,
-                    isReadOnly = binding.cbSftpReadOnlyMode.isChecked
+                    isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
+                    rememberFileList = binding.cbSftpRememberFileList.isChecked
                 )
             } else {
                 // Add with password
@@ -1415,7 +1481,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     allFiles = binding.cbSftpAllFiles.isChecked,
                     scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
                     addToDestinations = binding.cbSftpAddToDestinations.isChecked,
-                    isReadOnly = binding.cbSftpReadOnlyMode.isChecked
+                    isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
+                    rememberFileList = binding.cbSftpRememberFileList.isChecked
                 )
             }
         } else {
@@ -1434,7 +1501,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 allFiles = binding.cbSftpAllFiles.isChecked,
                 scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
                 addToDestinations = binding.cbSftpAddToDestinations.isChecked,
-                isReadOnly = binding.cbSftpReadOnlyMode.isChecked
+                isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
+                rememberFileList = binding.cbSftpRememberFileList.isChecked
             )
         }
     }

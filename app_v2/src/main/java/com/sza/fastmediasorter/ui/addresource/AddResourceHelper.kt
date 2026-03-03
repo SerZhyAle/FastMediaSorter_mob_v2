@@ -70,6 +70,9 @@ class AddResourceHelper(
                 // Pre-fill all files mode
                 binding.cbSmbAllFiles.isChecked = resource.allFiles
 
+                // Pre-fill remember file list
+                binding.cbSmbRememberFileList.isChecked = resource.rememberFileList
+
                 // Pre-fill supported media types
                 binding.cbSmbSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
                 binding.cbSmbSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
@@ -131,6 +134,9 @@ class AddResourceHelper(
                 // Pre-fill all files mode
                 binding.cbSftpAllFiles.isChecked = resource.allFiles
 
+                // Pre-fill remember file list
+                binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
+
                 // Pre-fill supported media types
                 binding.cbSftpSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes
                 binding.cbSftpSupportVideo.isChecked = com.sza.fastmediasorter.domain.model.MediaType.VIDEO in resource.supportedMediaTypes
@@ -183,6 +189,9 @@ class AddResourceHelper(
 
                 // Pre-fill all files mode
                 binding.cbSftpAllFiles.isChecked = resource.allFiles
+
+                // Pre-fill remember file list
+                binding.cbSftpRememberFileList.isChecked = resource.rememberFileList
 
                 // Pre-fill supported media types
                 binding.cbSftpSupportImage.isChecked = com.sza.fastmediasorter.domain.model.MediaType.IMAGE in resource.supportedMediaTypes

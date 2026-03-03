@@ -5,11 +5,11 @@
     <!-- Text sizes -->
     <dimen name="text_size_huge">24sp</dimen>
     <dimen name="text_size_large">18sp</dimen>
-    <dimen name="text_size_normal">14sp</dimen>
+    <dimen name="text_size_normal">16sp</dimen>
     <dimen name="settings_group_header_text_size">16sp</dimen>
-    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
     <dimen name="text_size_11sp">11sp</dimen>
-    <dimen name="text_size_tiny">11sp</dimen>
+    <dimen name="text_size_tiny">10sp</dimen>
     <dimen name="text_size_title_dialog">20sp</dimen>
     <dimen name="text_line_spacing_extra">4dp</dimen>
 

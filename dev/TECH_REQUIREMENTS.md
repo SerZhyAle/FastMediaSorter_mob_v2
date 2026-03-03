@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Technical Requirements & Stack Reference
 
-**Last Updated**: March 2, 2026  
+**Last Updated**: March 3, 2026  
 **Purpose**: Single source of truth for the full technical stack, library inventory, platform constraints, minimum and recommended requirements.
 
 ---
@@ -383,7 +383,54 @@
 
 ---
 
-## 10. Version History (Relevant Pinning Decisions)
+## 10. Project Statistics (as of March 3, 2026)
+
+### Codebase Size
+
+| Metric                  | Value                 | Notes                                           |
+|:------------------------|:----------------------|:------------------------------------------------|
+| Kotlin source files     | 541                   | `app_v2/` (main) + `wear/` (companion)          |
+| XML layout/config files | 315                   | UI layouts, manifests, resources                |
+| Total lines of code     | 131,445               | Kotlin only (src/ directory)                    |
+| Total source files      | 856                   | Kotlin + XML combined                           |
+
+### Code Objects
+
+| Object Type             | Count                 | Notes                                           |
+|:------------------------|:----------------------|:------------------------------------------------|
+| Classes (including data)| 634                   | Domain models, UI, repositories, managers       |
+| Interfaces             | 79                    | Contracts for DI, repositories, use cases       |
+| Enums                  | 41                    | MediaType, ResourceType, SortMode, etc.         |
+| Functions/Methods      | 3,098                 | Top-level + nested (avg ~6 per class)           |
+
+### Module Breakdown
+
+| Module                  | KT Files | LOC (approx) | Purpose                     |
+|:------------------------|:---------|:-------------|:----------------------------|
+| `app_v2` (main)        | 515      | 125,000     | Android app (MVVM + Clean)  |
+| `wear` (companion)      | 26       | 6,445       | Wear OS app (Compose)       |
+
+### Architectural Breakdown (app_v2)
+
+| Layer                   | Packages | Purpose                                     |
+|:------------------------|:---------|:--------------------------------------------|
+| **UI** (`ui/`)          | ~80 files| Activities, Fragments, ViewModels, Compose  |
+| **Domain** (`domain/`)  | ~40 files| Use Cases, Models, Repository interfaces    |
+| **Data** (`data/`)      | ~150 files| Repositories, DataSources, DB, Network      |
+| **Core** (`core/`, `util/`, `di/`) | ~80 files | DI, managers, utilities, logging             |
+| **Background** (`worker/`, `widget/`) | ~20 files | WorkManager, widgets                       |
+
+### Database
+
+| Aspect                  | Value                 | Notes                                           |
+|:------------------------|:----------------------|:------------------------------------------------|
+| Room DB version        | 18                    | Latest schema with audio metadata cache        |
+| Number of entities     | 15+                   | MediaResource, MediaFile, Cloud credentials, etc. |
+| Migrations             | 17                    | Schema evolution from v1.0 to v2.x             |
+
+---
+
+## 11. Version History (Relevant Pinning Decisions)
 
 | Decision                           | Reason                                                      |
 |:-----------------------------------|:------------------------------------------------------------|

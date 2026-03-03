@@ -741,7 +741,8 @@ class AddResourceViewModel @Inject constructor(
         supportedTypes: Set<MediaType> = emptySet(),
         isReadOnly: Boolean = false,
         allFiles: Boolean = false,
-        scanSubdirectories: Boolean = false
+        scanSubdirectories: Boolean = false,
+        rememberFileList: Boolean = false
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -804,7 +805,8 @@ class AddResourceViewModel @Inject constructor(
                     supportedMediaTypes = finalSupportedTypes,
                     isReadOnly = isReadOnly,
                     allFiles = allFiles,
-                    scanSubdirectories = scanSubdirectories
+                    scanSubdirectories = scanSubdirectories,
+                    rememberFileList = rememberFileList
                 )
                 
                 // Add resource to database
@@ -1004,7 +1006,8 @@ class AddResourceViewModel @Inject constructor(
         isReadOnly: Boolean = false,
         allFiles: Boolean = false,
         scanSubdirectories: Boolean = false,
-        addToDestinations: Boolean = false
+        addToDestinations: Boolean = false,
+        rememberFileList: Boolean = false
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1089,7 +1092,8 @@ class AddResourceViewModel @Inject constructor(
                     supportedMediaTypes = finalSupportedTypes,
                     isReadOnly = isReadOnly,
                     allFiles = allFiles,
-                    scanSubdirectories = scanSubdirectories
+                    scanSubdirectories = scanSubdirectories,
+                    rememberFileList = rememberFileList
                 )
                 
                 // Add resource to database
@@ -1361,7 +1365,8 @@ class AddResourceViewModel @Inject constructor(
         allFiles: Boolean = false,
         isReadOnly: Boolean = false,
         scanSubdirectories: Boolean = false,
-        addToDestinations: Boolean = false
+        addToDestinations: Boolean = false,
+        rememberFileList: Boolean = false
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1438,7 +1443,8 @@ class AddResourceViewModel @Inject constructor(
                     supportedMediaTypes = finalSupportedTypes,
                     isReadOnly = isReadOnly,
                     allFiles = allFiles,
-                    scanSubdirectories = scanSubdirectories
+                    scanSubdirectories = scanSubdirectories,
+                    rememberFileList = rememberFileList
                 )
                 
                 // Add resource to database
