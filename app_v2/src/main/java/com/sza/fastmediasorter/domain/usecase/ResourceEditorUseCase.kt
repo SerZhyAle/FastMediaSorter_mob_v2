@@ -384,15 +384,24 @@ class ResourceEditorUseCase @Inject constructor(
             } else {
                 existing.encryptedPassword
             }
+            // For SMB, extract bare share name from "share/subfolder" path (first segment only).
+            // For SFTP/FTP there is no shareName concept, preserve existing value.
+            val newShareName = if (formData.type == ResourceType.SMB) {
+                formData.path.replace('\\', '/').split('/').firstOrNull()?.takeIf { it.isNotEmpty() }
+                    ?: existing.shareName
+            } else {
+                existing.shareName
+            }
             val updated = existing.copy(
                 server = formData.host,
                 port = formData.port ?: defaultPort,
                 username = formData.username,
                 encryptedPassword = newEncryptedPwd,
+                shareName = newShareName,
                 domain = existing.domain // ResourceFormData has no domain field; preserve existing value
             )
             credentialsRepository.update(updated)
-            Timber.d("updateCredentialInPlace: OK id=$credentialId type=${formData.type} host=${formData.host} pwdChanged=${formData.password.isNotEmpty()}")
+            Timber.d("updateCredentialInPlace: OK id=$credentialId type=${formData.type} host=${formData.host} shareName=$newShareName pwdChanged=${formData.password.isNotEmpty()}")
             formData // credentialsId is already correct
         } catch (e: Exception) {
             Timber.e(e, "updateCredentialInPlace: failed for $credentialId")
