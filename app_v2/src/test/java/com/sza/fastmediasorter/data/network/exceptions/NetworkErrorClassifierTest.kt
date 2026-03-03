@@ -99,6 +99,14 @@ class NetworkErrorClassifierTest {
         assertTrue(result is NetworkFileNotFoundException)
     }
 
+    @Test
+    fun `classify SMB STATUS_BAD_NETWORK_NAME as NetworkFileNotFoundException`() {
+        val result = NetworkErrorClassifier.classify(
+            RuntimeException("STATUS_BAD_NETWORK_NAME (0xc00000cc): Could not connect to \\\\192.168.1.110\\medi")
+        )
+        assertTrue(result is NetworkFileNotFoundException)
+    }
+
     // ── Rate limit ───────────────────────────────────────────────────────────
 
     @Test

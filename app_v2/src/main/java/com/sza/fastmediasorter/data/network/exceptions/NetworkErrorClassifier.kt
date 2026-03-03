@@ -126,7 +126,8 @@ object NetworkErrorClassifier {
     private fun Throwable.isSmbNotFound(): Boolean {
         val msg = message ?: return false
         return msg.contains("STATUS_OBJECT_NAME_NOT_FOUND", ignoreCase = true) ||
-                msg.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true)
+                msg.contains("STATUS_OBJECT_PATH_NOT_FOUND", ignoreCase = true) ||
+                msg.contains("STATUS_BAD_NETWORK_NAME", ignoreCase = true) // SMB share not found on server
     }
 
     private fun Throwable.extractSmbStatus(): String {
