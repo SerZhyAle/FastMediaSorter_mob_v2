@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
+import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
 import com.sza.fastmediasorter.domain.model.ResourceFieldKey
@@ -310,10 +311,22 @@ class ResourceFormViewModel @Inject constructor(
                 resourceEditorUseCase.testConnection(currentForm)
             }
 
+            // Refresh statistics from DB after successful test in EDIT mode
+            // (catches any data updated since the editor was opened)
+            val refreshedStatistics = if (result.status == ResourceConnectionStatus.SUCCESS &&
+                mode == ResourceEditorMode.EDIT && resourceId != null) {
+                withContext(Dispatchers.IO) {
+                    resourceEditorUseCase.getResourceStatistics(resourceId)
+                }
+            } else {
+                _uiState.value.statistics
+            }
+
             _uiState.update {
                 it.copy(
                     isTestingConnection = false,
-                    connectionResult = result
+                    connectionResult = result,
+                    statistics = refreshedStatistics
                 )
             }
         }

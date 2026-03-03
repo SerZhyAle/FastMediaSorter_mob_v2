@@ -826,12 +826,13 @@ class ResourceEditorFragment : Fragment() {
 
         binding.groupConnectionResult.isVisible = true
         binding.tvConnectionStatus.text = when (result.status) {
-            ResourceConnectionStatus.SUCCESS -> getString(R.string.connection_success)
+            // Show live stats (subfolder/file count) from diagnosticMessage when available
+            ResourceConnectionStatus.SUCCESS -> result.diagnosticMessage ?: getString(R.string.connection_success)
             ResourceConnectionStatus.FAILED -> getString(
                 R.string.connection_test_failed_detail,
                 result.diagnosticMessage ?: getString(R.string.error_unknown)
             )
-            ResourceConnectionStatus.PARTIAL -> getString(R.string.connection_success)
+            ResourceConnectionStatus.PARTIAL -> result.diagnosticMessage ?: getString(R.string.connection_success)
             ResourceConnectionStatus.NOT_SUPPORTED -> getString(R.string.connection_test_not_supported)
         }
 
