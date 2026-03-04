@@ -100,3 +100,16 @@ Format: | datetime | file | target | description |
 | 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_video_error.xml` | `ic_video_error` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
 | 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_video_placeholder.xml` | `ic_video_placeholder` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
 | 2026-03-04 20:32:54 | `dev/IMPROVEMENT_PROPOSAL.md` | `IV.3 status` | Updated IV.3 status after safe-pass #2 cleanup with backup paths |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/drawable/touch_zones_numbered.xml` | `touch_zones_numbered` | Removed confirmed-unused drawable (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/drawable/touch_zones_numbered_simple.xml` | `touch_zones_numbered_simple` | Removed confirmed-unused drawable (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/drawable/touch_zones_video_image.xml` | `touch_zones_video_image` | Removed confirmed-unused drawable (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/drawable/touch_zones_with_labels.xml` | `touch_zones_with_labels` | Removed confirmed-unused drawable (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/layout/touch_zones_overlay.xml` | `touch_zones_overlay` | Removed confirmed-unused layout (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/layout/player_command_panel_mode.xml` | `player_command_panel_mode` | Removed confirmed-unused layout (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/layout/dialog_rename_single.xml` | `dialog_rename_single` | Removed confirmed-unused layout (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `app_v2/src/main/res/menu/context_menu_file.xml` | `context_menu_file` | Removed confirmed-unused menu (safe-pass #3, backup 20260304_204007) |
+| 2026-03-04 20:40:55 | `dev/IMPROVEMENT_PROPOSAL.md` | `IV.3 status` | Updated IV.3 status after safe-pass #3 cleanup with backup path |
+| 2026-03-04 20:48:18 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase` | Reset DB version from 18 to 1, removed all 17 migration objects |
+| 2026-03-04 20:48:18 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `DatabaseModule` | Replaced addMigrations() with fallbackToDestructiveMigration() |
+| 2026-03-04 20:48:19 | `gradle.properties` | `jvmargs/kapt` | Added java.io.tmpdir=C: to jvmargs, kapt.use.worker.api=false to fix R: disk space issue |
+| 2026-03-04 20:48:33 | `dev/IMPROVEMENT_PROPOSAL.md` | `IV.7 status` | Marked IV.7 as DONE - DB migrations reset, fallbackToDestructiveMigration |

@@ -413,7 +413,10 @@
 
 ### IV.3 373 неиспользуемых ресурса
 
-**Статус**: ⚠️ Реализовано частично (safe-pass x2, 2026-03-04). Удалены только подтверждённо неиспользуемые ресурсы с нулём реальных ссылок: `layout/activity_player.xml`, флаги `is_small_screen`, `enable_compact_layout`, `reduce_animations`, `use_single_pane_layout` из `values/bools.xml` и `values-sw480dp/bools.xml`, а также 10 неиспользуемых drawable (`badge_background`, `bg_progress_dialog`, `button_hover_selector`, `error_placeholder`, `ic_add_24`, `ic_image_error`, `ic_save`, `ic_swap_vert`, `ic_video_error`, `ic_video_placeholder`). Перед изменениями созданы бэкапы: `temp/backups/20260304_202949/` и `temp/backups/20260304_203222/`.
+**Статус**: ⚠️ Реализовано частично (safe-pass x3, 2026-03-04). Удалены подтверждённо неиспользуемые ресурсы с нулём реальных ссылок:
+- **Pass #1** `temp/backups/20260304_202949/`: `layout/activity_player.xml`, флаги `is_small_screen`, `enable_compact_layout`, `reduce_animations`, `use_single_pane_layout` из `values/bools.xml` и `values-sw480dp/bools.xml`
+- **Pass #2** `temp/backups/20260304_203222/`: drawables: `badge_background`, `bg_progress_dialog`, `button_hover_selector`, `error_placeholder`, `ic_add_24`, `ic_image_error`, `ic_save`, `ic_swap_vert`, `ic_video_error`, `ic_video_placeholder`
+- **Pass #3** `temp/backups/20260304_204007/`: drawables: `touch_zones_numbered`, `touch_zones_numbered_simple`, `touch_zones_video_image`, `touch_zones_with_labels`; layouts: `touch_zones_overlay`, `player_command_panel_mode`, `dialog_rename_single`; menu: `context_menu_file`
 
 **Проблема**: Lint baseline содержит 373 `UnusedResources`. Это: строки, drawables, layouts, которые не используются в коде. Раздувают APK.
 
@@ -437,7 +440,9 @@
 
 **Предложение**: Рефакторить к формату `getString(R.string.key, arg1, arg2)`. Это улучшит локализацию и стандартизирует сообщения.
 
-### IV.7 Room DB — 17 миграций
+### IV.7 Room DB — 17 миграций — ✅ РЕАЛИЗОВАНО
+
+**Статус**: ✅ Выполнено (2026-03-04). Все 17 миграций удалены. Версия сброшена с 18 до 1. Текущая схема — нулевое состояние. `DatabaseModule` переведён на `fallbackToDestructiveMigration()`. Пользователи с предыдущей версией БД получат пустую базу (это сознательное решение). Бэкап: `temp/backups/20260304_204148/`.
 
 **Проблема**: 17 миграций (v1→v18) в AppDatabase. Каждая новая фича добавляет миграцию. Цепочка становится хрупкой.
 
