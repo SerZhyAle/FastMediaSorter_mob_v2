@@ -245,6 +245,7 @@
     <string name="default_smb_user">Default SMB user</string>
     <string name="default_smb_password">Default SMB password</string>
     <string name="user_guide">User Guide</string>
+    <string name="open_welcome_tutorial">Welcome Tutorial</string>
     <string name="privacy_policy">Privacy</string>
     <string name="manage_permissions">Manage permissions</string>
     <string name="manage_local_files_permission">Manage local files access</string>

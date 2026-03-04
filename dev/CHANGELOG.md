@@ -130,3 +130,9 @@ Format: | datetime | file | target | description |
 | 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | a11y stub: call performClick on ACTION_UP in WebView and translationOverlay touch listeners |
 | 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MouseEventHandler.kt` | `MouseEventHandler` | a11y stub: call performClick on ACTION_UP in createTouchListener |
 | 2026-03-04 20:59:47 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Mark II.4 (a11y stub) as done |
+| 2026-03-04 21:14:05 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `containerDocLinks` | Added btnOpenWelcome button to Documentation Links section |
+| 2026-03-04 21:14:05 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `containerDocLinks` | Added btnOpenWelcome button (landscape) |
+| 2026-03-04 21:14:05 | `app_v2/src/main/res/values/strings.xml` | `open_welcome_tutorial` | Added string open_welcome_tutorial (EN) |
+| 2026-03-04 21:14:05 | `app_v2/src/main/res/values-ru/strings.xml` | `open_welcome_tutorial` | Added string open_welcome_tutorial (RU) |
+| 2026-03-04 21:14:05 | `app_v2/src/main/res/values-uk/strings.xml` | `open_welcome_tutorial` | Added string open_welcome_tutorial (UK) |
+| 2026-03-04 21:14:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `btnOpenWelcome` | Added WelcomeActivity import and btnOpenWelcome click handler |

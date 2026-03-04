@@ -313,6 +313,7 @@
     <string name="default_smb_user">SMB пользователь по умолчанию</string>
     <string name="default_smb_password">SMB пароль по умолчанию</string>
     <string name="user_guide">Руководство пользователя</string>
+    <string name="open_welcome_tutorial">Вводный экран</string>
     <string name="privacy_policy">Конфиденциальность</string>
     <string name="manage_permissions">Управление правами</string>
     <string name="title_add_resource">Добавить ресурс</string>

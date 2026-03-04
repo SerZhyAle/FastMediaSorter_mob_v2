@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.utils.PermissionChecker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -603,6 +604,11 @@ class GeneralSettingsFragment : Fragment() {
             }
         }
         
+        // Open Welcome Tutorial Button
+        binding.btnOpenWelcome.setOnClickListener {
+            startActivity(Intent(requireContext(), WelcomeActivity::class.java))
+        }
+
         binding.btnPrivacyPolicy.setOnClickListener {
             try {
                 // Get current language from LocaleHelper (active language)

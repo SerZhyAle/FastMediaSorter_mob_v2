@@ -346,6 +346,15 @@
                 app:icon="@android:drawable/ic_menu_info_details"
                 app:iconSize="@dimen/settings_icon_size" />
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenWelcome"
+                style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/open_welcome_tutorial"
+                app:icon="@android:drawable/ic_menu_view"
+                app:iconSize="@dimen/settings_icon_size" />
+
         </LinearLayout>
 
         <!-- Version Info -->
