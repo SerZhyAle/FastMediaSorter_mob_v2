@@ -464,12 +464,24 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             )
                         }
                         is MainEvent.NavigateToAddResourceCopy -> {
-                            startActivity(
-                                AddResourceActivity.createIntent(
-                                    this@MainActivity,
-                                    copyResourceId = event.copyResourceId
+                            val resource = viewModel.state.value.resources.find { it.id == event.copyResourceId }
+                            if (resource != null && !resource.accessPin.isNullOrBlank()) {
+                                passwordManager.checkResourcePin(resource) {
+                                    startActivity(
+                                        AddResourceActivity.createIntent(
+                                            this@MainActivity,
+                                            copyResourceId = event.copyResourceId
+                                        )
+                                    )
+                                }
+                            } else {
+                                startActivity(
+                                    AddResourceActivity.createIntent(
+                                        this@MainActivity,
+                                        copyResourceId = event.copyResourceId
+                                    )
                                 )
-                            )
+                            }
                         }
                         MainEvent.NavigateToSettings -> {
                             startActivity(Intent(this@MainActivity, SettingsActivity::class.java))

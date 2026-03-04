@@ -56,3 +56,47 @@ Format: | datetime | file | target | description |
 | 2026-03-03 02:20:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceFormViewModel.kt` | `onTestConnection` | Fix: Unresolved reference 'mode'/'resourceId' - use currentForm.mode/currentForm.id instead of initialize() params |
 | 2026-03-03 02:23:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/ResourceRepositoryImpl.kt` | `testSmbConnection` | Fix: derive shareName from resource.path (authoritative) instead of stale credentials value - self-heals existing resources without DB migration |
 | 2026-03-03 02:34:33 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `audioCoverArtView` | Fix: audio controls not visible in landscape - cover art view expanded to full height blocking player controls |
+| 2026-03-04 18:56:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourcePasswordManager.kt` | `ResourcePasswordManager` | Added generic PIN validation callback method for protected resource actions |
+| 2026-03-04 18:56:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Added PIN gate before NavigateToAddResourceCopy for protected resources |
+| 2026-03-04 20:12:04 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Created comprehensive improvement proposal document covering documentation, UI/UX, functionality, stability, and web presence |
+| 2026-03-04 20:18:22 | `docs/V2_Specification.md` | `V2_Specification` | Added missing technical specification page with stable permalink for landing links |
+| 2026-03-04 20:18:22 | `docs/V2_Specification_RU.md` | `V2_Specification_RU` | Added missing Russian technical specification page with stable permalink |
+| 2026-03-04 20:18:22 | `docs/V2_architecture_overview.md` | `V2_architecture_overview` | Added missing architecture overview page with stable permalink |
+| 2026-03-04 20:18:22 | `docs/V2_TERMS.md` | `V2_TERMS` | Added missing terminology reference page with stable permalink |
+| 2026-03-04 20:18:22 | `docs/TODO_V2.md` | `TODO_V2` | Added missing roadmap page with stable permalink |
+| 2026-03-04 20:18:35 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Marked task I.1 as completed after adding missing landing documentation pages |
+| 2026-03-04 20:22:51 | `gradle.properties` | `org.gradle.jvmargs` | Replaced R:/temp java.io.tmpdir with project-local ./temp |
+| 2026-03-04 20:23:09 | `scripts/utils/init-ramdisk.ps1` | `init-ramdisk` | Migrated directory initialization from R: RAM disk to project temp/* paths |
+| 2026-03-04 20:25:06 | `docs/V2_Specification_UK.md` | `V2_Specification_UK` | Added missing Ukrainian technical specification page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_architecture_overview_RU.md` | `V2_architecture_overview_RU` | Added missing Russian architecture overview page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_architecture_overview_UK.md` | `V2_architecture_overview_UK` | Added missing Ukrainian architecture overview page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_TERMS_RU.md` | `V2_TERMS_RU` | Added missing Russian terminology page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_TERMS_UK.md` | `V2_TERMS_UK` | Added missing Ukrainian terminology page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/TODO_V2_RU.md` | `TODO_V2_RU` | Added missing Russian roadmap page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/TODO_V2_UK.md` | `TODO_V2_UK` | Added missing Ukrainian roadmap page with stable permalink |
+| 2026-03-04 20:25:06 | `index-ru.html` | `index-ru Documentation section` | Switched V2 documentation cards to Russian-localized pages |
+| 2026-03-04 20:25:06 | `index-uk.html` | `index-uk Documentation section` | Switched V2 documentation cards to Ukrainian-localized pages |
+| 2026-03-04 20:25:06 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Updated I.1 status to fully completed for all three languages |
+| 2026-03-04 20:26:00 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Clearly marked I.1 as implemented in section title and prioritization list |
+| 2026-03-04 20:27:23 | `dev/IMPROVEMENT_PROPOSAL.md` | `Section II UI/UX` | Expanded item II with detailed user-centric examples: current behavior, pain points, and target UX for points II.1-II.6 |
+| 2026-03-04 20:28:23 | `dev/IMPROVEMENT_PROPOSAL.md` | `Section III Functionality` | Expanded item III with detailed examples and user use-cases for points III.1-III.10 (current pain points and target UX) |
+| 2026-03-04 20:30:36 | `gradle.properties` | `org.gradle.jvmargs` | Removed java.io.tmpdir from gradle.properties to avoid relative path issues |
+| 2026-03-04 20:30:36 | `gradlew.bat` | `DEFAULT_JVM_OPTS` | Added project-local absolute java.io.tmpdir and auto-create temp/gradle-tmp |
+| 2026-03-04 20:30:36 | `gradlew` | `DEFAULT_JVM_OPTS` | Added project-local absolute java.io.tmpdir and mkdir -p temp/gradle-tmp |
+| 2026-03-04 20:31:02 | `gradlew.bat` | `TEMP/TMP` | Forced TEMP and TMP to project temp/gradle-tmp to remove R: dependency |
+| 2026-03-04 20:31:02 | `gradlew` | `TMPDIR/TMP/TEMP` | Forced TMPDIR, TMP and TEMP to project temp/gradle-tmp |
+| 2026-03-04 20:31:04 | `app_v2/src/main/res/layout/activity_player.xml` | `activity_player.xml` | Removed confirmed-unused legacy player layout after pre-change backup |
+| 2026-03-04 20:31:04 | `app_v2/src/main/res/values/bools.xml` | `values/bools.xml` | Removed 4 unused bool flags (is_small_screen, enable_compact_layout, reduce_animations, use_single_pane_layout) |
+| 2026-03-04 20:31:04 | `app_v2/src/main/res/values-sw480dp/bools.xml` | `values-sw480dp/bools.xml` | Removed duplicate unused bool flags for sw480dp |
+| 2026-03-04 20:31:04 | `dev/IMPROVEMENT_PROPOSAL.md` | `IV.3 status` | Marked IV.3 as safe-pass partial implementation with explicit backup path and cleaned resources |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/badge_background.xml` | `badge_background` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/bg_progress_dialog.xml` | `bg_progress_dialog` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/button_hover_selector.xml` | `button_hover_selector` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/error_placeholder.xml` | `error_placeholder` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_add_24.xml` | `ic_add_24` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_image_error.xml` | `ic_image_error` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_save.xml` | `ic_save` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_swap_vert.xml` | `ic_swap_vert` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_video_error.xml` | `ic_video_error` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `app_v2/src/main/res/drawable/ic_video_placeholder.xml` | `ic_video_placeholder` | Removed confirmed-unused drawable (safe-pass #2, with backup) |
+| 2026-03-04 20:32:54 | `dev/IMPROVEMENT_PROPOSAL.md` | `IV.3 status` | Updated IV.3 status after safe-pass #2 cleanup with backup paths |

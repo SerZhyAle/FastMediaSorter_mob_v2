@@ -35,8 +35,13 @@ set APP_HOME=%DIRNAME%
 @rem Resolve any "." and ".." in APP_HOME to make it shorter.
 for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
 
+if not exist "%APP_HOME%\temp" mkdir "%APP_HOME%\temp"
+if not exist "%APP_HOME%\temp\gradle-tmp" mkdir "%APP_HOME%\temp\gradle-tmp"
+set "TMP=%APP_HOME%\temp\gradle-tmp"
+set "TEMP=%APP_HOME%\temp\gradle-tmp"
+
 @rem Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m"
+set DEFAULT_JVM_OPTS="-Xmx64m" "-Xms64m" "-Djava.io.tmpdir=%APP_HOME%\temp\gradle-tmp"
 
 @rem Find java.exe
 if defined JAVA_HOME goto findJavaFromJavaHome

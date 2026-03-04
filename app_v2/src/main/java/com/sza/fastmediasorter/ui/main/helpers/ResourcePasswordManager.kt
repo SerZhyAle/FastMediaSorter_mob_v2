@@ -24,6 +24,23 @@ class ResourcePasswordManager(
     private val context: Context,
     private val layoutInflater: LayoutInflater
 ) {
+
+    /**
+     * Check PIN and execute custom action on success.
+     *
+     * @param resource The protected resource
+     * @param onPasswordValidated Callback invoked when PIN is correct
+     */
+    fun checkResourcePin(resource: MediaResource, onPasswordValidated: () -> Unit) {
+        showPinDialog(
+            title = resource.name,
+            correctPin = resource.accessPin ?: "",
+            onSuccess = {
+                Timber.d("PIN validated for resource action: ${resource.name}")
+                onPasswordValidated()
+            }
+        )
+    }
     
     /**
      * Check PIN before accessing resource (Browse or Slideshow).

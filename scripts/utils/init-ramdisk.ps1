@@ -1,22 +1,25 @@
 # init-ramdisk.ps1
 # Run at Windows startup (via Task Scheduler or shell:startup shortcut)
-# Recreates directory structure on R: RAM disk that is wiped on every reboot.
-# All paths are targets of symbolic links in %USERPROFILE%\.gradle and %TEMP%.
+# Initializes project-local temp directories.
+# No external RAM disk is required.
+
+$projectRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 
 $dirs = @(
-    "R:\temp",
-    "R:\.gradle\daemon",
-    "R:\.gradle\caches\build-cache-1",
-    "R:\.gradle\caches\journal-1",
-    "R:\.gradle\notifications",
-    "R:\FastMediaSorter_build"
+    (Join-Path $projectRoot "temp"),
+    (Join-Path $projectRoot "temp\gradle-tmp"),
+    (Join-Path $projectRoot "temp\gradle-daemon"),
+    (Join-Path $projectRoot "temp\gradle-build-cache"),
+    (Join-Path $projectRoot "temp\gradle-journal"),
+    (Join-Path $projectRoot "temp\gradle-notifications"),
+    (Join-Path $projectRoot "temp\FastMediaSorter_build")
 )
 
 foreach ($dir in $dirs) {
     if (-not (Test-Path $dir)) {
         New-Item -ItemType Directory -Path $dir -Force | Out-Null
-        Write-Host "[init-ramdisk] Created: $dir"
+        Write-Host "[init-temp] Created: $dir"
     }
 }
 
-Write-Host "[init-ramdisk] RAM disk initialized."
+    Write-Host "[init-temp] Project temp directories initialized."
