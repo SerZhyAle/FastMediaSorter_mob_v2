@@ -131,6 +131,9 @@ Yes, just use the **command panel buttons** instead. Touch Zones are optional.
 
 ## Performance & Storage
 
+### How do I find a specific file by name?
+Use the **Filter** panel in Browse: tap the filter icon in the toolbar, type any part of the filename in the name field — the list updates instantly. No separate search bar is needed; the filter fully covers this scenario.
+
 ### Why is the app slow with 5000+ files?
 The app uses **pagination** to load files in batches. For very large collections:
 - Enable "Disable thumbnails" for that folder

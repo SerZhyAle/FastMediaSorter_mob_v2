@@ -391,10 +391,9 @@ class ImageLoadingManager(
         animatedImageController.prepareForNewContent()
         binding.playerView.isVisible = false
         
-        // Clear dynamic background from previous image
-        if (!isDynamicBackgroundEnabled) {
-            dynamicBackgroundProcessor?.clear()
-        }
+        // Always clear stale background at transition start so old strips never
+        // appear before the new image. New strips will be recomputed in onResourceReady.
+        dynamicBackgroundProcessor?.clear()
         
         // Hide audio-related views
         Timber.d("displayImage: HIDING audioCoverArtView (was ${binding.audioCoverArtView.isVisible})")
@@ -571,12 +570,12 @@ class ImageLoadingManager(
             // During slideshow, always limit size to prevent OOM
             val effectiveLoadFullSize = settings.loadFullSizeImages && !isSlideshowActive
             if (currentFile != null && actualResourceType == ResourceType.CLOUD) {
-                loadCloudImage(path, currentFile, targetView, effectiveLoadFullSize)
+                loadCloudImage(path, currentFile, targetView, effectiveLoadFullSize, isSlideshowActive)
             } else if (currentFile != null && 
                 (actualResourceType == ResourceType.SMB || actualResourceType == ResourceType.SFTP || actualResourceType == ResourceType.FTP)) {
-                loadNetworkImage(path, currentFile, resource, targetView, effectiveLoadFullSize)
+                loadNetworkImage(path, currentFile, resource, targetView, effectiveLoadFullSize, isSlideshowActive)
             } else {
-                loadLocalImage(path, currentFile, targetView, effectiveLoadFullSize)
+                loadLocalImage(path, currentFile, targetView, effectiveLoadFullSize, isSlideshowActive)
             }
 
             callback.updateSlideShow()
@@ -587,7 +586,8 @@ class ImageLoadingManager(
         path: String,
         currentFile: MediaFile,
         targetView: android.widget.ImageView,
-        loadFullSize: Boolean
+        loadFullSize: Boolean,
+        isSlideshowActive: Boolean = false
     ) {
         // Detect cloud provider from path: cloud://googledrive/, cloud://onedrive/, cloud://dropbox/
         val provider = when {
@@ -677,8 +677,11 @@ class ImageLoadingManager(
             optimizedRequest
         }
         
+        // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
+        val cloudTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
+                              else DrawableTransitionOptions.withCrossFade(150)
         finalRequest
-            .transition(DrawableTransitionOptions.withCrossFade(150)) // Smooth 150ms crossfade between slides
+            .transition(cloudTransition)
             .listener(createGlideListener())
             .into(targetView)
     }
@@ -688,7 +691,8 @@ class ImageLoadingManager(
         currentFile: MediaFile,
         resource: com.sza.fastmediasorter.domain.model.MediaResource?,
         targetView: android.widget.ImageView,
-        loadFullSize: Boolean
+        loadFullSize: Boolean,
+        isSlideshowActive: Boolean = false
     ) {
         // Network image loading
         
@@ -770,8 +774,11 @@ class ImageLoadingManager(
             optimizedRequest
         }
         
+        // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
+        val networkTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
+                                else DrawableTransitionOptions.withCrossFade(150)
         finalRequest
-            .transition(DrawableTransitionOptions.withCrossFade(150)) // Smooth 150ms crossfade between slides
+            .transition(networkTransition)
             .listener(createGlideListener())
             .into(targetView)
     }
@@ -780,7 +787,8 @@ class ImageLoadingManager(
         path: String,
         currentFile: MediaFile?,
         targetView: android.widget.ImageView,
-        loadFullSize: Boolean
+        loadFullSize: Boolean,
+        isSlideshowActive: Boolean = false
     ) {
         // Local file - support both file:// paths and content:// URIs
         
@@ -882,8 +890,11 @@ class ImageLoadingManager(
             optimizedRequest
         }
         
+        // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
+        val localTransition = if (isSlideshowActive) DrawableTransitionOptions.withCrossFade(0)
+                              else DrawableTransitionOptions.withCrossFade(150)
         finalRequest
-            .transition(DrawableTransitionOptions.withCrossFade(150)) // Smooth 150ms crossfade between slides
+            .transition(localTransition)
             .listener(createGlideListener())
             .into(targetView)
     }

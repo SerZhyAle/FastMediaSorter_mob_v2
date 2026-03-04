@@ -136,3 +136,9 @@ Format: | datetime | file | target | description |
 | 2026-03-04 21:14:05 | `app_v2/src/main/res/values-ru/strings.xml` | `open_welcome_tutorial` | Added string open_welcome_tutorial (RU) |
 | 2026-03-04 21:14:05 | `app_v2/src/main/res/values-uk/strings.xml` | `open_welcome_tutorial` | Added string open_welcome_tutorial (UK) |
 | 2026-03-04 21:14:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `btnOpenWelcome` | Added WelcomeActivity import and btnOpenWelcome click handler |
+| 2026-03-04 21:16:37 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | II.6 Touch Zones: обновлён статус на ЧАСТИЧНО РЕАЛИЗОВАНО — overlay/настройки есть, кнопка ? в toolbar плеера отсутствует |
+| 2026-03-04 21:17:15 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | III.1: marked as covered by existing filter — no separate search needed; updated priority section |
+| 2026-03-04 21:20:42 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | III.6 Wear OS: переведён в высокий приоритет; уточнён MVP — кнопки экспорта/импорта ресурсов через Wearable Data Layer API |
+| 2026-03-04 21:20:53 | `docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md` | `FAQ (3 langs)` | Added 'How to find a file by name' Q&A: filter panel covers search scenario, no separate search bar needed |
+| 2026-03-04 21:32:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/DynamicBackgroundProcessor.kt` | `DynamicBackgroundProcessor` | Remove 150ms artificial debounce delay: job cancellation already acts as debounce; fixes strips appearing late vs image |
+| 2026-03-04 21:32:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | Fix strip/image order mismatch: always clear old background on navigation; skip crossfade in slideshow mode so strips and image appear simultaneously |

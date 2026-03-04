@@ -45,8 +45,10 @@ class DynamicBackgroundProcessor(
 
         /**
          * Debounce delay (ms) before starting pixel analysis.
+         * Set to 0: cancelling the previous job already acts as debounce.
+         * An artificial delay caused strips to appear visibly later than the image.
          */
-        private const val DEBOUNCE_MS = 150L
+        private const val DEBOUNCE_MS = 0L
     }
 
     /**
