@@ -317,6 +317,10 @@ class PlayerNavigationManager(
     fun updateSlideshowState() {
         if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
             val intervalSeconds = (viewModel.state.value.slideShowInterval / 1000).toInt()
+            
+            // Enable slideshow bias for efficient prefetching during slideshow
+            activity.imageLoadingManager.setSlideshowBias(true)
+            
             if (!slideshowController.isActive()) {
                 slideshowController.startSlideshow(intervalSeconds)
             } else {
@@ -324,6 +328,8 @@ class PlayerNavigationManager(
                 slideshowController.restartTimer()
             }
         } else {
+            // Disable slideshow bias when slideshow ends
+            activity.imageLoadingManager.setSlideshowBias(false)
             slideshowController.stopSlideshow()
         }
     }

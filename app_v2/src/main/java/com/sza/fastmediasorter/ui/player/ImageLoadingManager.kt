@@ -578,6 +578,10 @@ class ImageLoadingManager(
                 loadLocalImage(path, currentFile, targetView, effectiveLoadFullSize, isSlideshowActive)
             }
 
+            // Start prefetching adjacent images immediately (don't wait for current image to load).
+            // This ensures next image is ready by the time slideshow interval expires.
+            preloadNextImageIfNeeded()
+            
             callback.updateSlideShow()
         }
     }
@@ -991,8 +995,6 @@ class ImageLoadingManager(
                             screenHeight = currentDeviceHeight
                         )
                     }
-
-                    preloadNextImageIfNeeded()
                 }
                 return false
             }
@@ -1057,7 +1059,6 @@ class ImageLoadingManager(
                     }
 
                     logMemoryStats("AFTER GIF onResourceReady")
-                    preloadNextImageIfNeeded()
                 }
                 return false
             }
