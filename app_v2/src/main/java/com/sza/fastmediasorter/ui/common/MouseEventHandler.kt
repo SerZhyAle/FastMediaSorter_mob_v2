@@ -159,6 +159,7 @@ class MouseEventHandler(
         fallbackTouchListener: View.OnTouchListener? = null
     ): View.OnTouchListener {
         return View.OnTouchListener { view, event ->
+            if (event.action == MotionEvent.ACTION_UP) view.performClick()
             // Try mouse handling first
             if (handleMotionEvent(view, event)) {
                 true

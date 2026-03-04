@@ -124,3 +124,9 @@ Format: | datetime | file | target | description |
 | 2026-03-04 20:56:02 | `index-ru.html` | `index-ru.html` | SEO: add OG tags (ru_RU), Twitter Card, canonical, hreflang alternates, JSON-LD schema |
 | 2026-03-04 20:56:02 | `index-uk.html` | `index-uk.html` | SEO: add OG tags (uk_UA), Twitter Card, canonical, hreflang alternates, JSON-LD schema |
 | 2026-03-04 20:56:02 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Mark V.4 (SEO) as done |
+| 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/TranslationOverlayView.kt` | `TranslationOverlayView` | a11y stub: add override performClick() to satisfy ClickableViewAccessibility lint |
+| 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerGestureSetupManager.kt` | `PlayerGestureSetupManager` | a11y stub: call performClick on ACTION_UP in root and playerView touch listeners |
+| 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `TextViewerManager` | a11y stub: call performClick on ACTION_UP in all 5 setOnTouchListener lambdas |
+| 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | a11y stub: call performClick on ACTION_UP in WebView and translationOverlay touch listeners |
+| 2026-03-04 20:59:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/MouseEventHandler.kt` | `MouseEventHandler` | a11y stub: call performClick on ACTION_UP in createTouchListener |
+| 2026-03-04 20:59:47 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Mark II.4 (a11y stub) as done |

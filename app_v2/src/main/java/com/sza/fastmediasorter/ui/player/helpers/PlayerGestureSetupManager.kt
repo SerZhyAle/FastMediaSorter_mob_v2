@@ -103,7 +103,8 @@ class PlayerGestureSetupManager(
      * Handles touch zone routing for all media types.
      */
     private fun setupRootTouchListener() {
-        binding.root.setOnTouchListener { _, event ->
+        binding.root.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             val currentFile = viewModel.state.value.currentFile
             val isInFullscreenMode = !viewModel.state.value.showCommandPanel
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO
@@ -231,7 +232,8 @@ class PlayerGestureSetupManager(
      * Handles video/audio touch zones with reserved bottom area for player controls.
      */
     private fun setupPlayerViewTouchListener() {
-        binding.playerView.setOnTouchListener { _, event ->
+        binding.playerView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             val currentFile = viewModel.state.value.currentFile
             val isInFullscreenMode = !viewModel.state.value.showCommandPanel
             val isVideo = currentFile?.type == MediaType.VIDEO || currentFile?.type == MediaType.AUDIO

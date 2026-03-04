@@ -287,7 +287,8 @@ class EpubViewerManager(
             }
             
             // Attach touch listener to WebView for gesture detection
-            setOnTouchListener { _, event ->
+            setOnTouchListener { v, event ->
+                if (event.action == MotionEvent.ACTION_UP) v.performClick()
                 // Pass touch events to gesture detector first
                 swipeGestureDetector.onTouchEvent(event)
                 
@@ -385,7 +386,8 @@ class EpubViewerManager(
         )
         
         // Attach gesture detector to translation overlay
-        safeViews.translationOverlay.setOnTouchListener { _, event ->
+        safeViews.translationOverlay.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             translationGestureDetector.onTouchEvent(event)
             true // Consume all touches to prevent propagation to WebView
         }

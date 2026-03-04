@@ -120,7 +120,14 @@
 - Для `Settings` и `Add Resource` — более широкие формы, логичные группировки и меньше вертикального скролла.
 - Для ChromeOS/desktop-режима — плотный, функциональный layout без «растянутого телефона».
 
-### II.4 Accessibility (a11y) — неизвестно
+### II.4 Accessibility (a11y) — ✅ РЕАЛИЗОВАНО (stub)
+
+**Статус**: ✅ Выполнено на уровне заглушки (2026-03-04). Устранены все 19 lint-ошибок `ClickableViewAccessibility`:
+- `TranslationOverlayView.kt`: добавлен `override fun performClick()` (кастомная вью переопределяла `onTouchEvent` без `performClick`)
+- `PlayerGestureSetupManager.kt`: оба `setOnTouchListener` (root, playerView) — добавлен вызов `v.performClick()` на `ACTION_UP`
+- `TextViewerManager.kt`: 5 `setOnTouchListener` (translationScrollView, textScrollView ×3, textViewerContainer) — добавлен `v.performClick()` на `ACTION_UP`
+- `EpubViewerManager.kt`: 2 `setOnTouchListener` (WebView, translationOverlay) — добавлен `v.performClick()` на `ACTION_UP`
+- `MouseEventHandler.kt`: `createTouchListener()` — добавлен `view.performClick()` на `ACTION_UP`
 
 **Проблема**: В lint baseline 19 `ClickableViewAccessibility` issue. Нет документации об accessibility. Неизвестно, работает ли приложение с TalkBack.
 

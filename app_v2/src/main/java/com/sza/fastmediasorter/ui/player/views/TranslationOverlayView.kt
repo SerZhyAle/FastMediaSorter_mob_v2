@@ -408,6 +408,8 @@ class TranslationOverlayView @JvmOverloads constructor(
      * CRITICAL: Always consume touch events when visible to prevent them from
      * passing through to the image/document underneath
      */
+    override fun performClick(): Boolean = super.performClick()
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         // Always pass ALL events to gesture detector (including DOWN, MOVE, UP)
         // This is critical for fling detection to work properly

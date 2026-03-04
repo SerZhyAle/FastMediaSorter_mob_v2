@@ -171,6 +171,7 @@ class TextViewerManager(
         
         // Setup translation overlay touch listener for horizontal swipe gestures
         safeViews.translationScrollView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             val handled = translationGestureDetector.onTouchEvent(event)
             // Let ScrollView handle vertical scrolling if gesture wasn't a horizontal swipe
             if (!handled) {
@@ -180,7 +181,8 @@ class TextViewerManager(
         }
         
         // Setup text viewer touch listener for horizontal swipe gestures
-        safeViews.textScrollView.setOnTouchListener { _, event ->
+        safeViews.textScrollView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             textGestureDetector.onTouchEvent(event)
             false // Let ScrollView handle scrolling
         }
@@ -220,8 +222,9 @@ class TextViewerManager(
         }
         
         // Click outside OCR text to dismiss (tap on container background, not on text itself)
-        safeViews.textViewerContainer.setOnTouchListener { _, event ->
+        safeViews.textViewerContainer.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
+                v.performClick()
                 // Only dismiss if showing OCR text (currentFile is null for OCR)
                 if (currentFile == null && safeViews.textViewerContainer.isVisible) {
                     // Check if touch is outside the text content area
@@ -1528,7 +1531,8 @@ class TextViewerManager(
         // The existing gesture detector already handles:
         // - Swipe left = decrease font, swipe right = increase font
         // - Swipe up at bottom = close, swipe down at top = close (for OCR, currentFile is null)
-        safeViews.textScrollView.setOnTouchListener { _, event ->
+        safeViews.textScrollView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             textGestureDetector.onTouchEvent(event)
             false // Let ScrollView handle scrolling
         }
@@ -1658,7 +1662,8 @@ class TextViewerManager(
         }
         
         // Use standard textGestureDetector for swipe gestures (font size + close at edges)
-        safeViews.textScrollView.setOnTouchListener { _, event ->
+        safeViews.textScrollView.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) v.performClick()
             textGestureDetector.onTouchEvent(event)
             false // Let ScrollView handle scrolling
         }
