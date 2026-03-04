@@ -113,3 +113,8 @@ Format: | datetime | file | target | description |
 | 2026-03-04 20:48:18 | `app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt` | `DatabaseModule` | Replaced addMigrations() with fallbackToDestructiveMigration() |
 | 2026-03-04 20:48:19 | `gradle.properties` | `jvmargs/kapt` | Added java.io.tmpdir=C: to jvmargs, kapt.use.worker.api=false to fix R: disk space issue |
 | 2026-03-04 20:48:33 | `dev/IMPROVEMENT_PROPOSAL.md` | `IV.7 status` | Marked IV.7 as DONE - DB migrations reset, fallbackToDestructiveMigration |
+| 2026-03-04 20:50:16 | `favicon.ico` | `favicon` | Created favicon.ico (16+32+48px) from ic_launcher xxxhdpi |
+| 2026-03-04 20:50:16 | `index.html` | `favicon` | Added favicon links (ico/32/16/apple-touch) to EN landing |
+| 2026-03-04 20:50:16 | `index-ru.html` | `favicon` | Added favicon links to RU landing |
+| 2026-03-04 20:50:16 | `index-uk.html` | `favicon` | Added favicon links to UK landing |
+| 2026-03-04 20:50:32 | `dev/IMPROVEMENT_PROPOSAL.md` | `V.2 status` | Marked V.2 as DONE - favicon created and inserted into all 3 HTML pages |
