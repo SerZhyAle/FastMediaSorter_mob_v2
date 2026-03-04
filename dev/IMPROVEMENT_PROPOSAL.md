@@ -487,7 +487,9 @@
 
 **Предложение**: Вынести CSS в общий файл `styles.css`. Подключать через `<link rel="stylesheet">`.
 
-### V.4 Нет SEO-оптимизации
+### V.4 Нет SEO-оптимизации — ✅ РЕАЛИЗОВАНО
+
+**Статус**: ✅ Выполнено (2026-03-04). Созданы `robots.txt`, `sitemap.xml` (с hreflang для 3 языков). Во все 3 лендинга добавлены: Open Graph теги (`og:type`, `og:url`, `og:title`, `og:description`, `og:image`, `og:locale`, `og:locale:alternate`, `og:site_name`), Twitter Card (`summary`), canonical-ссылки, hreflang alternate links (en/ru/uk/x-default), JSON-LD (`schema.org/SoftwareApplication`) перед `</body>`.
 
 **Проблема**: Есть базовые мета-теги (description, keywords), но нет: Open Graph, Twitter Cards, structured data (JSON-LD), sitemap.xml, robots.txt.
 
@@ -528,7 +530,7 @@
 22. **III.9** — Статистика
 23. **III.10** — Drag-and-drop
 24. **IV.8** — Coverage report + CI/CD (IV.9)
-25. **V.4** — SEO-оптимизация
+25. **V.4** — ✅ SEO-оптимизация (robots.txt, sitemap.xml, OG, Twitter Card, JSON-LD, hreflang)
 
 ---
 

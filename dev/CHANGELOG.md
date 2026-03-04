@@ -118,3 +118,9 @@ Format: | datetime | file | target | description |
 | 2026-03-04 20:50:16 | `index-ru.html` | `favicon` | Added favicon links to RU landing |
 | 2026-03-04 20:50:16 | `index-uk.html` | `favicon` | Added favicon links to UK landing |
 | 2026-03-04 20:50:32 | `dev/IMPROVEMENT_PROPOSAL.md` | `V.2 status` | Marked V.2 as DONE - favicon created and inserted into all 3 HTML pages |
+| 2026-03-04 20:56:02 | `robots.txt` | `robots.txt` | Add robots.txt: allow all crawlers, reference sitemap |
+| 2026-03-04 20:56:02 | `sitemap.xml` | `sitemap.xml` | Add sitemap.xml with 3 language URLs + hreflang annotations |
+| 2026-03-04 20:56:02 | `index.html` | `index.html` | SEO: add OG tags, Twitter Card, canonical, hreflang alternates, JSON-LD schema |
+| 2026-03-04 20:56:02 | `index-ru.html` | `index-ru.html` | SEO: add OG tags (ru_RU), Twitter Card, canonical, hreflang alternates, JSON-LD schema |
+| 2026-03-04 20:56:02 | `index-uk.html` | `index-uk.html` | SEO: add OG tags (uk_UA), Twitter Card, canonical, hreflang alternates, JSON-LD schema |
+| 2026-03-04 20:56:02 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Mark V.4 (SEO) as done |

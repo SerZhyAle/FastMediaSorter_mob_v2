@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://serzhyale.github.io/FastMediaSorter_mob_v2/sitemap.xml
