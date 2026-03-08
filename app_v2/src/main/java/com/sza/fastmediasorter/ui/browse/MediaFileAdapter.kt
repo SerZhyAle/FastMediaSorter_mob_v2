@@ -1167,11 +1167,11 @@ class MediaFileAdapter(
                     when {
                         isCloudPath -> {
                             // Load cloud thumbnail using CloudThumbnailData for authenticated access
-                            // Detect provider from path: cloud://googledrive/, cloud://onedrive/, cloud://dropbox/
+                            // Detect provider from URL scheme authority (cloud://dropbox/, cloud://googledrive/, etc.)
                             val provider = when {
-                                file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
                                 else -> CloudProvider.GOOGLE_DRIVE
                             }
                             // Extract file ID from cloud path
@@ -1305,11 +1305,11 @@ class MediaFileAdapter(
                     when {
                         isCloudPath -> {
                             // Load cloud video thumbnail using CloudThumbnailData for authenticated access
-                            // Detect provider from path
+                            // Detect provider from URL scheme authority
                             val provider = when {
-                                file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
                                 else -> CloudProvider.GOOGLE_DRIVE
                             }
                             // Extract file ID from cloud path
@@ -1472,8 +1472,8 @@ class MediaFileAdapter(
         private fun buildAudioDisplayName(file: MediaFile): String {
             val result = when {
                 !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
-                !file.artist.isNullOrBlank() -> file.artist ?: file.name
-                !file.title.isNullOrBlank() -> file.title ?: file.name
+                !file.artist.isNullOrBlank() -> file.artist
+                !file.title.isNullOrBlank() -> file.title
                 else -> file.name
             }
             // Guard against invisible characters from malformed ID3 tags (BOM, NUL, etc.)
@@ -1958,9 +1958,9 @@ class MediaFileAdapter(
                         isCloudPath -> {
                             // Load cloud thumbnail using CloudThumbnailData for authenticated access
                             val provider = when {
-                                file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
                                 else -> CloudProvider.GOOGLE_DRIVE
                             }
                             
@@ -2092,9 +2092,9 @@ class MediaFileAdapter(
                         isCloudPath -> {
                             // Load cloud video thumbnail using CloudThumbnailData
                             val provider = when {
-                                file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-                                file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-                                file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+                                file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+                                file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+                                file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
                                 else -> CloudProvider.GOOGLE_DRIVE
                             }
                             

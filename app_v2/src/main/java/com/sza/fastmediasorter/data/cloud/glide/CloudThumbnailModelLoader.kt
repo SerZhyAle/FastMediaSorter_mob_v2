@@ -99,7 +99,11 @@ class CloudThumbnailDataFetcher(
                     CloudProvider.DROPBOX -> loadDropboxImage(callback)
                 }
             } catch (e: Exception) {
-                Timber.e(e, "Failed to load cloud image for provider ${model.cloudProvider}")
+                if (isCancelled) {
+                    Timber.d("CloudThumbnailDataFetcher: Load cancelled for ${model.cloudProvider}")
+                } else {
+                    Timber.e(e, "Failed to load cloud image for provider ${model.cloudProvider}")
+                }
                 callback.onLoadFailed(e)
             }
         }.start()
@@ -129,7 +133,7 @@ class CloudThumbnailDataFetcher(
         }
 
         if (imageUrl.isNullOrBlank()) {
-            Timber.w("CloudThumbnailDataFetcher: No thumbnail URL available for Google Drive file ${model.fileId}")
+            Timber.d("CloudThumbnailDataFetcher: No thumbnail URL available for Google Drive file")
             callback.onLoadFailed(Exception("No thumbnail URL"))
             return
         }

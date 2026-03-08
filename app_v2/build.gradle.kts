@@ -28,8 +28,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260308040
-        versionName = "2.60.3080.403"
+        versionCode = 260308184
+        versionName = "2.60.3081.848"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -184,6 +184,14 @@ android {
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
+        }
+        create("staging") {
+            initWith(getByName("release"))
+            isDebuggable = true
+            isMinifyEnabled = false
+            applicationIdSuffix = ".staging"
+            versionNameSuffix = "-STAGING"
+            matchingFallbacks += listOf("release")
         }
     }
 
@@ -457,4 +465,9 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
+    javacOptions {
+        // Suppress "options not recognized by any processor" — Hilt injects dagger.*
+        // arguments into all kapt tasks; non-Dagger processors (Glide, Room) don't claim them.
+        option("-Xlint:-processing")
+    }
 }

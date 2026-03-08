@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -81,15 +82,16 @@ class PlayerUiStateCoordinator(
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
         val updateId = System.currentTimeMillis()
-        val caller = Thread.currentThread().stackTrace.getOrNull(3)?.let {
-            "${it.className}.${it.methodName}():${it.lineNumber}"
-        } ?: "Unknown"
-        
-        Timber.w("╔════════════════════════════════════════════════════════════════")
-        Timber.w("║ PlayerUiStateCoordinator.updateUI() CALLED [ID=$updateId]")
-        Timber.w("╚════════════════════════════════════════════════════════════════")
-        Timber.w("updateUI[$updateId]: currentFile=${state.currentFile?.name}, type=${state.currentFile?.type}")
-        Timber.w("updateUI[$updateId]: caller=$caller")
+        if (BuildConfig.DEBUG) {
+            val caller = Thread.currentThread().stackTrace.getOrNull(3)?.let {
+                "${it.className}.${it.methodName}():${it.lineNumber}"
+            } ?: "Unknown"
+            Timber.d("╔════════════════════════════════════════════════════════════════")
+            Timber.d("║ PlayerUiStateCoordinator.updateUI() CALLED [ID=$updateId]")
+            Timber.d("╚════════════════════════════════════════════════════════════════")
+            Timber.d("updateUI[$updateId]: type=${state.currentFile?.type}")
+            Timber.d("updateUI[$updateId]: caller=$caller")
+        }
 
         if (!callback.isActivityAlive()) {
             Timber.d("PlayerUiStateCoordinator.updateUI: Activity not alive, skipping")
@@ -103,7 +105,7 @@ class PlayerUiStateCoordinator(
         }
 
         // Auto-start slideshow if requested via intent (only once after files are loaded)
-        Timber.d("PlayerUiStateCoordinator.updateUI: Checking slideshow auto-start - isSlideshowModeRequested=${callback.isSlideshowModeRequested()}, currentFile=${state.currentFile?.name}")
+        Timber.d("PlayerUiStateCoordinator.updateUI: Checking slideshow auto-start - isSlideshowModeRequested=${callback.isSlideshowModeRequested()}")
         if (callback.isSlideshowModeRequested() && state.currentFile != null) {
             callback.clearSlideshowModeRequested()
             Timber.d("PlayerUiStateCoordinator.updateUI: Auto-starting slideshow (requested via intent)")
@@ -126,7 +128,7 @@ class PlayerUiStateCoordinator(
                     
                     Timber.d("PlayerUiStateCoordinator: Slideshow auto-start COMPLETE")
                 } else {
-                    Timber.w("PlayerUiStateCoordinator: Slideshow already active, skipping auto-start")
+                    Timber.d("PlayerUiStateCoordinator: Slideshow already active, skipping auto-start")
                 }
             }
         } else {
@@ -178,9 +180,7 @@ class PlayerUiStateCoordinator(
             val hasDrawable = callback.hasImageDrawable()
             
             if (currentFilePath != file.path) {
-                Timber.w(
-                    "updateUI[$updateId]: 📂 FILE CHANGED from '$currentFilePath' to '${file.path}' - reloading media"
-                )
+                Timber.d("updateUI[$updateId]: 📂 FILE CHANGED - reloading media")
                 callback.setCurrentFilePath(file.path)
 
                 // Hide translation overlays when changing files
@@ -189,11 +189,11 @@ class PlayerUiStateCoordinator(
 
                 mediaDisplayCoordinator.display(file)
             } else if (isImageType && (!imageVisible || !hasDrawable)) {
-                Timber.w("updateUI[$updateId]: ⚠️ SAME file path BUT image not ready (visible=$imageVisible, hasDrawable=$hasDrawable) - forcing reload")
+                Timber.d("updateUI[$updateId]: ⚠️ SAME file path BUT image not ready (visible=$imageVisible, hasDrawable=$hasDrawable) - forcing reload")
                 // Force reload if image view is not visible or has no drawable (race condition / loading not complete)
                 mediaDisplayCoordinator.display(file)
             } else {
-                Timber.w("updateUI[$updateId]: 📋 SAME file path - skipping media reload (metadata update only)")
+                Timber.d("updateUI[$updateId]: 📋 SAME file path - skipping media reload (metadata update only)")
             }
 
             // Determine if file should disable touch zones

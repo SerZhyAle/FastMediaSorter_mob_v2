@@ -2,7 +2,12 @@ package com.sza.fastmediasorter.data.cloud
 
 import android.app.Activity
 import android.content.Intent
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.logging.StructuredLogger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
@@ -20,7 +25,8 @@ class UnifiedCloudAuthManager @Inject constructor(
     private val authStateMachine: CloudAuthStateMachine,
     googleDriveAuthPlugin: GoogleDriveAuthPlugin,
     dropboxAuthPlugin: DropboxAuthPlugin,
-    oneDriveAuthPlugin: OneDriveAuthPlugin
+    oneDriveAuthPlugin: OneDriveAuthPlugin,
+    @ApplicationScope private val appScope: CoroutineScope
 ) {
     // Map of provider to its specific interactive authenticator plugin
     private val plugins = mapOf(
@@ -63,6 +69,20 @@ class UnifiedCloudAuthManager @Inject constructor(
                 processPluginResult(provider, immediateResult)
             } else {
                 StructuredLogger.d("Interactive signIn launched", "provider" to provider.name)
+                // MSAL errors (e.g. cert hash mismatch, broker rejection) arrive via callback
+                // on the main thread AFTER signIn() returns, but BEFORE any Activity transition.
+                // In that case onResume() never fires and the error sits in authDeferred forever.
+                // Poll once after a short delay to surface these fast async failures.
+                appScope.launch(Dispatchers.Main) {
+                    delay(1_000L)
+                    if (activeProvider == provider) {
+                        val fastFail = plugin.consumeImmediateResult()
+                        if (fastFail != null) {
+                            StructuredLogger.w("Fast async auth failure detected", "provider" to provider.name)
+                            processPluginResult(provider, fastFail)
+                        }
+                    }
+                }
             }
         } catch (e: Exception) {
             StructuredLogger.e(e, "Failed to start sign-in", "provider" to provider.name)

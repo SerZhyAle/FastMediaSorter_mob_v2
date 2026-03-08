@@ -290,12 +290,16 @@ class DualSurfaceStaticImageRenderer(
 
         return when {
             // Cloud files
-            path.contains("googledrive", ignoreCase = true) || 
-            path.contains("google_drive", ignoreCase = true) ||
-            path.contains("onedrive", ignoreCase = true) ||
-            path.contains("dropbox", ignoreCase = true) -> {
-                val fileId = path.substringAfterLast('/')
+            path.startsWith("cloud://", ignoreCase = true) -> {
                 val provider = resolveCloudProvider(path)
+                val fileId = when (provider) {
+                    CloudProvider.DROPBOX -> {
+                        val afterScheme = path.substringAfter("cloud://dropbox")
+                        val cleanPath = afterScheme.trimStart('/')
+                        "/$cleanPath"
+                    }
+                    else -> path.substringAfterLast('/')
+                }
                 CloudThumbnailData(
                     thumbnailUrl = mediaFile.thumbnailUrl ?: "",
                     fileId = fileId,
@@ -323,11 +327,11 @@ class DualSurfaceStaticImageRenderer(
     }
 
     private fun resolveCloudProvider(path: String): CloudProvider {
-        return when {
-            path.contains("googledrive", ignoreCase = true) || 
-            path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-            path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-            path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+        val authority = path.removePrefix("cloud://").substringBefore("/").lowercase()
+        return when (authority) {
+            "googledrive", "google_drive" -> CloudProvider.GOOGLE_DRIVE
+            "onedrive" -> CloudProvider.ONEDRIVE
+            "dropbox" -> CloudProvider.DROPBOX
             else -> CloudProvider.GOOGLE_DRIVE
         }
     }

@@ -606,11 +606,11 @@ class ImageLoadingManager(
         loadFullSize: Boolean,
         isSlideshowActive: Boolean = false
     ) {
-        // Detect cloud provider from path: cloud://googledrive/, cloud://onedrive/, cloud://dropbox/
+        // Detect cloud provider from URL scheme authority (cloud://dropbox/, cloud://googledrive/, etc.)
         val provider = when {
-            path.contains("googledrive", ignoreCase = true) || path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-            path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-            path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+            path.startsWith("cloud://googledrive", ignoreCase = true) || path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+            path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+            path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
             else -> CloudProvider.GOOGLE_DRIVE // default fallback
         }
         
@@ -620,8 +620,9 @@ class ImageLoadingManager(
         val fileId = when (provider) {
             CloudProvider.DROPBOX -> {
                 // Dropbox needs full path starting with /
-                val dropboxPath = path.substringAfter("cloud:/dropbox")
-                if (dropboxPath.startsWith("/")) dropboxPath else "/$dropboxPath"
+                val afterScheme = path.substringAfter("cloud://dropbox")
+                val cleanPath = afterScheme.trimStart('/')
+                "/$cleanPath"
             }
             else -> {
                 // Google Drive and OneDrive use file ID (last segment)
@@ -1252,17 +1253,24 @@ class ImageLoadingManager(
             }
             Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
         } catch (e: Exception) {
-            Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
+            Timber.d("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
         }
     }
 
     private suspend fun preloadCloudFile(file: MediaFile) {
-        val fileId = file.path.substringAfterLast('/')
         val provider = when {
-            file.path.contains("googledrive", ignoreCase = true) || file.path.contains("google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
-            file.path.contains("onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
-            file.path.contains("dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
+            file.path.startsWith("cloud://googledrive", ignoreCase = true) || file.path.startsWith("cloud://google_drive", ignoreCase = true) -> CloudProvider.GOOGLE_DRIVE
+            file.path.startsWith("cloud://onedrive", ignoreCase = true) -> CloudProvider.ONEDRIVE
+            file.path.startsWith("cloud://dropbox", ignoreCase = true) -> CloudProvider.DROPBOX
             else -> CloudProvider.GOOGLE_DRIVE
+        }
+        val fileId = when (provider) {
+            CloudProvider.DROPBOX -> {
+                val afterScheme = file.path.substringAfter("cloud://dropbox")
+                val cleanPath = afterScheme.trimStart('/')
+                "/$cleanPath"
+            }
+            else -> file.path.substringAfterLast('/')
         }
         val cloudData = CloudThumbnailData(
             thumbnailUrl = file.thumbnailUrl ?: "",
@@ -1290,7 +1298,7 @@ class ImageLoadingManager(
             }
             Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
         } catch (e: Exception) {
-            Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
+            Timber.d("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
         }
     }
 
@@ -1314,7 +1322,7 @@ class ImageLoadingManager(
             }
             Timber.d("ImageLoadingManager: Preload ACTUALLY completed for ${file.name}")
         } catch (e: Exception) {
-            Timber.w("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
+            Timber.d("ImageLoadingManager: Preload failed for ${file.name}: ${e.message}")
         }
     }
     

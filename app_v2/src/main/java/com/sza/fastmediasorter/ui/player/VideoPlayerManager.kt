@@ -558,6 +558,8 @@ class VideoPlayerManager(
      * Determine MIME type from file path extension
      */
     private fun getMimeTypeFromPath(path: String): String? {
+        // Cloud URIs (cloud://provider/fileId) have no extension - skip detection
+        if (path.startsWith("cloud://")) return null
         // Extract filename from URI path (remove query parameters and fragments)
         val cleanPath = path.substringBefore('?').substringBefore('#')
         val extension = cleanPath.substringAfterLast('.', "").lowercase()
