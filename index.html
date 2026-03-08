@@ -68,6 +68,23 @@
             padding: 3rem 1rem;
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        #headerCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        header>*:not(canvas) {
+            position: relative;
+            z-index: 1;
         }
 
         h1 {
@@ -329,6 +346,7 @@
     </a>
 
     <header>
+        <canvas id="headerCanvas"></canvas>
         <div class="lang-switcher">
             <a href="index.html" class="lang-btn active">EN</a>
             <a href="index-ru.html" class="lang-btn">RU</a>
@@ -609,6 +627,78 @@
         <p style="margin-top: 1rem; font-size: 0.85rem;">&copy; 2024-2026 FastMediaSorter Project. Built with Kotlin,
             Jetpack, and ❤️</p>
     </footer>
+
+    <script>
+        (function () {
+            var canvas = document.getElementById('headerCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var header = canvas.parentElement;
+            var width, height, animId;
+
+            function resize() {
+                width = canvas.width = header.offsetWidth;
+                height = canvas.height = header.offsetHeight;
+            }
+
+            var particles = [];
+            var PARTICLE_COUNT = 55;
+
+            function initParticles() {
+                particles = [];
+                for (var i = 0; i < PARTICLE_COUNT; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 2 + 0.5,
+                        vx: (Math.random() - 0.5) * 0.3,
+                        vy: (Math.random() - 0.5) * 0.3,
+                        hue: Math.random() * 60 + 200
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.fillStyle = 'rgba(8, 6, 22, 0.15)';
+                ctx.fillRect(0, 0, width, height);
+                time += 0.003;
+                ctx.lineWidth = 1.5;
+                for (var j = 0; j < 6; j++) {
+                    ctx.beginPath();
+                    var phaseShift = j * 15;
+                    for (var i = 0; i <= width; i += 20) {
+                        var y = height / 2 +
+                            Math.sin(i * 0.003 + time + phaseShift) * height * 0.38 *
+                            Math.sin(time * 0.4 + j * 0.2);
+                        if (i === 0) ctx.moveTo(i, y);
+                        else ctx.lineTo(i, y);
+                    }
+                    ctx.strokeStyle = 'hsla(' + (210 + j * 12) + ', 80%, 65%, 0.4)';
+                    ctx.stroke();
+                }
+                particles.forEach(function (p) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, 70%, 0.7)';
+                    ctx.fill();
+                });
+                animId = requestAnimationFrame(draw);
+            }
+
+            var time = 0;
+            window.addEventListener('resize', function () { resize(); initParticles(); });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
+            });
+            resize();
+            initParticles();
+            draw();
+        }());
+    </script>
 
     <script type="application/ld+json">
     {

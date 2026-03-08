@@ -662,7 +662,7 @@ class AddResourceViewModel @Inject constructor(
                                 val updatedResource = insertedResource.copy(
                                     fileCount = fileCount,
                                     isWritable = isWritable,
-                                    disableThumbnails = fileCount > 10000 // Auto-enable for large folders
+                                    disableThumbnails = insertedResource.disableThumbnails || fileCount > 10000 // preserve user flag, auto-enable for large folders
                                 )
                                 resourceRepository.updateResource(updatedResource)
                                 
@@ -742,7 +742,8 @@ class AddResourceViewModel @Inject constructor(
         isReadOnly: Boolean = false,
         allFiles: Boolean = false,
         scanSubdirectories: Boolean = false,
-        rememberFileList: Boolean = false
+        rememberFileList: Boolean = false,
+        disableThumbnails: Boolean = false
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -806,7 +807,8 @@ class AddResourceViewModel @Inject constructor(
                     isReadOnly = isReadOnly,
                     allFiles = allFiles,
                     scanSubdirectories = scanSubdirectories,
-                    rememberFileList = rememberFileList
+                    rememberFileList = rememberFileList,
+                    disableThumbnails = disableThumbnails
                 )
                 
                 // Add resource to database
@@ -846,7 +848,7 @@ class AddResourceViewModel @Inject constructor(
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable,
-                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
+                                disableThumbnails = insertedResource.disableThumbnails || fileCount > 10000 // preserve user flag, auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             
@@ -1007,7 +1009,8 @@ class AddResourceViewModel @Inject constructor(
         allFiles: Boolean = false,
         scanSubdirectories: Boolean = false,
         addToDestinations: Boolean = false,
-        rememberFileList: Boolean = false
+        rememberFileList: Boolean = false,
+        disableThumbnails: Boolean = false
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1093,7 +1096,8 @@ class AddResourceViewModel @Inject constructor(
                     isReadOnly = isReadOnly,
                     allFiles = allFiles,
                     scanSubdirectories = scanSubdirectories,
-                    rememberFileList = rememberFileList
+                    rememberFileList = rememberFileList,
+                    disableThumbnails = disableThumbnails
                 )
                 
                 // Add resource to database
@@ -1142,7 +1146,7 @@ class AddResourceViewModel @Inject constructor(
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable,
-                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
+                                disableThumbnails = insertedResource.disableThumbnails || fileCount > 10000 // preserve user flag, auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             
@@ -1270,7 +1274,7 @@ class AddResourceViewModel @Inject constructor(
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable,
-                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
+                                disableThumbnails = insertedResource.disableThumbnails || fileCount > 10000 // preserve user flag, auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             
@@ -1366,7 +1370,8 @@ class AddResourceViewModel @Inject constructor(
         isReadOnly: Boolean = false,
         scanSubdirectories: Boolean = false,
         addToDestinations: Boolean = false,
-        rememberFileList: Boolean = false
+        rememberFileList: Boolean = false,
+        disableThumbnails: Boolean = false
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1444,7 +1449,8 @@ class AddResourceViewModel @Inject constructor(
                     isReadOnly = isReadOnly,
                     allFiles = allFiles,
                     scanSubdirectories = scanSubdirectories,
-                    rememberFileList = rememberFileList
+                    rememberFileList = rememberFileList,
+                    disableThumbnails = disableThumbnails
                 )
                 
                 // Add resource to database
@@ -1484,7 +1490,7 @@ class AddResourceViewModel @Inject constructor(
                             val updatedResource = insertedResource.copy(
                                 fileCount = fileCount,
                                 isWritable = isWritable,
-                                disableThumbnails = fileCount > 10000 // Auto-enable for large folders
+                                disableThumbnails = insertedResource.disableThumbnails || fileCount > 10000 // preserve user flag, auto-enable for large folders
                             )
                             resourceRepository.updateResource(updatedResource)
                             

@@ -44,7 +44,7 @@ data class AppSettings(
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
     val enableBackgroundAudio: Boolean = false, // Background audio playback via foreground service (audio-only)
-    val audioEmptyStateMode: String = "VISUALIZATION", // Animation mode when no cover art: NONE, AVD_PULSE, CANVAS_BARS, VISUALIZATION (GIF_LOOP=legacy alias)
+    val audioEmptyStateMode: String = "VISUALIZATION", // Animation mode when no cover art: NONE, AVD_PULSE, CANVAS_BARS, CANVAS_WAVES, VISUALIZATION (GIF_LOOP=legacy alias)
     
     val supportText: Boolean = true, // Optional support for text files
     val supportPdf: Boolean = true, // Optional support for PDF files

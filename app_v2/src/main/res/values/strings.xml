@@ -302,6 +302,7 @@
     <string name="audio_empty_state_none">Black background</string>
     <string name="audio_empty_state_avd_pulse">Music note + pulse rings</string>
     <string name="audio_empty_state_canvas_bars">Breathing bars (15)</string>
+    <string name="audio_empty_state_canvas_waves">Wave &amp; Particle Animation</string>
     <string name="audio_empty_state_gif_loop">GIF / WebP loop</string>
     <string name="audio_empty_state_visualization">Visualization (MP4)</string>
 

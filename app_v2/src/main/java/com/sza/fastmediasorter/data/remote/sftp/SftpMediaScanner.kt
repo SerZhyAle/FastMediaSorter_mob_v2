@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -63,8 +64,9 @@ class SftpMediaScanner @Inject constructor(
             }
             
             if (filesResult.isFailure) {
-                Timber.e("Failed to list SFTP files for pagination: ${filesResult.exceptionOrNull()?.message}")
-                return@withContext emptyList()
+                val e = filesResult.exceptionOrNull() ?: IOException("Unknown SFTP error")
+                Timber.e("Failed to list SFTP files: ${e.message}")
+                throw IOException("SFTP error: ${e.message}", e)
             }
 
             // Filter and convert to MediaFile
@@ -141,7 +143,7 @@ class SftpMediaScanner @Inject constructor(
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SFTP folder: $path")
-            emptyList()
+            throw e
         }
     }
 
@@ -182,8 +184,9 @@ class SftpMediaScanner @Inject constructor(
             }
             
             if (filesResult.isFailure) {
-                Timber.e("Failed to list SFTP files: ${filesResult.exceptionOrNull()?.message}")
-                return@withContext MediaFilePage(emptyList(), false)
+                val e = filesResult.exceptionOrNull() ?: IOException("Unknown SFTP error")
+                Timber.e("Failed to list SFTP files (paged): ${e.message}")
+                throw IOException("SFTP error: ${e.message}", e)
             }
 
             // Filter and convert to MediaFile (all files first)
@@ -254,7 +257,7 @@ class SftpMediaScanner @Inject constructor(
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Error scanning SFTP folder (paged): $path")
-            MediaFilePage(emptyList(), false)
+            throw e
         }
     }
 
@@ -313,8 +316,9 @@ class SftpMediaScanner @Inject constructor(
             }
 
             if (filesResult.isFailure) {
-                Timber.e("Failed to list SFTP directory contents: ${filesResult.exceptionOrNull()?.message}")
-                return@withContext emptyList()
+                val e = filesResult.exceptionOrNull() ?: IOException("Unknown SFTP error")
+                Timber.e("Failed to list SFTP directory contents: ${e.message}")
+                throw IOException("SFTP error: ${e.message}", e)
             }
 
             val isAllFilesMode = supportedTypes.size == 7
@@ -395,7 +399,7 @@ class SftpMediaScanner @Inject constructor(
             throw e
         } catch (e: Exception) {
             Timber.e(e, "Error listing SFTP directory contents: $path")
-            emptyList()
+            throw e
         }
     }
 

@@ -214,6 +214,9 @@
                 <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/all_files" android:checked="false" />
             </LinearLayout>
 
+            <!-- Disable Thumbnails -->
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:checked="false" android:text="@string/disable_thumbnails" />
+
             <!-- Remember File List -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
 
@@ -464,6 +467,9 @@
                 <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/all_files" android:checked="false" />
 
             </LinearLayout>
+
+            <!-- Disable Thumbnails -->
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:checked="false" android:text="@string/disable_thumbnails" />
 
             <!-- Remember File List -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">

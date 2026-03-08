@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
+import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity
 import com.sza.fastmediasorter.ui.browse.managers.BrowseDialogHelper
@@ -74,6 +75,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
     private lateinit var utilityManager: com.sza.fastmediasorter.ui.browse.managers.BrowseUtilityManager
     private lateinit var stateManager: com.sza.fastmediasorter.ui.browse.managers.BrowseStateManager
+    private lateinit var passwordManager: ResourcePasswordManager
     
     @Inject
     lateinit var googleDriveClient: GoogleDriveRestClient
@@ -192,6 +194,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     override fun setupViews() {
         // Reset Glide cache stats for this browsing session
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()
+
+        passwordManager = ResourcePasswordManager(context = this, layoutInflater = layoutInflater)
         Timber.d("showVideoThumbnails initialized: $showVideoThumbnails")
         
         // Initialize managers
@@ -1125,7 +1129,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             binding.btnResourceAction.isFocusable = true
                             binding.btnResourceAction.visibility = android.view.View.VISIBLE
                             binding.btnResourceAction.setOnClickListener {
-                                launchEditResource(stateResource.id)
+                                if (!stateResource.accessPin.isNullOrBlank()) {
+                                    passwordManager.checkResourcePin(stateResource) {
+                                        launchEditResource(stateResource.id)
+                                    }
+                                } else {
+                                    launchEditResource(stateResource.id)
+                                }
                             }
                         }
                     } else {

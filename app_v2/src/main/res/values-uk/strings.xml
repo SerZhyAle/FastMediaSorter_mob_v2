@@ -1339,6 +1339,7 @@
     <string name="audio_empty_state_none">Чорний фон</string>
     <string name="audio_empty_state_avd_pulse">Нота + пульсуючі кільця</string>
     <string name="audio_empty_state_canvas_bars">Дихаючі стовпчики (15)</string>
+    <string name="audio_empty_state_canvas_waves">Хвилі та частинки</string>
     <string name="audio_empty_state_gif_loop">GIF / WebP у циклі</string>
     <string name="enable_photos_during_audio">Фото при аудіо</string>
     <string name="enable_photos_during_audio_summary">Показувати випадкові фото з обраного ресурсу замість обкладинки альбому</string>

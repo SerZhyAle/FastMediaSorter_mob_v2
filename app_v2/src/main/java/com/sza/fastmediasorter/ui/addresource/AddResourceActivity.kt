@@ -1290,7 +1290,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             isReadOnly = isReadOnly,
             allFiles = binding.cbSmbAllFiles.isChecked,
             scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked,
-            rememberFileList = binding.cbSmbRememberFileList.isChecked
+            rememberFileList = binding.cbSmbRememberFileList.isChecked,
+            disableThumbnails = binding.cbSmbDisableThumbnails.isChecked
         )
     }
 
@@ -1463,7 +1464,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
                     addToDestinations = binding.cbSftpAddToDestinations.isChecked,
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
-                    rememberFileList = binding.cbSftpRememberFileList.isChecked
+                    rememberFileList = binding.cbSftpRememberFileList.isChecked,
+                    disableThumbnails = binding.cbSftpDisableThumbnails.isChecked
                 )
             } else {
                 // Add with password
@@ -1482,7 +1484,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
                     addToDestinations = binding.cbSftpAddToDestinations.isChecked,
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
-                    rememberFileList = binding.cbSftpRememberFileList.isChecked
+                    rememberFileList = binding.cbSftpRememberFileList.isChecked,
+                    disableThumbnails = binding.cbSftpDisableThumbnails.isChecked
                 )
             }
         } else {
@@ -1502,7 +1505,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 scanSubdirectories = binding.cbSftpScanSubdirectories.isChecked,
                 addToDestinations = binding.cbSftpAddToDestinations.isChecked,
                 isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
-                rememberFileList = binding.cbSftpRememberFileList.isChecked
+                rememberFileList = binding.cbSftpRememberFileList.isChecked,
+                disableThumbnails = binding.cbSftpDisableThumbnails.isChecked
             )
         }
     }

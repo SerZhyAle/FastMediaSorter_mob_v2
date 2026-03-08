@@ -21,6 +21,7 @@ import kotlin.random.Random
  *  - [MODE_NONE]           — black background; shows static music-note icon
  *  - [MODE_AVD_PULSE]      — AudioBreathingBarsView with pulsing music-note icon
  *  - [MODE_CANVAS_BARS]    — AudioBreathingBarsView with 9 sine-animated bars
+ *  - [MODE_CANVAS_WAVES]   — AudioWaveParticleView: procedural wave + particle animation
  *  - [MODE_VISUALIZATION]  — looping MP4 video via MediaPlayer + TextureView (API 16+)
  *
  * [MODE_GIF_LOOP] is kept as a legacy alias for [MODE_VISUALIZATION] (DataStore compat).
@@ -36,13 +37,15 @@ class AudioEmptyStateController(
     private val context: Context,
     private val audioCoverArtView: ImageView,
     private val barsView: AudioBreathingBarsView,
-    private val videoView: TextureView
+    private val videoView: TextureView,
+    private val wavesView: AudioWaveParticleView
 ) {
 
     companion object {
         const val MODE_NONE = "NONE"
         const val MODE_AVD_PULSE = "AVD_PULSE"
         const val MODE_CANVAS_BARS = "CANVAS_BARS"
+        const val MODE_CANVAS_WAVES = "CANVAS_WAVES"
         const val MODE_VISUALIZATION = "VISUALIZATION"
         /** Legacy DataStore value — treated identically to [MODE_VISUALIZATION]. */
         const val MODE_GIF_LOOP = "GIF_LOOP"
@@ -63,6 +66,7 @@ class AudioEmptyStateController(
             MODE_NONE -> showStaticNote()
             MODE_AVD_PULSE -> showPulseNote()
             MODE_CANVAS_BARS -> showBars()
+            MODE_CANVAS_WAVES -> showWaves()
             MODE_VISUALIZATION, MODE_GIF_LOOP -> showVideo()
             else -> showStaticNote()
         }
@@ -71,6 +75,7 @@ class AudioEmptyStateController(
     fun hide() {
         Timber.d("AudioEmptyStateController: hide()")
         stopBars()
+        stopWaves()
         releaseMediaPlayer()
         videoView.isVisible = false
         // audioCoverArtView visibility managed by ImageLoadingManager
@@ -82,6 +87,9 @@ class AudioEmptyStateController(
         when (currentMode) {
             MODE_CANVAS_BARS, MODE_AVD_PULSE -> {
                 if (playing) barsView.startAnimation() else barsView.pauseAnimation()
+            }
+            MODE_CANVAS_WAVES -> {
+                if (playing) wavesView.startAnimation() else wavesView.pauseAnimation()
             }
             MODE_VISUALIZATION, MODE_GIF_LOOP -> {
                 if (playing) {
@@ -98,6 +106,7 @@ class AudioEmptyStateController(
     fun onPause() {
         Timber.d("AudioEmptyStateController: onPause()")
         barsView.pauseAnimation()
+        wavesView.pauseAnimation()
         if (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP) {
             mediaPlayer?.let { mp ->
                 try { if (mp.isPlaying) mp.pause() } catch (_: IllegalStateException) {}
@@ -110,6 +119,9 @@ class AudioEmptyStateController(
         if (isPlaying && (currentMode == MODE_CANVAS_BARS || currentMode == MODE_AVD_PULSE)) {
             barsView.startAnimation()
         }
+        if (isPlaying && currentMode == MODE_CANVAS_WAVES) {
+            wavesView.startAnimation()
+        }
         if (isPlaying && (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP)) {
             mediaPlayer?.start()
         }
@@ -118,6 +130,7 @@ class AudioEmptyStateController(
     fun release() {
         Timber.d("AudioEmptyStateController: release()")
         barsView.stopAndReset()
+        wavesView.stopAndReset()
         releaseMediaPlayer()
     }
 
@@ -127,6 +140,7 @@ class AudioEmptyStateController(
         audioCoverArtView.isVisible = false
         barsView.isVisible = false
         videoView.isVisible = false
+        wavesView.isVisible = false
     }
 
     private fun showStaticNote() {
@@ -151,6 +165,12 @@ class AudioEmptyStateController(
         barsView.setBackgroundColor(Color.BLACK)
         barsView.isVisible = true
         if (isPlaying) barsView.startAnimation()
+    }
+
+    private fun showWaves() {
+        wavesView.isVisible = true
+        wavesView.stopAndReset()
+        if (isPlaying) wavesView.startAnimation()
     }
 
     /**
@@ -272,5 +292,10 @@ class AudioEmptyStateController(
     private fun stopBars() {
         barsView.stopAndReset()
         barsView.isVisible = false
+    }
+
+    private fun stopWaves() {
+        wavesView.stopAndReset()
+        wavesView.isVisible = false
     }
 }

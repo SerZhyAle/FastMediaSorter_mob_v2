@@ -57,11 +57,7 @@ object GlideCacheStats {
         Timber.i("========================================")
         
         if (total == 0) {
-            Timber.w("⚠️ WARNING: No loads recorded!")
-            Timber.w("This means either:")
-            Timber.w("  1. No thumbnails were loaded")
-            Timber.w("  2. recordLoad() was not called")
-            Timber.w("  3. All loads failed before onResourceReady")
+            Timber.d("⚠️ No loads recorded (no thumbnails loaded or recordLoad() not called)")
             Timber.i("========================================")
             return
         }

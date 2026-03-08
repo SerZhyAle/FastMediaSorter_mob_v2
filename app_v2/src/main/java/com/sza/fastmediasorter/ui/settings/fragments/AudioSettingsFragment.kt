@@ -31,13 +31,14 @@ class AudioSettingsFragment : Fragment() {
         private const val MODE_NONE = "NONE"
         private const val MODE_AVD_PULSE = "AVD_PULSE"
         private const val MODE_CANVAS_BARS = "CANVAS_BARS"
+        private const val MODE_CANVAS_WAVES = "CANVAS_WAVES"
         private const val MODE_VISUALIZATION = "VISUALIZATION"
         /** Legacy DataStore value kept for backward compat; shown as Visualization in UI. */
         private const val MODE_GIF_LOOP = "GIF_LOOP"
     }
 
     // Ordered list of mode keys — index-aligned with dropdown labels
-    private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_VISUALIZATION)
+    private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -162,6 +163,7 @@ class AudioSettingsFragment : Fragment() {
             getString(R.string.audio_empty_state_none),
             getString(R.string.audio_empty_state_avd_pulse),
             getString(R.string.audio_empty_state_canvas_bars),
+            getString(R.string.audio_empty_state_canvas_waves),
             getString(R.string.audio_empty_state_visualization)
         )
         val emptyStateAdapter = ArrayAdapter(
@@ -234,6 +236,7 @@ class AudioSettingsFragment : Fragment() {
                         getString(R.string.audio_empty_state_none),
                         getString(R.string.audio_empty_state_avd_pulse),
                         getString(R.string.audio_empty_state_canvas_bars),
+                        getString(R.string.audio_empty_state_canvas_waves),
                         getString(R.string.audio_empty_state_visualization)
                     )
                     binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)

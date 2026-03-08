@@ -100,6 +100,8 @@
 
         <com.sza.fastmediasorter.ui.player.helpers.AudioBreathingBarsView android:id="@+id/audioBarsView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" android:background="@color/black" android:contentDescription="@null" />
 
+        <com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView android:id="@+id/audioWaveParticleView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" android:contentDescription="@null" />
+
         <TextureView android:id="@+id/audioVideoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" />
 
         <!-- surface_type=texture_view: composites via View hierarchy, not a SurfaceView hole.

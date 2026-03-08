@@ -1207,7 +1207,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             context = this,
             audioCoverArtView = binding.audioCoverArtView,
             barsView = binding.audioBarsView,
-            videoView = binding.audioVideoView
+            videoView = binding.audioVideoView,
+            wavesView = binding.audioWaveParticleView
         )
         imageLoadingManager.setAudioEmptyStateController(audioEmptyStateController!!)
 

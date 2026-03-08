@@ -25,6 +25,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.sza.fastmediasorter.BuildConfig
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -498,28 +499,28 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun nextFile(skipDocuments: Boolean = false) {
-        // Log the call with stack trace to identify caller
-        val stackTrace = Thread.currentThread().stackTrace
-        val caller = if (stackTrace.size > 3) stackTrace[3] else null
-        Timber.w("╔═══════════════════════════════════════════════════════════════╗")
-        Timber.w("║ PlayerViewModel.nextFile() CALLED                             ║")
-        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
-        Timber.w("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
-        Timber.w("Thread: ${Thread.currentThread().name}")
-        Timber.w("skipDocuments: $skipDocuments")
+        if (BuildConfig.DEBUG) {
+            val stackTrace = Thread.currentThread().stackTrace
+            val caller = if (stackTrace.size > 3) stackTrace[3] else null
+            Timber.d("╔═══════════════════════════════════════════════════════════════╗")
+            Timber.d("║ PlayerViewModel.nextFile() CALLED                             ║")
+            Timber.d("╚═══════════════════════════════════════════════════════════════╝")
+            Timber.d("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
+            Timber.d("Thread: ${Thread.currentThread().name}")
+            Timber.d("skipDocuments: $skipDocuments")
+        }
         
         val currentState = state.value
         if (currentState.files.isEmpty()) {
-            Timber.w("ABORT: No files to navigate, files list is empty")
-            Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+            Timber.d("nextFile: ABORT: No files to navigate")
             return
         }
         
         var nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) {
-            Timber.w("Action: Looping from last file (${currentState.currentIndex}) to first (0)")
+            Timber.d("nextFile: Looping from last (${currentState.currentIndex}) to first (0)")
             0 // Loop to first file after last
         } else {
-            Timber.w("Action: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex + 1}")
+            Timber.d("nextFile: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex + 1}")
             currentState.currentIndex + 1
         }
         
@@ -535,31 +536,22 @@ class PlayerViewModel @Inject constructor(
                                 file?.type == MediaType.EPUB
                 
                 if (!isDocument) {
-                    // Found a media file
-                    Timber.w("Found media file at index $nextIndex: ${file?.name}")
+                    Timber.d("nextFile: Found media file at index $nextIndex")
                     break
                 }
                 
-                // Skip this document, try next
-                Timber.w("Skipping document at index $nextIndex: ${file?.name}")
+                Timber.d("nextFile: Skipping document at index $nextIndex")
                 nextIndex = if (nextIndex >= currentState.files.size - 1) 0 else nextIndex + 1
                 attempts++
             }
             
             if (attempts >= maxAttempts) {
-                // All files are documents, stay on current
-                Timber.w("All files are documents, staying on current file")
-                Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+                Timber.d("nextFile: All files are documents, staying on current")
                 return
             }
         }
         
-        val currentFile = if (currentState.currentIndex < currentState.files.size) currentState.files[currentState.currentIndex] else null
-        val nextFile = if (nextIndex < currentState.files.size) currentState.files[nextIndex] else null
-        Timber.w("Current: ${currentFile?.name} (index ${currentState.currentIndex})")
-        Timber.w("Next: ${nextFile?.name} (index $nextIndex)")
-        Timber.w("Total files: ${currentState.files.size}")
-        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+        Timber.d("nextFile: index ${currentState.currentIndex} → $nextIndex / ${currentState.files.size}")
         
         updateState { it.copy(currentIndex = nextIndex) }
         
@@ -572,28 +564,28 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun previousFile(skipDocuments: Boolean = false) {
-        // Log the call with stack trace to identify caller
-        val stackTrace = Thread.currentThread().stackTrace
-        val caller = if (stackTrace.size > 3) stackTrace[3] else null
-        Timber.w("╔═══════════════════════════════════════════════════════════════╗")
-        Timber.w("║ PlayerViewModel.previousFile() CALLED                         ║")
-        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
-        Timber.w("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
-        Timber.w("Thread: ${Thread.currentThread().name}")
-        Timber.w("skipDocuments: $skipDocuments")
+        if (BuildConfig.DEBUG) {
+            val stackTrace = Thread.currentThread().stackTrace
+            val caller = if (stackTrace.size > 3) stackTrace[3] else null
+            Timber.d("╔═══════════════════════════════════════════════════════════════╗")
+            Timber.d("║ PlayerViewModel.previousFile() CALLED                         ║")
+            Timber.d("╚═══════════════════════════════════════════════════════════════╝")
+            Timber.d("Caller: ${caller?.className}.${caller?.methodName}() at line ${caller?.lineNumber}")
+            Timber.d("Thread: ${Thread.currentThread().name}")
+            Timber.d("skipDocuments: $skipDocuments")
+        }
         
         val currentState = state.value
         if (currentState.files.isEmpty()) {
-            Timber.w("ABORT: No files to navigate, files list is empty")
-            Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+            Timber.d("previousFile: ABORT: No files to navigate")
             return
         }
         
         var prevIndex = if (currentState.currentIndex <= 0) {
-            Timber.w("Action: Looping from first file (${currentState.currentIndex}) to last (${currentState.files.size - 1})")
+            Timber.d("previousFile: Looping from first (${currentState.currentIndex}) to last (${currentState.files.size - 1})")
             currentState.files.size - 1 // Loop to last file before first
         } else {
-            Timber.w("Action: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex - 1}")
+            Timber.d("previousFile: Moving from index ${currentState.currentIndex} to ${currentState.currentIndex - 1}")
             currentState.currentIndex - 1
         }
         
@@ -609,31 +601,22 @@ class PlayerViewModel @Inject constructor(
                                 file?.type == MediaType.EPUB
                 
                 if (!isDocument) {
-                    // Found a media file
-                    Timber.w("Found media file at index $prevIndex: ${file?.name}")
+                    Timber.d("previousFile: Found media file at index $prevIndex")
                     break
                 }
                 
-                // Skip this document, try previous
-                Timber.w("Skipping document at index $prevIndex: ${file?.name}")
+                Timber.d("previousFile: Skipping document at index $prevIndex")
                 prevIndex = if (prevIndex <= 0) currentState.files.size - 1 else prevIndex - 1
                 attempts++
             }
             
             if (attempts >= maxAttempts) {
-                // All files are documents, stay on current
-                Timber.w("All files are documents, staying on current file")
-                Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+                Timber.d("previousFile: All files are documents, staying on current")
                 return
             }
         }
         
-        val currentFile = if (currentState.currentIndex < currentState.files.size) currentState.files[currentState.currentIndex] else null
-        val prevFile = if (prevIndex < currentState.files.size) currentState.files[prevIndex] else null
-        Timber.w("Current: ${currentFile?.name} (index ${currentState.currentIndex})")
-        Timber.w("Previous: ${prevFile?.name} (index $prevIndex)")
-        Timber.w("Total files: ${currentState.files.size}")
-        Timber.w("╚═══════════════════════════════════════════════════════════════╝")
+        Timber.d("previousFile: index ${currentState.currentIndex} → $prevIndex / ${currentState.files.size}")
         
         updateState { it.copy(currentIndex = prevIndex) }
         

@@ -526,7 +526,7 @@ class SftpClient @Inject constructor() {
             
             Result.success(allFiles)
         } catch (e: Exception) {
-            Timber.e(e, "SFTP list files failed: $remotePath")
+            Timber.e(e, "SFTP list files failed")
             Result.failure(e)
         }
     }
