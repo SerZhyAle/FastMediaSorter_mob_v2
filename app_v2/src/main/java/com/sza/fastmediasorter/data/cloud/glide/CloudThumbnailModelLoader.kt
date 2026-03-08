@@ -25,6 +25,7 @@ import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 
 /**
  * Entry point for accessing cloud clients via Hilt
@@ -243,7 +244,8 @@ class CloudThumbnailDataFetcher(
     private fun downloadWithAuth(
         imageUrl: String,
         authHeader: String,
-        callback: DataFetcher.DataCallback<in InputStream>
+        callback: DataFetcher.DataCallback<in InputStream>,
+        isFallback: Boolean = false
     ) {
         val url = URL(imageUrl)
         connection = (url.openConnection() as HttpURLConnection).apply {
@@ -265,13 +267,58 @@ class CloudThumbnailDataFetcher(
             resultStream = ByteArrayInputStream(buffer.toByteArray())
             callback.onDataReady(resultStream)
         } else {
-            val errorBody = try {
-                connection!!.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
-            } catch (e: Exception) {
-                "Could not read error"
+            // Google Drive thumbnailLink URLs are short-lived signed URLs (~1h TTL).
+            // On 404, fetch a fresh thumbnailLink from the metadata API and retry once.
+            if (!isFallback &&
+                responseCode == HttpURLConnection.HTTP_NOT_FOUND &&
+                model.cloudProvider == CloudProvider.GOOGLE_DRIVE &&
+                !model.loadFullImage
+            ) {
+                connection?.disconnect()
+                val freshUrl = fetchFreshGoogleDriveThumbnailUrl(model.fileId, authHeader)
+                if (freshUrl != null) {
+                    Timber.w("CloudThumbnailDataFetcher: thumbnailLink expired (404) — retrying with fresh URL for ${model.fileId}")
+                    downloadWithAuth(freshUrl, authHeader, callback, isFallback = true)
+                } else {
+                    Timber.e("Cloud thumbnail failed: $responseCode — no fresh thumbnailLink available for ${model.fileId}")
+                    callback.onLoadFailed(Exception("HTTP $responseCode"))
+                }
+            } else {
+                val errorBody = try {
+                    connection!!.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
+                } catch (e: Exception) {
+                    "Could not read error"
+                }
+                Timber.e("Cloud thumbnail failed: $responseCode - $errorBody")
+                callback.onLoadFailed(Exception("HTTP $responseCode"))
             }
-            Timber.e("Cloud thumbnail failed: $responseCode - $errorBody")
-            callback.onLoadFailed(Exception("HTTP $responseCode"))
+        }
+    }
+
+    /**
+     * Fetches a fresh [thumbnailLink] from the Drive Files metadata API.
+     * Called as a fallback when the cached signed URL returns 404 (expired).
+     */
+    private fun fetchFreshGoogleDriveThumbnailUrl(fileId: String, authHeader: String): String? {
+        return try {
+            val conn = (URL("https://www.googleapis.com/drive/v3/files/$fileId?fields=thumbnailLink")
+                .openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", authHeader)
+                connectTimeout = 10000
+                readTimeout = 10000
+            }
+            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                conn.disconnect()
+                JSONObject(body).optString("thumbnailLink").takeIf { it.isNotEmpty() }
+            } else {
+                conn.disconnect()
+                null
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "CloudThumbnailDataFetcher: failed to fetch fresh thumbnailLink for $fileId")
+            null
         }
     }
 

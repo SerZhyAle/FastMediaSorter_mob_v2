@@ -1,11 +1,66 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Default artwork icon for audio files without embedded cover -->
+<!--
+  3D shiny music note — gold metallic with gloss highlight.
+  Gradient fills require API 24+; API 21-23 renders flat #DAA520; API <21 uses AppCompat raster.
+  Viewport 96×96 (Material note shape ×4).
+-->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="128dp"
     android:height="128dp"
-    android:viewportWidth="24"
-    android:viewportHeight="24">
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+
+    <!-- ── Drop shadow ── -->
     <path
-        android:fillColor="?android:attr/textColorPrimary"
-        android:pathData="M12,3v10.55c-0.59,-0.34 -1.27,-0.55 -2,-0.55 -2.21,0 -4,1.79 -4,4s1.79,4 4,4 4,-1.79 4,-4V7h4V3h-6z"/>
+        android:pathData="M40,93 A22,5 0 1,0 40,93.01Z"
+        android:fillColor="#50000000" />
+
+    <!-- ── Main note body (Material note ×4, centred) — metallic gold gradient ── -->
+    <path
+        android:pathData="M48,12v42.2c-2.36,-1.36 -5.08,-2.2 -8,-2.2 -8.84,0 -16,7.16 -16,16s7.16,16 16,16 16,-7.16 16,-16V28h16V12h-24z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startX="12" android:startY="12"
+                android:endX="80"   android:endY="88">
+                <item android:offset="0.00" android:color="#FFF8DC" />
+                <item android:offset="0.25" android:color="#FFD700" />
+                <item android:offset="0.55" android:color="#DAA520" />
+                <item android:offset="0.80" android:color="#B8860B" />
+                <item android:offset="1.00" android:color="#7A5800" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- ── Dark right/bottom edge — depth illusion ── -->
+    <path
+        android:pathData="M64,12v16h-4V16h-8V12h12z M64,28h-4v38.2c1.44,0.83 2.78,1.84 4,3V28z"
+        android:fillColor="#40000000" />
+
+    <!-- ── Left-side rim light (bright edge simulating reflected light) ── -->
+    <path
+        android:pathData="M24,68.5 Q21,74 24,80 Q28,90 40,91 Q28,88 26,78 Q24,72 26,68z"
+        android:fillColor="#60FFF8DC" />
+
+    <!-- ── Flag/stem top highlight strip ── -->
+    <path
+        android:pathData="M48,12 L52,12 L52,46 L48,44z"
+        android:fillColor="#70FFFFFF" />
+
+    <!-- ── Crossbar top highlight ── -->
+    <path
+        android:pathData="M48,12 L80,12 L80,16 Q64,14 48,16z"
+        android:fillColor="#70FFFFFF" />
+
+    <!-- ── Note head gloss — top-left specular spot ── -->
+    <path
+        android:pathData="M29,63 A9,5 45 1,1 29,63.01Z"
+        android:fillColor="#80FFFFFF" />
+
+    <!-- ── Tiny specular dot (brightest point) ── -->
+    <path
+        android:pathData="M31,62 A3,2 45 1,1 31,62.01Z"
+        android:fillColor="#CCFFFFFF" />
+
 </vector>

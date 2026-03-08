@@ -1,6 +1,9 @@
 package com.sza.fastmediasorter.data.repository
 
+import android.content.ContentResolver
 import android.content.Context
+import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -142,13 +145,30 @@ class MediaStoreRepositoryImpl @Inject constructor(
         }
 
         try {
-            context.contentResolver.query(
-                uri,
-                projection.toTypedArray(),
-                selection,
-                null,
-                "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $queryLimit"
-            )?.use { cursor ->
+            val cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val queryArgs = Bundle().apply {
+                    putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)
+                    putStringArray(
+                        ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                        arrayOf(MediaStore.Files.FileColumns.DATE_MODIFIED)
+                    )
+                    putInt(
+                        ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                        ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+                    )
+                    putInt(ContentResolver.QUERY_ARG_LIMIT, queryLimit)
+                }
+                context.contentResolver.query(uri, projection.toTypedArray(), queryArgs, null)
+            } else {
+                context.contentResolver.query(
+                    uri,
+                    projection.toTypedArray(),
+                    selection,
+                    null,
+                    "${MediaStore.Files.FileColumns.DATE_MODIFIED} DESC LIMIT $queryLimit"
+                )
+            }
+            cursor?.use { cursor ->
                 val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
                 val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
                 val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)

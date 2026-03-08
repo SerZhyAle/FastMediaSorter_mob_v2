@@ -267,9 +267,9 @@ class PlayerDialogAndUiStateManager(
         if (forceShowPanel && !shouldHideForSlideshow) {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
-            // Requirement: for audio playback (without photo mode) full filename must be visible
-            // in the top-left corner regardless of command panel toggle state.
-            val showFileNameOverlay = isAudioFile && !isAudioSlideshowPhotoMode
+            // Show full filename overlay for all file types (not just audio) so it's
+            // always visible regardless of content background (dark or light).
+            val showFileNameOverlay = !isAudioSlideshowPhotoMode
             binding.tvFileNameOverlay?.isVisible = showFileNameOverlay
 
             // Restore default top margin from resources. topCommandPanel is outside the FrameLayout

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.media.AudioAttributes
 import android.media.MediaPlayer
@@ -83,7 +84,13 @@ class AudioEmptyStateController(
                 if (playing) barsView.startAnimation() else barsView.pauseAnimation()
             }
             MODE_VISUALIZATION, MODE_GIF_LOOP -> {
-                if (playing) mediaPlayer?.start() else mediaPlayer?.pause()
+                if (playing) {
+                    mediaPlayer?.start()
+                } else {
+                    mediaPlayer?.let { mp ->
+                        try { if (mp.isPlaying) mp.pause() } catch (_: IllegalStateException) {}
+                    }
+                }
             }
         }
     }
@@ -92,7 +99,9 @@ class AudioEmptyStateController(
         Timber.d("AudioEmptyStateController: onPause()")
         barsView.pauseAnimation()
         if (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP) {
-            mediaPlayer?.pause()
+            mediaPlayer?.let { mp ->
+                try { if (mp.isPlaying) mp.pause() } catch (_: IllegalStateException) {}
+            }
         }
     }
 
@@ -185,9 +194,15 @@ class AudioEmptyStateController(
                 setVolume(0f, 0f)   // muted: decorative background only
                 isLooping = true
                 setOnPreparedListener { mp ->
-                    Timber.d("AudioEmptyStateController: MediaPlayer prepared")
-                    if (isPlaying && (currentMode == MODE_VISUALIZATION || currentMode == MODE_GIF_LOOP)) {
-                        mp.start()
+                    Timber.d("AudioEmptyStateController: MediaPlayer prepared, isPlaying=$isPlaying")
+                    // Apply CENTER_CROP transform: scale video so it fills the TextureView
+                    // while preserving the original aspect ratio (crop edges, not stretch).
+                    applyCenterCropTransform(mp)
+                    // Always start the muted looping background animation.
+                    // If audio is currently paused, immediately pause the video too.
+                    mp.start()
+                    if (!isPlaying) {
+                        try { mp.pause() } catch (_: IllegalStateException) {}
                     }
                 }
                 setOnErrorListener { _, what, extra ->
@@ -204,6 +219,43 @@ class AudioEmptyStateController(
             videoView.isVisible = false
             showBars()
         }
+    }
+
+    /**
+     * Scales the TextureView transform matrix so the video fills the view via CENTER_CROP:
+     * the video is uniformly scaled up until the shorter dimension matches the view,
+     * then centered. Edges on the longer axis are cropped. No stretching.
+     */
+    private fun applyCenterCropTransform(mp: MediaPlayer) {
+        val videoW = mp.videoWidth.takeIf { it > 0 } ?: return
+        val videoH = mp.videoHeight.takeIf { it > 0 } ?: return
+        val viewW = videoView.width.takeIf { it > 0 } ?: return
+        val viewH = videoView.height.takeIf { it > 0 } ?: return
+
+        val scaleX: Float
+        val scaleY: Float
+        val dx: Float
+        val dy: Float
+
+        val videoAspect = videoW.toFloat() / videoH
+        val viewAspect = viewW.toFloat() / viewH
+
+        if (videoAspect > viewAspect) {
+            // Video is wider than view → fit height, crop sides
+            scaleY = 1f
+            scaleX = videoAspect / viewAspect
+        } else {
+            // Video is taller than view → fit width, crop top/bottom
+            scaleX = 1f
+            scaleY = viewAspect / videoAspect
+        }
+        dx = (viewW * (1f - scaleX)) / 2f
+        dy = (viewH * (1f - scaleY)) / 2f
+
+        val matrix = Matrix()
+        matrix.setScale(scaleX, scaleY)
+        matrix.postTranslate(dx, dy)
+        videoView.setTransform(matrix)
     }
 
     private fun releaseMediaPlayer() {

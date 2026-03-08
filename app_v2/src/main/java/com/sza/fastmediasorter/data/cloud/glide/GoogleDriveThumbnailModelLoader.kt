@@ -18,6 +18,7 @@ import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import org.json.JSONObject
 
 /**
  * Glide ModelLoader for Google Drive thumbnail URLs.
@@ -119,19 +120,85 @@ class GoogleDriveThumbnailDataFetcher(
                     resultStream = ByteArrayInputStream(buffer.toByteArray())
                     callback.onDataReady(resultStream)
                 } else {
-                    val errorBody = try {
-                        connection!!.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
-                    } catch (e: Exception) {
-                        "Could not read error"
+                    // thumbnailLink is a short-lived signed URL (~1h TTL).
+                    // On 404, fetch a fresh one from the metadata API and retry once.
+                    if (responseCode == HttpURLConnection.HTTP_NOT_FOUND && !model.loadFullImage) {
+                        connection?.disconnect()
+                        val freshUrl = fetchFreshThumbnailUrl(model.fileId, "Bearer $accessToken")
+                        if (freshUrl != null) {
+                            Timber.w("GoogleDriveThumbnailDataFetcher: thumbnailLink expired (404) — retrying with fresh URL for ${model.fileId}")
+                            downloadWithFreshUrl(freshUrl, "Bearer $accessToken", callback)
+                        } else {
+                            Timber.e("Google Drive thumbnail failed: $responseCode — no fresh thumbnailLink for ${model.fileId}")
+                            callback.onLoadFailed(Exception("HTTP $responseCode"))
+                        }
+                    } else {
+                        val errorBody = try {
+                            connection!!.errorStream?.bufferedReader()?.readText() ?: "Unknown error"
+                        } catch (e: Exception) {
+                            "Could not read error"
+                        }
+                        Timber.e("Google Drive thumbnail failed: $responseCode - $errorBody")
+                        callback.onLoadFailed(Exception("HTTP $responseCode"))
                     }
-                    Timber.e("Google Drive thumbnail failed: $responseCode - $errorBody")
-                    callback.onLoadFailed(Exception("HTTP $responseCode"))
                 }
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load Google Drive thumbnail")
                 callback.onLoadFailed(e)
             }
         }.start()
+    }
+
+    private fun fetchFreshThumbnailUrl(fileId: String, authHeader: String): String? {
+        return try {
+            val conn = (URL("https://www.googleapis.com/drive/v3/files/$fileId?fields=thumbnailLink")
+                .openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", authHeader)
+                connectTimeout = 10000
+                readTimeout = 10000
+            }
+            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                conn.disconnect()
+                JSONObject(body).optString("thumbnailLink").takeIf { it.isNotEmpty() }
+            } else {
+                conn.disconnect()
+                null
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "GoogleDriveThumbnailDataFetcher: failed to fetch fresh thumbnailLink for $fileId")
+            null
+        }
+    }
+
+    private fun downloadWithFreshUrl(
+        imageUrl: String,
+        authHeader: String,
+        callback: DataFetcher.DataCallback<in InputStream>
+    ) {
+        try {
+            val conn = (URL(imageUrl).openConnection() as HttpURLConnection).apply {
+                requestMethod = "GET"
+                setRequestProperty("Authorization", authHeader)
+                connectTimeout = 15000
+                readTimeout = 30000
+            }
+            if (conn.responseCode == HttpURLConnection.HTTP_OK) {
+                val buffer = ByteArrayOutputStream()
+                BufferedInputStream(conn.inputStream).use { it.copyTo(buffer) }
+                conn.disconnect()
+                resultStream = ByteArrayInputStream(buffer.toByteArray())
+                callback.onDataReady(resultStream)
+            } else {
+                Timber.e("GoogleDriveThumbnailDataFetcher: fresh URL also failed: ${conn.responseCode}")
+                conn.disconnect()
+                callback.onLoadFailed(Exception("HTTP ${conn.responseCode}"))
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "GoogleDriveThumbnailDataFetcher: downloadWithFreshUrl failed")
+            callback.onLoadFailed(e)
+        }
     }
 
     private fun getAccessToken(): String? {
