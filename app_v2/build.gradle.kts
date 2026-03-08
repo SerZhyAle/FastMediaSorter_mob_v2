@@ -12,6 +12,8 @@ plugins {
 }
 
 android {
+    val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
+
     namespace = "com.sza.fastmediasorter"
     // CRITICAL: Do not change - required for latest Android features and Play Store requirements
     compileSdk = 35
@@ -28,8 +30,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260308201
-        versionName = "2.60.3082.010"
+        versionCode = 260308231
+        versionName = "2.60.3082.315"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -162,10 +164,16 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
+            // Use the main package name in debug so installs update the same app sandbox
+            // instead of creating a separate com.sza.fastmediasorter.debug data directory.
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
             isMinifyEnabled = false
+            if (hasReleaseKeystore) {
+                // Reuse the release key when available so debug can be installed as an update
+                // over the existing package without requiring uninstall/data wipe.
+                signingConfig = signingConfigs.getByName("release")
+            }
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
             buildConfigField("boolean", "ENABLE_LEAKCANARY", "false")

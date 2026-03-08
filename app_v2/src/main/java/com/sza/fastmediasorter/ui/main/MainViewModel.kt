@@ -197,7 +197,7 @@ class MainViewModel @Inject constructor(
         updateState { it.copy(selectedResource = resource) }
     }
 
-    fun openBrowse() {
+    fun openBrowse(resourceOverride: MediaResource? = null) {
         // Prevent multiple simultaneous navigation attempts
         if (state.value.isNavigating) {
             Timber.d("Navigation already in progress, ignoring click")
@@ -205,7 +205,7 @@ class MainViewModel @Inject constructor(
         }
         
         viewModelScope.launch(ioDispatcher) {
-            val resource = state.value.selectedResource
+            val resource = resourceOverride ?: state.value.selectedResource
             if (resource == null || resource.id == 0L) {
                 sendEvent(MainEvent.ShowMessage("Please select a resource first"))
                 return@launch
@@ -456,8 +456,8 @@ class MainViewModel @Inject constructor(
         updateState { it.copy(activeResourceTab = tabToRestore, previousTab = null) }
     }
     
-    fun copySelectedResource() {
-        val selected = state.value.selectedResource
+    fun copySelectedResource(resourceOverride: MediaResource? = null) {
+        val selected = resourceOverride ?: state.value.selectedResource
         if (selected == null) {
             sendEvent(MainEvent.ShowMessage("Please select a resource to copy"))
             return

@@ -1273,7 +1273,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val password = binding.etSmbPassword.text.toString()
         val resourceName = binding.etSmbResourceName.text.toString()
         val comment = binding.etSmbComment.text.toString()
-        // pinCode not currently used
+        val accessPin = binding.etSmbPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
         // ... (rest of validation) ...
 
         viewModel.addSmbResourceManually(
@@ -1291,7 +1291,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             allFiles = binding.cbSmbAllFiles.isChecked,
             scanSubdirectories = binding.cbSmbScanSubdirectories.isChecked,
             rememberFileList = binding.cbSmbRememberFileList.isChecked,
-            disableThumbnails = binding.cbSmbDisableThumbnails.isChecked
+            disableThumbnails = binding.cbSmbDisableThumbnails.isChecked,
+            accessPin = accessPin
         )
     }
 
@@ -1423,6 +1424,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         val remotePath = binding.etSftpPath.getNormalizedPath().ifEmpty { "/" }
         val resourceName = binding.etSftpResourceName.text.toString().trim()
         val comment = binding.etSftpComment.text.toString().trim()
+        val accessPin = binding.etSftpPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
         
         // Read supported media types from checkboxes
         val supportedTypes = getSftpSupportedTypes()
@@ -1465,7 +1467,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     addToDestinations = binding.cbSftpAddToDestinations.isChecked,
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                     rememberFileList = binding.cbSftpRememberFileList.isChecked,
-                    disableThumbnails = binding.cbSftpDisableThumbnails.isChecked
+                    disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
+                    accessPin = accessPin
                 )
             } else {
                 // Add with password
@@ -1485,7 +1488,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                     addToDestinations = binding.cbSftpAddToDestinations.isChecked,
                     isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                     rememberFileList = binding.cbSftpRememberFileList.isChecked,
-                    disableThumbnails = binding.cbSftpDisableThumbnails.isChecked
+                    disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
+                    accessPin = accessPin
                 )
             }
         } else {
@@ -1506,7 +1510,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 addToDestinations = binding.cbSftpAddToDestinations.isChecked,
                 isReadOnly = binding.cbSftpReadOnlyMode.isChecked,
                 rememberFileList = binding.cbSftpRememberFileList.isChecked,
-                disableThumbnails = binding.cbSftpDisableThumbnails.isChecked
+                disableThumbnails = binding.cbSftpDisableThumbnails.isChecked,
+                accessPin = accessPin
             )
         }
     }
@@ -1698,11 +1703,12 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         // Store URI as string path for local resource
         val uriString = uri.toString()
+        val accessPin = binding.etLocalPinCode.text?.toString()?.trim().takeUnless { it.isNullOrBlank() }
         
         timber.log.Timber.d("Adding folder to resources list: name=$folderName, uri=$uriString")
         
         // Add to resources list via ViewModel
-        viewModel.addManualFolder(uri)
+        viewModel.addManualFolder(uri, accessPin)
     }
     
     /**

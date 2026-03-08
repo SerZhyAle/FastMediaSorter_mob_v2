@@ -168,6 +168,7 @@ class AudioEmptyStateController(
     }
 
     private fun showWaves() {
+        wavesView.setBackgroundColor(Color.BLACK)
         wavesView.isVisible = true
         wavesView.stopAndReset()
         if (isPlaying) wavesView.startAnimation()

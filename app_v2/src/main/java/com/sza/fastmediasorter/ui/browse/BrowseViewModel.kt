@@ -1710,7 +1710,6 @@ class BrowseViewModel @Inject constructor(
                 delay(2000) // Update every 2 seconds
                 val currentProgress = state.value.loadingProgress
                 if (currentProgress > 0 && currentProgress != lastProgressUpdate) {
-                    Timber.d("BrowseViewModel.loadMediaFiles: Progress timer update - $currentProgress files found")
                     lastProgressUpdate = currentProgress
                 }
             }

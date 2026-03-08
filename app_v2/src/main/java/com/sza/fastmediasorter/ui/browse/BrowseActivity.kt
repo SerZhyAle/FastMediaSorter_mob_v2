@@ -1022,7 +1022,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         mediaFileAdapter.setAudioOnlyMode(resource.isAudioOnly())
                         mediaFileAdapter.setCredentialsId(resource.credentialsId)
                         mediaFileAdapter.setDisableThumbnails(resource.disableThumbnails)
-                        Timber.d("THUMBNAIL_DEBUG: Resource '${resource.name}' disableThumbnails=${resource.disableThumbnails}")
                         
                         // Update item operation buttons visibility based on resource permissions
                         lifecycleScope.launch {
@@ -1040,9 +1039,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     val filter = state.filter
                     val resource = state.resource
                     
-                    Timber.v("Filter badge check: filter=$filter")
-                    Timber.v("Filter badge check: resource.supportedMediaTypes=${resource?.supportedMediaTypes}")
-                    
                     val isUserFilter = filter != null && !filter.isEmpty() && (
                         !filter.nameContains.isNullOrBlank() ||
                         filter.minDate != null ||
@@ -1051,8 +1047,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         filter.maxSizeMb != null ||
                         (filter.mediaTypes != null && filter.mediaTypes != resource?.supportedMediaTypes)
                     )
-                    
-                    Timber.v("Filter badge check: isUserFilter=$isUserFilter (nameContains='${filter?.nameContains}', minDate=${filter?.minDate}, maxDate=${filter?.maxDate}, minSize=${filter?.minSizeMb}, maxSize=${filter?.maxSizeMb}, mediaTypes=${filter?.mediaTypes})")
                     
                     if (isUserFilter) {
                         // Show short toast instead of permanent warning line
@@ -1065,10 +1059,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     // Update filter badge (show red circle ONLY for user-defined filters)
                     if (isUserFilter) {
                         val filterCount = state.filter?.activeFilterCount() ?: 0
-                        Timber.v("Filter badge: SHOWING badge with count=$filterCount")
                         binding.btnFilter.setBadgeText(filterCount.toString())
                     } else {
-                        Timber.v("Filter badge: CLEARING badge (isUserFilter=false)")
                         binding.btnFilter.clearBadge()
                     }
 
@@ -1109,13 +1101,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     // Update resource action button (edit/folder icon)
                     val stateResource = state.resource
-                    Timber.d("BrowseActivity: btnResourceAction update - resource=${stateResource?.name}, isSubfolderMode=${state.isSubfolderMode}, currentPath=${state.currentPath}")
                     if (stateResource != null) {
                         binding.tvResourceInfo.text = buildResourceInfo(state)
                         
                         // currentPath == null means root of resource (not a subfolder)
                         val isSubfolder = state.isSubfolderMode && state.currentPath != null && state.currentPath != stateResource.path
-                        Timber.d("BrowseActivity: btnResourceAction isSubfolder=$isSubfolder, setting VISIBLE")
                         if (isSubfolder) {
                             // Subfolder: show folder icon, no click action
                             binding.btnResourceAction.setImageResource(R.drawable.ic_folder_24)
@@ -1138,8 +1128,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 }
                             }
                         }
-                    } else {
-                        Timber.d("BrowseActivity: btnResourceAction - resource is NULL, button stays hidden")
                     }
                 }
             }
@@ -1199,7 +1187,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 combine(viewModel.loading, viewModel.state) { isLoading, state ->
                     Pair(isLoading, state)
                 }.collect { (isLoading, state) ->
-                    Timber.d("Progress observer: isLoading=$isLoading, layoutProgress update")
                     binding.layoutProgress.isVisible = isLoading
                     binding.btnStopScan.isVisible = state.isScanCancellable && isLoading
                     
@@ -1207,9 +1194,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     if (!isLoading) {
                         binding.swipeRefreshLayout.isRefreshing = false
                     }
-                    
-                    // Debug logging for STOP button visibility
-                    Timber.d("Progress UI update: isLoading=$isLoading, isScanCancellable=${state.isScanCancellable}, btnStopScan.visible=${state.isScanCancellable && isLoading}, progress=${state.loadingProgress}")
                     
                     // Update progress message
                     if (state.loadingProgress > 0) {

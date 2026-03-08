@@ -138,11 +138,15 @@ class AudioWaveParticleView @JvmOverloads constructor(
     // ──────────────────── Public API ────────────────────
 
     fun startAnimation() {
-        if (!animator.isRunning) animator.start()
+        when {
+            animator.isPaused -> animator.resume()
+            !animator.isRunning -> animator.start()
+            // already running — no-op
+        }
     }
 
     fun pauseAnimation() {
-        if (animator.isRunning) animator.pause()
+        if (animator.isRunning && !animator.isPaused) animator.pause()
     }
 
     fun stopAndReset() {

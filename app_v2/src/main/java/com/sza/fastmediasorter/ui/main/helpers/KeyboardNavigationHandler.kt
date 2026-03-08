@@ -111,7 +111,7 @@ class KeyboardNavigationHandler(
                 val selectedResource = getCurrentResource(currentPosition)
                 if (selectedResource != null) {
                     viewModel.selectResource(selectedResource)
-                    viewModel.openBrowse()
+                    viewModel.openBrowse(selectedResource)
                 }
                 true
             }
@@ -183,7 +183,7 @@ class KeyboardNavigationHandler(
         val selectedResource = getCurrentResource(currentPosition)
         if (selectedResource != null) {
             viewModel.selectResource(selectedResource)
-            viewModel.copySelectedResource()
+            viewModel.copySelectedResource(selectedResource)
         }
         return true
     }

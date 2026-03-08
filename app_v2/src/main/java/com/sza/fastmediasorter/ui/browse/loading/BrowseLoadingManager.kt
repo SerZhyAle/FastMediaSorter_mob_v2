@@ -124,16 +124,35 @@ class BrowseLoadingManager(
                 || resource.type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP
                 || resource.type == com.sza.fastmediasorter.domain.model.ResourceType.FTP
         val useProgressiveLoading = isNetworkResource && !isSubfolderMode
+        val flowStartTime = System.currentTimeMillis()
+        val progressLogIntervalMs = 5_000L
+        val progressLogStep = 1_000
         
         // Progress callback to update UI every 50 files for better performance
         var lastReportedProgress = 0
+        var lastLoggedProgress = 0
+        var lastProgressLogTimestamp = flowStartTime
         val progressCallback = object : ScanProgressCallback {
             override suspend fun onProgress(scannedCount: Int, currentFile: String?) {
                 // Report progress every 50 files or on first file
                 if (scannedCount - lastReportedProgress >= 50 || scannedCount == 1) {
-                    Timber.d("BrowseLoadingManager: Progress - $scannedCount files scanned, current='$currentFile'")
                     callbacks.updateLoadingProgress(scannedCount)
                     lastReportedProgress = scannedCount
+                }
+
+                val now = System.currentTimeMillis()
+                val shouldLogProgress = scannedCount > 0 && (
+                    scannedCount - lastLoggedProgress >= progressLogStep ||
+                        now - lastProgressLogTimestamp >= progressLogIntervalMs
+                    )
+                if (shouldLogProgress) {
+                    val elapsedMs = now - flowStartTime
+                    val filesPerSecond = if (elapsedMs > 0L) scannedCount * 1000L / elapsedMs else 0L
+                    Timber.d(
+                        "BrowseLoadingManager: Scan progress - $scannedCount files in ${elapsedMs}ms (~${filesPerSecond} files/s)"
+                    )
+                    lastLoggedProgress = scannedCount
+                    lastProgressLogTimestamp = now
                 }
             }
             
@@ -147,8 +166,6 @@ class BrowseLoadingManager(
         }
         
         Timber.d("BrowseLoadingManager: Calling GetMediaFilesUseCase (progressive=$useProgressiveLoading)...")
-        val flowStartTime = System.currentTimeMillis()
-        
         // Collect all emissions — for progressive loading the flow may emit
         // an early partial batch followed by the complete list.
         var latestFiles: List<MediaFile> = emptyList()

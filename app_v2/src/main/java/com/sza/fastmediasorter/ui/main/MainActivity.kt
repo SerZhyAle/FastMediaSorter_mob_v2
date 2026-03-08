@@ -167,7 +167,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             onItemClick = { resource ->
                 // Simple click = select and open Browse
                 viewModel.selectResource(resource)
-                viewModel.openBrowse()
+                viewModel.openBrowse(resource)
             },
             onItemLongClick = { resource ->
                 // Long click = open Edit (check PIN first)
@@ -187,7 +187,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             },
             onCopyFromClick = { resource ->
                 viewModel.selectResource(resource)
-                viewModel.copySelectedResource()
+                viewModel.copySelectedResource(resource)
             },
             onDeleteClick = { resource ->
                 showDeleteConfirmation(resource)

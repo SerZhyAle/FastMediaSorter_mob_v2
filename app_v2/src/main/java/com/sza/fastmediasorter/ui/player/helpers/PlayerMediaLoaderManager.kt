@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.net.Uri
 import android.os.Handler
+import android.view.View
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.Player
@@ -392,12 +393,17 @@ class PlayerMediaLoaderManager(
     }
 
     private fun configurePlayerViewForMediaType(isAudioFile: Boolean, currentFile: MediaFile?) {
+        val exoContentFrame = binding.playerView.findViewById<View>(androidx.media3.ui.R.id.exo_content_frame)
         if (isAudioFile) {
             // For audio: always show controls, never hide
             // Use Integer.MAX_VALUE to prevent auto-hide (negative values don't work reliably)
             binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
             // Force controls visible immediately — no tap required
             binding.playerView.showController()
+
+            // Hide PlayerView's internal video/content layer for audio.
+            // Otherwise its empty black TextureView sits above our external audio background views.
+            exoContentFrame?.isVisible = false
             
             // Make PlayerView transparent so animation views behind it (lower z) are visible.
             // exo_bottom_bar has its own opaque background so controls remain readable.
@@ -417,6 +423,9 @@ class PlayerMediaLoaderManager(
         } else {
             // For video: auto-hide controls after 15 seconds
             binding.playerView.controllerShowTimeoutMs = VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS.toInt()
+
+            // Restore PlayerView's video/content layer for real video playback.
+            exoContentFrame?.isVisible = true
             
             // Restore opaque background for video (prevents animation bleeding through)
             binding.playerView.setBackgroundColor(android.graphics.Color.BLACK)

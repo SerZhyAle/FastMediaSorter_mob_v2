@@ -29,6 +29,7 @@ class AddResourceHelper(
             ResourceType.LOCAL -> {
                 // Show local folder section
                 activity.showLocalFolderOptions()
+                binding.etLocalPinCode.setText(resource.accessPin.orEmpty())
                 // For local, path is already selected by user via folder picker
                 // We can't pre-select it, but show message
                 Toast.makeText(
@@ -58,6 +59,7 @@ class AddResourceHelper(
                 if (username != null) binding.etSmbUsername.setText(username)
                 if (password != null) binding.etSmbPassword.setText(password)
                 if (domain != null) binding.etSmbDomain.setText(domain)
+                binding.etSmbPinCode.setText(resource.accessPin.orEmpty())
 
                 binding.etSmbPort.setText("445")
 
@@ -115,6 +117,7 @@ class AddResourceHelper(
 
                 // Pre-fill credentials
                 if (username != null) binding.etSftpUsername.setText(username)
+                binding.etSftpPinCode.setText(resource.accessPin.orEmpty())
 
                 if (sshKey != null) {
                     binding.rbSftpSshKey.isChecked = true
@@ -180,6 +183,7 @@ class AddResourceHelper(
                 // Pre-fill credentials
                 if (username != null) binding.etSftpUsername.setText(username)
                 if (password != null) binding.etSftpPassword.setText(password)
+                binding.etSftpPinCode.setText(resource.accessPin.orEmpty())
 
                 // Pre-fill comment
                 binding.etSftpComment.setText(resource.comment ?: "")

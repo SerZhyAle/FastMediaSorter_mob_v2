@@ -392,6 +392,10 @@ class AddResourceViewModel @Inject constructor(
     }
     
     fun addManualFolder(uri: Uri) {
+        addManualFolder(uri, null)
+    }
+
+    fun addManualFolder(uri: Uri, accessPin: String?) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
             
@@ -446,7 +450,8 @@ class AddResourceViewModel @Inject constructor(
                     sortMode = settings.defaultSortMode,
                     scanSubdirectories = true, // Default: scan subdirectories for manually added local folders
                     isReadOnly = false, // Default: rw for local
-                    allFiles = settings.allFiles // Inherit global "All Files" setting
+                    allFiles = settings.allFiles, // Inherit global "All Files" setting
+                    accessPin = accessPin?.ifBlank { null }
                 )
                 
                 updateState { state ->
@@ -743,7 +748,8 @@ class AddResourceViewModel @Inject constructor(
         allFiles: Boolean = false,
         scanSubdirectories: Boolean = false,
         rememberFileList: Boolean = false,
-        disableThumbnails: Boolean = false
+        disableThumbnails: Boolean = false,
+        accessPin: String? = null
     ) {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             setLoading(true)
@@ -808,7 +814,8 @@ class AddResourceViewModel @Inject constructor(
                     allFiles = allFiles,
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
-                    disableThumbnails = disableThumbnails
+                    disableThumbnails = disableThumbnails,
+                    accessPin = accessPin?.ifBlank { null }
                 )
                 
                 // Add resource to database
@@ -1010,7 +1017,8 @@ class AddResourceViewModel @Inject constructor(
         scanSubdirectories: Boolean = false,
         addToDestinations: Boolean = false,
         rememberFileList: Boolean = false,
-        disableThumbnails: Boolean = false
+        disableThumbnails: Boolean = false,
+        accessPin: String? = null
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1097,7 +1105,8 @@ class AddResourceViewModel @Inject constructor(
                     allFiles = allFiles,
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
-                    disableThumbnails = disableThumbnails
+                    disableThumbnails = disableThumbnails,
+                    accessPin = accessPin?.ifBlank { null }
                 )
                 
                 // Add resource to database
@@ -1371,7 +1380,8 @@ class AddResourceViewModel @Inject constructor(
         scanSubdirectories: Boolean = false,
         addToDestinations: Boolean = false,
         rememberFileList: Boolean = false,
-        disableThumbnails: Boolean = false
+        disableThumbnails: Boolean = false,
+        accessPin: String? = null
     ) {
         if (host.isBlank()) {
             sendEvent(AddResourceEvent.ShowError("Host is required"))
@@ -1450,7 +1460,8 @@ class AddResourceViewModel @Inject constructor(
                     allFiles = allFiles,
                     scanSubdirectories = scanSubdirectories,
                     rememberFileList = rememberFileList,
-                    disableThumbnails = disableThumbnails
+                    disableThumbnails = disableThumbnails,
+                    accessPin = accessPin?.ifBlank { null }
                 )
                 
                 // Add resource to database
