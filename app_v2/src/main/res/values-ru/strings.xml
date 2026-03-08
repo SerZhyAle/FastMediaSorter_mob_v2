@@ -1324,6 +1324,13 @@
     <string name="no_photos_source_selected">Ресурс не выбран</string>
     <string name="tooltip_photos_during_audio_title">Фото при воспроизведении аудио</string>
     <string name="tooltip_photos_during_audio_message">При включении случайные фото из выбранного ресурса будут отображаться во время воспроизведения аудио. Для каждой песни показывается одно случайное фото. Используются только статические изображения (видео игнорируются).</string>
+
+    <!-- Audio Empty State Animation -->
+    <string name="audio_empty_state_label">Визуализатор при отсутствии обложки</string>
+    <string name="audio_empty_state_none">Чёрный фон</string>
+    <string name="audio_empty_state_avd_pulse">Нота + пульсирующие кольца</string>
+    <string name="audio_empty_state_canvas_bars">Дышащие столбики (15)</string>
+    <string name="audio_empty_state_gif_loop">GIF / WebP в цикле</string>
     <string name="enable_photos_during_audio">Фото при аудио</string>
     <string name="enable_photos_during_audio_summary">Показывать случайные фото из выбранного ресурса вместо обложки альбома</string>
 

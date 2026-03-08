@@ -34,8 +34,15 @@
     <color name="welcome_page_6_background">#263238</color>
 
     <!-- Resource item backgrounds for dark theme (zebra striping) -->
-    <color name="resource_item_bg_even">#FF1E1E1E</color>    <!-- Dark gray for even rows -->
-    <color name="resource_item_bg_odd">#FF121212</color>    <!-- Darker gray for odd rows -->
+    <color name="resource_item_bg_even">#FF252525</color>    <!-- Dark gray for even rows -->
+    <color name="resource_item_bg_odd">#FF121212</color>    <!-- Darker gray for odd rows (more contrast) -->
+
+    <!-- Resource type chip background colors (dark theme) -->
+    <color name="chip_local_bg">#2E7D32</color>    <!-- Green 800 -->
+    <color name="chip_smb_bg">#1565C0</color>    <!-- Blue 800 -->
+    <color name="chip_sftp_bg">#F57F17</color>    <!-- Amber 800 -->
+    <color name="chip_ftp_bg">#E65100</color>    <!-- Orange 800 -->
+    <color name="chip_cloud_bg">#6A1B9A</color>    <!-- Purple 800 -->
     <color name="error_color">#FFEF5350</color>
     <color name="warning_color">#FFFFB74D</color>
     <color name="success_color">#FF81C784</color>

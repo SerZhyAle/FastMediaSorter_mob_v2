@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - GitHub Copilot Instructions
 
-**Last Updated**: February 28, 2026
+**Last Updated**: March 8, 2026
 
 ---
 
@@ -102,4 +102,100 @@
     - DRY, Test coverage, Correctness > Speed, Explicit > Clever.
     - Review boundaries: Architecture, Structure, Debt, Memory, N+1.
   </code_review_principles>
+
+  <scripts_reference>
+    <!-- USE THESE SCRIPTS DIRECTLY. Do not reinvent ad-hoc Select-String chains. -->
+
+    <log_analysis>
+      <!-- Default log: temp/current.log. Android logcat format: DATE TIME PID-TID TAG PKG LEVEL MSG -->
+      <script>scripts/utils/search-log.ps1</script>
+      <usage>
+        # Overview / noise
+        .\scripts\utils\search-log.ps1 -Summary
+        .\scripts\utils\search-log.ps1 -Spam -Top 20
+
+        # Errors / warnings
+        .\scripts\utils\search-log.ps1 -Errors
+        .\scripts\utils\search-log.ps1 -Warnings
+        .\scripts\utils\search-log.ps1 -Errors -From "01:20:00" -To "01:25:00"
+        .\scripts\utils\search-log.ps1 -Errors -OutFile "temp/errors.txt"
+
+        # Pattern / tag search
+        .\scripts\utils\search-log.ps1 -Pattern "SORT_DEBUG"
+        .\scripts\utils\search-log.ps1 -Tag "BrowseViewModel"
+        .\scripts\utils\search-log.ps1 -Tag "ImageLoad" -Level E
+        .\scripts\utils\search-log.ps1 -Pattern "Exception|crash" -Context 5
+
+        # Multi-tag flow trace
+        .\scripts\utils\search-log.ps1 -Flow "BrowseViewModel","GoogleDrive","MediaFileAdapter"
+
+        # Limit / count
+        .\scripts\utils\search-log.ps1 -Pattern "thumbnail" -Top 30
+        .\scripts\utils\search-log.ps1 -Errors -Last 20
+        .\scripts\utils\search-log.ps1 -Pattern "crash" -Count
+
+        # Filters
+        .\scripts\utils\search-log.ps1 -AppOnly -Warnings
+        .\scripts\utils\search-log.ps1 -Tag "BrowseViewModel" -Exclude "updateLayout|scrollTo"
+
+        # Custom log file
+        .\scripts\utils\search-log.ps1 -LogFile "temp/build_err7.txt" -Errors
+      </usage>
+    </log_analysis>
+
+    <build_scripts>
+      <!-- Debug builds (no version bump) -->
+      .\scripts\builders\build-debug.PS1                  # standard flavor
+      .\scripts\builders\build-debug.PS1 -SkipZip         # standard, no zip
+      .\scripts\builders\build-debug-clean.PS1            # clean + standard debug
+      .\scripts\builders\build-lite-debug.ps1             # lite flavor
+      .\scripts\builders\build-photos-debug.ps1           # photos flavor
+      .\scripts\builders\build-legacy-debug.ps1           # legacy flavor
+      .\scripts\builders\clean-gradle-caches.ps1          # stop daemons + clean caches
+
+      <!-- Release builds -->
+      .\scripts\builders\build-standard-release.ps1
+      .\scripts\builders\build-aab-release.ps1
+      .\scripts\builders\build-wear-release.PS1
+
+      <!-- Versioned build (bumps version code/name) -->
+      .\dev\build-with-version.ps1
+    </build_scripts>
+
+    <device_scripts>
+      .\scripts\utils\extract-device-logs.ps1             # pull logcat + prefs from connected device
+      .\scripts\utils\Install_release_on_adb_connected_device.ps1  # install APK via ADB
+      .\scripts\builders\build-standard-device.ps1        # build + install standard debug on device
+      .\scripts\builders\build-lite-device.ps1            # build + install lite debug on device
+    </device_scripts>
+
+    <test_scripts>
+      .\scripts\utils\run-maestro-smoke.ps1               # smoke tests
+      .\scripts\utils\run-maestro-smoke.ps1 -Suite critical
+      .\scripts\utils\run-stress.ps1                      # all stress tests
+      .\scripts\utils\run-stress.ps1 -Test monkey
+      .\scripts\utils\run-maestro-stress.ps1 -Suite all -Monitor -Report
+      .\scripts\utils\setup_test_media.ps1                # upload test media to device
+      .\scripts\utils\setup-avd-for-tests.ps1             # configure AVD for Maestro
+    </test_scripts>
+
+    <utility_scripts>
+      .\scripts\utils\commit-push.ps1                     # commit + push current branch
+      .\scripts\utils\generate-changelog.ps1              # generate changelog from git log
+      .\scripts\utils\generate-quality-report.ps1         # lint + test quality report
+      .\scripts\utils\check-typo-lint.ps1                 # spell / typo check
+      .\scripts\utils\monitor_git.ps1                     # watch git status in real time
+      .\scripts\utils\create-release-candidate.ps1        # tag + prepare RC
+      .\scripts\add_to_dev_log.ps1 "path" "target" "desc" # append row to dev/CHANGELOG.md (MANDATORY after every code change)
+    </utility_scripts>
+
+    <gradlew_shortcuts>
+      .\gradlew.bat assembleStandardDebug
+      .\gradlew.bat assembleStandardRelease
+      .\gradlew.bat testStandardDebugUnitTest
+      .\gradlew.bat lintStandardDebug
+      .\gradlew.bat :app_v2:dependencies
+    </gradlew_shortcuts>
+  </scripts_reference>
+
 </ai_core_directives>

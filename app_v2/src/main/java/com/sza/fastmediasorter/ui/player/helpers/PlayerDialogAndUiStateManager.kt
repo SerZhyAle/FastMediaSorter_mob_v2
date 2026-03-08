@@ -267,14 +267,21 @@ class PlayerDialogAndUiStateManager(
         if (forceShowPanel && !shouldHideForSlideshow) {
             // Command panel mode
             binding.topCommandPanel.isVisible = true
-            binding.tvFileNameOverlay?.isVisible = true
-            
-            // CRITICAL: Update insets after visibility change.
-            // Using post() is ESSENTIAL here because:
-            // 1. The view was just set to VISIBLE, needs to be attached/measured for insets.
-            // 2. We just exited fullscreen, system bars might still be animating/stabilizing.
-            binding.topCommandPanel.post { 
-                binding.topCommandPanel.requestApplyInsets()
+            // Requirement: for audio playback (without photo mode) full filename must be visible
+            // in the top-left corner regardless of command panel toggle state.
+            val showFileNameOverlay = isAudioFile && !isAudioSlideshowPhotoMode
+            binding.tvFileNameOverlay?.isVisible = showFileNameOverlay
+
+            // Restore default top margin from resources. topCommandPanel is outside the FrameLayout
+            // containing tvFileNameOverlay, so adding panel.height here shifts the filename too low.
+            binding.tvFileNameOverlay?.let { overlay ->
+                val lp = overlay.layoutParams as? android.widget.FrameLayout.LayoutParams
+                if (lp != null) {
+                    lp.topMargin = activity.resources.getDimensionPixelSize(
+                        R.dimen.activity_player_unified_tvFileNameOverlay_layout_marginTop
+                    )
+                    overlay.layoutParams = lp
+                }
             }
             
             // DEBUG: Log actual view state after setting

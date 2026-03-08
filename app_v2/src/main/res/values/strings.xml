@@ -297,6 +297,14 @@
     <string name="tooltip_photos_during_audio_title">Photos During Audio</string>
     <string name="tooltip_photos_during_audio_message">When enabled, random photos from the selected resource will be displayed during audio playback. Each song displays one random photo. Only static images are used (videos are ignored).</string>
 
+    <!-- Audio Empty State Animation -->
+    <string name="audio_empty_state_label">Visualizer when no cover art</string>
+    <string name="audio_empty_state_none">Black background</string>
+    <string name="audio_empty_state_avd_pulse">Music note + pulse rings</string>
+    <string name="audio_empty_state_canvas_bars">Breathing bars (15)</string>
+    <string name="audio_empty_state_gif_loop">GIF / WebP loop</string>
+    <string name="audio_empty_state_visualization">Visualization (MP4)</string>
+
     <string name="image_size_limits">Image size limits (MB)</string>
     <string name="video_size_limits">Video size limits (KB)</string>
     <string name="audio_size_limits">Audio size limits (KB)</string>

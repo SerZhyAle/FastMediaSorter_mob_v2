@@ -396,6 +396,13 @@ class PlayerMediaLoaderManager(
             // For audio: always show controls, never hide
             // Use Integer.MAX_VALUE to prevent auto-hide (negative values don't work reliably)
             binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
+            // Force controls visible immediately — no tap required
+            binding.playerView.showController()
+            
+            // Make PlayerView transparent so animation views behind it (lower z) are visible.
+            // exo_bottom_bar has its own opaque background so controls remain readable.
+            binding.playerView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            binding.playerView.setShutterBackgroundColor(android.graphics.Color.TRANSPARENT)
             
             // Disable PlayerView's built-in artwork display - we use our own audioCoverArtView
             // This prevents duplicate cover art (one from PlayerView, one from audioCoverArtView)
@@ -410,6 +417,10 @@ class PlayerMediaLoaderManager(
         } else {
             // For video: auto-hide controls after 15 seconds
             binding.playerView.controllerShowTimeoutMs = VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS.toInt()
+            
+            // Restore opaque background for video (prevents animation bleeding through)
+            binding.playerView.setBackgroundColor(android.graphics.Color.BLACK)
+            binding.playerView.setShutterBackgroundColor(android.graphics.Color.BLACK)
             
             // Re-enable artwork display for video (in case it was disabled for audio)
             binding.playerView.artworkDisplayMode = androidx.media3.ui.PlayerView.ARTWORK_DISPLAY_MODE_FIT

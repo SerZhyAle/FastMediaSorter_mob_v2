@@ -78,11 +78,19 @@
 
         <!-- MSAL Browser Tab Activity for OneDrive -->
         <activity android:name="com.microsoft.identity.client.BrowserTabActivity" android:exported="true" android:configChanges="orientation|keyboardHidden|screenSize|smallestScreenSize|screenLayout" tools:replace="android:configChanges">
+            <!-- Release keystore signature hash -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/FYsxzaNPAAPFK3rigkV29z+r0es=" />
+            </intent-filter>
+            <!-- Debug keystore signature hash -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="msauth" android:host="com.sza.fastmediasorter" android:path="/WdRIvjP3wXJ5jte7TPUOqtT59es=" />
             </intent-filter>
         </activity>
 

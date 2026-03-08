@@ -20,6 +20,7 @@ import timber.log.Timber
 import java.io.BufferedInputStream
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -275,22 +276,42 @@ class CloudThumbnailDataFetcher(
     }
 
     private fun getGoogleAccessToken(): String? {
+        val now = System.currentTimeMillis()
+        cachedGoogleToken?.let { token -> if (now < googleTokenExpiryMs) return token }
+
         return try {
             val account = GoogleSignIn.getLastSignedInAccount(context)
             if (account?.account == null) {
                 Timber.w("No Google account signed in")
                 return null
             }
-
-            GoogleAuthUtil.getToken(
-                context,
-                account.account!!,
-                "oauth2:https://www.googleapis.com/auth/drive.readonly"
-            )
+            val token = fetchGoogleTokenWithRetry(account.account!!)
+            if (token != null) {
+                cachedGoogleToken = token
+                googleTokenExpiryMs = System.currentTimeMillis() + TOKEN_TTL_MS
+            }
+            token
         } catch (e: Exception) {
             Timber.e(e, "Error getting Google access token")
             null
         }
+    }
+
+    private fun fetchGoogleTokenWithRetry(account: android.accounts.Account): String? {
+        val scope = "oauth2:https://www.googleapis.com/auth/drive.readonly"
+        for (attempt in 0..1) {
+            try {
+                return GoogleAuthUtil.getToken(context, account, scope)
+            } catch (e: IOException) {
+                if (e.cause is android.os.DeadObjectException && attempt == 0) {
+                    Timber.w("GMS binder dead, retrying token fetch (attempt $attempt)…")
+                    Thread.sleep(300)
+                } else {
+                    throw e
+                }
+            }
+        }
+        return null
     }
 
     override fun cleanup() {
@@ -318,4 +339,16 @@ class CloudThumbnailDataFetcher(
     override fun getDataClass(): Class<InputStream> = InputStream::class.java
 
     override fun getDataSource(): DataSource = DataSource.REMOTE
+
+    companion object {
+        @Volatile private var cachedGoogleToken: String? = null
+        @Volatile private var googleTokenExpiryMs: Long = 0L
+        private const val TOKEN_TTL_MS = 55L * 60L * 1000L // 55 min; Drive tokens live 60 min
+
+        /** Call when Drive auth is revoked or user signs out. */
+        fun invalidateGoogleTokenCache() {
+            cachedGoogleToken = null
+            googleTokenExpiryMs = 0L
+        }
+    }
 }

@@ -4,12 +4,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
@@ -24,7 +26,18 @@ class AudioSettingsFragment : Fragment() {
 
     companion object {
         private const val MB_TO_BYTES = 1024L * 1024L
+
+        // Audio empty state mode keys (stored in DataStore)
+        private const val MODE_NONE = "NONE"
+        private const val MODE_AVD_PULSE = "AVD_PULSE"
+        private const val MODE_CANVAS_BARS = "CANVAS_BARS"
+        private const val MODE_VISUALIZATION = "VISUALIZATION"
+        /** Legacy DataStore value kept for backward compat; shown as Visualization in UI. */
+        private const val MODE_GIF_LOOP = "GIF_LOOP"
     }
+
+    // Ordered list of mode keys — index-aligned with dropdown labels
+    private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_VISUALIZATION)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -143,6 +156,27 @@ class AudioSettingsFragment : Fragment() {
                 com.sza.fastmediasorter.R.string.tooltip_audio_size_limits_message
             )
         }
+
+        // Audio empty state dropdown
+        val emptyStateModeLabels = listOf(
+            getString(R.string.audio_empty_state_none),
+            getString(R.string.audio_empty_state_avd_pulse),
+            getString(R.string.audio_empty_state_canvas_bars),
+            getString(R.string.audio_empty_state_visualization)
+        )
+        val emptyStateAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            emptyStateModeLabels
+        )
+        binding.actvAudioEmptyStateMode.setAdapter(emptyStateAdapter)
+        binding.actvAudioEmptyStateMode.setOnItemClickListener { _, _, position, _ ->
+            if (!isUpdatingFromSettings) {
+                val selectedKey = emptyStateModeKeys.getOrElse(position) { MODE_NONE }
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
+            }
+        }
     }
 
     private fun observeData() {
@@ -192,8 +226,18 @@ class AudioSettingsFragment : Fragment() {
                         binding.etAudioSizeMax.setText(maxMb.toString())
                     }
 
+                    // Audio empty state dropdown
+                    // Normalize legacy "GIF_LOOP" → "VISUALIZATION" for index lookup
+                    val normalizedMode = if (settings.audioEmptyStateMode == MODE_GIF_LOOP) MODE_VISUALIZATION else settings.audioEmptyStateMode
+                    val modeIndex = emptyStateModeKeys.indexOf(normalizedMode).takeIf { it >= 0 } ?: 0
+                    val emptyStateModeLabels = listOf(
+                        getString(R.string.audio_empty_state_none),
+                        getString(R.string.audio_empty_state_avd_pulse),
+                        getString(R.string.audio_empty_state_canvas_bars),
+                        getString(R.string.audio_empty_state_visualization)
+                    )
+                    binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)
 
-                    
                     isUpdatingFromSettings = false
                 }
             }

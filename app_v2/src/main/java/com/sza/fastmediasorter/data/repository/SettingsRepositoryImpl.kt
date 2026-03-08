@@ -60,6 +60,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_ENABLE_PHOTOS_DURING_AUDIO = booleanPreferencesKey("enable_photos_during_audio")
         private val KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID = stringPreferencesKey("audio_background_photos_resource_id")
         private val KEY_ENABLE_BACKGROUND_AUDIO = booleanPreferencesKey("enable_background_audio")
+        private val KEY_AUDIO_EMPTY_STATE_MODE = stringPreferencesKey("audio_empty_state_mode")
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
         private val KEY_SUPPORT_PDF = booleanPreferencesKey("support_pdf")
         private val KEY_SUPPORT_EPUB = booleanPreferencesKey("support_epub")
@@ -212,6 +213,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID],
                     enableBackgroundAudio = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
+                    audioEmptyStateMode = preferences[KEY_AUDIO_EMPTY_STATE_MODE] ?: "VISUALIZATION",
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,
@@ -344,6 +346,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences.remove(KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID)
             }
             preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enableBackgroundAudio
+            preferences[KEY_AUDIO_EMPTY_STATE_MODE] = settings.audioEmptyStateMode
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf
             preferences[KEY_SUPPORT_EPUB] = settings.supportEpub

@@ -16,6 +16,12 @@ class MediaStoreRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : MediaStoreRepository {
 
+    private fun isTrashPath(path: String): Boolean {
+        val normalized = path.replace('\\', '/')
+        val segments = normalized.split('/')
+        return segments.any { it.startsWith(".trash") }
+    }
+
     private fun buildSelectionForAllowedTypes(allowedTypes: Set<MediaType>): String? {
         val selectionBuilder = StringBuilder()
 
@@ -71,6 +77,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                 
                 while (cursor.moveToNext()) {
                     val path = cursor.getString(dataColumn) ?: continue
+                    if (isTrashPath(path)) continue
                     val name = cursor.getString(nameColumn) ?: ""
                     val mimeType = cursor.getString(mimeColumn)
                     val mediaTypeInt = cursor.getInt(mediaTypeColumn)
@@ -158,6 +165,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
 
                 while (cursor.moveToNext()) {
                     val path = cursor.getString(dataCol) ?: continue
+                    if (isTrashPath(path)) continue
                     val name = cursor.getString(nameCol) ?: File(path).name
                     val mime = cursor.getString(mimeCol)
                     val mediaTypeInt = cursor.getInt(typeCol)
@@ -279,6 +287,9 @@ class MediaStoreRepositoryImpl @Inject constructor(
                 
                 while (cursor.moveToNext()) {
                     val path = cursor.getString(dataCol) ?: continue
+                    if (isTrashPath(path)) {
+                        continue
+                    }
                     
                     // Filter direct children only if not recursive
                     val relative = path.removePrefix(pathArg)

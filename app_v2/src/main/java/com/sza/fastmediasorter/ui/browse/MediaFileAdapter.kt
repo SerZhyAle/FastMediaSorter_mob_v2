@@ -1469,11 +1469,24 @@ class MediaFileAdapter(
         }
         
         /** "Artist - Title" for top line in audio-only mode. Falls back to filename if no metadata. */
-        private fun buildAudioDisplayName(file: MediaFile): String = when {
-            !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
-            !file.artist.isNullOrBlank() -> file.artist
-            !file.title.isNullOrBlank() -> file.title
-            else -> file.name
+        private fun buildAudioDisplayName(file: MediaFile): String {
+            val result = when {
+                !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
+                !file.artist.isNullOrBlank() -> file.artist ?: file.name
+                !file.title.isNullOrBlank() -> file.title ?: file.name
+                else -> file.name
+            }
+            // Guard against invisible characters from malformed ID3 tags (BOM, NUL, etc.)
+            val trimmed = result.trim()
+            if (trimmed.isEmpty() || trimmed.all { it.code < 32 || it == '\u00A0' || it == '\uFEFF' }) {
+                Timber.w(
+                    "buildAudioDisplayName: invisible result for '${file.name}' | " +
+                    "artist.codes=${file.artist?.map { it.code }?.take(8)} | " +
+                    "title.codes=${file.title?.map { it.code }?.take(8)}"
+                )
+                return file.name
+            }
+            return result
         }
 
         /** "size • date • duration" for bottom line in audio-only mode. */

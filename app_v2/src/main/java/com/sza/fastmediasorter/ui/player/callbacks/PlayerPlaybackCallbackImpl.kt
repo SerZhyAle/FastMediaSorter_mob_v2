@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
+import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import timber.log.Timber
 
 /**
@@ -25,7 +26,8 @@ class PlayerPlaybackCallbackImpl(
     private val playerSettingsManagerProvider: () -> PlayerSettingsManager,
     private val imageLoadingManagerProvider: () -> ImageLoadingManager,
     private val slideshowController: SlideshowController,
-    private val sleepTimerManagerProvider: () -> com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = { null }
+    private val sleepTimerManagerProvider: () -> com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = { null },
+    private val audioEmptyStateControllerProvider: () -> AudioEmptyStateController? = { null }
 ) : VideoPlayerManager.PlayerCallback {
 
     override fun onPlaybackReady() {
@@ -62,6 +64,9 @@ class PlayerPlaybackCallbackImpl(
         val currentFile = viewModel.state.value.currentFile
         val isAudioFile = currentFile?.type == MediaType.AUDIO
         sleepTimerManagerProvider()?.updateVinylState(isPlaying, isAudioFile)
+        if (isAudioFile) {
+            audioEmptyStateControllerProvider()?.onIsPlayingChanged(isPlaying)
+        }
     }
     
     override fun onPlaybackEnded() {

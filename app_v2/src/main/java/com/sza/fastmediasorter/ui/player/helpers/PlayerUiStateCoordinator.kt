@@ -162,7 +162,15 @@ class PlayerUiStateCoordinator(
                 if (file.isFavorite) R.drawable.ic_star_filled else R.drawable.ic_star_outline
             )
 
-            binding.tvFileNameOverlay?.text = "${file.name} (${state.currentIndex + 1}/${state.files.size})"
+            // For audio: show full filename with extension (no index — metadata shown in center overlay)
+            // For other types: add position index for navigation context
+            if (file.type == MediaType.AUDIO) {
+                binding.tvFileNameOverlay?.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+                binding.tvFileNameOverlay?.text = file.name
+            } else {
+                binding.tvFileNameOverlay?.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, 10f)
+                binding.tvFileNameOverlay?.text = "${file.name} (${state.currentIndex + 1}/${state.files.size})"
+            }
 
             val currentFilePath = callback.getCurrentFilePath()
             val isImageType = file.type == MediaType.IMAGE || file.type == MediaType.GIF

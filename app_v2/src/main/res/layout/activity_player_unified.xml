@@ -1,625 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@color/black"
-    tools:ignore="TooManyViews"
-    tools:context=".ui.player.PlayerActivity">
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@color/black" tools:ignore="TooManyViews" tools:context=".ui.player.PlayerActivity">
 
     <!-- Command Panel Top (visible only in command panel mode) -->
     <!-- Layout for Landscape: Left (Back) | Center (Actions) | Right (Delete, Fullscreen, Prev, Next) -->
-    <LinearLayout
-        android:id="@+id/topCommandPanel"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingTop="@dimen/player_cmd_padding_top"
-        android:paddingBottom="@dimen/player_cmd_padding_vertical"
-        android:paddingHorizontal="@dimen/player_cmd_padding_horizontal"
-        android:background="@color/activity_player_unified_topCommandPanel_background"
-        android:visibility="gone">
+    <LinearLayout android:id="@+id/topCommandPanel" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="@dimen/player_cmd_padding_top" android:paddingBottom="@dimen/player_cmd_padding_vertical" android:paddingHorizontal="@dimen/player_cmd_padding_horizontal" android:background="@color/activity_player_unified_topCommandPanel_background" android:visibility="gone">
 
         <!-- LEFT GROUP: Back button -->
-        <ImageButton
-            android:id="@+id/btnBack"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/back"
-            android:src="@drawable/ic_back"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnBack" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/back" android:src="@drawable/ic_back" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
         <!-- CENTER GROUP: Action buttons centered without scrolling -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="center">
-        
-        <!-- Text Viewer Actions - shown for TXT files -->
-        <ImageButton
-            android:id="@+id/btnSearchTextCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/search"
-            android:src="@android:drawable/ic_menu_search"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="horizontal" android:gravity="center">
 
-        <ImageButton
-            android:id="@+id/btnTranslateTextCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translate"
-            android:src="@drawable/ic_translate"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <!-- Text Viewer Actions - shown for TXT files -->
+            <ImageButton android:id="@+id/btnSearchTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@android:drawable/ic_menu_search" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnTextSettingsCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translation_settings"
-            android:src="@drawable/ic_book"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnTranslateTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <!-- PDF Actions - shown for PDF files -->
-        <ImageButton
-            android:id="@+id/btnSearchPdfCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/search"
-            android:src="@android:drawable/ic_menu_search"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnTranslatePdfCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translate"
-            android:src="@drawable/ic_translate"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <!-- PDF Actions - shown for PDF files -->
+            <ImageButton android:id="@+id/btnSearchPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@android:drawable/ic_menu_search" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnPdfTextSettingsCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translation_settings"
-            android:src="@drawable/ic_book"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnTranslatePdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <TextView
-            android:id="@+id/btnOcrPdfCmd"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/ocr_button_description"
-            android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
-            android:textColor="@color/white"
-            android:textSize="@dimen/player_audio_info_text_size"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:paddingHorizontal="@dimen/player_ocr_padding_horizontal"
-            android:visibility="gone" />
+            <ImageButton android:id="@+id/btnPdfTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnGoogleLensPdfCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/google_lens"
-            android:src="@drawable/ic_google_lens"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <TextView android:id="@+id/btnOcrPdfCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/ocr_button_description" android:text="@string/activity_player_unified_btnOcrPdfCmd_text" android:textColor="@color/white" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:gravity="center" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:visibility="gone" />
 
-        <!-- EPUB Actions - shown for EPUB files -->
-        <ImageButton
-            android:id="@+id/btnSearchEpubCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/search"
-            android:src="@android:drawable/ic_menu_search"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnGoogleLensPdfCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/google_lens" android:src="@drawable/ic_google_lens" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnTranslateEpubCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translate"
-            android:src="@drawable/ic_translate"
-            android:visibility="gone"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <!-- EPUB Actions - shown for EPUB files -->
+            <ImageButton android:id="@+id/btnSearchEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/search" android:src="@android:drawable/ic_menu_search" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnEpubTextSettingsCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translation_settings"
-            android:src="@drawable/ic_book"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnTranslateEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnOcrEpubCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/activity_player_unified_btnOcrImage_text"
-            android:src="@drawable/ic_ocr"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnEpubTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <!-- Image Actions - shown for Image/GIF files -->
-        <ImageButton
-            android:id="@+id/btnTranslateImageCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translate"
-            android:src="@drawable/ic_translate"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnOcrEpubCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/activity_player_unified_btnOcrImage_text" android:src="@drawable/ic_ocr" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnImageTextSettingsCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/translation_settings"
-            android:src="@drawable/ic_book"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <!-- Image Actions - shown for Image/GIF files -->
+            <ImageButton android:id="@+id/btnTranslateImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translate" android:src="@drawable/ic_translate" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <TextView
-            android:id="@+id/btnOcrImageCmd"
-            android:layout_width="wrap_content"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/ocr_button_description"
-            android:text="@string/activity_player_unified_btnOcrPdfCmd_text"
-            android:textColor="@color/white"
-            android:textSize="@dimen/player_audio_info_text_size"
-            android:textStyle="bold"
-            android:gravity="center"
-            android:paddingHorizontal="@dimen/player_ocr_padding_horizontal"
-            android:visibility="gone" />
+            <ImageButton android:id="@+id/btnImageTextSettingsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/translation_settings" android:src="@drawable/ic_book" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnGoogleLensImageCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/google_lens"
-            android:src="@drawable/ic_google_lens"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <TextView android:id="@+id/btnOcrImageCmd" android:layout_width="wrap_content" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/ocr_button_description" android:text="@string/activity_player_unified_btnOcrPdfCmd_text" android:textColor="@color/white" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:gravity="center" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:visibility="gone" />
+
+            <ImageButton android:id="@+id/btnGoogleLensImageCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/google_lens" android:src="@drawable/ic_google_lens" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
 
 
-        <ImageButton
-            android:id="@+id/btnLyricsCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/lyrics"
-            android:src="@drawable/ic_microphone"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnLyricsCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/lyrics" android:src="@drawable/ic_microphone" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnRenameCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/rename"
-            android:src="@drawable/ic_rename"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnRenameCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@drawable/ic_rename" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnEditCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/edit_image"
-            android:src="@android:drawable/ic_menu_edit"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnEditCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit_image" android:src="@android:drawable/ic_menu_edit" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnCopyTextCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/copy"
-            android:src="@android:drawable/ic_menu_save"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnCopyTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@android:drawable/ic_menu_save" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnEditTextCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/edit"
-            android:src="@android:drawable/ic_menu_edit"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnEditTextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:src="@android:drawable/ic_menu_edit" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
 
 
-        <ImageButton
-            android:id="@+id/btnUndoCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/undo"
-            android:src="@android:drawable/ic_menu_revert"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+            <ImageButton android:id="@+id/btnUndoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/undo" android:src="@android:drawable/ic_menu_revert" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <!-- Overflow Menu Button (visible in portrait mode, width = 2 buttons) -->
-        <ImageButton
-            android:id="@+id/btnOverflowMenu"
-            android:layout_width="@dimen/player_cmd_overflow_width"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/more_actions"
-            android:src="@drawable/ic_more_vert"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding"
-            android:visibility="gone" />
+            <!-- Overflow Menu Button (visible in portrait mode, width = 2 buttons) -->
+            <ImageButton android:id="@+id/btnOverflowMenu" android:layout_width="@dimen/player_cmd_overflow_width" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/more_actions" android:src="@drawable/ic_more_vert" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" android:visibility="gone" />
 
-            </LinearLayout>
+        </LinearLayout>
 
         <!-- RIGHT GROUP: Delete, Fullscreen, Previous, Next -->
-        <ImageButton
-            android:id="@+id/btnDeleteCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/delete"
-            android:src="@android:drawable/ic_menu_delete"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnDeleteCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@android:drawable/ic_menu_delete" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnFavorite"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/favorite"
-            android:src="@drawable/ic_star_outline"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnFavorite" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/favorite" android:src="@drawable/ic_star_outline" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnShareCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/share"
-            android:src="@drawable/ic_share"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnShareCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnInfoCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/file_information"
-            android:src="@android:drawable/ic_menu_info_details"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnInfoCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/file_information" android:src="@android:drawable/ic_menu_info_details" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnFullscreenCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/fullscreen_mode"
-            android:src="@drawable/ic_fullscreen"
-            android:visibility="gone"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnFullscreenCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/fullscreen_mode" android:src="@drawable/ic_fullscreen" android:visibility="gone" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnSlideshowCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/slideshow"
-            android:src="@android:drawable/ic_media_play"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnSlideshowCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/slideshow" android:src="@android:drawable/ic_media_play" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnPreviousCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/previous"
-            android:src="@android:drawable/ic_media_previous"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnPreviousCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/previous" android:src="@android:drawable/ic_media_previous" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
 
-        <ImageButton
-            android:id="@+id/btnNextCmd"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/next"
-            android:src="@android:drawable/ic_media_next"
-            app:tint="@color/white"
-            android:scaleType="centerInside"
-            android:padding="@dimen/player_button_padding" />
+        <ImageButton android:id="@+id/btnNextCmd" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/next" android:src="@android:drawable/ic_media_next" app:tint="@color/white" android:scaleType="centerInside" android:padding="@dimen/player_button_padding" />
     </LinearLayout>
 
     <!-- Media Content Area -->
-    <FrameLayout
-        android:id="@+id/mediaContentArea"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
 
         <!-- Dynamic Background Extension layer (behind all other views) -->
-        <ImageView
-            android:id="@+id/ivDynamicBackground"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:scaleType="fitXY"
-            android:contentDescription="@null" />
+        <ImageView android:id="@+id/ivDynamicBackground" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitXY" android:contentDescription="@null" />
 
-        <androidx.media3.ui.PlayerView
-            android:id="@+id/playerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            app:show_buffering="when_playing"
-            app:resize_mode="fit"
-            app:use_artwork="true"
-            app:default_artwork="@drawable/ic_music_note"
-            app:show_timeout="2147483647"
-            app:hide_on_touch="false"
-            app:controller_layout_id="@layout/custom_player_controls" />
+        <!-- Audio layers: BEFORE TextureView PlayerView so controls are always on top.
+             TextureView = normal View, no hole-punching. Transparent for audio (no video frames). -->
+        <ImageView android:id="@+id/audioCoverArtView" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="top|center_horizontal" android:adjustViewBounds="true" android:visibility="gone" android:scaleType="fitCenter" android:background="@color/black" android:contentDescription="@string/audio_cover_art" />
 
-        <!-- Audio cover art ImageView (shown for audio files, covers PlayerView artwork) -->
-        <ImageView
-            android:id="@+id/audioCoverArtView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|center_horizontal"
-            android:adjustViewBounds="true"
-            android:visibility="gone"
-            android:scaleType="fitCenter"
-            android:background="@color/black"
-            android:contentDescription="@string/audio_cover_art" />
+        <com.sza.fastmediasorter.ui.player.helpers.AudioBreathingBarsView android:id="@+id/audioBarsView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" android:background="@color/black" android:contentDescription="@null" />
+
+        <TextureView android:id="@+id/audioVideoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" android:background="@color/black" />
+
+        <!-- surface_type=texture_view: composites via View hierarchy, not a SurfaceView hole.
+             For audio: bg=TRANSPARENT → layers above show through. Seekbar always on top. -->
+        <androidx.media3.ui.PlayerView android:id="@+id/playerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" app:surface_type="texture_view" app:show_buffering="when_playing" app:resize_mode="fit" app:use_artwork="true" app:default_artwork="@drawable/ic_music_note" app:show_timeout="2147483647" app:hide_on_touch="false" app:controller_layout_id="@layout/custom_player_controls" />
 
         <!-- Vinyl record playback indicator (rotating during audio playback) -->
-        <ImageView
-            android:id="@+id/vinylIndicator"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="top|end"
-            android:layout_margin="16dp"
-            android:elevation="8dp"
-            android:src="@drawable/ic_vinyl_record"
-            android:visibility="gone"
-            android:contentDescription="@string/vinyl_indicator_description" />
+        <ImageView android:id="@+id/vinylIndicator" android:layout_width="48dp" android:layout_height="48dp" android:layout_gravity="top|end" android:layout_margin="16dp" android:elevation="8dp" android:src="@drawable/ic_vinyl_record" android:visibility="gone" android:contentDescription="@string/vinyl_indicator_description" />
 
         <!-- Sleep timer remaining time badge -->
-        <TextView
-            android:id="@+id/sleepTimerBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="68dp"
-            android:layout_marginEnd="12dp"
-            android:elevation="8dp"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:background="@drawable/bg_rounded_badge"
-            android:textColor="@color/white"
-            android:textSize="11sp"
-            android:visibility="gone" />
+        <TextView android:id="@+id/sleepTimerBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="68dp" android:layout_marginEnd="12dp" android:elevation="8dp" android:paddingHorizontal="8dp" android:paddingVertical="4dp" android:background="@drawable/bg_rounded_badge" android:textColor="@color/white" android:textSize="11sp" android:visibility="gone" />
 
         <!-- Audio file info overlay (visible only for audio files) -->
-        <LinearLayout
-            android:id="@+id/audioInfoOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:orientation="vertical"
-            android:padding="@dimen/player_audio_overlay_padding"
-            android:layout_marginBottom="@dimen/player_audio_overlay_margin_bottom"
-            android:background="@color/activity_player_unified_topCommandPanel_background"
-            android:elevation="@dimen/elevation_player_overlay"
-            android:clickable="true"
-            android:focusable="true"
-            android:visibility="gone">
+        <LinearLayout android:id="@+id/audioInfoOverlay" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" android:orientation="vertical" android:padding="@dimen/player_audio_overlay_padding" android:layout_marginBottom="@dimen/player_audio_overlay_margin_bottom" android:background="@color/activity_player_unified_topCommandPanel_background" android:elevation="@dimen/elevation_player_overlay" android:clickable="true" android:focusable="true" android:visibility="gone">
             <include layout="@layout/player_audio_info_overlay_content" />
         </LinearLayout>
 
         <!-- Standard ImageView for non-zoomable mode -->
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:scaleType="fitCenter"
-            android:contentDescription="@null" />
+        <ImageView android:id="@+id/imageView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:scaleType="fitCenter" android:contentDescription="@null" />
 
         <!-- Photo path overlay for audio slideshow photo mode -->
-        <TextView
-            android:id="@+id/audioSlideshowSongLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|start"
-            android:layout_margin="@dimen/activity_player_unified_audioSlideshowSongLabel_layout_margin"
-            android:paddingStart="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingStart"
-            android:paddingEnd="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingEnd"
-            android:paddingTop="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingTop"
-            android:paddingBottom="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingBottom"
-            android:background="@color/activity_player_unified_audioSlideshowSongLabel_background"
-            android:textColor="@color/white"
-            android:textSize="@dimen/activity_browse_btnSort_textSize"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:visibility="gone"
-            android:elevation="@dimen/activity_player_unified_audioSlideshowSongLabel_elevation" />
+        <TextView android:id="@+id/audioSlideshowSongLabel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|start" android:layout_margin="@dimen/activity_player_unified_audioSlideshowSongLabel_layout_margin" android:paddingStart="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingStart" android:paddingEnd="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingEnd" android:paddingTop="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingTop" android:paddingBottom="@dimen/activity_player_unified_audioSlideshowSongLabel_paddingBottom" android:background="@color/activity_player_unified_audioSlideshowSongLabel_background" android:textColor="@color/white" android:textSize="@dimen/activity_browse_btnSort_textSize" android:maxLines="1" android:ellipsize="end" android:visibility="gone" android:elevation="@dimen/activity_player_unified_audioSlideshowSongLabel_elevation" />
 
         <!-- Dual-surface container for static image rendering (A=current, B=next) -->
-        <FrameLayout
-            android:id="@+id/photoDualSurfaceContainer"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone">
+        <FrameLayout android:id="@+id/photoDualSurfaceContainer" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone">
 
             <!-- Surface B (prepared/next), kept below A by z-order -->
-            <com.github.chrisbanes.photoview.PhotoView
-                android:id="@+id/photoViewSurfaceB"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone"
-                android:contentDescription="@null" />
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoViewSurfaceB" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
 
             <!-- Surface A (current/top). Keep legacy id for compatibility -->
-            <com.github.chrisbanes.photoview.PhotoView
-                android:id="@+id/photoView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone"
-                android:contentDescription="@null" />
+            <com.github.chrisbanes.photoview.PhotoView android:id="@+id/photoView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:contentDescription="@null" />
 
         </FrameLayout>
 
         <!-- PDF Vertical Scroll Mode RecyclerView -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/pdfScrollRecyclerView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:background="@color/activity_player_unified_topCommandPanel_background"
-            android:clipToPadding="false"
-            android:scrollbars="vertical" />
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/pdfScrollRecyclerView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/activity_player_unified_topCommandPanel_background" android:clipToPadding="false" android:scrollbars="vertical" />
 
         <!-- Google Lens Style Translation Overlay (drawn on top of PDF/images) -->
-        <com.sza.fastmediasorter.ui.player.views.TranslationOverlayView
-            android:id="@+id/translationLensOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:elevation="@dimen/elevation_player_overlay"
-            android:clickable="true"
-            android:focusable="true" />
+        <com.sza.fastmediasorter.ui.player.views.TranslationOverlayView android:id="@+id/translationLensOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:elevation="@dimen/elevation_player_overlay" android:clickable="true" android:focusable="true" />
 
         <include layout="@layout/player_search_panel_content" />
 
         <include layout="@layout/player_text_viewer_container_content" />
 
-        <ViewStub
-            android:id="@+id/lyricsViewerStub"
-            android:inflatedId="@+id/lyricsViewerContainer"
-            android:layout="@layout/player_lyrics_viewer_container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+        <ViewStub android:id="@+id/lyricsViewerStub" android:inflatedId="@+id/lyricsViewerContainer" android:layout="@layout/player_lyrics_viewer_container" android:layout_width="match_parent" android:layout_height="match_parent" />
 
         <include layout="@layout/player_pdf_controls_overlay_content" />
 
         <include layout="@layout/player_deprecated_translate_image_button_content" />
 
         <!-- EPUB WebView Container -->
-        <WebView
-            android:id="@+id/epubWebView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:visibility="gone"
-            android:background="@color/white" />
+        <WebView android:id="@+id/epubWebView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:background="@color/white" />
 
-        <ImageButton
-            android:id="@+id/btnExitEpubFullscreen"
-            android:layout_width="@dimen/player_cmd_button_size"
-            android:layout_height="@dimen/player_cmd_button_size"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="@dimen/player_epub_button_margin_top"
-            android:layout_marginEnd="@dimen/player_epub_button_margin_end"
-            android:src="@drawable/ic_fullscreen_exit"
-            android:background="@drawable/bg_circle_dark"
-            app:tint="@color/white"
-            android:scaleType="fitCenter"
-            android:padding="@dimen/player_epub_button_padding"
-            android:visibility="gone"
-            android:contentDescription="@string/exit_fullscreen" />
+        <ImageButton android:id="@+id/btnExitEpubFullscreen" android:layout_width="@dimen/player_cmd_button_size" android:layout_height="@dimen/player_cmd_button_size" android:layout_gravity="top|end" android:layout_marginTop="@dimen/player_epub_button_margin_top" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:src="@drawable/ic_fullscreen_exit" android:background="@drawable/bg_circle_dark" app:tint="@color/white" android:scaleType="fitCenter" android:padding="@dimen/player_epub_button_padding" android:visibility="gone" android:contentDescription="@string/exit_fullscreen" />
 
         <include layout="@layout/player_epub_controls_overlay_content" />
 
@@ -633,184 +167,47 @@
         <include layout="@layout/player_touch_zones_legacy_content" />
 
         <!-- Fullscreen controls overlay (visible only in fullscreen mode when showControls=true) -->
-        <LinearLayout
-            android:id="@+id/controlsOverlay"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:background="@android:color/transparent"
-            android:visibility="gone">
+        <LinearLayout android:id="@+id/controlsOverlay" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@android:color/transparent" android:visibility="gone">
 
-            <com.google.android.material.appbar.MaterialToolbar
-                android:id="@+id/toolbar"
-                android:layout_width="match_parent"
-                android:layout_height="?attr/actionBarSize"
-                android:background="?attr/colorPrimary"
-                android:elevation="@dimen/toolbar_elevation"
-                app:navigationIcon="@drawable/ic_back"
-                app:titleTextColor="@color/white" />
+            <com.google.android.material.appbar.MaterialToolbar android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize" android:background="?attr/colorPrimary" android:elevation="@dimen/toolbar_elevation" app:navigationIcon="@drawable/ic_back" app:titleTextColor="@color/white" />
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
+            <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="@dimen/player_text_viewer_padding"
-                android:background="@color/activity_player_unified_toolbar_background"
-                android:gravity="center">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/player_text_viewer_padding" android:background="@color/activity_player_unified_toolbar_background" android:gravity="center">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnVolumeDown"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth"
-                    android:text="@string/activity_player_unified_btnVolumeDown_text"
-                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
-                    android:textColor="@color/white"
-                    android:visibility="gone"
-                    app:backgroundTint="@android:color/transparent" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnVolumeDown" style="@style/Widget.Material3.Button.IconButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth" android:text="@string/activity_player_unified_btnVolumeDown_text" android:textSize="@dimen/activity_player_btnVolumeUp_textSize" android:textColor="@color/white" android:visibility="gone" app:backgroundTint="@android:color/transparent" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPrevious"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/activity_player_unified_btnPrevious_text"
-                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
-                    android:textColor="@color/white"
-                    app:backgroundTint="@android:color/transparent" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnPrevious" style="@style/Widget.Material3.Button.IconButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/activity_player_unified_btnPrevious_text" android:textSize="@dimen/activity_player_btnVolumeUp_textSize" android:textColor="@color/white" app:backgroundTint="@android:color/transparent" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnPlayPause"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@string/play_pause"
-                    android:text="@string/activity_player_btnPlayPause_text"
-                    android:textSize="@dimen/activity_player_unified_btnPlayPause_textSize"
-                    android:textColor="@color/white"
-                    android:layout_marginHorizontal="@dimen/activity_player_unified_btnPlayPause_layout_marginHorizontal"
-                    app:backgroundTint="@android:color/transparent" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnPlayPause" style="@style/Widget.Material3.Button.IconButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/play_pause" android:text="@string/activity_player_btnPlayPause_text" android:textSize="@dimen/activity_player_unified_btnPlayPause_textSize" android:textColor="@color/white" android:layout_marginHorizontal="@dimen/activity_player_unified_btnPlayPause_layout_marginHorizontal" app:backgroundTint="@android:color/transparent" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnNext"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:contentDescription="@string/next_file"
-                    android:text="@string/activity_player_btnPlayPause_text"
-                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
-                    android:textColor="@color/white"
-                    app:backgroundTint="@android:color/transparent" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnNext" style="@style/Widget.Material3.Button.IconButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/next_file" android:text="@string/activity_player_btnPlayPause_text" android:textSize="@dimen/activity_player_btnVolumeUp_textSize" android:textColor="@color/white" app:backgroundTint="@android:color/transparent" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnVolumeUp"
-                    style="@style/Widget.Material3.Button.IconButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth"
-                    android:text="@string/activity_player_unified_btnVolumeUp_text"
-                    android:textSize="@dimen/activity_player_btnVolumeUp_textSize"
-                    android:textColor="@color/white"
-                    android:visibility="gone"
-                    app:backgroundTint="@android:color/transparent" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnVolumeUp" style="@style/Widget.Material3.Button.IconButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:minWidth="@dimen/activity_player_unified_btnVolumeDown_minWidth" android:text="@string/activity_player_unified_btnVolumeUp_text" android:textSize="@dimen/activity_player_btnVolumeUp_textSize" android:textColor="@color/white" android:visibility="gone" app:backgroundTint="@android:color/transparent" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingHorizontal="@dimen/activity_player_unified_btnVolumeUp_paddingHorizontal"
-                android:paddingBottom="@dimen/activity_player_unified_btnVolumeUp_paddingBottom"
-                android:background="@color/activity_player_unified_toolbar_background"
-                android:gravity="center">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingHorizontal="@dimen/activity_player_unified_btnVolumeUp_paddingHorizontal" android:paddingBottom="@dimen/activity_player_unified_btnVolumeUp_paddingBottom" android:background="@color/activity_player_unified_toolbar_background" android:gravity="center">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSlideShow"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/activity_player_btnSlideShow_text"
-                    android:textColor="@color/white" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnSlideShow" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/activity_player_btnSlideShow_text" android:textColor="@color/white" />
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height"
-                    android:layout_weight="1" />
+                <View android:layout_width="0dp" android:layout_height="@dimen/fragment_settings_media_etImageSizeMax_layout_height" android:layout_weight="1" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnDelete"
-                    style="@style/Widget.Material3.Button.TextButton"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/activity_player_btnDelete_text"
-                    android:textColor="@color/white" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/btnDelete" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/activity_player_btnDelete_text" android:textColor="@color/white" />
             </LinearLayout>
         </LinearLayout>
 
-        <ProgressBar
-            android:id="@+id/progressBar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:contentDescription="@string/loading_indicator"
-            android:visibility="gone" />
+        <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
 
         <include layout="@layout/player_tv_countdown_content" />
 
         <include layout="@layout/player_audio_touch_zones_overlay_content" />
 
         <!-- File name overlay (visible only in command panel mode) - positioned last for z-order -->
-        <TextView
-            android:id="@+id/tvFileNameOverlay"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|start"
-            android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart"
-            android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="@color/activity_player_unified_tvFileNameOverlay_textColor"
-            android:textSize="@dimen/activity_browse_btnSort_textSize"
-            android:shadowColor="#000000"
-            android:shadowDx="1"
-            android:shadowDy="1"
-            android:shadowRadius="2"
-            android:visibility="gone" />
+        <TextView android:id="@+id/tvFileNameOverlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|start" android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart" android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop" android:maxLines="1" android:ellipsize="end" android:textColor="@color/activity_player_unified_tvFileNameOverlay_textColor" android:textSize="@dimen/activity_browse_btnSort_textSize" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="2" android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/tvAnimatedBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="top|end"
-            android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop"
-            android:layout_marginEnd="@dimen/player_epub_button_margin_end"
-            android:background="@drawable/bg_circle_dark"
-            android:paddingHorizontal="@dimen/player_button_padding"
-            android:paddingVertical="@dimen/player_button_padding"
-            android:text="@string/animated_badge_gif"
-            android:textColor="@color/white"
-            android:textSize="@dimen/player_audio_info_text_size"
-            android:textStyle="bold"
-            android:visibility="gone" />
+        <TextView android:id="@+id/tvAnimatedBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_button_padding" android:paddingVertical="@dimen/player_button_padding" android:text="@string/animated_badge_gif" android:textColor="@color/white" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:visibility="gone" />
 
-        <TextView
-            android:id="@+id/tvVideoGestureIndicator"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:background="@drawable/bg_circle_dark"
-            android:paddingHorizontal="@dimen/player_ocr_padding_horizontal"
-            android:paddingVertical="@dimen/player_button_padding"
-            android:textColor="@color/white"
-            android:textSize="@dimen/activity_player_unified_audioSlideshowSongLabel_textSize"
-            android:textStyle="bold"
-            android:visibility="gone" />
+        <TextView android:id="@+id/tvVideoGestureIndicator" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_ocr_padding_horizontal" android:paddingVertical="@dimen/player_button_padding" android:textColor="@color/white" android:textSize="@dimen/activity_player_unified_audioSlideshowSongLabel_textSize" android:textStyle="bold" android:visibility="gone" />
 
         <include layout="@layout/player_document_fullscreen_exit_button_content" />
 

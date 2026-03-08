@@ -38,7 +38,14 @@
     <color name="welcome_page_6_background">#ECEFF1</color>
 
     <color name="resource_item_bg_even">#FFFFFFFF</color>    <!-- White -->
-    <color name="resource_item_bg_odd">#FFF5F5F5</color>    <!-- Very light grey -->
+    <color name="resource_item_bg_odd">#FFE8E8E8</color>    <!-- Light grey (visible zebra stripe) -->
+
+    <!-- Resource type chip background colors (light theme) -->
+    <color name="chip_local_bg">#A5D6A7</color>    <!-- Green 200 -->
+    <color name="chip_smb_bg">#90CAF9</color>    <!-- Blue 200 -->
+    <color name="chip_sftp_bg">#FFE082</color>    <!-- Amber 200 -->
+    <color name="chip_ftp_bg">#FFCC80</color>    <!-- Orange 200 -->
+    <color name="chip_cloud_bg">#CE93D8</color>    <!-- Purple 200 -->
     <color name="error_color">#FFD32F2F</color>
     <color name="warning_color">#FFF57C00</color>
     <color name="success_color">#FF2E7D32</color>

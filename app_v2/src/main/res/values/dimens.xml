@@ -114,7 +114,7 @@
     <dimen name="player_cmd_padding_horizontal">0dp</dimen>
     <dimen name="player_button_padding">2dp</dimen>
     <dimen name="player_audio_overlay_padding">24dp</dimen>
-    <dimen name="player_audio_overlay_margin_bottom">80dp</dimen>
+    <dimen name="player_audio_overlay_margin_bottom">96dp</dimen>
     <dimen name="player_audio_filename_text_size">20sp</dimen>
     <dimen name="player_audio_filename_margin_bottom">16dp</dimen>
     <dimen name="player_audio_info_text_size">14sp</dimen>

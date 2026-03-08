@@ -353,8 +353,26 @@ class ResourceAdapter(
                     ResourceType.FTP -> root.context.getString(R.string.resource_type_ftp)
                     ResourceType.CLOUD -> root.context.getString(R.string.resource_type_cloud)
                 }
-                
-                // Set icon based on resource type
+
+                // Set chip background tint per resource type
+                val chipColorRes = when (resource.type) {
+                    ResourceType.LOCAL -> R.color.chip_local_bg
+                    ResourceType.SMB -> R.color.chip_smb_bg
+                    ResourceType.SFTP -> R.color.chip_sftp_bg
+                    ResourceType.FTP -> R.color.chip_ftp_bg
+                    ResourceType.CLOUD -> R.color.chip_cloud_bg
+                }
+                val chipColor = ContextCompat.getColor(root.context, chipColorRes)
+                tvResourceType.backgroundTintList = ColorStateList.valueOf(chipColor)
+                // Ensure text contrast: dark text on light bg (light theme), white on dark bg (dark theme)
+                val r = android.graphics.Color.red(chipColor)
+                val g = android.graphics.Color.green(chipColor)
+                val b = android.graphics.Color.blue(chipColor)
+                val luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255.0
+                tvResourceType.setTextColor(
+                    if (luminance > 0.4) android.graphics.Color.parseColor("#1A1A1A")
+                    else android.graphics.Color.WHITE
+                )
                 val iconRes = if (resource.id == -100L) { // Favorites
                     R.drawable.ic_resource_favorites
                 } else {

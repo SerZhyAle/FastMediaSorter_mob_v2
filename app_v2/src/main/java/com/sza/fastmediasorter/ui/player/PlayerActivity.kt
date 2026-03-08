@@ -111,6 +111,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var translationJob: Job? = null
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
+    private var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     private var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
     private var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
@@ -1200,6 +1201,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
             }
         )
+
+        // Create and inject AudioEmptyStateController now that binding views are available
+        audioEmptyStateController = com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController(
+            context = this,
+            audioCoverArtView = binding.audioCoverArtView,
+            barsView = binding.audioBarsView,
+            videoView = binding.audioVideoView
+        )
+        imageLoadingManager.setAudioEmptyStateController(audioEmptyStateController!!)
 
         // 3. Network & Document Helpers
         networkFileManager = com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager(
@@ -2663,6 +2673,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (isInPictureInPictureMode) return
         lifecycleManager.onPause()
         viewModel.togglePause()
+        audioEmptyStateController?.onPause()
         
         // Save playback position for video/audio
         saveCurrentPlaybackPosition()
@@ -2942,6 +2953,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         
         // Delegate to lifecycle manager
         lifecycleManager.onResume()
+        audioEmptyStateController?.onResume()
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -2987,6 +2999,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Release sleep timer manager (stop animations and timer)
         sleepTimerManager?.release()
         sleepTimerManager = null
+
+        // Release audio empty-state controller (stop animations, clear Glide)
+        audioEmptyStateController?.release()
+        audioEmptyStateController = null
         
         // Release PiP manager (unregister receiver)
         pipManager?.release()
@@ -3141,47 +3157,31 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      */
     fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) {
         runOnUiThread {
-            // Build metadata display text from online source
-            val metadataLines = mutableListOf<String>()
-            
-            if (metadata.artistName != null && metadata.trackName != null) {
-                metadataLines.add("${metadata.artistName} - ${metadata.trackName}")
-            } else if (metadata.trackName != null) {
-                metadataLines.add(metadata.trackName)
-            } else if (metadata.artistName != null) {
-                metadataLines.add(metadata.artistName)
+            // Build single-line "Artist – Album (Year) – Title" (en-dash separated)
+            val albumPart = when {
+                metadata.albumName != null && metadata.releaseYear != null -> "${metadata.albumName} (${metadata.releaseYear})"
+                metadata.albumName != null -> metadata.albumName
+                else -> null
             }
-            
-            if (metadata.albumName != null && metadata.releaseYear != null) {
-                metadataLines.add("${metadata.albumName} (${metadata.releaseYear})")
-            } else if (metadata.albumName != null) {
-                metadataLines.add(metadata.albumName)
-            } else if (metadata.releaseYear != null) {
-                metadataLines.add(metadata.releaseYear)
-            }
-            
-            // If embedded metadata is already displayed and online data is empty/partial,
-            // do not overwrite — only enrich with new information (e.g. release year)
-            val embeddedAlreadyShown = safeViews.audioMetadata.visibility == View.VISIBLE
-                && safeViews.audioMetadata.text.isNotBlank()
-            
-            if (metadataLines.isNotEmpty()) {
-                safeViews.audioMetadata.text = metadataLines.joinToString("\n")
+            val parts = listOfNotNull(
+                metadata.artistName?.takeIf { it.isNotBlank() },
+                albumPart,
+                metadata.trackName?.takeIf { it.isNotBlank() }
+            )
+            val metadataLine = parts.joinToString(" \u2013 ")
+
+            if (metadataLine.isNotBlank()) {
+                safeViews.audioMetadata.text = metadataLine
                 safeViews.audioMetadata.visibility = View.VISIBLE
                 safeViews.audioFileName.visibility = View.GONE
-                Timber.d("Audio metadata displayed: ${metadataLines.joinToString(" | ")}")
-                
+                Timber.d("Audio metadata displayed: $metadataLine")
+
                 // Update song label in audio slideshow photo mode if active
                 if (audioSlideshowPhotoModeManager.isActive) {
                     audioSlideshowPhotoModeManager.updateCurrentSongLabel()
                 }
-            } else if (!embeddedAlreadyShown) {
-                // Only fall back to filename if no embedded metadata was shown either
-                safeViews.audioMetadata.visibility = View.GONE
-                safeViews.audioFileName.visibility = View.VISIBLE
-                safeViews.audioFileName.textSize = 22f
             }
-            // else: keep embedded metadata visible, do nothing
+            // else: keep existing embedded metadata visible, do nothing
         }
     }
 
@@ -3204,7 +3204,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 playerSettingsManagerProvider = { playerSettingsManager },
                 imageLoadingManagerProvider = { imageLoadingManager },
                 slideshowController = slideshowController,
-                sleepTimerManagerProvider = { sleepTimerManager }
+                sleepTimerManagerProvider = { sleepTimerManager },
+                audioEmptyStateControllerProvider = { audioEmptyStateController }
             ),
             credentialsRepository = credentialsRepository,
             smbClient = smbClient,
