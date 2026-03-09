@@ -378,7 +378,7 @@ class LocalMediaScanner @Inject constructor(
                     )
                 } else {
                     val mime = file.type
-                    val mediaType = MediaTypeUtils.getMediaTypeFromMime(mime) ?: return@mapNotNull null
+                    val mediaType = MediaTypeUtils.getMediaTypeFromMimeOrExtension(mime, name) ?: return@mapNotNull null
                     if (mediaType !in supportedTypes) return@mapNotNull null
                     if (sizeFilter != null && !MediaTypeUtils.isFileSizeInRange(file.length(), mediaType, sizeFilter)) return@mapNotNull null
                     
@@ -488,7 +488,7 @@ class LocalMediaScanner @Inject constructor(
                             }
                         } else {
                             // Regular file - check type and filter
-                            val mediaType = MediaTypeUtils.getMediaTypeFromMime(mime)
+                            val mediaType = MediaTypeUtils.getMediaTypeFromMimeOrExtension(mime, name)
                             if (mediaType != null && mediaType in supportedTypes) {
                                 if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(size, mediaType, sizeFilter)) {
                                     if (mediaType == MediaType.AUDIO && name.endsWith(".mp3", ignoreCase = true)) {
@@ -557,7 +557,7 @@ class LocalMediaScanner @Inject constructor(
                  }
                  
                  val mime = file.type
-                 val type = MediaTypeUtils.getMediaTypeFromMime(mime)
+                 val type = MediaTypeUtils.getMediaTypeFromMimeOrExtension(mime, file.name ?: "")
                  if (type != null && type in supportedTypes) {
                      if (sizeFilter == null || MediaTypeUtils.isFileSizeInRange(file.length(), type, sizeFilter)) {
                          MediaFile(

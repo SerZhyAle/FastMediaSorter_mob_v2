@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.Context
+import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.data.network.exceptions.NetworkErrorClassifier
@@ -26,6 +27,8 @@ class ResourceNavigationCoordinator(
     private val resourceRepository: ResourceRepository,
     private val updateResourceUseCase: UpdateResourceUseCase
 ) {
+
+    private val networkContextAnalyzer = NetworkContextAnalyzer(context)
     
     companion object {
         const val FAVORITES_RESOURCE_ID = -100L
@@ -137,7 +140,9 @@ class ResourceNavigationCoordinator(
                     
                     // Format error message via NetworkErrorClassifier
                     val classifiedError = NetworkErrorClassifier.classify(error)
-                    val userMessage = context.getString(NetworkErrorMessageMapper.toMessageRes(classifiedError))
+                    val userMessage = NetworkErrorMessageMapper.toContextAwareMessage(
+                        context, classifiedError, resource.type, resource.path, networkContextAnalyzer
+                    )
                     NavigationResult.Error(userMessage, null)
                 }
             )
@@ -152,7 +157,9 @@ class ResourceNavigationCoordinator(
             
             // Format error message via NetworkErrorClassifier
             val classifiedError = NetworkErrorClassifier.classify(e)
-            val userMessage = context.getString(NetworkErrorMessageMapper.toMessageRes(classifiedError))
+            val userMessage = NetworkErrorMessageMapper.toContextAwareMessage(
+                context, classifiedError, resource.type, resource.path, networkContextAnalyzer
+            )
             NavigationResult.Error(userMessage, null)
         }
     }

@@ -224,11 +224,13 @@
     <string name="error_network_timeout">З\'єднання вичерпано. Перевірте мережу та повторіть спробу.</string>
     <string name="error_network_access_denied">Доступ заборонено. Перевірте облікові дані.</string>
     <string name="error_network_not_found">Файл або ресурс не знайдено.</string>
-    <string name="error_network_connection_lost">З\'єднання перервано. Будь ласка, повторіть спробу.</string>
+    <string name="error_network_connection_lost">З\'єднання відсутнє.</string>
     <string name="error_network_rate_limit">Забагато запитів. Зачекайте та спробуйте ще раз.</string>
     <string name="error_network_server_error">Помилка сервера. Немає відповіді.</string>
     <string name="error_network_unsupported">Операція не підтримується цим сервером.</string>
     <string name="error_network_generic">Помилка мережі. Будь ласка, спробуйте ще раз.</string>
+    <string name="error_smb_mobile_network">SMB-ресурс недоступний через мобільний інтернет. SMB працює лише у локальній Wi&#8209;Fi мережі. Підключіться до тієї ж мережі, що й пристрій (%1$s).</string>
+    <string name="error_smb_not_on_local_network">Не вдалося підключитися до SMB ресурсу. Переконайтеся, що пристрій увімкнено і ви перебуваєте з ним в одній локальній мережі.</string>
 
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>

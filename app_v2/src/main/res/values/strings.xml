@@ -537,11 +537,13 @@
     <string name="error_network_timeout">Connection timed out. Check your network and try again.</string>
     <string name="error_network_access_denied">Access denied. Check your credentials.</string>
     <string name="error_network_not_found">File or resource not found.</string>
-    <string name="error_network_connection_lost">Connection interrupted. Please retry.</string>
+    <string name="error_network_connection_lost">No connection.</string>
     <string name="error_network_rate_limit">Too many requests. Please wait and try again.</string>
     <string name="error_network_server_error">Server error. No response.</string>
     <string name="error_network_unsupported">Operation not supported by this server.</string>
     <string name="error_network_generic">Network error. Please try again.</string>
+    <string name="error_smb_mobile_network">SMB resource is not accessible via mobile network. SMB works only on a local Wi&#8209;Fi network. Connect to the same network as the device (%1$s).</string>
+    <string name="error_smb_not_on_local_network">Cannot connect to SMB resource. Make sure you are on the same local network as the device and that it is powered on.</string>
 
     <!-- Welcome Screen -->
     <string name="skip">Skip</string>

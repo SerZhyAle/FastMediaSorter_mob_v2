@@ -79,7 +79,6 @@ object MediaTypeUtils {
             mimeType == "image/gif" -> MediaType.GIF
             mimeType.startsWith("image/") -> MediaType.IMAGE
             mimeType.startsWith("video/") -> MediaType.VIDEO
-            mimeType.startsWith("video/") -> MediaType.VIDEO
             mimeType.startsWith("audio/") -> MediaType.AUDIO
             mimeType == "text/plain" || mimeType == "application/json" || mimeType == "text/xml" -> MediaType.TEXT
             mimeType == "application/pdf" -> MediaType.PDF
@@ -87,6 +86,10 @@ object MediaTypeUtils {
             else -> null
         }
     }
+
+    /** MIME-first, extension fallback. Covers cases where SAF / cloud providers return null or non-standard MIME. */
+    fun getMediaTypeFromMimeOrExtension(mimeType: String?, fileName: String): MediaType? =
+        getMediaTypeFromMime(mimeType) ?: getMediaType(fileName)
 
     fun isFileSizeInRange(size: Long, mediaType: MediaType, filter: SizeFilter): Boolean {
         return when (mediaType) {

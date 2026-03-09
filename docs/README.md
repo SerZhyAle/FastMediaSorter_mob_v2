@@ -123,9 +123,9 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 
 FastMediaSorter v2 supports a wide range of formats:
 
-- **Images:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF
-- **Video:** MP4, MKV, AVI, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG
-- **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS
+- **Images:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF, AVIF
+- **Video:** MP4, MKV, AVI, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG, TS, M2TS, VOB, OGV, DIVX, MTS
+- **Audio:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, AMR, ALAC, CAF, MKA, OGA, AC3, MID, MIDI
 - **Documents:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
 - **Binary Files** (All Files mode): ZIP, RAR, 7z, TAR, GZ, ISO, DMG, IMG, APK, EXE, DLL, SO, and 60+ other formats
 

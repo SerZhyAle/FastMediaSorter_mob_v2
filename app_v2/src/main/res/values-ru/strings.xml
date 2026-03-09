@@ -230,11 +230,13 @@
     <string name="error_network_timeout">Соединение истекло. Проверьте сеть и повторите попытку.</string>
     <string name="error_network_access_denied">Доступ запрещён. Проверьте учётные данные.</string>
     <string name="error_network_not_found">Файл или ресурс не найден.</string>
-    <string name="error_network_connection_lost">Соединение прервано. Пожалуйста, повторите попытку.</string>
+    <string name="error_network_connection_lost">Соединения нет.</string>
     <string name="error_network_rate_limit">Слишком много запросов. Подождите и попробуйте ещё раз.</string>
     <string name="error_network_server_error">Ошибка сервера. Нет ответа.</string>
     <string name="error_network_unsupported">Операция не поддерживается этим сервером.</string>
     <string name="error_network_generic">Ошибка сети. Пожалуйста, попробуйте ещё раз.</string>
+    <string name="error_smb_mobile_network">SMB-ресурс недоступен через мобильный интернет. SMB работает только в локальной Wi&#8209;Fi сети. Подключитесь к одной сети с устройством (%1$s).</string>
+    <string name="error_smb_not_on_local_network">Не удалось подключиться к SMB ресурсу. Убедитесь, что устройство включено и вы находитесь с ним в одной локальной сети.</string>
 
     <!-- Connection Error Details -->
     <string name="error_details_resource">Ресурс</string>

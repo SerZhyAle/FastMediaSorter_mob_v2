@@ -1,7 +1,10 @@
 package com.sza.fastmediasorter.data.network.exceptions
 
+import android.content.Context
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
+import com.sza.fastmediasorter.domain.model.ResourceType
 
 /**
  * Maps [NetworkException] subtypes to user-facing string resource IDs.
@@ -23,4 +26,42 @@ object NetworkErrorMessageMapper {
     @StringRes
     fun toMessageRes(throwable: Throwable): Int =
         toMessageRes(NetworkErrorClassifier.classify(throwable))
+
+    /**
+     * Returns a context-aware formatted error message string for connectivity errors.
+     *
+     * Applies enhanced diagnostics for SMB resources:
+     * - SMB + cellular → user is not on a local network; shows device IP
+     * - SMB + private IP + Wi-Fi timeout → user may be on a different local network
+     *
+     * Falls back to [toMessageRes] for all other cases.
+     *
+     * @param context Android context for string formatting
+     * @param exception Classified network exception
+     * @param resourceType Type of the resource (SMB, FTP, SFTP, CLOUD, LOCAL)
+     * @param resourcePath Full path of the resource (used to extract the host)
+     * @param contextAnalyzer Provides current network transport and host type info
+     */
+    fun toContextAwareMessage(
+        context: Context,
+        exception: NetworkException,
+        resourceType: ResourceType,
+        resourcePath: String,
+        contextAnalyzer: NetworkContextAnalyzer
+    ): String {
+        val isConnectivityError = exception is NetworkConnectionLostException
+                || exception is NetworkTimeoutException
+
+        if (isConnectivityError && resourceType == ResourceType.SMB) {
+            val host = contextAnalyzer.extractHost(resourcePath)
+            if (contextAnalyzer.isCellularNetwork()) {
+                return context.getString(R.string.error_smb_mobile_network, host)
+            }
+            if (contextAnalyzer.isPrivateIpAddress(host)) {
+                return context.getString(R.string.error_smb_not_on_local_network)
+            }
+        }
+
+        return context.getString(toMessageRes(exception))
+    }
 }

@@ -41,13 +41,46 @@ class GoogleDriveAuthPlugin @Inject constructor(
             client.handleSignInResult(account)
         } catch (e: ApiException) {
             val statusName = CommonStatusCodes.getStatusCodeString(e.statusCode)
-            val msg = "Google Sign-In failed: statusCode=${e.statusCode} ($statusName), message=${e.message}"
-            Timber.e(e, msg)
-            AuthResult.Error(msg)
+            Timber.e(e, "Google Sign-In failed: statusCode=${e.statusCode} ($statusName)")
+            if (e.statusCode == 12501) {
+                // SIGN_IN_CANCELLED — user dismissed the dialog intentionally
+                Timber.i("Google Sign-In: user cancelled")
+                AuthResult.Cancelled
+            } else {
+                val friendlyMsg = mapGoogleSignInError(e.statusCode)
+                AuthResult.Error(friendlyMsg)
+            }
         } catch (e: Exception) {
             val msg = "Google Sign-In unexpected error: ${e.javaClass.simpleName}: ${e.message}"
             Timber.e(e, msg)
             AuthResult.Error(msg)
+        }
+    }
+
+    private fun mapGoogleSignInError(statusCode: Int): String = when (statusCode) {
+        10 -> // DEVELOPER_ERROR: SHA-1 not registered or package name mismatch
+            "Google Sign-In configuration error (code 10).\n\n" +
+            "The app's signing certificate is not registered in Google Cloud Console.\n" +
+            "Register SHA-1 fingerprint for package \"com.sza.fastmediasorter\" at " +
+            "console.cloud.google.com → APIs & Services → Credentials → OAuth 2.0 Client IDs, " +
+            "then re-download google-services.json."
+        4 -> // SIGN_IN_REQUIRED
+            "Google account sign-in required. Please try again."
+        5 -> // INVALID_ACCOUNT
+            "Invalid Google account. Please choose a different account."
+        7 -> // NETWORK_ERROR
+            "Network error. Check your internet connection and try again."
+        8 -> // INTERNAL_ERROR
+            "Google Sign-In internal error. Please try again later."
+        12501 -> // SIGN_IN_CANCELLED
+            "Sign-in was cancelled."
+        12502 -> // SIGN_IN_CURRENTLY_IN_PROGRESS
+            "Sign-in already in progress. Please wait."
+        16 -> // API_NOT_CONNECTED
+            "Google Play Services not connected. Check if Google Play Services is up to date."
+        else -> {
+            val statusName = CommonStatusCodes.getStatusCodeString(statusCode)
+            "Google Sign-In failed (code $statusCode: $statusName). Please try again."
         }
     }
 
