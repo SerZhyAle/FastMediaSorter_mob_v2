@@ -157,7 +157,7 @@ object LoggingHelper {
                     rotateLogFilesIfNeeded()
                     openNewLogFile()
                 } catch (e: Exception) {
-                    android.util.Log.e("FileLoggingTree", "Failed to initialize file logging", e)
+                    Timber.tag("FileLoggingTree").e(e, "Failed to initialize file logging")
                 }
             }
         }

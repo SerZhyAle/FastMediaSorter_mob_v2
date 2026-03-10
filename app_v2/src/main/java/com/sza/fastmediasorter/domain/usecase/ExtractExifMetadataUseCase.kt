@@ -2,8 +2,8 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.exifinterface.media.ExifInterface
+import timber.log.Timber
 import com.sza.fastmediasorter.core.constants.AppConstants
 import androidx.core.net.toUri
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -44,7 +44,7 @@ class ExtractExifMetadataUseCase @Inject constructor(
         try {
             val file = File(filePath)
             if (!file.exists() || !file.canRead()) {
-                Log.w(tag, "File does not exist or not readable: $filePath")
+                Timber.tag(tag).w("File does not exist or not readable: $filePath")
                 return@withContext ExifMetadata()
             }
 
@@ -53,10 +53,10 @@ class ExtractExifMetadataUseCase @Inject constructor(
                 extractMetadata(exif)
             }
         } catch (e: IOException) {
-            Log.e(tag, "Failed to read EXIF from file: $filePath", e)
+            Timber.tag(tag).e(e, "Failed to read EXIF from file: $filePath")
             ExifMetadata()
         } catch (e: Exception) {
-            Log.e(tag, "Unexpected error reading EXIF: $filePath", e)
+            Timber.tag(tag).e(e, "Unexpected error reading EXIF: $filePath")
             ExifMetadata()
         }
     }
@@ -73,10 +73,10 @@ class ExtractExifMetadataUseCase @Inject constructor(
                 extractMetadata(exif)
             }
         } catch (e: IOException) {
-            Log.e(tag, "Failed to read EXIF from stream", e)
+            Timber.tag(tag).e(e, "Failed to read EXIF from stream")
             ExifMetadata()
         } catch (e: Exception) {
-            Log.e(tag, "Unexpected error reading EXIF from stream", e)
+            Timber.tag(tag).e(e, "Unexpected error reading EXIF from stream")
             ExifMetadata()
         }
     }
@@ -93,15 +93,15 @@ class ExtractExifMetadataUseCase @Inject constructor(
                     val exif = ExifInterface(stream)
                     extractMetadata(exif)
                 } ?: run {
-                    Log.w(tag, "Failed to open input stream for uri: $uri")
+                    Timber.tag(tag).w("Failed to open input stream for uri: $uri")
                     ExifMetadata()
                 }
             }
         } catch (e: IOException) {
-            Log.e(tag, "Failed to read EXIF from uri: $uri", e)
+            Timber.tag(tag).e(e, "Failed to read EXIF from uri: $uri")
             ExifMetadata()
         } catch (e: Exception) {
-            Log.e(tag, "Unexpected error reading EXIF from uri: $uri", e)
+            Timber.tag(tag).e(e, "Unexpected error reading EXIF from uri: $uri")
             ExifMetadata()
         }
     }
@@ -121,7 +121,7 @@ class ExtractExifMetadataUseCase @Inject constructor(
                 val format = java.text.SimpleDateFormat("yyyy:MM:dd HH:mm:ss", java.util.Locale.US)
                 format.parse(dateStr)?.time
             } catch (e: Exception) {
-                Log.w(tag, "Failed to parse EXIF datetime: $dateStr", e)
+                Timber.tag(tag).w(e, "Failed to parse EXIF datetime: $dateStr")
                 null
             }
         }

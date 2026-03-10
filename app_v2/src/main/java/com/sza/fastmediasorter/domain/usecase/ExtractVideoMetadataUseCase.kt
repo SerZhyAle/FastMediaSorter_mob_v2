@@ -4,7 +4,7 @@ import android.content.Context
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import com.sza.fastmediasorter.core.constants.AppConstants
-import android.util.Log
+import timber.log.Timber
 import androidx.core.net.toUri
 import com.sza.fastmediasorter.domain.model.MediaType
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -46,7 +46,7 @@ class ExtractVideoMetadataUseCase @Inject constructor(
         try {
             val file = File(filePath)
             if (!file.exists() || !file.canRead()) {
-                Log.w(tag, "File does not exist or not readable: $filePath")
+                Timber.tag(tag).w("File does not exist or not readable: $filePath")
                 return@withContext VideoMetadata()
             }
 
@@ -55,13 +55,13 @@ class ExtractVideoMetadataUseCase @Inject constructor(
                 extractMetadata(retriever)
             }
         } catch (e: Exception) {
-            Log.e(tag, "Failed to extract video metadata from file: $filePath", e)
+            Timber.tag(tag).e(e, "Failed to extract video metadata from file: $filePath")
             VideoMetadata()
         } finally {
             try {
                 retriever.release()
             } catch (e: Exception) {
-                Log.w(tag, "Failed to release MediaMetadataRetriever", e)
+                Timber.tag(tag).w(e, "Failed to release MediaMetadataRetriever")
             }
         }
     }
@@ -79,13 +79,13 @@ class ExtractVideoMetadataUseCase @Inject constructor(
                 extractMetadata(retriever)
             }
         } catch (e: Exception) {
-            Log.e(tag, "Failed to extract video metadata from uri: $uri", e)
+            Timber.tag(tag).e(e, "Failed to extract video metadata from uri: $uri")
             VideoMetadata()
         } finally {
             try {
                 retriever.release()
             } catch (e: Exception) {
-                Log.w(tag, "Failed to release MediaMetadataRetriever", e)
+                Timber.tag(tag).w(e, "Failed to release MediaMetadataRetriever")
             }
         }
     }
@@ -112,13 +112,13 @@ class ExtractVideoMetadataUseCase @Inject constructor(
                 extractMetadata(retriever)
             }
         } catch (e: Exception) {
-            Log.e(tag, "Failed to extract video metadata from data source: $dataSource", e)
+            Timber.tag(tag).e(e, "Failed to extract video metadata from data source: $dataSource")
             VideoMetadata()
         } finally {
             try {
                 retriever.release()
             } catch (e: Exception) {
-                Log.w(tag, "Failed to release MediaMetadataRetriever", e)
+                Timber.tag(tag).w(e, "Failed to release MediaMetadataRetriever")
             }
         }
     }
@@ -150,7 +150,7 @@ class ExtractVideoMetadataUseCase @Inject constructor(
             retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)
                 ?.toFloatOrNull()
         } catch (e: Exception) {
-            Log.w(tag, "Failed to extract frame rate", e)
+            Timber.tag(tag).w(e, "Failed to extract frame rate")
             null
         }
 

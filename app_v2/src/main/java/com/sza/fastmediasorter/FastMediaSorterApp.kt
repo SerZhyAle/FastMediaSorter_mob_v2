@@ -274,7 +274,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             try {
                 LoggingHelper.initialize(base)
             } catch (e: Exception) {
-                android.util.Log.e("FastMediaSorterApp", "Early logging init failed", e)
+                Timber.tag("FastMediaSorterApp").e(e, "Early logging init failed")
             }
         }
     }

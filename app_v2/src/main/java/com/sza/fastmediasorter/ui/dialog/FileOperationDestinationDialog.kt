@@ -6,9 +6,9 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import timber.log.Timber
 import android.widget.LinearLayout
 import android.widget.Toast
 import com.sza.fastmediasorter.R
@@ -25,7 +25,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 
 /**
@@ -95,16 +94,16 @@ class FileOperationDestinationDialog(
     }
 
     private fun loadDestinations() {
-        Log.d(TAG, "loadDestinations() called")
+        Timber.tag(TAG).d("loadDestinations() called")
         scope.launch {
             try {
                 val destinations = withContext(Dispatchers.IO) {
                     getDestinationsUseCase.getDestinationsExcluding(currentResourceId)
                 }
                 
-                Log.d(TAG, "Loaded ${destinations.size} destinations")
+                Timber.tag(TAG).d("Loaded ${destinations.size} destinations")
                 destinations.forEach { dest ->
-                    Log.d(TAG, "Destination: ${dest.name}, order=${dest.destinationOrder}, color=${dest.destinationColor}")
+                    Timber.tag(TAG).d("Destination: ${dest.name}, order=${dest.destinationOrder}, color=${dest.destinationColor}")
                 }
                 
                 if (destinations.isEmpty()) {
@@ -118,7 +117,7 @@ class FileOperationDestinationDialog(
                     createDestinationButtons(destinations)
                 }
             } catch (e: Exception) {
-                Log.e(TAG, "Error loading destinations", e)
+                Timber.tag(TAG).e(e, "Error loading destinations")
                 Toast.makeText(context, context.getString(R.string.toast_error_loading_destinations, e.message), Toast.LENGTH_SHORT).show()
                 dismiss()
             }
@@ -130,7 +129,7 @@ class FileOperationDestinationDialog(
      * Distribution: 1-5: single row, 6: 3+3, 7: 4+3, 8: 4+4, 9: 5+4, 10: 5+5
      */
     private fun createDestinationButtons(destinations: List<MediaResource>) {
-        Log.d(TAG, "createDestinationButtons() called with ${destinations.size} destinations")
+        Timber.tag(TAG).d("createDestinationButtons() called with ${destinations.size} destinations")
         val container = binding.layoutDestinations
         container.removeAllViews()
         
@@ -148,7 +147,7 @@ class FileOperationDestinationDialog(
             else -> listOf(5, 5) // Fallback
         }
         
-        Log.d(TAG, "Button distribution: $distribution for $count destinations")
+        Timber.tag(TAG).d("Button distribution: $distribution for $count destinations")
         
         // Small margins for spacing (4dp on each side = 8dp total between buttons)
         val marginSize = (4 * context.resources.displayMetrics.density).toInt()
@@ -200,7 +199,7 @@ class FileOperationDestinationDialog(
                         }
                         
                         buttonRow.addView(button)
-                        Log.d(TAG, "Added button for ${destination.name} at position $destIndex with color ${destination.destinationColor}")
+                        Timber.tag(TAG).d("Added button for ${destination.name} at position $destIndex with color ${destination.destinationColor}")
                         destIndex++
                     }
                 }
@@ -209,7 +208,7 @@ class FileOperationDestinationDialog(
             }
         }
         
-        Log.d(TAG, "Finished creating $destIndex destination buttons in ${distribution.size} rows")
+        Timber.tag(TAG).d("Finished creating $destIndex destination buttons in ${distribution.size} rows")
     }
 
     private fun performOperation(destination: MediaResource) {
