@@ -7,6 +7,7 @@ import android.text.format.Formatter
 import com.sza.fastmediasorter.databinding.DialogFileCopyProgressBinding
 import kotlin.math.min
 
+@android.annotation.SuppressLint("SetTextI18n")
 class FileCopyProgressDialog(
     context: Context,
     private val fileName: String,

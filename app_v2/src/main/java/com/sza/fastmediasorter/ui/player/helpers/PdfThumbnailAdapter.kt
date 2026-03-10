@@ -27,6 +27,7 @@ import timber.log.Timber
  * @param currentPage Currently displayed page (for highlight)
  * @param onPageSelected Callback when user taps a thumbnail
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class PdfThumbnailAdapter(
     private val rendererWrapper: PdfRendererWrapper,
     private val pageCount: Int,

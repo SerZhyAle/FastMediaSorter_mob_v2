@@ -30,6 +30,7 @@ import java.io.File
  * 
  * Implements coordinator pattern to reduce PlayerActivity complexity.
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class PlayerDialogAndUiStateManager(
     private val activity: PlayerActivity,
     private val viewModel: PlayerViewModel,

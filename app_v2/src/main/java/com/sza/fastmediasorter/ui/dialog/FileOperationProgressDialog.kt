@@ -17,6 +17,7 @@ import java.text.DecimalFormat
  * Shows current file being processed, progress percentage, and transfer speed
  * Supports cancellation via callback
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class FileOperationProgressDialog(
     context: Context,
     private val operationType: String, // "Copying", "Moving", "Deleting"

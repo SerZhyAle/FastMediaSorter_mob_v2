@@ -31,6 +31,7 @@ import com.sza.fastmediasorter.R
  * dialog.dismiss()
  * ```
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class MaterialProgressDialog(context: Context) : Dialog(context) {
 
     private lateinit var tvTitle: TextView

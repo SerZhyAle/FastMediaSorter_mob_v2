@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.utils.UserActionLogger
  * - Text files (via TextViewerManager)
  * - EPUB files (via EpubViewerManager)
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class SearchControlsManager(
     private val binding: ActivityPlayerUnifiedBinding,
     private val textViewerManagerProvider: () -> TextViewerManager,

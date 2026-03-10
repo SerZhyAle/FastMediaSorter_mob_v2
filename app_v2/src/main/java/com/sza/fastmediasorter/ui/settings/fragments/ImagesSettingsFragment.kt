@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
+@android.annotation.SuppressLint("SetTextI18n")
 class ImagesSettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsImagesBinding? = null
@@ -194,10 +195,10 @@ class ImagesSettingsFragment : Fragment() {
                     val maxKb = settings.imageSizeMax / KB_TO_BYTES
                     
                     if (binding.etImageSizeMin.text.toString() != minKb.toString()) {
-                        binding.etImageSizeMin.setText(minKb.toString())
+                        binding.etImageSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
                     }
                     if (binding.etImageSizeMax.text.toString() != maxKb.toString()) {
-                        binding.etImageSizeMax.setText(maxKb.toString())
+                        binding.etImageSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
                     }
 
                     // Slideshow background music

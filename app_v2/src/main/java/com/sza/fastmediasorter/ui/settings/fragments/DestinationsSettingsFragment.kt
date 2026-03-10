@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
+@android.annotation.SuppressLint("SetTextI18n")
 class DestinationsSettingsFragment : Fragment() {
     companion object {
         private const val PREFS_NAME = "settings_section_states"
@@ -145,7 +146,7 @@ class DestinationsSettingsFragment : Fragment() {
                     // Invalid input
                     binding.tilMaxRecipients.error = getString(R.string.max_recipients_error)
                     // Restore previous valid value
-                    binding.etMaxRecipients.setText(viewModel.settings.value.maxRecipients.toString())
+                    binding.etMaxRecipients.setText(getString(R.string.number_format, viewModel.settings.value.maxRecipients))
                 }
             }
         }
@@ -217,7 +218,7 @@ class DestinationsSettingsFragment : Fragment() {
                         
                         // Update Max Recipients
                         if (binding.etMaxRecipients.text.toString() != settings.maxRecipients.toString()) {
-                            binding.etMaxRecipients.setText(settings.maxRecipients.toString())
+                            binding.etMaxRecipients.setText(getString(R.string.number_format, settings.maxRecipients))
                         }
                         
                         updateCopyOptionsVisibility(settings.enableCopying)
@@ -298,7 +299,7 @@ class DestinationsSettingsFragment : Fragment() {
 
     private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
         val prefix = if (expanded) "▼" else "▶"
-        header.text = "$prefix $title"
+        header.text = getString(R.string.string_format_two_args, prefix, title)
     }
     
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {

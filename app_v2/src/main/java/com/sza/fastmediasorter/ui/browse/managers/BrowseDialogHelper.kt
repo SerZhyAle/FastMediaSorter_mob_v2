@@ -40,6 +40,7 @@ import java.util.Locale
  * Manages all dialog creation and user interactions in BrowseActivity.
  * Handles filter, sort, rename, copy, move, and delete confirmation dialogs.
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class BrowseDialogHelper(
     private val activity: AppCompatActivity,
     private val callbacks: DialogCallbacks
@@ -139,10 +140,10 @@ class BrowseDialogHelper(
         
         // Size filters
         currentFilter?.minSizeMb?.let {
-            dialogBinding.etMinSize.setText(it.toString())
+            dialogBinding.etMinSize.setText(activity.getString(R.string.string_format, it.toString()))
         }
         currentFilter?.maxSizeMb?.let {
-            dialogBinding.etMaxSize.setText(it.toString())
+            dialogBinding.etMaxSize.setText(activity.getString(R.string.string_format, it.toString()))
         }
         
         val dialog = MaterialAlertDialogBuilder(activity)

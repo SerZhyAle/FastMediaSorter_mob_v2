@@ -36,6 +36,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class ResourceEditorFragment : Fragment() {
 
     private var _binding: FragmentResourceEditorBinding? = null

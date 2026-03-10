@@ -750,6 +750,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         Timber.d("PlayerActivity: ✗ Not entering audio slideshow photo mode (conditions not met)")
                     }
                 }
+
+                override fun updateTouchZonesHelpButtonVisibility(visible: Boolean) {
+                    binding.btnTouchZonesHelp?.isVisible = visible
+                }
             }
         )
 
@@ -1902,7 +1906,21 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         safeViews.audioTouchZonesOverlay.isVisible = false
         safeViews.audioTouchZonesOverlay.setOnClickListener(null)
     }
-    
+
+    /**
+     * Re-display touch zones overlay when user taps the [?] help button.
+     * Uses the same audioTouchZonesOverlay as the first-run hint.
+     * Dismissed on tap.
+     */
+    fun showTouchZonesHelpOverlay() {
+        safeViews.audioTouchZonesOverlay.isVisible = true
+        safeViews.audioTouchZonesOverlay.alpha = 1.0f
+        safeViews.audioTouchZonesOverlay.setOnClickListener {
+            safeViews.audioTouchZonesOverlay.isVisible = false
+            safeViews.audioTouchZonesOverlay.setOnClickListener(null)
+        }
+    }
+
     /**
      * Adjust touch zones visibility based on media type
      * For video/audio in command panel mode: touch zones DISABLED (ExoPlayer controls used)

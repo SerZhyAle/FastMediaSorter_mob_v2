@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import timber.log.Timber
 
+@android.annotation.SuppressLint("SetTextI18n")
 class AddResourceHelper(
     private val activity: AddResourceActivity,
     private val binding: ActivityAddResourceBinding
@@ -61,7 +62,7 @@ class AddResourceHelper(
                 if (domain != null) binding.etSmbDomain.setText(domain)
                 binding.etSmbPinCode.setText(resource.accessPin.orEmpty())
 
-                binding.etSmbPort.setText("445")
+                binding.etSmbPort.setText(R.string.default_smb_port)
 
                 // Pre-fill comment
                 binding.etSmbComment.setText(resource.comment ?: "")
@@ -105,12 +106,12 @@ class AddResourceHelper(
                     if (hostPort.size > 1) {
                         binding.etSftpPort.setText(hostPort[1])
                     } else {
-                        binding.etSftpPort.setText("22")
+                        binding.etSftpPort.setText(R.string.default_sftp_port)
                     }
                 }
 
                 if (hostAndPath.size > 1) {
-                    binding.etSftpPath.setText("/" + hostAndPath[1])
+                    binding.etSftpPath.setText(activity.getString(R.string.path_format, hostAndPath[1]))
                 }
 
                 binding.rbSftp.isChecked = true
@@ -170,12 +171,12 @@ class AddResourceHelper(
                     if (hostPort.size > 1) {
                         binding.etSftpPort.setText(hostPort[1])
                     } else {
-                        binding.etSftpPort.setText("21")
+                        binding.etSftpPort.setText(R.string.default_ftp_port)
                     }
                 }
 
                 if (hostAndPath.size > 1) {
-                    binding.etSftpPath.setText("/" + hostAndPath[1])
+                    binding.etSftpPath.setText(activity.getString(R.string.path_format, hostAndPath[1]))
                 }
 
                 binding.rbFtp.isChecked = true

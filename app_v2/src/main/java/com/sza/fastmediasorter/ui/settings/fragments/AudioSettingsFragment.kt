@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
+@android.annotation.SuppressLint("SetTextI18n")
 class AudioSettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsAudioBinding? = null

@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
 
+@android.annotation.SuppressLint("SetTextI18n")
 class GeneralSettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsGeneralBinding? = null
@@ -419,7 +420,7 @@ class GeneralSettingsFragment : Fragment() {
         val parallelismAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, parallelismOptions)
         binding.actvNetworkParallelism.setAdapter(parallelismAdapter)
         
-        binding.actvNetworkParallelism.setText(viewModel.settings.value.networkParallelism.toString(), false)
+        binding.actvNetworkParallelism.setText(getString(R.string.number_format, viewModel.settings.value.networkParallelism), false)
         
         binding.actvNetworkParallelism.setOnItemClickListener { _, _, position, _ ->
             if (isUpdatingSpinner) return@setOnItemClickListener
@@ -445,7 +446,7 @@ class GeneralSettingsFragment : Fragment() {
                     }
                 } else {
                     // Invalid input, restore previous value
-                    binding.actvNetworkParallelism.setText(viewModel.settings.value.networkParallelism.toString(), false)
+                    binding.actvNetworkParallelism.setText(getString(R.string.number_format, viewModel.settings.value.networkParallelism), false)
                 }
             }
         }
@@ -455,7 +456,7 @@ class GeneralSettingsFragment : Fragment() {
         val cacheSizeAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, cacheSizeOptions)
         binding.actvCacheSizeLimit.setAdapter(cacheSizeAdapter)
         
-        binding.actvCacheSizeLimit.setText(viewModel.settings.value.cacheSizeMb.toString(), false)
+        binding.actvCacheSizeLimit.setText(getString(R.string.number_format, viewModel.settings.value.cacheSizeMb), false)
         
         binding.actvCacheSizeLimit.setOnItemClickListener { _, _, position, _ ->
             if (isUpdatingSpinner) return@setOnItemClickListener
@@ -480,7 +481,7 @@ class GeneralSettingsFragment : Fragment() {
                     }
                 } else {
                     // Invalid input, restore previous value
-                    binding.actvCacheSizeLimit.setText(viewModel.settings.value.cacheSizeMb.toString(), false)
+                    binding.actvCacheSizeLimit.setText(getString(R.string.number_format, viewModel.settings.value.cacheSizeMb), false)
                     android.widget.Toast.makeText(
                         requireContext(),
                         "Cache size must be between 512 and 16384 MB",
@@ -505,7 +506,7 @@ class GeneralSettingsFragment : Fragment() {
             
             // Convert hours to minutes for initial display
             val currentMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
-            syncIntervalView.setText(currentMinutes.toString(), false)
+            syncIntervalView.setText(getString(R.string.number_format, currentMinutes), false)
             
             syncIntervalView.setOnItemClickListener { _, _, position, _ ->
                 if (isUpdatingSpinner) return@setOnItemClickListener
@@ -527,7 +528,7 @@ class GeneralSettingsFragment : Fragment() {
                     } else {
                         // Invalid input, restore previous value
                         val previousMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
-                        syncIntervalView.setText(previousMinutes.toString(), false)
+                        syncIntervalView.setText(getString(R.string.number_format, previousMinutes), false)
                         android.widget.Toast.makeText(requireContext(), R.string.slide_interval_error, android.widget.Toast.LENGTH_SHORT).show()
                     }
                 }
@@ -830,13 +831,13 @@ class GeneralSettingsFragment : Fragment() {
                     // Update network parallelism
                     val currentParallelism = binding.actvNetworkParallelism.text.toString().toIntOrNull()
                     if (currentParallelism != settings.networkParallelism) {
-                        binding.actvNetworkParallelism.setText(settings.networkParallelism.toString(), false)
+                        binding.actvNetworkParallelism.setText(getString(R.string.number_format, settings.networkParallelism), false)
                     }
                     
                     // Update cache size limit
                     val currentCacheSize = binding.actvCacheSizeLimit.text.toString().toIntOrNull()
                     if (currentCacheSize != settings.cacheSizeMb) {
-                        binding.actvCacheSizeLimit.setText(settings.cacheSizeMb.toString(), false)
+                        binding.actvCacheSizeLimit.setText(getString(R.string.number_format, settings.cacheSizeMb), false)
                     }
                     
                     // Update sync interval (convert hours to minutes)
@@ -844,7 +845,7 @@ class GeneralSettingsFragment : Fragment() {
                     binding.actvSyncInterval?.let { syncIntervalView ->
                         val displayedText = syncIntervalView.text.toString()
                         if (displayedText != syncMinutes.toString()) {
-                            syncIntervalView.setText(syncMinutes.toString(), false)
+                            syncIntervalView.setText(getString(R.string.number_format, syncMinutes), false)
                         }
                     }
                 }
@@ -1106,7 +1107,7 @@ class GeneralSettingsFragment : Fragment() {
                 // User declined restart - revert to current cache size
                 val currentCacheSize = viewModel.settings.value.cacheSizeMb
                 isUpdatingSpinner = true
-                binding.actvCacheSizeLimit.setText(currentCacheSize.toString(), false)
+                binding.actvCacheSizeLimit.setText(getString(R.string.number_format, currentCacheSize), false)
                 binding.actvCacheSizeLimit.post { isUpdatingSpinner = false }
                 
                 dialog.dismiss()
@@ -1902,7 +1903,7 @@ class GeneralSettingsFragment : Fragment() {
 
     private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
         val prefix = if (expanded) "▼" else "▶"
-        header.text = "$prefix $title"
+        header.text = getString(R.string.string_format_two_args, prefix, title)
     }
     
     /**

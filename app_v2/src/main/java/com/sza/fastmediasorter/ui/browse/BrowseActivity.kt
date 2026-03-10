@@ -62,6 +62,7 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 
 @AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private val viewModel: BrowseViewModel by viewModels()
@@ -1197,7 +1198,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     
                     // Update progress message
                     if (state.loadingProgress > 0) {
-                        binding.tvProgressMessage.text = getString(R.string.loading) + " (${state.loadingProgress})"
+                        binding.tvProgressMessage.text = getString(R.string.loading_with_progress, getString(R.string.loading), state.loadingProgress)
                     } else {
                         binding.tvProgressMessage.text = getString(R.string.loading)
                     }

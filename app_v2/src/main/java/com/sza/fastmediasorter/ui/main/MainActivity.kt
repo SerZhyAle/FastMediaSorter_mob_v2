@@ -43,6 +43,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     private val viewModel: MainViewModel by viewModels()

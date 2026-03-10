@@ -26,6 +26,9 @@
     <string name="select_all">Select All</string>
     <string name="deselect_all">Deselect All</string>
     <string name="share">Share</string>
+    <string name="number_format" translatable="false">%1$d</string>
+    <string name="string_format" translatable="false">%1$s</string>
+    <string name="string_format_two_args" translatable="false">%1$s %2$s</string>
     <string name="search">Search</string>
     <string name="search_hint">Search…</string>
     <string name="translate">Translate</string>
@@ -626,6 +629,7 @@
     <string name="tooltip_destinations_title">Destinations</string>
     <string name="tooltip_destinations_message">Quick sort targets for fast file organization. Maximum 30 destinations. Each has a number and color for easy identification.</string>
     <string name="tooltip_touch_zones_title">Touch Zones</string>
+    <string name="touch_zones_help">Show touch zones</string>
     <string name="tooltip_touch_zones_message">9 invisible zones (3×3 grid) for gesture control in fullscreen mode. Left/Center/Right and Top/Middle/Bottom combinations trigger different actions like navigation, file operations, and panel control.</string>
     <string name="tooltip_safe_mode_title">Safe Mode</string>
     <string name="tooltip_safe_mode_message">Confirm before destructive operations. When enabled, app asks for confirmation before deleting or moving files to prevent accidental data loss.</string>
@@ -729,7 +733,7 @@
     <string name="smb_domain_hint">Leave empty if not needed</string>
     <string name="smb_port">Port</string>
     <string name="smb_port_hint">Default: 445</string>
-    <string name="default_smb_port">445</string>
+    <string name="default_smb_port" translatable="false">445</string>
     <string name="smb_test_connection">Test Connection</string>
     <string name="smb_scan_shares">Scan Shares</string>
     <string name="smb_credentials">Network Folder (SMB)</string>
@@ -742,6 +746,9 @@
     <string name="sftp_host_hint">Server IP address</string>
     <string name="sftp_port">Port</string>
     <string name="sftp_ftp_port_hint">SFTP: 22, FTP: 21</string>
+    <string name="default_sftp_port" translatable="false">22</string>
+    <string name="default_ftp_port" translatable="false">21</string>
+    <string name="path_format" translatable="false">/%1$s</string>
     <string name="sftp_username">Username</string>
     <string name="sftp_password">Password</string>
     <string name="sftp_remote_path">Remote Path</string>
@@ -931,6 +938,7 @@
     <string name="folder_icon">Folder icon</string>
     <string name="navigate_into_folder">Navigate into folder</string>
     <string name="loading">Loading…</string>
+    <string name="loading_with_progress" translatable="false">%1$s (%2$d)</string>
 
     <!-- Sort modes -->
     <string name="sort_by_name_asc">by Name ↑</string>
@@ -1665,7 +1673,6 @@
     <string name="integration_tests_title">Integration Tests</string>
     <string name="integration_tests_description">Automated testing of file operations across all resource types</string>
     <string name="default_zero">0</string>
-    <string name="default_sftp_port">22</string>
     <string name="search_counter_default">0/0</string>
     <string name="epub_chapter_indicator_default">1/1</string>
     <string name="panel_indicator_collapsed">▼</string>

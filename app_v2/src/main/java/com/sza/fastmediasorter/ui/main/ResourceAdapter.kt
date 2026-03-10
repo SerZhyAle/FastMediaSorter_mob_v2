@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
 import timber.log.Timber
 
+@android.annotation.SuppressLint("SetTextI18n")
 class ResourceAdapter(
     private val onItemClick: (MediaResource) -> Unit,
     private val onItemLongClick: (MediaResource) -> Unit,

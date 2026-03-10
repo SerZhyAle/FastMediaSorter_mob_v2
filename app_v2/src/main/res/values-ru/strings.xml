@@ -695,6 +695,7 @@
     <string name="tooltip_destinations_title">Назначения</string>
     <string name="tooltip_destinations_message">Цели быстрой сортировки для эффективной организации файлов. Максимум 30 назначений. Кожное имеет номер и цвет для легкой идентификации.</string>
     <string name="tooltip_touch_zones_title">Сенсорные зоны</string>
+    <string name="touch_zones_help">Показать сенсорные зоны</string>
     <string name="tooltip_touch_zones_message">9 невидимых зон (сетка 3×3) для управления жестами в полноэкранном режиме. Комбинации Лево/Центр/Право и Верх/Середина/Низ вызывают различные действия: навигация, операции с файлами, управление панелями.</string>
     <string name="tooltip_safe_mode_title">Безопасный режим</string>
     <string name="tooltip_safe_mode_message">Подтверждение перед деструктивными операциями. При включении приложение запрашивает подтверждение перед удалением или перемещением файлов во избежание случайной потери данных.</string>

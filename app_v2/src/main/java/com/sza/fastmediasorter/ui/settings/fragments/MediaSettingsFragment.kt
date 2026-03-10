@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsMediaContainerBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 
+@android.annotation.SuppressLint("SetTextI18n")
 class MediaSettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsMediaContainerBinding? = null
@@ -197,7 +198,7 @@ class MediaSettingsFragment : Fragment() {
 
     private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
         val prefix = if (expanded) "▼" else "▶"
-        header.text = "$prefix $title"
+        header.text = getString(R.string.string_format_two_args, prefix, title)
     }
     
     /**

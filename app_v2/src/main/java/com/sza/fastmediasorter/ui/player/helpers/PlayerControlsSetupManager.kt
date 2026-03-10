@@ -61,6 +61,7 @@ class PlayerControlsSetupManager(
         setupSearchControls()
         setupDocumentFullscreenExitButton()
         setupExoPlayerControls()
+        setupTouchZonesHelpButton()
     }
     
     /**
@@ -446,6 +447,18 @@ class PlayerControlsSetupManager(
         
         safeViews.btnDocumentFullscreenExit.visibility = 
             if (isFullscreen && isDocument) android.view.View.VISIBLE else android.view.View.GONE
+    }
+
+    /**
+     * Setup Touch Zones Help button (?).
+     * Shown in fullscreen + touch zones enabled + IMAGE/GIF.
+     * Tapping it re-displays the audio touch zones overlay (first-run hint layout).
+     */
+    fun setupTouchZonesHelpButton() {
+        binding.btnTouchZonesHelp?.setOnClickListener {
+            UserActionLogger.logButtonClick("TouchZonesHelp", "PlayerActivity")
+            activity.showTouchZonesHelpOverlay()
+        }
     }
 
     /**

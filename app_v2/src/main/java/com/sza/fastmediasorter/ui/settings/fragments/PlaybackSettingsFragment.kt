@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
+@android.annotation.SuppressLint("SetTextI18n")
 class PlaybackSettingsFragment : Fragment() {
     private var _binding: FragmentSettingsPlaybackBinding? = null
     private val binding get() = _binding!!
@@ -77,7 +78,7 @@ class PlaybackSettingsFragment : Fragment() {
         val slideshowOptions = arrayOf("1", "5", "10", "30", "60", "120", "300")
         val slideshowAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, slideshowOptions)
         binding.etSlideshowInterval.setAdapter(slideshowAdapter)
-        binding.etSlideshowInterval.setText(viewModel.settings.value.slideshowInterval.toString(), false)
+        binding.etSlideshowInterval.setText(getString(R.string.number_format, viewModel.settings.value.slideshowInterval), false)
         
         binding.etSlideshowInterval.setOnItemClickListener { _, _, position, _ ->
             val seconds = slideshowOptions[position].toInt()
@@ -92,7 +93,7 @@ class PlaybackSettingsFragment : Fragment() {
                 val seconds = text.toIntOrNull() ?: 5
                 val clampedSeconds = seconds.coerceIn(1, 3600)
                 if (seconds != clampedSeconds) {
-                    binding.etSlideshowInterval.setText(clampedSeconds.toString(), false)
+                    binding.etSlideshowInterval.setText(getString(R.string.number_format, clampedSeconds), false)
                 }
                 val current = viewModel.settings.value
                 if (clampedSeconds != current.slideshowInterval) {
@@ -214,7 +215,7 @@ class PlaybackSettingsFragment : Fragment() {
         val iconSizeOptions = arrayOf("24", "32", "48", "64", "96", "128", "160", "192", "256", "320", "384", "512", "768", "1024")
         val iconSizeAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)
         binding.etIconSize.setAdapter(iconSizeAdapter)
-        binding.etIconSize.setText(viewModel.settings.value.defaultIconSize.toString(), false)
+        binding.etIconSize.setText(getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
         
         binding.etIconSize.setOnItemClickListener { _, _, position, _ ->
             val size = iconSizeOptions[position].toInt()
@@ -245,7 +246,7 @@ class PlaybackSettingsFragment : Fragment() {
                 val size = text.toIntOrNull() ?: 96
                 val clampedSize = size.coerceIn(24, 1024)
                 if (size != clampedSize) {
-                    binding.etIconSize.setText(clampedSize.toString(), false)
+                    binding.etIconSize.setText(getString(R.string.number_format, clampedSize), false)
                 }
                 val current = viewModel.settings.value
                 if (clampedSize != current.defaultIconSize) {
@@ -266,7 +267,7 @@ class PlaybackSettingsFragment : Fragment() {
                     // Slideshow interval
                     val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
                     if (currentSlideshow != settings.slideshowInterval) {
-                        binding.etSlideshowInterval.setText(settings.slideshowInterval.toString(), false)
+                        binding.etSlideshowInterval.setText(getString(R.string.number_format, settings.slideshowInterval), false)
                     }
                     
                     // Switches (only update if value changed)
@@ -307,7 +308,7 @@ class PlaybackSettingsFragment : Fragment() {
                     // Icon size
                     val currentIconSize = binding.etIconSize.text.toString().toIntOrNull()
                     if (currentIconSize != settings.defaultIconSize) {
-                        binding.etIconSize.setText(settings.defaultIconSize.toString(), false)
+                        binding.etIconSize.setText(getString(R.string.number_format, settings.defaultIconSize), false)
                     }
                     isUpdatingFromSettings = false
                 }
@@ -377,7 +378,7 @@ class PlaybackSettingsFragment : Fragment() {
 
     private fun updateHeader(header: android.widget.TextView, title: String, expanded: Boolean) {
         val prefix = if (expanded) "▼" else "▶"
-        header.text = "$prefix $title"
+        header.text = getString(R.string.string_format_two_args, prefix, title)
     }
     
     /**

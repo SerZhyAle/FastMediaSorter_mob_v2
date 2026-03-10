@@ -39,6 +39,7 @@ import java.net.NetworkInterface
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
     private val viewModel: AddResourceViewModel by viewModels()
@@ -254,13 +255,13 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.rbSftp.id -> {
                     // Set port to 22 if empty or if it's FTP port (21)
                     if (currentPort.isBlank() || currentPort == "21") {
-                        binding.etSftpPort.setText("22")
+                        binding.etSftpPort.setText(R.string.default_sftp_port)
                     }
                 }
                 binding.rbFtp.id -> {
                     // Set port to 21 if empty or if it's SFTP port (22)
                     if (currentPort.isBlank() || currentPort == "22") {
-                        binding.etSftpPort.setText("21")
+                        binding.etSftpPort.setText(R.string.default_ftp_port)
                     }
                 }
             }
@@ -887,7 +888,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         
         // Set default port to 22 (SFTP) when opening this section
         if (binding.etSftpPort.text.isNullOrBlank()) {
-            binding.etSftpPort.setText("22")
+            binding.etSftpPort.setText(R.string.default_sftp_port)
         }
         
         // Select SFTP by default

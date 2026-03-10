@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.R
  * @param currentChapterSpineIndex Currently displayed chapter spine index
  * @param onChapterSelected Callback when user taps a chapter
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class EpubTocAdapter(
     private val chapters: List<Pair<String, Int>>,
     private val currentChapterSpineIndex: Int,

@@ -36,6 +36,7 @@ import kotlin.math.abs
  * - Saves and restores last viewed page position
  */
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+@android.annotation.SuppressLint("SetTextI18n")
 class PdfViewerManager(
     binding: ActivityPlayerUnifiedBinding,
     private val networkFileManager: NetworkFileManager,

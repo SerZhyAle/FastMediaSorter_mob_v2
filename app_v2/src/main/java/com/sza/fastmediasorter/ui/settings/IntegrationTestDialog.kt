@@ -19,6 +19,7 @@ import kotlinx.coroutines.launch
  * Only available in DEBUG builds.
  */
 @AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class IntegrationTestDialog : DialogFragment() {
     
     private var _binding: DialogIntegrationTestBinding? = null

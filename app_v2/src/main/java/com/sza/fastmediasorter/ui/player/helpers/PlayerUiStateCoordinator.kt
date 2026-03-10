@@ -19,6 +19,7 @@ import timber.log.Timber
  * Coordinates UI state rendering for PlayerActivity.
  * Keeps PlayerActivity slimmer by centralizing updateUI(state) logic.
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class PlayerUiStateCoordinator(
     private val binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
@@ -26,6 +27,11 @@ class PlayerUiStateCoordinator(
     private val callback: Callback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+
+    /** Counts distinct IMAGE/GIF files shown since app launch. Resets on process death. */
+    private var imageViewCount = 0
+    private var lastTrackedFilePath: String? = null
+    private val touchZonesHelpMaxViews = 2
 
     private val mediaDisplayCoordinator = MediaDisplayCoordinator(
         callback = object : MediaDisplayCoordinator.Callback {
@@ -78,6 +84,7 @@ class PlayerUiStateCoordinator(
         fun getLatestState(): PlayerViewModel.PlayerState
         fun forceStateUpdate()
         fun enterAudioSlideshowPhotoModeIfNeeded()
+        fun updateTouchZonesHelpButtonVisibility(visible: Boolean)
     }
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
@@ -228,6 +235,25 @@ class PlayerUiStateCoordinator(
         callback.updatePlayPauseButton()
         callback.updateSlideShowButton()
         callback.updateVolumeButtonsVisibility()
+
+        // Touch Zones Help button (?) — visible for first 3 IMAGE/GIF files since app launch.
+        // Counter resets on process death (in-memory only).
+        val isImageGif = currentFile != null &&
+            (currentFile.type == MediaType.IMAGE || currentFile.type == MediaType.GIF)
+        val isFullscreenTouchZone = !state.showCommandPanel && callback.getUseTouchZones()
+
+        if (isFullscreenTouchZone && isImageGif) {
+            val path = currentFile!!.path
+            if (path != lastTrackedFilePath) {
+                lastTrackedFilePath = path
+                imageViewCount++
+                Timber.d("TouchZonesHelpButton: imageViewCount=$imageViewCount (max=$touchZonesHelpMaxViews)")
+            }
+        }
+
+        val showTouchZonesHelpButton = isFullscreenTouchZone && isImageGif &&
+            imageViewCount <= touchZonesHelpMaxViews
+        callback.updateTouchZonesHelpButtonVisibility(showTouchZonesHelpButton)
 
         // Note: updateAudioTouchZonesVisibility() is invoked inside updatePanelVisibility()
     }

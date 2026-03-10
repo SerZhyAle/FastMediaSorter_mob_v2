@@ -37,295 +37,7 @@
     <link rel="alternate" hreflang="ru" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-ru.html">
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
-    <style>
-        :root {
-            --primary: #667eea;
-            --secondary: #764ba2;
-            --accent: #f093fb;
-            --text-main: #2d3748;
-            --text-light: #718096;
-            --card-bg: #ffffff;
-            --bg-color: #f7fafc;
-            --border-color: #e2e8f0;
-        }
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            line-height: 1.6;
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 3rem 1rem;
-            text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        #headerCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 0;
-            pointer-events: none;
-        }
-
-        header>*:not(canvas) {
-            position: relative;
-            z-index: 1;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 2.8rem;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
-
-        .subtitle {
-            margin-top: 0.5rem;
-            font-size: 1.2rem;
-            opacity: 0.95;
-            font-weight: 300;
-        }
-
-        .version-badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 3rem auto;
-            padding: 0 1rem;
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            color: var(--text-main);
-            margin-bottom: 1.5rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--primary);
-            font-weight: 600;
-        }
-
-        .cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 1.8rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid var(--border-color);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary), var(--secondary));
-            transform: scaleX(0);
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
-            border-color: var(--primary);
-        }
-
-        .card:hover::before {
-            transform: scaleX(1);
-        }
-
-        .card-icon {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .card h2 {
-            margin: 0 0 0.8rem 0;
-            color: var(--primary);
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
-
-        .card p {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            flex-grow: 1;
-            margin: 0;
-        }
-
-        .card-footer {
-            margin-top: 1.2rem;
-            color: var(--secondary);
-            font-weight: 600;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-footer::after {
-            content: '→';
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover .card-footer::after {
-            transform: translateX(5px);
-        }
-
-        .feature-list {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem;
-            margin-bottom: 3rem;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .feature-list h3 {
-            color: var(--primary);
-            margin-top: 0;
-        }
-
-        .feature-list ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-        }
-
-        .feature-list li {
-            padding: 0.5rem 0;
-            color: var(--text-light);
-        }
-
-        .feature-list li::before {
-            content: '✓';
-            color: var(--primary);
-            font-weight: bold;
-            margin-right: 0.5rem;
-        }
-
-        footer {
-            background: var(--card-bg);
-            text-align: center;
-            padding: 2.5rem 1rem;
-            color: var(--text-light);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--border-color);
-            margin-top: 4rem;
-        }
-
-        footer a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        footer a:hover {
-            color: var(--secondary);
-        }
-
-        .github-corner {
-            position: fixed;
-            top: 0;
-            right: 0;
-            border: 0;
-            z-index: 1000;
-        }
-
-        .lang-switcher {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            display: flex;
-            gap: 0.5rem;
-            z-index: 100;
-        }
-
-        .lang-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 0.4rem 0.8rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s;
-        }
-
-        .lang-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .lang-btn.active {
-            background: rgba(255, 255, 255, 0.4);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 2rem;
-            }
-
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .feature-list ul {
-                grid-template-columns: 1fr;
-            }
-
-            .lang-switcher {
-                position: relative;
-                top: auto;
-                left: auto;
-                justify-content: center;
-                margin-bottom: 1rem;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
@@ -460,7 +172,7 @@
                 <div class="card-footer">Дізнатися →</div>
             </a>
 
-            <a href="docs/DOWLOADS_UK.html" class="card" target="_blank">
+            <a href="docs/DOWNLOADS_UK.html" class="card" target="_blank">
                 <div class="card-icon">📦</div>
                 <div>
                     <h2>Завантажити APK збірки</h2>
@@ -533,6 +245,14 @@
                 <div class="card-footer">Дивитися</div>
             </a>
 
+            <a href="https://youtube.com/shorts/hxMUsW3354g" class="card" target="_blank">
+                <div class="card-icon">▶️</div>
+                <div>
+                    <h2>Відео-прев'ю</h2>
+                    <p>Перегляньте коротке відео про FastMediaSorter v2 у дії на YouTube.</p>
+                </div>
+                <div class="card-footer">Дивитися Відео</div>
+            </a>
         </div>
 
         <h2 class="section-title">⚙️ Ресурси проєкту</h2>
@@ -601,6 +321,14 @@
                 <div class="card-footer">Дивитися</div>
             </a>
 
+            <a href="https://youtube.com/shorts/hxMUsW3354g" class="card" target="_blank">
+                <div class="card-icon">▶️</div>
+                <div>
+                    <h2>Відео-прев'ю</h2>
+                    <p>Перегляньте коротке відео про FastMediaSorter v2 у дії на YouTube.</p>
+                </div>
+                <div class="card-footer">Дивитися Відео</div>
+            </a>
         </div>
 
     </div>
@@ -719,3 +447,5 @@
 </body>
 
 </html>
+
+

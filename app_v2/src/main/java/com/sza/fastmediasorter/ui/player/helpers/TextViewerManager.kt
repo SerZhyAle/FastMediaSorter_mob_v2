@@ -36,6 +36,7 @@ import kotlin.math.abs
  * - Supports translation of text content via TranslationManager
  * - Supports dynamic font size adjustment via horizontal swipe gestures
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class TextViewerManager(
     private val context: Context,
     private val binding: ActivityPlayerUnifiedBinding,

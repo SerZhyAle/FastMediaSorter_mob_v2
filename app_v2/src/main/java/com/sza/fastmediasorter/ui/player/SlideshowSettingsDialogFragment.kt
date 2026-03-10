@@ -20,6 +20,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @AndroidEntryPoint
+@android.annotation.SuppressLint("SetTextI18n")
 class SlideshowSettingsDialogFragment : DialogFragment() {
 
     private var _binding: DialogSlideshowSettingsBinding? = null

@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
+@android.annotation.SuppressLint("SetTextI18n")
 class VideoSettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsVideoBinding? = null
@@ -126,10 +127,10 @@ class VideoSettingsFragment : Fragment() {
                     val maxKb = settings.videoSizeMax / KB_TO_BYTES
                     
                     if (binding.etVideoSizeMin.text.toString() != minKb.toString()) {
-                        binding.etVideoSizeMin.setText(minKb.toString())
+                        binding.etVideoSizeMin.setText(getString(com.sza.fastmediasorter.R.string.string_format, minKb.toString()))
                     }
                     if (binding.etVideoSizeMax.text.toString() != maxKb.toString()) {
-                        binding.etVideoSizeMax.setText(maxKb.toString())
+                        binding.etVideoSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
                     }
                     
                     isUpdatingFromSettings = false

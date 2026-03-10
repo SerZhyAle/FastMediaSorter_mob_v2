@@ -32,6 +32,7 @@ import java.io.FileInputStream
  * - Saves and restores last viewed chapter position
  * - Syncs styling with app theme (dark/light mode)
  */
+@android.annotation.SuppressLint("SetTextI18n")
 class EpubViewerManager(
     binding: ActivityPlayerUnifiedBinding,
     private val networkFileManager: NetworkFileManager,

@@ -219,6 +219,23 @@
 
         <include layout="@layout/player_pdf_fullscreen_overlay_content" />
 
+        <!-- Touch Zones Help button (?) - visible in fullscreen touch zone mode for IMAGE/GIF.
+             Positioned top-end to avoid conflict with toolbar back button. -->
+        <ImageButton
+            android:id="@+id/btnTouchZonesHelp"
+            android:layout_width="@dimen/player_cmd_button_size"
+            android:layout_height="@dimen/player_cmd_button_size"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="@dimen/player_epub_button_margin_top"
+            android:layout_marginEnd="@dimen/player_epub_button_margin_end"
+            android:background="@drawable/bg_circle_dark"
+            android:src="@android:drawable/ic_menu_help"
+            android:contentDescription="@string/touch_zones_help"
+            android:scaleType="fitCenter"
+            android:padding="@dimen/player_epub_button_padding"
+            android:elevation="@dimen/elevation_player_overlay"
+            android:visibility="gone" />
+
     </FrameLayout>
 
     <include layout="@layout/player_bottom_panels_container_content" />
