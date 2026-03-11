@@ -33,9 +33,9 @@
     -->
 <media-resources>
 
-    <resource name="Downloads" path="/storage/emulated/0/Download" type="LOCAL" allFiles="true" supportedMediaTypes="IMAGE,VIDEO,AUDIO,PDF" sortMode="DATE_DESC" displayMode="LIST" scanSubdirectories="true" showHiddenFiles="true"/>
+    <resource name="Downloads" path="/storage/emulated/0/Download" type="LOCAL" allFiles="true" supportedMediaTypes="IMAGE,VIDEO,AUDIO,PDF" sortMode="DATE_DESC" displayMode="LIST" scanSubdirectories="true" showHiddenFiles="true" disableThumbnails="false" rememberTheFileList="true" />
 
-    <resource name="mark common" path="smb://192.168.1.100/common" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" addToDestinations="true" scanSubdirectories="false" disableThumbnails="false" />
+    <resource name="mark common" path="smb://192.168.1.100/common" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" addToDestinations="true" scanSubdirectories="false" disableThumbnails="false" disableThumbnails="false" rememberTheFileList="false" />
 
     <resource name="media common" path="smb://192.168.1.110/common" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" addToDestinations="true" scanSubdirectories="false" disableThumbnails="false" />
 
@@ -47,11 +47,11 @@
 
     <resource name="_e" path="smb://192.168.1.112/down/_e" type="SMB" username="parya" password="SerZhyA25SerZhyA25p" pin="3333" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="false" addToDestinations="true" disableThumbnails="false" />
 
-    <resource name="mp3" path="smb://192.168.1.110/media/mp3" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" />
+    <resource name="mp3" path="smb://192.168.1.110/media/mp3" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="true" rememberTheFileList="true" />
 
-    <resource name="apeflac" path="smb://192.168.1.110/media/apeflac" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" />
+    <resource name="apeflac" path="smb://192.168.1.110/media/apeflac" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="AUDIO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
 
-    <resource name="p25" path="smb://192.168.1.110/photo/2025" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="IMAGE,ANIMATION,VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" />
+    <resource name="p25" path="smb://192.168.1.110/photo/2025" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="IMAGE,ANIMATION,VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
 
 
     <resource name="p26-2" path="smb://192.168.1.110/photo/2026/02" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="IMAGE,ANIMATION,VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" showFoldersInList="true" addToDestinations="true" disableThumbnails="false" />

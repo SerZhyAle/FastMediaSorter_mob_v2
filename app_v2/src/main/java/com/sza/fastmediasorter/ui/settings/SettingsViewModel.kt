@@ -471,6 +471,7 @@ class SettingsViewModel @Inject constructor(
                             val scanSubdirs = parser.getAttributeValue(null, "scanSubdirectories")?.toBoolean() ?: false
                             val disableThumbnails = parser.getAttributeValue(null, "disableThumbnails")?.toBoolean() ?: false
                             val showHidden = parser.getAttributeValue(null, "showHiddenFiles")?.toBoolean() ?: false
+                            val rememberFileList = parser.getAttributeValue(null, "rememberTheFileList")?.toBoolean() ?: false
                             
                             val type = try {
                                 com.sza.fastmediasorter.domain.model.ResourceType.valueOf(typeStr)
@@ -585,6 +586,7 @@ class SettingsViewModel @Inject constructor(
                                     disableThumbnails = disableThumbnails,
                                     allFiles = allFiles,
                                     showHiddenFiles = showHidden,
+                                    rememberFileList = rememberFileList,
                                     accessPin = pin,
                                     isDestination = isDest,
                                     destinationOrder = destOrder,
