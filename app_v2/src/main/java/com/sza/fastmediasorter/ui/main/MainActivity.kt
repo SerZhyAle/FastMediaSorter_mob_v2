@@ -469,17 +469,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             if (resource != null && !resource.accessPin.isNullOrBlank()) {
                                 passwordManager.checkResourcePin(resource) {
                                     startActivity(
-                                        AddResourceActivity.createIntent(
+                                        ResourceEditorActivity.createCopyIntent(
                                             this@MainActivity,
-                                            copyResourceId = event.copyResourceId
+                                            resourceId = event.copyResourceId
                                         )
                                     )
                                 }
                             } else {
                                 startActivity(
-                                    AddResourceActivity.createIntent(
+                                    ResourceEditorActivity.createCopyIntent(
                                         this@MainActivity,
-                                        copyResourceId = event.copyResourceId
+                                        resourceId = event.copyResourceId
                                     )
                                 )
                             }

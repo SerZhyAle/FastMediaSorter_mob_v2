@@ -5,10 +5,7 @@
     <!-- Primary colors - Lighter blue for dark theme -->
     <color name="blue_500">#FF64B5F6</color>    <!-- Material Blue 300 - lighter for dark -->
     <color name="blue_700">#FF42A5F5</color>    <!-- Material Blue 400 -->
-    <color name="blue_200">#FF90CAF9</color>    <!-- Material Blue 200 -->
-
     <!-- Accent colors -->
-    <color name="teal_200">#FF80CBC4</color>    <!-- Lighter teal for dark -->
     <color name="teal_700">#FF4DB6AC</color>
 
     <!-- Basic colors -->
@@ -16,11 +13,9 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- App specific colors for dark theme -->
-    <color name="ic_launcher_background">#FF1E1E1E</color>
     <color name="delete_button">#FFEF5350</color>    <!-- Lighter red for dark -->
     <color name="item_selected">#FF1565C0</color>    <!-- Darker blue for selection -->
     <color name="item_normal">#FF121212</color>    <!-- Dark background -->
-    <color name="audio_icon_bg">#FF78909C</color>    <!-- Lighter gray for dark -->
     <color name="filter_warning_bg">#FF6D4C00</color>    <!-- Dark orange/brown for warnings -->
     <color name="filter_warning_text">#FFFFD54F</color>    <!-- Light yellow text for contrast -->
     <color name="unavailable_resource_bg">#FF3A3A3A</color>    <!-- Dark gray for unavailable resources -->
@@ -55,9 +50,6 @@
     <color name="item_alternate">#FF181818</color>    <!-- Slightly lighter than bg (#121212) for striping -->
     <color name="item_pressed">#FF0D47A1</color>    <!-- Deep blue for pressed -->
     <color name="focus_indicator">#FF64B5F6</color>    <!-- Light blue for focus rings -->
-    <color name="button_hover">#14FFFFFF</color>    <!-- 8% white overlay for button hover -->
-    <color name="button_focused">#1FFFFFFF</color>    <!-- 12% white overlay for button focus -->
-
     <!-- Action button background -->
     <color name="action_button_bg">#20FFFFFF</color>
 
@@ -76,7 +68,6 @@
 
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50FFFFFF</color>
-    <color name="player_touch_zone_inactive">#20FFFFFF</color>
 
     <!-- Text colors -->
     <color name="player_audio_info_text">#CCCCCC</color>
@@ -124,23 +115,14 @@
 
     <!-- Touch zone backgrounds (light semi-transparent for dark theme) -->
     <color name="activity_player_unified_zoneBack_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneBack_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneCommandPanel_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneCommandPanel_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneCopy_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneCopy_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneDelete_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneDelete_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneMove_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneMove_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneNext_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneNext_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zonePrevious_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zonePrevious_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneRename_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneRename_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneSlideshow_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneSlideshow_background">@color/player_touch_zone_inactive</color>
 
     <!-- Player text colors (light for dark theme) -->
     <color name="activity_player_audioFileInfo_textColor">@color/player_audio_info_text</color>
@@ -186,5 +168,4 @@
     <!-- System text colors (explicit values for dark theme, API 28+ compatibility) -->
     <color name="text_color_primary">#DEFFFFFF</color>
     <color name="text_color_secondary">#99FFFFFF</color>
-    <color name="text_color_tertiary">#61FFFFFF</color>
 </resources>

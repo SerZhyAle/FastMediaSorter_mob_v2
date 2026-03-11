@@ -1,17 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Material Design Purple colors (kept for compatibility, but replaced in theme) -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-
     <!-- New primary colors - Blue for better contrast and readability -->
     <color name="blue_500">#FF1976D2</color>    <!-- Material Blue 700 -->
     <color name="blue_700">#FF0D47A1</color>    <!-- Material Blue 900 -->
-    <color name="blue_200">#FF64B5F6</color>    <!-- Material Blue 300 -->
-
     <!-- Accent colors -->
-    <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
 
     <!-- Basic colors -->
@@ -19,11 +11,9 @@
     <color name="white">#FFFFFFFF</color>
 
     <!-- App specific colors -->
-    <color name="ic_launcher_background">#FF1976D2</color>
     <color name="delete_button">#FFD32F2F</color>
     <color name="item_selected">#FFE3F2FD</color>
     <color name="item_normal">#FFFFFFFF</color>
-    <color name="audio_icon_bg">#FF607D8B</color>
     <color name="filter_warning_bg">#FFFFF9C4</color>    <!-- Light yellow for warnings -->
     <color name="filter_warning_text">#FF000000</color>    <!-- Black text for contrast -->
     <color name="folder_item_stroke">#00000000</color>    <!-- Transparent by default -->
@@ -58,9 +48,6 @@
     <color name="item_alternate">#FFF5F5F5</color>    <!-- Same as hover for now, very light grey -->
     <color name="item_pressed">#FFE1F5FE</color>    <!-- Light Blue 50 -->
     <color name="focus_indicator">#FF1976D2</color>    <!-- Primary blue for focus rings -->
-    <color name="button_hover">#14000000</color>    <!-- 8% black overlay for button hover -->
-    <color name="button_focused">#1F000000</color>    <!-- 12% black overlay for button focus -->
-
     <!-- Thumbnail backgrounds -->
     <color name="thumbnail_doc_bg">#B0BEC5</color>    <!-- Blue Grey 200 -->
     <color name="thumbnail_video_bg">#F48FB1</color>    <!-- Pink 200 -->
@@ -85,7 +72,6 @@
 
     <!-- Touch zone backgrounds -->
     <color name="player_touch_zone_active">#50000000</color>
-    <color name="player_touch_zone_inactive">#20000000</color>
 
     <!-- Text colors -->
     <color name="player_audio_info_text">#666666</color>
@@ -132,23 +118,14 @@
 
     <!-- Touch zone backgrounds (dark semi-transparent for light theme) -->
     <color name="activity_player_unified_zoneBack_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneBack_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneCommandPanel_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneCommandPanel_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneCopy_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneCopy_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneDelete_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneDelete_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneMove_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneMove_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneNext_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneNext_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zonePrevious_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zonePrevious_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneRename_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneRename_background">@color/player_touch_zone_inactive</color>
     <color name="activity_player_unified_zoneSlideshow_background">@color/player_touch_zone_active</color>
-    <color name="touch_zones_overlay_zoneSlideshow_background">@color/player_touch_zone_inactive</color>
 
     <!-- Player text colors (dark for light theme) -->
     <color name="activity_player_audioFileInfo_textColor">@color/player_audio_info_text</color>
@@ -194,7 +171,6 @@
     <!-- System text colors (explicit values for API 28+ compatibility) -->
     <color name="text_color_primary">#DE000000</color>
     <color name="text_color_secondary">#99000000</color>
-    <color name="text_color_tertiary">#61000000</color>
 
     <!-- Status colors (aliases for resource editor) -->
     <color name="success_green">@color/success_color</color>

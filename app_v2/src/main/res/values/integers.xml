@@ -3,32 +3,17 @@
     <!-- Grid column counts for default (phones in portrait) -->
     <integer name="grid_column_count">3</integer>
     <integer name="grid_column_count_landscape">3</integer>
-    <integer name="grid_column_count_list">2</integer>
     <integer name="resource_grid_column_count">2</integer>
     <integer name="destinations_column_count">1</integer>
-    <integer name="grid_columns_main">3</integer>
-    <integer name="grid_columns_gallery">3</integer>
-    <integer name="grid_columns_images">2</integer>
-    <integer name="max_visible_items">10</integer>
-    <integer name="animation_duration_short">150</integer>
-    <integer name="animation_duration_normal">300</integer>
-    <integer name="animation_duration_long">450</integer>
-    <integer name="scroll_threshold_dp">12</integer>
-    <integer name="default_player_quality">1080</integer>
-    <integer name="min_player_quality">480</integer>
-    <integer name="short_views_max_lenght" />
 
     <!-- Input field length limits -->
     <integer name="input_max_length_tiny">2</integer>
     <integer name="input_max_length_small">4</integer>
     <integer name="input_max_length_medium">5</integer>
-    <integer name="input_max_length_pin">6</integer>
     <integer name="input_max_length_filesize">7</integer>
 
     <!-- Grid layout dimensions -->
     <integer name="grid_columns_small">3</integer>
-    <integer name="grid_columns_large">5</integer>
-    <integer name="grid_rows_small">2</integer>
     <integer name="grid_rows_medium">3</integer>
 
     <!-- SeekBar/ProgressBar ranges -->

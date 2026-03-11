@@ -242,3 +242,4 @@ maestro/lib/
 # Integration test credentials (NEVER COMMIT)
 test_credentials.json
 **/test_media/test_credentials.json
+sza_resources.xml 

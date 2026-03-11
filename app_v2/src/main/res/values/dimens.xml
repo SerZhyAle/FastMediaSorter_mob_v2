@@ -146,8 +146,6 @@
     <dimen name="player_indicator_margin">8dp</dimen>
     <dimen name="player_button_padding_small">6dp</dimen>
     <dimen name="player_button_margin_small">2dp</dimen>
-    <dimen name="player_deprecated_button_bottom_offset_1">88dp</dimen>
-    <dimen name="player_deprecated_button_bottom_offset_2">152dp</dimen>
     <dimen name="player_epub_button_margin_top">8dp</dimen>
     <dimen name="player_epub_button_margin_end">8dp</dimen>
     <dimen name="player_epub_button_padding">6dp</dimen>
@@ -155,6 +153,24 @@
     <dimen name="player_indicator_padding_vertical_4dp">4dp</dimen>
     <dimen name="player_epub_chapter_indicator_margin_horizontal">8dp</dimen>
     <dimen name="player_text_edit_margin_end">8dp</dimen>
+
+    <!-- Player command panel mode -->
+    <dimen name="player_command_panel_mode_topCommandPanel_paddingBottom">@dimen/layout_spacing_tiny</dimen>
+    <dimen name="player_command_panel_mode_topCommandPanel_paddingTop">@dimen/layout_spacing_tiny</dimen>
+
+    <!-- Touch zones overlay layout dimensions -->
+    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginBottom">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginEnd">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginStart">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginTop">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneCopy_layout_marginEnd">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneCopy_layout_marginStart">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneDelete_layout_marginEnd">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneDelete_layout_marginStart">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneNext_layout_marginBottom">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zoneNext_layout_marginTop">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zonePrevious_layout_marginBottom">@dimen/layout_dimension_min</dimen>
+    <dimen name="touch_zones_overlay_zonePrevious_layout_marginTop">@dimen/layout_dimension_min</dimen>
 
     <!-- Add Resource Activity -->
     <dimen name="add_resource_title_text_size">18sp</dimen>
@@ -610,49 +626,5 @@
     <dimen name="item_resource_btnEdit_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnMoveDown_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnMoveUp_padding">@dimen/layout_spacing_normal</dimen>
-    <dimen name="player_command_panel_mode_btnBack_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnBack_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnBack_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnDeleteCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnDeleteCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnDeleteCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnFullscreenCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnFullscreenCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnFullscreenCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnNextCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnNextCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnNextCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnPreviousCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnPreviousCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnPreviousCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnRenameCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnRenameCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnRenameCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnShareCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnShareCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnShareCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnSlideshowCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnSlideshowCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnUndoCmd_layout_height">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_btnUndoCmd_layout_marginEnd">@dimen/layout_button_overlap</dimen>
-    <dimen name="player_command_panel_mode_btnUndoCmd_layout_width">@dimen/layout_button_size_standard</dimen>
-    <dimen name="player_command_panel_mode_copyToPanel_paddingBottom">@dimen/layout_spacing_tiny</dimen>
-    <dimen name="player_command_panel_mode_copyToPanel_textSize">@dimen/layout_text_size_tiny</dimen>
-    <dimen name="player_command_panel_mode_moveToPanel_paddingBottom">@dimen/layout_spacing_tiny</dimen>
-    <dimen name="player_command_panel_mode_moveToPanel_textSize">@dimen/layout_text_size_tiny</dimen>
-    <dimen name="player_command_panel_mode_topCommandPanel_paddingBottom">@dimen/layout_spacing_tiny</dimen>
-    <dimen name="player_command_panel_mode_topCommandPanel_paddingTop">@dimen/layout_spacing_tiny</dimen>
-    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginBottom">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginEnd">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginStart">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneCommandPanel_layout_marginTop">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneCopy_layout_marginEnd">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneCopy_layout_marginStart">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneDelete_layout_marginEnd">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneDelete_layout_marginStart">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneNext_layout_marginBottom">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zoneNext_layout_marginTop">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zonePrevious_layout_marginBottom">@dimen/layout_dimension_min</dimen>
-    <dimen name="touch_zones_overlay_zonePrevious_layout_marginTop">@dimen/layout_dimension_min</dimen>
 
 </resources>
