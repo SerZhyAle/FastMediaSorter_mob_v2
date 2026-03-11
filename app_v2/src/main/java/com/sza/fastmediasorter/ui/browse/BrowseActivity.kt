@@ -398,6 +398,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 if (dy != 0 || dx != 0) {
                     mediaFileAdapter.setScrolling(true)
                 }
+                // Update position-based button visibility on every scroll event
+                updateScrollButtonsVisibility(mediaFileAdapter.itemCount)
             }
         })
         
@@ -704,6 +706,22 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 }
                 Timber.d("Scrolled to bottom (position ${itemCount - 1})")
             }
+        }
+
+        // Page Up button — scroll up by one viewport height
+        binding.fabPageUp.setOnClickListener {
+            UserActionLogger.logButtonClick("PageUp", "BrowseActivity")
+            val viewportHeight = binding.rvMediaFiles.height
+            binding.rvMediaFiles.smoothScrollBy(0, -viewportHeight)
+            Timber.d("Page up: smoothScrollBy(0, -$viewportHeight)")
+        }
+
+        // Page Down button — scroll down by one viewport height
+        binding.fabPageDown.setOnClickListener {
+            UserActionLogger.logButtonClick("PageDown", "BrowseActivity")
+            val viewportHeight = binding.rvMediaFiles.height
+            binding.rvMediaFiles.smoothScrollBy(0, viewportHeight)
+            Timber.d("Page down: smoothScrollBy(0, $viewportHeight)")
         }
         
         // Set initial button labels based on current orientation
@@ -2158,14 +2176,40 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
     
     /**
-     * Update scroll buttons visibility based on file count
-     * Buttons are visible only when there are more than 20 files
+     * Update scroll buttons visibility based on file count and current scroll position.
+     * All four buttons are hidden when there are 20 or fewer files.
+     * When shown, scroll-to-top/page-up are hidden at the top of the list,
+     * and scroll-to-bottom/page-down are hidden at the bottom.
      */
     private fun updateScrollButtonsVisibility(fileCount: Int) {
-        val shouldShow = fileCount > 20
-        binding.fabScrollToTop.isVisible = shouldShow
-        binding.fabScrollToBottom.isVisible = shouldShow
-        Timber.d("Scroll buttons visibility: $shouldShow (fileCount=$fileCount)")
+        if (fileCount <= 20) {
+            binding.fabScrollToTop.isVisible = false
+            binding.fabScrollToBottom.isVisible = false
+            binding.fabPageUp.isVisible = false
+            binding.fabPageDown.isVisible = false
+            return
+        }
+
+        val layoutManager = binding.rvMediaFiles.layoutManager
+        val firstVisible = when (layoutManager) {
+            is LinearLayoutManager -> layoutManager.findFirstVisibleItemPosition()
+            else -> RecyclerView.NO_POSITION
+        }
+        val lastVisible = when (layoutManager) {
+            is LinearLayoutManager -> layoutManager.findLastVisibleItemPosition()
+            else -> RecyclerView.NO_POSITION
+        }
+        val itemCount = layoutManager?.itemCount ?: 0
+
+        val atTop = firstVisible <= 0
+        val atBottom = lastVisible != RecyclerView.NO_POSITION && lastVisible >= itemCount - 1
+
+        binding.fabScrollToTop.isVisible = !atTop
+        binding.fabPageUp.isVisible = !atTop
+        binding.fabScrollToBottom.isVisible = !atBottom
+        binding.fabPageDown.isVisible = !atBottom
+
+        Timber.d("Scroll buttons: atTop=$atTop, atBottom=$atBottom, first=$firstVisible, last=$lastVisible, total=$itemCount")
     }
     
     private fun getThemeColor(attrId: Int): Int {

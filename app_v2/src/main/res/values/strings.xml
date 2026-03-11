@@ -133,6 +133,8 @@
     <string name="play">Play</string>
     <string name="scroll_to_top">Scroll to top</string>
     <string name="scroll_to_bottom">Scroll to bottom</string>
+    <string name="scroll_page_up">Page up</string>
+    <string name="scroll_page_down">Page down</string>
     <string name="empty_state_message">Welcome! 🎉\n\nStart by configuring app settings and adding local device folders to this screen</string>
     <string name="no_media_files_found">No media files found in this folder</string>
     <string name="recent_media">Recent Media</string>

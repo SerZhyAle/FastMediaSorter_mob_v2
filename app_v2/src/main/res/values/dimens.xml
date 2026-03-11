@@ -98,6 +98,7 @@
     <dimen name="browse_scroll_button_size">40dp</dimen>
     <dimen name="browse_scroll_button_margin">40dp</dimen>
     <dimen name="browse_scroll_button_padding">6dp</dimen>
+    <dimen name="browse_navigation_button_spacing">8dp</dimen>
     <dimen name="browse_filter_badge_size">18dp</dimen>
     <dimen name="browse_filter_badge_text_size">10sp</dimen>
     <dimen name="browse_progress_bar_size">32dp</dimen>

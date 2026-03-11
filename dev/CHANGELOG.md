@@ -299,3 +299,8 @@ Format: | datetime | file | target | description |
 | 2026-03-11 21:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Fixed storage permission requests for complete access |
 | 2026-03-11 21:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Added missing Context import |
 | 2026-03-11 21:48:07 | `app_v2/src/main/res/values/integers.xml` | `integers` | Added default integers to fix lint MissingDefaultResource error |
+| 2026-03-11 22:41:15 | `gradle.properties` | `org.gradle.jvmargs` | Added -Djava.io.tmpdir=C:/Windows/Temp to override missing R:\temp RAM-disk set via _JAVA_OPTIONS |
+| 2026-03-11 23:24:22 | `app_v2/src/main/res/values/dimens.xml` | `dimens.xml` | Added browse_navigation_button_spacing for new scroll buttons |
+| 2026-03-11 23:24:25 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added scroll_page_up and scroll_page_down strings |
+| 2026-03-11 23:35:04 | `app_v2/src/main/res/layout/activity_browse.xml` | `fabPageUp,fabPageDown` | Added Page Up/Down buttons to browse scroll controls (spec SPEC_BROWSE_NAVIGATION_CONTROLS) |
+| 2026-03-11 23:35:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `updateScrollButtonsVisibility,fabPageUp,fabPageDown` | Position-aware scroll button visibility + page up/down click handlers |
