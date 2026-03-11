@@ -35,7 +35,7 @@
 
     <resource name="Downloads" path="/storage/emulated/0/Download" type="LOCAL" allFiles="true" supportedMediaTypes="IMAGE,VIDEO,AUDIO,PDF" sortMode="DATE_DESC" displayMode="LIST" scanSubdirectories="true" showHiddenFiles="true" disableThumbnails="false" rememberTheFileList="true" />
 
-    <resource name="mark common" path="smb://192.168.1.100/common" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" addToDestinations="true" scanSubdirectories="false" disableThumbnails="false" disableThumbnails="false" rememberTheFileList="false" />
+    <resource name="mark common" path="smb://192.168.1.100/common" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" addToDestinations="true" scanSubdirectories="false" disableThumbnails="false" rememberTheFileList="false" />
 
     <resource name="media common" path="smb://192.168.1.110/common" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" displayMode="LIST" addToDestinations="true" scanSubdirectories="false" disableThumbnails="false" />
 

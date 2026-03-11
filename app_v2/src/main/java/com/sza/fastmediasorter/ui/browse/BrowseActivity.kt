@@ -291,6 +291,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         mediaFileAdapter = MediaFileAdapter(
             onFileClick = { file ->
                 UserActionLogger.logItemClick(file.name, context = "File click")
+                viewModel.saveLastViewedFile(file.path)
                 viewModel.openFile(file)
             },
             onFileLongClick = { file ->
@@ -301,6 +302,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             onSelectionChanged = { file, selected ->
                 UserActionLogger.logSelection(file.name, selected, context = "Checkbox click")
                 viewModel.selectFile(file.path)
+                if (selected) viewModel.saveLastViewedFile(file.path)
             },
             onSelectionRangeRequested = { file ->
                 UserActionLogger.logItemLongClick(file.name, context = "Checkbox long click - range")
@@ -309,6 +311,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             },
             onPlayClick = { file ->
                 UserActionLogger.logButtonClick("InlinePlay", "File: ${file.name}")
+                viewModel.saveLastViewedFile(file.path)
                 viewModel.inlinePlayToggle(file)
             },
             onFavoriteClick = { file ->
@@ -2057,8 +2060,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Stop MediaStore observer to avoid unnecessary updates
         stopMediaStoreObserver()
         
-        // Save scroll position when leaving Browse (back button, home, etc.)
+        // Save scroll position (index) when leaving Browse
         stateManager.saveScrollPosition()
+        // Save last viewed file (path) when leaving Browse
+        stateManager.saveLastViewedFile()
         
         // Set flag to restore scroll position on next resume (return from PlayerActivity)
         shouldScrollToLastViewed = true
