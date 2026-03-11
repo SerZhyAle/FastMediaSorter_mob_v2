@@ -383,6 +383,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 mediaFileAdapter.loadVisibleThumbnails(firstVisible, lastVisible)
                             }
                         }
+                        // Refresh button visibility after scroll settles (positions are final here)
+                        updateScrollButtonsVisibility(mediaFileAdapter.itemCount)
                     }
                     RecyclerView.SCROLL_STATE_DRAGGING,
                     RecyclerView.SCROLL_STATE_SETTLING -> {
@@ -691,6 +693,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 else -> binding.rvMediaFiles.scrollToPosition(0)
             }
             Timber.d("Scrolled to top (position 0)")
+            // scrollToPositionWithOffset is instant — positions update after layout, not during onScrolled
+            binding.rvMediaFiles.post { updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }
         }
         
         // Scroll to bottom button
@@ -705,6 +709,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     else -> binding.rvMediaFiles.scrollToPosition(itemCount - 1)
                 }
                 Timber.d("Scrolled to bottom (position ${itemCount - 1})")
+                binding.rvMediaFiles.post { updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }
             }
         }
 
@@ -1026,8 +1031,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 }
                             }
                             
-                            // Update scroll buttons visibility based on file count
-                            updateScrollButtonsVisibility(itemCount)
+                            // Update scroll buttons visibility; use post{} so layout positions are final
+                            binding.rvMediaFiles.post { updateScrollButtonsVisibility(itemCount) }
 
                             // Heap protection: if heap >85% used after loading, trim Glide memory cache.
                             // Prevents silent OOM kills on devices with limited heap (e.g., 512MB).
@@ -1666,6 +1671,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         recyclerViewManager.updateDisplayMode(effectiveMode, iconSize, showVideoThumbnails)
         currentDisplayMode = effectiveMode
         updateToggleViewAvailability(shouldForceList)
+        // After layout manager / span count changes, visible item range may differ — re-check
+        binding.rvMediaFiles.post { updateScrollButtonsVisibility(mediaFileAdapter.itemCount) }
     }
 
     private fun updateToggleViewAvailability(shouldDisable: Boolean) {
@@ -2182,14 +2189,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
      * and scroll-to-bottom/page-down are hidden at the bottom.
      */
     private fun updateScrollButtonsVisibility(fileCount: Int) {
-        if (fileCount <= 20) {
-            binding.fabScrollToTop.isVisible = false
-            binding.fabScrollToBottom.isVisible = false
-            binding.fabPageUp.isVisible = false
-            binding.fabPageDown.isVisible = false
-            return
-        }
-
         val layoutManager = binding.rvMediaFiles.layoutManager
         val firstVisible = when (layoutManager) {
             is LinearLayoutManager -> layoutManager.findFirstVisibleItemPosition()
@@ -2201,8 +2200,20 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         val itemCount = layoutManager?.itemCount ?: 0
 
+        // Hide all buttons when list is empty or all items fit on screen
+        val allVisible = firstVisible == RecyclerView.NO_POSITION ||
+            (firstVisible <= 0 && lastVisible != RecyclerView.NO_POSITION && lastVisible >= itemCount - 1)
+        if (fileCount == 0 || allVisible) {
+            binding.fabScrollToTop.isVisible = false
+            binding.fabScrollToBottom.isVisible = false
+            binding.fabPageUp.isVisible = false
+            binding.fabPageDown.isVisible = false
+            Timber.d("Scroll buttons: all hidden (fileCount=$fileCount, allVisible=$allVisible, first=$firstVisible, last=$lastVisible, total=$itemCount)")
+            return
+        }
+
         val atTop = firstVisible <= 0
-        val atBottom = lastVisible != RecyclerView.NO_POSITION && lastVisible >= itemCount - 1
+        val atBottom = lastVisible >= itemCount - 1
 
         binding.fabScrollToTop.isVisible = !atTop
         binding.fabPageUp.isVisible = !atTop

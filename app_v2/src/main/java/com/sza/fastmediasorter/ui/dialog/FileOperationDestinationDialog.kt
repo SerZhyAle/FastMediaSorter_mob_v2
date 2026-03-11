@@ -8,9 +8,9 @@ import android.os.Handler
 import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
-import timber.log.Timber
 import android.widget.LinearLayout
 import android.widget.Toast
+import timber.log.Timber
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogCopyToBinding
 import com.sza.fastmediasorter.domain.model.MediaResource

@@ -304,3 +304,5 @@ Format: | datetime | file | target | description |
 | 2026-03-11 23:24:25 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added scroll_page_up and scroll_page_down strings |
 | 2026-03-11 23:35:04 | `app_v2/src/main/res/layout/activity_browse.xml` | `fabPageUp,fabPageDown` | Added Page Up/Down buttons to browse scroll controls (spec SPEC_BROWSE_NAVIGATION_CONTROLS) |
 | 2026-03-11 23:35:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `updateScrollButtonsVisibility,fabPageUp,fabPageDown` | Position-aware scroll button visibility + page up/down click handlers |
+| 2026-03-11 23:47:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `updateScrollButtonsVisibility` | Fix stale layout positions: post{} after instant scroll + update in SCROLL_STATE_IDLE |
+| 2026-03-11 23:49:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `updateScrollButtonsVisibility,updateDisplayMode` | Position-based scroll button logic: allVisible hides all buttons; post{} on submitList+displayMode switch |
