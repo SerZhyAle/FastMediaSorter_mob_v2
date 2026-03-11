@@ -282,3 +282,20 @@ Format: | datetime | file | target | description |
 | 2026-03-11 02:02:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `SettingsViewModel` | RESTORED importSzaResources() function that was incorrectly removed |
 | 2026-03-11 02:02:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | RESTORED sza easter egg dialog in etDefaultUser listener |
 | 2026-03-11 02:37:42 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Appended new improvement sections: V (Security), VIII (Accessibility), IX (Architecture debt), X (New use cases) — 20+ new proposals |
+| 2026-03-11 15:28:13 | app_v2/.../AppDatabase.kt | AppDatabase | Made migrations 12-13,14-15,15-16,17-18 idempotent with hasColumn guards |
+| 2026-03-11 15:28:25 | app_v2/.../core/di/DatabaseModule.kt | DatabaseModule | Added fallbackToDestructiveMigration + try-catch with auto-reset and toast on migration failure |
+| 2026-03-11 15:30:42 | `gradle.properties` | `gradle.properties` | Reduced Gradle daemon heap from 16g to 4g added MaxMetaspaceSize 512m cap |
+| 2026-03-11 16:14:22 | `VideoPlayerManager.kt` | `VideoPlayerManager` | Added content URI fallback via MediaStore query in playLocalVideoInternal when File.canRead fails |
+| 2026-03-11 16:14:22 | `MediaFileAdapter.kt` | `MediaFileAdapter` | Added content URI fallback for Glide thumbnail loading at 4 locations (list+grid, image+video) |
+| 2026-03-11 16:14:22 | `BrowseViewModel.kt` | `BrowseViewModel` | Added content URI fallback for inline MediaPlayer audio when setDataSource fails with IOException |
+| 2026-03-11 16:14:22 | `ImageLoadingManager.kt` | `ImageLoadingManager` | Added content URI fallback for Glide image display and preload when File.canRead fails |
+| 2026-03-11 17:24:08 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | Enhanced logAppStartupInfo with full device diagnostics |
+| 2026-03-11 20:04:33 | `gradle.properties` | `JvmArgs` | Removed hardcoded tmpdir for SerhiiZhyhunenko user; use system default |
+| 2026-03-11 20:04:33 | `local.properties` | `sdk.dir` | Updated SDK path from SerhiiZhyhunenko to serzh user |
+| 2026-03-11 20:20:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Add startup local storage permission check: dialog on first ask, toast if previously denied |
+| 2026-03-11 20:20:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Mark storage_permission_requested=true in app_prefs when permission launcher fires |
+| 2026-03-11 20:20:25 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add storage_permission_denied_toast string |
+| 2026-03-11 21:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/PermissionHelper.kt` | `PermissionHelper` | Fixed requested storage permissions logic for API <= 29 |
+| 2026-03-11 21:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Fixed storage permission requests for complete access |
+| 2026-03-11 21:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Added missing Context import |
+| 2026-03-11 21:48:07 | `app_v2/src/main/res/values/integers.xml` | `integers` | Added default integers to fix lint MissingDefaultResource error |

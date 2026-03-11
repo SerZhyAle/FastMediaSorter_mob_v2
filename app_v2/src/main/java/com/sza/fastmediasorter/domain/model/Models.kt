@@ -194,6 +194,7 @@ data class MediaFile(
     val type: MediaType,
     val size: Long,
     val createdDate: Long,
+    val contentUri: String? = null, // MediaStore content:// URI for local file access (Android 11+)
     val duration: Long? = null,
     val width: Int? = null,
     val height: Int? = null,

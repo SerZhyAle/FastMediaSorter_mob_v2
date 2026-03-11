@@ -1816,4 +1816,5 @@
     <string name="widget_continue_reading_description">Возобновить слайдшоу с последней позиции</string>
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
+    <string name="database_reset_message">База данных сброшена из-за ошибки обновления. Ресурсы потребуется добавить заново.</string>
 </resources>

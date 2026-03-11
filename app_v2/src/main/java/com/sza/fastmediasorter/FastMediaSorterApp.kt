@@ -343,24 +343,84 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         sb.append("\n==========================================\n")
         sb.append("   FAST MEDIA SORTER V2 - STARTUP INFO\n")
         sb.append("==========================================\n")
-        
+
         // App Info
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Version Name", BuildConfig.VERSION_NAME))
         sb.append(String.format(Locale.US, "%-20s: %d\n", "Version Code", BuildConfig.VERSION_CODE))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "App ID", BuildConfig.APPLICATION_ID))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Build Type", BuildConfig.BUILD_TYPE))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Flavor", BuildConfig.FLAVOR))
-        
-        // Build Details
-        
-        // Device Info
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Git Hash", BuildConfig.GIT_HASH))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Build Time", BuildConfig.BUILD_TIME))
+
+        // Android & Device Info
         sb.append("------------------------------------------\n")
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Android Version", android.os.Build.VERSION.RELEASE))
+        sb.append(String.format(Locale.US, "%-20s: %d\n", "SDK / API Level", android.os.Build.VERSION.SDK_INT))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Security Patch", android.os.Build.VERSION.SECURITY_PATCH))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Manufacturer", android.os.Build.MANUFACTURER))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Brand", android.os.Build.BRAND))
         sb.append(String.format(Locale.US, "%-20s: %s\n", "Model", android.os.Build.MODEL))
-        sb.append(String.format(Locale.US, "%-20s: %d (%s)\n", "SDK Version", android.os.Build.VERSION.SDK_INT, android.os.Build.VERSION.RELEASE))
-        
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Device", android.os.Build.DEVICE))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Product", android.os.Build.PRODUCT))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Hardware", android.os.Build.HARDWARE))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Board", android.os.Build.BOARD))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Supported ABIs", android.os.Build.SUPPORTED_ABIS.joinToString()))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Fingerprint", android.os.Build.FINGERPRINT))
+
+        // Screen Info
+        sb.append("------------------------------------------\n")
+        val dm = resources.displayMetrics
+        sb.append(String.format(Locale.US, "%-20s: %d x %d px\n", "Screen Resolution", dm.widthPixels, dm.heightPixels))
+        sb.append(String.format(Locale.US, "%-20s: %.1f\n", "Density", dm.density))
+        sb.append(String.format(Locale.US, "%-20s: %d dpi\n", "DPI", dm.densityDpi))
+        sb.append(String.format(Locale.US, "%-20s: %.1f x %.1f dp\n", "Screen (dp)", dm.widthPixels / dm.density, dm.heightPixels / dm.density))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Density Bucket", when {
+            dm.densityDpi <= android.util.DisplayMetrics.DENSITY_LOW -> "ldpi"
+            dm.densityDpi <= android.util.DisplayMetrics.DENSITY_MEDIUM -> "mdpi"
+            dm.densityDpi <= android.util.DisplayMetrics.DENSITY_HIGH -> "hdpi"
+            dm.densityDpi <= android.util.DisplayMetrics.DENSITY_XHIGH -> "xhdpi"
+            dm.densityDpi <= android.util.DisplayMetrics.DENSITY_XXHIGH -> "xxhdpi"
+            else -> "xxxhdpi"
+        }))
+
+        // Memory Info
+        sb.append("------------------------------------------\n")
+        val activityManager = getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+        val memInfo = android.app.ActivityManager.MemoryInfo()
+        activityManager.getMemoryInfo(memInfo)
+        val totalRamMb = memInfo.totalMem / (1024L * 1024L)
+        val availRamMb = memInfo.availMem / (1024L * 1024L)
+        sb.append(String.format(Locale.US, "%-20s: %d MB\n", "Total RAM", totalRamMb))
+        sb.append(String.format(Locale.US, "%-20s: %d MB\n", "Available RAM", availRamMb))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Low Memory", if (memInfo.lowMemory) "YES" else "no"))
+        val rt = Runtime.getRuntime()
+        sb.append(String.format(Locale.US, "%-20s: %d MB\n", "Heap Max", rt.maxMemory() / (1024L * 1024L)))
+        sb.append(String.format(Locale.US, "%-20s: %d MB\n", "Heap Total", rt.totalMemory() / (1024L * 1024L)))
+        sb.append(String.format(Locale.US, "%-20s: %d MB\n", "Heap Free", rt.freeMemory() / (1024L * 1024L)))
+        sb.append(String.format(Locale.US, "%-20s: %d\n", "Memory Class", activityManager.memoryClass))
+        sb.append(String.format(Locale.US, "%-20s: %d\n", "Large Memory Class", activityManager.largeMemoryClass))
+
+        // Storage Info
+        sb.append("------------------------------------------\n")
+        val stat = android.os.StatFs(android.os.Environment.getDataDirectory().path)
+        val internalTotalGb = (stat.blockSizeLong * stat.blockCountLong) / (1024L * 1024L * 1024L)
+        val internalFreeGb = (stat.blockSizeLong * stat.availableBlocksLong) / (1024L * 1024L * 1024L)
+        sb.append(String.format(Locale.US, "%-20s: %d GB\n", "Internal Total", internalTotalGb))
+        sb.append(String.format(Locale.US, "%-20s: %d GB\n", "Internal Free", internalFreeGb))
+
+        // CPU Info
+        sb.append("------------------------------------------\n")
+        sb.append(String.format(Locale.US, "%-20s: %d\n", "CPU Cores", Runtime.getRuntime().availableProcessors()))
+
+        // Locale & Timezone
+        sb.append("------------------------------------------\n")
+        val currentLocale = resources.configuration.locales[0]
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "System Locale", currentLocale.toLanguageTag()))
+        sb.append(String.format(Locale.US, "%-20s: %s\n", "Timezone", java.util.TimeZone.getDefault().id))
+
         sb.append("==========================================")
-        
+
         Timber.i(sb.toString())
     }
 }

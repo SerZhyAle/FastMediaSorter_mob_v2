@@ -137,8 +137,12 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_12_13 = object : Migration(12, 13) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_scan_timestamp INTEGER DEFAULT NULL")
-                db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_modified_folder INTEGER DEFAULT NULL")
+                if (!hasColumn(db, "cached_file_lists", "last_scan_timestamp")) {
+                    db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_scan_timestamp INTEGER DEFAULT NULL")
+                }
+                if (!hasColumn(db, "cached_file_lists", "last_modified_folder")) {
+                    db.execSQL("ALTER TABLE cached_file_lists ADD COLUMN last_modified_folder INTEGER DEFAULT NULL")
+                }
             }
         }
 
@@ -162,15 +166,21 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_14_15 = object : Migration(14, 15) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE network_credentials ADD COLUMN accountId TEXT NOT NULL DEFAULT ''")
-                db.execSQL("CREATE INDEX IF NOT EXISTS idx_credentials_account_id ON network_credentials (accountId)")
+                if (!hasColumn(db, "network_credentials", "accountId")) {
+                    db.execSQL("ALTER TABLE network_credentials ADD COLUMN accountId TEXT NOT NULL DEFAULT ''")
+                }
+                ensureIndex(db, "idx_credentials_account_id", "CREATE INDEX idx_credentials_account_id ON network_credentials (accountId)")
             }
         }
 
         val MIGRATION_15_16 = object : Migration(15, 16) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN videoRotation INTEGER DEFAULT NULL")
-                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN exifDateTime INTEGER DEFAULT NULL")
+                if (!hasColumn(db, "file_metadata_cache", "videoRotation")) {
+                    db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN videoRotation INTEGER DEFAULT NULL")
+                }
+                if (!hasColumn(db, "file_metadata_cache", "exifDateTime")) {
+                    db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN exifDateTime INTEGER DEFAULT NULL")
+                }
             }
         }
 
@@ -183,9 +193,15 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_17_18 = object : Migration(17, 18) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN artist TEXT DEFAULT NULL")
-                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN album TEXT DEFAULT NULL")
-                db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN title TEXT DEFAULT NULL")
+                if (!hasColumn(db, "file_metadata_cache", "artist")) {
+                    db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN artist TEXT DEFAULT NULL")
+                }
+                if (!hasColumn(db, "file_metadata_cache", "album")) {
+                    db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN album TEXT DEFAULT NULL")
+                }
+                if (!hasColumn(db, "file_metadata_cache", "title")) {
+                    db.execSQL("ALTER TABLE file_metadata_cache ADD COLUMN title TEXT DEFAULT NULL")
+                }
             }
         }
 

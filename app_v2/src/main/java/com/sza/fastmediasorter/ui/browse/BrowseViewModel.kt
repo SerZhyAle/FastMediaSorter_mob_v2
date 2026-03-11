@@ -428,7 +428,19 @@ class BrowseViewModel @Inject constructor(
                 )
 
                 val player = android.media.MediaPlayer().apply {
-                    setDataSource(localPath)
+                    try {
+                        setDataSource(localPath)
+                    } catch (e: java.io.IOException) {
+                        // Fallback to content URI if direct path access fails (Android 11+ scoped storage)
+                        val contentUri = file.contentUri
+                        if (contentUri != null) {
+                            Timber.i("InlinePlayer: direct path failed, using content URI fallback for '${file.name}'")
+                            reset()
+                            setDataSource(context, android.net.Uri.parse(contentUri))
+                        } else {
+                            throw e
+                        }
+                    }
                     prepare() // blocking — on IO dispatcher
                     setOnCompletionListener { inlinePlayNext() }
                 }

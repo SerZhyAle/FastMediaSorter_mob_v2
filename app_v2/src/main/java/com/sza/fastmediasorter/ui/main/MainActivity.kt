@@ -2,12 +2,16 @@ package com.sza.fastmediasorter.ui.main
 
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.core.view.isVisible
@@ -35,6 +39,8 @@ import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
+import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -51,6 +57,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var resourceAdapter: ResourceAdapter
     private lateinit var keyboardNavigationHandler: KeyboardNavigationHandler
     private lateinit var passwordManager: ResourcePasswordManager
+
+    private var permissionCheckDoneThisSession = false
+
+    private val storagePermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { /* Result reflected next onResume via hasFullLocalPermissions() */ }
+
+    private val settingsPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { /* Result reflected next onResume via hasFullLocalPermissions() */ }
     
     @Inject
     lateinit var settingsRepository: SettingsRepository
@@ -136,8 +152,10 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         if (isReturningFromAnotherActivity) {
             viewModel.refreshResources()
         }
+
+        checkLocalPermissionsOnStartup()
     }
-    
+
     override fun onPause() {
         super.onPause()
         isReturningFromAnotherActivity = true
@@ -836,7 +854,69 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         return super.onGenericMotionEvent(event)
     }
 
+    private fun hasFullLocalPermissions(): Boolean {
+        return PermissionHelper.checkStoragePermissions(this)
+    }
+
+    private fun wasStoragePermissionRequested(): Boolean =
+        getSharedPreferences(PREFS_NAME_APP, MODE_PRIVATE)
+            .getBoolean(KEY_STORAGE_PERMISSION_REQUESTED, false)
+
+    private fun markStoragePermissionRequested() {
+        getSharedPreferences(PREFS_NAME_APP, MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_STORAGE_PERMISSION_REQUESTED, true)
+            .apply()
+    }
+
+    private fun checkLocalPermissionsOnStartup() {
+        if (permissionCheckDoneThisSession) return
+        permissionCheckDoneThisSession = true
+
+        if (hasFullLocalPermissions()) return
+
+        if (!wasStoragePermissionRequested()) {
+            markStoragePermissionRequested()
+            showStoragePermissionRequestDialog()
+        } else {
+            Toast.makeText(this, R.string.storage_permission_denied_toast, Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun showStoragePermissionRequestDialog() {
+        val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            getString(R.string.permission_storage_rationale_r)
+        } else {
+            getString(R.string.permission_storage_rationale)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(R.string.permissions_required_title)
+            .setMessage(message)
+            .setPositiveButton(R.string.grant_permissions) { _, _ -> launchStoragePermissionFlow() }
+            .setNegativeButton(R.string.continue_anyway, null)
+            .setCancelable(true)
+            .show()
+    }
+
+    private fun launchStoragePermissionFlow() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val intent = try {
+                Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                    data = Uri.parse("package:$packageName")
+                }
+            } catch (_: Exception) {
+                Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+            }
+            settingsPermissionLauncher.launch(intent)
+        } else {
+            val perms = PermissionHelper.getStoragePermissionsArray()
+            storagePermissionLauncher.launch(perms)
+        }
+    }
+
     companion object {
         const val ACTION_START_SLIDESHOW = "com.sza.fastmediasorter.ACTION_START_SLIDESHOW"
+        private const val PREFS_NAME_APP = "app_prefs"
+        private const val KEY_STORAGE_PERMISSION_REQUESTED = "storage_permission_requested"
     }
 }

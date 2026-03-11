@@ -198,9 +198,9 @@ object PermissionHelper {
      * 
      * API level breakdown:
      * - **API 30+ (Android 11+)**: Checks if `MANAGE_EXTERNAL_STORAGE` is granted via `Environment.isExternalStorageManager()`
-     * - **API 29 (Android 10)**: Checks `READ_EXTERNAL_STORAGE` permission. App uses `requestLegacyExternalStorage=true` in manifest.
+     * - **API 29 (Android 10)**: Checks both `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE` permissions.
      * - **API 28 (Android 9)**: Checks both `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE` permissions.
-     * - **API 23-27 (Android 6-8)**: Checks `READ_EXTERNAL_STORAGE` (fallback for legacy flavor only).
+     * - **API 23-27 (Android 6-8)**: Checks both `READ_EXTERNAL_STORAGE` and `WRITE_EXTERNAL_STORAGE` permissions.
      * 
      * @param context Application or Activity context
      * @return `true` if storage permissions are granted, `false` otherwise
@@ -214,19 +214,8 @@ object PermissionHelper {
                 hasManageStorage
             }
             
-            // API 29 (Android 10): Use READ_EXTERNAL_STORAGE + legacy storage flag
-            // Legacy storage flag is set in AndroidManifest: android:requestLegacyExternalStorage="true"
-            Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
-                val hasReadStorage = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED
-                Timber.d("PermissionHelper: API ${Build.VERSION.SDK_INT} - READ_EXTERNAL_STORAGE=$hasReadStorage (legacy storage enabled)")
-                hasReadStorage
-            }
-            
-            // API 28 (Android 9): Standard READ + WRITE permissions
-            Build.VERSION.SDK_INT == Build.VERSION_CODES.P -> {
+            // API 23-29 (Android 6-10): Standard READ + WRITE permissions
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
                 val hasRead = ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.READ_EXTERNAL_STORAGE
@@ -235,18 +224,8 @@ object PermissionHelper {
                     context,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
                 ) == PackageManager.PERMISSION_GRANTED
-                Timber.d("PermissionHelper: API ${Build.VERSION.SDK_INT} - READ=$hasRead, WRITE=$hasWrite")
+                Timber.d("PermissionHelper: API ${Build.VERSION.SDK_INT} - READ_EXTERNAL_STORAGE=$hasRead, WRITE_EXTERNAL_STORAGE=$hasWrite")
                 hasRead && hasWrite
-            }
-            
-            // API 23-27 (Android 6-8): Simple READ_EXTERNAL_STORAGE check (legacy flavor only)
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                val hasReadStorage = ContextCompat.checkSelfPermission(
-                    context,
-                    Manifest.permission.READ_EXTERNAL_STORAGE
-                ) == PackageManager.PERMISSION_GRANTED
-                Timber.d("PermissionHelper: API ${Build.VERSION.SDK_INT} - READ_EXTERNAL_STORAGE=$hasReadStorage (legacy)")
-                hasReadStorage
             }
             
             // API < 23: Permissions granted at install time
@@ -255,6 +234,16 @@ object PermissionHelper {
                 true
             }
         }
+    }
+
+    /**
+     * Get the array of standard storage permissions needed for API < 30.
+     */
+    fun getStoragePermissionsArray(): Array<String> {
+        return arrayOf(
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
     }
 
     /**

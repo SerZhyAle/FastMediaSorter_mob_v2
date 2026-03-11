@@ -380,17 +380,6 @@
 
 ## V. БЕЗОПАСНОСТЬ (дополнение к IV.2)
 
-### V.1 WebView JavaScript в EPUB-ридере (БЕЗОПАСНОСТЬ)
-
-**Проблема**: В `EpubViewerManager.kt` (строка ~215) включён JavaScript для WebView, отображающего EPUB-контент. EPUB-файлы — пользовательский (недоверенный) контент. JavaScript в WebView позволяет: DOM manipulation, потенциальный XSS, доступ к file:// протоколу.
-
-**Что уже хорошо**: `addJavascriptInterface()` не вызывается, WebViewClient перехватывает запросы.
-
-**Предложение**:
-- Отключить JavaScript, если определение scroll position можно реализовать через CSS
-- Добавить Content-Security-Policy заголовки в генерируемый HTML
-- Установить `setAllowFileAccess(false)` и `setAllowFileAccessFromFileURLs(false)`
-- Или: включать JS только для locally-generated HTML (trusted), не для контента из EPUB
 
 ### V.2 Тестовые credentials в production-сборке
 

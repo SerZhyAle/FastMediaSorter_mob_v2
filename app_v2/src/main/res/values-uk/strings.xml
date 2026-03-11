@@ -1818,4 +1818,5 @@
     <string name="widget_continue_reading_description">Відновити слайдшоу з останньої позиції</string>
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
+    <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>
 </resources>

@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -138,6 +139,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     // Flag to prevent duplicate file loading on first onResume after onCreate
     private var isFirstResume = true
+    
+    // Track whether storage permission dialog was already shown this session
+    private var hasShownStoragePermissionDialog = false
+    // Track whether storage permission was missing when activity started (to detect grant on return from Settings)
+    private var wasStoragePermissionMissing = false
     
     // Cache current display mode to avoid redundant updateDisplayMode() calls
     private var currentDisplayMode: DisplayMode? = null
@@ -1992,6 +1998,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             cloudAuthManager.onResume()
         }
         
+        // Check storage permission for local resources
+        checkAndRequestStoragePermission()
+        
         // Adapter is no longer cleared in onPause - no need to restore
         // Memory cache (1GB) persists across PlayerActivity navigation
         
@@ -2036,6 +2045,47 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Note: Adapter is NO LONGER cleared in onPause to preserve memory cache
         // Thumbnails persist across PlayerActivity navigation for instant reloading
         // Memory cache (up to 1GB) survives until BrowseActivity exits (onDestroy)
+    }
+
+    /**
+     * Check if MANAGE_EXTERNAL_STORAGE is granted for local resources.
+     * On Android 11+ the app needs this permission to read files via direct file paths.
+     * Shows an explanation dialog once per session; if the user returns from Settings
+     * after granting, reloads the file list.
+     */
+    private fun checkAndRequestStoragePermission() {
+        val resource = viewModel.state.value.resource ?: return
+        // Only relevant for local storage resources
+        if (resource.type != ResourceType.LOCAL) return
+        // Only relevant on Android 11+
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.R) return
+
+        val hasPermission = com.sza.fastmediasorter.core.util.PermissionHelper.hasAllFilesAccessPermission(this)
+
+        // If permission was missing and is now granted (user returned from Settings), reload
+        if (wasStoragePermissionMissing && hasPermission) {
+            Timber.i("BrowseActivity: MANAGE_EXTERNAL_STORAGE granted after Settings, reloading files")
+            wasStoragePermissionMissing = false
+            viewModel.reloadFiles(clearList = true)
+            return
+        }
+
+        if (!hasPermission && !hasShownStoragePermissionDialog) {
+            hasShownStoragePermissionDialog = true
+            wasStoragePermissionMissing = true
+            Timber.w("BrowseActivity: MANAGE_EXTERNAL_STORAGE not granted for local resource, showing dialog")
+            androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.all_files_access_required)
+                .setMessage(R.string.all_files_access_explanation)
+                .setPositiveButton(R.string.grant_permission) { _, _ ->
+                    com.sza.fastmediasorter.core.util.PermissionHelper.requestAllFilesAccessPermission(this)
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .setCancelable(true)
+                .show()
+        } else if (!hasPermission) {
+            wasStoragePermissionMissing = true
+        }
     }
     
     override fun onStop() {

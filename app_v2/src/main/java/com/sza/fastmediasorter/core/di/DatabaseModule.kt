@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.core.di
 
 import android.content.Context
+import android.widget.Toast
 import androidx.room.Room
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.core.util.CachedMediaMetadataExtractor
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
@@ -17,19 +19,45 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import timber.log.Timber
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
     
+    private const val DB_NAME = "fastmediasorter_v2.db"
+
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        return try {
+            val db = buildDatabase(context)
+            // Force-open to trigger migrations now (catch failures early)
+            db.openHelper.writableDatabase
+            db
+        } catch (e: Exception) {
+            Timber.e(e, "Database migration failed, resetting database: ${e.message}")
+            // Delete the corrupted database and create a fresh one
+            context.deleteDatabase(DB_NAME)
+            try {
+                android.os.Handler(android.os.Looper.getMainLooper()).post {
+                    Toast.makeText(
+                        context,
+                        context.getString(R.string.database_reset_message),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            } catch (_: Exception) { /* Toast failure is non-critical */ }
+            buildDatabase(context)
+        }
+    }
+
+    private fun buildDatabase(context: Context): AppDatabase {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "fastmediasorter_v2.db"
+            DB_NAME
         )
             .addMigrations(
                 AppDatabase.MIGRATION_1_18,
@@ -50,6 +78,7 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_16_17,
                 AppDatabase.MIGRATION_17_18
             )
+            .fallbackToDestructiveMigration()
             .build()
     }
     

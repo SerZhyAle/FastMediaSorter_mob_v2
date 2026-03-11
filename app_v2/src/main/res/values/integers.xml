@@ -21,4 +21,17 @@
     <integer name="seekbar_max_extended">200</integer>
     <integer name="seekbar_default_center">100</integer>
     <integer name="seekbar_default_half">50</integer>
+
+    <!-- Default values for missing resources (lint fix) -->
+    <integer name="grid_column_count_list">1</integer>
+    <integer name="grid_columns_main">1</integer>
+    <integer name="grid_columns_gallery">2</integer>
+    <integer name="grid_columns_images">1</integer>
+    <integer name="max_visible_items">4</integer>
+    <integer name="animation_duration_short">100</integer>
+    <integer name="animation_duration_normal">200</integer>
+    <integer name="animation_duration_long">300</integer>
+    <integer name="scroll_threshold_dp">10</integer>
+    <integer name="default_player_quality">720</integer>
+    <integer name="min_player_quality">480</integer>
 </resources>

@@ -614,6 +614,7 @@
     <string name="default_password">Default Password</string>
     <string name="skip_permission">Skip</string>
     <string name="permissions_granted">Permissions granted. App will restart.</string>
+    <string name="storage_permission_denied_toast">Storage permissions not granted. Grant them in Settings → Permissions.</string>
 
     <!-- Network Input Validation -->
     <string name="invalid_server_address">Invalid server address</string>
@@ -1872,6 +1873,7 @@
     <string name="label_profile_documents">Quick Setup: Documents</string>
     <string name="label_profile_all_files">Quick Setup: All Files</string>
     <string name="title_select_profile">Quick Setup Profile</string>
+    <string name="database_reset_message">Database was reset due to an upgrade error. Your resources will need to be re-added.</string>
 
 </resources>
 

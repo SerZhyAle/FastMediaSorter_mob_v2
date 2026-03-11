@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.ui.player
 
+import android.content.ContentUris
 import android.content.Context
 import android.net.Uri
+import android.provider.MediaStore
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
@@ -643,6 +645,13 @@ class VideoPlayerManager(
                 return
             }
             if (!fileCheck.second) {
+                // File exists but not readable — try content URI fallback (Android 11+ scoped storage)
+                val contentUri = resolveContentUriForPath(normalizedPath)
+                if (contentUri != null) {
+                    Timber.i("VideoPlayerManager: File not readable via path, using content URI fallback: $contentUri")
+                    playLocalVideoInternal(contentUri, playWhenReady)
+                    return
+                }
                 Timber.e("VideoPlayerManager: Cannot read local file: $normalizedPath (originalPath=$path)")
                 playerCallback.showError(context.getString(R.string.cannot_read_file, file.name))
                 return
@@ -668,6 +677,24 @@ class VideoPlayerManager(
         }
         
         Timber.d("VideoPlayerManager: Local video setup complete")
+    }
+
+    private suspend fun resolveContentUriForPath(filePath: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val uri = MediaStore.Files.getContentUri("external")
+            val projection = arrayOf(MediaStore.Files.FileColumns._ID)
+            val selection = "${MediaStore.Files.FileColumns.DATA} = ?"
+            val selectionArgs = arrayOf(filePath)
+            context.contentResolver.query(uri, projection, selection, selectionArgs, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(0)
+                    ContentUris.withAppendedId(uri, id).toString()
+                } else null
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "VideoPlayerManager: Failed to resolve content URI for $filePath")
+            null
+        }
     }
 
     private fun normalizeLocalPath(path: String): String {

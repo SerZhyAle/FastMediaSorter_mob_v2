@@ -243,3 +243,7 @@ maestro/lib/
 test_credentials.json
 **/test_media/test_credentials.json
 sza_resources.xml .gradle_temp/
+<<<<<<< Updated upstream
+=======
+.gradle_temp/
+>>>>>>> Stashed changes

@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.content.ContentUris
 import android.provider.MediaStore
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -130,6 +131,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
         val uri = MediaStore.Files.getContentUri("external")
 
         val projection = mutableListOf(
+            MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.DISPLAY_NAME,
             MediaStore.Files.FileColumns.SIZE,
@@ -169,6 +171,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                 )
             }
             cursor?.use { cursor ->
+                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
                 val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
                 val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
                 val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
@@ -193,6 +196,8 @@ class MediaStoreRepositoryImpl @Inject constructor(
 
                     if (type !in allowedTypes) continue
 
+                    val id = cursor.getLong(idCol)
+                    val contentUri = ContentUris.withAppendedId(uri, id).toString()
                     val size = cursor.getLong(sizeCol)
                     val createdDate = cursor.getLong(dateCol) * 1000L
                     val duration = if (durCol != -1) cursor.getLong(durCol) else null
@@ -203,6 +208,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                         com.sza.fastmediasorter.domain.model.MediaFile(
                             name = name,
                             path = path,
+                            contentUri = contentUri,
                             size = size,
                             createdDate = createdDate,
                             type = type,
@@ -263,6 +269,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
         
         // Define projection - be careful with columns available on API 28
         val projection = mutableListOf(
+            MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.DISPLAY_NAME,
             MediaStore.Files.FileColumns.SIZE,
@@ -292,6 +299,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                 selectionArgs,
                 "${MediaStore.Files.FileColumns.DISPLAY_NAME} ASC"
             )?.use { cursor ->
+                val idCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID)
                 val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DATA)
                 val nameCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.DISPLAY_NAME)
                 val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.SIZE)
@@ -328,6 +336,8 @@ class MediaStoreRepositoryImpl @Inject constructor(
                     val type = resolveType(name, mime, mediaTypeInt) ?: continue
                     
                     if (type in allowedTypes) {
+                        val id = cursor.getLong(idCol)
+                        val contentUri = ContentUris.withAppendedId(uri, id).toString()
                         val size = cursor.getLong(sizeCol)
                         // date_modified is seconds
                         val date = cursor.getLong(dateCol) * 1000L 
@@ -339,6 +349,7 @@ class MediaStoreRepositoryImpl @Inject constructor(
                             com.sza.fastmediasorter.domain.model.MediaFile(
                                 name = name,
                                 path = path,
+                                contentUri = contentUri,
                                 size = size,
                                 createdDate = date,
                                 type = type,

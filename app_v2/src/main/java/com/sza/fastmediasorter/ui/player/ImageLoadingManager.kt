@@ -853,8 +853,10 @@ class ImageLoadingManager(
             return
         }
         
-        val data = if (path.startsWith("content://")) {
+        val data: Any = if (path.startsWith("content://")) {
             Uri.parse(path)
+        } else if (!File(path).canRead() && !currentFile?.contentUri.isNullOrEmpty()) {
+            Uri.parse(currentFile!!.contentUri)
         } else {
             File(path)
         }
@@ -1307,9 +1309,14 @@ class ImageLoadingManager(
         val preloadMaxDimension = if (memoryTier == MemoryTier.LOW) 1280 else 1920
         try {
             withContext(Dispatchers.IO) {
+                val loadSource: Any = if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
+                    Uri.parse(file.contentUri)
+                } else {
+                    File(file.path)
+                }
                 val request = Glide.with(binding.root.context.applicationContext)
                     .downloadOnly()
-                    .load(File(file.path))
+                    .load(loadSource)
                     .signature(ObjectKey(cacheKey))
                     .diskCacheStrategy(DiskCacheStrategy.DATA)
                     .override(preloadMaxDimension, preloadMaxDimension)

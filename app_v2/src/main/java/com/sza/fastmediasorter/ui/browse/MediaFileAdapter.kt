@@ -1255,8 +1255,10 @@ class MediaFileAdapter(
                         }
                         else -> {
                             // Load image/GIF thumbnail using Glide for local files
-                            val data = if (file.path.startsWith("content://")) {
+                            val data: Any = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)
+                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
+                                Uri.parse(file.contentUri)
                             } else {
                                 File(file.path)
                             }
@@ -1402,8 +1404,10 @@ class MediaFileAdapter(
                             }
                             
                             // Load video first frame using Glide for local files
-                            val data = if (file.path.startsWith("content://")) {
+                            val data: Any = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)
+                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
+                                Uri.parse(file.contentUri)
                             } else {
                                 File(file.path)
                             }
@@ -2042,8 +2046,10 @@ class MediaFileAdapter(
                                 .into(imageView)
                         }
                         else -> {
-                            val data = if (file.path.startsWith("content://")) {
+                            val data: Any = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)
+                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
+                                Uri.parse(file.contentUri)
                             } else {
                                 File(file.path)
                             }
@@ -2171,8 +2177,10 @@ class MediaFileAdapter(
                                 .into(imageView)
                         }
                         else -> {
-                            val data = if (file.path.startsWith("content://")) {
+                            val data: Any = if (file.path.startsWith("content://")) {
                                 Uri.parse(file.path)
+                            } else if (!File(file.path).canRead() && !file.contentUri.isNullOrEmpty()) {
+                                Uri.parse(file.contentUri)
                             } else {
                                 File(file.path)
                             }
