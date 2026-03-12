@@ -201,6 +201,24 @@
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Backup &amp; Restore</string>
+    <string name="settings_tab_backup">Backup</string>
+    <string name="backup_to_google_drive">Backup to Google Drive</string>
+    <string name="restore_from_google_drive">Restore from Google Drive</string>
+    <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="backup_success">Backed up %1$d resources and all settings to %2$s</string>
+    <string name="backup_failed">Backup failed: %s</string>
+    <string name="backup_in_progress">Backing up settings and resources…</string>
+    <string name="restore_in_progress">Restoring settings and resources…</string>
+    <string name="restore_confirm_title">Restore from Backup?</string>
+    <string name="restore_confirm_message">Backup from: %1$s\nDevice: %2$s\nResources: %3$d\n\n• Settings will be REPLACED\n• Resources will be APPENDED (duplicates skipped)</string>
+    <string name="restore_success">Restored all settings. Added %1$d resources (%2$d already existed).</string>
+    <string name="restore_needs_auth">Some resources use network or cloud accounts. You\'ll need to re-authenticate them.</string>
+    <string name="restore_no_backup">No backup found for this account.</string>
+    <string name="restore_failed">Restore failed: %s</string>
+    <string name="last_backup_date">Last backup: %s</string>
+    <string name="backup_account">Account: %s</string>
+    <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
+    <string name="no_internet_connection">No internet connection. Try again later.</string>
     <string name="export_settings">Export All Settings to File</string>
     <string name="import_settings">Import Settings from File</string>
     <string name="import_method_title">Import Settings</string>

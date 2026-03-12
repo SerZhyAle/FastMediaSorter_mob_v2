@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.common
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.widget.TextView
 import android.widget.Toast
@@ -37,6 +38,19 @@ object DialogUtils {
             clipboard.setPrimaryClip(clip)
             // Use existing string resource for "Copied to clipboard"
             Toast.makeText(context, R.string.copied_to_clipboard, Toast.LENGTH_SHORT).show()
+        }
+
+        val btnShare = view.findViewById<MaterialButton>(R.id.btnShareContent)
+        btnShare.setOnClickListener {
+            val textToShare = tvContent.text.toString()
+            val sendIntent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(Intent.EXTRA_SUBJECT, title)
+                putExtra(Intent.EXTRA_TEXT, textToShare)
+            }
+            val chooser = Intent.createChooser(sendIntent, null)
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(chooser)
         }
 
         val builder = MaterialAlertDialogBuilder(context)

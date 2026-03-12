@@ -181,6 +181,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     @Inject
     lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 
+    @Inject
+    lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
+
     private var showVideoThumbnails = true // Cached setting value
     private var showPdfThumbnails = false // Cached PDF thumbnail setting
     private var shouldScrollToLastViewed = false // Flag for scroll restoration after PlayerActivity return
@@ -354,6 +357,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         // Task 6: Initialize binary file thumbnail generator
         val binaryThumbnailGenerator = com.sza.fastmediasorter.util.BinaryFileThumbnailGenerator(this)
         mediaFileAdapter.setBinaryThumbnailGenerator(binaryThumbnailGenerator)
+        mediaFileAdapter.setAudioMetadataLoader(audioMetadataLoader)
         
         recyclerViewManager = BrowseRecyclerViewManager(
             recyclerView = binding.rvMediaFiles,
@@ -384,6 +388,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             if (firstVisible >= 0 && lastVisible >= 0) {
                                 Timber.d("Scroll ended: loading visible thumbnails [$firstVisible..$lastVisible]")
                                 mediaFileAdapter.loadVisibleThumbnails(firstVisible, lastVisible)
+                                mediaFileAdapter.loadVisibleAudioMetadata(firstVisible, lastVisible)
                             }
                         }
                         // Refresh button visibility after scroll settles (positions are final here)
@@ -1479,8 +1484,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     )
                 }
             } else {
-                // Simple toast for users who don't want details
-                Toast.makeText(this@BrowseActivity, message, Toast.LENGTH_LONG).show()
+                // Non-fatal network errors: debug-only toast, always logged
+                com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
+                    this@BrowseActivity, message
+                )
             }
         }
     }

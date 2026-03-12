@@ -1,7 +1,7 @@
 # FastMediaSorter v2 — Improvement Roadmap
 
 **Date**: March 11, 2026  
-**Source**: `dev/IMPROVEMENT_PROPOSAL.md`  
+**Source**: `PLAN/IMPROVEMENT_PROPOSAL.md`  
 **Ordering**: Easy & non-risky → Difficult & mind-blowing
 
 ---
@@ -109,4 +109,4 @@
 
 ---
 
-*Generated from IMPROVEMENT_PROPOSAL.md. Keep this file in sync when proposals are added or completed.*
+*Generated from PLAN/IMPROVEMENT_PROPOSAL.md. Keep this file in sync when proposals are added or completed.*

@@ -66,6 +66,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 1 -> getString(R.string.settings_tab_media)
                 2 -> getString(R.string.settings_tab_playback)
                 3 -> getString(R.string.settings_tab_destinations)
+                4 -> getString(R.string.settings_tab_backup)
                 else -> ""
             }
         }.attach()

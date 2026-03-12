@@ -217,11 +217,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 applicationScope.launch(Dispatchers.Main) {
                     try {
                         val message = getString(R.string.smb_auto_reset_notification)
-                        android.widget.Toast.makeText(
-                            applicationContext,
-                            message,
-                            android.widget.Toast.LENGTH_SHORT
-                        ).show()
+                        com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
+                            applicationContext, message, android.widget.Toast.LENGTH_SHORT
+                        )
                         Timber.d("SMB auto-reset notification shown: $reason")
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to show SMB auto-reset notification")

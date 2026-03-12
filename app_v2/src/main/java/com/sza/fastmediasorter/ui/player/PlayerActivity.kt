@@ -2479,7 +2479,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     )
                 }
             } else {
-                Toast.makeText(this@PlayerActivity, message, Toast.LENGTH_LONG).show()
+                // Non-fatal network errors: debug-only toast, always logged
+                com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
+                    this@PlayerActivity, message
+                )
             }
         }
     }

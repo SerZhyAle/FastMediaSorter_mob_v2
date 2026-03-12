@@ -26,7 +26,9 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.core.util.formatMediaDuration
+import com.sza.fastmediasorter.core.util.PathUtils
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
 import com.sza.fastmediasorter.databinding.ItemMediaFileGridBinding
@@ -99,6 +101,9 @@ class MediaFileAdapter(
     // Fast scroll detection to skip thumbnail loading during rapid scrolling
     private var isScrolling: Boolean = false
     
+    // Viewport-based audio metadata loader for network files
+    private var audioMetadataLoader: AudioMetadataLoader? = null
+
     // Binary file thumbnail generator (Task 6)
     private var binaryThumbnailGenerator: BinaryFileThumbnailGenerator? = null
     private var disableDocumentPreviewsOnLowMemory: Boolean? = null
@@ -109,6 +114,38 @@ class MediaFileAdapter(
     
     fun setBinaryThumbnailGenerator(generator: BinaryFileThumbnailGenerator) {
         binaryThumbnailGenerator = generator
+    }
+
+    fun setAudioMetadataLoader(loader: AudioMetadataLoader) {
+        audioMetadataLoader = loader
+    }
+
+    /**
+     * Called after scrolling stops to load audio metadata for visible network audio files.
+     * Mirrors [loadVisibleThumbnails] pattern. Triggers [AudioMetadataLoader] for each
+     * qualifying item; callbacks update the ViewHolder via [PAYLOAD_AUDIO_METADATA].
+     */
+    fun loadVisibleAudioMetadata(firstVisiblePos: Int, lastVisiblePos: Int) {
+        val loader = audioMetadataLoader ?: return
+        if (firstVisiblePos < 0 || lastVisiblePos < 0 || firstVisiblePos > lastVisiblePos) return
+        val safeFirst = firstVisiblePos.coerceAtMost(itemCount - 1)
+        val safeLast = lastVisiblePos.coerceAtMost(itemCount - 1)
+        if (safeFirst < 0) return
+
+        for (i in safeFirst..safeLast) {
+            val file = getItem(i)
+            if (file.isDirectory || file.type != MediaType.AUDIO) continue
+            if (PathUtils.isLocalPath(file.path) || file.path.startsWith("content://")) continue
+            if (file.artist != null && file.title != null) continue
+
+            val position = i
+            loader.loadIfNeeded(file) { _ ->
+                // Callback on main thread — tell RecyclerView to rebind text only
+                if (position in 0 until itemCount && getItem(position).path == file.path) {
+                    notifyItemChanged(position, PAYLOAD_AUDIO_METADATA)
+                }
+            }
+        }
     }
 
     private fun shouldDisableDocumentPreviews(context: android.content.Context): Boolean {
@@ -199,6 +236,22 @@ class MediaFileAdapter(
     }
     
     fun getSkipInitialThumbnailLoad(): Boolean = skipInitialThumbnailLoad
+
+    /**
+     * Returns [file] enriched with AudioMetadataLoader's in-memory cache, if available.
+     * This is a fast ConcurrentHashMap lookup — safe to call on every bind.
+     */
+    private fun resolveAudioMetadata(file: MediaFile): MediaFile {
+        if (file.type != MediaType.AUDIO || file.isDirectory) return file
+        if (file.artist != null && file.title != null) return file
+        val cached = audioMetadataLoader?.getCachedMetadata(file.path) ?: return file
+        return file.copy(
+            artist = cached.artist ?: file.artist,
+            album = cached.album ?: file.album,
+            title = cached.title ?: file.title,
+            duration = cached.duration ?: file.duration
+        )
+    }
     
     companion object {
         private const val VIEW_TYPE_LIST = 0
@@ -401,9 +454,12 @@ class MediaFileAdapter(
                 }
             }
             if (payloads.contains(PAYLOAD_AUDIO_METADATA)) {
-                // Partial bind: only update text labels with enriched audio metadata
+                // Partial bind: only update text labels with enriched audio metadata.
+                // For network files the ListAdapter list may not contain enriched data yet,
+                // so check AudioMetadataLoader's in-memory cache first.
+                val displayFile = resolveAudioMetadata(file)
                 if (holder is ListViewHolder) {
-                    holder.updateAudioMetadataText(file)
+                    holder.updateAudioMetadataText(displayFile)
                 }
             }
             // If no known payloads were handled, fall back to super
@@ -727,9 +783,11 @@ class MediaFileAdapter(
                 root.setBackgroundColor(backgroundColor)
                 
                 // In audio-only mode: top line = Artist - Title, bottom = filename + size + duration
+                // For network audio files, check AudioMetadataLoader cache for enriched data.
+                val displayFile = resolveAudioMetadata(file)
                 if (audioOnlyFile) {
-                    tvFileName.text = buildAudioDisplayName(file)
-                    tvFileInfo.text = buildAudioDetailLine(file)
+                    tvFileName.text = buildAudioDisplayName(displayFile)
+                    tvFileInfo.text = buildAudioDetailLine(displayFile)
                 } else {
                     tvFileName.text = file.name
                     tvFileInfo.text = buildFileInfo(file)

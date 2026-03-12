@@ -6,8 +6,9 @@ Purpose: single entrypoint for fast research and navigation.
 ## 1) Workspace Topology
 - Main app: `app_v2/`
 - Wear companion: `wear/`
-- Engineering process/docs/scripts: `dev/`
+- Engineering process/rules/contracts: `dev/`
 - Product/docs: `docs/`
+- Specs, roadmaps, proposals, feature plans: `PLAN/`
 - Automation scripts: `scripts/`
 - Temporary artifacts only: `temp/`
 - Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`
@@ -62,6 +63,7 @@ Dependency version policy:
 - Libraries/protocol specifics: `docs/TECH_STACK.md`
 - Full tech stack, dependencies, constraints, min/recommended requirements: `dev/TECH_REQUIREMENTS.md`
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
+- Feature specs, roadmaps, proposals: `PLAN/` folder
 - Documentation map: `docs/DOCS_MAP.md`
 
 ## 8) Quick Start Research Checklist

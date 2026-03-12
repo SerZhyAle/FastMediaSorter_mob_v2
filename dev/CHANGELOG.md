@@ -311,3 +311,31 @@ Format: | datetime | file | target | description |
 | 2026-03-12 00:11:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Implement SPEC_BROWSE_RESTORE_POSITION: save lastViewedFile on onPause, file click, inline play, and selection events |
 | 2026-03-12 00:17:45 | `app_v2/build.gradle.kts` | `kapt` | Remove redundant kapt arguments{} block - Hilt Gradle plugin already injects dagger.* args; global block caused 'not recognized' warnings from Glide/Room processors |
 | 2026-03-12 00:21:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity.onResume` | Fix scroll restoration: add direct restore in onResume for return-from-player case when list is unchanged (submitList doesnt fire) |
+| 2026-03-12 11:53:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/DialogUtils.kt` | `DialogUtils` | Added Share button to scrollable dialog via Intent.ACTION_SEND |
+| 2026-03-12 12:15:25 | `app_v2/src/.../ToastThrottler.kt` | `ToastThrottler` | New utility: throttles duplicate toasts with 15s cooldown |
+| 2026-03-12 12:15:31 | `app_v2/src/.../BrowseActivity.kt` | `BrowseActivity.showError` | Network error toasts now throttled via ToastThrottler |
+| 2026-03-12 12:15:37 | `app_v2/src/.../PlayerActivity.kt` | `PlayerActivity.showError` | Network error toasts now throttled via ToastThrottler |
+| 2026-03-12 12:15:43 | `app_v2/src/.../FastMediaSorterApp.kt` | `setupSmbAutoReset` | SMB auto-reset toast now throttled via ToastThrottler |
+| 2026-03-12 12:29:47 | `app_v2/src/.../ToastThrottler.kt` | `ToastThrottler.showNetworkError` | Added debug-only showNetworkError: toast visible in debug, suppressed in release, always logged via Timber |
+| 2026-03-12 14:26:17 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | New viewport-based audio metadata loader for network files |
+| 2026-03-12 14:26:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `MediaFileAdapter` | Added loadVisibleAudioMetadata and resolveAudioMetadata for viewport metadata enrichment |
+| 2026-03-12 14:26:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Injected AudioMetadataLoader and hooked into scroll-idle listener for audio metadata loading |
+| 2026-03-12 15:55:39 | `PLAN/SPEC_GOOGLE_DRIVE_BACKUP_RESTORE.md` | `SPEC_GOOGLE_DRIVE_BACKUP_RESTORE` | Created specification for one-tap Google Drive backup/restore of settings + resource list with multi-account support |
+| 2026-03-12 15:55:49 | `dev/ -> PLAN/` | `Folder reorganization` | Moved 9 files (IMPROVEMENT_PROPOSAL, IMPROVEMENT_ROADMAP, PLAN_AUDIO_METADATA_ENRICHMENT_PROMPTS, 5 SPEC_* files, todo2) from dev/ to PLAN/. Updated cross-refs in PROJECT_OPERATIONS_INDEX, copilot-instructions, IMPROVEMENT_ROADMAP |
+| 2026-03-12 16:08:48 | `PLAN/ -> temp/Done/` | `PLAN cleanup` | Moved 2 fully-implemented specs to temp/Done/: SPEC_BROWSE_NAVIGATION_CONTROLS, SPEC_BROWSE_RESTORE_POSITION |
+| 2026-03-12 17:10:04 | `domain/usecase/BackupData.kt` | `BackupPayload,BackupSettings,BackupResource` | Created Gson DTOs for Google Drive backup/restore |
+| 2026-03-12 17:10:04 | `domain/usecase/BackupMapper.kt` | `BackupMapper` | Bidirectional conversion between domain models and backup DTOs |
+| 2026-03-12 17:10:04 | `domain/usecase/BackupToGoogleDriveUseCase.kt` | `BackupToGoogleDriveUseCase` | Backup orchestrator: collect data, serialize, upload to Drive |
+| 2026-03-12 17:10:04 | `domain/usecase/RestoreFromGoogleDriveUseCase.kt` | `RestoreFromGoogleDriveUseCase` | Restore orchestrator: download, parse, replace settings, merge resources |
+| 2026-03-12 17:10:04 | `ui/settings/BackupRestoreViewModel.kt` | `BackupRestoreViewModel` | UI state management for backup/restore feature |
+| 2026-03-12 17:10:04 | `ui/settings/fragments/BackupRestoreFragment.kt` | `BackupRestoreFragment` | Fragment with backup/restore buttons, sign-in, confirmation dialogs |
+| 2026-03-12 17:10:04 | `res/layout/fragment_settings_backup_restore.xml` | `layout` | Layout with backup/restore cards and progress indicators |
+| 2026-03-12 17:10:04 | `ui/settings/SettingsPagerAdapter.kt` | `SettingsPagerAdapter` | Added 5th tab for Backup and Restore |
+| 2026-03-12 17:10:04 | `ui/settings/SettingsActivity.kt` | `SettingsActivity` | Added Backup tab label to TabLayoutMediator |
+| 2026-03-12 17:10:04 | `proguard-rules.pro` | `ProGuard` | Keep rules for Backup DTOs preventing R8 stripping |
+| 2026-03-12 17:10:04 | `res/values/strings.xml` | `strings` | Added 18 strings for Google Drive backup/restore UI |
+| 2026-03-12 17:24:01 | `domain/usecase/BackupToGoogleDriveUseCase.kt` | `BackupToGoogleDriveUseCase` | Changed backup filename to timestamped backup_YYMMDD-HHmm.json, removed old-file deletion |
+| 2026-03-12 17:24:01 | `domain/usecase/RestoreFromGoogleDriveUseCase.kt` | `RestoreFromGoogleDriveUseCase` | Restore now finds latest backup_*.json by modifiedDate |
+| 2026-03-12 17:26:19 | `domain/usecase/BackupToGoogleDriveUseCase.kt` | `BackupToGoogleDriveUseCase` | Upload localized README.md (en/ru/uk) when creating FastMediaSorter folder on Google Drive |
+| 2026-03-12 18:25:08 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AudioMetadataLoader.kt` | `AudioMetadataLoader` | Switched from native MediaMetadataRetriever to Media3 MetadataRetriever (no SIGSEGV on truncated files); added kill-switch (15 consecutive failures auto-disables feature); wrapped all protocol reads in try-catch |
+| 2026-03-12 18:30:08 | `app_v2/src/.../SettingsRepositoryImpl.kt` | `audioSizeMax` | Changed default audioSizeMax fallback from 100MB to 1GB to match AppSettings default - FLAC files were filtered out |

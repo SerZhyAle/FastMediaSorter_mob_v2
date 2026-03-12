@@ -207,7 +207,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     videoSizeMax = preferences[KEY_VIDEO_SIZE_MAX] ?: 107374182400L,
                     supportAudio = preferences[KEY_SUPPORT_AUDIO] ?: true,
                     audioSizeMin = preferences[KEY_AUDIO_SIZE_MIN] ?: 0L,
-                    audioSizeMax = preferences[KEY_AUDIO_SIZE_MAX] ?: 104857600L,
+                    audioSizeMax = preferences[KEY_AUDIO_SIZE_MAX] ?: 1073741824L, // 1GB
                     searchAudioCoversOnline = preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] ?: false,
                     searchAudioCoversOnlyOnWifi = preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
