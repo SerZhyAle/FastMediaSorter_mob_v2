@@ -30,8 +30,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260312001
-        versionName = "2.60.3120.016"
+        versionCode = 260312010
+        versionName = "2.60.3120.109"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -473,17 +473,7 @@ dependencies {
 
 kapt {
     correctErrorTypes = true
-    arguments {
-        // "Заявляем" опции Hilt, чтобы KAPT не выдавал предупреждение об их неиспользовании
-        arg("dagger.fastInit", "enabled")
-        arg("dagger.hilt.android.internal.disableAndroidSuperclassValidation", "true")
-        arg("dagger.hilt.android.internal.projectType", "APP")
-        arg("dagger.hilt.internal.useAggregatingRootProcessor", "true")
-        arg("kapt.kotlin.generated", "true")
-    }
     javacOptions {
-        // Suppress "options not recognized by any processor" — Hilt injects dagger.*
-        // arguments into all kapt tasks; non-Dagger processors (Glide, Room) don't claim them.
         option("-Xlint:-processing")
     }
 }

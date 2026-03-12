@@ -2041,14 +2041,50 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             // Check if resource settings changed (supportedMediaTypes, scanSubfolders)
             // If changed, reloads files automatically. If not, syncs with PlayerActivity cache.
             viewModel.checkAndReloadIfResourceChanged()
+
+            // Direct scroll restoration for "return from PlayerActivity" case.
+            // When the file list has NOT changed (same instance), submitList won't be called
+            // and its callback (where restoration normally happens) will never fire.
+            // We post the restoration here so it runs on the next frame, before any async
+            // reload's submitList could fire — the first one to execute resets the flag,
+            // making the second attempt a no-op.
+            if (shouldScrollToLastViewed && mediaFileAdapter.itemCount > 0) {
+                val currentState = viewModel.state.value
+                val lastViewedPath = currentState.resource?.lastViewedFile
+                val pathPosition = if (lastViewedPath != null)
+                    currentState.mediaFiles.indexOfFirst { it.path == lastViewedPath }
+                else -1
+                val targetPosition = if (pathPosition >= 0) {
+                    pathPosition
+                } else {
+                    val savedPos = currentState.resource?.lastScrollPosition ?: 0
+                    if (savedPos > 0 && savedPos < mediaFileAdapter.itemCount) savedPos else -1
+                }
+                if (targetPosition >= 0) {
+                    shouldScrollToLastViewed = false
+                    binding.rvMediaFiles.post {
+                        if (isDestroyed || isFinishing) return@post
+                        val lm = binding.rvMediaFiles.layoutManager
+                        when (lm) {
+                            is LinearLayoutManager -> lm.scrollToPositionWithOffset(targetPosition, 0)
+                            is GridLayoutManager -> lm.scrollToPositionWithOffset(targetPosition, 0)
+                            else -> binding.rvMediaFiles.scrollToPosition(targetPosition)
+                        }
+                        Timber.i("onResume: ✓ Restored scroll to position $targetPosition (pathBased=${pathPosition >= 0}, file=${currentState.mediaFiles.getOrNull(targetPosition)?.name})")
+                    }
+                } else {
+                    shouldScrollToLastViewed = false
+                    Timber.d("onResume: No valid restore position (lastViewedPath=$lastViewedPath, itemCount=${mediaFileAdapter.itemCount})")
+                }
+            }
         }
         
         // Clear expired undo operations (older than 5 minutes)
         viewModel.clearExpiredUndoOperation()
         
-        // Scroll restoration moved to submitList callback in state observer
-        // This ensures RecyclerView adapter has updated before scrolling
-        Timber.d("BrowseActivity.onResume: shouldScrollToLastViewed=$shouldScrollToLastViewed (will restore in submitList callback)")
+        // Scroll restoration: primary path is submitList callback (handles first load + list changes).
+        // Secondary path is the onResume block above (handles return from player with unchanged list).
+        Timber.d("BrowseActivity.onResume: shouldScrollToLastViewed=$shouldScrollToLastViewed (will restore in submitList callback if list changed)")
         
         // Start MediaStore observer for local resources
         startMediaStoreObserver()
