@@ -67,15 +67,31 @@ class SearchLyricsUseCase @Inject constructor(
             
             // Build search queries (resolved metadata gets priority)
             val searchQueries = buildSearchQueries(artist, title, mediaFile.name, filteredResolvedTitle, filteredResolvedArtist)
-            
-            // Try each source with all queries before moving to next source
-            // Sources ordered by speed and reliability: AZLyrics is first as it's the fastest for anonymous requests
-            val sources = listOf<Pair<String, suspend (String) -> String?>>(
-                "AZLyrics" to { query -> searchAZLyrics(query) },
-                "Musixmatch" to { query -> searchMusixmatch(query) },
-                "Genius" to { query -> searchGeniusApi(query) },
-                "Lyrics.ovh" to { query -> searchLyricsOvhApi(query) }
-            )
+
+            // Detect script to route to the right sources first
+            val isCyrillic = hasCyrillic(artist) || hasCyrillic(title) ||
+                hasCyrillic(filteredResolvedArtist) || hasCyrillic(filteredResolvedTitle)
+            Timber.d("Script detection: isCyrillic=$isCyrillic (artist='$artist', title='$title')")
+
+            // Source order depends on script:
+            //   Cyrillic: Megalyrics first (RU DB), then Musixmatch/Genius/Lyrics.ovh; AZLyrics skipped (ASCII-only)
+            //   Latin:    AZLyrics first (fastest), then Musixmatch/Genius/Lyrics.ovh; Megalyrics last
+            val sources: List<Pair<String, suspend (String) -> String?>> = if (isCyrillic) {
+                listOf(
+                    "Megalyrics" to { query -> searchMegalyrics(query) },
+                    "Musixmatch" to { query -> searchMusixmatch(query) },
+                    "Genius" to { query -> searchGeniusApi(query) },
+                    "Lyrics.ovh" to { query -> searchLyricsOvhApi(query) }
+                )
+            } else {
+                listOf(
+                    "AZLyrics" to { query -> searchAZLyrics(query) },
+                    "Musixmatch" to { query -> searchMusixmatch(query) },
+                    "Genius" to { query -> searchGeniusApi(query) },
+                    "Lyrics.ovh" to { query -> searchLyricsOvhApi(query) },
+                    "Megalyrics" to { query -> searchMegalyrics(query) }
+                )
+            }
             
             var lastError: Throwable? = null
             
@@ -424,7 +440,11 @@ class SearchLyricsUseCase @Inject constructor(
         // No clear pattern found, treat entire name as title
         return Pair("", name.trim())
     }
-    
+
+    /** Returns true if the text contains Cyrillic characters. */
+    private fun hasCyrillic(text: String?): Boolean =
+        text?.any { it in '\u0400'..'\u04FF' } == true
+
     /**
      * Normalize text for search: remove special characters, common words, extra spaces.
      */
@@ -504,15 +524,16 @@ class SearchLyricsUseCase @Inject constructor(
                 .build()
             
             httpClient.newCall(request).execute().use { response ->
+                Timber.d("Musixmatch search: response ${response.code} for $searchUrl")
                 if (!response.isSuccessful) return@withContext null
-                
+
                 val html = response.body?.string() ?: return@withContext null
-                
+
                 // Extract first song URL from search results
                 val urlRegex = """href="(/lyrics/[^"]+)"""".toRegex()
                 val songPath = urlRegex.find(html)?.groupValues?.get(1)
                     ?: return@withContext null
-                
+
                 // Fetch lyrics from song page
                 fetchMusixmatchLyrics("https://www.musixmatch.com$songPath")
             }
@@ -579,6 +600,7 @@ class SearchLyricsUseCase @Inject constructor(
         val title = URLEncoder.encode(titleRaw, "UTF-8")
 
         val apiUrl = "https://api.lyrics.ovh/v1/$artist/$title"
+        Timber.d("Lyrics.ovh: fetching $apiUrl")
 
         val request = Request.Builder()
             .url(apiUrl)
@@ -587,6 +609,7 @@ class SearchLyricsUseCase @Inject constructor(
 
         // Use 'use' to ensure response is closed
         httpClient.newCall(request).execute().use { response ->
+            Timber.d("Lyrics.ovh: response ${response.code} for $apiUrl")
             if (!response.isSuccessful) return@withContext null
             
             val responseBody = response.body?.string() ?: return@withContext null
@@ -708,14 +731,23 @@ class SearchLyricsUseCase @Inject constructor(
             val artist = artistRaw.lowercase().replace(Regex("[^a-z0-9]"), "")
             val title = titleRaw.lowercase().replace(Regex("[^a-z0-9]"), "")
 
+            // AZLyrics only indexes ASCII content — skip if artist or title is non-ASCII
+            if (artist.isEmpty() || title.isEmpty()) {
+                Timber.d("AZLyrics: skipping non-ASCII query '$artistRaw / $titleRaw'")
+                return@withContext null
+            }
+
             val url = "https://www.azlyrics.com/lyrics/$artist/$title.html"
+            Timber.d("AZLyrics: fetching $url")
 
             val request = Request.Builder()
                 .url(url)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .get()
                 .build()
 
             httpClient.newCall(request).execute().use { response ->
+                Timber.d("AZLyrics: response ${response.code} for $url")
                 if (!response.isSuccessful) return@withContext null
                 
                 val html = response.body?.string() ?: return@withContext null
@@ -748,6 +780,69 @@ class SearchLyricsUseCase @Inject constructor(
             }
         } catch (e: Exception) {
             Timber.w("AZLyrics failed: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * Search megalyrics.ru — largest Russian-language lyrics database.
+     * Flow: search page → first song link → lyrics page.
+     */
+    private suspend fun searchMegalyrics(query: String): String? = withContext(Dispatchers.IO) {
+        try {
+            val searchQuery = URLEncoder.encode(
+                query.replace(" lyrics", "", ignoreCase = true), "UTF-8"
+            )
+            val searchUrl = "https://megalyrics.ru/search/?q=$searchQuery"
+            Timber.d("Megalyrics: searching $searchUrl")
+
+            val searchRequest = Request.Builder()
+                .url(searchUrl)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .header("Accept-Language", "ru-RU,ru;q=0.9,en;q=0.8")
+                .get()
+                .build()
+
+            val songPath = httpClient.newCall(searchRequest).execute().use { response ->
+                Timber.d("Megalyrics search: response ${response.code} for $searchUrl")
+                if (!response.isSuccessful) return@withContext null
+                val html = response.body?.string() ?: return@withContext null
+
+                // Extract first lyrics link: href="/lyric/artist-slug/title-slug.htm"
+                val linkRegex = """href="(/lyric/[^"]+\.htm)"""".toRegex()
+                linkRegex.find(html)?.groupValues?.get(1)
+            } ?: return@withContext null
+
+            val lyricsUrl = "https://megalyrics.ru$songPath"
+            Timber.d("Megalyrics: fetching lyrics at $lyricsUrl")
+
+            val lyricsRequest = Request.Builder()
+                .url(lyricsUrl)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .header("Accept-Language", "ru-RU,ru;q=0.9,en;q=0.8")
+                .get()
+                .build()
+
+            httpClient.newCall(lyricsRequest).execute().use { response ->
+                Timber.d("Megalyrics lyrics: response ${response.code} for $lyricsUrl")
+                if (!response.isSuccessful) return@withContext null
+                val html = response.body?.string() ?: return@withContext null
+
+                val doc = Jsoup.parse(html)
+
+                // Megalyrics stores lyrics inside <pre class="lyric"> or <div class="lyric">
+                val lyricsEl = doc.selectFirst("pre.lyric, div.lyric, .lyrics-body")
+                val raw = lyricsEl?.let {
+                    it.select("br").append("\\n")
+                    it.text().replace("\\n", "\n")
+                } ?: return@withContext null
+
+                val lyrics = raw.trim()
+                Timber.d("Megalyrics extracted lyrics length: ${lyrics.length}, first 200 chars: ${lyrics.take(200)}")
+                lyrics.takeIf { it.length > 50 }
+            }
+        } catch (e: Exception) {
+            Timber.w("Megalyrics failed: ${e.message}")
             null
         }
     }
