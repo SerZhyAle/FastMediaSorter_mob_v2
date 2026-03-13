@@ -344,6 +344,7 @@ class SearchLyricsUseCase @Inject constructor(
         // Priority 0: Pre-resolved metadata from cover search (most accurate)
         if (!resolvedArtist.isNullOrBlank() && !resolvedTitle.isNullOrBlank()) {
             queries.add("$resolvedArtist $resolvedTitle lyrics")
+            queries.add("$resolvedArtist - $resolvedTitle")   // for AZLyrics/OVH multi-word artist parsing
             queries.add("$resolvedArtist $resolvedTitle")
             queries.add("$resolvedTitle lyrics")
         } else if (!resolvedTitle.isNullOrBlank()) {
@@ -361,6 +362,7 @@ class SearchLyricsUseCase @Inject constructor(
         // Priority 1: Artist + Title (from ID3 metadata or filename)
         if (bestArtist.isNotBlank() && bestTitle.isNotBlank()) {
             queries.add("$bestArtist $bestTitle lyrics")
+            queries.add("$bestArtist - $bestTitle")   // for AZLyrics/OVH multi-word artist parsing
             queries.add("$bestArtist $bestTitle")
         }
         
@@ -562,19 +564,27 @@ class SearchLyricsUseCase @Inject constructor(
      */
     private suspend fun searchLyricsOvhApi(query: String): String? = withContext(Dispatchers.IO) {
         // Extract artist and title from query
-        val parts = query.replace(" lyrics", "", ignoreCase = true).split(" ", limit = 2)
-        if (parts.size < 2) return@withContext null
-        
-        val artist = URLEncoder.encode(parts[0].trim(), "UTF-8")
-        val title = URLEncoder.encode(parts[1].trim(), "UTF-8")
-        
+        val cleanQuery = query.replace(" lyrics", "", ignoreCase = true)
+        // Prefer "Artist - Title" split to handle multi-word artists (e.g. "The Beatles")
+        val (artistRaw, titleRaw) = if (cleanQuery.contains(" - ")) {
+            val p = cleanQuery.split(" - ", limit = 2)
+            Pair(p[0].trim(), p[1].trim())
+        } else {
+            val p = cleanQuery.split(" ", limit = 2)
+            if (p.size < 2) return@withContext null
+            Pair(p[0].trim(), p[1].trim())
+        }
+
+        val artist = URLEncoder.encode(artistRaw, "UTF-8")
+        val title = URLEncoder.encode(titleRaw, "UTF-8")
+
         val apiUrl = "https://api.lyrics.ovh/v1/$artist/$title"
-        
+
         val request = Request.Builder()
             .url(apiUrl)
             .get()
             .build()
-        
+
         // Use 'use' to ensure response is closed
         httpClient.newCall(request).execute().use { response ->
             if (!response.isSuccessful) return@withContext null
@@ -684,19 +694,27 @@ class SearchLyricsUseCase @Inject constructor(
     private suspend fun searchAZLyrics(query: String): String? = withContext(Dispatchers.IO) {
         try {
             // AZLyrics requires artist-title format
-            val parts = query.replace(" lyrics", "", ignoreCase = true).split(" ", limit = 2)
-            if (parts.size < 2) return@withContext null
-            
-            val artist = parts[0].trim().lowercase().replace(Regex("[^a-z0-9]"), "")
-            val title = parts[1].trim().lowercase().replace(Regex("[^a-z0-9]"), "")
-            
+            val cleanQuery = query.replace(" lyrics", "", ignoreCase = true)
+            // Prefer "Artist - Title" split to handle multi-word artists (e.g. "The Beatles")
+            val (artistRaw, titleRaw) = if (cleanQuery.contains(" - ")) {
+                val p = cleanQuery.split(" - ", limit = 2)
+                Pair(p[0].trim(), p[1].trim())
+            } else {
+                val p = cleanQuery.split(" ", limit = 2)
+                if (p.size < 2) return@withContext null
+                Pair(p[0].trim(), p[1].trim())
+            }
+
+            val artist = artistRaw.lowercase().replace(Regex("[^a-z0-9]"), "")
+            val title = titleRaw.lowercase().replace(Regex("[^a-z0-9]"), "")
+
             val url = "https://www.azlyrics.com/lyrics/$artist/$title.html"
-            
+
             val request = Request.Builder()
                 .url(url)
                 .get()
                 .build()
-            
+
             httpClient.newCall(request).execute().use { response ->
                 if (!response.isSuccessful) return@withContext null
                 

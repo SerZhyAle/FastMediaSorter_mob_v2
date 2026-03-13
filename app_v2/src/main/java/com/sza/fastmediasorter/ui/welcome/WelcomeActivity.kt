@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.welcome
 
 import android.Manifest
 import android.animation.ValueAnimator
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -286,7 +285,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             return
         }
         // Mark that storage permissions were requested so MainActivity shows toast instead of dialog
-        getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+        getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
             .edit()
             .putBoolean("storage_permission_requested", true)
             .apply()

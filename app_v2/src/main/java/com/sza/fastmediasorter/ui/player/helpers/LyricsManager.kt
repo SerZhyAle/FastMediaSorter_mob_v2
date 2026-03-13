@@ -58,10 +58,13 @@ class LyricsManager(
                     Timber.d("LyricsManager: Lyrics found, showing viewer")
                     showLyricsViewer(lyrics)
                 }.onFailure { error ->
-                    if (error is java.net.SocketTimeoutException) {
-                        Timber.w("LyricsManager: Lyrics search timeout: ${error.message}")
-                    } else {
-                        Timber.e(error, "LyricsManager: Lyrics search failed")
+                    when {
+                        error.message == "Lyrics not found" ->
+                            Timber.d("LyricsManager: Lyrics not found for track")
+                        error is java.net.SocketTimeoutException ->
+                            Timber.w("LyricsManager: Lyrics search timeout: ${error.message}")
+                        else ->
+                            Timber.e(error, "LyricsManager: Lyrics search failed")
                     }
                     
                     val errorMessage = when {
