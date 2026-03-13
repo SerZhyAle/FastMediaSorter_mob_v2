@@ -1350,9 +1350,13 @@ class ImageLoadingManager(
         // audioFileName view is never used now — full filename is in top-left tvFileNameOverlay
         safeViews.audioFileName.visibility = View.GONE
 
-        // Build Artist – Album – Title line
+        // Build Artist – Album – Title line.
+        // If ID3 tags are absent, try to infer artist from the parent directory name
+        // (common pattern in Russian music collections: "YYYY-Artist-Album/track.mp3").
+        val effectiveArtist = file.artist?.takeIf { it.isNotBlank() }
+            ?: parseArtistFromPath(file.path)
         val metadataParts = listOfNotNull(
-            file.artist?.takeIf { it.isNotBlank() },
+            effectiveArtist,
             file.album?.takeIf { it.isNotBlank() },
             file.title?.takeIf { it.isNotBlank() }
         )
@@ -1397,7 +1401,40 @@ class ImageLoadingManager(
         if (!format.isNullOrEmpty()) add(format)
         if (audioDurationStr.isNotEmpty()) add(audioDurationStr)
     }.joinToString(" \u2022 ")
-    
+
+    /**
+     * Infers an artist name from the parent directory of the file path.
+     * Handles common music folder patterns:
+     *   "YYYY-Artist-Album" → "Artist"
+     *   "Artist - Album"   → "Artist"
+     *   "Artist"           → "Artist"
+     * Returns null when no meaningful artist can be determined.
+     */
+    private fun parseArtistFromPath(path: String): String? {
+        val withoutScheme = path.substringAfter("://").ifEmpty { path }
+        val parts = withoutScheme.split('/')
+        val dirName = parts.dropLast(1).lastOrNull()?.takeIf { it.isNotBlank() } ?: return null
+
+        // Strip leading year (e.g. "2017-" or "2017 ")
+        val withoutYear = dirName.replace(Regex("^\\d{4}[-\\s]"), "").trim()
+
+        // Try "Artist - Album" (with spaces around hyphen)
+        if (withoutYear.contains(" - ")) {
+            return withoutYear.substringBefore(" - ").trim().takeIf { it.isNotBlank() }
+        }
+
+        // Try "Artist-Album" (hyphen, no surrounding spaces)
+        if (withoutYear.contains("-")) {
+            val candidate = withoutYear.substringBefore("-").trim()
+            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) {
+                return candidate
+            }
+        }
+
+        // Single-segment directory — use as artist only if it contains letters
+        return withoutYear.takeIf { it.any { c -> c.isLetter() } }
+    }
+
     private fun formatDuration(millis: Long?): String {
         if (millis == null || millis <= 0) return "N/A"
         val seconds = millis / 1000
@@ -1600,7 +1637,7 @@ class ImageLoadingManager(
                         
                         val metadata = withContext(Dispatchers.IO) {
                             Timber.d("loadAudioCoverArt[$callId]: Calling searchAudioCoverUseCase")
-                            searchAudioCoverUseCase(file.name)
+                            searchAudioCoverUseCase(file.name, file.path)
                         }
                         
                         val coverUrl = metadata?.coverArtUrl
@@ -1697,7 +1734,7 @@ class ImageLoadingManager(
                 AudioEmptyStateController.MODE_NONE
             }
             try {
-                val metadata = searchAudioCoverUseCase(file.name)
+                val metadata = searchAudioCoverUseCase(file.name, file.path)
                 val coverUrl = metadata?.coverArtUrl
                 
                 withContext(Dispatchers.Main) {

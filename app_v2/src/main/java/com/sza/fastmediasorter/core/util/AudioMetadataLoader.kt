@@ -166,8 +166,8 @@ class AudioMetadataLoader @Inject constructor(
 
                     val metadata = extractMetadataFromBytes(bytes)
                     if (metadata == null || !metadata.hasAnyData()) {
+                        // No embedded tags is a per-file outcome, not a system failure — skip kill-switch counter
                         Timber.d("AudioMetadataLoader: No metadata extracted for ${file.name}")
-                        recordFailure()
                         failedCache[file.path] = true
                         inFlight.remove(file.path)
                         return@withPermit
@@ -238,7 +238,7 @@ class AudioMetadataLoader @Inject constructor(
 
     private fun recordFailure() {
         val count = consecutiveFailures.incrementAndGet()
-        if (count >= KILL_SWITCH_THRESHOLD) {
+        if (count == KILL_SWITCH_THRESHOLD) {
             disabled = true
             Timber.e(
                 "AudioMetadataLoader: KILL-SWITCH activated after $count consecutive failures. " +

@@ -65,13 +65,23 @@ class SearchLyricsUseCase @Inject constructor(
             val filteredResolvedTitle = SearchQueryUtils.filterPlaceholder(resolvedTitle)
             val filteredResolvedArtist = SearchQueryUtils.filterPlaceholder(resolvedArtist)
             
-            // Build search queries (resolved metadata gets priority)
-            val searchQueries = buildSearchQueries(artist, title, mediaFile.name, filteredResolvedTitle, filteredResolvedArtist)
+            // Extract artist from parent directory name as last-resort fallback
+            // (handles "YYYY-Artist-Album/track.mp3" folder structures common in Russian music collections)
+            val dirArtist = parseArtistFromPath(mediaFile.path)
+            if (!dirArtist.isNullOrBlank()) {
+                Timber.d("AudioMetadataLoader: dirArtist extracted from path: '$dirArtist'")
+            }
 
-            // Detect script to route to the right sources first
+            // Build search queries (resolved metadata gets priority)
+            val searchQueries = buildSearchQueries(artist, title, mediaFile.name, filteredResolvedTitle, filteredResolvedArtist, dirArtist)
+
+            // Detect script to route to the right sources first.
+            // Also check the filename itself — covers the case where ID3 and iTunes both fail
+            // but the track name is Cyrillic (e.g. "01-Случай в Ватикане.mp3").
             val isCyrillic = hasCyrillic(artist) || hasCyrillic(title) ||
-                hasCyrillic(filteredResolvedArtist) || hasCyrillic(filteredResolvedTitle)
-            Timber.d("Script detection: isCyrillic=$isCyrillic (artist='$artist', title='$title')")
+                hasCyrillic(filteredResolvedArtist) || hasCyrillic(filteredResolvedTitle) ||
+                hasCyrillic(mediaFile.name) || hasCyrillic(dirArtist)
+            Timber.d("Script detection: isCyrillic=$isCyrillic (artist='$artist', title='$title', dirArtist='$dirArtist')")
 
             // Source order depends on script:
             //   Cyrillic: Megalyrics first (RU DB), then Musixmatch/Genius/Lyrics.ovh; AZLyrics skipped (ASCII-only)
@@ -353,7 +363,8 @@ class SearchLyricsUseCase @Inject constructor(
         title: String?,
         filename: String,
         resolvedTitle: String? = null,
-        resolvedArtist: String? = null
+        resolvedArtist: String? = null,
+        dirArtist: String? = null
     ): List<String> {
         val queries = mutableListOf<String>()
         
@@ -371,8 +382,8 @@ class SearchLyricsUseCase @Inject constructor(
         // Parse filename to extract potential artist and title
         val (filenameArtist, filenameTitle) = parseFilename(filename)
         
-        // Determine best artist and title (prefer ID3 metadata, fallback to filename)
-        val bestArtist = normalizeText(artist ?: filenameArtist)
+        // Determine best artist: prefer ID3 → filename parse → parent directory
+        val bestArtist = normalizeText(artist ?: filenameArtist.ifBlank { dirArtist })
         val bestTitle = normalizeText(title ?: filenameTitle)
         
         // Priority 1: Artist + Title (from ID3 metadata or filename)
@@ -439,6 +450,42 @@ class SearchLyricsUseCase @Inject constructor(
         
         // No clear pattern found, treat entire name as title
         return Pair("", name.trim())
+    }
+
+    /**
+     * Extracts artist name from the parent directory of the file path.
+     * Handles common Russian music folder patterns:
+     *   "YYYY-Artist-Album" → "Artist"
+     *   "Artist - Album"   → "Artist"
+     *   "Artist"           → "Artist"
+     * Returns null when no meaningful artist can be determined.
+     */
+    private fun parseArtistFromPath(path: String): String? {
+        // Get the last directory segment before the filename
+        val withoutScheme = path.substringAfter("://").ifEmpty { path }
+        val parts = withoutScheme.split('/')
+        // parts: [host:port, share, ..., dirName, fileName]
+        val dirName = parts.dropLast(1).lastOrNull()?.takeIf { it.isNotBlank() } ?: return null
+
+        // Strip leading year (e.g. "2017-" or "2017 ")
+        val withoutYear = dirName.replace(Regex("^\\d{4}[-\\s]"), "").trim()
+
+        // Try "Artist - Album" (en-dash / hyphen with spaces)
+        if (withoutYear.contains(" - ")) {
+            return withoutYear.substringBefore(" - ").trim().takeIf { it.isNotBlank() }
+        }
+
+        // Try "Artist-Album" (hyphen no spaces)
+        if (withoutYear.contains("-")) {
+            val candidate = withoutYear.substringBefore("-").trim()
+            // Reject single-word all-digit segments (track numbers etc.)
+            if (candidate.isNotBlank() && !candidate.all { it.isDigit() }) {
+                return candidate
+            }
+        }
+
+        // Single-segment directory — use as artist only if it contains letters
+        return withoutYear.trim().takeIf { it.any { c -> c.isLetter() } }
     }
 
     /** Returns true if the text contains Cyrillic characters. */
