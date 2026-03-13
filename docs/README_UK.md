@@ -183,6 +183,8 @@ FastMediaSorter v2 підтримує широкий спектр форматі
 
 **📖 Повна документація:** [Портал документації](https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html)
 
+**📋 Повний перелік можливостей:** [Українська](docs/FEATURES_UK.md) | [English](docs/FEATURES.md) | [Русский](docs/FEATURES_RU.md)
+
 ## Технологічний стек
 
 - **Мова**: Kotlin

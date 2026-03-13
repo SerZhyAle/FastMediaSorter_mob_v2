@@ -238,7 +238,7 @@ class PlaybackSettingsFragment : Fragment() {
                 R.string.tooltip_command_panel_message
             )
         }
-        
+
         // Handle manual input
         binding.etIconSize.setOnFocusChangeListener { _, hasFocus ->
             if (!hasFocus) {

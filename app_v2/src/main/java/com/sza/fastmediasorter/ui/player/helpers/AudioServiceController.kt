@@ -81,6 +81,7 @@ class AudioServiceController(
             Timber.d("AudioServiceController: playAudio uri=$uri")
             val mediaItem = MediaItem.fromUri(uri)
             player.setMediaItem(mediaItem)
+            player.repeatMode = Player.REPEAT_MODE_OFF
             player.prepare()
             player.play()
             onPlayerReady(player)
@@ -98,6 +99,7 @@ class AudioServiceController(
             Timber.d("AudioServiceController: playAudioPlaylist size=${uris.size}, startIndex=$startIndex")
             val mediaItems = uris.map { MediaItem.fromUri(it) }
             player.setMediaItems(mediaItems, startIndex, 0)
+            player.repeatMode = Player.REPEAT_MODE_ALL
             player.prepare()
             player.play()
             onPlayerReady(player)

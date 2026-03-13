@@ -101,5 +101,51 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
+    <!-- Background audio playback -->
+    <LinearLayout
+        android:id="@+id/layoutBackgroundAudioRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/button_height"
+        android:layout_marginBottom="@dimen/margin_small">
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchEnablePersistentAudioPlayback"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/settings_switch_margin_end"
+            android:contentDescription="@string/background_audio_setting_title" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/background_audio_setting_title"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/background_audio_setting_summary"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnNotificationPermission"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/manage_notifications_permission"
+        android:visibility="gone" />
+
 </LinearLayout>
 

@@ -16,11 +16,12 @@ Essential reading for end-users to install, configure, and use the application.
 | [Program Limitations](LIMITATIONS.md) | Known constraints and performance considerations. | February 2026 |
 | [SMB Setup Guide](SMB_SETUP_GUIDE.md) | Specific guide for setting up network shares. | 2026-02-09 |
 | [Module Selection](MODULE_SELECTION.md) | Guide on choosing the right app flavor (Standard, Lite, Photos, Legacy). | 2026-02-09 |
+| [Complete Feature List](FEATURES.md) | Full inventory of all implemented user-facing features. Reference for documentation and changelog. | 2026-03-13 |
 
 ### 🌍 Multi-language Support
 Most guides are available in Russian and Ukrainian:
-- **Russian**: [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md)
-- **Ukrainian**: [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md), [Limitations](LIMITATIONS_UK.md)
+- **Russian**: [README](README_RU.md), [Quick Start](QUICK_START_RU.md), [How-To](HOW_TO_RU.md), [FAQ](FAQ_RU.md), [Troubleshooting](TROUBLESHOOTING_RU.md), [Limitations](LIMITATIONS_RU.md), [Features](FEATURES_RU.md)
+- **Ukrainian**: [README](README_UK.md), [Quick Start](QUICK_START_UK.md), [How-To](HOW_TO_UK.md), [FAQ](FAQ_UK.md), [Troubleshooting](TROUBLESHOOTING_UK.md), [Limitations](LIMITATIONS_UK.md), [Features](FEATURES_UK.md)
 
 ---
 

@@ -33,7 +33,17 @@ class BackupRestoreFragment : Fragment() {
     private val signInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        val account = GoogleSignIn.getSignedInAccountFromIntent(result.data).result
+        val account = try {
+            GoogleSignIn.getSignedInAccountFromIntent(result.data).getResult(com.google.android.gms.common.api.ApiException::class.java)
+        } catch (e: com.google.android.gms.common.api.ApiException) {
+            // Result delivery failed (e.g. 12502 race on emulator), but user may have
+            // actually completed sign-in — check the current account before giving up.
+            Timber.w("Sign-in result parsing failed (code=${e.statusCode}), falling back to last signed-in account")
+            GoogleSignIn.getLastSignedInAccount(requireContext())
+        } catch (e: Exception) {
+            Timber.e(e, "Unexpected error parsing Google sign-in result")
+            GoogleSignIn.getLastSignedInAccount(requireContext())
+        }
         viewModel.handleSignInResult(account)
     }
 
@@ -60,6 +70,13 @@ class BackupRestoreFragment : Fragment() {
         binding.btnRestore.setOnClickListener {
             viewModel.startRestore()
         }
+        binding.iconHelpBackupInfo.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_backup_info_title,
+                R.string.tooltip_backup_info_message
+            )
+        }
     }
 
     private fun observeState() {
@@ -85,9 +102,10 @@ class BackupRestoreFragment : Fragment() {
             is BackupRestoreUiState.Authenticating -> {
                 binding.btnBackup.isEnabled = false
                 binding.btnRestore.isEnabled = false
-                if (viewModel.needsSignIn()) {
-                    launchSignIn()
-                }
+            }
+
+            is BackupRestoreUiState.NeedsSignIn -> {
+                launchSignIn()
             }
 
             is BackupRestoreUiState.BackingUp -> {

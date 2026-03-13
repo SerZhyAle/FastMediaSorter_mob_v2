@@ -84,22 +84,19 @@ class SearchLyricsUseCase @Inject constructor(
             Timber.d("Script detection: isCyrillic=$isCyrillic (artist='$artist', title='$title', dirArtist='$dirArtist')")
 
             // Source order depends on script:
-            //   Cyrillic: Megalyrics first (RU DB), then Musixmatch/Genius/Lyrics.ovh; AZLyrics skipped (ASCII-only)
-            //   Latin:    AZLyrics first (fastest), then Musixmatch/Genius/Lyrics.ovh; Megalyrics last
+            //   Cyrillic: Musixmatch first (international), then Genius; AZLyrics skipped (ASCII-only)
+            //   Latin:    AZLyrics first (fastest), then Musixmatch, then Genius
+            // Dead sources removed: Lyrics.ovh (502), Megalyrics (became WordPress blog, no lyrics)
             val sources: List<Pair<String, suspend (String) -> String?>> = if (isCyrillic) {
                 listOf(
-                    "Megalyrics" to { query -> searchMegalyrics(query) },
                     "Musixmatch" to { query -> searchMusixmatch(query) },
-                    "Genius" to { query -> searchGeniusApi(query) },
-                    "Lyrics.ovh" to { query -> searchLyricsOvhApi(query) }
+                    "Genius" to { query -> searchGeniusApi(query) }
                 )
             } else {
                 listOf(
                     "AZLyrics" to { query -> searchAZLyrics(query) },
                     "Musixmatch" to { query -> searchMusixmatch(query) },
-                    "Genius" to { query -> searchGeniusApi(query) },
-                    "Lyrics.ovh" to { query -> searchLyricsOvhApi(query) },
-                    "Megalyrics" to { query -> searchMegalyrics(query) }
+                    "Genius" to { query -> searchGeniusApi(query) }
                 )
             }
             
@@ -369,14 +366,17 @@ class SearchLyricsUseCase @Inject constructor(
         val queries = mutableListOf<String>()
         
         // Priority 0: Pre-resolved metadata from cover search (most accurate)
-        if (!resolvedArtist.isNullOrBlank() && !resolvedTitle.isNullOrBlank()) {
-            queries.add("$resolvedArtist $resolvedTitle lyrics")
-            queries.add("$resolvedArtist - $resolvedTitle")   // for AZLyrics/OVH multi-word artist parsing
-            queries.add("$resolvedArtist $resolvedTitle")
-            queries.add("$resolvedTitle lyrics")
-        } else if (!resolvedTitle.isNullOrBlank()) {
-            queries.add("$resolvedTitle lyrics")
-            queries.add(resolvedTitle)
+        // Clean brackets and special chars from resolved metadata before building queries.
+        val cleanResolvedArtist = resolvedArtist?.let { SearchQueryUtils.cleanForSearch(it) }.orEmpty()
+        val cleanResolvedTitle  = resolvedTitle?.let  { SearchQueryUtils.cleanForSearch(it) }.orEmpty()
+        if (cleanResolvedArtist.isNotBlank() && cleanResolvedTitle.isNotBlank()) {
+            queries.add("$cleanResolvedArtist $cleanResolvedTitle lyrics")
+            queries.add("$cleanResolvedArtist - $cleanResolvedTitle")   // for AZLyrics/OVH multi-word artist parsing
+            queries.add("$cleanResolvedArtist $cleanResolvedTitle")
+            queries.add("$cleanResolvedTitle lyrics")
+        } else if (cleanResolvedTitle.isNotBlank()) {
+            queries.add("$cleanResolvedTitle lyrics")
+            queries.add(cleanResolvedTitle)
         }
         
         // Parse filename to extract potential artist and title
@@ -534,9 +534,9 @@ class SearchLyricsUseCase @Inject constructor(
     private suspend fun searchLyricsOnline(query: String): String? {
         // Try multiple sources in order
         val sources = listOf<suspend () -> String?>(
-            { searchLyricsOvhApi(query) },
-            { searchGeniusApi(query) },
-            { searchAZLyrics(query) }
+            { searchAZLyrics(query) },
+            { searchMusixmatch(query) },
+            { searchGeniusApi(query) }
         )
         
         for (source in sources) {
@@ -556,123 +556,71 @@ class SearchLyricsUseCase @Inject constructor(
     
     
     /**
-     * Search Musixmatch (web scraping - one of the best lyrics databases).
+     * Search Musixmatch via direct URL construction.
+     * CloudFlare blocks /search/ endpoint (403), but direct /lyrics/Artist/Title URLs work.
+     * URL format: https://www.musixmatch.com/lyrics/{Artist-Slug}/{Title-Slug}
+     * Words hyphen-separated; URLs are case-insensitive.
+     * Lyrics are embedded in page HTML as JSON field "body":"..."
      */
     private suspend fun searchMusixmatch(query: String): String? = withContext(Dispatchers.IO) {
         try {
-            // Search Musixmatch
-            val searchQuery = URLEncoder.encode(query, "UTF-8")
-            val searchUrl = "https://www.musixmatch.com/search/$searchQuery"
-            
-            val request = Request.Builder()
-                .url(searchUrl)
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .get()
-                .build()
-            
-            httpClient.newCall(request).execute().use { response ->
-                Timber.d("Musixmatch search: response ${response.code} for $searchUrl")
-                if (!response.isSuccessful) return@withContext null
-
-                val html = response.body?.string() ?: return@withContext null
-
-                // Extract first song URL from search results
-                val urlRegex = """href="(/lyrics/[^"]+)"""".toRegex()
-                val songPath = urlRegex.find(html)?.groupValues?.get(1)
-                    ?: return@withContext null
-
-                // Fetch lyrics from song page
-                fetchMusixmatchLyrics("https://www.musixmatch.com$songPath")
+            val cleanQuery = query.replace(" lyrics", "", ignoreCase = true)
+            val (artistRaw, titleRaw) = if (cleanQuery.contains(" - ")) {
+                val p = cleanQuery.split(" - ", limit = 2)
+                Pair(p[0].trim(), p[1].trim())
+            } else {
+                val p = cleanQuery.split(" ", limit = 2)
+                if (p.size < 2) return@withContext null
+                Pair(p[0].trim(), p[1].trim())
             }
-        } catch (e: Exception) {
-            Timber.w("Musixmatch search failed: ${e.message}")
-            null
-        }
-    }
-    
-    private suspend fun fetchMusixmatchLyrics(url: String): String? = withContext(Dispatchers.IO) {
-        try {
+
+            // Build hyphenated slug: "The Beatles" -> "The-Beatles", "Dig a Pony" -> "Dig-a-Pony"
+            val artistSlug = artistRaw.trim().replace(Regex("\\s+"), "-")
+            val titleSlug = titleRaw.trim().replace(Regex("\\s+"), "-")
+
+            if (artistSlug.isBlank() || titleSlug.isBlank()) return@withContext null
+
+            val url = "https://www.musixmatch.com/lyrics/$artistSlug/$titleSlug"
+            Timber.d("Musixmatch: fetching direct URL $url")
+
             val request = Request.Builder()
                 .url(url)
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
                 .get()
                 .build()
-            
+
             httpClient.newCall(request).execute().use { response ->
+                Timber.d("Musixmatch: response ${response.code} for $url")
                 if (!response.isSuccessful) return@withContext null
-                
+
                 val html = response.body?.string() ?: return@withContext null
-                
-                // Musixmatch has lyrics in <span> tags with class "lyrics__content__ok"
-                val lyricsRegex = """<span[^>]*class="[^"]*lyrics__content__ok[^"]*"[^>]*>(.*?)</span>""".toRegex(RegexOption.DOT_MATCHES_ALL)
-                val matches = lyricsRegex.findAll(html)
-                
-                val lyrics = matches.joinToString("\n\n") { match ->
-                    match.groupValues[1]
-                        .replace("""<[^>]+>""".toRegex(), "\n")
-                        .replace("&quot;", "\"")
-                        .replace("&amp;", "&")
-                        .replace("&lt;", "<")
-                        .replace("&gt;", ">")
-                        .replace("&#x27;", "'")
-                        .trim()
+
+                // Musixmatch embeds lyrics in JSON payload: "body":"lyrics text with \n"
+                val bodyRegex = """"body"\s*:\s*"((?:[^"\\]|\\.)*)"""".toRegex()
+                val bodyMatch = bodyRegex.find(html)
+                if (bodyMatch == null) {
+                    Timber.d("Musixmatch: no JSON body field found in page")
+                    return@withContext null
                 }
-                
+
+                val lyrics = bodyMatch.groupValues[1]
+                    .replace("\\n", "\n")
+                    .replace("\\r", "")
+                    .replace("\\t", "\t")
+                    .replace("\\\"", "\"")
+                    .replace("\\'", "'")
+                    .trim()
+
                 Timber.d("Musixmatch extracted lyrics length: ${lyrics.length}, first 200 chars: ${lyrics.take(200)}")
                 lyrics.takeIf { it.length > 50 }
             }
         } catch (e: Exception) {
-            Timber.w("Musixmatch lyrics fetch failed: ${e.message}")
+            Timber.w("Musixmatch failed: ${e.message}")
             null
         }
     }
     
-    /**
-     * Search Lyrics.ovh API (free, simple).
-     */
-    private suspend fun searchLyricsOvhApi(query: String): String? = withContext(Dispatchers.IO) {
-        // Extract artist and title from query
-        val cleanQuery = query.replace(" lyrics", "", ignoreCase = true)
-        // Prefer "Artist - Title" split to handle multi-word artists (e.g. "The Beatles")
-        val (artistRaw, titleRaw) = if (cleanQuery.contains(" - ")) {
-            val p = cleanQuery.split(" - ", limit = 2)
-            Pair(p[0].trim(), p[1].trim())
-        } else {
-            val p = cleanQuery.split(" ", limit = 2)
-            if (p.size < 2) return@withContext null
-            Pair(p[0].trim(), p[1].trim())
-        }
-
-        val artist = URLEncoder.encode(artistRaw, "UTF-8")
-        val title = URLEncoder.encode(titleRaw, "UTF-8")
-
-        val apiUrl = "https://api.lyrics.ovh/v1/$artist/$title"
-        Timber.d("Lyrics.ovh: fetching $apiUrl")
-
-        val request = Request.Builder()
-            .url(apiUrl)
-            .get()
-            .build()
-
-        // Use 'use' to ensure response is closed
-        httpClient.newCall(request).execute().use { response ->
-            Timber.d("Lyrics.ovh: response ${response.code} for $apiUrl")
-            if (!response.isSuccessful) return@withContext null
-            
-            val responseBody = response.body?.string() ?: return@withContext null
-            
-            // Parse JSON response (simple manual parsing)
-            val lyricsRegex = """"lyrics"\s*:\s*"([^"]+)"""".toRegex()
-            val lyrics = lyricsRegex.find(responseBody)?.groupValues?.get(1)
-                ?.replace("\\n", "\n")
-                ?.replace("\\r", "")
-                ?.replace("\\t", "\t")
-                ?.trim()
-            
-            Timber.d("Lyrics.ovh extracted lyrics length: ${lyrics?.length}, first 200 chars: ${lyrics?.take(200)}")
-            lyrics?.takeIf { it.length > 50 }
-        }
-    }
+    // NOTE: searchLyricsOvhApi removed — api.lyrics.ovh returns 502 permanently (server dead since 2024).
     
     /**
      * Search Genius API (requires parsing HTML from search results).
@@ -684,10 +632,12 @@ class SearchLyricsUseCase @Inject constructor(
             
             val request = Request.Builder()
                 .url(searchUrl)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .get()
                 .build()
             
             httpClient.newCall(request).execute().use { response ->
+                Timber.d("Genius API: response ${response.code} for query '$query'")
                 if (!response.isSuccessful) return@withContext null
                 
                 val responseBody = response.body?.string() ?: return@withContext null
@@ -695,8 +645,12 @@ class SearchLyricsUseCase @Inject constructor(
                 // Extract first song URL from JSON
                 val urlRegex = """"url"\s*:\s*"(https://genius\.com/[^"]+)"""".toRegex()
                 val songUrl = urlRegex.find(responseBody)?.groupValues?.get(1)
-                    ?: return@withContext null
+                if (songUrl == null) {
+                    Timber.d("Genius API: no song URL found in response for '$query'")
+                    return@withContext null
+                }
                 
+                Timber.d("Genius API: found song URL: $songUrl")
                 // Fetch lyrics from song page
                 fetchGeniusLyrics(songUrl)
             }
@@ -710,10 +664,12 @@ class SearchLyricsUseCase @Inject constructor(
         try {
             val request = Request.Builder()
                 .url(url)
+                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .get()
                 .build()
             
             httpClient.newCall(request).execute().use { response ->
+                Timber.d("Genius lyrics page: response ${response.code} for $url")
                 if (!response.isSuccessful) return@withContext null
                 
                 val html = response.body?.string() ?: return@withContext null
@@ -775,8 +731,14 @@ class SearchLyricsUseCase @Inject constructor(
                 Pair(p[0].trim(), p[1].trim())
             }
 
-            val artist = artistRaw.lowercase().replace(Regex("[^a-z0-9]"), "")
-            val title = titleRaw.lowercase().replace(Regex("[^a-z0-9]"), "")
+            // Strip all bracket types from both artist and title before building AZLyrics slug.
+            // "Breathe (In the Air)" → "breathe", "Song [Live]" → "song"
+            val artistCleaned = SearchQueryUtils.cleanForSearch(artistRaw)
+            // AZLyrics strips leading articles: "The Beatles" → "beatles"
+            val artistNoArticle = artistCleaned.replace(Regex("^(the|a|an)\\s+", RegexOption.IGNORE_CASE), "")
+            val artist = (artistNoArticle.ifBlank { artistCleaned }).lowercase().replace(Regex("[^a-z0-9]"), "")
+            val titleCleaned = SearchQueryUtils.cleanForSearch(titleRaw)
+            val title = (titleCleaned.ifBlank { titleRaw }).lowercase().replace(Regex("[^a-z0-9]"), "")
 
             // AZLyrics only indexes ASCII content — skip if artist or title is non-ASCII
             if (artist.isEmpty() || title.isEmpty()) {
@@ -831,66 +793,5 @@ class SearchLyricsUseCase @Inject constructor(
         }
     }
 
-    /**
-     * Search megalyrics.ru — largest Russian-language lyrics database.
-     * Flow: search page → first song link → lyrics page.
-     */
-    private suspend fun searchMegalyrics(query: String): String? = withContext(Dispatchers.IO) {
-        try {
-            val searchQuery = URLEncoder.encode(
-                query.replace(" lyrics", "", ignoreCase = true), "UTF-8"
-            )
-            val searchUrl = "https://megalyrics.ru/search/?q=$searchQuery"
-            Timber.d("Megalyrics: searching $searchUrl")
-
-            val searchRequest = Request.Builder()
-                .url(searchUrl)
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .header("Accept-Language", "ru-RU,ru;q=0.9,en;q=0.8")
-                .get()
-                .build()
-
-            val songPath = httpClient.newCall(searchRequest).execute().use { response ->
-                Timber.d("Megalyrics search: response ${response.code} for $searchUrl")
-                if (!response.isSuccessful) return@withContext null
-                val html = response.body?.string() ?: return@withContext null
-
-                // Extract first lyrics link: href="/lyric/artist-slug/title-slug.htm"
-                val linkRegex = """href="(/lyric/[^"]+\.htm)"""".toRegex()
-                linkRegex.find(html)?.groupValues?.get(1)
-            } ?: return@withContext null
-
-            val lyricsUrl = "https://megalyrics.ru$songPath"
-            Timber.d("Megalyrics: fetching lyrics at $lyricsUrl")
-
-            val lyricsRequest = Request.Builder()
-                .url(lyricsUrl)
-                .header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-                .header("Accept-Language", "ru-RU,ru;q=0.9,en;q=0.8")
-                .get()
-                .build()
-
-            httpClient.newCall(lyricsRequest).execute().use { response ->
-                Timber.d("Megalyrics lyrics: response ${response.code} for $lyricsUrl")
-                if (!response.isSuccessful) return@withContext null
-                val html = response.body?.string() ?: return@withContext null
-
-                val doc = Jsoup.parse(html)
-
-                // Megalyrics stores lyrics inside <pre class="lyric"> or <div class="lyric">
-                val lyricsEl = doc.selectFirst("pre.lyric, div.lyric, .lyrics-body")
-                val raw = lyricsEl?.let {
-                    it.select("br").append("\\n")
-                    it.text().replace("\\n", "\n")
-                } ?: return@withContext null
-
-                val lyrics = raw.trim()
-                Timber.d("Megalyrics extracted lyrics length: ${lyrics.length}, first 200 chars: ${lyrics.take(200)}")
-                lyrics.takeIf { it.length > 50 }
-            }
-        } catch (e: Exception) {
-            Timber.w("Megalyrics failed: ${e.message}")
-            null
-        }
-    }
+    // NOTE: searchMegalyrics removed — megalyrics.ru migrated to WordPress blog, no longer serves lyrics (March 2026).
 }

@@ -94,14 +94,33 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnRestore"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/restore_from_google_drive"
-                    app:icon="@drawable/ic_cloud_download"
-                    app:iconGravity="start" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnRestore"
+                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/restore_from_google_drive"
+                        app:icon="@drawable/ic_cloud_download"
+                        app:iconGravity="start" />
+
+                    <ImageButton
+                        android:id="@+id/iconHelpBackupInfo"
+                        android:layout_width="@dimen/settings_help_icon_size"
+                        android:layout_height="@dimen/settings_help_icon_size"
+                        android:layout_marginStart="@dimen/settings_help_icon_margin"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="@string/tooltip_backup_info_title"
+                        android:src="@android:drawable/ic_menu_help"
+                        app:tint="@color/text_color_secondary" />
+
+                </LinearLayout>
 
                 <com.google.android.material.progressindicator.CircularProgressIndicator
                     android:id="@+id/progressRestore"
@@ -112,44 +131,6 @@
                     android:indeterminate="true"
                     android:visibility="gone"
                     app:indicatorSize="36dp" />
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-        <!-- Info text -->
-        <com.google.android.material.card.MaterialCardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="@dimen/margin_small"
-            android:layout_marginTop="@dimen/margin_small"
-            app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="1dp"
-            app:strokeColor="?attr/colorOutlineVariant"
-            app:strokeWidth="1dp">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="12dp"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="12dp"
-                    android:src="@android:drawable/ic_dialog_info"
-                    android:contentDescription="@string/backup_info_description"
-                    app:tint="?attr/colorOnSurfaceVariant" />
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/backup_info_description"
-                    android:textColor="?attr/colorOnSurfaceVariant"
-                    android:textSize="13sp" />
 
             </LinearLayout>
 

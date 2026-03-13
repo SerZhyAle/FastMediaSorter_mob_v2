@@ -1,16 +1,26 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
@@ -27,6 +37,8 @@ class AudioSettingsFragment : Fragment() {
 
     companion object {
         private const val MB_TO_BYTES = 1024L * 1024L
+        private const val PREFS_NAME_HINT = "playback_sections_state"
+        private const val KEY_HAS_SHOWN_BATTERY_HINT = "has_shown_battery_hint_background_audio"
 
         // Audio empty state mode keys (stored in DataStore)
         private const val MODE_NONE = "NONE"
@@ -40,6 +52,23 @@ class AudioSettingsFragment : Fragment() {
 
     // Ordered list of mode keys — index-aligned with dropdown labels
     private val emptyStateModeKeys = listOf(MODE_NONE, MODE_AVD_PULSE, MODE_CANVAS_BARS, MODE_CANVAS_WAVES, MODE_VISUALIZATION)
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = true))
+            updateNotificationPermissionButtonVisibility()
+        } else {
+            binding.switchEnablePersistentAudioPlayback.isChecked = false
+            Snackbar.make(
+                binding.root,
+                R.string.notification_permission_required_for_background,
+                Snackbar.LENGTH_LONG
+            ).show()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -180,6 +209,9 @@ class AudioSettingsFragment : Fragment() {
                 viewModel.updateSettings(current.copy(audioEmptyStateMode = selectedKey))
             }
         }
+
+        // Background audio playback
+        setupBackgroundAudioSection()
     }
 
     private fun observeData() {
@@ -242,10 +274,85 @@ class AudioSettingsFragment : Fragment() {
                     )
                     binding.actvAudioEmptyStateMode.setText(emptyStateModeLabels[modeIndex], false)
 
+                    // Background audio playback
+                    if (BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+                        if (binding.switchEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
+                            binding.switchEnablePersistentAudioPlayback.isChecked = settings.enablePersistentAudioPlayback
+                        }
+                        updateNotificationPermissionButtonVisibility()
+                    }
+
                     isUpdatingFromSettings = false
                 }
             }
         }
+    }
+
+    // ── Background Audio Section ──
+
+    private fun setupBackgroundAudioSection() {
+        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+            binding.layoutBackgroundAudioRow.visibility = View.GONE
+            binding.btnNotificationPermission.visibility = View.GONE
+            return
+        }
+
+        binding.switchEnablePersistentAudioPlayback.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            if (isChecked) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !isNotificationPermissionGranted()) {
+                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    return@setOnCheckedChangeListener
+                }
+                showBatteryOptimizationHintIfNeeded()
+            }
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enablePersistentAudioPlayback = isChecked))
+            updateNotificationPermissionButtonVisibility()
+        }
+
+        binding.btnNotificationPermission.setOnClickListener {
+            val intent = Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+            }
+            startActivity(intent)
+        }
+
+        updateNotificationPermissionButtonVisibility()
+    }
+
+    private fun isNotificationPermissionGranted(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                requireContext(),
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+
+    private fun updateNotificationPermissionButtonVisibility() {
+        if (!BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) return
+        binding.btnNotificationPermission.visibility =
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                && !isNotificationPermissionGranted()
+                && binding.switchEnablePersistentAudioPlayback.isChecked
+            ) View.VISIBLE else View.GONE
+    }
+
+    private fun showBatteryOptimizationHintIfNeeded() {
+        val prefs = requireContext().getSharedPreferences(PREFS_NAME_HINT, Context.MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_HAS_SHOWN_BATTERY_HINT, false)) return
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.battery_optimization_hint_title)
+            .setMessage(R.string.battery_optimization_hint_message)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                prefs.edit().putBoolean(KEY_HAS_SHOWN_BATTERY_HINT, true).apply()
+            }
+            .setCancelable(false)
+            .show()
     }
 
     override fun onDestroyView() {

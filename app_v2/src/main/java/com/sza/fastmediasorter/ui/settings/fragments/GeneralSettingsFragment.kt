@@ -21,6 +21,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.fragment.app.viewModels
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
@@ -28,7 +32,10 @@ import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
 import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
+import com.sza.fastmediasorter.ui.settings.BackupRestoreUiState
+import com.sza.fastmediasorter.ui.settings.BackupRestoreViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.utils.PermissionChecker
@@ -37,7 +44,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
 class GeneralSettingsFragment : Fragment() {
 
@@ -45,6 +54,24 @@ class GeneralSettingsFragment : Fragment() {
     private val binding get() = _binding!!
     
     private val viewModel: SettingsViewModel by activityViewModels()
+    private val backupViewModel: BackupRestoreViewModel by viewModels()
+
+    private val signInLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        val account = try {
+            GoogleSignIn.getSignedInAccountFromIntent(result.data).getResult(com.google.android.gms.common.api.ApiException::class.java)
+        } catch (e: com.google.android.gms.common.api.ApiException) {
+            // Result delivery failed (e.g. 12502 race on emulator), but user may have
+            // actually completed sign-in — check the current account before giving up.
+            Timber.w("Sign-in result parsing failed (code=${e.statusCode}), falling back to last signed-in account")
+            GoogleSignIn.getLastSignedInAccount(requireContext())
+        } catch (e: Exception) {
+            Timber.e(e, "Unexpected error parsing Google sign-in result")
+            GoogleSignIn.getLastSignedInAccount(requireContext())
+        }
+        backupViewModel.handleSignInResult(account)
+    }
     
     companion object {
         private const val PREFS_NAME = "general_sections_state"
@@ -102,6 +129,9 @@ class GeneralSettingsFragment : Fragment() {
         checkAndSuggestOptimalCacheSize()
         setupGeneralLayouts()
         setupExpandableSections()
+        setupBackupButtons()
+        observeBackupState()
+        updateBackupAccountInfo()
     }
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
@@ -1933,6 +1963,139 @@ class GeneralSettingsFragment : Fragment() {
                 .putBoolean(key, expanded)
                 .apply()
         }
+    }
+
+    // ==================== Backup/Restore ====================
+
+    private fun setupBackupButtons() {
+        binding.btnBackup.setOnClickListener {
+            backupViewModel.startBackup()
+        }
+        binding.btnRestore.setOnClickListener {
+            backupViewModel.startRestore()
+        }
+        binding.iconHelpBackupInfo.setOnClickListener {
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                requireContext(),
+                R.string.tooltip_backup_info_title,
+                R.string.tooltip_backup_info_message
+            )
+        }
+    }
+
+    private fun observeBackupState() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                backupViewModel.uiState.collect { state ->
+                    handleBackupState(state)
+                }
+            }
+        }
+    }
+
+    private fun handleBackupState(state: BackupRestoreUiState) {
+        binding.progressBackup.visibility = View.GONE
+        binding.progressRestore.visibility = View.GONE
+        binding.btnBackup.isEnabled = true
+        binding.btnRestore.isEnabled = true
+
+        when (state) {
+            is BackupRestoreUiState.Idle -> { /* default state */ }
+
+            is BackupRestoreUiState.Authenticating -> {
+                binding.btnBackup.isEnabled = false
+                binding.btnRestore.isEnabled = false
+            }
+
+            is BackupRestoreUiState.NeedsSignIn -> {
+                launchBackupSignIn()
+            }
+
+            is BackupRestoreUiState.BackingUp -> {
+                binding.progressBackup.visibility = View.VISIBLE
+                binding.btnBackup.isEnabled = false
+                binding.btnRestore.isEnabled = false
+            }
+
+            is BackupRestoreUiState.FetchingInfo -> {
+                binding.progressRestore.visibility = View.VISIBLE
+                binding.btnBackup.isEnabled = false
+                binding.btnRestore.isEnabled = false
+            }
+
+            is BackupRestoreUiState.Restoring -> {
+                binding.progressRestore.visibility = View.VISIBLE
+                binding.btnBackup.isEnabled = false
+                binding.btnRestore.isEnabled = false
+            }
+
+            is BackupRestoreUiState.BackupSuccess -> {
+                showBackupSnackbar(getString(R.string.backup_success, state.resourceCount, state.accountEmail))
+                updateBackupAccountInfo()
+                backupViewModel.resetState()
+            }
+
+            is BackupRestoreUiState.BackupInfoReady -> {
+                showRestoreConfirmDialog(state.info)
+            }
+
+            is BackupRestoreUiState.RestoreSuccess -> {
+                showRestoreSuccessMessage(state.result)
+                backupViewModel.resetState()
+            }
+
+            is BackupRestoreUiState.Error -> {
+                showBackupSnackbar(state.message)
+                backupViewModel.resetState()
+            }
+        }
+    }
+
+    private fun launchBackupSignIn() {
+        try {
+            val intent = backupViewModel.getSignInIntent()
+            signInLauncher.launch(intent)
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to launch Google sign-in")
+            showBackupSnackbar(getString(R.string.backup_failed, e.message ?: "Unknown error"))
+        }
+    }
+
+    private fun showRestoreConfirmDialog(info: RestoreFromGoogleDriveUseCase.BackupInfo) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.restore_confirm_title)
+            .setMessage(getString(R.string.restore_confirm_message, info.createdAt, info.deviceModel, info.resourceCount))
+            .setPositiveButton(R.string.restore_from_google_drive) { _, _ ->
+                backupViewModel.confirmRestore()
+            }
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                backupViewModel.resetState()
+            }
+            .setOnCancelListener {
+                backupViewModel.resetState()
+            }
+            .show()
+    }
+
+    private fun showRestoreSuccessMessage(result: RestoreFromGoogleDriveUseCase.RestoreResult) {
+        showBackupSnackbar(getString(R.string.restore_success, result.resourcesAdded, result.resourcesSkipped))
+        if (result.resourcesNeedingAuth > 0) {
+            Snackbar.make(binding.root, getString(R.string.restore_needs_auth), Snackbar.LENGTH_LONG).show()
+        }
+    }
+
+    private fun updateBackupAccountInfo() {
+        val email = backupViewModel.getAccountEmail()
+        if (email != null) {
+            binding.layoutBackupInfo.visibility = View.VISIBLE
+            binding.tvBackupAccount.text = getString(R.string.backup_account, email)
+        } else {
+            binding.layoutBackupInfo.visibility = View.GONE
+        }
+    }
+
+    private fun showBackupSnackbar(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
     }
 
     override fun onDestroyView() {

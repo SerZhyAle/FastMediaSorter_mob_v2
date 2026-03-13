@@ -33,7 +33,6 @@ class BackupToGoogleDriveUseCase @Inject constructor(
         private const val FILE_NAME_PREFIX = "backup_"
         private const val FILE_NAME_SUFFIX = ".json"
         private const val MIME_JSON = "application/json"
-        private const val MIME_FOLDER = "application/vnd.google-apps.folder"
 
         fun generateFileName(): String {
             val sdf = SimpleDateFormat("yyMMdd-HHmm", Locale.US)
@@ -209,13 +208,10 @@ class BackupToGoogleDriveUseCase @Inject constructor(
     }
 
     private suspend fun findOrCreateFolder(): String? {
-        // Search for existing folder
-        val searchResult = googleDriveClient.searchFiles(
-            query = "name = '$FOLDER_NAME' and mimeType = '$MIME_FOLDER' and trashed = false",
-            mimeType = null
-        )
-        if (searchResult is CloudResult.Success && searchResult.data.isNotEmpty()) {
-            return searchResult.data.first().id
+        // Find existing folder by exact name
+        val findResult = googleDriveClient.findFolderByName(FOLDER_NAME)
+        if (findResult is CloudResult.Success && findResult.data != null) {
+            return findResult.data.id
         }
 
         // Create new folder

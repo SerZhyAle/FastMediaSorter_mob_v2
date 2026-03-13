@@ -18,7 +18,6 @@ import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
-import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
@@ -284,11 +283,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             onRuntimePermissionsProcessed()
             return
         }
-        // Mark that storage permissions were requested so MainActivity shows toast instead of dialog
-        getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
-            .edit()
-            .putBoolean("storage_permission_requested", true)
-            .apply()
         mediaPermissionsLauncher.launch(requiredPermissions)
     }
 
@@ -381,11 +375,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private fun completeWelcomeFlow() {
         if (hasRequiredMediaPermissions()) {
             viewModel.setMediaPermissionsGranted(true)
-            viewModel.setWelcomeCompleted()
-            restartApp()
-            return
         }
-
         goToMainActivity()
     }
 
@@ -414,10 +404,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
     }
 
-    private fun restartApp() {
-        LocaleHelper.restartApp(this)
-    }
-
     private fun getRequiredMediaPermissions(): Array<String> {
         return when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
@@ -428,16 +414,12 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 )
             }
 
-            // API 28 (Android 9): requires both READ and WRITE at runtime
-            Build.VERSION.SDK_INT == Build.VERSION_CODES.P -> {
+            // API 23-32: requires both READ and WRITE at runtime
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
                 arrayOf(
                     Manifest.permission.READ_EXTERNAL_STORAGE,
                     Manifest.permission.WRITE_EXTERNAL_STORAGE
                 )
-            }
-
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
             }
 
             else -> emptyArray()

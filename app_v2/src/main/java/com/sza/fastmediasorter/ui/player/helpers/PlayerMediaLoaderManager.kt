@@ -3,16 +3,25 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.net.Uri
 import android.os.Handler
 import android.view.View
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.Player
 import com.bumptech.glide.Glide
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
+import com.sza.fastmediasorter.data.network.model.SmbResult
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.ui.player.ImageLoadingManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
@@ -21,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 
 /**
  * Coordinator for media loading operations in PlayerActivity.
@@ -51,13 +61,26 @@ class PlayerMediaLoaderManager(
     private val showLoadingIndicatorRunnable: Runnable,
     private val mediaFilesCacheManager: MediaFilesCacheManager,
     private val audioServiceController: AudioServiceController? = null,
-    private val onAudioServicePlaybackChanged: (Boolean) -> Unit = {}
+    private val onAudioServicePlaybackChanged: (Boolean) -> Unit = {},
+    private val onAudioServiceReady: () -> Unit = {},
+    private val onAudioServicePlaybackEnded: () -> Unit = {},
+    private val unifiedCache: UnifiedFileCache? = null,
+    private val smbClient: SmbClient? = null,
+    private val sftpClient: SftpClient? = null,
+    private val ftpClient: FtpClient? = null,
+    private val credentialsRepository: NetworkCredentialsRepository? = null
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private var servicePlaybackPlayer: Player? = null
     private val servicePlaybackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             onAudioServicePlaybackChanged(isPlaying)
+        }
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            when (playbackState) {
+                Player.STATE_READY -> onAudioServiceReady()
+                Player.STATE_ENDED -> onAudioServicePlaybackEnded()
+            }
         }
     }
 
@@ -152,10 +175,19 @@ class PlayerMediaLoaderManager(
         
         // Route audio to persistent playback service when enabled
         val isPersistentAudioEnabled = viewModel.state.value.enablePersistentAudioPlayback
+            && BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
         if (isAudioFile && isPersistentAudioEnabled && audioServiceController != null) {
             Timber.d("PlayerMediaLoaderManager.playVideo: routing AUDIO through AudioPlaybackService")
             playAudioViaService(path)
             return
+        }
+
+        // Stop service if switching away from audio to non-audio
+        if (!isAudioFile && isServiceAudioActive) {
+            Timber.d("PlayerMediaLoaderManager.playVideo: switching from audio to non-audio, stopping service")
+            audioServiceController?.player?.stop()
+            unbindServicePlaybackListener()
+            binding.playerView.player = null
         }
 
         unbindServicePlaybackListener()
@@ -172,33 +204,199 @@ class PlayerMediaLoaderManager(
 
     /**
      * Route audio playback through AudioPlaybackService.
-     * Connects via MediaController, sets it as PlayerView's player.
-     * Only called when enablePersistentAudioPlayback is ON and file is AUDIO.
-     * Local files only for now — network audio files use the standard VideoPlayerManager path.
+     * Local files: builds playlist from all local audio files.
+     * Network files (SMB/SFTP/FTP): pre-caches current file to local storage, then plays via service.
+     * Cloud files: not supported yet, falls back to in-app player.
      */
     private fun playAudioViaService(path: String) {
         val controller = audioServiceController ?: return
-        val uri = Uri.parse(path).let { parsed ->
-            if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
+        val resourceType = determineResourceType(path, null)
+
+        if (resourceType == ResourceType.LOCAL) {
+            playLocalAudioViaService(path, controller)
+            return
         }
 
-        controller.playAudio(uri) { player ->
-            activity.runOnUiThread {
-                bindServicePlaybackListener(player)
+        // Cloud audio not supported for background pre-cache yet
+        if (resourceType == ResourceType.CLOUD) {
+            Timber.w("playAudioViaService: cloud audio not supported for background playback")
+            Toast.makeText(activity, R.string.background_audio_local_only_warning, Toast.LENGTH_SHORT).show()
+            val currentFile = viewModel.state.value.currentFile
+            val resource = viewModel.state.value.resource
+            playVideoWithResourceType(path, resourceType, currentFile, resource)
+            return
+        }
 
-                // Set MediaController as PlayerView's player — controls work automatically
-                binding.playerView.player = player
-
-                // Cancel loading indicator
-                loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
-                binding.progressBar.isVisible = false
-
-                Timber.d("PlayerMediaLoaderManager.playAudioViaService: service player bound to PlayerView")
+        // Network audio (SMB/SFTP/FTP) — pre-cache current file, then play via service
+        lifecycleScope.launch {
+            val cachedFile = preCacheNetworkAudio(path)
+            if (cachedFile != null) {
+                val uri = Uri.fromFile(cachedFile)
+                controller.playAudio(uri) { player ->
+                    activity.runOnUiThread { bindServicePlayerToView(player) }
+                }
+            } else {
+                Timber.w("playAudioViaService: pre-cache failed, falling back to in-app player")
+                Toast.makeText(activity, R.string.background_audio_local_only_warning, Toast.LENGTH_SHORT).show()
+                val currentFile = viewModel.state.value.currentFile
+                val resource = viewModel.state.value.resource
+                playVideoWithResourceType(path, resourceType, currentFile, resource)
             }
         }
     }
 
-    private fun bindServicePlaybackListener(player: Player) {
+    /** Play local audio files via service with full playlist support. */
+    private fun playLocalAudioViaService(path: String, controller: AudioServiceController) {
+        val allFiles = viewModel.state.value.files
+        val localAudioFiles = allFiles.filter { file ->
+            file.type == MediaType.AUDIO
+                && determineResourceType(file.path, null) == ResourceType.LOCAL
+        }
+        if (localAudioFiles.isEmpty()) return
+
+        val startIndex = localAudioFiles.indexOfFirst { it.path == path }.coerceAtLeast(0)
+
+        if (localAudioFiles.size == 1) {
+            val uri = buildLocalUri(localAudioFiles[0].path)
+            controller.playAudio(uri) { player ->
+                activity.runOnUiThread { bindServicePlayerToView(player) }
+            }
+        } else {
+            val uris = localAudioFiles.map { buildLocalUri(it.path) }
+            controller.playAudioPlaylist(uris, startIndex) { player ->
+                activity.runOnUiThread { bindServicePlayerToView(player) }
+            }
+        }
+    }
+
+    /**
+     * Download network audio file to local cache for background playback.
+     * Returns cached File on success, null on failure.
+     */
+    private suspend fun preCacheNetworkAudio(path: String): File? = withContext(Dispatchers.IO) {
+        val currentFile = viewModel.state.value.currentFile
+        val fileSize = currentFile?.size ?: 0L
+
+        // Check cache first
+        if (fileSize > 0) {
+            val cached = unifiedCache?.getCachedFile(path, fileSize)
+            if (cached != null) {
+                Timber.d("preCacheNetworkAudio: cache HIT for $path")
+                return@withContext cached
+            }
+        }
+
+        val destFile = unifiedCache?.getCacheFile(path, fileSize)
+            ?: File.createTempFile("bg_audio_", ".tmp", activity.cacheDir)
+
+        try {
+            when {
+                path.startsWith("smb://") -> downloadSmbFull(path, destFile)
+                path.startsWith("sftp://") -> downloadSftpFull(path, destFile)
+                path.startsWith("ftp://") -> downloadFtpFull(path, destFile)
+                else -> null
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "preCacheNetworkAudio: download failed for $path")
+            destFile.delete()
+            null
+        }
+    }
+
+    private suspend fun downloadSmbFull(path: String, destFile: File): File? {
+        val client = smbClient ?: return null
+        val normalized = path.replace('\\', '/').substringAfter("smb://")
+        val parts = normalized.split("/", limit = 3)
+        if (parts.size < 3) return null
+
+        val serverWithPort = parts[0]
+        val server = serverWithPort.substringBefore(':')
+        val port = serverWithPort.substringAfter(':', "445").toIntOrNull() ?: 445
+        val shareName = parts[1]
+        val remotePath = parts[2]
+
+        var creds = credentialsRepository?.getByServerAndShare(server, shareName)
+        if (creds == null) {
+            val sub = remotePath.trimStart('/').substringBefore('/')
+            if (sub.isNotEmpty()) creds = credentialsRepository?.getByServerAndShare(server, "$shareName/$sub")
+        }
+        if (creds == null) { Timber.e("preCacheNetworkAudio: no SMB credentials for $server/$shareName"); return null }
+
+        val connInfo = SmbConnectionInfo(
+            server = server, shareName = shareName,
+            username = creds.username, password = creds.password,
+            domain = creds.domain, port = port
+        )
+        return destFile.outputStream().use { out ->
+            when (client.downloadFile(connInfo, remotePath, out)) {
+                is SmbResult.Success -> destFile
+                else -> { Timber.e("preCacheNetworkAudio: SMB download failed for $path"); null }
+            }
+        }
+    }
+
+    private suspend fun downloadSftpFull(path: String, destFile: File): File? {
+        val client = sftpClient ?: return null
+        val withoutProtocol = path.substringAfter("sftp://")
+        val pathStart = withoutProtocol.indexOf('/')
+        if (pathStart == -1) return null
+
+        val hostPort = withoutProtocol.substring(0, pathStart)
+        val remotePath = withoutProtocol.substring(pathStart)
+        val host = hostPort.substringBefore(':')
+        val port = hostPort.substringAfter(':', "22").toIntOrNull() ?: 22
+
+        var creds = credentialsRepository?.getByTypeServerAndPort("SFTP", host, port)
+        if (creds == null) {
+            creds = credentialsRepository?.getCredentialsByHost(host)
+            if (creds?.type != "SFTP") { Timber.e("preCacheNetworkAudio: no SFTP credentials for $host:$port"); return null }
+        }
+
+        val connInfo = SftpClient.SftpConnectionInfo(host = host, port = port, username = creds.username, password = creds.password)
+        return destFile.outputStream().use { out ->
+            val result = client.downloadFile(connInfo, remotePath, out)
+            if (result.isSuccess) destFile else { Timber.e("preCacheNetworkAudio: SFTP download failed for $path"); null }
+        }
+    }
+
+    private suspend fun downloadFtpFull(path: String, destFile: File): File? {
+        val client = ftpClient ?: return null
+        val withoutProtocol = path.substringAfter("ftp://")
+        val pathStart = withoutProtocol.indexOf('/')
+        if (pathStart == -1) return null
+
+        val hostPort = withoutProtocol.substring(0, pathStart)
+        val remotePath = withoutProtocol.substring(pathStart)
+        val host = hostPort.substringBefore(':')
+        val port = hostPort.substringAfter(':', "21").toIntOrNull() ?: 21
+
+        var creds = credentialsRepository?.getByTypeServerAndPort("FTP", host, port)
+        if (creds == null) {
+            creds = credentialsRepository?.getCredentialsByHost(host)
+            if (creds?.type != "FTP") { Timber.e("preCacheNetworkAudio: no FTP credentials for $host:$port"); return null }
+        }
+
+        client.connect(host, port, creds.username, creds.password)
+        return destFile.outputStream().use { out ->
+            val result = client.downloadFile(remotePath, out)
+            if (result.isSuccess) destFile else { Timber.e("preCacheNetworkAudio: FTP download failed for $path"); null }
+        }
+    }
+
+    private fun buildLocalUri(path: String): Uri {
+        val parsed = Uri.parse(path)
+        return if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
+    }
+
+    private fun bindServicePlayerToView(player: Player) {
+        bindServicePlaybackListener(player)
+        binding.playerView.player = player
+        loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+        binding.progressBar.isVisible = false
+        Timber.d("PlayerMediaLoaderManager: service player bound to PlayerView")
+    }
+
+    fun bindServicePlaybackListener(player: Player) {
         if (servicePlaybackPlayer !== player) {
             servicePlaybackPlayer?.removeListener(servicePlaybackListener)
             servicePlaybackPlayer = player

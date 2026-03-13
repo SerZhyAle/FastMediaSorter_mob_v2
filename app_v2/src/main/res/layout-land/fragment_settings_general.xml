@@ -185,6 +185,35 @@
 
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
+                    <!-- Google Drive Backup/Restore -->
+                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
+
+                    <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+
+                    <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp">
+
+                        <LinearLayout android:id="@+id/layoutBackupInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+
+                            <TextView android:id="@+id/tvLastBackupDate" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" />
+
+                            <TextView android:id="@+id/tvBackupAccount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="?android:attr/textColorSecondary" android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressBackup" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="36dp" />
+
+                    </FrameLayout>
+
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+
+                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+
+                    </LinearLayout>
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressRestore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="4dp" android:indeterminate="true" android:visibility="gone" app:indicatorSize="36dp" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

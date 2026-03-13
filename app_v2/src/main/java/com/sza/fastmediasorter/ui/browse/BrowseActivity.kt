@@ -187,6 +187,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private var showVideoThumbnails = true // Cached setting value
     private var showPdfThumbnails = false // Cached PDF thumbnail setting
     private var shouldScrollToLastViewed = false // Flag for scroll restoration after PlayerActivity return
+    // True on fresh Activity creation; consumed on first submitList with items to restore lastScrollPosition.
+    // Unlike isFirstResume (cleared in onResume before async files arrive), this flag survives until
+    // the actual file list is ready, fixing the race that caused position to reset on reopen.
+    private var pendingScrollRestore = true
 
     override fun onDestroy() {
         Timber.d("BrowseActivity.onDestroy: isFinishing=$isFinishing, isChangingConfigurations=$isChangingConfigurations")
@@ -1005,11 +1009,14 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                     } ?: Timber.w("submitList callback: lastViewedFile is null")
                                     shouldScrollToLastViewed = false
                                 } 
-                                // Priority 2: Restore to lastScrollPosition (first open or reopen after back button)
-                                else if (isFirstResume && state.resource?.lastScrollPosition != null && state.resource.lastScrollPosition > 0) {
-                                    val position = state.resource.lastScrollPosition
-                                    // Validate position is within bounds
-                                    if (position < itemCount) {
+                                // Priority 2: Restore to lastScrollPosition (first open or reopen after back button).
+                                // Uses pendingScrollRestore instead of isFirstResume because isFirstResume is cleared
+                                // in onResume() BEFORE async file loading emits data, causing the flag to be false
+                                // by the time submitList actually fires with the loaded list.
+                                else if (pendingScrollRestore) {
+                                    pendingScrollRestore = false
+                                    val position = state.resource?.lastScrollPosition ?: 0
+                                    if (position > 0 && position < itemCount) {
                                         binding.rvMediaFiles.post {
                                             // Check if Activity still alive in post {} callback
                                             if (isDestroyed || isFinishing) {
@@ -1033,7 +1040,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                                 }
                                             }
                                         }
-                                    } else {
+                                    } else if (position > 0) {
                                         Timber.w("submitList callback: Saved position $position is out of bounds (itemCount=$itemCount)")
                                     }
                                 }

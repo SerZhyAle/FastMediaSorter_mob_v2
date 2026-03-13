@@ -70,6 +70,7 @@
     <constraint>SAFETY_BACKUP: IF modifying file > 500 lines, FIRST create backup in `temp/` with timestamp.</constraint>
     <constraint>COMMON_PITFALLS: NO player code in `PlayerActivity.kt`. Use `Dispatchers.IO` for Coroutines. FTP MUST handle timeouts. NO file saves in root.</constraint>
     <constraint>DEV_CHANGELOG: MANDATORY. After EVERY code/config modification, run `.\scripts\add_to_dev_log.ps1 "path" "target" "description"` to log the change to `dev/CHANGELOG.md`. Execute AFTER each modification step, BEFORE moving to next task. Applies to ALL agents.</constraint>
+    <constraint>FEATURES_DOCS_UPDATE: MANDATORY. After implementing ANY new user-facing feature, add a bullet entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this at end of Step 4, BEFORE marking task complete. Match the bullet style of existing entries. Applies to ALL agents. NO exceptions.</constraint>
   </strict_constraints>
 
   <workflow_stages>
@@ -92,7 +93,7 @@
     </step>
     
     <step id="4" name="IMPLEMENTATION">
-      Execute iteratively AFTER human review. Write code, build, and commit after each step. Mark progress in checklist `[x]`. 
+      Execute iteratively AFTER human review. Write code, build, and commit after each step. Mark progress in checklist `[x]`. After implementing any new user-facing feature, update ALL THREE feature inventory files before closing the task: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK).
     </step>
   </workflow_stages>
 

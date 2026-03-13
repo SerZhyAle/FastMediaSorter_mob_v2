@@ -183,6 +183,7 @@ Detailed guides are available in multiple languages:
 - [Quick Start](docs/QUICK_START.md)
 - [FAQ](docs/FAQ.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
+- [Complete Feature List](docs/FEATURES.md)
 
 **🇷🇺 Русский:**
 

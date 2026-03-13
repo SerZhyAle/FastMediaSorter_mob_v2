@@ -1613,7 +1613,7 @@
     <string name="and_more_files">and %d more files</string>
     <string name="audio_a">Audio (A)</string>
     <string name="audio_title_label">Title: %1$s</string>
-    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+    <string name="background_audio_setting_summary">Продовжити відтворення аудіо при згортанні додатку</string>
     <string name="button_icon_alignment_start">start</string>
     <string name="button_icon_alignment_text_start">textStart</string>
     <string name="button_text_alignment_center">center</string>
@@ -1669,6 +1669,15 @@
     <string name="audio_empty_state_visualization">Візуалізація (MP4)</string>
     <string name="audio_track">Аудіодоріжка</string>
     <string name="background_audio_setting_title">Фонове відтворення</string>
+    <string name="background_audio_local_only_warning">Фонове відтворення доступне лише для локальних файлів</string>
+    <string name="background_audio_exit_title">Фонове відтворення</string>
+    <string name="background_audio_exit_message">Аудіо відтворюється у фоні. Зупинити відтворення?</string>
+    <string name="background_audio_exit_stop">Зупинити</string>
+    <string name="background_audio_exit_continue">Продовжити</string>
+    <string name="notification_permission_required_for_background">Для керування фоновим відтворенням потрібен дозвіл на сповіщення</string>
+    <string name="manage_notifications_permission">Керування дозволом на сповіщення</string>
+    <string name="battery_optimization_hint_title">Оптимізація батареї</string>
+    <string name="battery_optimization_hint_message">Для стабільного фонового відтворення на деяких пристроях вимкніть оптимізацію батареї для FastMediaSorter у системних налаштуваннях.</string>
     <string name="close_search">Закрити пошук</string>
     <string name="cloud_storage_icon">Іконка хмарного сховища</string>
     <string name="continue_reading">Продовжити читання</string>

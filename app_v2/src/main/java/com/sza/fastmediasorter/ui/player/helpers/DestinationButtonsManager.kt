@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.player
 
 import android.graphics.Color
 import android.view.Gravity
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.core.view.isVisible
@@ -352,6 +353,7 @@ class DestinationButtonsManager(
     private fun updateCopyPanelVisibility(collapsed: Boolean) {
         safeViews.copyToButtonsGrid.isVisible = !collapsed
         safeViews.copyToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        updateContainerOrientation()
     }
     
     /**
@@ -360,5 +362,35 @@ class DestinationButtonsManager(
     private fun updateMovePanelVisibility(collapsed: Boolean) {
         safeViews.moveToButtonsGrid.isVisible = !collapsed
         safeViews.moveToPanelIndicator.text = if (collapsed) "▶" else "▼"
+        updateContainerOrientation()
+    }
+
+    /**
+     * Switch bottomPanelsContainer between horizontal (both collapsed) and vertical layouts.
+     * When both panels are visible and both are collapsed, they share one row (50/50).
+     * In any other state each panel takes full width on its own row.
+     */
+    private fun updateContainerOrientation() {
+        val copyVisible = safeViews.copyToPanel.isVisible
+        val moveVisible = safeViews.moveToPanel.isVisible
+        val copyCollapsed = !safeViews.copyToButtonsGrid.isVisible
+        val moveCollapsed = !safeViews.moveToButtonsGrid.isVisible
+
+        val sideBySide = copyVisible && moveVisible && copyCollapsed && moveCollapsed
+
+        safeViews.bottomPanelsContainer.orientation =
+            if (sideBySide) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+
+        listOf(safeViews.copyToPanel, safeViews.moveToPanel).forEach { panel ->
+            val lp = panel.layoutParams as LinearLayout.LayoutParams
+            if (sideBySide) {
+                lp.width = 0
+                lp.weight = 1f
+            } else {
+                lp.width = ViewGroup.LayoutParams.MATCH_PARENT
+                lp.weight = 0f
+            }
+            panel.layoutParams = lp
+        }
     }
 }

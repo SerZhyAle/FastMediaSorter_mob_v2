@@ -424,7 +424,8 @@ class AudioMetadataLoader @Inject constructor(
             when (entry) {
                 is androidx.media3.extractor.metadata.id3.TextInformationFrame -> {
                     val id = entry.id.uppercase()
-                    val value = entry.values.firstOrNull() ?: return null
+                    val raw = entry.values.firstOrNull() ?: return null
+                    val value = fixCp1251Encoding(raw)
                     when (id) {
                         "TPE1", "TPE2" -> "artist" to value
                         "TALB" -> "album" to value
@@ -517,6 +518,34 @@ class AudioMetadataLoader @Inject constructor(
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /**
+     * Detects ID3 tags encoded as CP1251 (Windows Russian) but declared as ISO-8859-1.
+     * Media3 reads them as Latin-1, producing garbled text for Cyrillic content.
+     * Re-encodes the string as ISO-8859-1 bytes and decodes as windows-1251;
+     * accepts the result only when ≥50% of letters are Cyrillic.
+     */
+    private fun fixCp1251Encoding(value: String): String {
+        // Already valid Unicode Cyrillic — nothing to fix
+        if (value.any { it.code in 0x0400..0x04FF }) return value
+        // No Latin-1 extended range → plain ASCII, no re-encoding needed
+        if (value.none { it.code in 0x00C0..0x00FF }) return value
+        return try {
+            val bytes = value.toByteArray(Charsets.ISO_8859_1)
+            val reDec = String(bytes, charset("windows-1251"))
+            val letterCount = reDec.count { it.isLetter() }
+            val cyrillicCount = reDec.count { it.code in 0x0400..0x04FF }
+            // Accept only when clearly Cyrillic content (majority of letters)
+            if (letterCount > 0 && cyrillicCount * 2 >= letterCount) {
+                Timber.v("AudioMetadataLoader: CP1251 re-decode applied: '$value' → '$reDec'")
+                reDec
+            } else {
+                value
+            }
+        } catch (e: Exception) {
+            value
+        }
+    }
 
     private fun applyMetadata(file: MediaFile, metadata: AudioMetadata): MediaFile {
         return file.copy(

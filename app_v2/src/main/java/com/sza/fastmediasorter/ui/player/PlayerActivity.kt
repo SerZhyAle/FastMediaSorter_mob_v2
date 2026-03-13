@@ -1547,7 +1547,28 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             onAudioServicePlaybackChanged = { isPlaying ->
                 val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
                 sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
-            }
+                if (isAudioFile) {
+                    audioEmptyStateController?.onIsPlayingChanged(isPlaying)
+                }
+            },
+            onAudioServiceReady = {
+                val currentFile = viewModel.state.value.currentFile
+                if (currentFile?.type == MediaType.AUDIO) {
+                    imageLoadingManager.loadAudioCoverArt(currentFile)
+                }
+            },
+            onAudioServicePlaybackEnded = {
+                Timber.tag("AUDIO_SERVICE").d("STATE_ENDED received from service → slideshow=%s", viewModel.state.value.isSlideShowActive)
+                if (viewModel.state.value.isSlideShowActive) {
+                    viewModel.nextFile(skipDocuments = true)
+                    slideshowController.restartTimer()
+                }
+            },
+            unifiedCache = unifiedCache,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            credentialsRepository = credentialsRepository
         )
         
         dialogAndUiStateManager = PlayerDialogAndUiStateManager(
@@ -1689,6 +1710,27 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                         hideLyricsViewer()
                         return
                     }
+                }
+
+                // If background audio is actively playing, ask user before exiting
+                val isServicePlaying = audioServiceController?.isConnected == true
+                    && audioServiceController?.player?.isPlaying == true
+                if (isServicePlaying) {
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PlayerActivity)
+                        .setTitle(R.string.background_audio_exit_title)
+                        .setMessage(R.string.background_audio_exit_message)
+                        .setPositiveButton(R.string.background_audio_exit_stop) { _, _ ->
+                            audioServiceController?.player?.stop()
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                        .setNegativeButton(R.string.background_audio_exit_continue) { _, _ ->
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                        .setCancelable(true)
+                        .show()
+                    return
                 }
 
                 // Default back behavior
@@ -3009,6 +3051,22 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Delegate to lifecycle manager
         lifecycleManager.onResume()
         audioEmptyStateController?.onResume()
+        
+        // Reconnect to background audio service if it's still playing
+        reconnectToServiceIfActive()
+    }
+
+    private fun reconnectToServiceIfActive() {
+        val controller = audioServiceController ?: return
+        if (!controller.isConnected) return
+        val currentPlayer = controller.player ?: return
+        if (currentPlayer.isPlaying || currentPlayer.playbackState == androidx.media3.common.Player.STATE_READY) {
+            binding.playerView.player = currentPlayer
+            if (::mediaLoaderManager.isInitialized) {
+                mediaLoaderManager.bindServicePlaybackListener(currentPlayer)
+            }
+            timber.log.Timber.d("PlayerActivity.reconnect: rebound PlayerView to service MediaController")
+        }
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

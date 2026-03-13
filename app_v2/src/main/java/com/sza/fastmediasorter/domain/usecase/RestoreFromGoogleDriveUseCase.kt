@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
-import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
@@ -30,7 +30,6 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
     companion object {
         private const val FOLDER_NAME = "FastMediaSorter"
         private const val FILE_NAME_PREFIX = "backup_"
-        private const val MIME_FOLDER = "application/vnd.google-apps.folder"
     }
 
     /** Metadata about the backup file, shown in confirmation dialog. */
@@ -64,10 +63,10 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
 
             Result.success(
                 BackupInfo(
-                    createdAt = payload.createdAt,
-                    resourceCount = payload.resources.size,
-                    appVersionName = payload.appVersionName,
-                    deviceModel = payload.deviceModel
+                    createdAt = payload.createdAt.orEmpty(),
+                    resourceCount = payload.resources?.size ?: 0,
+                    appVersionName = payload.appVersionName.orEmpty(),
+                    deviceModel = payload.deviceModel.orEmpty()
                 )
             )
         } catch (e: Exception) {
@@ -91,13 +90,16 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
             // Check version compatibility
             if (payload.version > BackupPayload.CURRENT_VERSION) {
                 return@withContext Result.failure(
-                    Exception("Backup was created by a newer app version (${payload.appVersionName}). Please update the app.")
+                    Exception("Backup was created by a newer app version (${payload.appVersionName.orEmpty()}). Please update the app.")
                 )
+            }
+            if (payload.version < BackupPayload.CURRENT_VERSION) {
+                Timber.w("Restoring older backup format v${payload.version} (current v${BackupPayload.CURRENT_VERSION}) — unknown fields will use defaults")
             }
 
             // 1. Restore settings (full replace, keep credentials)
             val currentSettings = settingsRepository.getSettings().first()
-            val restoredSettings = BackupMapper.toAppSettings(payload.settings, currentSettings)
+            val restoredSettings = BackupMapper.toAppSettings(payload.settings ?: BackupSettings(), currentSettings)
             settingsRepository.updateSettings(restoredSettings)
             Timber.i("Settings restored from backup")
 
@@ -107,19 +109,24 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
             var skipped = 0
             var needsAuth = 0
 
-            for (backupRes in payload.resources) {
-                val candidate = BackupMapper.toMediaResource(backupRes)
-                val isDuplicate = existingResources.any { existing ->
-                    isDuplicateResource(existing, candidate)
-                }
-                if (isDuplicate) {
-                    skipped++
-                } else {
-                    resourcesToAdd.add(candidate)
-                    // Count resources that need re-authentication
-                    if (candidate.type != ResourceType.LOCAL) {
-                        needsAuth++
+            for (backupRes in payload.resources.orEmpty()) {
+                try {
+                    val candidate = BackupMapper.toMediaResource(backupRes)
+                    val isDuplicate = existingResources.any { existing ->
+                        isDuplicateResource(existing, candidate)
                     }
+                    if (isDuplicate) {
+                        skipped++
+                    } else {
+                        resourcesToAdd.add(candidate)
+                        // Count resources that need re-authentication
+                        if (candidate.type != ResourceType.LOCAL) {
+                            needsAuth++
+                        }
+                    }
+                } catch (e: Exception) {
+                    Timber.w(e, "Skipping resource '%s' — incompatible with current version", backupRes.name)
+                    skipped++
                 }
             }
 
@@ -148,23 +155,17 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
     }
 
     private suspend fun downloadAndParseBackup(): BackupPayload? {
-        // Find folder
-        val folderResult = googleDriveClient.searchFiles(
-            query = "name = '$FOLDER_NAME' and mimeType = '$MIME_FOLDER' and trashed = false",
-            mimeType = null
-        )
+        // Find folder by exact name
+        val folderResult = googleDriveClient.findFolderByName(FOLDER_NAME)
         val folderId = when (folderResult) {
-            is CloudResult.Success -> folderResult.data.firstOrNull()?.id
+            is CloudResult.Success -> folderResult.data?.id
             is CloudResult.Error -> null
         } ?: return null
 
-        // Find latest backup file (backup_YYMMDD-HHmm.json pattern, pick by most recent modifiedDate)
-        val fileResult = googleDriveClient.searchFiles(
-            query = "name contains '$FILE_NAME_PREFIX' and '$folderId' in parents and trashed = false",
-            mimeType = null
-        )
-        val fileId = when (fileResult) {
-            is CloudResult.Success -> fileResult.data
+        // List files in folder and find latest backup (backup_YYMMDD-HHmm.json pattern)
+        val listResult = googleDriveClient.listFiles(folderId, null)
+        val fileId = when (listResult) {
+            is CloudResult.Success -> listResult.data.first
                 .filter { it.name.startsWith(FILE_NAME_PREFIX) && it.name.endsWith(".json") }
                 .maxByOrNull { it.modifiedDate }
                 ?.id
@@ -177,7 +178,7 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
         return when (downloadResult) {
             is CloudResult.Success -> {
                 val json = outputStream.toString(Charsets.UTF_8.name())
-                Gson().fromJson(json, BackupPayload::class.java)
+                GsonBuilder().setLenient().create().fromJson(json, BackupPayload::class.java)
             }
             is CloudResult.Error -> {
                 Timber.e("Download failed: ${downloadResult.message}")

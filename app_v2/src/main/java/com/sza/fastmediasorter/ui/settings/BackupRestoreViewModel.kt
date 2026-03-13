@@ -19,6 +19,7 @@ import javax.inject.Inject
 sealed class BackupRestoreUiState {
     object Idle : BackupRestoreUiState()
     object Authenticating : BackupRestoreUiState()
+    object NeedsSignIn : BackupRestoreUiState()
     object BackingUp : BackupRestoreUiState()
     object Restoring : BackupRestoreUiState()
     object FetchingInfo : BackupRestoreUiState()
@@ -64,7 +65,7 @@ class BackupRestoreViewModel @Inject constructor(
                     performBackup()
                 } else {
                     pendingAction = "backup"
-                    // Caller must launch sign-in intent
+                    _uiState.value = BackupRestoreUiState.NeedsSignIn
                 }
             }
         }
@@ -85,6 +86,7 @@ class BackupRestoreViewModel @Inject constructor(
                     fetchBackupInfo()
                 } else {
                     pendingAction = "restore"
+                    _uiState.value = BackupRestoreUiState.NeedsSignIn
                 }
             }
         }

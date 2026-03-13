@@ -61,6 +61,8 @@ class SearchAudioCoverUseCase @Inject constructor(
             // Build enriched query: prepend artist extracted from parent directory.
             // Covers Cyrillic albums that iTunes doesn't index (e.g. "2017-Борис Гребенщиков-Золотой Букет").
             val dirArtist = filePath?.let { parseArtistFromPath(it) }
+                ?.let { SearchQueryUtils.cleanForSearch(it) }
+                ?.takeIf { it.isNotBlank() }
             val enrichedQuery = if (!dirArtist.isNullOrBlank() &&
                     !searchQuery.contains(dirArtist, ignoreCase = true)) {
                 "$dirArtist $searchQuery"

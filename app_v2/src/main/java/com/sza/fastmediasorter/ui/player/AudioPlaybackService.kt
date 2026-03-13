@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.IBinder
 import androidx.media3.common.AudioAttributes
@@ -54,10 +55,14 @@ class AudioPlaybackService : MediaSessionService() {
             .setUsage(C.USAGE_MEDIA)
             .build()
 
+        val wakeMode = if (checkSelfPermission(android.Manifest.permission.WAKE_LOCK)
+            == PackageManager.PERMISSION_GRANTED
+        ) C.WAKE_MODE_LOCAL else C.WAKE_MODE_NONE
+
         val exoPlayer = ExoPlayer.Builder(this)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
-            .setWakeMode(C.WAKE_MODE_LOCAL)
+            .setWakeMode(wakeMode)
             .build()
 
         exoPlayer.addListener(object : Player.Listener {
@@ -115,6 +120,7 @@ class AudioPlaybackService : MediaSessionService() {
         Timber.d("AudioPlaybackService: playAudio uri=$uri")
         val mediaItem = MediaItem.fromUri(uri)
         currentPlayer.setMediaItem(mediaItem)
+        currentPlayer.repeatMode = Player.REPEAT_MODE_OFF  // Play once and stop
         currentPlayer.prepare()
         currentPlayer.play()
     }
@@ -127,6 +133,7 @@ class AudioPlaybackService : MediaSessionService() {
         Timber.d("AudioPlaybackService: playAudioPlaylist size=${uris.size}, startIndex=$startIndex")
         val mediaItems = uris.map { MediaItem.fromUri(it) }
         currentPlayer.setMediaItems(mediaItems, startIndex, C.TIME_UNSET)
+        currentPlayer.repeatMode = Player.REPEAT_MODE_ALL  // Loop audio playlist
         currentPlayer.prepare()
         currentPlayer.play()
     }

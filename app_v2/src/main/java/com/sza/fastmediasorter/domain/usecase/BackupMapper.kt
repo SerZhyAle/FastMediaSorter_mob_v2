@@ -163,7 +163,7 @@ object BackupMapper {
     fun toAppSettings(backup: BackupSettings, current: AppSettings): AppSettings {
         return current.copy(
             isResourceGridMode = backup.isResourceGridMode,
-            language = backup.language,
+            language = backup.language.gsonSafe(current.language),
             preventSleep = backup.preventSleep,
             showSmallControls = backup.showSmallControls,
             // Keep credentials from current: defaultUser, defaultPassword
@@ -192,18 +192,18 @@ object BackupMapper {
             enablePhotosDuringAudio = backup.enablePhotosDuringAudio,
             audioBackgroundPhotosResourceId = backup.audioBackgroundPhotosResourceId,
             enablePersistentAudioPlayback = backup.enablePersistentAudioPlayback,
-            audioEmptyStateMode = backup.audioEmptyStateMode,
+            audioEmptyStateMode = backup.audioEmptyStateMode.gsonSafe(current.audioEmptyStateMode),
             supportText = backup.supportText,
             supportPdf = backup.supportPdf,
             supportEpub = backup.supportEpub,
             showPdfThumbnails = backup.showPdfThumbnails,
             textSizeMax = backup.textSizeMax,
             showTextLineNumbers = backup.showTextLineNumbers,
-            textReaderTheme = backup.textReaderTheme,
+            textReaderTheme = backup.textReaderTheme.gsonSafe(current.textReaderTheme),
             markdownRendered = backup.markdownRendered,
             syntaxHighlighting = backup.syntaxHighlighting,
             pdfScrollMode = backup.pdfScrollMode,
-            pdfColorMode = backup.pdfColorMode,
+            pdfColorMode = backup.pdfColorMode.gsonSafe(current.pdfColorMode),
             epubLineHeight = backup.epubLineHeight,
             epubHorizontalMargin = backup.epubHorizontalMargin,
             enableTranslation = backup.enableTranslation,
@@ -212,9 +212,9 @@ object BackupMapper {
             translationLensStyle = backup.translationLensStyle,
             enableGoogleLens = backup.enableGoogleLens,
             enableOcr = backup.enableOcr,
-            ocrDefaultFontSize = backup.ocrDefaultFontSize,
-            ocrDefaultFontFamily = backup.ocrDefaultFontFamily,
-            defaultSortMode = safeParseSortMode(backup.defaultSortMode),
+            ocrDefaultFontSize = backup.ocrDefaultFontSize.gsonSafe(current.ocrDefaultFontSize),
+            ocrDefaultFontFamily = backup.ocrDefaultFontFamily.gsonSafe(current.ocrDefaultFontFamily),
+            defaultSortMode = safeParseSortMode(backup.defaultSortMode.gsonSafe(current.defaultSortMode.name)),
             slideshowInterval = backup.slideshowInterval,
             enableSlideshowBackgroundMusic = backup.enableSlideshowBackgroundMusic,
             playToEndInSlideshow = backup.playToEndInSlideshow,
@@ -253,14 +253,14 @@ object BackupMapper {
 
     fun toMediaResource(backup: BackupResource): MediaResource {
         return MediaResource(
-            name = backup.name,
-            path = backup.path,
-            type = safeParseResourceType(backup.type),
+            name = backup.name.gsonSafe(""),
+            path = backup.path.gsonSafe(""),
+            type = safeParseResourceType(backup.type.gsonSafe("LOCAL")),
             cloudProvider = backup.cloudProvider?.let { safeParseCloudProvider(it) },
             cloudFolderId = backup.cloudFolderId,
             accountId = backup.accountId,
-            displayMode = safeParseDisplayMode(backup.displayMode),
-            sortMode = safeParseSortMode(backup.sortMode),
+            displayMode = safeParseDisplayMode(backup.displayMode.gsonSafe("LIST")),
+            sortMode = safeParseSortMode(backup.sortMode.gsonSafe("NAME_ASC")),
             displayOrder = backup.displayOrder,
             isDestination = backup.isDestination,
             destinationColor = backup.destinationColor,
@@ -273,8 +273,8 @@ object BackupMapper {
             allFiles = backup.allFiles,
             showHiddenFiles = backup.showHiddenFiles,
             showSubfoldersAsItems = backup.showSubfoldersAsItems,
-            supportedMediaTypes = backup.supportedMediaTypes.mapNotNull { safeParseMediaType(it) }.toSet(),
-            profile = safeParseResourceProfile(backup.profile),
+            supportedMediaTypes = backup.supportedMediaTypes.gsonSafeList().mapNotNull { safeParseMediaType(it) }.toSet(),
+            profile = safeParseResourceProfile(backup.profile.gsonSafe("NONE")),
             accessPin = backup.accessPin,
             readSpeedMbps = backup.readSpeedMbps,
             writeSpeedMbps = backup.writeSpeedMbps,
@@ -285,6 +285,12 @@ object BackupMapper {
             showCommandPanel = backup.showCommandPanel
         )
     }
+
+    // Guards against Gson bypassing Kotlin non-null guarantees when fields are absent
+    // in older backup JSON. Gson uses reflection and can set non-nullable fields to null.
+    // Using `as?` triggers a null-returning cast rather than a Kotlin smart-cast no-op.
+    private fun String.gsonSafe(fallback: String): String = (this as? String) ?: fallback
+    private fun <T> List<T>.gsonSafeList(): List<T> = (this as? List<T>) ?: emptyList()
 
     // Safe enum parsers — fall back to defaults for forward compatibility
     private fun safeParseSortMode(value: String): com.sza.fastmediasorter.domain.model.SortMode {

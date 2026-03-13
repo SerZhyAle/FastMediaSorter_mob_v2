@@ -310,6 +310,22 @@ object SettingsSearchRegistry {
             sectionId = "destinations",
             destination = SettingsSearchDestination.DESTINATIONS,
             viewId = R.id.btnAddDestination
+        ),
+        SettingsSearchIndex(
+            key = "general.backup_google_drive",
+            title = "Backup to Google Drive",
+            keywords = listOf("backup", "google drive", "cloud backup", "save"),
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.btnBackup
+        ),
+        SettingsSearchIndex(
+            key = "general.restore_google_drive",
+            title = "Restore from Google Drive",
+            keywords = listOf("restore", "google drive", "cloud restore", "recover"),
+            sectionId = "general",
+            destination = SettingsSearchDestination.GENERAL,
+            viewId = R.id.btnRestore
         )
     )
 

@@ -31,3 +31,4 @@
   - Write code and other objects iteratively.
   - Build and commit after each non-trivial step.
   - Mark progress directly in the planning files (`[x]`).
+  - **FEATURES UPDATE (MANDATORY)**: After implementing any new user-facing feature, add a description entry to ALL THREE files: `docs/FEATURES.md` (EN), `docs/FEATURES_RU.md` (RU), `docs/FEATURES_UK.md` (UK). Do this before marking the step complete. Use consistent bullet style matching existing entries.

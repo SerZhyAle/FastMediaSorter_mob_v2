@@ -13,12 +13,14 @@ import com.sza.fastmediasorter.domain.model.SortMode
 data class BackupPayload(
     val version: Int = CURRENT_VERSION,
     val appVersionCode: Long = 0,
-    val appVersionName: String = "",
-    val createdAt: String = "",
-    val deviceModel: String = "",
+    val appVersionName: String? = null,
+    val createdAt: String? = null,
+    val deviceModel: String? = null,
     val androidVersion: Int = 0,
-    val settings: BackupSettings = BackupSettings(),
-    val resources: List<BackupResource> = emptyList()
+    // Nullable so that Gson correctly reflects a missing field rather than silently
+    // leaving a non-null default that Kotlin cannot distinguish from a real value.
+    val settings: BackupSettings? = null,
+    val resources: List<BackupResource>? = null
 ) {
     companion object {
         const val CURRENT_VERSION = 1

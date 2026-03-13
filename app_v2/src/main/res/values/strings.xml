@@ -205,6 +205,8 @@
     <string name="backup_to_google_drive">Backup to Google Drive</string>
     <string name="restore_from_google_drive">Restore from Google Drive</string>
     <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="tooltip_backup_info_title">Backup &amp; Restore</string>
+    <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources and all settings to %2$s</string>
     <string name="backup_failed">Backup failed: %s</string>
     <string name="backup_in_progress">Backing up settings and resources…</string>
@@ -1858,6 +1860,15 @@
     <string name="notification_channel_audio_description">Controls for background audio playback</string>
     <string name="background_audio_setting_title">Background Playback</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+    <string name="background_audio_local_only_warning">Background playback is available only for local files</string>
+    <string name="background_audio_exit_title">Background Playback</string>
+    <string name="background_audio_exit_message">Audio is playing in the background. Stop playback?</string>
+    <string name="background_audio_exit_stop">Stop</string>
+    <string name="background_audio_exit_continue">Continue</string>
+    <string name="notification_permission_required_for_background">Notification permission required for background playback controls</string>
+    <string name="manage_notifications_permission">Manage notification permission</string>
+    <string name="battery_optimization_hint_title">Battery optimization</string>
+    <string name="battery_optimization_hint_message">For stable background playback on some devices, disable battery optimization for FastMediaSorter in system settings.</string>
 
     <!-- Vinyl indicator & Sleep timer -->
     <string name="vinyl_indicator_description">Audio playback indicator</string>

@@ -30,8 +30,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260313203
-        versionName = "2.60.3132.039"
+        versionCode = 260314005
+        versionName = "2.60.3140.050"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -82,6 +82,7 @@ android {
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
         }
         
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -99,6 +100,7 @@ android {
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "false")    // No animations for speed
             buildConfigField("boolean", "ENABLE_EPUB", "false")
             buildConfigField("boolean", "ENABLE_TRANSLATION", "false")   // No ML Kit
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No background audio in lite
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -116,6 +118,7 @@ android {
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")    // Keep animations for UI
             buildConfigField("boolean", "ENABLE_EPUB", "false")         // No EPUB
             buildConfigField("boolean", "ENABLE_TRANSLATION", "false")  // No translation needed
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "false")  // No audio support
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -135,6 +138,7 @@ android {
             buildConfigField("boolean", "ENABLE_ANIMATIONS", "true")
             buildConfigField("boolean", "ENABLE_EPUB", "true")
             buildConfigField("boolean", "ENABLE_TRANSLATION", "true")
+            buildConfigField("boolean", "ENABLE_PERSISTENT_AUDIO_PLAYBACK", "true")
         }
     }
     

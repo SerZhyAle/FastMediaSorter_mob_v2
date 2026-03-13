@@ -182,6 +182,7 @@ Detailed guides are available in multiple languages:
 - [FAQ](docs/FAQ.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Program Limitations](docs/LIMITATIONS.md)
+- [Complete Feature List](docs/FEATURES.md)
 
 **🇷🇺 Русский:**
 
