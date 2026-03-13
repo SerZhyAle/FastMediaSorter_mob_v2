@@ -34,18 +34,25 @@ class LyricsManager(
     
     /**
      * Search and display song lyrics for audio files.
+     * @param currentFile The audio file to search lyrics for
+     * @param resolvedTitle Pre-resolved track title from cover search (iTunes)
+     * @param resolvedArtist Pre-resolved artist name from cover search (iTunes)
      */
-    fun searchAndShowLyrics(currentFile: MediaFile?) {
+    fun searchAndShowLyrics(
+        currentFile: MediaFile?,
+        resolvedTitle: String? = null,
+        resolvedArtist: String? = null
+    ) {
         if (currentFile == null || currentFile.type != MediaType.AUDIO) {
             return
         }
         
-        Timber.d("LyricsManager: Searching lyrics for ${currentFile.name}")
+        Timber.d("LyricsManager: Searching lyrics for ${currentFile.name} (resolved: artist='$resolvedArtist', title='$resolvedTitle')")
         Toast.makeText(context, context.getString(R.string.searching_lyrics), Toast.LENGTH_SHORT).show()
         
         lifecycleScope.launch {
             try {
-                val result = searchLyricsUseCase.execute(currentFile)
+                val result = searchLyricsUseCase.execute(currentFile, resolvedTitle, resolvedArtist)
                 
                 result.onSuccess { lyrics ->
                     Timber.d("LyricsManager: Lyrics found, showing viewer")

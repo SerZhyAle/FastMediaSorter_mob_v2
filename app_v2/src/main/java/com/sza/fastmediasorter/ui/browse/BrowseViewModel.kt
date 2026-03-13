@@ -134,6 +134,7 @@ class BrowseViewModel @Inject constructor(
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
     private val cachedMediaMetadataExtractor: CachedMediaMetadataExtractor,
+    private val audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader,
     private val browseStateDataStore: com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore,
     private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
     private val syncMediaStoreUseCase: com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase,
@@ -1505,6 +1506,7 @@ class BrowseViewModel @Inject constructor(
                             dbCachedFiles
                         }
 
+                        audioMetadataLoader.warmMemoryCacheForResource(resource.id)
                         MediaFilesCacheManager.setCachedList(resource.id, filteredDbCache)
                         updateState { it.copy(mediaFiles = filteredDbCache, totalFileCount = filteredDbCache.size) }
                         schedulePlayerWarmupIfEligible(filteredDbCache)
@@ -1620,6 +1622,7 @@ class BrowseViewModel @Inject constructor(
                     }
                     
                     // Update totalFileCount from actual filtered files count
+                    audioMetadataLoader.warmMemoryCacheForResource(resource.id)
                     updateState { it.copy(mediaFiles = reconciledFiles, totalFileCount = reconciledFiles.size) }
                     schedulePlayerWarmupIfEligible(reconciledFiles)
                     setLoading(false)

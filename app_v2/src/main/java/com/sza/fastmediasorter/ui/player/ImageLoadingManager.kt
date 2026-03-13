@@ -111,6 +111,9 @@ class ImageLoadingManager(
     /** Injected after construction; controls empty-state animations for audio files. */
     private var audioEmptyStateController: AudioEmptyStateController? = null
 
+    /** Tracks the active cover-art loading coroutine so stale jobs can be cancelled on track change. */
+    private var coverArtJob: Job? = null
+
     // Cached size/duration for single-line info assembly in updateAudioFormatInfo()
     private var audioFileSizeStr: String = ""
     private var audioDurationStr: String = ""
@@ -1450,6 +1453,10 @@ class ImageLoadingManager(
      * Called when ExoPlayer is ready for audio files
      */
     fun loadAudioCoverArt(file: MediaFile) {
+        // Cancel any pending cover-art coroutine from a previous track to avoid stale callbacks.
+        coverArtJob?.cancel()
+        coverArtJob = null
+
         val callId = System.currentTimeMillis()
         val caller = Thread.currentThread().stackTrace.getOrNull(3)?.let {
             "${it.className}.${it.methodName}():${it.lineNumber}"
@@ -1468,7 +1475,7 @@ class ImageLoadingManager(
         // ExoPlayer can extract artwork from network streams, but MediaMetadataRetriever cannot
         if (isNetworkFile) {
             // Delay to let ExoPlayer load metadata and artwork
-            lifecycleScope.launch {
+            coverArtJob = lifecycleScope.launch {
                 delay(1500) // Wait for ExoPlayer to extract artwork
                 
                 // Check if ExoPlayer's PlayerView is showing artwork
@@ -1534,7 +1541,7 @@ class ImageLoadingManager(
         // Don't show view yet - wait until we have actual artwork to avoid flicker
         Timber.d("loadAudioCoverArt: Starting cover art search for ${file.name}")
         
-        lifecycleScope.launch(Dispatchers.IO) {
+        coverArtJob = lifecycleScope.launch(Dispatchers.IO) {
             try {
                 // Try to extract embedded cover art using MediaMetadataRetriever
                 Timber.d("Extracting embedded cover art for ${file.name}")

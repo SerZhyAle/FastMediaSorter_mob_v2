@@ -10,7 +10,12 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSessionService
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import com.google.common.util.concurrent.Futures
+import com.google.common.util.concurrent.ListenableFuture
 import timber.log.Timber
 
 /**
@@ -127,11 +132,34 @@ class AudioPlaybackService : MediaSessionService() {
     }
 
     /**
-     * MediaSession callback for handling controller requests.
+     * MediaSession callback for handling controller requests and media button events.
+     * Standard player commands (play, pause, seekToNext, seekToPrevious) are routed
+     * directly to the ExoPlayer by Media3 — no override needed.
+     * This callback ensures all standard commands are available and logs media events.
      */
     private inner class AudioSessionCallback : MediaSession.Callback {
-        // Default implementation handles play, pause, seek, skip via MediaSession
-        // Custom handling can be added here if needed
+
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): ConnectionResult {
+            Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
+            // Allow all standard player commands including next/previous
+            return ConnectionResult.AcceptedResultBuilder(session)
+                .setAvailablePlayerCommands(ConnectionResult.DEFAULT_PLAYER_COMMANDS)
+                .setAvailableSessionCommands(ConnectionResult.DEFAULT_SESSION_COMMANDS)
+                .build()
+        }
+
+        override fun onCustomCommand(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo,
+            customCommand: SessionCommand,
+            args: android.os.Bundle
+        ): ListenableFuture<SessionResult> {
+            Timber.d("AudioPlaybackService: onCustomCommand action=${customCommand.customAction}")
+            return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_NOT_SUPPORTED))
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {

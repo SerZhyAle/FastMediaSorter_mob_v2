@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.ui.player.CommandPanelController
 import com.sza.fastmediasorter.ui.player.DestinationButtonsManager
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -421,11 +422,26 @@ class PlayerDialogAndUiStateManager(
      */
     fun updateCountdownDisplay(seconds: Int) {
         if (activity.isFinishing || activity.isDestroyed) {
-            Timber.w("updateCountdownDisplay: Activity finishing/destroyed, skipping UI update")
+            Timber.d("updateCountdownDisplay: Activity finishing/destroyed, skipping UI update")
             return
         }
 
         if (isAudioSlideshowPhotoMode) {
+            safeViews.tvCountdown.isVisible = false
+            return
+        }
+
+        // Media library resources: countdown suppressed (advance via playback end)
+        val profile = viewModel.state.value.resource?.profile
+        if (profile == ResourceProfile.AUDIO_LIBRARY || profile == ResourceProfile.VIDEO_LIBRARY) {
+            safeViews.tvCountdown.isVisible = false
+            return
+        }
+
+        // Mixed resource with playToEnd: suppress countdown for audio/video files
+        val currentFile = viewModel.state.value.currentFile
+        if (viewModel.state.value.playToEndInSlideshow &&
+            (currentFile?.type == MediaType.AUDIO || currentFile?.type == MediaType.VIDEO)) {
             safeViews.tvCountdown.isVisible = false
             return
         }

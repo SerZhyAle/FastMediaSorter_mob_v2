@@ -65,6 +65,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
 import com.sza.fastmediasorter.ui.player.helpers.PlayerNavigationManager
 import com.sza.fastmediasorter.ui.player.helpers.TranslationManager
 import com.sza.fastmediasorter.ui.player.helpers.WindowMetricsCompat
+import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -224,7 +225,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var useTouchZones = true // Use touch zones for images, gestures for video
     private var loadFullSizeImages = false // Load full-size images with PhotoView (3-zone mode)
     private var isFirstResume = true // Track first onResume to avoid duplicate load
-    private var hasShownFirstRunHint = false // Track if first-run hint has been shown in this session
+    private val shownHintTypes = mutableSetOf<TouchZoneHintType>() // Track per-type hints shown in this session
     private var slideshowModeRequested = false // Auto-start slideshow when files are loaded
     private var isExplicitFullscreenMode = false // User requested fullscreen via button
     
@@ -243,6 +244,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     // Track current file path to avoid reloading when only metadata changes (e.g., isFavorite)
     private var currentFilePath: String? = null
+    
+    // Cached AudioMetadata from online cover search (iTunes), keyed by file path
+    private var cachedAudioMetadataPath: String? = null
+    private var cachedAudioMetadata: com.sza.fastmediasorter.domain.model.AudioMetadata? = null
 
     // Injected dependencies for network playback
     @Inject
@@ -632,6 +637,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onTextEnd() {
                     if (_textViewerManager != null) textViewerManager.scrollToBottom()
                 }
+
+                override fun onSeekForward(seconds: Int) {
+                    if (_videoPlayerManager != null) videoPlayerManager.seekForward(seconds)
+                }
+
+                override fun onSeekBackward(seconds: Int) {
+                    if (_videoPlayerManager != null) videoPlayerManager.seekBackward(seconds)
+                }
             }
         )
 
@@ -682,9 +695,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     slideshowModeRequested = false
                 }
 
-                override fun hasShownFirstRunHint(): Boolean = hasShownFirstRunHint
-                override fun markFirstRunHintShown() {
-                    hasShownFirstRunHint = true
+                override fun hasShownHintType(type: TouchZoneHintType): Boolean = type in shownHintTypes
+                override fun markHintTypeShown(type: TouchZoneHintType) {
+                    shownHintTypes.add(type)
                 }
 
                 override fun getUseTouchZones(): Boolean = useTouchZones
@@ -726,7 +739,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun updateSlideShowButton() = this@PlayerActivity.updateSlideShowButton()
                 override fun updateVolumeButtonsVisibility() = this@PlayerActivity.updateVolumeButtonsVisibility()
 
-                override fun showFirstRunHintOverlay() = this@PlayerActivity.showFirstRunHintOverlay()
+                override fun showTouchZoneHintOverlay(type: TouchZoneHintType) = this@PlayerActivity.showTouchZoneHintOverlay(type)
                 override fun showSlideshowEnabledMessage() = this@PlayerActivity.showSlideshowEnabledMessage()
 
                 override fun toggleSlideShow() = viewModel.toggleSlideShow()
@@ -1883,42 +1896,51 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     /**
-     * Show first-run hint overlay with touch zones guide
-     * Dismisses on first tap (removed auto-dismiss timeout)
+     * Show context-aware touch zone hint overlay based on the current mode.
+     * - FULLSCREEN_9ZONE: shows the 9-zone grid overlay (audioTouchZonesOverlay)
+     * - COMMAND_PANEL_3ZONE: shows text-based overlay describing 3-zone layout
+     * - MEDIA_BOTTOM_RESERVED: shows text-based overlay describing reserved bottom area
+     * Dismisses on first tap.
      */
-    private fun showFirstRunHintOverlay() {
-        // Make overlay visible with solid background (increased from 0.9f)
-        safeViews.audioTouchZonesOverlay.isVisible = true
-        safeViews.audioTouchZonesOverlay.alpha = 1.0f
-        
-        // Dismiss on any tap
-        safeViews.audioTouchZonesOverlay.setOnClickListener {
-            dismissFirstRunHintOverlay()
+    private fun showTouchZoneHintOverlay(type: TouchZoneHintType) {
+        when (type) {
+            TouchZoneHintType.FULLSCREEN_9ZONE -> {
+                safeViews.audioTouchZonesOverlay.isVisible = true
+                safeViews.audioTouchZonesOverlay.alpha = 1.0f
+                safeViews.audioTouchZonesOverlay.setOnClickListener {
+                    safeViews.audioTouchZonesOverlay.isVisible = false
+                    safeViews.audioTouchZonesOverlay.setOnClickListener(null)
+                }
+            }
+            TouchZoneHintType.COMMAND_PANEL_3ZONE -> {
+                safeViews.tvFirstRunHintText.setText(R.string.hint_touch_zone_3zone)
+                safeViews.firstRunHintOverlay.isVisible = true
+                safeViews.firstRunHintOverlay.setOnClickListener {
+                    safeViews.firstRunHintOverlay.isVisible = false
+                    safeViews.firstRunHintOverlay.setOnClickListener(null)
+                }
+            }
+            TouchZoneHintType.MEDIA_BOTTOM_RESERVED -> {
+                safeViews.tvFirstRunHintText.setText(R.string.hint_touch_zone_media)
+                safeViews.firstRunHintOverlay.isVisible = true
+                safeViews.firstRunHintOverlay.setOnClickListener {
+                    safeViews.firstRunHintOverlay.isVisible = false
+                    safeViews.firstRunHintOverlay.setOnClickListener(null)
+                }
+            }
         }
-        
-        // No auto-dismiss timeout - only dismisses on tap
-    }
-    
-    /**
-     * Dismiss first-run hint overlay (deprecated)
-     */
-    private fun dismissFirstRunHintOverlay() {
-        safeViews.audioTouchZonesOverlay.isVisible = false
-        safeViews.audioTouchZonesOverlay.setOnClickListener(null)
     }
 
     /**
      * Re-display touch zones overlay when user taps the [?] help button.
-     * Uses the same audioTouchZonesOverlay as the first-run hint.
+     * Shows context-appropriate overlay based on current player mode.
      * Dismissed on tap.
      */
     fun showTouchZonesHelpOverlay() {
-        safeViews.audioTouchZonesOverlay.isVisible = true
-        safeViews.audioTouchZonesOverlay.alpha = 1.0f
-        safeViews.audioTouchZonesOverlay.setOnClickListener {
-            safeViews.audioTouchZonesOverlay.isVisible = false
-            safeViews.audioTouchZonesOverlay.setOnClickListener(null)
-        }
+        val state = viewModel.state.value
+        val hintType = uiStateCoordinator.getCurrentHintType(state)
+            ?: TouchZoneHintType.FULLSCREEN_9ZONE
+        showTouchZoneHintOverlay(hintType)
     }
 
     /**
@@ -2300,7 +2322,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Search and display song lyrics for audio files.
      */
     internal fun searchAndShowLyrics() {
-        lyricsManager.searchAndShowLyrics(viewModel.state.value.currentFile)
+        val currentFile = viewModel.state.value.currentFile
+        // Use cached metadata only if it belongs to the current file
+        val metadata = if (currentFile != null && cachedAudioMetadataPath == currentFile.path) {
+            cachedAudioMetadata
+        } else {
+            null
+        }
+        lyricsManager.searchAndShowLyrics(
+            currentFile = currentFile,
+            resolvedTitle = metadata?.trackName,
+            resolvedArtist = metadata?.artistName
+        )
     }
     
     /**
@@ -3178,6 +3211,14 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Callback from ImageLoadingManager when audio metadata is loaded from online source
      */
     fun onAudioMetadataLoaded(metadata: com.sza.fastmediasorter.domain.model.AudioMetadata) {
+        // Cache metadata for lyrics search (keyed by current file path)
+        val currentFile = viewModel.state.value.currentFile
+        if (currentFile != null) {
+            cachedAudioMetadataPath = currentFile.path
+            cachedAudioMetadata = metadata
+            Timber.d("Cached AudioMetadata for lyrics: artist='${metadata.artistName}', title='${metadata.trackName}' (file: ${currentFile.name})")
+        }
+        
         runOnUiThread {
             // Build single-line "Artist – Album (Year) – Title" (en-dash separated)
             val albumPart = when {

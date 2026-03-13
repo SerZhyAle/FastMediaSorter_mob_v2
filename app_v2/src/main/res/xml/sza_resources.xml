@@ -53,7 +53,6 @@
 
     <resource name="p25" path="smb://192.168.1.110/photo/2025" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="IMAGE,ANIMATION,VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" addToDestinations="false" disableThumbnails="false" rememberTheFileList="true" />
 
-
     <resource name="p26-2" path="smb://192.168.1.110/photo/2026/02" type="SMB" username="sza" password="SerZhyA25" supportedMediaTypes="IMAGE,ANIMATION,VIDEO" sortMode="NAME_ASC" displayMode="GRID" scanSubdirectories="true" showFoldersInList="true" addToDestinations="true" disableThumbnails="false" />
 
     <resource name="SFTP" path="sftp://193.178.50.43:22/data" type="SFTP" username="sza" password="SerZhyA25SerZhyA25" supportedMediaTypes="VIDEO,AUDIO,IMAGE,ANIMATION,PDF,TEXT,DOCUMENT" sortMode="NAME_ASC" scanSubdirectories="true" showHiddenFiles="true" showFoldersInList="true" addToDestinations="true" displayMode="LIST" allFiles="true" />

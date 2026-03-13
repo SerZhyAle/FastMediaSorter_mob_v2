@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -59,6 +60,9 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI = booleanPreferencesKey("search_audio_covers_only_on_wifi")
         private val KEY_ENABLE_PHOTOS_DURING_AUDIO = booleanPreferencesKey("enable_photos_during_audio")
         private val KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID = stringPreferencesKey("audio_background_photos_resource_id")
+        // Persistent audio playback: continue playing audio via foreground service when app is minimized/screen locked (like YouTube Music).
+        // NOT related to enableSlideshowBackgroundMusic (in-app slideshow music) or enablePhotosDuringAudio (photo overlay during audio).
+        // Key string "enable_background_audio" preserved for backward compatibility with existing user settings.
         private val KEY_ENABLE_BACKGROUND_AUDIO = booleanPreferencesKey("enable_background_audio")
         private val KEY_AUDIO_EMPTY_STATE_MODE = stringPreferencesKey("audio_empty_state_mode")
         private val KEY_SUPPORT_TEXT = booleanPreferencesKey("support_text")
@@ -122,6 +126,11 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_MAX_RECIPIENTS = intPreferencesKey("max_recipients")
         private val KEY_ENABLE_FAVORITES = booleanPreferencesKey("enable_favorites")
         private val KEY_IS_PLAYER_FIRST_RUN = booleanPreferencesKey("is_player_first_run")
+        
+        // Per-type touch zone hint tracking keys (Task 6)
+        private val KEY_HINT_SHOWN_9ZONE = booleanPreferencesKey("hint_shown_9zone")
+        private val KEY_HINT_SHOWN_3ZONE = booleanPreferencesKey("hint_shown_3zone")
+        private val KEY_HINT_SHOWN_MEDIA = booleanPreferencesKey("hint_shown_media_bottom")
         
         // Player UI settings keys
         private val KEY_COPY_PANEL_COLLAPSED = booleanPreferencesKey("copy_panel_collapsed")
@@ -212,7 +221,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     searchAudioCoversOnlyOnWifi = preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID],
-                    enableBackgroundAudio = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
+                    enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
                     audioEmptyStateMode = preferences[KEY_AUDIO_EMPTY_STATE_MODE] ?: "VISUALIZATION",
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
@@ -345,7 +354,7 @@ class SettingsRepositoryImpl @Inject constructor(
             } else {
                 preferences.remove(KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID)
             }
-            preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enableBackgroundAudio
+            preferences[KEY_ENABLE_BACKGROUND_AUDIO] = settings.enablePersistentAudioPlayback
             preferences[KEY_AUDIO_EMPTY_STATE_MODE] = settings.audioEmptyStateMode
             preferences[KEY_SUPPORT_TEXT] = settings.supportText
             preferences[KEY_SUPPORT_PDF] = settings.supportPdf
@@ -485,6 +494,43 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun setResourceGridMode(isGridMode: Boolean) {
         dataStore.edit { preferences ->
             preferences[KEY_IS_RESOURCE_GRID_MODE] = isGridMode
+        }
+    }
+
+    override suspend fun isTouchZoneHintShown(type: TouchZoneHintType): Boolean {
+        val key = when (type) {
+            TouchZoneHintType.FULLSCREEN_9ZONE -> KEY_HINT_SHOWN_9ZONE
+            TouchZoneHintType.COMMAND_PANEL_3ZONE -> KEY_HINT_SHOWN_3ZONE
+            TouchZoneHintType.MEDIA_BOTTOM_RESERVED -> KEY_HINT_SHOWN_MEDIA
+        }
+        return dataStore.data.map { preferences ->
+            preferences[key] ?: false
+        }.catch { exception ->
+            if (exception is IOException) {
+                Timber.e(exception, "Error reading touch zone hint shown for $type")
+                emit(false)
+            } else {
+                throw exception
+            }
+        }.first()
+    }
+
+    override suspend fun setTouchZoneHintShown(type: TouchZoneHintType, shown: Boolean) {
+        val key = when (type) {
+            TouchZoneHintType.FULLSCREEN_9ZONE -> KEY_HINT_SHOWN_9ZONE
+            TouchZoneHintType.COMMAND_PANEL_3ZONE -> KEY_HINT_SHOWN_3ZONE
+            TouchZoneHintType.MEDIA_BOTTOM_RESERVED -> KEY_HINT_SHOWN_MEDIA
+        }
+        dataStore.edit { preferences ->
+            preferences[key] = shown
+        }
+    }
+
+    override suspend fun resetAllTouchZoneHints() {
+        dataStore.edit { preferences ->
+            preferences[KEY_HINT_SHOWN_9ZONE] = false
+            preferences[KEY_HINT_SHOWN_3ZONE] = false
+            preferences[KEY_HINT_SHOWN_MEDIA] = false
         }
     }
     

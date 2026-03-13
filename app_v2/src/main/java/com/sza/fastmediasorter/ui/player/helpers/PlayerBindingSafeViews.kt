@@ -178,6 +178,8 @@ class PlayerBindingSafeViews(
     val btnTranslationFontIncrease: ImageButton?
         get() = binding.root.findViewById(R.id.btnTranslationFontIncrease)
     val audioTouchZonesOverlay: GridLayout get() = required(R.id.audioTouchZonesOverlay)
+    val firstRunHintOverlay: FrameLayout get() = required(R.id.firstRunHintOverlay)
+    val tvFirstRunHintText: TextView get() = required(R.id.tvFirstRunHintText)
 }
 
 private fun <T : View> ActivityPlayerUnifiedBinding.requiredFromRoot(@IdRes id: Int): T {

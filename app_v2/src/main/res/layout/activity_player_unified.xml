@@ -204,6 +204,8 @@
 
         <include layout="@layout/player_audio_touch_zones_overlay_content" />
 
+        <include layout="@layout/player_first_run_hint_overlay_content" />
+
         <!-- File name overlay (visible only in command panel mode) - positioned last for z-order -->
         <TextView android:id="@+id/tvFileNameOverlay" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|start" android:layout_marginStart="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginStart" android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop" android:maxLines="1" android:ellipsize="end" android:textColor="@color/activity_player_unified_tvFileNameOverlay_textColor" android:textSize="@dimen/activity_browse_btnSort_textSize" android:shadowColor="#000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="2" android:background="@drawable/bg_rounded_badge" android:visibility="gone" />
 

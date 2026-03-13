@@ -199,6 +199,39 @@ class AudioMetadataLoader @Inject constructor(
         }
     }
 
+    /**
+     * Pre-populates [memoryCache] from Room DB for all audio files in [resourceId].
+     *
+     * Call on the IO thread **before** the first RecyclerView bind so that
+     * [getCachedMetadata] returns data immediately and [resolveAudioMetadata] in the
+     * adapter can enrich items without waiting for an async DB round-trip.
+     *
+     * Safe to call multiple times — already-cached paths are skipped.
+     */
+    suspend fun warmMemoryCacheForResource(resourceId: Long) {
+        if (disabled) return
+        try {
+            val entries = fileMetadataCacheDao.getAllForResource(resourceId)
+            var count = 0
+            for (entry in entries) {
+                if (entry.hasAudioMetadata() && !memoryCache.containsKey(entry.filePath)) {
+                    memoryCache[entry.filePath] = AudioMetadata(
+                        artist = entry.artist,
+                        album = entry.album,
+                        title = entry.title,
+                        duration = entry.durationMs
+                    )
+                    count++
+                }
+            }
+            if (count > 0) {
+                Timber.d("AudioMetadataLoader: Warmed memoryCache with $count audio entries for resource $resourceId")
+            }
+        } catch (e: Exception) {
+            Timber.w(e, "AudioMetadataLoader: warmMemoryCacheForResource failed for resource $resourceId")
+        }
+    }
+
     private fun recordSuccess() {
         consecutiveFailures.set(0)
     }

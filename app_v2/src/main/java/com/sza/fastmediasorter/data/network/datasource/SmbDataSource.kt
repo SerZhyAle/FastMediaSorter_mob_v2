@@ -348,9 +348,17 @@ class SmbDataSource(
                     val isProtocolError = e.message?.contains("Invalid uint32", ignoreCase = true) == true ||
                                          e.message?.contains("Invalid uint64", ignoreCase = true) == true ||
                                          e is IllegalArgumentException && e.message?.contains("value:") == true
-                    
-                    if (isProtocolError && attempts < maxRetries) {
-                        Timber.e(e, "SmbDataSource: Protocol parse error - forcing reconnect (attempt ${attempts + 1}/$maxRetries)")
+
+                    // DiskShare closed mid-read: pool returned a share that was already programmatically
+                    // closed (race: eviction/reset on another thread). isConnected check doesn't catch this.
+                    val isShareClosed = e.message?.contains("already been closed", ignoreCase = true) == true
+
+                    if ((isProtocolError || isShareClosed) && attempts < maxRetries) {
+                        if (isShareClosed) {
+                            Timber.w("SmbDataSource: DiskShare closed during read, reconnecting (attempt ${attempts + 1}/$maxRetries)")
+                        } else {
+                            Timber.e(e, "SmbDataSource: Protocol parse error - forcing reconnect (attempt ${attempts + 1}/$maxRetries)")
+                        }
                         attempts++
                         
                         try {

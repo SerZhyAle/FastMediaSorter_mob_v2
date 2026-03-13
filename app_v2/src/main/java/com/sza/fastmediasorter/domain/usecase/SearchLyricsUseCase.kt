@@ -45,18 +45,28 @@ class SearchLyricsUseCase @Inject constructor(
     /**
      * Search for lyrics using audio file metadata and filename.
      * @param mediaFile The audio file to search lyrics for
+     * @param resolvedTitle Pre-resolved track title (e.g. from iTunes cover search). Takes priority over file metadata.
+     * @param resolvedArtist Pre-resolved artist name (e.g. from iTunes cover search). Takes priority over file metadata.
      * @return Result containing lyrics text or error
      */
-    suspend fun execute(mediaFile: MediaFile): Result<String> = withContext(Dispatchers.IO) {
+    suspend fun execute(
+        mediaFile: MediaFile,
+        resolvedTitle: String? = null,
+        resolvedArtist: String? = null
+    ): Result<String> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("Searching lyrics for: ${mediaFile.name}")
+            Timber.d("Searching lyrics for: ${mediaFile.name} (resolved: artist='$resolvedArtist', title='$resolvedTitle')")
             
             // Extract metadata (with caching)
             val (artist, title) = extractMetadataWithCache(mediaFile)
             Timber.d("Extracted metadata - Artist: $artist, Title: $title")
             
-            // Build search queries
-            val searchQueries = buildSearchQueries(artist, title, mediaFile.name)
+            // Filter placeholder values from resolved metadata
+            val filteredResolvedTitle = SearchQueryUtils.filterPlaceholder(resolvedTitle)
+            val filteredResolvedArtist = SearchQueryUtils.filterPlaceholder(resolvedArtist)
+            
+            // Build search queries (resolved metadata gets priority)
+            val searchQueries = buildSearchQueries(artist, title, mediaFile.name, filteredResolvedTitle, filteredResolvedArtist)
             
             // Try each source with all queries before moving to next source
             // Sources ordered by speed and reliability: AZLyrics is first as it's the fastest for anonymous requests
@@ -316,28 +326,48 @@ class SearchLyricsUseCase @Inject constructor(
 
     /**
      * Build multiple search queries using different combinations of metadata.
-     * Improved to handle common filename patterns and generate fuzzy search variants.
+     * Priority order:
+     * 1. Resolved metadata from online cover search (iTunes) — most reliable
+     * 2. ID3/file metadata (artist + title tags)
+     * 3. Filename parsing with [SearchQueryUtils.prepareSearchQuery]
+     * 4. Fuzzy variants (swapping metadata/filename sources)
      */
-    private fun buildSearchQueries(artist: String?, title: String?, filename: String): List<String> {
+    private fun buildSearchQueries(
+        artist: String?,
+        title: String?,
+        filename: String,
+        resolvedTitle: String? = null,
+        resolvedArtist: String? = null
+    ): List<String> {
         val queries = mutableListOf<String>()
+        
+        // Priority 0: Pre-resolved metadata from cover search (most accurate)
+        if (!resolvedArtist.isNullOrBlank() && !resolvedTitle.isNullOrBlank()) {
+            queries.add("$resolvedArtist $resolvedTitle lyrics")
+            queries.add("$resolvedArtist $resolvedTitle")
+            queries.add("$resolvedTitle lyrics")
+        } else if (!resolvedTitle.isNullOrBlank()) {
+            queries.add("$resolvedTitle lyrics")
+            queries.add(resolvedTitle)
+        }
         
         // Parse filename to extract potential artist and title
         val (filenameArtist, filenameTitle) = parseFilename(filename)
         
-        // Determine best artist and title (prefer metadata, fallback to filename)
+        // Determine best artist and title (prefer ID3 metadata, fallback to filename)
         val bestArtist = normalizeText(artist ?: filenameArtist)
         val bestTitle = normalizeText(title ?: filenameTitle)
         
-        // Priority 1: Artist + Title (from metadata or filename)
+        // Priority 1: Artist + Title (from ID3 metadata or filename)
         if (bestArtist.isNotBlank() && bestTitle.isNotBlank()) {
             queries.add("$bestArtist $bestTitle lyrics")
-            queries.add("$bestArtist $bestTitle") // Without "lyrics" keyword
+            queries.add("$bestArtist $bestTitle")
         }
         
         // Priority 2: Title only
         if (bestTitle.isNotBlank()) {
             queries.add("$bestTitle lyrics")
-            queries.add("$bestTitle")
+            queries.add(bestTitle)
         }
         
         // Priority 3: Artist only (for cases where title parsing failed)
@@ -345,15 +375,21 @@ class SearchLyricsUseCase @Inject constructor(
             queries.add("$bestArtist lyrics")
         }
         
-        // Priority 4: Fuzzy variants - try swapping if metadata seems wrong
+        // Priority 4: Cleaned filename via shared SearchQueryUtils
+        val cleanedFilename = SearchQueryUtils.prepareSearchQuery(filename)
+        if (cleanedFilename.isNotBlank() && cleanedFilename != bestTitle && cleanedFilename != "$bestArtist $bestTitle") {
+            queries.add("$cleanedFilename lyrics")
+            queries.add(cleanedFilename)
+        }
+        
+        // Priority 5: Fuzzy variants - try swapping if metadata seems wrong
         if (!artist.isNullOrBlank() && !title.isNullOrBlank() && 
             filenameArtist.isNotBlank() && filenameTitle.isNotBlank() &&
             normalizeText(artist) != normalizeText(filenameArtist)) {
-            // Metadata might be wrong, try filename parsing
             queries.add("${normalizeText(filenameArtist)} ${normalizeText(filenameTitle)} lyrics")
         }
         
-        return queries.distinct() // Remove duplicates
+        return queries.distinct()
     }
     
     /**

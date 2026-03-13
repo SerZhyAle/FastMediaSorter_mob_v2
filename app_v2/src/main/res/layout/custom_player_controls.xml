@@ -66,6 +66,17 @@
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
+                android:id="@+id/exo_prev_file"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_medium_button_size"
+                android:layout_height="@dimen/player_medium_button_size"
+                android:layout_marginStart="@dimen/player_group_separator_margin"
+                android:src="@drawable/ic_back"
+                app:tint="@color/white"
+                android:contentDescription="@string/previous_file"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
                 android:id="@+id/btnRewind10"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="@dimen/player_small_button_size"
@@ -77,17 +88,6 @@
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
-                android:id="@+id/exo_prev_file"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="@dimen/player_medium_button_size"
-                android:layout_height="@dimen/player_medium_button_size"
-                android:layout_marginStart="@dimen/player_button_margin_start"
-                android:src="@drawable/ic_back"
-                app:tint="@color/white"
-                android:contentDescription="@string/previous_file"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-
-            <ImageButton
                 android:id="@id/exo_play_pause"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="@dimen/player_large_button_size"
@@ -95,6 +95,16 @@
                 android:layout_marginHorizontal="@dimen/player_play_button_margin_horizontal"
                 app:tint="@color/white"
                 android:contentDescription="@string/play_pause"
+                android:background="?attr/selectableItemBackgroundBorderless" />
+
+            <ImageButton
+                android:id="@+id/btnForward30"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_width="@dimen/player_small_button_size"
+                android:layout_height="@dimen/player_small_button_size"
+                android:src="@android:drawable/ic_media_ff"
+                app:tint="@color/white"
+                android:contentDescription="@string/forward_30_seconds"
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
@@ -109,22 +119,11 @@
                 android:background="?attr/selectableItemBackgroundBorderless" />
 
             <ImageButton
-                android:id="@+id/btnForward30"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_width="@dimen/player_small_button_size"
-                android:layout_height="@dimen/player_small_button_size"
-                android:layout_marginStart="@dimen/player_button_margin_start"
-                android:src="@android:drawable/ic_media_ff"
-                app:tint="@color/white"
-                android:contentDescription="@string/forward_30_seconds"
-                android:background="?attr/selectableItemBackgroundBorderless" />
-
-            <ImageButton
                 android:id="@+id/exo_speed"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="@dimen/player_small_button_size"
                 android:layout_height="@dimen/player_small_button_size"
-                android:layout_marginStart="@dimen/player_button_margin_start"
+                android:layout_marginStart="@dimen/player_group_separator_margin"
                 android:src="@drawable/ic_speed"
                 app:tint="@color/white"
                 android:contentDescription="@string/playback_speed"

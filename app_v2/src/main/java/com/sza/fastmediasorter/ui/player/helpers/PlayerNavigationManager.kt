@@ -4,6 +4,7 @@ import android.view.MotionEvent
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
@@ -92,6 +93,14 @@ class PlayerNavigationManager(
                 
                 override fun setKeepScreenAwake(enabled: Boolean) {
                     activity.setSlideshowKeepAwake(enabled)
+                }
+
+                override fun shouldSuppressTimer(): Boolean {
+                    val state = viewModel.state.value
+                    val currentFile = state.currentFile
+                    val isMedia = currentFile?.type == MediaType.VIDEO ||
+                                  currentFile?.type == MediaType.AUDIO
+                    return state.playToEndInSlideshow && isMedia
                 }
             }
         )
@@ -207,6 +216,7 @@ class PlayerNavigationManager(
      * Handle slideshow control from UI
      */
     fun handleSlideshowControl() {
+        syncMediaLibraryMode()
         if (slideshowController.isActive()) {
             if (slideshowController.isPaused()) {
                 slideshowController.resumeSlideshow()
@@ -311,10 +321,21 @@ class PlayerNavigationManager(
     }
 
     /**
+     * Sync media library mode flag on the controller based on current resource profile.
+     * AUDIO_LIBRARY / VIDEO_LIBRARY → no timer/countdown; advance via onPlaybackEnded only.
+     */
+    private fun syncMediaLibraryMode() {
+        val profile = viewModel.state.value.resource?.profile
+        slideshowController.isMediaLibraryMode =
+            profile == ResourceProfile.AUDIO_LIBRARY || profile == ResourceProfile.VIDEO_LIBRARY
+    }
+
+    /**
      * Update slideshow state based on ViewModel state
      * Synchronizes controller with current ViewModel slideshow/pause state
      */
     fun updateSlideshowState() {
+        syncMediaLibraryMode()
         if (viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused) {
             val intervalSeconds = (viewModel.state.value.slideShowInterval / 1000).toInt()
             

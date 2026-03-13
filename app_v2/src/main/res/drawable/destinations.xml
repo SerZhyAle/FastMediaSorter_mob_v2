@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Vector recreation of destinations.png (was 34KB, now ~3KB).
+  Depicts 3-pane app layout: Sources (left) | Media grid (center) | Destinations (right).
+  Viewport matches original aspect ratio 659:479 → 220:160.
+  Colors extracted directly from original pal8 palette.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="220dp" android:height="160dp" android:viewportWidth="220" android:viewportHeight="160">
+
+    <!-- Background -->
+    <path android:fillColor="#F5F5F5" android:pathData="M0,0H220V160H0Z" />
+
+    <!-- ============================================================ -->
+    <!-- PANEL 1 — Sources browser (left, x=4..89, y=8..128)          -->
+    <!-- ============================================================ -->
+
+    <!-- Drop shadow -->
+    <path android:fillColor="#99A3AC" android:pathData="M3,9H91V129H3Z" />
+    <!-- Panel body -->
+    <path android:fillColor="#132839" android:pathData="M4,8H90V128H4Z" />
+    <!-- Sidebar strip -->
+    <path android:fillColor="#1B3144" android:pathData="M4,8H14V128H4Z" />
+    <!-- File-list content area -->
+    <path android:fillColor="#7ED4F8" android:pathData="M14,8H90V128H14Z" />
+
+    <!-- Row separators (7 rows × ~17px) -->
+    <path android:fillColor="#87D3F8" android:strokeColor="#87D3F8" android:strokeWidth="1" android:pathData="M14,25H90 M14,42H90 M14,59H90 M14,76H90 M14,93H90 M14,110H90" />
+
+    <!-- Sidebar icons (small folder/item rectangles in #4B9ACC) -->
+    <path android:fillColor="#4B9ACC" android:pathData="M5,11H13V16H5Z M5,28H13V33H5Z M5,45H13V50H5Z
+                          M5,62H13V67H5Z M5,79H13V84H5Z M5,96H13V101H5Z
+                          M5,113H13V118H5Z" />
+
+    <!-- Text-stub lines inside rows (simulated item labels) -->
+    <path android:fillColor="#132839" android:fillAlpha="0.14" android:pathData="M17,13H72V15H17Z M17,30H66V32H17Z M17,47H74V49H17Z
+                          M17,64H61V66H17Z M17,81H69V83H17Z
+                          M17,98H75V100H17Z M17,115H63V117H17Z" />
+
+    <!-- ============================================================ -->
+    <!-- PANEL 2 — Media grid (center, x=92..168, y=8..128)           -->
+    <!-- ============================================================ -->
+
+    <!-- Drop shadow -->
+    <path android:fillColor="#99A3AC" android:pathData="M91,9H169V129H91Z" />
+    <!-- Panel body -->
+    <path android:fillColor="#132839" android:pathData="M92,8H168V128H92Z" />
+
+    <!-- 2 × 4 thumbnail grid -->
+    <path android:fillColor="#7ED4F8" android:pathData="M94,10H128V39H94Z" />
+    <path android:fillColor="#4B9ACC" android:pathData="M130,10H166V39H130Z" />
+    <path android:fillColor="#3E92C7" android:pathData="M94,41H128V70H94Z" />
+    <path android:fillColor="#87D3F8" android:pathData="M130,41H166V70H130Z" />
+    <path android:fillColor="#4B9ACC" android:pathData="M94,72H128V101H94Z" />
+    <path android:fillColor="#7ED4F8" android:pathData="M130,72H166V101H130Z" />
+    <path android:fillColor="#87D3F8" android:pathData="M94,103H128V126H94Z" />
+    <path android:fillColor="#3E92C7" android:pathData="M130,103H166V126H130Z" />
+
+    <!-- ============================================================ -->
+    <!-- PANEL 3 — Destinations (right, x=172..217, y=8..128)         -->
+    <!-- ============================================================ -->
+
+    <!-- Drop shadow -->
+    <path android:fillColor="#99A3AC" android:pathData="M171,9H219V129H171Z" />
+    <!-- Panel body (dark navy-purple) -->
+    <path android:fillColor="#1A1A35" android:pathData="M172,8H218V128H172Z" />
+
+    <!-- Alternating destination rows -->
+    <path android:fillColor="#C0BFF8" android:pathData="M174,10H216V26H174Z" />
+    <path android:fillColor="#BABBF6" android:pathData="M174,28H216V44H174Z" />
+    <path android:fillColor="#C0BFF8" android:pathData="M174,46H216V62H174Z" />
+    <path android:fillColor="#BABBF6" android:pathData="M174,64H216V80H174Z" />
+    <path android:fillColor="#C0BFF8" android:pathData="M174,82H216V98H174Z" />
+    <path android:fillColor="#BABBF6" android:pathData="M174,100H216V116H174Z" />
+    <path android:fillColor="#C0BFF8" android:pathData="M174,118H216V126H174Z" />
+
+    <!-- ============================================================ -->
+    <!-- BOTTOM STRIP — active destination bar                        -->
+    <!-- ============================================================ -->
+
+    <!-- Shadow -->
+    <path android:fillColor="#99A3AC" android:pathData="M3,132H219V158H3Z" />
+    <!-- Bar body -->
+    <path android:fillColor="#132839" android:pathData="M4,131H218V157H4Z" />
+    <!-- Left destination indicator -->
+    <path android:fillColor="#C0BFF8" android:pathData="M6,133H120V155H6Z" />
+    <!-- Right destination indicator -->
+    <path android:fillColor="#BABBF6" android:pathData="M122,133H216V155H122Z" />
+
+</vector>

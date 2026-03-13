@@ -206,6 +206,15 @@ class SettingsViewModel @Inject constructor(
                 isResourceGridMode = defaults.isResourceGridMode
             )
         )
+        // Also reset per-type touch zone hints
+        viewModelScope.launch {
+            try {
+                settingsRepository.setPlayerFirstRun(true)
+                settingsRepository.resetAllTouchZoneHints()
+            } catch (e: Exception) {
+                Timber.e(e, "Error resetting touch zone hints during playback section reset")
+            }
+        }
     }
 
     fun resetDestinationsSection() {
@@ -228,7 +237,7 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 settingsRepository.setPlayerFirstRun(true)
-                // Player first-run flag reset
+                settingsRepository.resetAllTouchZoneHints()
             } catch (e: Exception) {
                 Timber.e(e, "Error resetting player first-run flag")
             }

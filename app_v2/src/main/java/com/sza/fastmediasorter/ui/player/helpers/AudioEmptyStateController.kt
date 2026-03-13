@@ -179,7 +179,7 @@ class AudioEmptyStateController(
      * Works on API 16+. Falls back to CANVAS_BARS on any error.
      */
     private fun showVideo() {
-        val backgrounds = intArrayOf(R.raw.anim_audio_bg_1, R.raw.anim_audio_bg_2, R.raw.anim_audio_bg_3)
+        val backgrounds = intArrayOf(R.raw.anim_audio_bg_1, R.raw.anim_audio_bg_2, R.raw.anim_audio_bg_3, R.raw.anim_audio_bg_4, R.raw.anim_audio_bg_5)
         pendingResId = backgrounds[Random.nextInt(backgrounds.size)]
         Timber.d("AudioEmptyStateController: showVideo resId=$pendingResId")
         videoView.isVisible = true

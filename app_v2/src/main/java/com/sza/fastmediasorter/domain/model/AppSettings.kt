@@ -43,7 +43,7 @@ data class AppSettings(
     val searchAudioCoversOnlyOnWifi: Boolean = true, // Search for covers only when connected to Wi-Fi
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
-    val enableBackgroundAudio: Boolean = false, // Background audio playback via foreground service (audio-only)
+    val enablePersistentAudioPlayback: Boolean = false, // Continue audio when app minimized/screen locked (foreground service)
     val audioEmptyStateMode: String = "VISUALIZATION", // Animation mode when no cover art: NONE, AVD_PULSE, CANVAS_BARS, CANVAS_WAVES, VISUALIZATION (GIF_LOOP=legacy alias)
     
     val supportText: Boolean = true, // Optional support for text files

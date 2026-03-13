@@ -26,6 +26,7 @@ import com.bumptech.glide.request.target.Target
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.core.util.formatMediaDuration
 import com.sza.fastmediasorter.core.util.PathUtils
@@ -139,7 +140,11 @@ class MediaFileAdapter(
             if (file.artist != null && file.title != null) continue
 
             val position = i
-            loader.loadIfNeeded(file) { _ ->
+            loader.loadIfNeeded(file) { enriched ->
+                // Update shared RAM cache so PlayerActivity picks up the metadata
+                enriched.resourceId?.let { resId ->
+                    MediaFilesCacheManager.updateFile(resId, enriched.path, enriched)
+                }
                 // Callback on main thread — tell RecyclerView to rebind text only
                 if (position in 0 until itemCount && getItem(position).path == file.path) {
                     notifyItemChanged(position, PAYLOAD_AUDIO_METADATA)

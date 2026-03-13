@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
+import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -58,8 +59,8 @@ class PlayerUiStateCoordinator(
         fun isSlideshowModeRequested(): Boolean
         fun clearSlideshowModeRequested()
 
-        fun hasShownFirstRunHint(): Boolean
-        fun markFirstRunHintShown()
+        fun hasShownHintType(type: TouchZoneHintType): Boolean
+        fun markHintTypeShown(type: TouchZoneHintType)
 
         fun getUseTouchZones(): Boolean
 
@@ -77,7 +78,7 @@ class PlayerUiStateCoordinator(
         fun updateSlideShowButton()
         fun updateVolumeButtonsVisibility()
 
-        fun showFirstRunHintOverlay()
+        fun showTouchZoneHintOverlay(type: TouchZoneHintType)
         fun showSlideshowEnabledMessage()
         fun toggleSlideShow()
         fun startSlideshow(intervalSeconds: Int)
@@ -85,6 +86,23 @@ class PlayerUiStateCoordinator(
         fun forceStateUpdate()
         fun enterAudioSlideshowPhotoModeIfNeeded()
         fun updateTouchZonesHelpButtonVisibility(visible: Boolean)
+    }
+
+    /**
+     * Determine which touch zone hint type to show based on current player state.
+     * Returns null for document types where touch zones are disabled.
+     */
+    private fun determineTouchZoneHintType(
+        showCommandPanel: Boolean,
+        currentFile: MediaFile?
+    ): TouchZoneHintType? {
+        if (currentFile == null) return null
+        // Documents have touch zones disabled — no hint needed
+        if (currentFile.type in listOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)) return null
+        if (showCommandPanel) return TouchZoneHintType.COMMAND_PANEL_3ZONE
+        val isMedia = currentFile.type in listOf(MediaType.VIDEO, MediaType.AUDIO)
+        return if (isMedia) TouchZoneHintType.MEDIA_BOTTOM_RESERVED
+               else TouchZoneHintType.FULLSCREEN_9ZONE
     }
 
     fun updateUI(state: PlayerViewModel.PlayerState) {
@@ -143,18 +161,24 @@ class PlayerUiStateCoordinator(
         }
 
 
-        // Show first-run hint if enabled and not shown yet (only in fullscreen mode without command panel)
-        if (!callback.hasShownFirstRunHint() && state.currentFile != null && !state.showCommandPanel) {
+        // Show context-aware touch zone hint if enabled and not shown yet for this mode
+        val hintType = determineTouchZoneHintType(state.showCommandPanel, state.currentFile)
+        if (hintType != null && !callback.hasShownHintType(hintType) && state.currentFile != null) {
             coroutineScope.launch {
                 val settings = settingsRepository.getSettings().first()
                 val isFirstRun = settingsRepository.isPlayerFirstRun()
+                val alreadyShownPersistently = settingsRepository.isTouchZoneHintShown(hintType)
 
-                if (settings.showPlayerHintOnFirstRun && isFirstRun) {
-                    Timber.d("PlayerUiStateCoordinator.updateUI: Showing first-run hint overlay (fullscreen mode)")
+                if (settings.showPlayerHintOnFirstRun && isFirstRun && !alreadyShownPersistently) {
+                    Timber.d("PlayerUiStateCoordinator.updateUI: Showing touch zone hint overlay type=$hintType")
                     delay(500)
-                    callback.showFirstRunHintOverlay()
-                    settingsRepository.setPlayerFirstRun(false)
-                    callback.markFirstRunHintShown()
+                    callback.showTouchZoneHintOverlay(hintType)
+                    settingsRepository.setTouchZoneHintShown(hintType, true)
+                    // Mark 9-zone first run as done when any hint is shown (backward compat)
+                    if (hintType == TouchZoneHintType.FULLSCREEN_9ZONE) {
+                        settingsRepository.setPlayerFirstRun(false)
+                    }
+                    callback.markHintTypeShown(hintType)
                 }
             }
         }
@@ -256,5 +280,12 @@ class PlayerUiStateCoordinator(
         callback.updateTouchZonesHelpButtonVisibility(showTouchZonesHelpButton)
 
         // Note: updateAudioTouchZonesVisibility() is invoked inside updatePanelVisibility()
+    }
+
+    /**
+     * Determine the current hint type based on latest state (for manual help button trigger).
+     */
+    fun getCurrentHintType(state: PlayerViewModel.PlayerState): TouchZoneHintType? {
+        return determineTouchZoneHintType(state.showCommandPanel, state.currentFile)
     }
 }

@@ -43,6 +43,13 @@ class SlideshowController(
          * @param enabled true to force screen on, false to restore to global setting
          */
         fun setKeepScreenAwake(enabled: Boolean) = Unit
+        /**
+         * Check if timer/countdown should be suppressed for current file.
+         * Used for mixed resources with playToEndInSlideshow: audio/video files
+         * advance via onPlaybackEnded, not via interval timer.
+         * Default returns false (no suppression).
+         */
+        fun shouldSuppressTimer(): Boolean = false
     }
     
     private val handler = Handler(Looper.getMainLooper())
@@ -52,6 +59,13 @@ class SlideshowController(
     private var isPaused = false
     private var intervalMs = AppConstants.DEFAULT_SLIDESHOW_INTERVAL_MS
     private var slideCounter = 0
+
+    /**
+     * When true, slideshow timer and countdown are suppressed.
+     * File advance happens only via external trigger (onPlaybackEnded).
+     * Set for AUDIO_LIBRARY / VIDEO_LIBRARY resource profiles.
+     */
+    var isMediaLibraryMode: Boolean = false
     
     private val slideShowRunnable = object : Runnable {
         override fun run() {
@@ -210,11 +224,24 @@ class SlideshowController(
     fun restartTimer() {
         if (isActive && !isPaused) {
             handler.removeCallbacks(slideShowRunnable)
+            countdownHandler.removeCallbacksAndMessages(null)
             scheduleNextSlide()
         }
     }
     
     private fun scheduleNextSlide() {
+        // Media library mode: no timer/countdown — advance via onPlaybackEnded only
+        if (isMediaLibraryMode) {
+            Timber.d("SlideshowController: scheduleNextSlide skipped (mediaLibraryMode)")
+            return
+        }
+
+        // Mixed resource playToEnd mode: suppress timer for audio/video files
+        if (slideshowCallback.shouldSuppressTimer()) {
+            Timber.d("SlideshowController: scheduleNextSlide skipped (shouldSuppressTimer)")
+            return
+        }
+
         // Schedule countdown to start 3 seconds before file change
         val countdownDelay = if (intervalMs > 3000) intervalMs - 3000 else 0
         if (countdownDelay > 0) {

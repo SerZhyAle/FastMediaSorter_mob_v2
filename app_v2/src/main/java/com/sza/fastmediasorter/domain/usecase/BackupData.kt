@@ -58,7 +58,7 @@ data class BackupSettings(
     val searchAudioCoversOnlyOnWifi: Boolean = true,
     val enablePhotosDuringAudio: Boolean = false,
     val audioBackgroundPhotosResourceId: String? = null,
-    val enableBackgroundAudio: Boolean = false,
+    val enablePersistentAudioPlayback: Boolean = false,
     val audioEmptyStateMode: String = "VISUALIZATION",
     val supportText: Boolean = true,
     val supportPdf: Boolean = true,

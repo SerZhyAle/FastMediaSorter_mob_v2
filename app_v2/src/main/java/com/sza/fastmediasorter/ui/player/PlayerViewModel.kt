@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -56,7 +57,7 @@ class PlayerViewModel @Inject constructor(
         val playToEndInSlideshow: Boolean = false,
         val enablePhotosDuringAudio: Boolean = false,
         val audioBackgroundPhotosResourceId: String? = null,
-        val enableBackgroundAudio: Boolean = false,
+        val enablePersistentAudioPlayback: Boolean = false,
         val showControls: Boolean = false,
         val isPaused: Boolean = false,
         val showCommandPanel: Boolean = false,
@@ -157,7 +158,7 @@ class PlayerViewModel @Inject constructor(
                             playToEndInSlideshow = settings.playToEndInSlideshow,
                             enablePhotosDuringAudio = settings.enablePhotosDuringAudio,
                             audioBackgroundPhotosResourceId = settings.audioBackgroundPhotosResourceId,
-                            enableBackgroundAudio = settings.enableBackgroundAudio
+                            enablePersistentAudioPlayback = settings.enablePersistentAudioPlayback
                         )
                     }
                 }
@@ -388,6 +389,10 @@ class PlayerViewModel @Inject constructor(
 
                     Timber.d("PlayerViewModel.loadMediaFiles: Determined showCommandPanel=$showCommandPanel (resource.showCommandPanel=${resource.showCommandPanel}, default=${currentSettings.defaultShowCommandPanel})")
                     
+                    // Auto-activate slideshow for audio/video library resources
+                    val autoSlideshow = resource.profile == ResourceProfile.AUDIO_LIBRARY ||
+                            resource.profile == ResourceProfile.VIDEO_LIBRARY
+                    
                     // Update state with resource first
                     updateState { 
                         it.copy(
@@ -395,7 +400,8 @@ class PlayerViewModel @Inject constructor(
                             currentIndex = safeIndex, 
                             resource = resource,
                             slideShowInterval = intervalToUse,
-                            showCommandPanel = showCommandPanel
+                            showCommandPanel = showCommandPanel,
+                            isSlideShowActive = autoSlideshow
                         ) 
                     }
                 }

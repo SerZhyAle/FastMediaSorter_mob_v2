@@ -111,24 +111,10 @@ class SearchAudioCoverUseCase @Inject constructor(
     }
     
     /**
-     * Prepare search query from filename
-     * Removes file extension, replaces separators with spaces, removes common patterns
+     * Prepare search query from filename.
+     * Delegates to shared [SearchQueryUtils.prepareSearchQuery].
      */
     private fun prepareSearchQuery(filename: String): String {
-        // Remove file extension
-        val nameWithoutExtension = filename.substringBeforeLast('.')
-        
-        // Replace common separators with spaces
-        val cleaned = nameWithoutExtension
-            .replace(Regex("[_\\-.]"), " ")
-            // Remove common audio file patterns (track numbers, brackets, etc.)
-            .replace(Regex("^\\d+\\s*[-.]?\\s*"), "") // Leading track numbers like "01 - " or "01."
-            .replace(Regex("\\[.*?\\]"), " ") // Content in square brackets
-            .replace(Regex("\\(.*?\\)"), " ") // Content in parentheses
-            // Remove extra spaces
-            .replace(Regex("\\s+"), " ")
-            .trim()
-        
-        return cleaned
+        return SearchQueryUtils.prepareSearchQuery(filename)
     }
 }

@@ -150,9 +150,9 @@ class PlayerMediaLoaderManager(
         // Schedule loading indicator to show after 1 second
         loadingIndicatorHandler.postDelayed(showLoadingIndicatorRunnable, 1000)
         
-        // Route audio to background service when enabled
-        val isBackgroundAudioEnabled = viewModel.state.value.enableBackgroundAudio
-        if (isAudioFile && isBackgroundAudioEnabled && audioServiceController != null) {
+        // Route audio to persistent playback service when enabled
+        val isPersistentAudioEnabled = viewModel.state.value.enablePersistentAudioPlayback
+        if (isAudioFile && isPersistentAudioEnabled && audioServiceController != null) {
             Timber.d("PlayerMediaLoaderManager.playVideo: routing AUDIO through AudioPlaybackService")
             playAudioViaService(path)
             return
@@ -173,7 +173,7 @@ class PlayerMediaLoaderManager(
     /**
      * Route audio playback through AudioPlaybackService.
      * Connects via MediaController, sets it as PlayerView's player.
-     * Only called when enableBackgroundAudio is ON and file is AUDIO.
+     * Only called when enablePersistentAudioPlayback is ON and file is AUDIO.
      * Local files only for now — network audio files use the standard VideoPlayerManager path.
      */
     private fun playAudioViaService(path: String) {
@@ -212,10 +212,10 @@ class PlayerMediaLoaderManager(
         servicePlaybackPlayer = null
     }
 
-    /** Whether audio is currently playing through the background service */
+    /** Whether audio is currently playing through the persistent playback service */
     val isServiceAudioActive: Boolean
         get() = audioServiceController?.isConnected == true
-                && viewModel.state.value.enableBackgroundAudio
+                && viewModel.state.value.enablePersistentAudioPlayback
                 && viewModel.state.value.currentFile?.type == MediaType.AUDIO
 
     /**
