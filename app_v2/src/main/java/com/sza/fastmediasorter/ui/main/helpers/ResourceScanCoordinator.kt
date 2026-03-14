@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
@@ -69,6 +70,14 @@ class ResourceScanCoordinator(
     }
     
     /**
+     * Check if any resources are aggregate virtual paths (All Music, All Videos, All Documents).
+     * Used to show a warning dialog before mass rescan.
+     */
+    fun hasAggregateVirtualResources(resources: List<MediaResource>): Boolean {
+        return resources.any { VirtualPathUtils.isAggregateVirtualPath(it.path) }
+    }
+
+    /**
      * Scan all resources: test availability, write access, and update file counts.
      * This is a comprehensive operation that updates resource metadata.
      * 
@@ -123,6 +132,11 @@ class ResourceScanCoordinator(
      * Scan single resource. Returns write status if available, null if unavailable.
      */
     private suspend fun scanSingleResource(resource: MediaResource): Boolean? {
+        // Virtual resources are always available and never writable — skip testConnection/isWritable
+        if (VirtualPathUtils.isVirtualPath(resource.path)) {
+            return processVirtualResource(resource)
+        }
+
         // Test connection/availability
         Timber.d("Testing connection for ${resource.name}...")
         val testResult = resourceRepository.testConnection(resource)
@@ -146,6 +160,24 @@ class ResourceScanCoordinator(
         )
     }
     
+    /**
+     * Process virtual resource: skip connection test and write check, only update file count.
+     * Virtual resources are always available and never writable.
+     */
+    private suspend fun processVirtualResource(resource: MediaResource): Boolean {
+        val scanner = mediaScannerFactory.getScanner(resource.type)
+        val fileCount = getFileCount(scanner, resource)
+        
+        if (fileCount != resource.fileCount || !resource.isAvailable) {
+            updateResourceUseCase(resource.copy(
+                isAvailable = true,
+                fileCount = fileCount
+            ))
+            Timber.d("Updated virtual resource ${resource.name}: fileCount=$fileCount")
+        }
+        return false // Virtual resources are never writable
+    }
+
     /**
      * Process available resource: check write access and update file count.
      * Returns write status.
@@ -215,14 +247,7 @@ class ResourceScanCoordinator(
      */
     private suspend fun getFileCount(scanner: com.sza.fastmediasorter.domain.usecase.MediaScanner, resource: MediaResource): Int {
         val currentSettings = settingsRepository.getSettings().first()
-        val supportedTypes = mutableSetOf<MediaType>()
-        
-        if (currentSettings.supportImages) supportedTypes.add(MediaType.IMAGE)
-        if (currentSettings.supportGifs) supportedTypes.add(MediaType.GIF)
-        if (currentSettings.supportVideos) supportedTypes.add(MediaType.VIDEO)
-        if (currentSettings.supportAudio) supportedTypes.add(MediaType.AUDIO)
-        if (currentSettings.supportText) supportedTypes.add(MediaType.TEXT)
-        if (currentSettings.supportPdf) supportedTypes.add(MediaType.PDF)
+        val supportedTypes = currentSettings.getGloballyEnabledMediaTypes()
         
         val sizeFilter = SizeFilter(
             imageSizeMin = currentSettings.imageSizeMin,

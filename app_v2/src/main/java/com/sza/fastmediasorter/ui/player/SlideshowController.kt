@@ -259,9 +259,9 @@ class SlideshowController(
     
     // Lifecycle callbacks
     override fun onPause(owner: LifecycleOwner) {
-        // Keep slideshow state but stop timers
-        handler.removeCallbacks(slideShowRunnable)
-        countdownHandler.removeCallbacks(countdownRunnable)
+        // Keep slideshow state but stop timers (null removes ALL pending messages incl. anonymous lambdas)
+        handler.removeCallbacksAndMessages(null)
+        countdownHandler.removeCallbacksAndMessages(null)
     }
     
     override fun onResume(owner: LifecycleOwner) {
@@ -276,9 +276,11 @@ class SlideshowController(
     }
     
     private fun cleanup() {
-        handler.removeCallbacks(slideShowRunnable)
-        countdownHandler.removeCallbacks(countdownRunnable)
+        handler.removeCallbacksAndMessages(null)
+        countdownHandler.removeCallbacksAndMessages(null)
         lifecycle.removeObserver(this)
+        // D.8: Ensure screen-on flag is restored on destroy
+        slideshowCallback.setKeepScreenAwake(false)
         // Reset state to prevent further operations
         isActive = false
         isPaused = false

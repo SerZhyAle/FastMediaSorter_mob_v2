@@ -138,6 +138,15 @@
     <string name="empty_state_message">Welcome! 🎉\n\nStart by configuring app settings and adding local device folders to this screen</string>
     <string name="no_media_files_found">No media files found in this folder</string>
     <string name="recent_media">Recent Media</string>
+    <string name="virtual_all_music">All Music</string>
+    <string name="virtual_all_video">All Videos</string>
+    <string name="virtual_all_images">All Images</string>
+    <string name="virtual_all_docs">All Documents</string>
+    <string name="special_virtual_folders">Special Folders</string>
+    <string name="virtual_resource_already_added">Already added</string>
+    <string name="virtual_resource_added">Resource "%1$s" added</string>
+    <string name="rescan_all_virtual_warning_title">Rescan All Resources</string>
+    <string name="rescan_all_virtual_warning_message">The list includes virtual aggregate folders (All Music, All Videos, All Images, All Documents). Full rescan may take significant time. Continue?</string>
     <string name="no_files_match_criteria">No files match your criteria</string>
     <string name="connection_failed">Connection failed</string>
     <string name="connection_ok_starting_speed_test">Connection OK. Starting Speed Test…</string>
@@ -205,7 +214,7 @@
     <string name="backup_to_google_drive">Backup to Google Drive</string>
     <string name="restore_from_google_drive">Restore from Google Drive</string>
     <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
-    <string name="tooltip_backup_info_title">Backup &amp; Restore</string>
+    <string name="tooltip_backup_info_title">Backup Information</string>
     <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources and all settings to %2$s</string>
     <string name="backup_failed">Backup failed: %s</string>
@@ -219,9 +228,12 @@
     <string name="restore_failed">Restore failed: %s</string>
     <string name="last_backup_date">Last backup: %s</string>
     <string name="backup_account">Account: %s</string>
+    <string name="google_sign_in_failed">Google sign-in failed: %1$s</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
-    <string name="google_sign_in_failed">Google sign-in failed (code %d). Check your Google account settings.</string>
-    <string name="auth_failed">Authentication failed: %s</string>
+    <string name="auth_failed">Authentication failed: %1$s</string>
+    <string name="background_audio_local_only_warning">Background audio playback is only available for local resources. Network/cloud resources require active app.</string>
+    <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
+    <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
     <string name="export_settings">Export All Settings to File</string>
     <string name="import_settings">Import Settings from File</string>
@@ -1135,6 +1147,9 @@
     <string name="android_media_folder_added_warning">⚠️ Android/media folder added. Note: These folders may have restricted access even with permissions. If scanning fails, the app may not be allowed to access this specific folder by the system.</string>
     <string name="grant_manage_media_permission">Grant Media Management</string>
     <string name="manage_media_permission_granted">Media Management permission granted</string>
+    <string name="grant_notifications_permission">Grant Notification Permission</string>
+    <string name="manage_notifications_permission">Manage Notification Permission</string>
+    <string name="notification_permission_required_for_background">Notification permission is required for background audio playback. Grant permission in system settings.</string>
     <string name="msg_download_share">Downloading file for sharing…</string>
     <string name="error_share_download_failed">Failed to download for sharing: %1$s</string>
     <string name="error_share_unexpected">Unexpected download result</string>
@@ -1215,6 +1230,7 @@
     <string name="msg_network_stream_retry">Network stream interrupted, retrying… (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Network stream error after %1$d retries: %2$s</string>
     <string name="msg_playback_error">Playback error: %1$s</string>
+    <string name="error_loading_media">Error loading file, skipping</string>
 
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Are you sure you want to clear the app cache?</string>
@@ -1261,7 +1277,6 @@
     <string name="unsupported_format_network_hint">To play this file with external player, copy it to a local resource first.</string>
     <string name="unsupported_format_use_external_player">Format not supported. Try opening with external player.</string>
     <string name="unsupported_format_copy_to_local">Format not supported. Copy file to local resource to use external player.</string>
-    <string name="file_skipped_playback_error">Skipped: %1$s</string>
     <string name="panel_copy_to">Copy to…</string>
     <string name="panel_move_to">Move to…</string>
     <string name="more_options">More options</string>
@@ -1863,17 +1878,6 @@
     <string name="notification_channel_audio_description">Controls for background audio playback</string>
     <string name="background_audio_setting_title">Background Playback</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
-    <string name="background_audio_local_only_warning">Background playback is available only for local files</string>
-    <string name="background_audio_exit_title">Background Playback</string>
-    <string name="background_audio_exit_message">Audio is playing in the background. Stop playback?</string>
-    <string name="background_audio_exit_stop">Stop</string>
-    <string name="background_audio_exit_continue">Continue</string>
-    <string name="notification_permission_required_for_background">Notification permission required for background playback controls</string>
-    <string name="grant_notifications_permission">Grant Notification Permission</string>
-    <string name="manage_notifications_permission">Manage notification permission</string>
-    <string name="notification_permission_granted">Notification permission granted</string>
-    <string name="battery_optimization_hint_title">Battery optimization</string>
-    <string name="battery_optimization_hint_message">For stable background playback on some devices, disable battery optimization for FastMediaSorter in system settings.</string>
 
     <!-- Vinyl indicator & Sleep timer -->
     <string name="vinyl_indicator_description">Audio playback indicator</string>

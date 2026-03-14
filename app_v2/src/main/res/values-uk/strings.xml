@@ -196,6 +196,15 @@
     <string name="empty_state_message">Ласкаво просимо! 🎉\n\nПочніть з налаштування програми та додавання локальних тек пристрою на цей екран</string>
     <string name="no_media_files_found">У цій папці немає медіафайлів</string>
     <string name="recent_media">Нещодавні медіа</string>
+    <string name="virtual_all_music">Вся музика</string>
+    <string name="virtual_all_video">Усі відео</string>
+    <string name="virtual_all_images">Усі зображення</string>
+    <string name="virtual_all_docs">Усі документи</string>
+    <string name="special_virtual_folders">Спеціальні папки</string>
+    <string name="virtual_resource_already_added">Вже додано</string>
+    <string name="virtual_resource_added">Ресурс «%1$s» додано</string>
+    <string name="rescan_all_virtual_warning_title">Повторне сканування всіх ресурсів</string>
+    <string name="rescan_all_virtual_warning_message">Список включає віртуальні агрегуючі папки (Вся музика, Усі відео, Усі зображення, Усі документи). Повне сканування може зайняти значний час. Продовжити?</string>
     <string name="no_files_match_criteria">Немає файлів, що відповідають критеріям</string>
     <string name="connection_failed">Помилка підключення</string>
     <string name="loading_indicator">Завантаження…</string>
@@ -258,6 +267,11 @@
     <string name="min_size_mb">Мін. розмір</string>
     <string name="max_size_mb">Макс. розмір</string>
     <string name="filter_active">Фільтр активний: %1$s</string>
+    <string name="google_sign_in_failed">Вхід не вдався: %1$s</string>
+    <string name="auth_failed">Помилка аутентифікації: %1$s</string>
+    <string name="background_audio_local_only_warning">Відтворення аудіо у фоні доступне лише для локальних ресурсів. Мережеві/хмарні ресурси вимагають активного додатку.</string>
+    <string name="battery_optimization_hint_title">Попередження про оптимізацію батареї</string>
+    <string name="battery_optimization_hint_message">Оптимізація батареї може запобігти відтворенню аудіо у фоні. Вимкніть оптимізацію батареї для FastMediaSorter у системних налаштуваннях для надійного фонового аудіо.</string>
 
     <!-- Settings -->
     <string name="general">Загальні</string>
@@ -267,27 +281,9 @@
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Резервне копіювання</string>
-    <string name="settings_tab_backup">Резервна копія</string>
-    <string name="backup_to_google_drive">Створити резервну копію в Google Drive</string>
-    <string name="restore_from_google_drive">Відновити з Google Drive</string>
-    <string name="backup_info_description">Резервна копія включає всі налаштування та список ресурсів. Облікові дані не зберігаються — після відновлення потрібна повторна авторизація для мережевих і хмарних ресурсів.</string>
-    <string name="tooltip_backup_info_title">Резервне копіювання</string>
-    <string name="tooltip_backup_info_message">Резервна копія включає всі налаштування та список ресурсів. Облікові дані не зберігаються — після відновлення потрібна повторна авторизація для мережевих і хмарних ресурсів.</string>
-    <string name="backup_success">Створено резервну копію %1$d ресурсів та всіх налаштувань на %2$s</string>
-    <string name="backup_failed">Помилка резервного копіювання: %s</string>
-    <string name="backup_in_progress">Збереження налаштувань і ресурсів…</string>
-    <string name="restore_in_progress">Відновлення налаштувань і ресурсів…</string>
-    <string name="restore_confirm_title">Відновити з резервної копії?</string>
-    <string name="restore_confirm_message">Дата копії: %1$s\nПристрій: %2$s\nРесурсів: %3$d\n\n• Налаштування будуть ЗАМІНЕНІ\n• Ресурси будуть ДОДАНІ (дублікати пропускаються)</string>
-    <string name="restore_success">Всі налаштування відновлено. Додано %1$d ресурсів (%2$d вже існували).</string>
-    <string name="restore_needs_auth">Деякі ресурси використовують мережеві або хмарні акаунти. Потрібна повторна авторизація.</string>
-    <string name="restore_no_backup">Резервну копію для цього акаунту не знайдено.</string>
-    <string name="restore_failed">Помилка відновлення: %s</string>
-    <string name="last_backup_date">Остання копія: %s</string>
-    <string name="backup_account">Акаунт: %s</string>
-    <string name="google_sign_in_cancelled">Вхід до Google скасовано</string>
-    <string name="google_sign_in_failed">Помилка входу до Google (код %d). Перевірте налаштування акаунту.</string>
-    <string name="auth_failed">Помилка авторизації: %s</string>
+    <string name="backup_info_description">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються — після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
+    <string name="tooltip_backup_info_title">Інформація про резервну копію</string>
+    <string name="tooltip_backup_info_message">Резервна копія містить усі налаштування та список ресурсів. Облікові дані не копіюються — після відновлення вам потрібно буде повторно аутентифікуватися для мережевих та хмарних ресурсів.</string>
     <string name="export_settings">Вивантажити всі налаштування у файл</string>
     <string name="import_settings">Завантажити налаштування з файлу</string>
     <string name="export_import_file_info">Використовується файл: Downloads/FastMediaSorter_export.xml</string>
@@ -1064,6 +1060,9 @@
     <string name="manage_media_dont_ask">Більше не питати</string>
     <string name="grant_manage_media_permission">Дозволити керування медіа</string>
     <string name="manage_media_permission_granted">Дозвіл на керування медіа отримано</string>
+    <string name="grant_notifications_permission">Дозволити сповіщення</string>
+    <string name="manage_notifications_permission">Керування сповіщеннями</string>
+    <string name="notification_permission_required_for_background">Дозвіл на сповіщення необхідний для перетворення аудіо у фоні. Надайте дозвіл у системних налаштуваннях.</string>
     <string name="msg_download_share">Завантаження файлу для відправки…</string>
     <string name="error_share_download_failed">Помилка завантаження для відправки: %1$s</string>
     <string name="error_share_unexpected">Несподівана помилка завантаження</string>
@@ -1136,6 +1135,7 @@
     <string name="msg_network_stream_retry">Мережа перервана, повтор… (%1$d/%2$d)</string>
     <string name="msg_network_error_max_retries">Помилка мережі після %1$d спроб: %2$s</string>
     <string name="msg_playback_error">Помилка відтворення: %1$s</string>
+    <string name="error_loading_media">Помилка завантаження файлу, пропуск</string>
 
     <!-- Dialog messages -->
     <string name="clear_cache_confirm_message">Ви впевнені, що хочете очистити кеш додатку?</string>
@@ -1634,7 +1634,7 @@
     <string name="and_more_files">and %d more files</string>
     <string name="audio_a">Audio (A)</string>
     <string name="audio_title_label">Title: %1$s</string>
-    <string name="background_audio_setting_summary">Продовжити відтворення аудіо при згортанні додатку</string>
+    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
     <string name="button_icon_alignment_start">start</string>
     <string name="button_icon_alignment_text_start">textStart</string>
     <string name="button_text_alignment_center">center</string>
@@ -1690,17 +1690,6 @@
     <string name="audio_empty_state_visualization">Візуалізація (MP4)</string>
     <string name="audio_track">Аудіодоріжка</string>
     <string name="background_audio_setting_title">Фонове відтворення</string>
-    <string name="background_audio_local_only_warning">Фонове відтворення доступне лише для локальних файлів</string>
-    <string name="background_audio_exit_title">Фонове відтворення</string>
-    <string name="background_audio_exit_message">Аудіо відтворюється у фоні. Зупинити відтворення?</string>
-    <string name="background_audio_exit_stop">Зупинити</string>
-    <string name="background_audio_exit_continue">Продовжити</string>
-    <string name="notification_permission_required_for_background">Для керування фоновим відтворенням потрібен дозвіл на сповіщення</string>
-    <string name="grant_notifications_permission">Надати дозвіл на сповіщення</string>
-    <string name="manage_notifications_permission">Керування дозволом на сповіщення</string>
-    <string name="notification_permission_granted">Дозвіл на сповіщення отримано</string>
-    <string name="battery_optimization_hint_title">Оптимізація батареї</string>
-    <string name="battery_optimization_hint_message">Для стабільного фонового відтворення на деяких пристроях вимкніть оптимізацію батареї для FastMediaSorter у системних налаштуваннях.</string>
     <string name="close_search">Закрити пошук</string>
     <string name="cloud_storage_icon">Іконка хмарного сховища</string>
     <string name="continue_reading">Продовжити читання</string>

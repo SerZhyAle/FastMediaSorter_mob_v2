@@ -84,7 +84,7 @@ class WorkManagerScheduler @Inject constructor(
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 NetworkFilesSyncWorker.WORK_NAME,
-                ExistingPeriodicWorkPolicy.REPLACE,
+                ExistingPeriodicWorkPolicy.UPDATE,
                 workRequest
             )
             Timber.i("WorkManagerScheduler: Resource sync scheduled every $effectiveInterval h")

@@ -31,6 +31,8 @@ import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceProfile
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.dialog.ErrorDialog
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -1551,6 +1553,47 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
         // Get reference to manual path field
         val etManualPath = dialogView.findViewById<com.google.android.material.textfield.TextInputEditText>(R.id.etManualPath)
         
+        val virtualButtons = listOf(
+            R.id.btnVirtualRecent to LocalMediaScanner.VIRTUAL_PATH_RECENT,
+            R.id.btnVirtualAllMusic to LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
+            R.id.btnVirtualAllVideo to LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+            R.id.btnVirtualAllImages to LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
+            R.id.btnVirtualAllDocs to LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS
+        )
+
+        fun applyVirtualButtonStates(existingVirtualPaths: Set<String>) {
+            virtualButtons.forEach { (btnId, path) ->
+                dialogView.findViewById<com.google.android.material.button.MaterialButton>(btnId)?.apply {
+                    isEnabled = path !in existingVirtualPaths
+                    alpha = if (isEnabled) 1f else 0.5f
+                }
+            }
+        }
+
+        applyVirtualButtonStates(emptySet())
+
+        virtualButtons.forEach { (btnId, path) ->
+            dialogView.findViewById<com.google.android.material.button.MaterialButton>(btnId)?.setOnClickListener {
+                viewModel.addVirtualResource(path)
+                dialog.dismiss()
+            }
+        }
+
+        lifecycleScope.launch {
+            applyVirtualButtonStates(viewModel.getExistingVirtualPaths())
+        }
+
+        // Hide buttons based on flavor
+        if (!BuildConfig.SUPPORT_AUDIO) {
+            dialogView.findViewById<android.view.View>(R.id.btnVirtualAllMusic)?.isVisible = false
+        }
+        if (!BuildConfig.SUPPORT_IMAGES) {
+            dialogView.findViewById<android.view.View>(R.id.btnVirtualAllImages)?.isVisible = false
+        }
+        if (!BuildConfig.SUPPORT_DOCUMENTS) {
+            dialogView.findViewById<android.view.View>(R.id.btnVirtualAllDocs)?.isVisible = false
+        }
+
         // Common folder paths
         // Note: Android 11+ apps moved to /Android/media/
         val quickFolders = mapOf(

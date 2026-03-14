@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
@@ -82,6 +83,7 @@ sealed class MainEvent {
     object NavigateToFavorites : MainEvent()
     data class ScanProgress(val currentFile: String?, val scannedCount: Int) : MainEvent()
     object ScanComplete : MainEvent()
+    object ConfirmRescanWithVirtualResources : MainEvent()
 }
 
 @HiltViewModel
@@ -95,6 +97,7 @@ class MainViewModel @Inject constructor(
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
+    private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -123,7 +126,10 @@ class MainViewModel @Inject constructor(
     )
 
     init {
-        observeResourcesFromDatabase()
+        viewModelScope.launch(ioDispatcher) {
+            provisionDefaultResourcesUseCase()
+            observeResourcesFromDatabase()
+        }
     }
 
     private fun observeResourcesFromDatabase() {
@@ -514,17 +520,32 @@ class MainViewModel @Inject constructor(
      */
     fun scanAllResources() {
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
-            setLoading(true)
-            try {
-                // Delegate scanning to coordinator — result is reflected in the resource list UI
-                val result = scanCoordinator.scanAllResources()
-                Timber.d("Scan complete: ${result.availableCount} available, ${result.unavailableCount} unavailable")
-            } catch (e: Exception) {
-                Timber.e(e, "Error scanning resources")
-                handleError(e)
-            } finally {
-                setLoading(false)
+            // Check if aggregate virtual resources exist — show warning if so
+            val resources = getResourcesUseCase().first()
+            if (scanCoordinator.hasAggregateVirtualResources(resources)) {
+                sendEvent(MainEvent.ConfirmRescanWithVirtualResources)
+                return@launch
             }
+            performScanAllResources()
+        }
+    }
+
+    fun forceRescanAllResources() {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            performScanAllResources()
+        }
+    }
+
+    private suspend fun performScanAllResources() {
+        setLoading(true)
+        try {
+            val result = scanCoordinator.scanAllResources()
+            Timber.d("Scan complete: ${result.availableCount} available, ${result.unavailableCount} unavailable")
+        } catch (e: Exception) {
+            Timber.e(e, "Error scanning resources")
+            handleError(e)
+        } finally {
+            setLoading(false)
         }
     }
 }

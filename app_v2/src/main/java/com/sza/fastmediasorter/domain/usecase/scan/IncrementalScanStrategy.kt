@@ -136,6 +136,9 @@ object IncrementalScanStrategy {
      *         exist or is not a directory.
      */
     fun currentFolderMtime(path: String): Long? {
+        // Virtual resources have no folder — always return null to force full scan
+        if (com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(path)) return null
+
         return try {
             val file = File(path)
             if (file.exists() && file.isDirectory) file.lastModified() else null

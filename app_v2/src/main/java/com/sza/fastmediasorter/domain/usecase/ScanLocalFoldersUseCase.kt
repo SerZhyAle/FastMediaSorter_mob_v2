@@ -1,10 +1,17 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_AUDIO
+import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_DOCS
+import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_IMAGES
+import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_VIDEO
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.MediaStoreRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -35,13 +42,7 @@ class ScanLocalFoldersUseCase @Inject constructor(
             val settings = settingsRepository.getSettings().first()
             
             // Determine supported media types from settings
-            val supportedMediaTypes = mutableSetOf<MediaType>()
-            if (settings.supportImages) supportedMediaTypes.add(MediaType.IMAGE)
-            if (settings.supportVideos) supportedMediaTypes.add(MediaType.VIDEO)
-            if (settings.supportAudio) supportedMediaTypes.add(MediaType.AUDIO)
-            if (settings.supportGifs) supportedMediaTypes.add(MediaType.GIF)
-            if (settings.supportText) supportedMediaTypes.add(MediaType.TEXT)
-            if (settings.supportPdf) supportedMediaTypes.add(MediaType.PDF)
+            val supportedMediaTypes = settings.getGloballyEnabledMediaTypes().toMutableSet()
             
             val resources = mutableListOf<MediaResource>()
 
@@ -63,6 +64,111 @@ class ScanLocalFoldersUseCase @Inject constructor(
                         allFiles = settings.allFiles
                     )
                 )
+            }
+
+            // Virtual aggregate: All Music
+            if (BuildConfig.SUPPORT_AUDIO && VIRTUAL_PATH_ALL_AUDIO !in existingPaths && settings.supportAudio) {
+                resources.add(
+                    MediaResource(
+                        id = 0,
+                        name = context.getString(R.string.virtual_all_music),
+                        path = VIRTUAL_PATH_ALL_AUDIO,
+                        type = ResourceType.LOCAL,
+                        createdDate = System.currentTimeMillis(),
+                        fileCount = 0,
+                        isDestination = false,
+                        destinationOrder = null,
+                        isWritable = false,
+                        slideshowInterval = settings.slideshowInterval,
+                        scanSubdirectories = false,
+                        supportedMediaTypes = setOf(MediaType.AUDIO),
+                        sortMode = SortMode.NAME_ASC,
+                        profile = ResourceProfile.AUDIO_LIBRARY,
+                        allFiles = false
+                    )
+                )
+            }
+
+            // Virtual aggregate: All Videos
+            if (VIRTUAL_PATH_ALL_VIDEO !in existingPaths && settings.supportVideos) {
+                resources.add(
+                    MediaResource(
+                        id = 0,
+                        name = context.getString(R.string.virtual_all_video),
+                        path = VIRTUAL_PATH_ALL_VIDEO,
+                        type = ResourceType.LOCAL,
+                        createdDate = System.currentTimeMillis(),
+                        fileCount = 0,
+                        isDestination = false,
+                        destinationOrder = null,
+                        isWritable = false,
+                        slideshowInterval = settings.slideshowInterval,
+                        scanSubdirectories = false,
+                        supportedMediaTypes = setOf(MediaType.VIDEO),
+                        sortMode = SortMode.NAME_ASC,
+                        profile = ResourceProfile.VIDEO_LIBRARY,
+                        allFiles = false
+                    )
+                )
+            }
+
+            // Virtual aggregate: All Images
+            if (BuildConfig.SUPPORT_IMAGES && VIRTUAL_PATH_ALL_IMAGES !in existingPaths) {
+                val imageTypes = buildSet {
+                    if (settings.supportImages) add(MediaType.IMAGE)
+                    if (settings.supportGifs) add(MediaType.GIF)
+                }
+                if (imageTypes.isNotEmpty()) {
+                    resources.add(
+                        MediaResource(
+                            id = 0,
+                            name = context.getString(R.string.virtual_all_images),
+                            path = VIRTUAL_PATH_ALL_IMAGES,
+                            type = ResourceType.LOCAL,
+                            createdDate = System.currentTimeMillis(),
+                            fileCount = 0,
+                            isDestination = false,
+                            destinationOrder = null,
+                            isWritable = false,
+                            slideshowInterval = settings.slideshowInterval,
+                            scanSubdirectories = false,
+                            supportedMediaTypes = imageTypes,
+                            sortMode = SortMode.NAME_ASC,
+                            profile = ResourceProfile.PHOTO_STORAGE,
+                            allFiles = false
+                        )
+                    )
+                }
+            }
+
+            // Virtual aggregate: All Documents
+            if (BuildConfig.SUPPORT_DOCUMENTS) {
+                val docTypes = buildSet {
+                    if (settings.supportText) add(MediaType.TEXT)
+                    if (settings.supportPdf) add(MediaType.PDF)
+                    if (settings.supportEpub) add(MediaType.EPUB)
+                }
+                if (docTypes.isNotEmpty() && VIRTUAL_PATH_ALL_DOCS !in existingPaths) {
+                    resources.add(
+                        MediaResource(
+                            id = 0,
+                            name = context.getString(R.string.virtual_all_docs),
+                            path = VIRTUAL_PATH_ALL_DOCS,
+                            type = ResourceType.LOCAL,
+                            createdDate = System.currentTimeMillis(),
+                            fileCount = 0,
+                            isDestination = false,
+                            destinationOrder = null,
+                            isWritable = false,
+                            slideshowInterval = settings.slideshowInterval,
+                            scanSubdirectories = false,
+                            supportedMediaTypes = docTypes,
+                            sortMode = SortMode.NAME_ASC,
+                            profile = ResourceProfile.DOCUMENTS,
+                            allFiles = false
+                        )
+                    )
+                }
             }
             
             // Fetch standard Android folders (always returned, even if empty)

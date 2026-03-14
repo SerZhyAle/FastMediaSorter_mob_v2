@@ -122,7 +122,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
-    private var backgroundAudioExitConfirmed = false
     
     // LAZY INITIALIZATION: Document viewers only created when needed
     private var _pdfViewerManager: com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager? = null
@@ -1182,9 +1181,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 
                 override fun showError(message: String, exception: Throwable?) {
                     this@PlayerActivity.showError(message, exception)
-                    if (exception != null) {
-                        this@PlayerActivity.handleMediaLoadErrorAndSkip()
-                    }
                 }
                 
                 override fun showToast(message: String) {
@@ -1218,7 +1214,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun isSlideshowActive(): Boolean = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
 
                 override fun setAnimatedBadgeVisible(visible: Boolean) {
-                    binding.tvAnimatedBadge?.isVisible = visible
+                    binding.tvAnimatedBadge.isVisible = visible
                 }
             }
         )
@@ -1551,41 +1547,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             onAudioServicePlaybackChanged = { isPlaying ->
                 val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
                 sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
-                if (isAudioFile) {
-                    audioEmptyStateController?.onIsPlayingChanged(isPlaying)
-                }
-            },
-            onAudioServiceReady = {
-                val currentFile = viewModel.state.value.currentFile
-                if (currentFile?.type == MediaType.AUDIO) {
-                    imageLoadingManager.loadAudioCoverArt(currentFile)
-                    mediaLoaderManager.prefetchNextAudio()
-                }
-            },
-            onAudioServicePlaybackEnded = {
-                val state = viewModel.state.value
-                Timber.tag("AUDIO_SERVICE").d("STATE_ENDED received from service → slideshow=%s, persistentAudio=%s", state.isSlideShowActive, state.enablePersistentAudioPlayback)
-                if (state.isSlideShowActive || state.enablePersistentAudioPlayback) {
-                    viewModel.nextFile(skipDocuments = true)
-                    if (state.isSlideShowActive) {
-                        slideshowController.restartTimer()
-                    }
-                }
-            },
-            onAudioServicePlaybackError = { error ->
-                Timber.tag("AUDIO_SERVICE").w(error, "Playback error from audio service → auto-skip")
-                handleMediaLoadErrorAndSkip()
-            },
-            unifiedCache = unifiedCache,
-            smbClient = smbClient,
-            sftpClient = sftpClient,
-            ftpClient = ftpClient,
-            credentialsRepository = credentialsRepository,
-            cloudClients = mapOf(
-                "googledrive" to googleDriveClient,
-                "onedrive" to oneDriveClient,
-                "dropbox" to dropboxClient
-            )
+            }
         )
         
         dialogAndUiStateManager = PlayerDialogAndUiStateManager(
@@ -1729,7 +1691,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     }
                 }
 
-                // Default back behavior — finish() handles background audio dialog
+                // Default back behavior
                 isEnabled = false
                 onBackPressedDispatcher.onBackPressed()
             }
@@ -2170,10 +2132,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         mediaLoaderManager.preloadNextImageIfNeeded()
     }
 
-    internal fun prefetchNextAudio() {
-        mediaLoaderManager.prefetchNextAudio()
-    }
-
     private fun playVideo(path: String) {
         mediaLoaderManager.playVideo(path)
     }
@@ -2498,24 +2456,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     /**
-     * Auto-skip to next file after a media load error.
-     * Shows "Skipped: filename" Toast and navigates forward.
-     */
-    internal fun handleMediaLoadErrorAndSkip() {
-        if (isFinishing || isDestroyed) return
-        val fileName = viewModel.state.value.currentFile?.name ?: return
-        Timber.w("handleMediaLoadErrorAndSkip: skipping $fileName")
-        Toast.makeText(this, getString(R.string.file_skipped_playback_error, fileName), Toast.LENGTH_SHORT).show()
-        android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-            if (!isDestroyed && !isFinishing) {
-                val isSlideshow = viewModel.state.value.isSlideShowActive
-                viewModel.nextFile(skipDocuments = isSlideshow)
-                if (isSlideshow) slideshowController.restartTimer()
-            }
-        }, 500L)
-    }
-    
-    /**
      * Show error message respecting showDetailedErrors setting
      * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
      * If showDetailedErrors=false: shows Toast (short notification)
@@ -2757,6 +2697,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     internal fun updateTrackButtonsVisibility() {
         exoPlayerControlsManager.updateTrackButtonsVisibility()
+    }
+
+    internal fun prefetchNextAudio() {
+        if (::mediaLoaderManager.isInitialized) {
+            mediaLoaderManager.prefetchNextAudio()
+        }
+    }
+
+    internal fun handleMediaLoadErrorAndSkip() {
+        Timber.w("PlayerActivity: media load error, skipping to next file")
+        android.widget.Toast.makeText(this, getString(com.sza.fastmediasorter.R.string.error_loading_media), android.widget.Toast.LENGTH_SHORT).show()
+        navigationManager.navigateNextFromControl()
     }
 
     private fun releasePlayer() {
@@ -3069,22 +3021,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Delegate to lifecycle manager
         lifecycleManager.onResume()
         audioEmptyStateController?.onResume()
-        
-        // Reconnect to background audio service if it's still playing
-        reconnectToServiceIfActive()
-    }
-
-    private fun reconnectToServiceIfActive() {
-        val controller = audioServiceController ?: return
-        if (!controller.isConnected) return
-        val currentPlayer = controller.player ?: return
-        if (currentPlayer.isPlaying || currentPlayer.playbackState == androidx.media3.common.Player.STATE_READY) {
-            binding.playerView.player = currentPlayer
-            if (::mediaLoaderManager.isInitialized) {
-                mediaLoaderManager.bindServicePlaybackListener(currentPlayer)
-            }
-            timber.log.Timber.d("PlayerActivity.reconnect: rebound PlayerView to service MediaController")
-        }
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -3115,34 +3051,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Called by PlayerNavigationManager on track change.
      */
     internal fun updateAudioSlideshowCurrentSongLabel() = audioSlideshowPhotoModeManager.updateCurrentSongLabel()
-
-    override fun finish() {
-        val isServicePlaying = audioServiceController?.isConnected == true
-            && viewModel.state.value.enablePersistentAudioPlayback
-            && viewModel.state.value.currentFile?.type == MediaType.AUDIO
-        Timber.d("finish(): isServicePlaying=$isServicePlaying, confirmed=$backgroundAudioExitConfirmed")
-        if (isServicePlaying && !backgroundAudioExitConfirmed) {
-            com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.background_audio_exit_title)
-                .setMessage(R.string.background_audio_exit_message)
-                .setPositiveButton(R.string.background_audio_exit_stop) { _, _ ->
-                    audioServiceController?.player?.stop()
-                    backgroundAudioExitConfirmed = true
-                    finish()
-                }
-                .setNegativeButton(R.string.background_audio_exit_continue) { _, _ ->
-                    backgroundAudioExitConfirmed = true
-                    finish()
-                }
-                .setOnCancelListener {
-                    // User dismissed dialog — stay in player
-                }
-                .setCancelable(true)
-                .show()
-            return
-        }
-        super.finish()
-    }
 
     override fun onDestroy() {
         // Release background music manager
@@ -3398,7 +3306,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             callback = object : com.sza.fastmediasorter.ui.player.helpers.PdfViewerManager.PdfViewerCallback {
                 override fun showError(message: String) {
                     this@PlayerActivity.showError(message)
-                    this@PlayerActivity.handleMediaLoadErrorAndSkip()
                 }
                 
                 override fun displayOcrText(text: String) {
@@ -3453,7 +3360,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             callback = object : com.sza.fastmediasorter.ui.player.helpers.EpubViewerManager.EpubViewerCallback {
                 override fun showError(message: String) {
                     this@PlayerActivity.showError(message)
-                    this@PlayerActivity.handleMediaLoadErrorAndSkip()
                 }
                 
                 override fun displayTranslatedText(text: String) {
@@ -3489,7 +3395,6 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             callback = object : com.sza.fastmediasorter.ui.player.helpers.TextViewerManager.TextViewerCallback {
                 override fun showError(message: String) {
                     this@PlayerActivity.showError(message)
-                    this@PlayerActivity.handleMediaLoadErrorAndSkip()
                 }
                 
                 override fun showTranslationSettingsDialog() {

@@ -222,14 +222,21 @@ if ($LASTEXITCODE -eq 0) {
 
 # ── 9. Media Store scan ───────────────────────────────────────────────────────
 Write-Host "[9/9] Triggering Media Store scan..." -ForegroundColor Yellow
-# Modern approach: scan the whole directory tree
-& $AdbExe shell "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d file://$DeviceDestDir" | Out-Null
-# Per-file fallback for stubborn devices
-& $AdbExe shell @"
-find "$DeviceDestDir" -type f | while read f; do
-  am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d "file://\$f" > /dev/null 2>&1
-done
-"@ | Out-Null
+# Note: MEDIA_SCANNER_SCAN_FILE broadcast requires individual file paths (not dir).
+# The heredoc + shell while-loop approach fails because PowerShell expands $f as
+# an undefined PS variable before passing the string to adb shell.
+# Fix: enumerate files via adb from PowerShell and broadcast per-file.
+$deviceFilePaths = & $AdbExe shell "find `"$DeviceDestDir`" -type f" 2>&1 |
+    Where-Object { $_ -match "^/" }
+$scannedCount = 0
+foreach ($filePath in $deviceFilePaths) {
+    $cleanPath = $filePath.Trim()
+    if ([string]::IsNullOrEmpty($cleanPath)) { continue }
+    & $AdbExe shell "am broadcast -a android.intent.action.MEDIA_SCANNER_SCAN_FILE -d 'file://$cleanPath'" 2>&1 | Out-Null
+    $scannedCount++
+}
+Write-Host "  Scan broadcasts sent for $scannedCount files" -ForegroundColor DarkGray
+Start-Sleep -Seconds 3  # give MediaStore time to process
 
 # ── Summary ───────────────────────────────────────────────────────────────────
 Write-Host ""

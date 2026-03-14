@@ -1584,8 +1584,8 @@ class MediaFileAdapter(
                     return if (hasMetadata) {
                         val audioTitle = when {
                             !file.artist.isNullOrBlank() && !file.title.isNullOrBlank() -> "${file.artist} - ${file.title}"
-                            !file.artist.isNullOrBlank() -> file.artist!!
-                            else -> file.title!!
+                            !file.artist.isNullOrBlank() -> file.artist
+                            else -> file.title ?: file.name
                         }
                         if (duration != null) "$audioTitle • $duration" else audioTitle
                     } else {

@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.domain.usecase.MediaScanner
 import com.sza.fastmediasorter.domain.usecase.ScanProgressCallback
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
 import com.sza.fastmediasorter.utils.SafHelper
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -36,7 +37,12 @@ class LocalMediaScanner @Inject constructor(
 
     companion object {
         const val VIRTUAL_PATH_RECENT = "virtual://recent"
+        const val VIRTUAL_PATH_ALL_AUDIO = "virtual://all_audio"
+        const val VIRTUAL_PATH_ALL_VIDEO = "virtual://all_video"
+        const val VIRTUAL_PATH_ALL_IMAGES = "virtual://all_images"
+        const val VIRTUAL_PATH_ALL_DOCS = "virtual://all_docs"
         private const val RECENT_FILES_LIMIT = 1000
+        const val VIRTUAL_ALL_FILES_LIMIT = 10_000
     }
 
     override suspend fun scanFolder(
@@ -52,6 +58,31 @@ class LocalMediaScanner @Inject constructor(
 
         if (path == VIRTUAL_PATH_RECENT) {
             return@withContext scanRecentFiles(supportedTypes, sizeFilter, showHiddenFiles, onProgress)
+        }
+
+        if (path == VIRTUAL_PATH_ALL_AUDIO) {
+            return@withContext scanAllByTypes(setOf(MediaType.AUDIO), sizeFilter, showHiddenFiles, onProgress)
+        }
+        if (path == VIRTUAL_PATH_ALL_VIDEO) {
+            return@withContext scanAllByTypes(setOf(MediaType.VIDEO), sizeFilter, showHiddenFiles, onProgress)
+        }
+        if (path == VIRTUAL_PATH_ALL_IMAGES) {
+            val imageTypes = imageTypesFromSettings(supportedTypes)
+            return@withContext if (imageTypes.isNotEmpty()) {
+                scanAllByTypes(imageTypes, sizeFilter, showHiddenFiles, onProgress)
+            } else {
+                onProgress?.onComplete(0, 0)
+                emptyList()
+            }
+        }
+        if (path == VIRTUAL_PATH_ALL_DOCS) {
+            val docTypes = docTypesFromSettings(supportedTypes)
+            return@withContext if (docTypes.isNotEmpty()) {
+                scanAllByTypes(docTypes, sizeFilter, showHiddenFiles, onProgress)
+            } else {
+                onProgress?.onComplete(0, 0)
+                emptyList()
+            }
         }
         
         // SAF handling - use fast cursor-based scanning
@@ -113,6 +144,59 @@ class LocalMediaScanner @Inject constructor(
             onProgress?.onComplete(0, 1)
             emptyList()
         }
+    }
+
+    private suspend fun scanAllByTypes(
+        allowedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        showHiddenFiles: Boolean,
+        onProgress: ScanProgressCallback?
+    ): List<MediaFile> {
+        return try {
+            val files = mediaStoreRepository.getAllFilesByTypes(
+                allowedTypes = allowedTypes,
+                limit = VIRTUAL_ALL_FILES_LIMIT,
+                showHiddenFiles = showHiddenFiles
+            )
+
+            val filteredFiles = files.filter { file ->
+                sizeFilter == null || file.size <= 0L ||
+                    MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter)
+            }
+
+            onProgress?.onComplete(filteredFiles.size, 0)
+            filteredFiles
+        } catch (e: Exception) {
+            Timber.e(e, "LocalMediaScanner: failed to scan all files by types: $allowedTypes")
+            onProgress?.onComplete(0, 1)
+            emptyList()
+        }
+    }
+
+    private suspend fun countAllByTypes(
+        allowedTypes: Set<MediaType>,
+        sizeFilter: SizeFilter?,
+        showHiddenFiles: Boolean
+    ): Int {
+        return try {
+            mediaStoreRepository.countAllFilesByTypes(
+                allowedTypes = allowedTypes,
+                limit = VIRTUAL_ALL_FILES_LIMIT,
+                showHiddenFiles = showHiddenFiles,
+                sizeFilter = sizeFilter
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "LocalMediaScanner: failed to count all files by types: $allowedTypes")
+            0
+        }
+    }
+
+    private fun imageTypesFromSettings(supportedTypes: Set<MediaType>): Set<MediaType> {
+        return supportedTypes.filter { it in setOf(MediaType.IMAGE, MediaType.GIF) }.toSet()
+    }
+
+    private fun docTypesFromSettings(supportedTypes: Set<MediaType>): Set<MediaType> {
+        return supportedTypes.filter { it in setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB) }.toSet()
     }
 
     private suspend fun scanFolderLegacy(
@@ -210,7 +294,7 @@ class LocalMediaScanner @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
     ): MediaFilePage = withContext(Dispatchers.IO) {
-        // Reuse scanFolder Logic (inefficient but consistent)
+        // Reuse scanFolder logic (handles virtual paths, SAF, MediaStore, and legacy)
         val allFiles = scanFolder(path, supportedTypes, sizeFilter, credentialsId, scanSubdirectories, showHiddenFiles, null)
         val page = allFiles.drop(offset).take(limit)
         MediaFilePage(page, offset + limit < allFiles.size)
@@ -226,6 +310,25 @@ class LocalMediaScanner @Inject constructor(
     ): Int = withContext(Dispatchers.IO) {
         if (path == VIRTUAL_PATH_RECENT) {
             return@withContext scanRecentFiles(supportedTypes, sizeFilter, showHiddenFiles, null).size
+        }
+
+        if (path == VIRTUAL_PATH_ALL_AUDIO) {
+            return@withContext countAllByTypes(setOf(MediaType.AUDIO), sizeFilter, showHiddenFiles)
+        }
+        if (path == VIRTUAL_PATH_ALL_VIDEO) {
+            return@withContext countAllByTypes(setOf(MediaType.VIDEO), sizeFilter, showHiddenFiles)
+        }
+        if (path == VIRTUAL_PATH_ALL_IMAGES) {
+            val imageTypes = imageTypesFromSettings(supportedTypes)
+            return@withContext if (imageTypes.isNotEmpty()) {
+                countAllByTypes(imageTypes, sizeFilter, showHiddenFiles)
+            } else 0
+        }
+        if (path == VIRTUAL_PATH_ALL_DOCS) {
+            val docTypes = docTypesFromSettings(supportedTypes)
+            return@withContext if (docTypes.isNotEmpty()) {
+                countAllByTypes(docTypes, sizeFilter, showHiddenFiles)
+            } else 0
         }
 
         if (path.startsWith("content://")) {
@@ -266,7 +369,7 @@ class LocalMediaScanner @Inject constructor(
     // I will include the SAF methods from the read output.
 
     override suspend fun isWritable(path: String, credentialsId: String?): Boolean = withContext(Dispatchers.IO) {
-        if (path == VIRTUAL_PATH_RECENT) return@withContext false
+        if (VirtualPathUtils.isVirtualPath(path)) return@withContext false
         if (path.startsWith("content://")) return@withContext isWritableSAF(path)
         val folder = File(path)
         folder.exists() && folder.canWrite()
@@ -284,6 +387,9 @@ class LocalMediaScanner @Inject constructor(
         showHiddenFiles: Boolean
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         Timber.d("LocalMediaScanner.listDirectoryContents: path='$path'")
+
+        // Virtual resources have no browsable directories
+        if (VirtualPathUtils.isVirtualPath(path)) return@withContext emptyList()
         
         // SAF handling
         if (path.startsWith("content://")) {

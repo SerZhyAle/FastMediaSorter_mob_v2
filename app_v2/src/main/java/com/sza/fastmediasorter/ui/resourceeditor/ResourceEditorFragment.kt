@@ -761,6 +761,19 @@ class ResourceEditorFragment : Fragment() {
         binding.tilComment.isVisible = visibleKeys.contains(ResourceFieldKey.COMMENT)
         binding.tilAccessPin.isVisible = visibleKeys.contains(ResourceFieldKey.ACCESS_PIN)
         binding.tilSlideshowInterval.isVisible = visibleKeys.contains(ResourceFieldKey.SLIDESHOW_INTERVAL)
+
+        // Hide path, media types, scanning, and destination sections for virtual resources
+        val currentPath = viewModel.uiState.value.formData.path
+        if (com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(currentPath)) {
+            binding.tilPath.isVisible = false
+            binding.tilServerPath.isVisible = false
+            binding.cardScanning.isVisible = false
+            binding.headerScanning.isVisible = false
+            hasMediaTypesBySchema = false
+            updateMediaTypesSectionVisibility(false)
+            binding.cardDestination.isVisible = false
+            binding.headerDestination.isVisible = false
+        }
     }
 
     private fun renderFieldStates(fieldStates: Map<ResourceFieldKey, ResourceFieldState>) {

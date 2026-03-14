@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
 import timber.log.Timber
 
@@ -218,10 +219,13 @@ class ResourceAdapter(
                 tvResourceName.setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, textSize)
                 
                 // Set icon based on resource type
-                val iconRes = if (resource.id == -100L) { // Favorites
-                    R.drawable.ic_resource_favorites
-                } else {
-                    when (resource.type) {
+                val iconRes = when {
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_virtual_recent
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> R.drawable.ic_virtual_music
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> R.drawable.ic_virtual_video
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> R.drawable.ic_virtual_docs
+                    resource.id == -100L -> R.drawable.ic_resource_favorites
+                    else -> when (resource.type) {
                         ResourceType.LOCAL -> R.drawable.ic_resource_local
                         ResourceType.SMB -> R.drawable.ic_resource_smb
                         ResourceType.SFTP -> R.drawable.ic_resource_sftp
@@ -374,10 +378,13 @@ class ResourceAdapter(
                     if (luminance > 0.4) android.graphics.Color.parseColor("#1A1A1A")
                     else android.graphics.Color.WHITE
                 )
-                val iconRes = if (resource.id == -100L) { // Favorites
-                    R.drawable.ic_resource_favorites
-                } else {
-                    when (resource.type) {
+                val iconRes = when {
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_RECENT -> R.drawable.ic_virtual_recent
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> R.drawable.ic_virtual_music
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> R.drawable.ic_virtual_video
+                    resource.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> R.drawable.ic_virtual_docs
+                    resource.id == -100L -> R.drawable.ic_resource_favorites
+                    else -> when (resource.type) {
                         ResourceType.LOCAL -> R.drawable.ic_resource_local
                         ResourceType.SMB -> R.drawable.ic_resource_smb
                         ResourceType.SFTP -> R.drawable.ic_resource_sftp

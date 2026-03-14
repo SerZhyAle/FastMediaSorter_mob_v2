@@ -50,6 +50,11 @@ class SyncMediaStoreUseCase @Inject constructor(
                 Timber.w("SyncMediaStore: Skipping non-local resource '${resource.name}' (type=${resource.type})")
                 return@withContext Result.success(0)
             }
+
+            if (resource.path.startsWith("virtual://")) {
+                Timber.w("SyncMediaStore: Skipping virtual resource '${resource.name}' (path=${resource.path})")
+                return@withContext Result.success(0)
+            }
             
             val rootFolder = File(resource.path)
             if (!rootFolder.exists() || !rootFolder.isDirectory) {

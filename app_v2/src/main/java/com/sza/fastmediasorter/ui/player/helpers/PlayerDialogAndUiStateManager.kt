@@ -272,11 +272,11 @@ class PlayerDialogAndUiStateManager(
             // Show full filename overlay for all file types (not just audio) so it's
             // always visible regardless of content background (dark or light).
             val showFileNameOverlay = !isAudioSlideshowPhotoMode
-            binding.tvFileNameOverlay?.isVisible = showFileNameOverlay
+            binding.tvFileNameOverlay.isVisible = showFileNameOverlay
 
             // Restore default top margin from resources. topCommandPanel is outside the FrameLayout
             // containing tvFileNameOverlay, so adding panel.height here shifts the filename too low.
-            binding.tvFileNameOverlay?.let { overlay ->
+            binding.tvFileNameOverlay.let { overlay ->
                 val lp = overlay.layoutParams as? android.widget.FrameLayout.LayoutParams
                 if (lp != null) {
                     lp.topMargin = activity.resources.getDimensionPixelSize(
@@ -311,7 +311,7 @@ class PlayerDialogAndUiStateManager(
         } else {
             // Fullscreen mode or slideshow mode
             binding.topCommandPanel.isVisible = false
-            binding.tvFileNameOverlay?.isVisible = false
+            binding.tvFileNameOverlay.isVisible = false
             // View-based overlays always hidden - TouchZoneGestureManager handles zones
             safeViews.touchZones3Overlay.isVisible = false
             safeViews.touchZonesOverlay.isVisible = false

@@ -203,8 +203,7 @@ class SettingsViewModel @Inject constructor(
                 showDetailedErrors = defaults.showDetailedErrors,
                 showPlayerHintOnFirstRun = defaults.showPlayerHintOnFirstRun,
                 alwaysShowTouchZonesOverlay = defaults.alwaysShowTouchZonesOverlay,
-                isResourceGridMode = defaults.isResourceGridMode,
-                enablePersistentAudioPlayback = defaults.enablePersistentAudioPlayback
+                isResourceGridMode = defaults.isResourceGridMode
             )
         )
         // Also reset per-type touch zone hints

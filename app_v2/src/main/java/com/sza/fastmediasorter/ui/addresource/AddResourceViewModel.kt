@@ -7,15 +7,21 @@ import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.ScanLocalFoldersUseCase
 import com.sza.fastmediasorter.domain.usecase.SmbOperationsUseCase
+import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.usecase.NetworkSpeedTestUseCase
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -197,6 +203,109 @@ class AddResourceViewModel @Inject constructor(
             
             setLoading(false)
         }
+    }
+
+    fun addVirtualResource(virtualPath: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            setLoading(true)
+            try {
+                val existingResources = resourceRepository.getAllResources().first()
+                if (existingResources.any { it.path == virtualPath }) {
+                    sendEvent(AddResourceEvent.ShowMessage(
+                        context.getString(R.string.virtual_resource_already_added)
+                    ))
+                    return@launch
+                }
+
+                val settings = settingsRepository.getSettings().first()
+                val resource = buildVirtualResource(virtualPath, settings)
+                if (resource != null) {
+                    addResourceUseCase(resource)
+                    sendEvent(AddResourceEvent.ShowMessage(
+                        context.getString(R.string.virtual_resource_added, resource.name)
+                    ))
+                    sendEvent(AddResourceEvent.ResourcesAdded)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to add virtual resource: $virtualPath")
+                sendEvent(AddResourceEvent.ShowError(e.message ?: "Unknown error"))
+            } finally {
+                setLoading(false)
+            }
+        }
+    }
+
+    suspend fun getExistingVirtualPaths(): Set<String> {
+        return resourceRepository.getAllResources().first()
+            .map { it.path }
+            .filter(VirtualPathUtils::isVirtualPath)
+            .toSet()
+    }
+
+    private fun buildVirtualResource(
+        virtualPath: String,
+        settings: com.sza.fastmediasorter.domain.model.AppSettings
+    ): MediaResource? {
+        val (name, types, profile) = when (virtualPath) {
+            LocalMediaScanner.VIRTUAL_PATH_RECENT -> Triple(
+                context.getString(R.string.recent_media),
+                settings.getGloballyEnabledMediaTypes(),
+                ResourceProfile.NONE
+            )
+            LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> Triple(
+                context.getString(R.string.virtual_all_music),
+                setOf(MediaType.AUDIO),
+                ResourceProfile.AUDIO_LIBRARY
+            )
+            LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> Triple(
+                context.getString(R.string.virtual_all_video),
+                setOf(MediaType.VIDEO),
+                ResourceProfile.VIDEO_LIBRARY
+            )
+            LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES -> {
+                val imageTypes = buildSet {
+                    if (settings.supportImages) add(MediaType.IMAGE)
+                    if (settings.supportGifs) add(MediaType.GIF)
+                }
+                if (imageTypes.isEmpty()) return null
+                Triple(
+                    context.getString(R.string.virtual_all_images),
+                    imageTypes,
+                    ResourceProfile.PHOTO_STORAGE
+                )
+            }
+            LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> {
+                val docTypes = buildSet {
+                    if (settings.supportText) add(MediaType.TEXT)
+                    if (settings.supportPdf) add(MediaType.PDF)
+                    if (settings.supportEpub) add(MediaType.EPUB)
+                }
+                if (docTypes.isEmpty()) return null
+                Triple(
+                    context.getString(R.string.virtual_all_docs),
+                    docTypes,
+                    ResourceProfile.DOCUMENTS
+                )
+            }
+            else -> return null
+        }
+
+        return MediaResource(
+            id = 0,
+            name = name,
+            path = virtualPath,
+            type = ResourceType.LOCAL,
+            createdDate = System.currentTimeMillis(),
+            fileCount = 0,
+            isDestination = false,
+            destinationOrder = null,
+            isWritable = false,
+            scanSubdirectories = false,
+            supportedMediaTypes = types,
+            sortMode = SortMode.NAME_ASC,
+            profile = profile,
+            allFiles = false
+        )
     }
 
     fun scanNetwork() {

@@ -515,6 +515,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                         MainEvent.ScanComplete -> {
                             binding.scanProgressLayout.visibility = View.GONE
                         }
+                        MainEvent.ConfirmRescanWithVirtualResources -> {
+                            android.app.AlertDialog.Builder(this@MainActivity)
+                                .setTitle(R.string.rescan_all_virtual_warning_title)
+                                .setMessage(R.string.rescan_all_virtual_warning_message)
+                                .setPositiveButton(android.R.string.ok) { _, _ ->
+                                    viewModel.forceRescanAllResources()
+                                }
+                                .setNegativeButton(android.R.string.cancel, null)
+                                .show()
+                        }
                     }
                 }
             }

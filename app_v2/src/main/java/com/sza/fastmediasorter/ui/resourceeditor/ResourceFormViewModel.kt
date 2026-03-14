@@ -174,6 +174,13 @@ class ResourceFormViewModel @Inject constructor(
     }
 
     fun onFieldChanged(fieldKey: ResourceFieldKey, value: Any?) {
+        // Prevent path/mediaTypes changes for virtual resources
+        val currentPath = _uiState.value.formData.path
+        if (com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(currentPath) &&
+            fieldKey in setOf(ResourceFieldKey.PATH, ResourceFieldKey.MEDIA_TYPES)) {
+            return
+        }
+
         _uiState.update { current ->
             val updatedForm = when (fieldKey) {
                 ResourceFieldKey.NAME -> current.formData.copy(name = value as? String ?: "")
