@@ -1681,6 +1681,10 @@
     <string name="audio_empty_state_visualization">Визуализация (MP4)</string>
     <string name="audio_track">Аудиодорожка</string>
     <string name="background_audio_setting_title">Фоновое воспроизведение</string>
+    <string name="background_audio_exit_title">Фоновое воспроизведение</string>
+    <string name="background_audio_exit_message">Музыка продолжает играть в фоне. Что сделать?</string>
+    <string name="background_audio_exit_stop">Остановить</string>
+    <string name="background_audio_exit_continue">Продолжить</string>
     <string name="close_search">Закрыть поиск</string>
     <string name="cloud_storage_icon">Иконка облачного хранилища</string>
     <string name="continue_reading">Продолжить чтение</string>

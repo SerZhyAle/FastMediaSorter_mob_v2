@@ -1691,6 +1691,24 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     }
                 }
 
+                // Check if background audio service is playing — ask user to stop or keep
+                if (::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive) {
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PlayerActivity)
+                        .setTitle(R.string.background_audio_exit_title)
+                        .setMessage(R.string.background_audio_exit_message)
+                        .setNegativeButton(R.string.background_audio_exit_stop) { _, _ ->
+                            audioServiceController?.player?.stop()
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                        .setPositiveButton(R.string.background_audio_exit_continue) { _, _ ->
+                            isEnabled = false
+                            onBackPressedDispatcher.onBackPressed()
+                        }
+                        .show()
+                    return
+                }
+
                 // Default back behavior
                 isEnabled = false
                 onBackPressedDispatcher.onBackPressed()

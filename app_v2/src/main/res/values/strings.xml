@@ -1878,6 +1878,10 @@
     <string name="notification_channel_audio_description">Controls for background audio playback</string>
     <string name="background_audio_setting_title">Background Playback</string>
     <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+    <string name="background_audio_exit_title">Background Audio</string>
+    <string name="background_audio_exit_message">Music is playing in the background. What would you like to do?</string>
+    <string name="background_audio_exit_stop">Stop</string>
+    <string name="background_audio_exit_continue">Keep Playing</string>
 
     <!-- Vinyl indicator & Sleep timer -->
     <string name="vinyl_indicator_description">Audio playback indicator</string>

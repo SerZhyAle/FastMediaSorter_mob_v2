@@ -1690,6 +1690,10 @@
     <string name="audio_empty_state_visualization">Візуалізація (MP4)</string>
     <string name="audio_track">Аудіодоріжка</string>
     <string name="background_audio_setting_title">Фонове відтворення</string>
+    <string name="background_audio_exit_title">Фонове відтворення</string>
+    <string name="background_audio_exit_message">Музика продовжує грати у фоні. Що зробити?</string>
+    <string name="background_audio_exit_stop">Зупинити</string>
+    <string name="background_audio_exit_continue">Продовжити</string>
     <string name="close_search">Закрити пошук</string>
     <string name="cloud_storage_icon">Іконка хмарного сховища</string>
     <string name="continue_reading">Продовжити читання</string>

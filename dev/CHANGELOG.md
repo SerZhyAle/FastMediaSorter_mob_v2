@@ -558,3 +558,5 @@ Format: | datetime | file | target | description |
 | 2026-03-14 23:37:42 | `app_v2/src/main/res/layout/dialog_folder_selection.xml` | `dialog_folder_selection` | Added btnVirtualAllImages button, reorganized rows: Videos+Images / Documents |
 | 2026-03-14 23:37:47 | `app_v2/src/main/res/values*/strings.xml` | `strings.xml (EN/RU/UK)` | Added virtual_all_images string, updated rescan_all_virtual_warning_message to include All Images |
 | 2026-03-14 23:37:53 | `app_v2/src/test/.../VirtualPathUtilsTest.kt + LocalMediaScannerTest.kt` | `Unit Tests` | Added tests for VIRTUAL_PATH_ALL_IMAGES: isVirtualPath, isAggregate, ALL_VIRTUAL_PATHS(5), scanFolder, getFileCount, isWritable |
+| 2026-03-14 23:58:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.setupBackPressHandler` | Added dialog on back-press when audio service is playing: Stop or Keep Playing |
+| 2026-03-14 23:58:13 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added background_audio_exit_title/message/stop/continue strings (EN/RU/UK) |
