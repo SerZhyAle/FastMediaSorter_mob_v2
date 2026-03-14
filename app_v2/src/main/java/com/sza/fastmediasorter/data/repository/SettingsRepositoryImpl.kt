@@ -222,7 +222,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID],
                     enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
-                    audioEmptyStateMode = preferences[KEY_AUDIO_EMPTY_STATE_MODE] ?: "VISUALIZATION",
+                    audioEmptyStateMode = preferences[KEY_AUDIO_EMPTY_STATE_MODE] ?: "CANVAS_WAVES",
                     supportText = preferences[KEY_SUPPORT_TEXT] ?: true,
                     supportPdf = preferences[KEY_SUPPORT_PDF] ?: true,
                     supportEpub = preferences[KEY_SUPPORT_EPUB] ?: true,

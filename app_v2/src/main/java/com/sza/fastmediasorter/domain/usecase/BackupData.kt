@@ -61,7 +61,7 @@ data class BackupSettings(
     val enablePhotosDuringAudio: Boolean = false,
     val audioBackgroundPhotosResourceId: String? = null,
     val enablePersistentAudioPlayback: Boolean = false,
-    val audioEmptyStateMode: String = "VISUALIZATION",
+    val audioEmptyStateMode: String = "CANVAS_WAVES",
     val supportText: Boolean = true,
     val supportPdf: Boolean = true,
     val supportEpub: Boolean = true,

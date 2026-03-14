@@ -114,6 +114,12 @@ class ImageLoadingManager(
     /** Tracks the active cover-art loading coroutine so stale jobs can be cancelled on track change. */
     private var coverArtJob: Job? = null
 
+    /**
+     * Path of the audio file whose cover art is currently displayed in audioCoverArtView.
+     * Used to skip redundant reloads on seek (ExoPlayer re-fires STATE_READY after every seek).
+     */
+    private var coverArtDisplayedForPath: String? = null
+
     // Cached size/duration for single-line info assembly in updateAudioFormatInfo()
     private var audioFileSizeStr: String = ""
     private var audioDurationStr: String = ""
@@ -1498,6 +1504,13 @@ class ImageLoadingManager(
      * Called when ExoPlayer is ready for audio files
      */
     fun loadAudioCoverArt(file: MediaFile) {
+        // Skip reload if cover art for this exact file is already visible (e.g. seek re-triggers STATE_READY).
+        if (file.path == coverArtDisplayedForPath && binding.audioCoverArtView.isVisible) {
+            Timber.d("loadAudioCoverArt: cover already displayed for ${file.name}, seek re-trigger skipped")
+            return
+        }
+        coverArtDisplayedForPath = null
+
         // Cancel any pending cover-art coroutine from a previous track to avoid stale callbacks.
         coverArtJob?.cancel()
         coverArtJob = null
@@ -1558,6 +1571,7 @@ class ImageLoadingManager(
                         audioEmptyStateController?.hide()
                         binding.audioCoverArtView.setImageBitmap(bitmap)
                         binding.audioCoverArtView.isVisible = true
+                        coverArtDisplayedForPath = file.path
                     } else {
                         // artworkData missing or decode failed — treat as no artwork
                         val settings = settingsRepository.getSettings().first()
@@ -1639,6 +1653,7 @@ class ImageLoadingManager(
                         audioEmptyStateController?.hide()
                         binding.audioCoverArtView.setImageBitmap(coverBitmap)
                         binding.audioCoverArtView.isVisible = true
+                        coverArtDisplayedForPath = file.path
                         Timber.d("loadAudioCoverArt[$callId]: AFTER setImageBitmap - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                     } else {
                         // No embedded cover, check if online search is enabled
@@ -1713,6 +1728,7 @@ class ImageLoadingManager(
                                         isFirstResource: Boolean
                                     ): Boolean {
                                         Timber.d("Cover art loaded successfully from $dataSource")
+                                        coverArtDisplayedForPath = file.path
                                         return false // Let Glide handle displaying
                                     }
                                 })
@@ -1808,6 +1824,7 @@ class ImageLoadingManager(
                                     isFirstResource: Boolean
                                 ): Boolean {
                                     Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ Glide loaded from $dataSource")
+                                    coverArtDisplayedForPath = file.path
                                     return false
                                 }
                             })
