@@ -12,6 +12,9 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.data.cloud.CloudResult
+import com.sza.fastmediasorter.data.cloud.CloudStorageClient
 import com.sza.fastmediasorter.data.network.SmbClient
 import com.sza.fastmediasorter.data.network.model.SmbConnectionInfo
 import com.sza.fastmediasorter.data.network.model.SmbResult
@@ -27,6 +30,7 @@ import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -64,14 +68,17 @@ class PlayerMediaLoaderManager(
     private val onAudioServicePlaybackChanged: (Boolean) -> Unit = {},
     private val onAudioServiceReady: () -> Unit = {},
     private val onAudioServicePlaybackEnded: () -> Unit = {},
+    private val onAudioServicePlaybackError: (androidx.media3.common.PlaybackException) -> Unit = {},
     private val unifiedCache: UnifiedFileCache? = null,
     private val smbClient: SmbClient? = null,
     private val sftpClient: SftpClient? = null,
     private val ftpClient: FtpClient? = null,
-    private val credentialsRepository: NetworkCredentialsRepository? = null
+    private val credentialsRepository: NetworkCredentialsRepository? = null,
+    private val cloudClients: Map<String, CloudStorageClient> = emptyMap()
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
     private var servicePlaybackPlayer: Player? = null
+    private var audioPrefetchJob: Job? = null
     private val servicePlaybackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             onAudioServicePlaybackChanged(isPlaying)
@@ -81,6 +88,10 @@ class PlayerMediaLoaderManager(
                 Player.STATE_READY -> onAudioServiceReady()
                 Player.STATE_ENDED -> onAudioServicePlaybackEnded()
             }
+        }
+        override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+            Timber.e(error, "PlayerMediaLoaderManager: Audio service playback error - code=${error.errorCode}")
+            onAudioServicePlaybackError(error)
         }
     }
 
@@ -124,6 +135,7 @@ class PlayerMediaLoaderManager(
      */
     fun playVideo(path: String) {
         Timber.i("PlayerMediaLoaderManager.playVideo: START - path=$path")
+        cancelAudioPrefetch()
         imageLoadingManager.hideAnimatedBadge()
         
         // Skip if activity is being destroyed
@@ -206,7 +218,7 @@ class PlayerMediaLoaderManager(
      * Route audio playback through AudioPlaybackService.
      * Local files: builds playlist from all local audio files.
      * Network files (SMB/SFTP/FTP): pre-caches current file to local storage, then plays via service.
-     * Cloud files: not supported yet, falls back to in-app player.
+     * Cloud files: pre-caches current file to local storage via CloudStorageClient, then plays via service.
      */
     private fun playAudioViaService(path: String) {
         val controller = audioServiceController ?: return
@@ -217,13 +229,28 @@ class PlayerMediaLoaderManager(
             return
         }
 
-        // Cloud audio not supported for background pre-cache yet
+        // Cloud audio (Google Drive / OneDrive / Dropbox) — pre-cache current file, then play via service
         if (resourceType == ResourceType.CLOUD) {
-            Timber.w("playAudioViaService: cloud audio not supported for background playback")
-            Toast.makeText(activity, R.string.background_audio_local_only_warning, Toast.LENGTH_SHORT).show()
             val currentFile = viewModel.state.value.currentFile
-            val resource = viewModel.state.value.resource
-            playVideoWithResourceType(path, resourceType, currentFile, resource)
+            if (currentFile == null) {
+                Timber.w("playAudioViaService: currentFile is null for cloud path")
+                return
+            }
+            Timber.d("playAudioViaService: CLOUD audio — downloading ${currentFile.name} (${currentFile.size / 1024} KB) to cache")
+            lifecycleScope.launch {
+                val cachedFile = preCacheCloudAudio(path, currentFile)
+                if (cachedFile != null) {
+                    Timber.d("playAudioViaService: CLOUD pre-cache OK — playing via service: ${cachedFile.absolutePath}")
+                    val uri = Uri.fromFile(cachedFile)
+                    controller.playAudio(uri) { player ->
+                        activity.runOnUiThread { bindServicePlayerToView(player) }
+                    }
+                } else {
+                    Timber.w("playAudioViaService: cloud pre-cache failed, falling back to in-app player")
+                    val resource = viewModel.state.value.resource
+                    playVideoWithResourceType(path, resourceType, currentFile, resource)
+                }
+            }
             return
         }
 
@@ -383,6 +410,76 @@ class PlayerMediaLoaderManager(
         }
     }
 
+    /**
+     * Download cloud audio file to UnifiedFileCache.
+     * Parses cloud:// path to determine provider and fileId, then downloads via CloudStorageClient.
+     */
+    private suspend fun preCacheCloudAudio(path: String, mediaFile: MediaFile): File? = withContext(Dispatchers.IO) {
+        val fileSize = mediaFile.size
+
+        if (fileSize > 0) {
+            val cached = unifiedCache?.getCachedFile(path, fileSize)
+            if (cached != null) {
+                Timber.d("preCacheCloudAudio: cache HIT for $path")
+                return@withContext cached
+            }
+        }
+
+        val destFile = unifiedCache?.getCacheFile(path, fileSize)
+            ?: File.createTempFile("bg_audio_cloud_", ".tmp", activity.cacheDir)
+
+        try {
+            // Parse cloud path: cloud://provider/folderId/fileId
+            val withoutProtocol = path.removePrefix("cloud://")
+            val parts = withoutProtocol.split("/", limit = 3)
+            if (parts.isEmpty()) return@withContext null
+
+            val providerStr = parts[0].lowercase()
+            val provider = when {
+                providerStr.contains("googledrive") || providerStr.contains("google_drive") -> "googledrive"
+                providerStr.contains("onedrive") -> "onedrive"
+                providerStr.contains("dropbox") -> "dropbox"
+                else -> providerStr
+            }
+
+            val client = cloudClients[provider]
+            if (client == null) {
+                Timber.w("preCacheCloudAudio: no cloud client for provider=$provider")
+                return@withContext null
+            }
+
+            // Extract fileId — same logic as CloudPathParser
+            val folderId = if (parts.size > 1) parts[1] else null
+            val fileId = if (parts.size > 2) {
+                when (provider) {
+                    "dropbox" -> "/" + parts.drop(1).joinToString("/")
+                    else -> {
+                        val filename = parts[2].substringAfterLast('/')
+                        if (folderId != null) "$folderId/$filename" else filename
+                    }
+                }
+            } else {
+                folderId ?: ""
+            }
+
+            destFile.outputStream().use { out ->
+                val result = client.downloadFile(fileId, out, null)
+                if (result is CloudResult.Success) {
+                    Timber.d("preCacheCloudAudio: downloaded ${mediaFile.name} (${destFile.length() / 1024} KB)")
+                    destFile
+                } else {
+                    Timber.e("preCacheCloudAudio: download failed for $path — $result")
+                    destFile.delete()
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "preCacheCloudAudio: download failed for $path")
+            destFile.delete()
+            null
+        }
+    }
+
     private fun buildLocalUri(path: String): Uri {
         val parsed = Uri.parse(path)
         return if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
@@ -487,6 +584,47 @@ class PlayerMediaLoaderManager(
      */
     fun preloadNextImageIfNeeded() {
         imageLoadingManager.preloadNextImageIfNeeded()
+    }
+
+    /**
+     * Prefetch the next audio file into UnifiedFileCache.
+     * Called when the current audio reaches STATE_READY (playing).
+     * Only applies to network sources (SMB/SFTP/FTP) — local audio uses ExoPlayer playlist.
+     */
+    fun prefetchNextAudio() {
+        val nextFile = viewModel.getNextAudioFile() ?: return
+        val path = nextFile.path
+
+        val isNetwork = path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://")
+        val isCloud = path.startsWith("cloud://")
+
+        // Only prefetch network/cloud audio — local files use ExoPlayer playlist
+        if (!isNetwork && !isCloud) return
+
+        // Already cached?
+        val cached = unifiedCache?.getCachedFile(path, nextFile.size)
+        if (cached != null) {
+            Timber.d("prefetchNextAudio: already cached — ${nextFile.name}")
+            return
+        }
+
+        // Cancel previous prefetch if still running
+        audioPrefetchJob?.cancel()
+        audioPrefetchJob = lifecycleScope.launch {
+            Timber.d("prefetchNextAudio: START downloading ${nextFile.name} (${nextFile.size / 1024} KB)")
+            val result = if (isCloud) preCacheCloudAudio(path, nextFile) else preCacheNetworkAudio(path)
+            if (result != null) {
+                Timber.d("prefetchNextAudio: DONE — ${nextFile.name} cached")
+            } else {
+                Timber.w("prefetchNextAudio: FAILED — ${nextFile.name}")
+            }
+        }
+    }
+
+    /** Cancel any in-flight audio prefetch (e.g. on navigation or activity destroy). */
+    fun cancelAudioPrefetch() {
+        audioPrefetchJob?.cancel()
+        audioPrefetchJob = null
     }
 
     /**

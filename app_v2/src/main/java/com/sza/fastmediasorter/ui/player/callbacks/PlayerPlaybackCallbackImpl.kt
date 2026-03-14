@@ -45,11 +45,12 @@ class PlayerPlaybackCallbackImpl(
         if (currentFile?.type == MediaType.AUDIO) {
             activity.updateAudioFormatInfo()
             imageLoadingManagerProvider().loadAudioCoverArt(currentFile)
+            activity.prefetchNextAudio()
         }
     }
     
     override fun onPlaybackError(error: Throwable) {
-        // Error handling already done in manager
+        activity.handleMediaLoadErrorAndSkip()
     }
     
     override fun onBuffering(isBuffering: Boolean) {

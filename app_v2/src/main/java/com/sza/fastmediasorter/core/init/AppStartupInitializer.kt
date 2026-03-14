@@ -115,6 +115,7 @@ class AppStartupInitializer(
                 Timber.i("%-30s = %s", "audioSizeMax", audioSizeMax)
                 Timber.i("%-30s = %s", "searchAudioCoversOnline", searchAudioCoversOnline)
                 Timber.i("%-30s = %s", "searchAudioCoversOnlyOnWifi", searchAudioCoversOnlyOnWifi)
+                Timber.i("%-30s = %s", "audioEmptyStateMode", audioEmptyStateMode)
                 
                 // Documents
                 Timber.i("%-30s = %s", "supportText", supportText)

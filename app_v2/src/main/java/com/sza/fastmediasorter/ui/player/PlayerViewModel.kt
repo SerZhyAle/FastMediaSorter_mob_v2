@@ -1135,6 +1135,22 @@ class PlayerViewModel @Inject constructor(
     }
     
     /**
+     * Get the next audio file in the list for prefetching.
+     * Returns the next AUDIO file after current index (circular).
+     * Only useful for network sources — local audio uses ExoPlayer playlist.
+     */
+    fun getNextAudioFile(): MediaFile? {
+        val currentState = state.value
+        if (currentState.files.size <= 1) return null
+
+        val nextIndex = if (currentState.currentIndex >= currentState.files.size - 1) 0
+            else currentState.currentIndex + 1
+
+        val nextFile = currentState.files.getOrNull(nextIndex) ?: return null
+        return if (nextFile.type == MediaType.AUDIO) nextFile else null
+    }
+
+    /**
      * Save last viewed file path to resource for position restoration (debounced - 5 seconds)
      */
     private fun saveLastViewedFileDebounced(filePath: String) {

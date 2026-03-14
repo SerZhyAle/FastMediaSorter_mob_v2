@@ -1507,10 +1507,18 @@ class ImageLoadingManager(
         Timber.d("loadAudioCoverArt[$callId]: audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
         
         val isNetworkFile = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
+        val isCloudFile = file.path.startsWith("cloud://")
         
-        // For network files, check if ExoPlayer has embedded artwork first
+        // For network/cloud files, check if ExoPlayer has embedded artwork first
         // ExoPlayer can extract artwork from network streams, but MediaMetadataRetriever cannot
-        if (isNetworkFile) {
+        // Cloud files also cannot be opened by MediaMetadataRetriever (cloud:// scheme unsupported)
+        if (isNetworkFile || isCloudFile) {
+            // Show empty-state animation immediately as a placeholder — hide it later if artwork is found.
+            lifecycleScope.launch {
+                val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
+                Timber.d("loadAudioCoverArt[$callId]: showing empty-state immediately (network/cloud file), mode=$mode")
+                audioEmptyStateController?.show(mode)
+            }
             // Delay to let ExoPlayer load metadata and artwork
             coverArtJob = lifecycleScope.launch {
                 delay(1500) // Wait for ExoPlayer to extract artwork
@@ -1574,8 +1582,13 @@ class ImageLoadingManager(
             return
         }
         
-        // For local files, use MediaMetadataRetriever
-        // Don't show view yet - wait until we have actual artwork to avoid flicker
+        // For local files, use MediaMetadataRetriever.
+        // Show empty-state animation immediately as a placeholder — hide it later if artwork is found.
+        lifecycleScope.launch {
+            val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
+            Timber.d("loadAudioCoverArt[$callId]: showing empty-state immediately (local file), mode=$mode")
+            audioEmptyStateController?.show(mode)
+        }
         Timber.d("loadAudioCoverArt: Starting cover art search for ${file.name}")
         
         coverArtJob = lifecycleScope.launch(Dispatchers.IO) {

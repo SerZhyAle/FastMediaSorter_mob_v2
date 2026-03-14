@@ -469,7 +469,7 @@ class PlayerControlsSetupManager(
     fun setupToolbar() {
         binding.toolbar.setNavigationOnClickListener {
             Timber.d("PlayerActivity: toolbar navigation (back) clicked")
-            activity.finish()
+            activity.onBackPressedDispatcher.onBackPressed()
         }
 
         // Apply WindowInsets to toolbar to avoid overlap with status bar

@@ -1259,6 +1259,7 @@
     <string name="unsupported_format_network_hint">To play this file with external player, copy it to a local resource first.</string>
     <string name="unsupported_format_use_external_player">Format not supported. Try opening with external player.</string>
     <string name="unsupported_format_copy_to_local">Format not supported. Copy file to local resource to use external player.</string>
+    <string name="file_skipped_playback_error">Skipped: %1$s</string>
     <string name="panel_copy_to">Copy to…</string>
     <string name="panel_move_to">Move to…</string>
     <string name="more_options">More options</string>
