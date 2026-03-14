@@ -115,6 +115,9 @@
                         <!-- Second row: Manage Media (Android 12+) -->
                         <com.google.android.material.button.MaterialButton android:id="@+id/btnManageMediaPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/grant_manage_media_permission" android:textSize="12sp" android:visibility="gone" />
 
+                        <!-- Third row: Notification Permission (Android 13+, for background audio) -->
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnNotificationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/grant_notifications_permission" android:textSize="12sp" android:visibility="gone" />
+
                     </LinearLayout>
 
                     <LinearLayout android:id="@+id/layoutDefaultRememberFileList" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">

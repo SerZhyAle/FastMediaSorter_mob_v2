@@ -79,6 +79,7 @@ class PlayerMediaLoaderManager(
     private val safeViews = PlayerBindingSafeViews(binding)
     private var servicePlaybackPlayer: Player? = null
     private var audioPrefetchJob: Job? = null
+    private var audioPrefetchPath: String? = null
     private val servicePlaybackListener = object : Player.Listener {
         override fun onIsPlayingChanged(isPlaying: Boolean) {
             onAudioServicePlaybackChanged(isPlaying)
@@ -87,6 +88,12 @@ class PlayerMediaLoaderManager(
             when (playbackState) {
                 Player.STATE_READY -> onAudioServiceReady()
                 Player.STATE_ENDED -> onAudioServicePlaybackEnded()
+            }
+        }
+        override fun onMediaItemTransition(mediaItem: androidx.media3.common.MediaItem?, reason: Int) {
+            // When playlist advances to next track, notify ready
+            if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO) {
+                onAudioServiceReady()
             }
         }
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -135,7 +142,10 @@ class PlayerMediaLoaderManager(
      */
     fun playVideo(path: String) {
         Timber.i("PlayerMediaLoaderManager.playVideo: START - path=$path")
-        cancelAudioPrefetch()
+        // Only cancel prefetch if the new file differs from what is being prefetched
+        if (audioPrefetchPath != path) {
+            cancelAudioPrefetch()
+        }
         imageLoadingManager.hideAnimatedBadge()
         
         // Skip if activity is being destroyed
@@ -238,6 +248,11 @@ class PlayerMediaLoaderManager(
             }
             Timber.d("playAudioViaService: CLOUD audio — downloading ${currentFile.name} (${currentFile.size / 1024} KB) to cache")
             lifecycleScope.launch {
+                // If prefetch is already running for this file, await it instead of re-downloading
+                if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
+                    Timber.d("playAudioViaService: awaiting existing cloud prefetch for $path")
+                    audioPrefetchJob?.join()
+                }
                 val cachedFile = preCacheCloudAudio(path, currentFile)
                 if (cachedFile != null) {
                     Timber.d("playAudioViaService: CLOUD pre-cache OK — playing via service: ${cachedFile.absolutePath}")
@@ -254,9 +269,15 @@ class PlayerMediaLoaderManager(
             return
         }
 
-        // Network audio (SMB/SFTP/FTP) — pre-cache current file, then play via service
+        // Network audio (SMB/SFTP/FTP) — await prefetch or download
+        val currentFileSize = viewModel.state.value.currentFile?.size ?: 0L
         lifecycleScope.launch {
-            val cachedFile = preCacheNetworkAudio(path)
+            // If prefetch is already running for this file, await it instead of re-downloading
+            if (audioPrefetchPath == path && audioPrefetchJob?.isActive == true) {
+                Timber.d("playAudioViaService: awaiting existing prefetch for $path")
+                audioPrefetchJob?.join()
+            }
+            val cachedFile = preCacheNetworkAudio(path, currentFileSize)
             if (cachedFile != null) {
                 val uri = Uri.fromFile(cachedFile)
                 controller.playAudio(uri) { player ->
@@ -300,9 +321,7 @@ class PlayerMediaLoaderManager(
      * Download network audio file to local cache for background playback.
      * Returns cached File on success, null on failure.
      */
-    private suspend fun preCacheNetworkAudio(path: String): File? = withContext(Dispatchers.IO) {
-        val currentFile = viewModel.state.value.currentFile
-        val fileSize = currentFile?.size ?: 0L
+    private suspend fun preCacheNetworkAudio(path: String, fileSize: Long = 0L): File? = withContext(Dispatchers.IO) {
 
         // Check cache first
         if (fileSize > 0) {
@@ -608,11 +627,12 @@ class PlayerMediaLoaderManager(
             return
         }
 
-        // Cancel previous prefetch if still running
+        // Cancel previous prefetch if still running for a different file
         audioPrefetchJob?.cancel()
+        audioPrefetchPath = path
         audioPrefetchJob = lifecycleScope.launch {
             Timber.d("prefetchNextAudio: START downloading ${nextFile.name} (${nextFile.size / 1024} KB)")
-            val result = if (isCloud) preCacheCloudAudio(path, nextFile) else preCacheNetworkAudio(path)
+            val result = if (isCloud) preCacheCloudAudio(path, nextFile) else preCacheNetworkAudio(path, nextFile.size)
             if (result != null) {
                 Timber.d("prefetchNextAudio: DONE — ${nextFile.name} cached")
             } else {
@@ -625,6 +645,7 @@ class PlayerMediaLoaderManager(
     fun cancelAudioPrefetch() {
         audioPrefetchJob?.cancel()
         audioPrefetchJob = null
+        audioPrefetchPath = null
     }
 
     /**

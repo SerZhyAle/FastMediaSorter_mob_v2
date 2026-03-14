@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
+import java.util.Locale
 import javax.inject.Inject
 
 class MediaStoreRepositoryImpl @Inject constructor(
@@ -244,7 +245,13 @@ class MediaStoreRepositoryImpl @Inject constructor(
          when (mediaTypeInt) {
              MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE -> return MediaType.IMAGE
              MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO -> return MediaType.VIDEO
-             MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> return MediaType.AUDIO
+             MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO -> {
+                 // Only accept audio formats we can actually play; unsupported codecs (APE, WV, etc.)
+                 // are treated as binary so they don't appear in audio lists or slideshow.
+                 val ext = name.substringAfterLast('.', "").lowercase(Locale.ROOT)
+                 if (ext in MediaTypeUtils.AUDIO_EXTENSIONS) return MediaType.AUDIO
+                 return MediaType.BINARY_OTHER
+             }
              // Note: MEDIA_TYPE_DOCUMENT exists in API 30+, but we use fallback for broader compatibility
          }
          

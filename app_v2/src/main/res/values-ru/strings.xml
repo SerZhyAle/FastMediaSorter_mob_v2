@@ -273,6 +273,27 @@
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Резервное копирование</string>
+    <string name="settings_tab_backup">Резервная копия</string>
+    <string name="backup_to_google_drive">Создать резервную копию в Google Drive</string>
+    <string name="restore_from_google_drive">Восстановить из Google Drive</string>
+    <string name="backup_info_description">Резервная копия включает все настройки и список ресурсов. Учётные данные не сохраняются — после восстановления потребуется повторная авторизация для сетевых и облачных ресурсов.</string>
+    <string name="tooltip_backup_info_title">Резервное копирование</string>
+    <string name="tooltip_backup_info_message">Резервная копия включает все настройки и список ресурсов. Учётные данные не сохраняются — после восстановления потребуется повторная авторизация для сетевых и облачных ресурсов.</string>
+    <string name="backup_success">Создана резервная копия %1$d ресурсов и всех настроек на %2$s</string>
+    <string name="backup_failed">Ошибка резервного копирования: %s</string>
+    <string name="backup_in_progress">Сохранение настроек и ресурсов…</string>
+    <string name="restore_in_progress">Восстановление настроек и ресурсов…</string>
+    <string name="restore_confirm_title">Восстановить из резервной копии?</string>
+    <string name="restore_confirm_message">Дата копии: %1$s\nУстройство: %2$s\nРесурсов: %3$d\n\n• Настройки будут ЗАМЕНЕНЫ\n• Ресурсы будут ДОБАВЛЕНЫ (дубликаты пропускаются)</string>
+    <string name="restore_success">Все настройки восстановлены. Добавлено %1$d ресурсов (%2$d уже существовали).</string>
+    <string name="restore_needs_auth">Некоторые ресурсы используют сетевые или облачные аккаунты. Потребуется повторная авторизация.</string>
+    <string name="restore_no_backup">Резервная копия для этого аккаунта не найдена.</string>
+    <string name="restore_failed">Ошибка восстановления: %s</string>
+    <string name="last_backup_date">Последняя копия: %s</string>
+    <string name="backup_account">Аккаунт: %s</string>
+    <string name="google_sign_in_cancelled">Вход в Google отменён</string>
+    <string name="google_sign_in_failed">Ошибка входа в Google (код %d). Проверьте настройки аккаунта.</string>
+    <string name="auth_failed">Ошибка авторизации: %s</string>
     <string name="export_settings">Выгрузить все настройки в файл</string>
     <string name="import_settings">Загрузить настройки из файла</string>
     <string name="export_import_file_info">Используется файл: Downloads/FastMediaSorter_export.xml</string>
@@ -1666,7 +1687,9 @@
     <string name="background_audio_exit_stop">Остановить</string>
     <string name="background_audio_exit_continue">Продолжить</string>
     <string name="notification_permission_required_for_background">Для управления фоновым воспроизведением нужно разрешение на уведомления</string>
+    <string name="grant_notifications_permission">Дать разрешение на уведомления</string>
     <string name="manage_notifications_permission">Управление разрешением на уведомления</string>
+    <string name="notification_permission_granted">Разрешение на уведомления получено</string>
     <string name="battery_optimization_hint_title">Оптимизация батареи</string>
     <string name="battery_optimization_hint_message">Для стабильного фонового воспроизведения на некоторых устройствах отключите оптимизацию батареи для FastMediaSorter в системных настройках.</string>
     <string name="close_search">Закрыть поиск</string>

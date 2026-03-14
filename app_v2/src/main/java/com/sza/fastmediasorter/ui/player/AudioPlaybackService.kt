@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.IBinder
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
+import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -15,6 +16,8 @@ import androidx.media3.session.MediaSession.ConnectionResult
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionCommand
 import androidx.media3.session.SessionResult
+import android.os.Handler
+import android.os.Looper
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import timber.log.Timber
@@ -37,6 +40,18 @@ class AudioPlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
+    private val autoStopHandler = Handler(Looper.getMainLooper())
+    private val autoStopRunnable = Runnable {
+        val p = player
+        if (p == null || (!p.isPlaying && p.playbackState != Player.STATE_BUFFERING && p.playbackState != Player.STATE_READY)) {
+            Timber.d("AudioPlaybackService: auto-stop — no new track loaded within timeout")
+            stopSelf()
+        }
+    }
+
+    companion object {
+        private const val AUTO_STOP_DELAY_MS = 10_000L
+    }
 
     override fun onCreate() {
         super.onCreate()
@@ -68,16 +83,66 @@ class AudioPlaybackService : MediaSessionService() {
         exoPlayer.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 Timber.d("AudioPlaybackService: playbackState=$playbackState")
-                if (playbackState == Player.STATE_ENDED) {
-                    Timber.d("AudioPlaybackService: playback ended, stopping service")
-                    stopSelf()
+                when (playbackState) {
+                    Player.STATE_ENDED -> {
+                        // Don't stopSelf immediately — give Activity time to load next track.
+                        // If no new track starts within AUTO_STOP_DELAY_MS, stop the service.
+                        Timber.d("AudioPlaybackService: playback ended, scheduling auto-stop in ${AUTO_STOP_DELAY_MS}ms")
+                        autoStopHandler.removeCallbacks(autoStopRunnable)
+                        autoStopHandler.postDelayed(autoStopRunnable, AUTO_STOP_DELAY_MS)
+                    }
+                    Player.STATE_READY, Player.STATE_BUFFERING -> {
+                        // New track loaded — cancel auto-stop
+                        autoStopHandler.removeCallbacks(autoStopRunnable)
+                    }
                 }
             }
         })
 
         player = exoPlayer
 
-        mediaSession = MediaSession.Builder(this, exoPlayer)
+        // Wrap player to handle next/previous for single-file playback.
+        // When ExoPlayer has only 1 item, seekToNext/Previous are no-ops.
+        // ForwardingPlayer seeks to end so STATE_ENDED fires and Activity-side callback advances.
+        val wrappedPlayer = object : ForwardingPlayer(exoPlayer) {
+            override fun seekToNext() {
+                if (exoPlayer.mediaItemCount <= 1) {
+                    Timber.d("AudioPlaybackService: seekToNext on single file → seeking to end")
+                    exoPlayer.seekTo(exoPlayer.duration.coerceAtLeast(0))
+                } else {
+                    super.seekToNext()
+                }
+            }
+
+            override fun seekToNextMediaItem() {
+                if (exoPlayer.mediaItemCount <= 1) {
+                    Timber.d("AudioPlaybackService: seekToNextMediaItem on single file → seeking to end")
+                    exoPlayer.seekTo(exoPlayer.duration.coerceAtLeast(0))
+                } else {
+                    super.seekToNextMediaItem()
+                }
+            }
+
+            override fun seekToPrevious() {
+                if (exoPlayer.mediaItemCount <= 1) {
+                    Timber.d("AudioPlaybackService: seekToPrevious on single file → restart from beginning")
+                    exoPlayer.seekTo(0)
+                } else {
+                    super.seekToPrevious()
+                }
+            }
+
+            override fun seekToPreviousMediaItem() {
+                if (exoPlayer.mediaItemCount <= 1) {
+                    Timber.d("AudioPlaybackService: seekToPreviousMediaItem on single file → restart from beginning")
+                    exoPlayer.seekTo(0)
+                } else {
+                    super.seekToPreviousMediaItem()
+                }
+            }
+        }
+
+        mediaSession = MediaSession.Builder(this, wrappedPlayer)
             .setCallback(AudioSessionCallback())
             .build()
 
@@ -102,6 +167,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         Timber.d("AudioPlaybackService: onDestroy")
+        autoStopHandler.removeCallbacks(autoStopRunnable)
         mediaSession?.run {
             player.release()
             release()
@@ -151,9 +217,16 @@ class AudioPlaybackService : MediaSessionService() {
             controller: MediaSession.ControllerInfo
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
-            // Allow all standard player commands including next/previous
+            // Explicitly include SEEK_TO_NEXT/PREVIOUS so notification always shows skip buttons
+            // even for single-file playback (Activity handles the actual advance).
+            val playerCommands = ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
+                .add(Player.COMMAND_SEEK_TO_NEXT)
+                .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS)
+                .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
+                .build()
             return ConnectionResult.AcceptedResultBuilder(session)
-                .setAvailablePlayerCommands(ConnectionResult.DEFAULT_PLAYER_COMMANDS)
+                .setAvailablePlayerCommands(playerCommands)
                 .setAvailableSessionCommands(ConnectionResult.DEFAULT_SESSION_COMMANDS)
                 .build()
         }
@@ -172,9 +245,5 @@ class AudioPlaybackService : MediaSessionService() {
     override fun onBind(intent: Intent?): IBinder? {
         Timber.d("AudioPlaybackService: onBind")
         return super.onBind(intent)
-    }
-
-    companion object {
-        private const val TAG = "AudioPlaybackService"
     }
 }

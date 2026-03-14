@@ -33,18 +33,19 @@ class BackupRestoreFragment : Fragment() {
     private val signInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        Timber.d("Sign-in activity result: resultCode=${result.resultCode}")
+        var apiErrorCode: Int? = null
         val account = try {
             GoogleSignIn.getSignedInAccountFromIntent(result.data).getResult(com.google.android.gms.common.api.ApiException::class.java)
         } catch (e: com.google.android.gms.common.api.ApiException) {
-            // Result delivery failed (e.g. 12502 race on emulator), but user may have
-            // actually completed sign-in — check the current account before giving up.
-            Timber.w("Sign-in result parsing failed (code=${e.statusCode}), falling back to last signed-in account")
+            apiErrorCode = e.statusCode
+            Timber.w("Sign-in failed (code=${e.statusCode}), trying last signed-in account")
             GoogleSignIn.getLastSignedInAccount(requireContext())
         } catch (e: Exception) {
             Timber.e(e, "Unexpected error parsing Google sign-in result")
             GoogleSignIn.getLastSignedInAccount(requireContext())
         }
-        viewModel.handleSignInResult(account)
+        viewModel.handleSignInResult(account, apiErrorCode)
     }
 
     override fun onCreateView(

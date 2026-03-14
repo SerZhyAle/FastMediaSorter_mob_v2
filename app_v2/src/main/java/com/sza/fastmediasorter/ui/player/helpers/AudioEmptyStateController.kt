@@ -181,18 +181,29 @@ class AudioEmptyStateController(
     private fun showVideo() {
         val backgrounds = intArrayOf(R.raw.anim_audio_bg_1, R.raw.anim_audio_bg_2, R.raw.anim_audio_bg_3, R.raw.anim_audio_bg_4, R.raw.anim_audio_bg_5)
         pendingResId = backgrounds[Random.nextInt(backgrounds.size)]
-        Timber.d("AudioEmptyStateController: showVideo resId=$pendingResId")
+        Timber.d("AudioEmptyStateController: showVideo resId=$pendingResId, " +
+            "textureAvailable=${videoView.isAvailable}, " +
+            "viewSize=${videoView.width}x${videoView.height}, " +
+            "surfaceTexture=${videoView.surfaceTexture}")
         videoView.isVisible = true
 
         if (videoView.isAvailable) {
+            Timber.d("AudioEmptyStateController: surface already available — starting immediately")
             startMediaPlayer(Surface(videoView.surfaceTexture!!), pendingResId)
         } else {
+            Timber.d("AudioEmptyStateController: surface NOT available — waiting for callback")
             videoView.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
                 override fun onSurfaceTextureAvailable(texture: SurfaceTexture, w: Int, h: Int) {
+                    Timber.d("AudioEmptyStateController: onSurfaceTextureAvailable ${w}x${h}")
                     startMediaPlayer(Surface(texture), pendingResId)
                 }
-                override fun onSurfaceTextureSizeChanged(t: SurfaceTexture, w: Int, h: Int) {}
-                override fun onSurfaceTextureDestroyed(t: SurfaceTexture): Boolean = false
+                override fun onSurfaceTextureSizeChanged(t: SurfaceTexture, w: Int, h: Int) {
+                    Timber.d("AudioEmptyStateController: onSurfaceTextureSizeChanged ${w}x${h}")
+                }
+                override fun onSurfaceTextureDestroyed(t: SurfaceTexture): Boolean {
+                    Timber.d("AudioEmptyStateController: onSurfaceTextureDestroyed")
+                    return false
+                }
                 override fun onSurfaceTextureUpdated(t: SurfaceTexture) {}
             }
         }
@@ -200,8 +211,10 @@ class AudioEmptyStateController(
 
     private fun startMediaPlayer(surface: Surface, resId: Int) {
         releaseMediaPlayer()
+        Timber.d("AudioEmptyStateController: startMediaPlayer resId=$resId, surface.isValid=${surface.isValid}")
         try {
             val afd = context.resources.openRawResourceFd(resId)
+            Timber.d("AudioEmptyStateController: raw resource opened, offset=${afd.startOffset}, length=${afd.length}")
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
                     AudioAttributes.Builder()
@@ -215,28 +228,49 @@ class AudioEmptyStateController(
                 setVolume(0f, 0f)   // muted: decorative background only
                 isLooping = true
                 setOnPreparedListener { mp ->
-                    Timber.d("AudioEmptyStateController: MediaPlayer prepared, isPlaying=$isPlaying")
+                    Timber.d("AudioEmptyStateController: MediaPlayer prepared, " +
+                        "isPlaying=$isPlaying, " +
+                        "video=${mp.videoWidth}x${mp.videoHeight}, " +
+                        "duration=${mp.duration}ms")
                     // Apply CENTER_CROP transform: scale video so it fills the TextureView
                     // while preserving the original aspect ratio (crop edges, not stretch).
                     applyCenterCropTransform(mp)
                     // Always start the muted looping background animation.
                     // If audio is currently paused, immediately pause the video too.
                     mp.start()
+                    Timber.d("AudioEmptyStateController: MediaPlayer started OK")
                     if (!isPlaying) {
                         try { mp.pause() } catch (_: IllegalStateException) {}
                     }
                 }
                 setOnErrorListener { _, what, extra ->
-                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$what extra=$extra — fallback")
+                    val whatStr = when (what) {
+                        MediaPlayer.MEDIA_ERROR_UNKNOWN -> "UNKNOWN($what)"
+                        MediaPlayer.MEDIA_ERROR_SERVER_DIED -> "SERVER_DIED($what)"
+                        else -> "CODE_$what"
+                    }
+                    val extraStr = when (extra) {
+                        MediaPlayer.MEDIA_ERROR_IO -> "IO($extra)"
+                        MediaPlayer.MEDIA_ERROR_MALFORMED -> "MALFORMED($extra)"
+                        MediaPlayer.MEDIA_ERROR_UNSUPPORTED -> "UNSUPPORTED($extra)"
+                        MediaPlayer.MEDIA_ERROR_TIMED_OUT -> "TIMED_OUT($extra)"
+                        else -> "EXTRA_$extra"
+                    }
+                    Timber.e("AudioEmptyStateController: MediaPlayer error what=$whatStr extra=$extraStr resId=$resId — fallback to CANVAS_BARS")
                     videoView.isVisible = false
                     showBars()
                     true
                 }
+                setOnInfoListener { _, what, extra ->
+                    Timber.d("AudioEmptyStateController: MediaPlayer info what=$what extra=$extra")
+                    false
+                }
                 prepareAsync()
+                Timber.d("AudioEmptyStateController: prepareAsync() called")
             }
         } catch (e: Exception) {
             surface.release()
-            Timber.e(e, "AudioEmptyStateController: startMediaPlayer failed — fallback to CANVAS_BARS")
+            Timber.e(e, "AudioEmptyStateController: startMediaPlayer EXCEPTION — fallback to CANVAS_BARS, resId=$resId")
             videoView.isVisible = false
             showBars()
         }

@@ -59,18 +59,19 @@ class GeneralSettingsFragment : Fragment() {
     private val signInLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
+        Timber.d("Sign-in activity result: resultCode=${result.resultCode}")
+        var apiErrorCode: Int? = null
         val account = try {
             GoogleSignIn.getSignedInAccountFromIntent(result.data).getResult(com.google.android.gms.common.api.ApiException::class.java)
         } catch (e: com.google.android.gms.common.api.ApiException) {
-            // Result delivery failed (e.g. 12502 race on emulator), but user may have
-            // actually completed sign-in — check the current account before giving up.
-            Timber.w("Sign-in result parsing failed (code=${e.statusCode}), falling back to last signed-in account")
+            apiErrorCode = e.statusCode
+            Timber.w("Sign-in failed (code=${e.statusCode}), trying last signed-in account")
             GoogleSignIn.getLastSignedInAccount(requireContext())
         } catch (e: Exception) {
             Timber.e(e, "Unexpected error parsing Google sign-in result")
             GoogleSignIn.getLastSignedInAccount(requireContext())
         }
-        backupViewModel.handleSignInResult(account)
+        backupViewModel.handleSignInResult(account, apiErrorCode)
     }
     
     companion object {
@@ -97,6 +98,12 @@ class GeneralSettingsFragment : Fragment() {
 
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
+    ) {
+        updatePermissionButtonsState()
+    }
+
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
     ) {
         updatePermissionButtonsState()
     }
@@ -647,9 +654,9 @@ class GeneralSettingsFragment : Fragment() {
                 
                 // Determine Privacy Policy URL based on language
                 val privacyUrl = when (currentLanguage) {
-                    "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/PRIVACY_POLICY.ru.html"
-                    "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/PRIVACY_POLICY.uk.html"
-                    else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/PRIVACY_POLICY.html"
+                    "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.ru.html"
+                    "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.uk.html"
+                    else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.html"
                 }
                 
                 val intent = Intent(Intent.ACTION_VIEW).apply {
@@ -1187,6 +1194,34 @@ class GeneralSettingsFragment : Fragment() {
                     requestManageMediaPermission()
                 }
             }
+        }
+
+        // Notification Permission (Android 13+, needed for background audio)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU
+            && com.sza.fastmediasorter.BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK) {
+            binding.btnNotificationPermission?.visibility = View.VISIBLE
+            val hasNotification = androidx.core.content.ContextCompat.checkSelfPermission(
+                requireContext(), android.Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            binding.btnNotificationPermission?.isEnabled = true
+            binding.btnNotificationPermission?.alpha = 1.0f
+            binding.btnNotificationPermission?.text = if (hasNotification) {
+                getString(R.string.manage_notifications_permission)
+            } else {
+                getString(R.string.grant_notifications_permission)
+            }
+            binding.btnNotificationPermission?.setOnClickListener {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(
+                        requireContext(), android.Manifest.permission.POST_NOTIFICATIONS
+                    ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                ) {
+                    openAppSettings()
+                } else {
+                    notificationPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        } else {
+            binding.btnNotificationPermission?.visibility = View.GONE
         }
     }
 

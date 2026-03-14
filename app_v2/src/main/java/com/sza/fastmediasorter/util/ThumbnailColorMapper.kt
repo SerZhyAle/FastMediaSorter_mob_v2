@@ -9,7 +9,6 @@ object ThumbnailColorMapper {
         // Audio (yellow/orange shades)
         "mp3" to 0xFFFFA726.toInt(),
         "flac" to 0xFFFFF59D.toInt(),
-        "ape" to 0xFFFFECB3.toInt(),
         "wav" to 0xFFFFD54F.toInt(),
         "ogg" to 0xFFFFB74D.toInt(),
         "m4a" to 0xFFFFE082.toInt(),

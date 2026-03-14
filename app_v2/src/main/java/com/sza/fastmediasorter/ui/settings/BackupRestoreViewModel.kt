@@ -1,14 +1,17 @@
 package com.sza.fastmediasorter.ui.settings
 
+import android.content.Context
 import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
 import com.sza.fastmediasorter.domain.usecase.BackupToGoogleDriveUseCase
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +34,7 @@ sealed class BackupRestoreUiState {
 
 @HiltViewModel
 class BackupRestoreViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val backupUseCase: BackupToGoogleDriveUseCase,
     private val restoreUseCase: RestoreFromGoogleDriveUseCase,
     private val googleDriveClient: GoogleDriveRestClient,
@@ -101,11 +105,23 @@ class BackupRestoreViewModel @Inject constructor(
 
     /**
      * Process sign-in result from Activity.
+     * @param account Signed-in account, or null if sign-in did not complete.
+     * @param apiErrorCode ApiException.statusCode from the sign-in flow, if available.
+     *                     Used to distinguish cancellation (12501/4) from other failures.
      */
-    fun handleSignInResult(account: GoogleSignInAccount?) {
+    fun handleSignInResult(account: GoogleSignInAccount?, apiErrorCode: Int? = null) {
         viewModelScope.launch {
             if (account == null) {
-                _uiState.value = BackupRestoreUiState.Error("Google sign-in was cancelled")
+                val message = when {
+                    // 12501 = SIGN_IN_CANCELLED (back press), 4 = legacy cancelled
+                    apiErrorCode == 12501 || apiErrorCode == 4 ->
+                        context.getString(R.string.google_sign_in_cancelled)
+                    apiErrorCode != null ->
+                        context.getString(R.string.google_sign_in_failed, apiErrorCode)
+                    else ->
+                        context.getString(R.string.google_sign_in_cancelled)
+                }
+                _uiState.value = BackupRestoreUiState.Error(message)
                 pendingAction = null
                 return@launch
             }
@@ -120,11 +136,15 @@ class BackupRestoreViewModel @Inject constructor(
                     pendingAction = null
                 }
                 is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
-                    _uiState.value = BackupRestoreUiState.Error("Authentication failed: ${authResult.message}")
+                    _uiState.value = BackupRestoreUiState.Error(
+                        context.getString(R.string.auth_failed, authResult.message ?: "")
+                    )
                     pendingAction = null
                 }
                 is com.sza.fastmediasorter.data.cloud.AuthResult.Cancelled -> {
-                    _uiState.value = BackupRestoreUiState.Error("Authentication cancelled")
+                    _uiState.value = BackupRestoreUiState.Error(
+                        context.getString(R.string.google_sign_in_cancelled)
+                    )
                     pendingAction = null
                 }
             }
@@ -148,7 +168,9 @@ class BackupRestoreViewModel @Inject constructor(
             )
         }.onFailure { error ->
             Timber.e(error, "Backup failed")
-            _uiState.value = BackupRestoreUiState.Error(error.message ?: "Backup failed")
+            _uiState.value = BackupRestoreUiState.Error(
+                context.getString(R.string.backup_failed, error.message ?: "")
+            )
         }
     }
 
@@ -159,7 +181,9 @@ class BackupRestoreViewModel @Inject constructor(
             _uiState.value = BackupRestoreUiState.BackupInfoReady(info)
         }.onFailure { error ->
             Timber.e(error, "Failed to fetch backup info")
-            _uiState.value = BackupRestoreUiState.Error(error.message ?: "No backup found")
+            _uiState.value = BackupRestoreUiState.Error(
+                error.message ?: context.getString(R.string.restore_no_backup)
+            )
         }
     }
 
@@ -170,7 +194,9 @@ class BackupRestoreViewModel @Inject constructor(
             _uiState.value = BackupRestoreUiState.RestoreSuccess(restoreResult)
         }.onFailure { error ->
             Timber.e(error, "Restore failed")
-            _uiState.value = BackupRestoreUiState.Error(error.message ?: "Restore failed")
+            _uiState.value = BackupRestoreUiState.Error(
+                context.getString(R.string.restore_failed, error.message ?: "")
+            )
         }
     }
 }

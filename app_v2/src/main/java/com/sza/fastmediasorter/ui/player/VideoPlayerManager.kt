@@ -1410,7 +1410,6 @@ class VideoPlayerManager(
             path.endsWith(".flac", ignoreCase = true) ||
             path.endsWith(".ac3", ignoreCase = true) ||
             path.endsWith(".eac3", ignoreCase = true) ||
-            path.endsWith(".ape", ignoreCase = true) ||
             path.endsWith(".wv", ignoreCase = true)
         } ?: false
         

@@ -267,6 +267,27 @@
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="backup_restore_settings">Резервне копіювання</string>
+    <string name="settings_tab_backup">Резервна копія</string>
+    <string name="backup_to_google_drive">Створити резервну копію в Google Drive</string>
+    <string name="restore_from_google_drive">Відновити з Google Drive</string>
+    <string name="backup_info_description">Резервна копія включає всі налаштування та список ресурсів. Облікові дані не зберігаються — після відновлення потрібна повторна авторизація для мережевих і хмарних ресурсів.</string>
+    <string name="tooltip_backup_info_title">Резервне копіювання</string>
+    <string name="tooltip_backup_info_message">Резервна копія включає всі налаштування та список ресурсів. Облікові дані не зберігаються — після відновлення потрібна повторна авторизація для мережевих і хмарних ресурсів.</string>
+    <string name="backup_success">Створено резервну копію %1$d ресурсів та всіх налаштувань на %2$s</string>
+    <string name="backup_failed">Помилка резервного копіювання: %s</string>
+    <string name="backup_in_progress">Збереження налаштувань і ресурсів…</string>
+    <string name="restore_in_progress">Відновлення налаштувань і ресурсів…</string>
+    <string name="restore_confirm_title">Відновити з резервної копії?</string>
+    <string name="restore_confirm_message">Дата копії: %1$s\nПристрій: %2$s\nРесурсів: %3$d\n\n• Налаштування будуть ЗАМІНЕНІ\n• Ресурси будуть ДОДАНІ (дублікати пропускаються)</string>
+    <string name="restore_success">Всі налаштування відновлено. Додано %1$d ресурсів (%2$d вже існували).</string>
+    <string name="restore_needs_auth">Деякі ресурси використовують мережеві або хмарні акаунти. Потрібна повторна авторизація.</string>
+    <string name="restore_no_backup">Резервну копію для цього акаунту не знайдено.</string>
+    <string name="restore_failed">Помилка відновлення: %s</string>
+    <string name="last_backup_date">Остання копія: %s</string>
+    <string name="backup_account">Акаунт: %s</string>
+    <string name="google_sign_in_cancelled">Вхід до Google скасовано</string>
+    <string name="google_sign_in_failed">Помилка входу до Google (код %d). Перевірте налаштування акаунту.</string>
+    <string name="auth_failed">Помилка авторизації: %s</string>
     <string name="export_settings">Вивантажити всі налаштування у файл</string>
     <string name="import_settings">Завантажити налаштування з файлу</string>
     <string name="export_import_file_info">Використовується файл: Downloads/FastMediaSorter_export.xml</string>
@@ -1675,7 +1696,9 @@
     <string name="background_audio_exit_stop">Зупинити</string>
     <string name="background_audio_exit_continue">Продовжити</string>
     <string name="notification_permission_required_for_background">Для керування фоновим відтворенням потрібен дозвіл на сповіщення</string>
+    <string name="grant_notifications_permission">Надати дозвіл на сповіщення</string>
     <string name="manage_notifications_permission">Керування дозволом на сповіщення</string>
+    <string name="notification_permission_granted">Дозвіл на сповіщення отримано</string>
     <string name="battery_optimization_hint_title">Оптимізація батареї</string>
     <string name="battery_optimization_hint_message">Для стабільного фонового відтворення на деяких пристроях вимкніть оптимізацію батареї для FastMediaSorter у системних налаштуваннях.</string>
     <string name="close_search">Закрити пошук</string>

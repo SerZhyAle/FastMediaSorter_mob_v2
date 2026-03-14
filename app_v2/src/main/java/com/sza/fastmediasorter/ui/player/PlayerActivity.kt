@@ -1563,10 +1563,13 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
             },
             onAudioServicePlaybackEnded = {
-                Timber.tag("AUDIO_SERVICE").d("STATE_ENDED received from service → slideshow=%s", viewModel.state.value.isSlideShowActive)
-                if (viewModel.state.value.isSlideShowActive) {
+                val state = viewModel.state.value
+                Timber.tag("AUDIO_SERVICE").d("STATE_ENDED received from service → slideshow=%s, persistentAudio=%s", state.isSlideShowActive, state.enablePersistentAudioPlayback)
+                if (state.isSlideShowActive || state.enablePersistentAudioPlayback) {
                     viewModel.nextFile(skipDocuments = true)
-                    slideshowController.restartTimer()
+                    if (state.isSlideShowActive) {
+                        slideshowController.restartTimer()
+                    }
                 }
             },
             onAudioServicePlaybackError = { error ->

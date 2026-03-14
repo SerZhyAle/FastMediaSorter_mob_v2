@@ -220,6 +220,8 @@
     <string name="last_backup_date">Last backup: %s</string>
     <string name="backup_account">Account: %s</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
+    <string name="google_sign_in_failed">Google sign-in failed (code %d). Check your Google account settings.</string>
+    <string name="auth_failed">Authentication failed: %s</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>
     <string name="export_settings">Export All Settings to File</string>
     <string name="import_settings">Import Settings from File</string>
@@ -1867,7 +1869,9 @@
     <string name="background_audio_exit_stop">Stop</string>
     <string name="background_audio_exit_continue">Continue</string>
     <string name="notification_permission_required_for_background">Notification permission required for background playback controls</string>
+    <string name="grant_notifications_permission">Grant Notification Permission</string>
     <string name="manage_notifications_permission">Manage notification permission</string>
+    <string name="notification_permission_granted">Notification permission granted</string>
     <string name="battery_optimization_hint_title">Battery optimization</string>
     <string name="battery_optimization_hint_message">For stable background playback on some devices, disable battery optimization for FastMediaSorter in system settings.</string>
 

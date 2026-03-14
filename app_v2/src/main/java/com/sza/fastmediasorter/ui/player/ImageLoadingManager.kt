@@ -1355,15 +1355,23 @@ class ImageLoadingManager(
         // (common pattern in Russian music collections: "YYYY-Artist-Album/track.mp3").
         val effectiveArtist = file.artist?.takeIf { it.isNotBlank() }
             ?: parseArtistFromPath(file.path)
+        val effectiveTitle = file.title?.takeIf { it.isNotBlank() }
         val metadataParts = listOfNotNull(
             effectiveArtist,
             file.album?.takeIf { it.isNotBlank() },
-            file.title?.takeIf { it.isNotBlank() }
+            effectiveTitle
         )
         val metadataLine = if (metadataParts.isNotEmpty()) {
             metadataParts.joinToString(" \u2013 ")   // en-dash separator
         } else {
-            file.name.substringBeforeLast('.')          // fallback: filename without extension
+            // No embedded metadata — show "DirName / filename" as fallback
+            val fileNameNoExt = file.name.substringBeforeLast('.')
+            val dirName = file.path.substringBeforeLast('/').substringAfterLast('/')
+            if (dirName.isNotBlank() && dirName != fileNameNoExt) {
+                "$dirName / $fileNameNoExt"
+            } else {
+                fileNameNoExt
+            }
         }
         safeViews.audioMetadata.text = metadataLine
         safeViews.audioMetadata.visibility = View.VISIBLE
@@ -1431,8 +1439,8 @@ class ImageLoadingManager(
             }
         }
 
-        // Single-segment directory — use as artist only if it contains letters
-        return withoutYear.takeIf { it.any { c -> c.isLetter() } }
+        // Single-segment directory without pattern — not reliable enough to use as artist
+        return null
     }
 
     private fun formatDuration(millis: Long?): String {
