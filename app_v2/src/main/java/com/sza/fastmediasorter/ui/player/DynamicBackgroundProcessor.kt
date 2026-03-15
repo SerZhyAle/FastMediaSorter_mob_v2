@@ -37,11 +37,10 @@ class DynamicBackgroundProcessor(
 
     companion object {
         /**
-         * Blur approximation factor: the bitmap is scaled down by this factor and then
-         * scaled back up with bilinear filtering. 8× gives a smooth, blurry look while
-         * keeping the software path very cheap.
+         * The relative fraction size used to calculate the blur radius for the 1D color arrays.
+         * Value 0.0006f gives a minimal, subtle blend just to eliminate harsh artifacts.
          */
-        private const val BLUR_DOWN_SCALE = 8
+        private const val SMOOTH_RADIUS_FACTOR = 0.0006f
 
         /**
          * Debounce delay (ms) before starting pixel analysis.
@@ -71,9 +70,8 @@ class DynamicBackgroundProcessor(
                     return@launch
                 }
 
-                // Build line-extension bitmap fully off-screen, then blur it — all on Default.
-                val rawBitmap = buildBackgroundBitmap(sourceBitmap, screenWidth, screenHeight)
-                val bgBitmap = blurBitmap(rawBitmap)
+                // Build line-extension bitmap fully off-screen — all on Default.
+                val bgBitmap = buildBackgroundBitmap(sourceBitmap, screenWidth, screenHeight)
 
                 withContext(Dispatchers.Main) {
                     if (backgroundView.context != null) {
@@ -141,10 +139,21 @@ class DynamicBackgroundProcessor(
         val canvas = Canvas(outBitmap)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeWidth = 1f }
 
-        val leftEdge  = IntArray(srcH) { y -> source.getPixel(0, y) }
-        val rightEdge = IntArray(srcH) { y -> source.getPixel(srcW - 1, y) }
-        val topEdge   = IntArray(srcW) { x -> source.getPixel(x, 0) }
-        val bottomEdge = IntArray(srcW) { x -> source.getPixel(x, srcH - 1) }
+        val rawLeftEdge  = IntArray(srcH) { y -> source.getPixel(0, y) }
+        val rawRightEdge = IntArray(srcH) { y -> source.getPixel(srcW - 1, y) }
+        val rawTopEdge   = IntArray(srcW) { x -> source.getPixel(x, 0) }
+        val rawBottomEdge = IntArray(srcW) { x -> source.getPixel(x, srcH - 1) }
+
+        // Calculate an integer radius using the factor (radius must be an integer for array traversal).
+        // For a minimal effect that just blends adjacent edges, we ensure radius is at least 1,
+        // otherwise a radius of 0 means absolutely no blending.
+        val radiusH = Math.round(srcH * SMOOTH_RADIUS_FACTOR).coerceAtLeast(1)
+        val radiusW = Math.round(srcW * SMOOTH_RADIUS_FACTOR).coerceAtLeast(1)
+
+        val leftEdge = smoothColorArray(rawLeftEdge, radiusH)
+        val rightEdge = smoothColorArray(rawRightEdge, radiusH)
+        val topEdge = smoothColorArray(rawTopEdge, radiusW)
+        val bottomEdge = smoothColorArray(rawBottomEdge, radiusW)
 
         // Pillarbox bars — full-width horizontal lines, image layer sits on top.
         if (imgLeft > 0) {
@@ -174,25 +183,28 @@ class DynamicBackgroundProcessor(
     }
 
     /**
-     * Software blur via scale-down / scale-up with bilinear filtering.
-     * Runs entirely on the calling thread (Dispatchers.Default) — no GPU involvement.
-     * The result looks like a Gaussian blur of radius ≈ [BLUR_DOWN_SCALE] × 4 px.
+     * 1D color smoothing algorithm. 
+     * Guarantees an opaque output (alpha=255) avoiding transparency bleeding.
      */
-    private fun blurBitmap(src: Bitmap): Bitmap {
-        val sw = src.width
-        val sh = src.height
-        val smallW = (sw / BLUR_DOWN_SCALE).coerceAtLeast(1)
-        val smallH = (sh / BLUR_DOWN_SCALE).coerceAtLeast(1)
-
-        // Scale down with bilinear filtering (FILTER_BITMAP_FLAG is default in createScaledBitmap)
-        val small = Bitmap.createScaledBitmap(src, smallW, smallH, true)
-        if (small !== src) src.recycle()
-
-        // Scale back up
-        val blurred = Bitmap.createScaledBitmap(small, sw, sh, true)
-        if (blurred !== small) small.recycle()
-
-        return blurred
+    private fun smoothColorArray(colors: IntArray, radius: Int): IntArray {
+        if (radius < 1 || colors.size < 3) return colors
+        val result = IntArray(colors.size)
+        for (i in colors.indices) {
+            var rSum = 0
+            var gSum = 0
+            var bSum = 0
+            val jStart = maxOf(0, i - radius)
+            val jEnd = minOf(colors.lastIndex, i + radius)
+            for (j in jStart..jEnd) {
+                val c = colors[j]
+                rSum += (c shr 16) and 0xFF
+                gSum += (c shr 8) and 0xFF
+                bSum += c and 0xFF
+            }
+            val count = jEnd - jStart + 1
+            result[i] = android.graphics.Color.argb(255, rSum / count, gSum / count, bSum / count)
+        }
+        return result
     }
 
     /**
