@@ -54,8 +54,14 @@ class ResourceOrderManager(
         return try {
             val previousResource = currentList[currentIndex - 1]
             
-            // Atomically swap display orders in single transaction
-            resourceRepository.swapResourceDisplayOrders(resource, previousResource)
+            // Use position indices as authoritative display orders.
+            // This handles duplicate displayOrder values (e.g. all = 0 after direct import)
+            // by always deriving the swap targets from the current list position,
+            // not from the potentially stale or non-unique domain model field.
+            resourceRepository.swapResourceDisplayOrders(
+                resource.copy(displayOrder = currentIndex),
+                previousResource.copy(displayOrder = currentIndex - 1)
+            )
             
             Timber.d("Moved resource up: ${resource.name}")
             OrderResult.Success
@@ -86,8 +92,14 @@ class ResourceOrderManager(
         return try {
             val nextResource = currentList[currentIndex + 1]
             
-            // Atomically swap display orders in single transaction
-            resourceRepository.swapResourceDisplayOrders(resource, nextResource)
+            // Use position indices as authoritative display orders.
+            // This handles duplicate displayOrder values (e.g. all = 0 after direct import)
+            // by always deriving the swap targets from the current list position,
+            // not from the potentially stale or non-unique domain model field.
+            resourceRepository.swapResourceDisplayOrders(
+                resource.copy(displayOrder = currentIndex),
+                nextResource.copy(displayOrder = currentIndex + 1)
+            )
             
             Timber.d("Moved resource down: ${resource.name}")
             OrderResult.Success

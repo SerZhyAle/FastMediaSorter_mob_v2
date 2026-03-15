@@ -216,10 +216,6 @@ class VideoPlayerManager(
             
             val isMediaCodecError = error.errorCode >= 4000 && error.errorCode < 5000 // Decoder errors
             
-            val isSourceError = error.errorCode >= 2000 && error.errorCode < 3000 // IO errors
-            
-            val details = error.cause?.message ?: error.message ?: "Unknown error"
-
             // Handle EOF exceptions with retry logic
             if (isEOFException && playbackRetryCount < MAX_EOF_RETRIES && !playerCallback.isActivityDestroyed()) {
                 playbackRetryCount++

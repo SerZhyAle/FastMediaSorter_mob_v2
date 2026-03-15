@@ -231,7 +231,6 @@
     <string name="google_sign_in_failed">Google sign-in failed: %1$s</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
     <string name="auth_failed">Authentication failed: %1$s</string>
-    <string name="background_audio_local_only_warning">Background audio playback is only available for local resources. Network/cloud resources require active app.</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
     <string name="battery_optimization_hint_message">Battery optimization may prevent background audio playback. Disable battery optimization for FastMediaSorter in system settings for reliable background audio.</string>
     <string name="no_internet_connection">No internet connection. Try again later.</string>

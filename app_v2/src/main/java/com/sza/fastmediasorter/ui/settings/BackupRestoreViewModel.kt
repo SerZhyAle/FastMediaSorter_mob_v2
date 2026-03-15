@@ -1,3 +1,4 @@
+@file:Suppress("DEPRECATION")
 package com.sza.fastmediasorter.ui.settings
 
 import android.content.Context
@@ -137,7 +138,7 @@ class BackupRestoreViewModel @Inject constructor(
                 }
                 is com.sza.fastmediasorter.data.cloud.AuthResult.Error -> {
                     _uiState.value = BackupRestoreUiState.Error(
-                        context.getString(R.string.auth_failed, authResult.message ?: "")
+                        context.getString(R.string.auth_failed, authResult.message)
                     )
                     pendingAction = null
                 }

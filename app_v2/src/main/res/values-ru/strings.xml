@@ -462,7 +462,7 @@
     <string name="translation_error_no_text">Нет текста для перевода</string>
     <string name="google_sign_in_failed">Вход не удался: %1$s</string>
     <string name="auth_failed">Ошибка аутентификации: %1$s</string>
-    <string name="background_audio_local_only_warning">Воспроизведение аудио в фоне доступно только для локальных ресурсов. Сетевые/облачные ресурсы требуют активного приложения.</string>
+
     <string name="battery_optimization_hint_title">Предупреждение об оптимизации батареи</string>
     <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для FastMediaSorter в системных настройках для надежного фонового аудио.</string>
     <string name="show_pdf_thumbnails">Миниатюры для больших PDF (долго)</string>

@@ -269,7 +269,7 @@
     <string name="filter_active">Фільтр активний: %1$s</string>
     <string name="google_sign_in_failed">Вхід не вдався: %1$s</string>
     <string name="auth_failed">Помилка аутентифікації: %1$s</string>
-    <string name="background_audio_local_only_warning">Відтворення аудіо у фоні доступне лише для локальних ресурсів. Мережеві/хмарні ресурси вимагають активного додатку.</string>
+
     <string name="battery_optimization_hint_title">Попередження про оптимізацію батареї</string>
     <string name="battery_optimization_hint_message">Оптимізація батареї може запобігти відтворенню аудіо у фоні. Вимкніть оптимізацію батареї для FastMediaSorter у системних налаштуваннях для надійного фонового аудіо.</string>
 

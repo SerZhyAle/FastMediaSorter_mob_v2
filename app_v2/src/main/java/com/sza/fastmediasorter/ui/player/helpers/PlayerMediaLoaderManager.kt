@@ -285,7 +285,6 @@ class PlayerMediaLoaderManager(
                 }
             } else {
                 Timber.w("playAudioViaService: pre-cache failed, falling back to in-app player")
-                Toast.makeText(activity, R.string.background_audio_local_only_warning, Toast.LENGTH_SHORT).show()
                 val currentFile = viewModel.state.value.currentFile
                 val resource = viewModel.state.value.resource
                 playVideoWithResourceType(path, resourceType, currentFile, resource)

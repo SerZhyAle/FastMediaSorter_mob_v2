@@ -537,7 +537,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun onExitPlayer() {
-                    finish()
+                    exitPlayerWithAudioCheck()
                 }
                 
                 override fun onToggleSlideshow() {
@@ -951,7 +951,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             coroutineScope = lifecycleScope,
             callback = object : CommandPanelController.CommandPanelCallback {
                 override fun onBackClicked() {
-                    finish()
+                    exitPlayerWithAudioCheck()
                 }
                 
                 override fun onPreviousClicked() {
@@ -1314,9 +1314,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun getTouchZonesEnabled(): Boolean = useTouchZones
                 override fun getLoadFullSizeImages(): Boolean = loadFullSizeImages
                 override fun onBack() {
-                    finish()
-                    @Suppress("DEPRECATION")
-                    overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+                    exitPlayerWithAudioCheck(withTransition = true)
                 }
                 override fun onCopy() = showCopyDialog()
                 override fun onRename() = showRenameDialog()
@@ -1547,6 +1545,26 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             onAudioServicePlaybackChanged = { isPlaying ->
                 val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
                 sleepTimerManager?.updateVinylState(isPlaying, isAudioFile)
+                if (isAudioFile) {
+                    audioEmptyStateController?.onIsPlayingChanged(isPlaying)
+                }
+            },
+            onAudioServiceReady = {
+                val currentFile = viewModel.state.value.currentFile
+                if (currentFile?.type == MediaType.AUDIO) {
+                    updateAudioFormatInfo()
+                    imageLoadingManager.loadAudioCoverArt(currentFile)
+                    prefetchNextAudio()
+                }
+            },
+            onAudioServicePlaybackEnded = {
+                if (viewModel.state.value.isSlideShowActive) {
+                    viewModel.nextFile(skipDocuments = true)
+                    slideshowController.restartTimer()
+                }
+            },
+            onAudioServicePlaybackError = { _ ->
+                handleMediaLoadErrorAndSkip()
             }
         )
         
@@ -1692,32 +1710,44 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
 
                 // Check if background audio service is playing — ask user to stop or keep
-                if (::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive) {
-                    com.google.android.material.dialog.MaterialAlertDialogBuilder(this@PlayerActivity)
-                        .setTitle(R.string.background_audio_exit_title)
-                        .setMessage(R.string.background_audio_exit_message)
-                        .setNegativeButton(R.string.background_audio_exit_stop) { _, _ ->
-                            audioServiceController?.player?.stop()
-                            isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                        .setPositiveButton(R.string.background_audio_exit_continue) { _, _ ->
-                            isEnabled = false
-                            onBackPressedDispatcher.onBackPressed()
-                        }
-                        .show()
-                    return
-                }
-
-                // Default back behavior
-                isEnabled = false
-                onBackPressedDispatcher.onBackPressed()
+                exitPlayerWithAudioCheck()
             }
         })
     }
 
     override fun observeData() {
         observeViewModel()
+    }
+
+    /**
+     * Exit the player, showing a dialog if background audio is playing.
+     * "Stop" → stops the service and finishes. "Keep Playing" → finishes without stopping service.
+     * @param withTransition whether to apply slide-out transition on exit
+     */
+    private fun exitPlayerWithAudioCheck(withTransition: Boolean = false) {
+        if (::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive) {
+            com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.background_audio_exit_title)
+                .setMessage(R.string.background_audio_exit_message)
+                .setNegativeButton(R.string.background_audio_exit_stop) { _, _ ->
+                    audioServiceController?.player?.stop()
+                    doFinish(withTransition)
+                }
+                .setPositiveButton(R.string.background_audio_exit_continue) { _, _ ->
+                    doFinish(withTransition)
+                }
+                .show()
+        } else {
+            doFinish(withTransition)
+        }
+    }
+
+    private fun doFinish(withTransition: Boolean) {
+        finish()
+        if (withTransition) {
+            @Suppress("DEPRECATION")
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
+        }
     }
 
     private fun setupGestureDetector() {
@@ -2082,9 +2112,15 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             return
         }
 
+        // Slideshow hides system bars for image slideshows only.
+        // Video/Audio slideshow is auto-advance-on-playback-end — keep bars visible.
+        val currentFileType = viewModel.state.value.currentFile?.type
+        val isMediaSlideshow = viewModel.state.value.isSlideShowActive &&
+            currentFileType != MediaType.VIDEO && currentFileType != MediaType.AUDIO
+
         val shouldHideSystemBars = hideSystemUiEnabled && (
             isExplicitFullscreenMode ||
-            viewModel.state.value.isSlideShowActive ||
+            isMediaSlideshow ||
             audioSlideshowPhotoModeManager.isActive
         )
 
