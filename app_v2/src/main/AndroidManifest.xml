@@ -147,6 +147,13 @@
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_provider_paths" />
         </provider>
 
+        <!-- Standalone Player for external intents -->
+        <activity
+            android:name=".ui.player.StandalonePlayerActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+            android:exported="true"
+            android:theme="@style/Theme.FastMediaSorter" />
+
     </application>
 
 </manifest>
