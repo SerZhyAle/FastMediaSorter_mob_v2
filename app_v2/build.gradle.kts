@@ -30,8 +30,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260316184
-        versionName = "2.60.3161.848"
+        versionCode = 260316231
+        versionName = "2.60.3162.312"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
