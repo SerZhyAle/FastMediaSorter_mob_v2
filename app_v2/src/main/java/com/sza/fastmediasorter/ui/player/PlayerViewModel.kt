@@ -7,8 +7,10 @@ import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResumeState
 import com.sza.fastmediasorter.domain.model.ResourceProfile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ScreenType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
@@ -43,7 +45,9 @@ class PlayerViewModel @Inject constructor(
     private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
     private val favoritesUseCase: com.sza.fastmediasorter.domain.usecase.FavoritesUseCase,
     private val smbClient: com.sza.fastmediasorter.data.network.SmbClient,
-    private val cachedFileListRepository: CachedFileListRepository
+    private val cachedFileListRepository: CachedFileListRepository,
+    private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
+    private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase
 ) : BaseViewModel<PlayerViewModel.PlayerState, PlayerViewModel.PlayerEvent>() {
 
     data class PlayerState(
@@ -100,6 +104,8 @@ class PlayerViewModel @Inject constructor(
         ?: savedStateHandle.get<String>("initialIndex")?.toIntOrNull() ?: 0
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
     private val initialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
+    val resumeIsPlaying: Boolean? = savedStateHandle.get<Boolean>("resumeIsPlaying")
+    val resumeSlideshowEnabled: Boolean = savedStateHandle.get<Boolean>("resumeSlideshowEnabled") ?: false
     
     private var loadingJob: Job? = null
     private var saveLastViewedFileJob: Job? = null // Debounce job for database updates
@@ -401,7 +407,8 @@ class PlayerViewModel @Inject constructor(
                             resource = resource,
                             slideShowInterval = intervalToUse,
                             showCommandPanel = showCommandPanel,
-                            isSlideShowActive = autoSlideshow
+                            isSlideShowActive = autoSlideshow,
+                            isPaused = resumeIsPlaying == false
                         ) 
                     }
                 }
@@ -560,6 +567,7 @@ class PlayerViewModel @Inject constructor(
         Timber.d("nextFile: index ${currentState.currentIndex} → $nextIndex / ${currentState.files.size}")
         
         updateState { it.copy(currentIndex = nextIndex) }
+        saveResumeState()
         
         // Save last viewed file for scroll restoration in Browse (debounced - 5 seconds)
         val resource = currentState.resource
@@ -625,6 +633,7 @@ class PlayerViewModel @Inject constructor(
         Timber.d("previousFile: index ${currentState.currentIndex} → $prevIndex / ${currentState.files.size}")
         
         updateState { it.copy(currentIndex = prevIndex) }
+        saveResumeState()
         
         // Save last viewed file for scroll restoration in Browse (debounced - 5 seconds)
         val resource = currentState.resource
@@ -637,6 +646,42 @@ class PlayerViewModel @Inject constructor(
     fun cancelLoading() {
         loadingJob?.cancel()
         loadingJob = null
+    }
+
+    /** Clear resume state when user explicitly exits the player. */
+    fun clearResumeState() {
+        viewModelScope.launch {
+            Timber.d("PlayerViewModel: clearResumeState — user explicitly exited player")
+            clearResumeStateUseCase()
+        }
+    }
+
+    /** Save resume state for the currently playing file (PLAYER screen). */
+    fun saveResumeState() {
+        val currentState = state.value
+        val currentFile = currentState.currentFile ?: return
+        val mediaType = currentFile.type
+        if (mediaType != MediaType.AUDIO && mediaType != MediaType.VIDEO) return
+        val resource = currentState.resource ?: return
+
+        viewModelScope.launch {
+            try {
+                val resumeState = ResumeState(
+                    filePath = currentFile.path,
+                    resourceId = resourceId,
+                    currentFolderPath = null,
+                    screenType = ScreenType.PLAYER,
+                    sortMode = resource.sortMode,
+                    isPlaying = !currentState.isPaused,
+                    isSlideshowEnabled = currentState.isSlideShowActive,
+                    mediaType = mediaType,
+                    savedAt = System.currentTimeMillis()
+                )
+                saveResumeStateUseCase(resumeState)
+            } catch (e: Exception) {
+                Timber.e(e, "PlayerViewModel: Failed to save resume state")
+            }
+        }
     }
 
     fun toggleSlideShow() {
@@ -693,10 +738,15 @@ class PlayerViewModel @Inject constructor(
 
     fun togglePause() {
         updateState { it.copy(isPaused = !it.isPaused) }
+        saveResumeState()
     }
 
     fun setPaused(isPaused: Boolean) {
+        val wasPaused = state.value.isPaused
         updateState { it.copy(isPaused = isPaused) }
+        if (wasPaused != isPaused) {
+            saveResumeState()
+        }
     }
 
     fun toggleCommandPanel() {
@@ -841,6 +891,7 @@ class PlayerViewModel @Inject constructor(
                                 // Navigate to next file (which is now at the same index)
                                 val newIndex = deletedIndex
                                 updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                                saveResumeState()
                                 Timber.d("File deleted successfully, new list size: ${updatedFiles.size}")
                             }
                         }
@@ -1214,6 +1265,7 @@ class PlayerViewModel @Inject constructor(
                     // Navigate to next file (which is now at the same index)
                     val newIndex = index
                     updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                    saveResumeState()
                     sendEvent(PlayerEvent.ShowMessage("File moved."))
                 }
             }
@@ -1314,6 +1366,7 @@ class PlayerViewModel @Inject constructor(
             }
             
             updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+            saveResumeState()
             Timber.d("File $operation successfully, new list size: ${updatedFiles.size}")
             return true
         }

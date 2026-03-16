@@ -26,6 +26,8 @@ import kotlinx.coroutines.NonCancellable
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResumeState
+import com.sza.fastmediasorter.domain.model.ScreenType
 import com.sza.fastmediasorter.domain.model.UndoOperation
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -138,6 +140,9 @@ class BrowseViewModel @Inject constructor(
     private val browseStateDataStore: com.sza.fastmediasorter.data.local.preferences.BrowseStateDataStore,
     private val unifiedCache: com.sza.fastmediasorter.core.cache.UnifiedFileCache,
     private val syncMediaStoreUseCase: com.sza.fastmediasorter.domain.usecase.SyncMediaStoreUseCase,
+    private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
+    private val getResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase,
+    private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -152,6 +157,11 @@ class BrowseViewModel @Inject constructor(
         ?: 0L
     
     private val skipAvailabilityCheck: Boolean = savedStateHandle.get<Boolean>("skipAvailabilityCheck") ?: false
+    
+    // Resume extras (from MainActivity resume logic)
+    private val resumeInitialFolderPath: String? = savedStateHandle.get<String>("initialFolderPath")
+    private val resumeInitialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
+    private val resumeIsPlaying: Boolean? = savedStateHandle.get<Boolean>("resumeIsPlaying")
     
     // Selection management
     private val selectionManager = com.sza.fastmediasorter.ui.browse.selection.BrowseSelectionManager()
@@ -275,12 +285,30 @@ class BrowseViewModel @Inject constructor(
         // Clear PDF thumbnail cache from previous Browse sessions
         // (in case app was killed without proper onCleared() call)
         clearPdfThumbnailCache()
+
+        // Clear resume state if opening a different resource than what was saved
+        viewModelScope.launch {
+            try {
+                val savedState = getResumeStateUseCase()
+                if (savedState != null && savedState.resourceId != resourceId) {
+                    Timber.d("BrowseViewModel.init: Resource changed (saved=${savedState.resourceId}, current=$resourceId) — clearing resume state")
+                    clearResumeStateUseCase()
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "BrowseViewModel.init: Failed to check resume state on resource change")
+            }
+        }
         
         loadResource()
         loadSettings()
         restoreFilterState()
         observeSelectionChanges()
         observeUndoChanges()
+        
+        // Resume inline playback if launched from resume logic
+        if (resumeInitialFilePath != null) {
+            attemptResumeInlinePlayback()
+        }
     }
     
     private fun restoreFilterState() {
@@ -398,11 +426,13 @@ class BrowseViewModel @Inject constructor(
                 inlineMediaPlayer?.pause()
                 _inlinePlayerState.value = current.copy(status = PlaybackStatus.PAUSED)
                 Timber.d("InlinePlayer: paused '${file.name}'")
+                saveResumeState()
             }
             current.playingPath == file.path && current.status == PlaybackStatus.PAUSED -> {
                 inlineMediaPlayer?.start()
                 _inlinePlayerState.value = current.copy(status = PlaybackStatus.PLAYING)
                 Timber.d("InlinePlayer: resumed '${file.name}'")
+                saveResumeState()
             }
             else -> {
                 inlineStop()
@@ -452,6 +482,7 @@ class BrowseViewModel @Inject constructor(
                 )
                 player.start()
                 Timber.d("InlinePlayer: started '${file.name}'")
+                saveResumeState()
                 prefetchNextInlineAudio(file.path)
             } catch (e: Exception) {
                 Timber.e(e, "InlinePlayer: failed to start '${file.name}'")
@@ -2902,6 +2933,76 @@ class BrowseViewModel @Inject constructor(
             withContext(NonCancellable) {
                 updateResourceUseCase(updatedResource)
                 Timber.d("Saved lastScrollPosition=$position for resource: ${resource.name}")
+            }
+        }
+    }
+
+    /** Clear resume state when user explicitly exits the browser or switches resource. */
+    fun clearResumeState() {
+        viewModelScope.launch {
+            Timber.d("BrowseViewModel: clearResumeState — explicit exit or resource switch")
+            clearResumeStateUseCase()
+        }
+    }
+
+    /** One-shot: navigate to resume folder (if any), wait for files, and start inline playback. */
+    private fun attemptResumeInlinePlayback() {
+        viewModelScope.launch {
+            try {
+                // Wait for initial file list to load (root level)
+                state.first { it.mediaFiles.isNotEmpty() || it.resource != null }
+                // Small delay to ensure state is settled
+                kotlinx.coroutines.delay(300)
+
+                // Navigate to subfolder if needed
+                if (resumeInitialFolderPath != null) {
+                    Timber.d("BrowseViewModel: Resume - navigating to folder '$resumeInitialFolderPath'")
+                    navigateToFolder(resumeInitialFolderPath)
+                    // Wait for subfolder files to load
+                    state.first { it.currentPath == resumeInitialFolderPath && it.mediaFiles.isNotEmpty() }
+                    kotlinx.coroutines.delay(200)
+                }
+
+                // Find the target file and start playback
+                val targetPath = resumeInitialFilePath ?: return@launch
+                val targetFile = state.value.mediaFiles.firstOrNull { it.path == targetPath }
+                if (targetFile != null && resumeIsPlaying == true) {
+                    Timber.d("BrowseViewModel: Resume - starting inline playback of '${targetFile.name}'")
+                    inlinePlayToggle(targetFile)
+                } else if (targetFile != null) {
+                    Timber.d("BrowseViewModel: Resume - file found but isPlaying=false, not auto-starting")
+                } else {
+                    Timber.w("BrowseViewModel: Resume - target file not found: $targetPath")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "BrowseViewModel: Resume inline playback failed")
+            }
+        }
+    }
+
+    /** Save resume state for the currently playing inline audio (BROWSER screen). */
+    private fun saveResumeState() {
+        val inlineState = _inlinePlayerState.value
+        val playingPath = inlineState.playingPath ?: return
+        val currentState = state.value
+        val resource = currentState.resource ?: return
+
+        viewModelScope.launch {
+            try {
+                val resumeState = ResumeState(
+                    filePath = playingPath,
+                    resourceId = resource.id,
+                    currentFolderPath = currentState.currentPath,
+                    screenType = ScreenType.BROWSER,
+                    sortMode = currentState.sortMode,
+                    isPlaying = inlineState.status == PlaybackStatus.PLAYING,
+                    isSlideshowEnabled = false,
+                    mediaType = MediaType.AUDIO,
+                    savedAt = System.currentTimeMillis()
+                )
+                saveResumeStateUseCase(resumeState)
+            } catch (e: Exception) {
+                Timber.e(e, "BrowseViewModel: Failed to save resume state")
             }
         }
     }

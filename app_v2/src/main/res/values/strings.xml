@@ -918,6 +918,8 @@
     <string name="loading_indicator">Loading</string>
     <string name="connecting">Connecting to resource…</string>
     <string name="connecting_to_resource">Connecting to %1$s…</string>
+    <string name="resume_unavailable">Cannot resume playback — resource unavailable or session expired</string>
+    <string name="resume_checking">Restoring playback…</string>
     <string name="scan_progress_indicator">Scanning files</string>
     <string name="operation_progress_indicator">Operation in progress</string>
     <string name="pdf_fullscreen">PDF page fullscreen view</string>

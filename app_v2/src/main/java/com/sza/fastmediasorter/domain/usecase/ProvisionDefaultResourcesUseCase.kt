@@ -121,7 +121,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             fileCount = 0,
             isDestination = false,
             destinationOrder = null,
-            isWritable = false,
+            isWritable = true,
             scanSubdirectories = false,
             supportedMediaTypes = supportedMediaTypes,
             sortMode = SortMode.NAME_ASC,

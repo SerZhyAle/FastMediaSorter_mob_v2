@@ -762,11 +762,13 @@ class ResourceEditorFragment : Fragment() {
         binding.tilAccessPin.isVisible = visibleKeys.contains(ResourceFieldKey.ACCESS_PIN)
         binding.tilSlideshowInterval.isVisible = visibleKeys.contains(ResourceFieldKey.SLIDESHOW_INTERVAL)
 
-        // Hide path, media types, scanning, and destination sections for virtual resources
+        // Hide path, media types, scanning, connection and destination sections for virtual resources
         val currentPath = viewModel.uiState.value.formData.path
         if (com.sza.fastmediasorter.util.VirtualPathUtils.isVirtualPath(currentPath)) {
             binding.tilPath.isVisible = false
             binding.tilServerPath.isVisible = false
+            binding.cardConnectionSettings.isVisible = false
+            binding.headerConnectionSettings.isVisible = false
             binding.cardScanning.isVisible = false
             binding.headerScanning.isVisible = false
             hasMediaTypesBySchema = false

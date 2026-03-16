@@ -166,6 +166,9 @@ class VideoPlayerManager(
      */
     var onFirstFrameReady: ((android.graphics.Bitmap) -> Unit)? = null
 
+    /** Callback invoked after each periodic position save (every 5s). Used for resume state persistence. */
+    var onPositionSaved: (() -> Unit)? = null
+
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playerCallback.isActivityDestroyed()) {
@@ -1352,6 +1355,7 @@ class VideoPlayerManager(
                     Timber.e(e, "VideoPlayerManager: Failed to save position")
                 }
             }
+            onPositionSaved?.invoke()
         }
     }
     

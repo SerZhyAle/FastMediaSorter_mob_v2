@@ -551,7 +551,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     Timber.d("Navigated back to parent folder")
                 } else {
                     // No more parent folders, exit activity
-                    Timber.d("BrowseActivity.handleOnBackPressed: Exiting activity")
+                    Timber.d("BrowseActivity.handleOnBackPressed: Exiting activity — clearing resume state")
+                    viewModel.clearResumeState()
                     isEnabled = false
                     onBackPressedDispatcher.onBackPressed()
                 }
@@ -563,7 +564,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             Timber.d("BrowseActivity.btnBack: clicked, canNavigateUp=${viewModel.canNavigateUp()}")
             // Try subfolder navigation first, then exit activity
             if (!viewModel.canNavigateUp() || !viewModel.navigateUp()) {
-                Timber.d("BrowseActivity.btnBack: finishing activity")
+                Timber.d("BrowseActivity.btnBack: finishing activity — clearing resume state")
+                viewModel.clearResumeState()
                 finish()
                 @Suppress("DEPRECATION")
                 overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right)
@@ -2287,11 +2289,24 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     companion object {
         const val EXTRA_RESOURCE_ID = "resourceId"
         const val EXTRA_SKIP_AVAILABILITY_CHECK = "skipAvailabilityCheck"
+        const val EXTRA_INITIAL_FOLDER_PATH = "initialFolderPath"
+        const val EXTRA_INITIAL_FILE_PATH = "initialFilePath"
+        const val EXTRA_RESUME_IS_PLAYING = "resumeIsPlaying"
 
-        fun createIntent(context: Context, resourceId: Long, skipAvailabilityCheck: Boolean = false): Intent {
+        fun createIntent(
+            context: Context,
+            resourceId: Long,
+            skipAvailabilityCheck: Boolean = false,
+            initialFolderPath: String? = null,
+            initialFilePath: String? = null,
+            isPlaying: Boolean? = null
+        ): Intent {
             return Intent(context, BrowseActivity::class.java).apply {
                 putExtra(EXTRA_RESOURCE_ID, resourceId)
                 putExtra(EXTRA_SKIP_AVAILABILITY_CHECK, skipAvailabilityCheck)
+                initialFolderPath?.let { putExtra(EXTRA_INITIAL_FOLDER_PATH, it) }
+                initialFilePath?.let { putExtra(EXTRA_INITIAL_FILE_PATH, it) }
+                isPlaying?.let { putExtra(EXTRA_RESUME_IS_PLAYING, it) }
             }
         }
     }

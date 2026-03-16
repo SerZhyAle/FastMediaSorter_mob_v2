@@ -51,10 +51,13 @@ class AudioPlaybackService : MediaSessionService() {
 
     companion object {
         private const val AUTO_STOP_DELAY_MS = 10_000L
+        @Volatile
+        var isRunning: Boolean = false
     }
 
     override fun onCreate() {
         super.onCreate()
+        isRunning = true
         Timber.d("AudioPlaybackService: onCreate")
 
         // Create notification channel (required for Android 8+)
@@ -167,6 +170,7 @@ class AudioPlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         Timber.d("AudioPlaybackService: onDestroy")
+        isRunning = false
         autoStopHandler.removeCallbacks(autoStopRunnable)
         mediaSession?.run {
             player.release()

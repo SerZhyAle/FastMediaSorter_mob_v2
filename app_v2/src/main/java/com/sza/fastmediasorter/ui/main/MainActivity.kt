@@ -37,9 +37,16 @@ import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
+import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.core.util.PermissionHelper
+import com.sza.fastmediasorter.data.repository.ResumeStateRepositoryImpl
+import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
+import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
+import com.sza.fastmediasorter.ui.player.AudioPlaybackService
 import com.sza.fastmediasorter.utils.PermissionChecker
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import dagger.hilt.android.AndroidEntryPoint
@@ -77,6 +84,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var unifiedCache: UnifiedFileCache
 
+    @Inject
+    lateinit var getResumeStateUseCase: GetResumeStateUseCase
+
+    @Inject
+    lateinit var clearResumeStateUseCase: ClearResumeStateUseCase
+
+    @Inject
+    lateinit var resourceRepository: ResourceRepository
+
     override fun getViewBinding(): ActivityMainBinding {
         return ActivityMainBinding.inflate(layoutInflater)
     }
@@ -95,6 +111,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startActivity(Intent(this, WelcomeActivity::class.java))
             finish()
             return
+        }
+
+        // Resume playback logic — only for standard launcher start with killed process
+        if (shouldAttemptResume()) {
+            attemptResumePlayback()
         }
 
         // Check for widget actions
@@ -922,6 +943,147 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             val perms = PermissionHelper.getStoragePermissionsArray()
             storagePermissionLauncher.launch(perms)
         }
+    }
+
+    // === Resume Playback Logic ===
+
+    private fun shouldAttemptResume(): Boolean {
+        // Only for standard launcher icon start (ACTION_MAIN)
+        if (intent?.action != Intent.ACTION_MAIN) return false
+        // Skip if slideshow widget action
+        if (intent?.action == ACTION_START_SLIDESHOW) return false
+        // Skip if AudioPlaybackService is still running (process wasn't killed)
+        if (AudioPlaybackService.isRunning) {
+            Timber.d("MainActivity: Skipping resume — AudioPlaybackService is running")
+            return false
+        }
+        // Skip if storage permissions are missing
+        if (!PermissionHelper.hasStoragePermission(this)) {
+            Timber.d("MainActivity: Skipping resume — no storage permissions")
+            return false
+        }
+        return true
+    }
+
+    private fun attemptResumePlayback() {
+        // Show loading overlay immediately
+        binding.navigationProgressLayout.isVisible = true
+        binding.tvNavigationMessage.text = getString(R.string.resume_checking)
+
+        lifecycleScope.launch {
+            try {
+                val state = getResumeStateUseCase()
+                if (state == null) {
+                    Timber.d("MainActivity: No resume state found")
+                    dismissResumeLoading()
+                    return@launch
+                }
+
+                // TTL check
+                val elapsed = System.currentTimeMillis() - state.savedAt
+                if (elapsed > ResumeStateRepositoryImpl.RESUME_TTL_MS) {
+                    Timber.d("MainActivity: Resume state expired (${elapsed}ms > TTL)")
+                    clearResumeStateUseCase()
+                    dismissResumeLoading()
+                    Toast.makeText(this@MainActivity, R.string.resume_unavailable, Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                // Load resource to determine type
+                val resource = resourceRepository.getResourceById(state.resourceId)
+                if (resource == null) {
+                    Timber.w("MainActivity: Resume resource not found (id=${state.resourceId})")
+                    clearResumeStateUseCase()
+                    dismissResumeLoading()
+                    return@launch
+                }
+
+                // Availability check with 5-second timeout
+                val isAvailable = try {
+                    kotlinx.coroutines.withTimeout(5000L) {
+                        checkResourceAvailability(resource, state.filePath)
+                    }
+                } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                    Timber.w("MainActivity: Resume availability check timed out")
+                    false
+                }
+
+                if (!isAvailable) {
+                    Timber.d("MainActivity: Resume target unavailable")
+                    clearResumeStateUseCase()
+                    dismissResumeLoading()
+                    Toast.makeText(this@MainActivity, R.string.resume_unavailable, Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+                // Determine effective isPlaying flag per resource/media type matrix
+                val effectiveIsPlaying = when {
+                    resource.type in setOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP)
+                            && state.mediaType == MediaType.VIDEO -> false
+                    resource.type == ResourceType.CLOUD
+                            && state.mediaType == MediaType.VIDEO -> false
+                    else -> state.isPlaying
+                }
+
+                // Navigate to target screen
+                dismissResumeLoading()
+
+                when (state.screenType) {
+                    com.sza.fastmediasorter.domain.model.ScreenType.PLAYER -> {
+                        val intent = PlayerActivity.createIntent(
+                            context = this@MainActivity,
+                            resourceId = state.resourceId,
+                            skipAvailabilityCheck = true,
+                            initialFilePath = state.filePath,
+                            isPlaying = effectiveIsPlaying,
+                            isSlideshowEnabled = state.isSlideshowEnabled
+                        )
+                        startActivity(intent)
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
+                    com.sza.fastmediasorter.domain.model.ScreenType.BROWSER -> {
+                        val intent = BrowseActivity.createIntent(
+                            context = this@MainActivity,
+                            resourceId = state.resourceId,
+                            skipAvailabilityCheck = true,
+                            initialFolderPath = state.currentFolderPath,
+                            initialFilePath = state.filePath,
+                            isPlaying = effectiveIsPlaying
+                        )
+                        startActivity(intent)
+                        @Suppress("DEPRECATION")
+                        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                    }
+                }
+                Timber.d("MainActivity: Resumed playback → ${state.screenType} for ${state.filePath}")
+            } catch (e: Exception) {
+                Timber.e(e, "MainActivity: Resume playback failed")
+                try { clearResumeStateUseCase() } catch (_: Exception) {}
+                dismissResumeLoading()
+            }
+        }
+    }
+
+    private suspend fun checkResourceAvailability(
+        resource: com.sza.fastmediasorter.domain.model.MediaResource,
+        filePath: String
+    ): Boolean {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            when (resource.type) {
+                ResourceType.LOCAL -> {
+                    java.io.File(filePath).exists()
+                }
+                ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP, ResourceType.CLOUD -> {
+                    val result = resourceRepository.testConnection(resource)
+                    result.isSuccess
+                }
+            }
+        }
+    }
+
+    private fun dismissResumeLoading() {
+        binding.navigationProgressLayout.isVisible = false
     }
 
     companion object {

@@ -438,6 +438,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Get slideshow mode flag from lifecycle manager
         slideshowModeRequested = lifecycleManager.isSlideshowModeRequested()
         
+        // Resume slideshow if coming from resume playback with slideshow active
+        if (!slideshowModeRequested && viewModel.resumeSlideshowEnabled) {
+            slideshowModeRequested = true
+            Timber.d("PlayerActivity: Resume slideshow requested via resumeSlideshowEnabled")
+        }
+        
         initializeManagers()
         setupToolbar()
         setupControls()
@@ -1743,6 +1749,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun doFinish(withTransition: Boolean) {
+        viewModel.clearResumeState()
         finish()
         if (withTransition) {
             @Suppress("DEPRECATION")
@@ -3150,7 +3157,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (currentFile.type != MediaType.VIDEO && currentFile.type != MediaType.AUDIO) {
             return
         }
-        
+
+        // Save resume state alongside playback position
+        viewModel.saveResumeState()
+
         val player = videoPlayerManager.getPlayer() ?: return
         val position = player.currentPosition
         val duration = player.duration
@@ -3344,7 +3354,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             oneDriveClient = oneDriveClient,
             dropboxClient = dropboxClient,
             playbackPositionRepository = playbackPositionRepository
-        )
+        ).also {
+            it.onPositionSaved = { viewModel.saveResumeState() }
+        }
     }
     
     /**
@@ -3484,15 +3496,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             resourceId: Long,
             initialIndex: Int = 0,
             skipAvailabilityCheck: Boolean = false,
-            initialFilePath: String? = null
+            initialFilePath: String? = null,
+            isPlaying: Boolean? = null,
+            isSlideshowEnabled: Boolean = false
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra("resourceId", resourceId)
                 putExtra("initialIndex", initialIndex)
                 putExtra("skipAvailabilityCheck", skipAvailabilityCheck)
                 initialFilePath?.let { putExtra("initialFilePath", it) }
+                isPlaying?.let { putExtra("resumeIsPlaying", it) }
+                if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
             }
         }
     }
 }
-

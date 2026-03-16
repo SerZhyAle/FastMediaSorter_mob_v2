@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Complete Feature List
 
-*Last updated: 2026-03-13*
+*Last updated: 2026-03-16*
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. Update this file whenever a new feature is added or an existing one is changed.
 
@@ -102,6 +102,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - ExoPlayer-based playback
 - **Full-screen mode** with system UI auto-hide
 - **Playback position** save & restore per file (resume from where you left off)
+- **Resume Next Time** — auto-restore the last active media (including network and cloud resources) on cold app start
 - **Picture-in-Picture** mode (Android 12+ / API 31+), auto-enter on home button press
 - **Configurable touch zones**: tap regions for previous / next / play-pause / seek
 - **Touch zones hint overlay** shown on first launch
@@ -121,6 +122,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Vinyl record indicator** — small animated rotating vinyl in the corner while playing
 - **Sleep timer** (shared with video player)
 - Track metadata display: artist, title, album, duration
+- **Resume Next Time** — auto-restore the last active audio on cold app start (with full playlist reconstruction)
 
 ---
 
