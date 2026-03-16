@@ -1844,4 +1844,6 @@
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
     <string name="database_reset_message">База данных сброшена из-за ошибки обновления. Ресурсы потребуется добавить заново.</string>
+    <string name="resume_unavailable">Не удалось возобновить воспроизведение — ресурс недоступен или сессия истекла</string>
+    <string name="resume_checking">Восстановление воспроизведения…</string>
 </resources>

@@ -1846,4 +1846,6 @@
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
     <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>
+    <string name="resume_unavailable">Не вдалося відновити відтворення — ресурс недоступний або сесія закінчилася</string>
+    <string name="resume_checking">Відновлення відтворення…</string>
 </resources>

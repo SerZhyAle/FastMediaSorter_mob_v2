@@ -590,3 +590,12 @@ Format: | datetime | file | target | description |
 | 2026-03-16 01:23:57 | `app_v2/src/.../ui/browse/BrowseActivity.kt` | `BrowseActivity` | Step 4: createIntent extended with initialFolderPath/initialFilePath/isPlaying resume extras |
 | 2026-03-16 01:24:03 | `app_v2/src/.../ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | Step 4: Added isRunning volatile flag in companion for resume logic gating |
 | 2026-03-16 01:24:09 | `app_v2/src/main/res/values/strings.xml` | `strings` | Step 4: Added resume_unavailable and resume_checking string resources |
+| 2026-03-16 01:26:15 | `docs/FEATURES.md` | `FEATURES.md` | Rewrote English docs to correctly expand user-facing features descriptions. |
+| 2026-03-16 01:27:45 | `docs/FEATURES.md` | `FEATURES.md` | Added Table of Contents. |
+| 2026-03-16 01:30:09 | `docs/FEATURES.md` | `FEATURES_TOC` | Added Table of Contents at the top of the English features list |
+| 2026-03-16 01:37:41 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Added resume_unavailable and resume_checking translations |
+| 2026-03-16 01:37:45 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Added resume_unavailable and resume_checking translations |
+| 2026-03-16 01:39:58 | `docs/FEATURES_RU.md` | `FEATURES_RU_TRANSLATION` | Translated the full features list to Russian based on the English version |
+| 2026-03-16 01:40:09 | `docs/FEATURES_UK.md` | `FEATURES_UK_TRANSLATION` | Translated the full features list to Ukrainian based on the English version |
+| 2026-03-16 01:48:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Fix: add onResume() lifecycle override to resume ExoPlayer after Activity returns from background |
+| 2026-03-16 01:48:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Fix: preserve isPaused state on reloadFiles() instead of resetting to resumeIsPlaying==false |

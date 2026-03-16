@@ -400,6 +400,10 @@ class PlayerViewModel @Inject constructor(
                             resource.profile == ResourceProfile.VIDEO_LIBRARY
                     
                     // Update state with resource first
+                    // Preserve isPaused on reload (user may have manually paused before going to background);
+                    // only use resumeIsPlaying on first load (when files list is still empty)
+                    val effectiveIsPaused = if (state.value.files.isNotEmpty()) state.value.isPaused
+                                           else (resumeIsPlaying == false)
                     updateState { 
                         it.copy(
                             files = filesWithFavorites,
@@ -408,7 +412,7 @@ class PlayerViewModel @Inject constructor(
                             slideShowInterval = intervalToUse,
                             showCommandPanel = showCommandPanel,
                             isSlideShowActive = autoSlideshow,
-                            isPaused = resumeIsPlaying == false
+                            isPaused = effectiveIsPaused
                         ) 
                     }
                 }
@@ -886,6 +890,7 @@ class PlayerViewModel @Inject constructor(
                                 // We deleted the last file. Loop back to first file.
                                 val newIndex = 0
                                 updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                                saveResumeState()
                                 Timber.d("File deleted (was last), looping to first file. New list size: ${updatedFiles.size}")
                             } else {
                                 // Navigate to next file (which is now at the same index)
@@ -1259,6 +1264,7 @@ class PlayerViewModel @Inject constructor(
                     // We moved the last file. Loop back to first file.
                     val newIndex = 0
                     updateState { it.copy(files = updatedFiles, currentIndex = newIndex) }
+                    saveResumeState()
                     sendEvent(PlayerEvent.ShowMessage("File moved."))
                     Timber.d("File moved (was last), looping to first file. New list size: ${updatedFiles.size}")
                 } else {

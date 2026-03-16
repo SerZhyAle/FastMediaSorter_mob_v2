@@ -2949,8 +2949,10 @@ class BrowseViewModel @Inject constructor(
     private fun attemptResumeInlinePlayback() {
         viewModelScope.launch {
             try {
-                // Wait for initial file list to load (root level)
-                state.first { it.mediaFiles.isNotEmpty() || it.resource != null }
+                // Wait for initial file list to load (root level) with timeout
+                kotlinx.coroutines.withTimeout(15_000L) {
+                    state.first { it.mediaFiles.isNotEmpty() }
+                }
                 // Small delay to ensure state is settled
                 kotlinx.coroutines.delay(300)
 
@@ -2958,8 +2960,10 @@ class BrowseViewModel @Inject constructor(
                 if (resumeInitialFolderPath != null) {
                     Timber.d("BrowseViewModel: Resume - navigating to folder '$resumeInitialFolderPath'")
                     navigateToFolder(resumeInitialFolderPath)
-                    // Wait for subfolder files to load
-                    state.first { it.currentPath == resumeInitialFolderPath && it.mediaFiles.isNotEmpty() }
+                    // Wait for subfolder files to load with timeout
+                    kotlinx.coroutines.withTimeout(15_000L) {
+                        state.first { it.currentPath == resumeInitialFolderPath && it.mediaFiles.isNotEmpty() }
+                    }
                     kotlinx.coroutines.delay(200)
                 }
 
@@ -2974,6 +2978,8 @@ class BrowseViewModel @Inject constructor(
                 } else {
                     Timber.w("BrowseViewModel: Resume - target file not found: $targetPath")
                 }
+            } catch (e: kotlinx.coroutines.TimeoutCancellationException) {
+                Timber.w("BrowseViewModel: Resume inline playback timed out waiting for file list")
             } catch (e: Exception) {
                 Timber.e(e, "BrowseViewModel: Resume inline playback failed")
             }

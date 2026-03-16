@@ -145,6 +145,7 @@ class VideoPlayerManager(
     private var currentFilePath: String? = null
     private var positionSaveRunnable: Runnable? = null
     private var lastSavedPosition: Long = -1L  // Track last saved position to avoid redundant saves
+    private var wasPlayingBeforePause = false  // Tracks whether to resume after lifecycle onPause
     
     // Playback health monitoring (detect "white noise" / stuck playback)
     private var playbackHealthCheckRunnable: Runnable? = null
@@ -1612,11 +1613,21 @@ class VideoPlayerManager(
     // === Lifecycle callbacks ===
     
     override fun onPause(owner: LifecycleOwner) {
+        wasPlayingBeforePause = exoPlayer?.isPlaying == true || (isUsingMediaPlayer && mediaPlayer?.isPlaying == true)
         // Save position before pausing
         pause()
         stopPositionSaving()
     }
-    
+
+    override fun onResume(owner: LifecycleOwner) {
+        if (wasPlayingBeforePause && (exoPlayer != null || (isUsingMediaPlayer && mediaPlayer != null))) {
+            play()
+            startPositionSaving()
+            Timber.d("VideoPlayerManager: Resumed playback after lifecycle pause")
+        }
+        wasPlayingBeforePause = false
+    }
+
     override fun onDestroy(owner: LifecycleOwner) {
         // Final position save
         saveCurrentPosition()
