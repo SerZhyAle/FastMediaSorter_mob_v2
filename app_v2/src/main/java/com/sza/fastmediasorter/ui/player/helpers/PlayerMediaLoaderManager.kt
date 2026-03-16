@@ -304,12 +304,12 @@ class PlayerMediaLoaderManager(
         val startIndex = localAudioFiles.indexOfFirst { it.path == path }.coerceAtLeast(0)
 
         if (localAudioFiles.size == 1) {
-            val uri = buildLocalUri(localAudioFiles[0].path)
+            val uri = buildUriForMediaFile(localAudioFiles[0])
             controller.playAudio(uri) { player ->
                 activity.runOnUiThread { bindServicePlayerToView(player) }
             }
         } else {
-            val uris = localAudioFiles.map { buildLocalUri(it.path) }
+            val uris = localAudioFiles.map { buildUriForMediaFile(it) }
             controller.playAudioPlaylist(uris, startIndex) { player ->
                 activity.runOnUiThread { bindServicePlayerToView(player) }
             }
@@ -501,6 +501,17 @@ class PlayerMediaLoaderManager(
     private fun buildLocalUri(path: String): Uri {
         val parsed = Uri.parse(path)
         return if (parsed.scheme == null) Uri.fromFile(java.io.File(path)) else parsed
+    }
+
+    /**
+     * Build playback URI for a local MediaFile.
+     * Prefers contentUri (content:// from MediaStore) over file:// to avoid EACCES on
+     * Android 10+ scoped storage when AudioPlaybackService opens files via FileDataSource.
+     */
+    private fun buildUriForMediaFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile): Uri {
+        val contentUri = mediaFile.contentUri
+        if (!contentUri.isNullOrBlank()) return Uri.parse(contentUri)
+        return buildLocalUri(mediaFile.path)
     }
 
     private fun bindServicePlayerToView(player: Player) {

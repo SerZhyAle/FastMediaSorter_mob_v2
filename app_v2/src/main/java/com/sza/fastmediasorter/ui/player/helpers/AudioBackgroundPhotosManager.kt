@@ -266,7 +266,7 @@ class AudioBackgroundPhotosManager @Inject constructor(
     @Synchronized
     fun advanceToNextPhoto() {
         if (photosList.isEmpty()) {
-            Timber.w("AudioBackgroundPhotos: Cannot advance - no photos loaded")
+            Timber.d("AudioBackgroundPhotos: Cannot advance - photos not yet loaded")
             return
         }
         

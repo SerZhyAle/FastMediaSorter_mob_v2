@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
 import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
 import com.sza.fastmediasorter.data.transfer.TempFileNamingStrategy
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -33,6 +34,13 @@ class CleanupOrphanedTempFilesUseCase @Inject constructor(
         // Cloud paths (cloud://) have no concept of local temp files — nothing to clean
         if (directoryPath.startsWith("cloud://", ignoreCase = true)) {
             Timber.d("CleanupOrphanedTempFilesUseCase: Skipping cloud path: $directoryPath")
+            return@withContext Result.success(0)
+        }
+
+        // Virtual aggregate paths (virtual://all_audio, virtual://all_video, etc.) are MediaStore
+        // virtual views — no real directory, no strategy registered for them
+        if (VirtualPathUtils.isVirtualPath(directoryPath)) {
+            Timber.d("CleanupOrphanedTempFilesUseCase: Skipping virtual path: $directoryPath")
             return@withContext Result.success(0)
         }
 

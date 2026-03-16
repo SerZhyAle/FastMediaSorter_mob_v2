@@ -681,7 +681,11 @@ class PlayerViewModel @Inject constructor(
                     mediaType = mediaType,
                     savedAt = System.currentTimeMillis()
                 )
-                saveResumeStateUseCase(resumeState)
+                // NonCancellable: DB write must complete even if this coroutine is cancelled
+                // (e.g. fast navigation to next file) to avoid silently losing resume position.
+                kotlinx.coroutines.withContext(kotlinx.coroutines.NonCancellable) {
+                    saveResumeStateUseCase(resumeState)
+                }
             } catch (e: Exception) {
                 Timber.e(e, "PlayerViewModel: Failed to save resume state")
             }
