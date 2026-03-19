@@ -702,3 +702,4 @@ Format: | datetime | file | target | description |
 | 2026-03-19 23:40:18 | `AndroidManifest.xml` | `StandaloneAudioSender/VideoSender/ImageSender` | Phase 6 fix: added ACTION_SEND_MULTIPLE to all share aliases |
 | 2026-03-19 23:40:18 | `.../StandalonePlayerActivity.kt` | `parseIncomingIntent` | Phase 6 fix: handle ACTION_SEND_MULTIPLE, open first URI from list |
 | 2026-03-19 23:40:18 | `res/values*/strings.xml` | `settings_default_player_dialog_message` | Updated dialog message/button text for chooser flow in EN/RU/UK |
+| 2026-03-20 00:34:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `DefaultPlayerHelper` | Fix onboarding default-player dead-end on API27: skip MediaStore without permission; add MIME-only chooser fallback before default apps settings |

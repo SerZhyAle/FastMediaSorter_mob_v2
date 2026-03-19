@@ -1,14 +1,17 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.Manifest
 import android.app.Activity
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -102,6 +105,9 @@ object DefaultPlayerHelper {
                 Timber.w(e, "DefaultPlayerHelper: createChooser failed for %s", mimeType)
             }
         }
+        if (tryOpenMimeOnlyChooser(activity, mimeType)) {
+            return
+        }
         openDefaultAppsSettingsFromActivity(activity)
     }
 
@@ -123,6 +129,9 @@ object DefaultPlayerHelper {
                 Timber.w(e, "DefaultPlayerHelper: createChooser failed for %s", mimeType)
             }
         }
+        if (tryOpenMimeOnlyChooser(fragment, mimeType)) {
+            return
+        }
         openDefaultAppsSettings(fragment)
     }
 
@@ -131,6 +140,11 @@ object DefaultPlayerHelper {
      * Returns a Pair of (contentUri, actualMimeType) or null if nothing found.
      */
     private fun findSampleFile(context: Context, mimeType: String): Pair<Uri, String>? {
+        if (!canQueryMediaStore(context)) {
+            Timber.d("DefaultPlayerHelper: skip MediaStore query, no read permission")
+            return null
+        }
+
         return when {
             mimeType.startsWith("audio") ->
                 queryCollection(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
@@ -140,6 +154,57 @@ object DefaultPlayerHelper {
                 queryCollection(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
             else ->
                 queryFilesWithMime(context, mimeType)
+        }
+    }
+
+    private fun tryOpenMimeOnlyChooser(fragment: Fragment, mimeType: String): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            type = mimeType
+            addCategory(Intent.CATEGORY_DEFAULT)
+        }
+        return try {
+            fragment.startActivity(Intent.createChooser(intent, null))
+            true
+        } catch (e: Exception) {
+            Timber.w(e, "DefaultPlayerHelper: MIME-only chooser failed for %s", mimeType)
+            false
+        }
+    }
+
+    private fun tryOpenMimeOnlyChooser(activity: Activity, mimeType: String): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            type = mimeType
+            addCategory(Intent.CATEGORY_DEFAULT)
+        }
+        return try {
+            activity.startActivity(Intent.createChooser(intent, null))
+            true
+        } catch (e: Exception) {
+            Timber.w(e, "DefaultPlayerHelper: MIME-only chooser failed for %s", mimeType)
+            false
+        }
+    }
+
+    private fun canQueryMediaStore(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val canReadImages = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_MEDIA_IMAGES
+            ) == PackageManager.PERMISSION_GRANTED
+            val canReadVideo = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_MEDIA_VIDEO
+            ) == PackageManager.PERMISSION_GRANTED
+            val canReadAudio = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_MEDIA_AUDIO
+            ) == PackageManager.PERMISSION_GRANTED
+            canReadImages || canReadVideo || canReadAudio
+        } else {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
