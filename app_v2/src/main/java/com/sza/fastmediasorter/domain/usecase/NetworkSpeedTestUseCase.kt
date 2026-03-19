@@ -44,7 +44,7 @@ class NetworkSpeedTestUseCase @Inject constructor(
     private val credentialsRepository: NetworkCredentialsRepository,
     private val resourceRepository: ResourceRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
     
     companion object {

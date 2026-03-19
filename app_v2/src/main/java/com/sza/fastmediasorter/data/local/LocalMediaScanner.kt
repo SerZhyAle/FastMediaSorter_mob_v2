@@ -31,7 +31,7 @@ import javax.inject.Singleton
 
 @Singleton
 class LocalMediaScanner @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val mediaStoreRepository: MediaStoreRepository
 ) : MediaScanner {
 

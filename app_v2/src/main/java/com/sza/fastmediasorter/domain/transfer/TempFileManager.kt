@@ -15,7 +15,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class TempFileManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private val tempFiles = ConcurrentHashMap<String, File>()
     

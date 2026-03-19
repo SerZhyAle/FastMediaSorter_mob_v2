@@ -20,7 +20,7 @@ import javax.inject.Inject
  * File location: Downloads/FastMediaSorter_export.xml
  */
 class ExportSettingsUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val credentialsRepository: NetworkCredentialsRepository

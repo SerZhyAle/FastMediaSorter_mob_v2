@@ -32,7 +32,7 @@ data class VideoMetadata(
  * Runs on IO dispatcher to avoid blocking UI thread
  */
 class ExtractVideoMetadataUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private val tag = "ExtractVideoMetadataUC"
 

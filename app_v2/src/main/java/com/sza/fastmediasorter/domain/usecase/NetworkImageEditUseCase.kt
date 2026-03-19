@@ -22,7 +22,7 @@ import javax.inject.Inject
  * - Adjustments: Brightness, Contrast, Saturation (via AdjustImageUseCase)
  */
 class NetworkImageEditUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val rotateImageUseCase: RotateImageUseCase,
     private val flipImageUseCase: FlipImageUseCase,
     private val applyImageFilterUseCase: ApplyImageFilterUseCase,

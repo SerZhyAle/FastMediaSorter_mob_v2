@@ -19,7 +19,7 @@ import javax.inject.Inject
  * Uses Android ColorMatrix for efficient transformations
  */
 class AdjustImageUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     data class Adjustments(

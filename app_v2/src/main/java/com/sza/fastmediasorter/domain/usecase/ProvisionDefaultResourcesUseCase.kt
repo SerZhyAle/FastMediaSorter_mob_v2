@@ -21,7 +21,7 @@ import javax.inject.Inject
  * Condition: DB contains zero resources.
  */
 class ProvisionDefaultResourcesUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository
 ) {

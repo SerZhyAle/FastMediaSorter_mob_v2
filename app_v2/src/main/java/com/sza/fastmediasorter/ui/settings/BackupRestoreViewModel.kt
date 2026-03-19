@@ -35,7 +35,7 @@ sealed class BackupRestoreUiState {
 
 @HiltViewModel
 class BackupRestoreViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val backupUseCase: BackupToGoogleDriveUseCase,
     private val restoreUseCase: RestoreFromGoogleDriveUseCase,
     private val googleDriveClient: GoogleDriveRestClient,

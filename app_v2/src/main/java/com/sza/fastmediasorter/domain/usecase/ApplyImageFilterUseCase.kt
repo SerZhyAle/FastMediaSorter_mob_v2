@@ -19,7 +19,7 @@ import javax.inject.Inject
  * Uses Android ColorMatrix for efficient color transformations
  */
 class ApplyImageFilterUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     enum class FilterType {

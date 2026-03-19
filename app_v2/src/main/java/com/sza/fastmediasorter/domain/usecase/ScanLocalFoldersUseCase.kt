@@ -23,7 +23,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 class ScanLocalFoldersUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val repository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
     private val mediaStoreRepository: MediaStoreRepository

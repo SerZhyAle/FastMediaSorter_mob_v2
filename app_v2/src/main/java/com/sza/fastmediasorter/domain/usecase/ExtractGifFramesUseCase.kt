@@ -27,7 +27,7 @@ import javax.inject.Inject
  * Supported inputs: GIF, WEBP, APNG.
  */
 class ExtractGifFramesUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     /**

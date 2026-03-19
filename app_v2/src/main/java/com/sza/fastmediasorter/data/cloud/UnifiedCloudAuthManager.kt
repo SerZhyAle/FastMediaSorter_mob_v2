@@ -26,7 +26,7 @@ class UnifiedCloudAuthManager @Inject constructor(
     googleDriveAuthPlugin: GoogleDriveAuthPlugin,
     dropboxAuthPlugin: DropboxAuthPlugin,
     oneDriveAuthPlugin: OneDriveAuthPlugin,
-    @ApplicationScope private val appScope: CoroutineScope
+    @param:ApplicationScope private val appScope: CoroutineScope
 ) {
     // Map of provider to its specific interactive authenticator plugin
     private val plugins = mapOf(

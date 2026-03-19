@@ -56,7 +56,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class DropboxClient @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val networkCredentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 ) : CloudStorageClient {
     

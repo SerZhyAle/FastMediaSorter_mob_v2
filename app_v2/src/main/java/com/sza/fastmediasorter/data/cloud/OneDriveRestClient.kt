@@ -59,7 +59,7 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 
 @Singleton
 class OneDriveRestClient @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val pendingRevocationDao: PendingRevocationDao,
     private val networkCredentialsRepository: NetworkCredentialsRepository
 ) : CloudStorageClient {

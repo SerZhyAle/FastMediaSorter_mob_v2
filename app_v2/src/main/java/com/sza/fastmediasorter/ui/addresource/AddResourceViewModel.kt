@@ -61,7 +61,7 @@ sealed class AddResourceEvent {
 
 @HiltViewModel
 class AddResourceViewModel @Inject constructor(
-    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
+    @param:dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context,
     private val scanLocalFoldersUseCase: ScanLocalFoldersUseCase,
     private val addResourceUseCase: AddResourceUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
@@ -72,8 +72,8 @@ class AddResourceViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: com.sza.fastmediasorter.domain.repository.ResourceRepository,
     private val networkSpeedTestUseCase: NetworkSpeedTestUseCase,
-    @ApplicationScope private val applicationScope: CoroutineScope,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:ApplicationScope private val applicationScope: CoroutineScope,
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<AddResourceState, AddResourceEvent>() {
 
     override fun getInitialState() = AddResourceState()

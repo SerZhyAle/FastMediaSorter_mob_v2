@@ -13,7 +13,7 @@ import java.io.File
 import javax.inject.Inject
 
 class LocalToSmbStrategy @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val smbClient: SmbClient
 ) : TransferStrategy {
 

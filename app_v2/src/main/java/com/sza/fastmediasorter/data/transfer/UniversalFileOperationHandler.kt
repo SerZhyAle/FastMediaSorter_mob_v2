@@ -21,7 +21,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class UniversalFileOperationHandler @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val strategies: Set<@JvmSuppressWildcards TransferStrategy>,
     private val fileAccessProviders: Set<@JvmSuppressWildcards FileAccess>
 ) {

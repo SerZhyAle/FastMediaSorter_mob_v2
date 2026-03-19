@@ -8,7 +8,7 @@ import java.io.File
 import javax.inject.Inject
 
 class LocalFileAccess @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : FileAccess {
 
     override fun supports(scheme: String?): Boolean {

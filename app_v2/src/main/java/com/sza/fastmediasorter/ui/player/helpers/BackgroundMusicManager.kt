@@ -30,7 +30,7 @@ import javax.inject.Singleton
 
 @Singleton
 class BackgroundMusicManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
     private val downloadNetworkFileUseCase: DownloadNetworkFileUseCase,
@@ -190,7 +190,7 @@ class BackgroundMusicManager @Inject constructor(
         val shouldLoadPlaylist = slideshowActive && enableBackgroundMusic && resourceId != null && !isAudioSlideshowPhotoMode
         
         // 1. Check if playlist resource changed - load playlist data ONLY if slideshow is active
-        if (shouldLoadPlaylist && resourceId != null && resourceId != currentMusicResourceId) {
+        if (shouldLoadPlaylist && resourceId != currentMusicResourceId) {
              currentMusicResourceId = resourceId
              loadAndSetPlaylist(resourceId) // Safe: resourceId is non-null here
         } else if (!shouldLoadPlaylist && currentMusicResourceId != null) {

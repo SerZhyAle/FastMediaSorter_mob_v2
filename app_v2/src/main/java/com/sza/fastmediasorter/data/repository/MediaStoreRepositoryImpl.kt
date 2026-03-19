@@ -19,7 +19,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 class MediaStoreRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : MediaStoreRepository {
 
     private fun isTrashPath(path: String): Boolean {

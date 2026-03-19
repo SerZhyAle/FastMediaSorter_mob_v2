@@ -54,7 +54,7 @@ class ResourceEditorUseCase @Inject constructor(
     private val updateResourceUseCase: UpdateResourceUseCase,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val credentialsRepository: NetworkCredentialsRepository,
-    @IoDispatcher private val ioDispatcher: CoroutineDispatcher
+    @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) {
 
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)

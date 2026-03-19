@@ -158,7 +158,7 @@ class StandaloneViewManager(
         // Container is nullable in the binding (config-variant view)
         binding.photoDualSurfaceContainer?.let { it.isVisible = true }
         binding.photoView.isVisible = true
-        Glide.with(activity)
+        Glide.with(activity.applicationContext)
             .load(Uri.parse(mediaFile.path))
             .into(binding.photoView)
     }
@@ -166,7 +166,7 @@ class StandaloneViewManager(
     private fun showGif(mediaFile: MediaFile) {
         binding.photoDualSurfaceContainer?.let { it.isVisible = true }
         binding.photoView.isVisible = true
-        Glide.with(activity)
+        Glide.with(activity.applicationContext)
             .asGif()
             .load(Uri.parse(mediaFile.path))
             .into(binding.photoView)

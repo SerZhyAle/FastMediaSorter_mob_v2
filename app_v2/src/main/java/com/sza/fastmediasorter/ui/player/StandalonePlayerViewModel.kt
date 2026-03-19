@@ -16,7 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class StandalonePlayerViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) :
     BaseViewModel<StandalonePlayerViewModel.StandalonePlayerState, StandalonePlayerViewModel.StandalonePlayerEvent>() {
 

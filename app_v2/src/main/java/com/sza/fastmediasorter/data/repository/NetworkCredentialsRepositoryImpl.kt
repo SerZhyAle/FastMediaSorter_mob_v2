@@ -25,7 +25,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Singleton
 class NetworkCredentialsRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val dao: NetworkCredentialsDao,
     private val resourceDao: ResourceDao,
     private val settingsRepository: SettingsRepository

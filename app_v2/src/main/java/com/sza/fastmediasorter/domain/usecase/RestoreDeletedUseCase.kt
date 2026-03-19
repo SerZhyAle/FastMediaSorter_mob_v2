@@ -20,7 +20,7 @@ import javax.inject.Inject
  * UseCase for restoring last deleted file(s) from .trash folder.
  */
 class RestoreDeletedUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val localStrategy: LocalOperationStrategy,
     private val smbStrategy: SmbOperationStrategy,
     private val sftpStrategy: SftpOperationStrategy,

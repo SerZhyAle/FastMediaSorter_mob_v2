@@ -29,8 +29,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260319131
-        versionName = "2.60.3191.315"
+        versionCode = 260319175
+        versionName = "2.60.3191.759"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -38,10 +38,7 @@ android {
             useSupportLibrary = true
         }
         
-        // APK Size Optimization: Keep only necessary locales and densities
-        // Keeps English, Russian, Ukrainian + high-density screens
-        resourceConfigurations += listOf("en", "ru", "uk")
-        // Note: density filtering handled by Play Store with App Bundle
+        // Note: locale filtering moved to androidResources.localeFilters (resourceConfigurations deprecated)
         
         // Screen size support (Android automatically selects resources)
         // - values-sw480dp: Compact screens (480x480+), smartwatches, small tablets
@@ -230,11 +227,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        // CRITICAL: Do not change - must match compileOptions.targetCompatibility
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         viewBinding = true
         buildConfig = true
@@ -265,6 +257,12 @@ android {
         }
     }
     
+    // APK Size Optimization: Keep only English, Russian, Ukrainian locales
+    // Replaces the deprecated resourceConfigurations in defaultConfig
+    androidResources {
+        localeFilters += listOf("en", "ru", "uk")
+    }
+
     // Force 16 KB page alignment for all native libraries
     // This is critical for Android 15+ devices with 16 KB page size
     // Without this, Google Play will reject the APK
@@ -291,6 +289,14 @@ android {
         htmlOutput = file("build/reports/lint-results.html")
         xmlReport = true
         xmlOutput = file("build/reports/lint-results.xml")
+    }
+}
+
+// CRITICAL: Do not change - must match compileOptions.targetCompatibility
+// Replaces the deprecated android { kotlinOptions { jvmTarget } } block
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 

@@ -16,7 +16,7 @@ import javax.inject.Inject
  * UseCase for scheduling periodic background sync of network files
  */
 class ScheduleNetworkSyncUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     
     /**

@@ -18,7 +18,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class GoogleDriveCredentialsManager @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     companion object {
         private const val PREFS_NAME = "google_drive_credentials"

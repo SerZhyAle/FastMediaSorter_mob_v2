@@ -914,7 +914,7 @@ class ResourceEditorFragment : Fragment() {
         binding.headerStatistics.isVisible = show
         binding.groupStatistics.isVisible = show
 
-        if (!show || statistics == null) return
+        if (!show) return
 
         val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
 

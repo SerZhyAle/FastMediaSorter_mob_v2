@@ -31,7 +31,7 @@ data class ExifMetadata(
  * Runs on IO dispatcher to avoid blocking UI thread
  */
 class ExtractExifMetadataUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private val tag = "ExtractExifMetadataUC"
 

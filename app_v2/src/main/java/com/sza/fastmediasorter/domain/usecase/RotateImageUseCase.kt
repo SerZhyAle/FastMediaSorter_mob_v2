@@ -19,7 +19,7 @@ import javax.inject.Inject
  * Preserves EXIF metadata and adjusts orientation tag
  */
 class RotateImageUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     /**

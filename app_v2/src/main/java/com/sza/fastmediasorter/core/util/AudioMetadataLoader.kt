@@ -54,7 +54,7 @@ import javax.inject.Singleton
 @Singleton
 @UnstableApi
 class AudioMetadataLoader @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val fileMetadataCacheDao: FileMetadataCacheDao,
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,

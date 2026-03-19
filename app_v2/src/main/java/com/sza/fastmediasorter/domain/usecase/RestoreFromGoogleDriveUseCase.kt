@@ -22,7 +22,7 @@ import javax.inject.Inject
  * Settings are fully replaced. Resources are appended (duplicates skipped).
  */
 class RestoreFromGoogleDriveUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val googleDriveClient: GoogleDriveRestClient

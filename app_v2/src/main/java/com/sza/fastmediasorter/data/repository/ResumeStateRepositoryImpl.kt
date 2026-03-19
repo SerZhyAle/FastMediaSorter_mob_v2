@@ -16,7 +16,7 @@ import javax.inject.Singleton
 
 @Singleton
 class ResumeStateRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ResumeStateRepository {
 
     companion object {

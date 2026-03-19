@@ -23,7 +23,7 @@ import javax.inject.Inject
  *   3. MusicBrainz + Cover Art Archive — free, no key; exhaustive community DB
  */
 class SearchAudioCoverUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val iTunesApiService: ITunesApiService,
     private val settingsRepository: SettingsRepository,
     private val okHttpClient: OkHttpClient

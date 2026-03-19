@@ -33,7 +33,7 @@ import javax.inject.Inject
  * @param context Application context for MediaStore notifications
  */
 class SyncMediaStoreUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     /**
      * Synchronizes all files in a local resource with MediaStore.

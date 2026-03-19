@@ -25,7 +25,7 @@ import javax.inject.Inject
  * Original file is overwritten with new speed
  */
 class ChangeGifSpeedUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     companion object {

@@ -45,7 +45,7 @@ sealed class OneDriveFolderPickerEvent {
 
 @HiltViewModel
 class OneDriveFolderPickerViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val oneDriveClient: OneDriveRestClient,
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,

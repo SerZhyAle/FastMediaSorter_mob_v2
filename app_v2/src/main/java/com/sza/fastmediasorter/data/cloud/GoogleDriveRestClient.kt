@@ -54,7 +54,7 @@ import com.google.android.gms.tasks.Tasks
  */
 @Singleton
 class GoogleDriveRestClient @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val credentialsManager: GoogleDriveCredentialsManager,
     private val httpClient: GoogleDriveHttpClient,
     private val pendingRevocationDao: PendingRevocationDao,

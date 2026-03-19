@@ -26,7 +26,7 @@ import org.jsoup.Jsoup
  * Searches multiple lyrics providers and returns the first successful result.
  */
 class SearchLyricsUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val smbClient: SmbClient,
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,

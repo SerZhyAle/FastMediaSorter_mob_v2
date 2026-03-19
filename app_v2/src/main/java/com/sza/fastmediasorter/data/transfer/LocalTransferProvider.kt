@@ -25,7 +25,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class LocalTransferProvider @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : FileTransferProvider {
     
     override val protocolName = "Local"

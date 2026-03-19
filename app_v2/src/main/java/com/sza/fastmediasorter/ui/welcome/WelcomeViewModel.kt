@@ -10,7 +10,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : BaseViewModel<WelcomeState, WelcomeEvent>() {
 
     companion object {

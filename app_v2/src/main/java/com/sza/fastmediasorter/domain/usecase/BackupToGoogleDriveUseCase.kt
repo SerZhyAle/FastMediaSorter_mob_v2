@@ -23,7 +23,7 @@ import javax.inject.Inject
  * Location: My Drive / FastMediaSorter / backup_{YYMMDD-HHmm}.json
  */
 class BackupToGoogleDriveUseCase @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val googleDriveClient: GoogleDriveRestClient

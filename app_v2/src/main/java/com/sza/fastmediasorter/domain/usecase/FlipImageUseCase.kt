@@ -19,7 +19,7 @@ import javax.inject.Inject
  * Preserves EXIF metadata
  */
 class FlipImageUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     enum class FlipDirection {

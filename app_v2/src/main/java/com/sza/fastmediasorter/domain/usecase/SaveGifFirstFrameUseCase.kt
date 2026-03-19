@@ -21,7 +21,7 @@ import javax.inject.Inject
  * Saves to Downloads folder with naming: [original_name]_first_frame.png
  */
 class SaveGifFirstFrameUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
 
     /**

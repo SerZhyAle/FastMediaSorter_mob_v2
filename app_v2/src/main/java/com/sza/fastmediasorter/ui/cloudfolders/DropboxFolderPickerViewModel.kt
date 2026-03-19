@@ -45,7 +45,7 @@ sealed class DropboxFolderPickerEvent {
 
 @HiltViewModel
 class DropboxFolderPickerViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val dropboxClient: DropboxClient,
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,

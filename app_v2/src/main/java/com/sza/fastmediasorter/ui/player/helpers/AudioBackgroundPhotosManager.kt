@@ -33,7 +33,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class AudioBackgroundPhotosManager @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
     private val getMediaFilesUseCase: GetMediaFilesUseCase
 ) {
@@ -100,7 +100,7 @@ class AudioBackgroundPhotosManager @Inject constructor(
         
         Timber.d("AudioBackgroundPhotos: updateState - file=${currentFile?.name}, type=${currentFile?.type}, enabled=$enabled, resourceId=$resourceId, shouldBeActive=$shouldBeActive")
         
-        if (shouldBeActive && resourceId != null) {
+        if (shouldBeActive) {
             // Feature should be active
             if (!isActive || currentResourceId != resourceId) {
                 // First activation or resource changed - load photos

@@ -58,7 +58,7 @@ sealed class GoogleDriveFolderPickerEvent {
 
 @HiltViewModel
 class GoogleDriveFolderPickerViewModel @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val googleDriveClient: GoogleDriveRestClient,
     private val resourceRepository: ResourceRepository,
     private val addResourceUseCase: AddResourceUseCase,

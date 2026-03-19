@@ -23,7 +23,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class ThumbnailCacheRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val thumbnailCacheDao: ThumbnailCacheDao
 ) : ThumbnailCacheRepository {
     
