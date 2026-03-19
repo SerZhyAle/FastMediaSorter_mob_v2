@@ -59,6 +59,9 @@
     <string name="settings_category_grid_view">Grid View</string>
     <string name="settings_category_player_ui">Player UI</string>
     <string name="settings_category_touch_zones">Touch Zones</string>
+    <string name="settings_category_default_player">Default Player</string>
+    <string name="settings_primary_media_player">Use as primary media player (handles hardware buttons &amp; file associations)</string>
+    <string name="settings_accept_shared_files">Accept shared media files (appear in Share sheet)</string>
 
     <!-- Copy Dialog -->
     <string name="copying_files">Copying Files</string>

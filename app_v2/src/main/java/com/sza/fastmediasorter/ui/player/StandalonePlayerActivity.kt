@@ -12,27 +12,84 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
+import com.sza.fastmediasorter.data.cloud.CloudFileOperationHandler
+import com.sza.fastmediasorter.data.cloud.DropboxClient
+import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
+import com.sza.fastmediasorter.data.network.FtpFileOperationHandler
+import com.sza.fastmediasorter.data.network.SmbClient
+import com.sza.fastmediasorter.data.network.SmbFileOperationHandler
+import com.sza.fastmediasorter.data.network.SftpFileOperationHandler
+import com.sza.fastmediasorter.data.remote.ftp.FtpClient
+import com.sza.fastmediasorter.data.remote.sftp.SftpClient
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
- * Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW).
- * Detached from the main resource/database tree — no resource system, no playlists, no history.
+ * Standalone Activity for playing/viewing media opened from external sources (Intent.ACTION_VIEW
+ * and Intent.ACTION_SEND). Detached from the main resource/database tree — no resource system,
+ * no playlists, no history.
+ *
+ * All viewer routing is delegated to StandaloneViewManager.
  */
 @AndroidEntryPoint
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
+    // Injected network/cloud clients — needed to construct StandaloneViewManager's NetworkFileManager.
+    // Not exercised for content:// URIs from external intents but required by the constructor.
+    @Inject lateinit var smbClient: SmbClient
+    @Inject lateinit var sftpClient: SftpClient
+    @Inject lateinit var ftpClient: FtpClient
+    @Inject lateinit var googleDriveClient: GoogleDriveRestClient
+    @Inject lateinit var dropboxClient: DropboxClient
+    @Inject lateinit var oneDriveClient: OneDriveRestClient
+    @Inject lateinit var credentialsRepository: NetworkCredentialsRepository
+    @Inject lateinit var smbFileOperationHandler: SmbFileOperationHandler
+    @Inject lateinit var sftpFileOperationHandler: SftpFileOperationHandler
+    @Inject lateinit var ftpFileOperationHandler: FtpFileOperationHandler
+    @Inject lateinit var cloudFileOperationHandler: CloudFileOperationHandler
+    @Inject lateinit var unifiedCache: UnifiedFileCache
+    @Inject lateinit var settingsRepository: SettingsRepository
+    @Inject lateinit var playbackPositionRepository: PlaybackPositionRepository
+
+    private lateinit var viewManager: StandaloneViewManager
+
     override fun getViewBinding(): ActivityPlayerUnifiedBinding {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
 
     override fun setupViews() {
+        viewManager = StandaloneViewManager(
+            activity = this,
+            binding = binding,
+            lifecycleScope = lifecycleScope,
+            smbClient = smbClient,
+            sftpClient = sftpClient,
+            ftpClient = ftpClient,
+            googleDriveClient = googleDriveClient,
+            dropboxClient = dropboxClient,
+            oneDriveClient = oneDriveClient,
+            credentialsRepository = credentialsRepository,
+            smbFileOperationHandler = smbFileOperationHandler,
+            sftpFileOperationHandler = sftpFileOperationHandler,
+            ftpFileOperationHandler = ftpFileOperationHandler,
+            cloudFileOperationHandler = cloudFileOperationHandler,
+            unifiedCache = unifiedCache,
+            settingsRepository = settingsRepository,
+            playbackPositionRepository = playbackPositionRepository
+        )
         setupCloseButton()
         setupBackPressHandler()
         hidePlaylistControls()
@@ -44,7 +101,12 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         observeViewModelEvents()
     }
 
-    // ── Intent Parsing (Step 1.3) ──────────────────────────────────────────
+    override fun onDestroy() {
+        viewManager.release()
+        super.onDestroy()
+    }
+
+    // ── Intent Parsing ────────────────────────────────────────────────────
 
     private fun parseIncomingIntent() {
         val uri = when (intent?.action) {
@@ -83,7 +145,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         viewModel.loadFromUri(uri, mimeType, displayName)
     }
 
-    // ── Close Button & Back Navigation (Step 1.4) ─────────────────────────
+    // ── Close Button & Back Navigation ────────────────────────────────────
 
     private fun setupCloseButton() {
         binding.btnBack.setImageResource(R.drawable.ic_clear)
@@ -104,16 +166,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.btnNextCmd.isVisible = false
     }
 
-    // ── Media Type Routing (Step 1.5) ─────────────────────────────────────
+    // ── Media Type Routing ────────────────────────────────────────────────
 
     private fun observeViewModelState() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    if (state.isLoading) {
-                        // TODO: show loading indicator
-                        return@collect
-                    }
+                    binding.progressBar.isVisible = state.isLoading
+
+                    if (state.isLoading) return@collect
 
                     state.errorMessage?.let { error ->
                         Timber.w("StandalonePlayer: error state — $error")
@@ -123,42 +184,21 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     }
 
                     val file = state.mediaFile ?: return@collect
+                    val type = state.mediaType ?: return@collect
 
-                    when (state.mediaType) {
-                        MediaType.IMAGE -> {
-                            Timber.d("StandalonePlayer: routing to IMAGE viewer for ${file.name}")
-                            // TODO: wire ImageLoadingManager
-                        }
-                        MediaType.GIF -> {
-                            Timber.d("StandalonePlayer: routing to GIF viewer for ${file.name}")
-                            // TODO: wire ImageLoadingManager (GIF mode)
-                        }
-                        MediaType.VIDEO -> {
-                            Timber.d("StandalonePlayer: routing to VIDEO player for ${file.name}")
-                            // TODO: wire VideoPlayerManager (single file, no playlist)
-                        }
-                        MediaType.AUDIO -> {
-                            Timber.d("StandalonePlayer: routing to AUDIO player for ${file.name}")
-                            // TODO: wire AudioPlaybackService (single file, no playlist)
-                        }
-                        MediaType.PDF -> {
-                            Timber.d("StandalonePlayer: routing to PDF viewer for ${file.name}")
-                            // TODO: wire PdfViewerManager
-                        }
-                        MediaType.EPUB -> {
-                            Timber.d("StandalonePlayer: routing to EPUB viewer for ${file.name}")
-                            // TODO: wire EpubViewerManager
-                        }
-                        MediaType.TEXT -> {
-                            Timber.d("StandalonePlayer: routing to TEXT viewer for ${file.name}")
-                            // TODO: wire TextViewerManager
-                        }
-                        else -> {
-                            Timber.w("StandalonePlayer: unsupported type ${state.mediaType} for ${file.name}")
-                            Toast.makeText(this@StandalonePlayerActivity, R.string.unsupported_format_use_external_player, Toast.LENGTH_SHORT).show()
-                            finish()
-                        }
+                    if (type == MediaType.BINARY_ARCHIVE || type == MediaType.BINARY_DISK ||
+                        type == MediaType.BINARY_EXECUTABLE || type == MediaType.BINARY_OTHER) {
+                        Timber.w("StandalonePlayer: unsupported binary type $type for ${file.name}")
+                        Toast.makeText(
+                            this@StandalonePlayerActivity,
+                            R.string.unsupported_format_use_external_player,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        finish()
+                        return@collect
                     }
+
+                    viewManager.show(file, type)
                 }
             }
         }

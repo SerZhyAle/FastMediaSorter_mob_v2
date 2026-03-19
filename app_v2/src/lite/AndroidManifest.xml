@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Phase 7: Lite flavor manifest overlay.
+    Removes all Default Player components (activity aliases, MediaButtonReceiver)
+    that are not supported in the lite build.
+    Merged on top of src/main/AndroidManifest.xml at build time.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+
+        <!-- Remove MediaButtonRestartReceiver from lite -->
+        <receiver
+            android:name=".ui.player.MediaButtonRestartReceiver"
+            tools:node="remove" />
+
+        <!-- Remove ACTION_VIEW aliases from lite -->
+        <activity-alias
+            android:name=".StandaloneAudioPlayer"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name=".StandaloneVideoPlayer"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name=".StandaloneImagePlayer"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name=".StandaloneDocsPlayer"
+            tools:node="remove" />
+
+        <!-- Remove ACTION_SEND aliases from lite -->
+        <activity-alias
+            android:name=".StandaloneAudioSender"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name=".StandaloneVideoSender"
+            tools:node="remove" />
+
+        <activity-alias
+            android:name=".StandaloneImageSender"
+            tools:node="remove" />
+
+    </application>
+
+</manifest>

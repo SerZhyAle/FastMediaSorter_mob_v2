@@ -119,7 +119,13 @@ data class AppSettings(
     val defaultRememberFileList: Boolean = false,
     
     // Dynamic Background Effect
-    val dynamicBackgroundExtension: Boolean = false
+    val dynamicBackgroundExtension: Boolean = false,
+
+    // Phase 5: Use as primary media player (enables ACTION_VIEW aliases + MediaButtonReceiver)
+    val isPrimaryMediaPlayer: Boolean = false,
+
+    // Phase 6: Accept shared media files (enables ACTION_SEND aliases in Share sheet)
+    val acceptSharedFiles: Boolean = false
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

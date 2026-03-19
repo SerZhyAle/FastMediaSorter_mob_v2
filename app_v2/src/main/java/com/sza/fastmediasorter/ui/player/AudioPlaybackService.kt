@@ -145,6 +145,10 @@ class AudioPlaybackService : MediaSessionService() {
             }
         }
 
+        // Phase 5: MediaButtonRestartReceiver is registered in the manifest with android:priority=1000.
+        // The OS delivers MEDIA_BUTTON intents to that receiver when this session is inactive (service dead).
+        // Media3 1.2.1 MediaSession.Builder does not expose setMediaButtonReceiver() — cold-restart
+        // is handled entirely by the manifest BroadcastReceiver + PackageManager component toggling.
         mediaSession = MediaSession.Builder(this, wrappedPlayer)
             .setCallback(AudioSessionCallback())
             .build()

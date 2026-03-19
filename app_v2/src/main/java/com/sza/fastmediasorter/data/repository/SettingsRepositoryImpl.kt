@@ -148,6 +148,12 @@ class SettingsRepositoryImpl @Inject constructor(
         
         // Dynamic Background Expansion
         private val KEY_DYNAMIC_BACKGROUND_EXTENSION = booleanPreferencesKey("dynamic_background_extension")
+
+        // Phase 5: Use as primary media player
+        private val KEY_IS_PRIMARY_MEDIA_PLAYER = booleanPreferencesKey("is_primary_media_player")
+
+        // Phase 6: Accept shared media files
+        private val KEY_ACCEPT_SHARED_FILES = booleanPreferencesKey("accept_shared_files")
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -305,7 +311,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultRememberFileList = preferences[KEY_DEFAULT_REMEMBER_FILE_LIST] ?: false,
                     
                     // Dynamic Background Expansion
-                    dynamicBackgroundExtension = preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] ?: false
+                    dynamicBackgroundExtension = preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] ?: false,
+
+                    // Phase 5+6: Default Player
+                    isPrimaryMediaPlayer = preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] ?: false,
+                    acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: false
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -443,6 +453,10 @@ class SettingsRepositoryImpl @Inject constructor(
             
             // Dynamic Background Expansion
             preferences[KEY_DYNAMIC_BACKGROUND_EXTENSION] = settings.dynamicBackgroundExtension
+
+            // Phase 5+6: Default Player
+            preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
+            preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
         }
     }
 

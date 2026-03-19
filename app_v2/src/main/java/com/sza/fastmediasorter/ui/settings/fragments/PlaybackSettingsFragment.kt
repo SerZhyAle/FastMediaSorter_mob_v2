@@ -13,11 +13,13 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -195,6 +197,25 @@ class PlaybackSettingsFragment : Fragment() {
             ).show()
         }
 
+        // Phase 7: Hide Default Player section for flavors that don't support it
+        binding.cardDefaultPlayer.isVisible = BuildConfig.SUPPORTS_DEFAULT_PLAYER
+
+        if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
+            binding.switchPrimaryMediaPlayer.setOnCheckedChangeListener { _, isChecked ->
+                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                DefaultPlayerManager.applyPrimaryPlayerState(requireContext(), isChecked)
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(isPrimaryMediaPlayer = isChecked))
+            }
+
+            binding.switchAcceptSharedFiles.setOnCheckedChangeListener { _, isChecked ->
+                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+                DefaultPlayerManager.applyShareReceiverState(requireContext(), isChecked)
+                val current = viewModel.settings.value
+                viewModel.updateSettings(current.copy(acceptSharedFiles = isChecked))
+            }
+        }
+
         binding.btnResetPlaybackSection.setOnClickListener {
             androidx.appcompat.app.AlertDialog.Builder(requireContext())
                 .setTitle(R.string.reset_playback_section_title)
@@ -310,6 +331,17 @@ class PlaybackSettingsFragment : Fragment() {
                     if (currentIconSize != settings.defaultIconSize) {
                         binding.etIconSize.setText(getString(R.string.number_format, settings.defaultIconSize), false)
                     }
+
+                    // Phase 5+6: Default Player toggles
+                    if (BuildConfig.SUPPORTS_DEFAULT_PLAYER) {
+                        if (binding.switchPrimaryMediaPlayer.isChecked != settings.isPrimaryMediaPlayer) {
+                            binding.switchPrimaryMediaPlayer.isChecked = settings.isPrimaryMediaPlayer
+                        }
+                        if (binding.switchAcceptSharedFiles.isChecked != settings.acceptSharedFiles) {
+                            binding.switchAcceptSharedFiles.isChecked = settings.acceptSharedFiles
+                        }
+                    }
+
                     isUpdatingFromSettings = false
                 }
             }

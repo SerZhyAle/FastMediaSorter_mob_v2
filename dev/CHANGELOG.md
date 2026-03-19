@@ -649,3 +649,28 @@ Format: | datetime | file | target | description |
 | 2026-03-19 04:18:54 | `app_v2/build.gradle.kts` | `dependencies(androidx.hilt)` | Bumped androidx.hilt hilt-work and hilt-compiler from 1.1.0 to 1.2.0 to fix Kotlin 2.2 metadata kapt failure |
 | 2026-03-19 04:19:58 | `app_v2/build.gradle.kts` | `dependencies(androidx.room)` | Bumped Room runtime/ktx/compiler/testing from 2.6.1 to 2.7.0 to resolve Kotlin metadata 2.2 kapt incompatibility |
 | 2026-03-19 04:21:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt` | `DefaultPlayerHelper` | Replaced unsupported ROLE_MEDIA_PLAYER logic with resolver-based default app probe and generalized button type to TextView |
+
+| 2026-03-19 10:38:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/MediaButtonRestartReceiver.kt` | `MediaButtonRestartReceiver` | Phase 5: hardware media button cold-restart receiver for killed service |
+| 2026-03-19 10:38:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerManager.kt` | `DefaultPlayerManager` | Phase 5+6: enables/disables VIEW aliases + MediaButtonReceiver + SEND aliases via PackageManager |
+| 2026-03-19 10:38:16 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Phase 5+6: add MediaButtonRestartReceiver and 3 ACTION_SEND activity-aliases |
+| 2026-03-19 10:38:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Phase 5+6: add isPrimaryMediaPlayer + acceptSharedFiles fields |
+| 2026-03-19 10:38:16 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Phase 5+6: persist isPrimaryMediaPlayer + acceptSharedFiles to DataStore |
+| 2026-03-19 10:38:16 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback` | Phase 5+6: add Default Player card with two toggle switches |
+| 2026-03-19 10:38:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Phase 5+6+7: wire primary player and share receiver toggles with BuildConfig gate |
+| 2026-03-19 10:38:16 | `app_v2/build.gradle.kts` | `build.gradle.kts` | Phase 7: add SUPPORTS_DEFAULT_PLAYER flag per flavor |
+| 2026-03-19 10:38:16 | `app_v2/src/lite/AndroidManifest.xml` | `lite/AndroidManifest` | Phase 7: remove all default player components from lite flavor via manifest overlay |
+
+| 2026-03-19 10:46:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | Phase 5 fix (High): add setMediaButtonReceiver(PendingIntent) to MediaSession.Builder |
+| 2026-03-19 10:46:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/MediaButtonRestartReceiver.kt` | `MediaButtonRestartReceiver` | Phase 5 fix (Medium): handle NEXT/PREV keys; clarify quiet-restart notification semantics |
+
+| 2026-03-19 10:51:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Phase 4 fix: global Skip redirects to default player card when not yet seen instead of bypassing it |
+
+| 2026-03-19 11:14:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerManager.kt` | `DefaultPlayerManager` | Phase 7 fix: filter VIEW/SEND aliases by BuildConfig.SUPPORT_* flags so partially-limited flavors (photos) never activate unsupported handlers |
+| 2026-03-19 12:22:42 | `README.md` | `README Key Features` | Added concise default-player integration bullet |
+| 2026-03-19 12:22:42 | `docs/README.md` | `docs README Key Features` | Added concise default-player integration bullet |
+| 2026-03-19 12:22:42 | `docs/README_RU.md` | `README_RU Key Features` | Added concise default-player integration bullet |
+| 2026-03-19 12:22:42 | `docs/README_UK.md` | `README_UK Key Features` | Added concise default-player integration bullet |
+| 2026-03-19 14:30:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Phase 4 fix Medium: gate default player onboarding card with BuildConfig.SUPPORTS_DEFAULT_PLAYER so lite flavor never shows it |
+| 2026-03-19 14:30:00 | `app_v2/src/main/AndroidManifest.xml` | `StandaloneDocsPlayer` | Phase 2 fix High: added text/xml, text/html, text/csv, text/markdown, application/json, application/xml MIME types to match MediaTypeUtils coverage |
+| 2026-03-19 14:30:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Phase 1 implementation: new helper routing IMAGE/GIF→Glide, VIDEO→ExoPlayer, AUDIO→AudioServiceController, PDF/EPUB/TEXT→full viewer managers |
+| 2026-03-19 14:30:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Phase 1 wiring: inject network deps, create StandaloneViewManager, replace all TODO stubs with viewManager.show(), add progressBar, onDestroy release |

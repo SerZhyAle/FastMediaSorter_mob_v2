@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -127,7 +128,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // Page 6 (first install only): Default Player onboarding
         // NOTE: markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user
         // actually reaches this page — not here — so skipping welcome doesn't suppress future display.
-        if (!viewModel.isDefaultPlayerOnboardingShown()) {
+        if (BuildConfig.SUPPORTS_DEFAULT_PLAYER && !viewModel.isDefaultPlayerOnboardingShown()) {
             defaultPlayerPageIndex = pages.size
             pages.add(
                 WelcomePage(
@@ -239,7 +240,14 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private fun setupButtons() {
         binding.btnSkip.setOnClickListener {
-            finishWelcome()
+            // Phase 4: "not suppressed on first launch" — if the default player card exists
+            // and the user hasn't seen it yet, redirect to it instead of finishing.
+            // onPageSelected() will mark it as shown; subsequent Skip presses call finishWelcome().
+            if (defaultPlayerPageIndex != -1 && currentPage < defaultPlayerPageIndex) {
+                binding.viewPager.currentItem = defaultPlayerPageIndex
+            } else {
+                finishWelcome()
+            }
         }
 
         binding.btnPrevious.setOnClickListener {

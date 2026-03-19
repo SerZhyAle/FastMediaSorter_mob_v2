@@ -9,6 +9,9 @@
     <string name="settings_category_grid_view">Сітка</string>
     <string name="settings_category_player_ui">Інтерфейс плеєра</string>
     <string name="settings_category_touch_zones">Сенсорні зони</string>
+    <string name="settings_category_default_player">Плеєр за замовчуванням</string>
+    <string name="settings_primary_media_player">Використовувати як основний медіаплеєр (апаратні кнопки та асоціації файлів)</string>
+    <string name="settings_accept_shared_files">Приймати медіафайли через «Поділитися»</string>
     <string name="start_player">Запустити плеєр</string>
     <string name="add">Додати</string>
     <string name="settings">Налаштування</string>
