@@ -31,6 +31,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private lateinit var pagerAdapter: WelcomePagerAdapter
     private var currentPage = 0
+    private var defaultPlayerPageIndex = -1
     private var waitingPermissionForFinish = false
     private var hasTriggeredLastPagePermissionRequest = false
     private var hasRequestedManageMediaInSession = false
@@ -61,7 +62,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         R.color.welcome_page_3_background,
         R.color.welcome_page_4_background,
         R.color.welcome_page_5_background,
-        R.color.welcome_page_6_background
+        R.color.welcome_page_6_background,
+        R.color.welcome_page_7_background
     )
 
     override fun getViewBinding(): ActivityWelcomeBinding =
@@ -120,7 +122,28 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                     FeatureCard(R.drawable.ic_book, R.string.welcome_feature_ebook)
                 )
             ),
-            // Page 6: Permissions
+        )
+
+        // Page 6 (first install only): Default Player onboarding
+        // NOTE: markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user
+        // actually reaches this page — not here — so skipping welcome doesn't suppress future display.
+        if (!viewModel.isDefaultPlayerOnboardingShown()) {
+            defaultPlayerPageIndex = pages.size
+            pages.add(
+                WelcomePage(
+                    iconRes = 0,
+                    titleRes = 0,
+                    descriptionRes = 0,
+                    isDefaultPlayerPage = true,
+                    onSkipClick = {
+                        binding.viewPager.currentItem = binding.viewPager.currentItem + 1
+                    }
+                )
+            )
+        }
+
+        pages.add(
+            // Page 6/7: Permissions
             WelcomePage(
                 iconRes = 0,
                 titleRes = 0,
@@ -135,6 +158,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 currentPage = position
+                if (position == defaultPlayerPageIndex) {
+                    viewModel.markDefaultPlayerOnboardingShown()
+                }
                 updateUI()
             }
         })

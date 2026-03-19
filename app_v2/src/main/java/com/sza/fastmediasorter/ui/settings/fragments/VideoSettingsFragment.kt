@@ -9,8 +9,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -106,6 +108,26 @@ class VideoSettingsFragment : Fragment() {
                 com.sza.fastmediasorter.R.string.tooltip_video_size_limits_title,
                 com.sza.fastmediasorter.R.string.tooltip_video_size_limits_message
             )
+        }
+
+        setupDefaultPlayerButton()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        _binding?.let {
+            DefaultPlayerHelper.applyButtonState(
+                it.btnSetDefaultVideoPlayer, requireContext(), R.string.settings_set_default_video_player
+            )
+        }
+    }
+
+    private fun setupDefaultPlayerButton() {
+        DefaultPlayerHelper.applyButtonState(
+            binding.btnSetDefaultVideoPlayer, requireContext(), R.string.settings_set_default_video_player
+        )
+        binding.btnSetDefaultVideoPlayer.setOnClickListener {
+            DefaultPlayerHelper.showSetDefaultDialog(this)
         }
     }
 

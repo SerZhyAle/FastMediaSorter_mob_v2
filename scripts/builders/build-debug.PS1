@@ -41,6 +41,8 @@ Set-Content $buildGradlePath $content -NoNewline
 
 # Start the Gradle build process (Debug only for speed)
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
+Set-Location $projectRoot
+
 
 function Invoke-DebugBuild {
     param(

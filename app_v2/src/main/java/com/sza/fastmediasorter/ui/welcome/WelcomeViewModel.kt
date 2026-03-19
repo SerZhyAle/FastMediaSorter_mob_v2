@@ -17,6 +17,7 @@ class WelcomeViewModel @Inject constructor(
         private const val PREFS_NAME = "welcome_prefs"
         private const val KEY_WELCOME_COMPLETED = "welcome_completed"
         private const val KEY_FIRST_RUN_AFTER_WELCOME = "first_run_after_welcome"
+        private const val KEY_DEFAULT_PLAYER_ONBOARDING_SHOWN = "onboarding_default_player_shown"
         private const val APP_PREFS_NAME = "app_prefs"
         private const val KEY_MEDIA_PERMISSIONS_GRANTED = "media_permissions_granted"
     }
@@ -59,6 +60,22 @@ class WelcomeViewModel @Inject constructor(
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
                 .edit()
                 .putBoolean(KEY_FIRST_RUN_AFTER_WELCOME, false)
+                .apply()
+        }
+    }
+
+    fun isDefaultPlayerOnboardingShown(): Boolean {
+        return StrictModeHelper.allowDiskReads {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .getBoolean(KEY_DEFAULT_PLAYER_ONBOARDING_SHOWN, false)
+        }
+    }
+
+    fun markDefaultPlayerOnboardingShown() {
+        StrictModeHelper.allowDiskWrites {
+            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+                .edit()
+                .putBoolean(KEY_DEFAULT_PLAYER_ONBOARDING_SHOWN, true)
                 .apply()
         }
     }

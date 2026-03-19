@@ -1,7 +1,5 @@
 import java.util.Properties
 import java.io.FileInputStream
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 plugins {
     id("com.android.application")
@@ -9,6 +7,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("androidx.navigation.safeargs.kotlin")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -30,8 +29,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260316231
-        versionName = "2.60.3162.312"
+        versionCode = 260319042
+        versionName = "2.60.3190.424"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -191,8 +190,7 @@ android {
                 debugSymbolLevel = "FULL"
             }
             proguardFiles(
-                // Use non-optimizing rules for faster builds (skips bytecode optimization pass)
-                getDefaultProguardFile("proguard-android.txt"),
+                getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
             signingConfig = signingConfigs.getByName("release")
@@ -201,6 +199,7 @@ android {
             initWith(getByName("release"))
             isDebuggable = true
             isMinifyEnabled = false
+            isShrinkResources = false
             applicationIdSuffix = ".staging"
             versionNameSuffix = "-STAGING"
             matchingFallbacks += listOf("release")
@@ -238,11 +237,6 @@ android {
         compose = true
     }
 
-    composeOptions {
-        // CRITICAL: Do not change - version 1.5.14 is matched to Kotlin 1.9.24 for Compose compatibility
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
-    
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -338,8 +332,8 @@ dependencies {
     implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
     
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    kapt("com.google.dagger:hilt-android-compiler:2.50")
+    implementation("com.google.dagger:hilt-android:2.57.2")
+    kapt("com.google.dagger:hilt-android-compiler:2.57.2")
     
     // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.9.0")
@@ -348,13 +342,13 @@ dependencies {
     implementation("androidx.profileinstaller:profileinstaller:1.3.1")
     
     // Hilt WorkManager integration
-    implementation("androidx.hilt:hilt-work:1.1.0")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    kapt("androidx.hilt:hilt-compiler:1.2.0")
     
     // Room
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-runtime:2.7.0")
+    implementation("androidx.room:room-ktx:2.7.0")
+    kapt("androidx.room:room-compiler:2.7.0")
     
     // Paging 3
     implementation("androidx.paging:paging-runtime-ktx:3.2.1")
@@ -460,10 +454,10 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     androidTestImplementation("androidx.navigation:navigation-testing:2.7.6")
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.50")
+    androidTestImplementation("com.google.dagger:hilt-android-testing:2.57.2")
     androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
-    androidTestImplementation("androidx.room:room-testing:2.6.1")
-    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.50")
+    androidTestImplementation("androidx.room:room-testing:2.7.0")
+    kaptAndroidTest("com.google.dagger:hilt-android-compiler:2.57.2")
 }
 
 // TEMPORARILY DISABLED: BouncyCastle resolutionStrategy (was needed for PDFBox)

@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    id("org.jetbrains.kotlin.plugin.compose")
 }
 
 android {
@@ -76,14 +77,6 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-    }
-
-    composeOptions {
-        // CRITICAL: Do not change - version 1.5.14 is matched to Kotlin 1.9.24 for Compose compatibility
-        kotlinCompilerExtensionVersion = "1.5.14"
-        // Suppress ViewTranslationCallback compatibility warning for Wear OS 2.x
-        // This class doesn't exist on Android < 31, but we're targeting API 28+
-        // The app still works - this is just a framework compatibility issue
     }
 
     packaging {

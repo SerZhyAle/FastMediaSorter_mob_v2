@@ -10,8 +10,10 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsImagesBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -176,6 +178,26 @@ class ImagesSettingsFragment : Fragment() {
                 com.sza.fastmediasorter.R.string.tooltip_slideshow_music_title,
                 com.sza.fastmediasorter.R.string.tooltip_slideshow_music_message
             )
+        }
+
+        setupDefaultPlayerButton()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        _binding?.let {
+            DefaultPlayerHelper.applyButtonState(
+                it.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
+            )
+        }
+    }
+
+    private fun setupDefaultPlayerButton() {
+        DefaultPlayerHelper.applyButtonState(
+            binding.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
+        )
+        binding.btnSetDefaultImageViewer.setOnClickListener {
+            DefaultPlayerHelper.showSetDefaultDialog(this)
         }
     }
 

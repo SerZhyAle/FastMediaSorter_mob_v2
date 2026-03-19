@@ -11,8 +11,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsDocumentsBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
 
 class DocumentsSettingsFragment : BaseSettingsFragment() {
@@ -90,6 +92,26 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
                 com.sza.fastmediasorter.R.string.tooltip_line_numbers_title,
                 com.sza.fastmediasorter.R.string.tooltip_line_numbers_message
             )
+        }
+
+        setupDefaultPlayerButton()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        _binding?.let {
+            DefaultPlayerHelper.applyButtonState(
+                it.btnSetDefaultDocsViewer, requireContext(), R.string.settings_set_default_docs_viewer
+            )
+        }
+    }
+
+    private fun setupDefaultPlayerButton() {
+        DefaultPlayerHelper.applyButtonState(
+            binding.btnSetDefaultDocsViewer, requireContext(), R.string.settings_set_default_docs_viewer
+        )
+        binding.btnSetDefaultDocsViewer.setOnClickListener {
+            DefaultPlayerHelper.showSetDefaultDialog(this)
         }
     }
 

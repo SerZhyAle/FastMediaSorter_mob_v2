@@ -649,6 +649,14 @@
     <string name="welcome_description_5">Не лише перегляд медіа — FastMediaSorter містить професійні інструменти для тексту, документів та аудіо.</string>
     <string name="welcome_permissions_title">Доступ до медіафайлів</string>
     <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
+    <string name="welcome_default_player_title">Призначити плеєром за замовчуванням</string>
+    <string name="welcome_default_player_description">Призначте FastMediaSorter додатком за замовчуванням для потрібних типів медіафайлів. Android відкриватиме відповідні файли безпосередньо в цьому додатку.</string>
+    <string name="welcome_default_player_btn_audio">Аудіо</string>
+    <string name="welcome_default_player_btn_video">Відео</string>
+    <string name="welcome_default_player_btn_images">Зображення</string>
+    <string name="welcome_default_player_btn_docs">Документи</string>
+    <string name="welcome_default_player_btn_set_default">Призначити за замовчуванням</string>
+    <string name="welcome_default_player_skip">Пропустити</string>
     <string name="grant_permissions">Надати доступ</string>
     <string name="permissions_denied_title">Потрібен дозвіл</string>
     <string name="permissions_denied_warning">Без доступу до медіафайлів основний функціонал додатка буде недоступний.</string>
@@ -1848,4 +1856,15 @@
     <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>
     <string name="resume_unavailable">Не вдалося відновити відтворення — ресурс недоступний або сесія закінчилася</string>
     <string name="resume_checking">Відновлення відтворення…</string>
+
+    <!-- Default player association (Phase 3) -->
+    <string name="settings_set_default_audio_player">Призначити аудіоплеєром за замовчуванням</string>
+    <string name="settings_set_default_video_player">Призначити відеоплеєром за замовчуванням</string>
+    <string name="settings_set_default_image_viewer">Призначити переглядачем зображень за замовчуванням</string>
+    <string name="settings_set_default_docs_viewer">Призначити додатком для документів за замовчуванням</string>
+    <string name="settings_already_default_player">✓ Вже встановлено за замовчуванням</string>
+    <string name="settings_set_default_media_player">Призначити медіаплеєром за замовчуванням</string>
+    <string name="settings_default_player_dialog_title">Призначити за замовчуванням</string>
+    <string name="settings_default_player_dialog_message">Вас буде перенаправлено до системних налаштувань Android, де ви зможете обрати FastMediaSorter додатком за замовчуванням для цього типу файлів.</string>
+    <string name="settings_default_player_dialog_confirm">Відкрити налаштування</string>
 </resources>

@@ -5,11 +5,11 @@ buildscript {
     }
     dependencies {
     // CRITICAL: Do not change - AGP 8.7.3 tested and stable for this project
-    classpath("com.android.tools.build:gradle:8.7.3")
+    classpath("com.android.tools.build:gradle:9.1.0")
         // CRITICAL: Do not change - Kotlin 1.9.24 required for project stability
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
-        classpath("com.google.dagger:hilt-android-gradle-plugin:2.50")
-        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.7.6")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.10")
+        classpath("com.google.dagger:hilt-android-gradle-plugin:2.57.2")
+        classpath("androidx.navigation:navigation-safe-args-gradle-plugin:2.9.6")
     }
     
     // Check for compatible JDK version (Gradle 8.7+ supports up to Java 21, but 25 is definitely too new)
@@ -21,10 +21,11 @@ buildscript {
 }
 
 plugins {
-    id("com.android.application") version "8.7.3" apply false
-    id("org.jetbrains.kotlin.android") version "1.9.24" apply false
-    id("com.google.devtools.ksp") version "1.9.24-1.0.20" apply false
-    id("com.google.dagger.hilt.android") version "2.50" apply false
+    id("com.android.application") version "9.1.0" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.10" apply false
+    id("com.google.devtools.ksp") version "2.3.2" apply false
+    id("com.google.dagger.hilt.android") version "2.57.2" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.2.10" apply false
 }
 
 tasks.register("clean", Delete::class) {

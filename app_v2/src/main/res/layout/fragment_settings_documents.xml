@@ -163,5 +163,14 @@
                 android:textSize="@dimen/resource_card_desc_text_size" />
         </LinearLayout>
 
+    <Button
+        android:id="@+id/btnSetDefaultDocsViewer"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/settings_set_default_docs_viewer"
+        android:textAllCaps="false" />
+
 </LinearLayout>
 

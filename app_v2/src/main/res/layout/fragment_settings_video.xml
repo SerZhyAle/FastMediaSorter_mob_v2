@@ -42,5 +42,14 @@
         </com.google.android.material.textfield.TextInputLayout>
     </LinearLayout>
 
+    <Button
+        android:id="@+id/btnSetDefaultVideoPlayer"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/settings_set_default_video_player"
+        android:textAllCaps="false" />
+
 </LinearLayout>
 

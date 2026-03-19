@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsAudioBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -212,6 +213,9 @@ class AudioSettingsFragment : Fragment() {
 
         // Background audio playback
         setupBackgroundAudioSection()
+
+        // Default player button
+        setupDefaultPlayerButton()
     }
 
     private fun observeData() {
@@ -358,5 +362,23 @@ class AudioSettingsFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        _binding?.let {
+            DefaultPlayerHelper.applyButtonState(
+                it.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
+            )
+        }
+    }
+
+    private fun setupDefaultPlayerButton() {
+        DefaultPlayerHelper.applyButtonState(
+            binding.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
+        )
+        binding.btnSetDefaultAudioPlayer.setOnClickListener {
+            DefaultPlayerHelper.showSetDefaultDialog(this)
+        }
     }
 }

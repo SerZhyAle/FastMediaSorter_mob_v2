@@ -100,5 +100,14 @@
         <Button android:id="@+id/btnSelectMusicSource" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/select_music_source" android:textAllCaps="false" />
     </LinearLayout>
 
+    <Button
+        android:id="@+id/btnSetDefaultImageViewer"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/settings_set_default_image_viewer"
+        android:textAllCaps="false" />
+
 </LinearLayout>
 

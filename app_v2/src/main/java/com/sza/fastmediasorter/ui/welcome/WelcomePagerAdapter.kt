@@ -6,7 +6,10 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import android.content.Intent
+import android.provider.Settings
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
+import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeEnhancedBinding
 import com.sza.fastmediasorter.databinding.PageWelcomePermissionsBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeTouchZonesBinding
@@ -20,11 +23,13 @@ class WelcomePagerAdapter(
         private const val VIEW_TYPE_TOUCH_ZONES = 1
         private const val VIEW_TYPE_PERMISSIONS = 2
         private const val VIEW_TYPE_ENHANCED = 3
+        private const val VIEW_TYPE_DEFAULT_PLAYER = 4
     }
 
     override fun getItemViewType(position: Int): Int {
         return when {
             pages[position].isPermissionsPage -> VIEW_TYPE_PERMISSIONS
+            pages[position].isDefaultPlayerPage -> VIEW_TYPE_DEFAULT_PLAYER
             pages[position].showTouchZonesScheme -> VIEW_TYPE_TOUCH_ZONES
             pages[position].featureCards.isNotEmpty() -> VIEW_TYPE_ENHANCED
             else -> VIEW_TYPE_NORMAL
@@ -49,6 +54,14 @@ class WelcomePagerAdapter(
                 )
                 PermissionsViewHolder(binding)
             }
+            VIEW_TYPE_DEFAULT_PLAYER -> {
+                val binding = PageWelcomeDefaultPlayerBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                )
+                DefaultPlayerViewHolder(binding)
+            }
             VIEW_TYPE_ENHANCED -> {
                 val binding = PageWelcomeEnhancedBinding.inflate(
                     LayoutInflater.from(parent.context),
@@ -72,6 +85,7 @@ class WelcomePagerAdapter(
         when (holder) {
             is TouchZonesViewHolder -> holder.bind(pages[position])
             is PermissionsViewHolder -> holder.bind(pages[position])
+            is DefaultPlayerViewHolder -> holder.bind(pages[position])
             is EnhancedViewHolder -> holder.bind(pages[position])
             is WelcomeViewHolder -> holder.bind(pages[position])
         }
@@ -121,6 +135,28 @@ class WelcomePagerAdapter(
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.btnGrant, 300L)
+        }
+    }
+
+    class DefaultPlayerViewHolder(
+        private val binding: PageWelcomeDefaultPlayerBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(page: WelcomePage) {
+            binding.btnSetDefault.setOnClickListener {
+                try {
+                    binding.root.context.startActivity(
+                        Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
+                    )
+                } catch (_: Exception) { /* system settings unavailable */ }
+            }
+            binding.btnSkip.setOnClickListener { page.onSkipClick?.invoke() }
+
+            animateEntrance(binding.ivIcon, 0L)
+            animateEntrance(binding.tvTitle, 150L)
+            animateEntrance(binding.tvDescription, 250L)
+            animateEntrance(binding.btnSetDefault, 400L)
+            animateEntrance(binding.btnSkip, 500L)
         }
     }
 
@@ -174,7 +210,9 @@ data class WelcomePage(
     val descriptionRes: Int,
     val showTouchZonesScheme: Boolean = false,
     val isPermissionsPage: Boolean = false,
+    val isDefaultPlayerPage: Boolean = false,
     val onGrantClick: (() -> Unit)? = null,
+    val onSkipClick: (() -> Unit)? = null,
     val featureCards: List<FeatureCard> = emptyList()
 )
 

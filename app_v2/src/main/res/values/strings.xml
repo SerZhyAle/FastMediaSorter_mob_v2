@@ -600,6 +600,14 @@
     <string name="welcome_description_5">Go beyond simple media viewing — FastMediaSorter packs professional tools for text, documents, and audio.</string>
     <string name="welcome_permissions_title">Media Files Access</string>
     <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
+    <string name="welcome_default_player_title">Set as Default Player</string>
+    <string name="welcome_default_player_description">Set FastMediaSorter as the default app for your favorite media types. Android will open matching files directly in this app.</string>
+    <string name="welcome_default_player_btn_audio">Audio</string>
+    <string name="welcome_default_player_btn_video">Video</string>
+    <string name="welcome_default_player_btn_images">Images</string>
+    <string name="welcome_default_player_btn_docs">Documents</string>
+    <string name="welcome_default_player_btn_set_default">Set as default</string>
+    <string name="welcome_default_player_skip">Skip for now</string>
     <string name="grant_permissions">Grant Access</string>
     <string name="permissions_denied_title">Permission Required</string>
     <string name="permissions_denied_warning">Without media access, core app features will be unavailable.</string>
@@ -1921,6 +1929,17 @@
     <string name="label_profile_all_files">Quick Setup: All Files</string>
     <string name="title_select_profile">Quick Setup Profile</string>
     <string name="database_reset_message">Database was reset due to an upgrade error. Your resources will need to be re-added.</string>
+
+    <!-- Default player association (Phase 3) -->
+    <string name="settings_set_default_audio_player">Set as default audio player</string>
+    <string name="settings_set_default_video_player">Set as default video player</string>
+    <string name="settings_set_default_image_viewer">Set as default image viewer</string>
+    <string name="settings_set_default_docs_viewer">Set as default document viewer</string>
+    <string name="settings_already_default_player">✓ Already set as default</string>
+    <string name="settings_set_default_media_player">Set as default media player</string>
+    <string name="settings_default_player_dialog_title">Set as default</string>
+    <string name="settings_default_player_dialog_message">You will be redirected to Android system settings where you can select FastMediaSorter as the default app for this file type.</string>
+    <string name="settings_default_player_dialog_confirm">Open settings</string>
 
 </resources>
 

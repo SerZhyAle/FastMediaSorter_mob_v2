@@ -147,5 +147,14 @@
         android:text="@string/manage_notifications_permission"
         android:visibility="gone" />
 
+    <Button
+        android:id="@+id/btnSetDefaultAudioPlayer"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:text="@string/settings_set_default_audio_player"
+        android:textAllCaps="false" />
+
 </LinearLayout>
 
