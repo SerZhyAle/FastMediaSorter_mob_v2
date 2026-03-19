@@ -267,7 +267,7 @@
             </intent-filter>
         </activity-alias>
 
-        <!-- Phase 6: ACTION_SEND aliases (Share sheet intake, disabled by default) -->
+        <!-- Phase 6: ACTION_SEND / ACTION_SEND_MULTIPLE aliases (Share sheet, disabled by default) -->
         <!-- Enabled/disabled via DefaultPlayerManager when "Accept shared media files" toggle is ON -->
 
         <!-- Audio share receiver -->
@@ -278,6 +278,7 @@
             android:targetActivity=".ui.player.StandalonePlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="audio/*" />
             </intent-filter>
@@ -291,6 +292,7 @@
             android:targetActivity=".ui.player.StandalonePlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="video/*" />
             </intent-filter>
@@ -304,6 +306,7 @@
             android:targetActivity=".ui.player.StandalonePlayerActivity">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <data android:mimeType="image/*" />
             </intent-filter>

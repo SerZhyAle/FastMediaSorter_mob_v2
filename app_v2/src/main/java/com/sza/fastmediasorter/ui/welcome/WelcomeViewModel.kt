@@ -2,15 +2,20 @@ package com.sza.fastmediasorter.ui.welcome
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.ui.BaseViewModel
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class WelcomeViewModel @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val settingsRepository: SettingsRepository
 ) : BaseViewModel<WelcomeState, WelcomeEvent>() {
 
     companion object {
@@ -77,6 +82,13 @@ class WelcomeViewModel @Inject constructor(
                 .edit()
                 .putBoolean(KEY_DEFAULT_PLAYER_ONBOARDING_SHOWN, true)
                 .apply()
+        }
+    }
+
+    fun enablePrimaryMediaPlayer() {
+        viewModelScope.launch {
+            val current = settingsRepository.getSettings().first()
+            settingsRepository.updateSettings(current.copy(isPrimaryMediaPlayer = true))
         }
     }
 

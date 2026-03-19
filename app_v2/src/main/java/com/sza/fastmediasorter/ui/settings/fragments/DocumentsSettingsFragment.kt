@@ -111,7 +111,7 @@ class DocumentsSettingsFragment : BaseSettingsFragment() {
             binding.btnSetDefaultDocsViewer, requireContext(), R.string.settings_set_default_docs_viewer
         )
         binding.btnSetDefaultDocsViewer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialog(this)
+            DefaultPlayerHelper.showSetDefaultDialogForType(this, "application/pdf")
         }
     }
 

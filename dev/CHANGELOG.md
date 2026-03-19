@@ -685,3 +685,20 @@ Format: | datetime | file | target | description |
 | 2026-03-19 15:30:00 | `gradle.properties` | `gradle.properties` | Remove 4 deprecated AGP flags (sdk.defaultTargetSdk, enableAppCompileTimeRClass, usesSdkInManifest.disallowed, r8.optimizedResourceShrinking); add generateSyncIssueWhenLibraryConstraintsAreEnabled=false to suppress spam; document kept flags |
 | 2026-03-19 15:30:00 | `app_v2/build.gradle.kts` | `build.gradle.kts` | Migrate resourceConfigurations to androidResources.localeFilters; migrate kotlinOptions{jvmTarget} to tasks.withType<KotlinCompile>().compilerOptions |
 | 2026-03-19 16:00:00 | `.gitattributes` | `git` | Add .gitattributes enforcing LF line endings for all source files; normalize all 491 .kt files from mixed CRLF/LF to LF with dos2unix |
+| 2026-03-19 19:00:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `DefaultPlayerViewHolder` | Delegate btnSetDefault click to onSetDefaultClick callback; remove hardcoded Settings intent from ViewHolder |
+| 2026-03-19 19:00:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `WelcomeViewModel` | Inject SettingsRepository; add enablePrimaryMediaPlayer() to persist isPrimaryMediaPlayer=true from onboarding |
+| 2026-03-19 19:00:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Fix: provide onSetDefaultClick callback that enables activity-aliases and persists setting before opening Android default apps settings |
+| 2026-03-19 19:30:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `openDefaultPlayerChooser` | Fix: replace ACTION_MANAGE_DEFAULT_APPS_SETTINGS (no media category on stock Android) with Intent.ACTION_VIEW per MIME type, which triggers Open With chooser where app IS visible; settings screen as fallback for Samsung/Xiaomi ROMs |
+| 2026-03-19 19:30:00 | `app_v2/src/main/res/values/strings.xml` | `welcome_default_player_description` | Update description to correctly explain tap-Always flow instead of implying a settings page |
+| 2026-03-19 23:40:18 | `app_v2/.../DefaultPlayerHelper.kt` | `DefaultPlayerHelper` | Phase 3 fix: enable aliases before opening chooser; MediaStore query + createChooser replaces broken ACTION_MANAGE_DEFAULT_APPS_SETTINGS |
+| 2026-03-19 23:40:18 | `.../AudioSettingsFragment.kt` | `setupDefaultPlayerButton` | showSetDefaultDialogForType(audio/*) |
+| 2026-03-19 23:40:18 | `.../VideoSettingsFragment.kt` | `setupDefaultPlayerButton` | showSetDefaultDialogForType(video/*) |
+| 2026-03-19 23:40:18 | `.../ImagesSettingsFragment.kt` | `setupDefaultPlayerButton` | showSetDefaultDialogForType(image/*) |
+| 2026-03-19 23:40:18 | `.../DocumentsSettingsFragment.kt` | `setupDefaultPlayerButton` | showSetDefaultDialogForType(application/pdf) |
+| 2026-03-19 23:40:18 | `.../MediaSettingsFragment.kt` | `setupDefaultPlayerButton` | showSetDefaultDialogForType(video/*) |
+| 2026-03-19 23:40:18 | `res/layout/page_welcome_default_player.xml` | `layout` | Phase 4 fix: replaced single button with 4 type-specific buttons (Audio/Video/Images/Docs), removed Skip per spec |
+| 2026-03-19 23:40:18 | `.../WelcomePagerAdapter.kt` | `DefaultPlayerViewHolder` | Phase 4 fix: 4-button ViewHolder with BuildConfig flavor gating; WelcomePage.onSetDefaultForTypeClick replaces onSetDefaultClick |
+| 2026-03-19 23:40:18 | `.../WelcomeActivity.kt` | `setupViewPager` | Phase 4 fix: 4 type callbacks; openDefaultPlayerChooser() removed |
+| 2026-03-19 23:40:18 | `AndroidManifest.xml` | `StandaloneAudioSender/VideoSender/ImageSender` | Phase 6 fix: added ACTION_SEND_MULTIPLE to all share aliases |
+| 2026-03-19 23:40:18 | `.../StandalonePlayerActivity.kt` | `parseIncomingIntent` | Phase 6 fix: handle ACTION_SEND_MULTIPLE, open first URI from list |
+| 2026-03-19 23:40:18 | `res/values*/strings.xml` | `settings_default_player_dialog_message` | Updated dialog message/button text for chooser flow in EN/RU/UK |

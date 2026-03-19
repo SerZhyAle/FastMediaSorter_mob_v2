@@ -22,6 +22,8 @@ import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.databinding.ActivityWelcomeBinding
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerManager
 import com.sza.fastmediasorter.BuildConfig
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -126,8 +128,8 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         )
 
         // Page 6 (first install only): Default Player onboarding
-        // NOTE: markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user
-        // actually reaches this page — not here — so skipping welcome doesn't suppress future display.
+        // markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user reaches
+        // this page — so skipping welcome doesn't suppress future display.
         if (BuildConfig.SUPPORTS_DEFAULT_PLAYER && !viewModel.isDefaultPlayerOnboardingShown()) {
             defaultPlayerPageIndex = pages.size
             pages.add(
@@ -136,8 +138,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                     titleRes = 0,
                     descriptionRes = 0,
                     isDefaultPlayerPage = true,
-                    onSkipClick = {
-                        binding.viewPager.currentItem = binding.viewPager.currentItem + 1
+                    onSetDefaultForTypeClick = { mimeType ->
+                        // Enable aliases so the app registers as a handler, then open chooser.
+                        viewModel.enablePrimaryMediaPlayer()
+                        DefaultPlayerHelper.openChooserOrFallbackFromActivity(this, mimeType)
                     }
                 )
             )
@@ -405,6 +409,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             .setCancelable(true)
             .show()
     }
+
+    // openDefaultPlayerChooser() removed — Welcome page now calls
+    // DefaultPlayerHelper.openChooserOrFallbackFromActivity() directly per type button.
 
     private fun completeWelcomeFlow() {
         if (hasRequiredMediaPermissions()) {

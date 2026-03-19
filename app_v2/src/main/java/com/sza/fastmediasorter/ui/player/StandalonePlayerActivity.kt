@@ -119,6 +119,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     intent.getParcelableExtra(Intent.EXTRA_STREAM)
                 }
             }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                // Open the first file from the list; multi-file playlist not supported standalone.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.firstOrNull()
+                } else {
+                    @Suppress("DEPRECATION")
+                    intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
+                }
+            }
             else -> intent?.data
         }
 

@@ -653,7 +653,7 @@
     <string name="welcome_permissions_title">Доступ до медіафайлів</string>
     <string name="welcome_permissions_description">FastMediaSorter потребує доступу до ваших фото, відео та аудіофайлів для сканування і відображення медіа. Ми не передаємо ваші файли третім сторонам.</string>
     <string name="welcome_default_player_title">Призначити плеєром за замовчуванням</string>
-    <string name="welcome_default_player_description">Призначте FastMediaSorter додатком за замовчуванням для потрібних типів медіафайлів. Android відкриватиме відповідні файли безпосередньо в цьому додатку.</string>
+    <string name="welcome_default_player_description">Натисніть потрібну кнопку — Android покаже вибір застосунків. Оберіть FastMediaSorter і натисніть «Завжди», щоб призначити його типовим плеєром для цього типу файлів.</string>
     <string name="welcome_default_player_btn_audio">Аудіо</string>
     <string name="welcome_default_player_btn_video">Відео</string>
     <string name="welcome_default_player_btn_images">Зображення</string>
@@ -1868,6 +1868,6 @@
     <string name="settings_already_default_player">✓ Вже встановлено за замовчуванням</string>
     <string name="settings_set_default_media_player">Призначити медіаплеєром за замовчуванням</string>
     <string name="settings_default_player_dialog_title">Призначити за замовчуванням</string>
-    <string name="settings_default_player_dialog_message">Вас буде перенаправлено до системних налаштувань Android, де ви зможете обрати FastMediaSorter додатком за замовчуванням для цього типу файлів.</string>
-    <string name="settings_default_player_dialog_confirm">Відкрити налаштування</string>
+    <string name="settings_default_player_dialog_message">Відкриється вибір застосунків. Оберіть FastMediaSorter і натисніть «Завжди», щоб призначити його типовим плеєром для цього типу файлів.</string>
+    <string name="settings_default_player_dialog_confirm">Відкрити вибір</string>
 </resources>

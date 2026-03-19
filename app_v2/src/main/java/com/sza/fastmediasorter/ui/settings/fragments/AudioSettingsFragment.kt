@@ -378,7 +378,7 @@ class AudioSettingsFragment : Fragment() {
             binding.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
         )
         binding.btnSetDefaultAudioPlayer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialog(this)
+            DefaultPlayerHelper.showSetDefaultDialogForType(this, "audio/*")
         }
     }
 }

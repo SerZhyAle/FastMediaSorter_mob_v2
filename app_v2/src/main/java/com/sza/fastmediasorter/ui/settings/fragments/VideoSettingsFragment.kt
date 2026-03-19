@@ -127,7 +127,7 @@ class VideoSettingsFragment : Fragment() {
             binding.btnSetDefaultVideoPlayer, requireContext(), R.string.settings_set_default_video_player
         )
         binding.btnSetDefaultVideoPlayer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialog(this)
+            DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
         }
     }
 

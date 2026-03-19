@@ -604,7 +604,7 @@
     <string name="welcome_permissions_title">Media Files Access</string>
     <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
     <string name="welcome_default_player_title">Set as Default Player</string>
-    <string name="welcome_default_player_description">Set FastMediaSorter as the default app for your favorite media types. Android will open matching files directly in this app.</string>
+    <string name="welcome_default_player_description">Tap a button below — Android will show an app chooser. Select FastMediaSorter and tap \"Always\" to set it as default for that file type.</string>
     <string name="welcome_default_player_btn_audio">Audio</string>
     <string name="welcome_default_player_btn_video">Video</string>
     <string name="welcome_default_player_btn_images">Images</string>
@@ -1941,8 +1941,8 @@
     <string name="settings_already_default_player">✓ Already set as default</string>
     <string name="settings_set_default_media_player">Set as default media player</string>
     <string name="settings_default_player_dialog_title">Set as default</string>
-    <string name="settings_default_player_dialog_message">You will be redirected to Android system settings where you can select FastMediaSorter as the default app for this file type.</string>
-    <string name="settings_default_player_dialog_confirm">Open settings</string>
+    <string name="settings_default_player_dialog_message">An app chooser will open. Select FastMediaSorter and tap \"Always\" to set it as your default player for this file type.</string>
+    <string name="settings_default_player_dialog_confirm">Open chooser</string>
 
 </resources>
 

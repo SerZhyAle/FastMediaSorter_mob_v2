@@ -1,22 +1,35 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
+import android.app.Activity
+import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
- * Shows a dialog explaining default app association, then opens system Default Apps settings.
+ * Helpers for "Set as default player" UI in Settings and Welcome screens.
+ *
+ * Flow (type-specific):
+ * 1. Enable activity-alias components via DefaultPlayerManager (app becomes visible to OS).
+ * 2. Show a dialog explaining the next step.
+ * 3. Query MediaStore for an existing file of that type and open Intent.createChooser so the
+ *    user sees the "Open with - Always" dialog on stock Android (Pixel/AOSP).
+ * 4. If no file exists on the device, fall back to ACTION_MANAGE_DEFAULT_APPS_SETTINGS
+ *    (works on Samsung/Xiaomi ROMs that have a "Media player" category there).
  */
 object DefaultPlayerHelper {
 
     /**
-     * Best-effort check whether this app is the current default handler for media open intents.
-     * Android has no public ROLE_MEDIA_PLAYER constant, so we inspect resolver results.
+     * Best-effort check: is this app the current default handler for media open intents?
+     * Returns false on API below 29 (no reliable API).
      */
     fun isAlreadyDefaultPlayer(context: Context): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
@@ -27,7 +40,7 @@ object DefaultPlayerHelper {
         val mimeTypesToProbe = listOf("audio/*", "video/*", "image/*", "application/pdf")
         return mimeTypesToProbe.any { mime ->
             val probe = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(android.net.Uri.parse("content://"), mime)
+                setDataAndType(Uri.parse("content://"), mime)
                 addCategory(Intent.CATEGORY_DEFAULT)
             }
             val resolved = pm.resolveActivity(probe, android.content.pm.PackageManager.MATCH_DEFAULT_ONLY)
@@ -36,8 +49,8 @@ object DefaultPlayerHelper {
     }
 
     /**
-     * Updates button enabled state and text based on whether the app is already the default player.
-     * Call in both setupViews() and onResume() to reflect post-settings-screen state.
+     * Updates button enabled state and text based on current default-player status.
+     * Call in setupViews() and onResume().
      */
     fun applyButtonState(button: TextView, context: Context, normalTextRes: Int) {
         val isDefault = isAlreadyDefaultPlayer(context)
@@ -48,30 +61,162 @@ object DefaultPlayerHelper {
         )
     }
 
-    fun showSetDefaultDialog(fragment: Fragment) {
+    // --- Type-specific entry point (Settings fragments) ---
+
+    /**
+     * For Settings fragments: enable aliases, show instructional dialog, then open the
+     * system chooser for the given MIME type (e.g. audio, video, image, application/pdf).
+     */
+    fun showSetDefaultDialogForType(fragment: Fragment, mimeType: String) {
         val context = fragment.requireContext()
+        DefaultPlayerManager.applyPrimaryPlayerState(context, true)
         MaterialAlertDialogBuilder(context)
             .setTitle(R.string.settings_default_player_dialog_title)
             .setMessage(R.string.settings_default_player_dialog_message)
             .setPositiveButton(R.string.settings_default_player_dialog_confirm) { _, _ ->
-                openDefaultAppsSettings(fragment)
+                openChooserOrFallback(fragment, mimeType)
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    // --- Activity overload (Welcome screen) ---
+
+    /**
+     * For Activities: enable aliases then open the system chooser directly (no dialog).
+     * The Welcome screen already provides on-page instructions, so the dialog is redundant.
+     */
+    fun openChooserOrFallbackFromActivity(activity: Activity, mimeType: String) {
+        DefaultPlayerManager.applyPrimaryPlayerState(activity, true)
+        val sample = findSampleFile(activity, mimeType)
+        if (sample != null) {
+            val (uri, actualMime) = sample
+            val viewIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, actualMime)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            try {
+                activity.startActivity(Intent.createChooser(viewIntent, null))
+                return
+            } catch (e: Exception) {
+                Timber.w(e, "DefaultPlayerHelper: createChooser failed for %s", mimeType)
+            }
+        }
+        openDefaultAppsSettingsFromActivity(activity)
+    }
+
+    // --- Internal helpers ---
+
+    private fun openChooserOrFallback(fragment: Fragment, mimeType: String) {
+        val context = fragment.requireContext()
+        val sample = findSampleFile(context, mimeType)
+        if (sample != null) {
+            val (uri, actualMime) = sample
+            val viewIntent = Intent(Intent.ACTION_VIEW).apply {
+                setDataAndType(uri, actualMime)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            try {
+                fragment.startActivity(Intent.createChooser(viewIntent, null))
+                return
+            } catch (e: Exception) {
+                Timber.w(e, "DefaultPlayerHelper: createChooser failed for %s", mimeType)
+            }
+        }
+        openDefaultAppsSettings(fragment)
+    }
+
+    /**
+     * Query MediaStore for the most recently modified file matching the given MIME type.
+     * Returns a Pair of (contentUri, actualMimeType) or null if nothing found.
+     */
+    private fun findSampleFile(context: Context, mimeType: String): Pair<Uri, String>? {
+        return when {
+            mimeType.startsWith("audio") ->
+                queryCollection(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
+            mimeType.startsWith("video") ->
+                queryCollection(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+            mimeType.startsWith("image") ->
+                queryCollection(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+            else ->
+                queryFilesWithMime(context, mimeType)
+        }
+    }
+
+    private fun queryCollection(context: Context, collectionUri: Uri): Pair<Uri, String>? {
+        return try {
+            context.contentResolver.query(
+                collectionUri,
+                arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.MIME_TYPE),
+                null, null,
+                "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    val mime = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
+                        ?: return@use null
+                    Pair(ContentUris.withAppendedId(collectionUri, id), mime)
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "DefaultPlayerHelper: MediaStore query failed")
+            null
+        }
+    }
+
+    private fun queryFilesWithMime(context: Context, mimeType: String): Pair<Uri, String>? {
+        val filesUri = MediaStore.Files.getContentUri("external")
+        return try {
+            context.contentResolver.query(
+                filesUri,
+                arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.MIME_TYPE),
+                "${MediaStore.MediaColumns.MIME_TYPE} = ?",
+                arrayOf(mimeType),
+                "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
+                    val mime = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
+                        ?: return@use null
+                    Pair(ContentUris.withAppendedId(filesUri, id), mime)
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "DefaultPlayerHelper: MediaStore files query failed for %s", mimeType)
+            null
+        }
     }
 
     private fun openDefaultAppsSettings(fragment: Fragment) {
         try {
             fragment.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
         } catch (e: Exception) {
-            // Fallback: open app details settings
             try {
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = android.net.Uri.fromParts("package", fragment.requireContext().packageName, null)
+                    data = Uri.fromParts("package", fragment.requireContext().packageName, null)
                 }
                 fragment.startActivity(intent)
-            } catch (_: Exception) {
-                // Silently fail — system settings not available
+            } catch (ignored: Exception) {
+                Timber.w(ignored, "DefaultPlayerHelper: could not open default apps settings")
+            }
+        }
+    }
+
+    private fun openDefaultAppsSettingsFromActivity(activity: Activity) {
+        try {
+            activity.startActivity(Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS))
+        } catch (e: Exception) {
+            try {
+                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package", activity.packageName, null)
+                }
+                activity.startActivity(intent)
+            } catch (ignored: Exception) {
+                Timber.w(ignored, "DefaultPlayerHelper: could not open default apps settings")
             }
         }
     }

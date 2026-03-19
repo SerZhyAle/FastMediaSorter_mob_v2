@@ -4,10 +4,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
-import android.content.Intent
-import android.provider.Settings
 import com.sza.fastmediasorter.databinding.PageWelcomeBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeDefaultPlayerBinding
 import com.sza.fastmediasorter.databinding.PageWelcomeEnhancedBinding
@@ -143,20 +143,29 @@ class WelcomePagerAdapter(
     ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(page: WelcomePage) {
-            binding.btnSetDefault.setOnClickListener {
-                try {
-                    binding.root.context.startActivity(
-                        Intent(Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS)
-                    )
-                } catch (_: Exception) { /* system settings unavailable */ }
+            // Gate button visibility by flavor support and wire click callbacks.
+            binding.btnSetDefaultAudio.isVisible = BuildConfig.SUPPORT_AUDIO
+            binding.btnSetDefaultVideo.isVisible = BuildConfig.SUPPORT_VIDEO
+            binding.btnSetDefaultImages.isVisible = BuildConfig.SUPPORT_IMAGES
+            binding.btnSetDefaultDocs.isVisible = BuildConfig.SUPPORT_DOCUMENTS
+
+            binding.btnSetDefaultAudio.setOnClickListener {
+                page.onSetDefaultForTypeClick?.invoke("audio/*")
             }
-            binding.btnSkip.setOnClickListener { page.onSkipClick?.invoke() }
+            binding.btnSetDefaultVideo.setOnClickListener {
+                page.onSetDefaultForTypeClick?.invoke("video/*")
+            }
+            binding.btnSetDefaultImages.setOnClickListener {
+                page.onSetDefaultForTypeClick?.invoke("image/*")
+            }
+            binding.btnSetDefaultDocs.setOnClickListener {
+                page.onSetDefaultForTypeClick?.invoke("application/pdf")
+            }
 
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
-            animateEntrance(binding.btnSetDefault, 400L)
-            animateEntrance(binding.btnSkip, 500L)
+            animateEntrance(binding.layoutTypeButtons, 400L)
         }
     }
 
@@ -213,6 +222,8 @@ data class WelcomePage(
     val isDefaultPlayerPage: Boolean = false,
     val onGrantClick: (() -> Unit)? = null,
     val onSkipClick: (() -> Unit)? = null,
+    /** Called with the MIME type when the user taps a type-specific default-player button. */
+    val onSetDefaultForTypeClick: ((mimeType: String) -> Unit)? = null,
     val featureCards: List<FeatureCard> = emptyList()
 )
 

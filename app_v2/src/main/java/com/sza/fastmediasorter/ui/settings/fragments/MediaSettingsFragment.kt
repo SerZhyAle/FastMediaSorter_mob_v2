@@ -65,7 +65,7 @@ class MediaSettingsFragment : Fragment() {
             binding.btnSetDefaultMediaPlayer, requireContext(), R.string.settings_set_default_media_player
         )
         binding.btnSetDefaultMediaPlayer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialog(this)
+            DefaultPlayerHelper.showSetDefaultDialogForType(this, "video/*")
         }
     }
 

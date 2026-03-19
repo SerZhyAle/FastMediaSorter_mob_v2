@@ -197,7 +197,7 @@ class ImagesSettingsFragment : Fragment() {
             binding.btnSetDefaultImageViewer, requireContext(), R.string.settings_set_default_image_viewer
         )
         binding.btnSetDefaultImageViewer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialog(this)
+            DefaultPlayerHelper.showSetDefaultDialogForType(this, "image/*")
         }
     }
 
