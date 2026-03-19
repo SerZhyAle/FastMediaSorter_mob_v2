@@ -13,14 +13,14 @@
 
 The key idea of v2 is to combine viewing, playback, and organization of files in one intuitive interface, eliminating the shortcomings and limitations of the previous version.
 
-### 🚀 Latest Update (February 2026)
+### 🚀 Latest Update (March 2026)
 
+- **Android 8 Support**: Lowered minimum SDK to API 26 (Android 8.0 Oreo) for Standard, Lite, and Photos flavors. All flavors now support Android 8+; Legacy flavor continues to support Android 6+ (API 23).
 - **Batch Deletion Optimization**: Fixed multiple permission dialogs when deleting files - now shows ONE dialog for any number of files on Android 11+ (Task 1 ✅)
 - **Hidden Files Support**: Corrected hidden files filtering - files starting with `.` now properly respect the "Show Hidden Files" setting (Task 3 ✅)
 - **Binary Files Support**: Added support for binary files (ZIP, RAR, APK, ISO, EXE, etc.) with programmatic thumbnails and context menu - visible only in "All Files" mode (Task 6 ✅)
 - **Keyboard & Mouse Support**: Full keyboard navigation and mouse support across all screens - perfect for ChromeOS and desktop mode (Task 8 ✅)
 - **Enhanced Reliability**: Fixed file visibility after copy/move operations and resolved empty folder scanning issues.
-- **Better Compatibility**: Improved handling of scoped storage on Android 10-14.
 
 ## Windows Version 🖥️
 
@@ -78,7 +78,7 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 | **Standard** | `FastMediaSorter_standard_release.zip` | Full features (Cloud, OCR, EPUB, Translation) |
 | **Lite** | `FastMediaSorter_lite_release.zip` | Basic (Videos and Images only, no cloud/audio) |
 | **Photos** | `FastMediaSorter_photos_release.zip` | Images only (with cloud support) |
-| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full local media (Android 6.0+ compatibility) |
+| **Legacy** | `FastMediaSorter_legacy_release.zip` | Full local media (Android 6/7 compatibility, API 23-25) |
 
 > **Note**: All builds are automatically uploaded to Google Drive after successful compilation.
 >
@@ -207,8 +207,8 @@ Detailed guides are available in multiple languages:
 - Android Studio Hedgehog (2023.1.1) or newer
 
 - JDK 17+
-- Android SDK 34
-- Minimum Android version: 9.0 (API 28)
+- Android SDK 35
+- Minimum Android version: 8.0 (API 26) for Standard/Lite/Photos; 6.0 (API 23) for Legacy
 
 ### Build
 

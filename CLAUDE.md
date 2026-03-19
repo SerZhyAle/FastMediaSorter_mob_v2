@@ -87,7 +87,7 @@ Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 
 ## Tech Stack Highlights
 
-- **Language**: Kotlin 1.9+, Java 17, `compileSdk 35`, `minSdk 28`
+- **Language**: Kotlin 1.9+, Java 17, `compileSdk 35`, `minSdk 26` (Android 8+); `legacy` flavor `minSdk 23`
 - **DI**: Hilt
 - **DB**: Room v6 — increment version on every schema change; migrations in `AppDatabase.kt`
 - **Media**: ExoPlayer (Media3 1.2.1)

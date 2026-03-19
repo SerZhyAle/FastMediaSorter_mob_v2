@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Technical Requirements & Stack Reference
 
-**Last Updated**: March 3, 2026  
+**Last Updated**: March 19, 2026
 **Purpose**: Single source of truth for the full technical stack, library inventory, platform constraints, minimum and recommended requirements.
 
 ---
@@ -16,8 +16,8 @@
 | Gradle               | 8.11.1                         | Wrapper in `gradle/wrapper/`                    |
 | compileSdk           | 35                             | Android 15 (VanillaIceCream)                    |
 | targetSdk            | 35                             | Required for Play Store compliance              |
-| minSdk (standard)    | 28                             | Android 9 (Pie)                                 |
-| minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow)                       |
+| minSdk (standard)    | 26                             | Android 8.0 (Oreo)                              |
+| minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) — covers API 23-25    |
 | minSdk (wear)        | 28                             | Wear OS 2.0+                                    |
 | NDK version          | 25.1.8937393                   | For native libraries (Tesseract OCR)            |
 | KSP version          | 1.9.24-1.0.20                  | Used in Wear module                             |
@@ -35,9 +35,9 @@
 
 | Flavor     | minSdk | Video | Audio | Images | Cloud | Documents | Animations | EPUB | Translation |
 |:-----------|:------:|:-----:|:-----:|:------:|:-----:|:---------:|:----------:|:----:|:-----------:|
-| `standard` | 28     | ✅    | ✅    | ✅     | ✅    | ✅        | ✅         | ✅   | ✅          |
-| `lite`     | 28     | ✅    | ✅    | ✅     | ❌    | ❌        | ❌         | ❌   | ❌          |
-| `photos`   | 28     | ❌    | ❌    | ✅     | ✅    | ❌        | ✅         | ❌   | ❌          |
+| `standard` | 26     | ✅    | ✅    | ✅     | ✅    | ✅        | ✅         | ✅   | ✅          |
+| `lite`     | 26     | ✅    | ✅    | ✅     | ❌    | ❌        | ❌         | ❌   | ❌          |
+| `photos`   | 26     | ❌    | ❌    | ✅     | ✅    | ❌        | ✅         | ❌   | ❌          |
 | `legacy`   | 23     | ✅    | ✅    | ✅     | ✅    | ✅        | ✅         | ✅   | ✅          |
 
 ---
@@ -209,7 +209,13 @@
 |:---------------------------------|:-----------|:-----------------------------------|
 | `material`                       | 1.12.0     | Material Design 3 components       |
 
-### 4.16 Testing
+### 4.16 Build Compatibility
+
+| Library                          | Version    | Purpose                            |
+|:---------------------------------|:-----------|:-----------------------------------|
+| `desugar_jdk_libs`              | 2.0.4      | java.time.* and Java 8+ APIs on API 23-25 (legacy flavor). API 26+ uses native support. |
+
+### 4.17 Testing
 
 | Library                          | Version    | Scope    | Purpose                     |
 |:---------------------------------|:-----------|:---------|:----------------------------|
@@ -295,7 +301,7 @@
 
 | Parameter                | Standard/Lite/Photos | Legacy flavor       |
 |:-------------------------|:---------------------|:--------------------|
-| Android version          | 9.0 (Pie, API 28)   | 6.0 (Marshmallow, API 23) |
+| Android version          | 8.0 (Oreo, API 26)  | 6.0 (Marshmallow, API 23) |
 | RAM                      | ≥ 2 GB               | ≥ 1.5 GB            |
 | Heap (dalvik.vm.heapsize)| ≥ 256 MB             | ≥ 128 MB            |
 | Free storage             | ≥ 200 MB             | ≥ 200 MB            |

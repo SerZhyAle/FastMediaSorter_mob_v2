@@ -20,8 +20,8 @@ android {
 
     defaultConfig {
         applicationId = "com.sza.fastmediasorter"
-        // CRITICAL: Do not change - minimum supported Android 9 (API 28). Lowering breaks core features.
-        minSdk = 28
+        // Minimum supported Android 8.0 (API 26). Legacy flavor covers API 23-25.
+        minSdk = 26
         // Keep targetSdk aligned with compileSdk
         // CRITICAL: Do not change - required for Play Store compliance and latest Android behavior
         targetSdk = 35
@@ -29,8 +29,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260319175
-        versionName = "2.60.3191.759"
+        versionCode = 260319214
+        versionName = "2.60.3192.149"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -123,12 +123,13 @@ android {
         // ===== LEGACY (Full Features, Android 6.0+) =====
         create("legacy") {
             dimension = "version"
-            // CRITICAL: Do not change - legacy flavor specifically for Android 6+ (API 23-27) devices
-            minSdk = 23  // Android 6.0 (Marshmallow) instead of 28
+            // CRITICAL: Do not change - legacy flavor for Android 6/7 devices (API 23-25)
+            // Standard flavor covers API 26+ (Android 8+); legacy covers the remaining API 23-25 gap.
+            minSdk = 23  // Android 6.0 (Marshmallow)
             applicationIdSuffix = ".legacy"
             versionNameSuffix = "-Legacy"
             // Full feature set but compatible with older Android versions
-            // Target: Users with older Android devices (API 23-27)
+            // Target: Users with older Android devices (API 23-25)
             buildConfigField("boolean", "SUPPORT_VIDEO", "true")
             buildConfigField("boolean", "SUPPORT_AUDIO", "true")
             buildConfigField("boolean", "SUPPORT_IMAGES", "true")
@@ -222,6 +223,8 @@ android {
     }
 
     compileOptions {
+        // Required for java.time.* on API 23-25 (legacy flavor). API 26+ has native support.
+        isCoreLibraryDesugaringEnabled = true
         // CRITICAL: Do not change - Java 17 required for Kotlin 1.9.24 and modern Android libraries
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
@@ -301,6 +304,9 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach 
 }
 
 dependencies {
+    // Core Library Desugaring: java.time.* and other Java 8+ APIs on API 23-25 (legacy flavor)
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+
     // AndroidX Core
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")

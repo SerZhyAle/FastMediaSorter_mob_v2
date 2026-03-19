@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Project Operations Index
 
-Last Updated: 2026-02-28
+Last Updated: 2026-03-19
 Purpose: single entrypoint for fast research and navigation.
 
 ## 1) Workspace Topology
@@ -36,7 +36,7 @@ Root package: `wear/src/main/java/com/sza/fastmediasorter/wear/`
 - Modules included: `settings.gradle.kts` -> `:app_v2`, `:wear`
 - Main build config: `app_v2/build.gradle.kts`
 - Wear build config: `wear/build.gradle.kts`
-- SDK / Java baseline: SDK 35, Java 17
+- SDK / Java baseline: compileSdk 35, minSdk 26 (Android 8+), Java 17; legacy flavor minSdk 23
 - Flavors (main app): `standard`, `lite`, `photos`, `legacy`
 
 Dependency version policy:

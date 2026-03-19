@@ -8,6 +8,8 @@ Format: | datetime | file | target | description |
 | DateTime | File | Target | Description |
 |----------|------|--------|-------------|
 | 2026-03-02 00:59:40 | `scripts/add_to_dev_log.ps1` | `add_to_dev_log.ps1` | Created dev changelog logging script for mandatory change tracking |
+| 2026-03-19 21:48:20 | `app_v2/build.gradle.kts` | `minSdk+coreLibraryDesugaring` | Lower minSdk 28->26 for Android 8+ support; add coreLibraryDesugaring for legacy flavor (API 23-25 java.time fix) |
+| 2026-03-19 21:55:00 | `dev/TECH_REQUIREMENTS.md, CLAUDE.md, README.md, docs/TECH_STACK.md, dev/PROJECT_OPERATIONS_INDEX.md` | `documentation` | Update all docs to reflect minSdk 26 (Android 8+) and coreLibraryDesugaring |
 | 2026-03-02 01:03:07 | `AGENTS.md` | `AGENTS.md` | Added section 6 DEV CHANGELOG (MANDATORY) with script usage rule |
 | 2026-03-02 01:03:12 | `.agent/CUSTOM_RULES.md` | `CUSTOM_RULES` | Added Dev Changelog Rule section with script usage and examples |
 | 2026-03-02 01:03:17 | `dev/universal_copilot_instructions.md` | `AI_AGENT_DIRECTIVES` | Added mandatory DEV_CHANGELOG directive to agent-specific section |
@@ -682,3 +684,4 @@ Format: | datetime | file | target | description |
 | 2026-03-19 15:00:00 | `(63 files) @ApplicationContext/@ApplicationScope/@IoDispatcher` | `Hilt constructor params` | Fix: add @param: use-site target to all Hilt qualifier annotations on val/var constructor params across 63 files to eliminate future-field-annotation warnings |
 | 2026-03-19 15:30:00 | `gradle.properties` | `gradle.properties` | Remove 4 deprecated AGP flags (sdk.defaultTargetSdk, enableAppCompileTimeRClass, usesSdkInManifest.disallowed, r8.optimizedResourceShrinking); add generateSyncIssueWhenLibraryConstraintsAreEnabled=false to suppress spam; document kept flags |
 | 2026-03-19 15:30:00 | `app_v2/build.gradle.kts` | `build.gradle.kts` | Migrate resourceConfigurations to androidResources.localeFilters; migrate kotlinOptions{jvmTarget} to tasks.withType<KotlinCompile>().compilerOptions |
+| 2026-03-19 16:00:00 | `.gitattributes` | `git` | Add .gitattributes enforcing LF line endings for all source files; normalize all 491 .kt files from mixed CRLF/LF to LF with dos2unix |

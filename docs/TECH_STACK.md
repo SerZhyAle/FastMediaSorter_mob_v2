@@ -2,6 +2,10 @@
 
 Ref: `gradle/libs.versions.toml`
 
+## Platform
+- `minSdk 26` (Android 8+) for standard/lite/photos; `minSdk 23` (Android 6+) for legacy
+- `coreLibraryDesugaring` enabled — provides `java.time.*` on API 23-25 (legacy only)
+
 ## Dependencies
 - **Core**: Hilt, Room
 - **Media**: ExoPlayer
