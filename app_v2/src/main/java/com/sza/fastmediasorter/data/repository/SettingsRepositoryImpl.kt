@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.SortMode
@@ -323,6 +324,33 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateSettings(settings: AppSettings) {
         Timber.d("SettingsRepo: updateSettings called with allFiles=${settings.allFiles}")
+
+        // DEBUG: compare incoming settings with current stored values to detect no-op writes
+        if (BuildConfig.DEBUG) {
+            try {
+                val current = getSettings().first()
+                val diffs = buildList {
+                    if (current.allFiles != settings.allFiles) add("allFiles: ${current.allFiles} → ${settings.allFiles}")
+                    if (current.isPrimaryMediaPlayer != settings.isPrimaryMediaPlayer) add("isPrimaryMediaPlayer: ${current.isPrimaryMediaPlayer} → ${settings.isPrimaryMediaPlayer}")
+                    if (current.language != settings.language) add("language: ${current.language} → ${settings.language}")
+                    if (current.preventSleep != settings.preventSleep) add("preventSleep: ${current.preventSleep} → ${settings.preventSleep}")
+                    if (current.enableBackgroundSync != settings.enableBackgroundSync) add("enableBackgroundSync: ${current.enableBackgroundSync} → ${settings.enableBackgroundSync}")
+                    if (current.cacheSizeMb != settings.cacheSizeMb) add("cacheSizeMb: ${current.cacheSizeMb} → ${settings.cacheSizeMb}")
+                    if (current.defaultSortMode != settings.defaultSortMode) add("defaultSortMode: ${current.defaultSortMode} → ${settings.defaultSortMode}")
+                    if (current.networkParallelism != settings.networkParallelism) add("networkParallelism: ${current.networkParallelism} → ${settings.networkParallelism}")
+                    if (current.slideshowMusicResourceId != settings.slideshowMusicResourceId) add("slideshowMusicResourceId: ${current.slideshowMusicResourceId} → ${settings.slideshowMusicResourceId}")
+                    if (current.acceptSharedFiles != settings.acceptSharedFiles) add("acceptSharedFiles: ${current.acceptSharedFiles} → ${settings.acceptSharedFiles}")
+                }
+                if (diffs.isEmpty()) {
+                    Timber.w("SettingsRepo: updateSettings called but NO fields changed — possible no-op write")
+                } else {
+                    Timber.d("SettingsRepo: updateSettings diff (${diffs.size} fields): ${diffs.joinToString(", ")}")
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "SettingsRepo: failed to compute diff for updateSettings")
+            }
+        }
+
         // NOTE: Language is NOT synced to SharedPreferences here.
         // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
         // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".

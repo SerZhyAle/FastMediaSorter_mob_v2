@@ -29,8 +29,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260320022
-        versionName = "2.60.3200.225"
+        versionCode = 260320025
+        versionName = "2.60.3200.253"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -169,8 +169,8 @@ android {
 
     buildTypes {
         debug {
-            // Use the main package name in debug so installs update the same app sandbox
-            // instead of creating a separate com.sza.fastmediasorter.debug data directory.
+            // Debug uses dedicated package/applicationId for separate OAuth client and signing setup.
+            applicationIdSuffix = ".debug"
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
             isMinifyEnabled = false

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.os.SystemClock
 import android.provider.OpenableColumns
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -85,6 +86,28 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     override fun setupViews() {
+        val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
+
+        // DEBUG: detect probe URI BEFORE StandaloneViewManager construction to understand
+        // whether WebView/ExoPlayer init happens needlessly for probe-only launches.
+        if (BuildConfig.DEBUG) {
+            val probeUri = when (intent?.action) {
+                Intent.ACTION_VIEW -> intent?.data
+                Intent.ACTION_SEND -> {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        intent?.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        intent?.getParcelableExtra(Intent.EXTRA_STREAM)
+                    }
+                }
+                else -> intent?.data
+            }
+            val isProbe = probeUri?.toString()?.contains("default_player_probe") == true
+            Timber.d("StandalonePlayer[debug]: setupViews START — isProbe=$isProbe uri=$probeUri")
+        }
+
+        val viewManagerT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         viewManager = StandaloneViewManager(
             activity = this,
             binding = binding,
@@ -104,10 +127,15 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             settingsRepository = settingsRepository,
             playbackPositionRepository = playbackPositionRepository
         )
+        if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: StandaloneViewManager() constructor done in ${SystemClock.uptimeMillis() - viewManagerT0}ms")
+
         setupCloseButton()
         setupBackPressHandler()
         hidePlaylistControls()
+
+        if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: pre-parseIncomingIntent total=${SystemClock.uptimeMillis() - t0}ms")
         parseIncomingIntent()
+        if (BuildConfig.DEBUG) Timber.d("StandalonePlayer[debug]: setupViews DONE total=${SystemClock.uptimeMillis() - t0}ms")
     }
 
     override fun observeData() {

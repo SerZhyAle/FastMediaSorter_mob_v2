@@ -88,7 +88,9 @@ class WelcomeViewModel @Inject constructor(
     fun enablePrimaryMediaPlayer() {
         viewModelScope.launch {
             val current = settingsRepository.getSettings().first()
-            settingsRepository.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            if (!current.isPrimaryMediaPlayer) {
+                settingsRepository.updateSettings(current.copy(isPrimaryMediaPlayer = true))
+            }
         }
     }
 

@@ -6,6 +6,7 @@ import android.graphics.Rect
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.View
+import com.sza.fastmediasorter.BuildConfig
 import androidx.activity.viewModels
 import androidx.activity.OnBackPressedCallback
 import androidx.core.view.isVisible
@@ -44,14 +45,20 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     override fun setupViews() {
         setupStartUptimeMs = SystemClock.uptimeMillis()
+        fun elapsed() = SystemClock.uptimeMillis() - setupStartUptimeMs
 
         binding.backButton.setOnClickListener {
             finish()
         }
-        
+
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [0ms] start setupViews")
+
         val adapter = SettingsPagerAdapter(this)
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] SettingsPagerAdapter created")
+
         binding.viewPager.adapter = adapter
-        
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager.adapter set")
+
         // Disable animations between tabs (as per V2 Specification)
         // Use instant page transformer - no animation
         binding.viewPager.setPageTransformer { page, position ->
@@ -59,7 +66,8 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             page.alpha = if (position == 0f) 1f else 0f
         }
         binding.viewPager.offscreenPageLimit = 1
-        
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer + offscreenLimit)")
+
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = when (position) {
                 0 -> getString(R.string.settings_tab_general)
@@ -69,15 +77,17 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
                 else -> ""
             }
         }.attach()
-        
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
+
         // Restore last opened tab position
         val lastTabPosition = getLastTabPosition()
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] lastTabPosition=$lastTabPosition read (disk)")
         if (lastTabPosition in 0 until (adapter.itemCount)) {
             binding.viewPager.post {
                 binding.viewPager.setCurrentItem(lastTabPosition, false)
             }
         }
-        
+
         // Save tab position when changed
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
@@ -87,6 +97,7 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         })
 
         setupGlobalSearch()
+        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${SettingsSearchRegistry.entries.size} search entries)")
 
         binding.root.post {
             val startupDurationMs = SystemClock.uptimeMillis() - setupStartUptimeMs

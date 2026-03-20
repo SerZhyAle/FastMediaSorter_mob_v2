@@ -3,10 +3,12 @@ package com.sza.fastmediasorter.core.ui
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.viewbinding.ViewBinding
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import timber.log.Timber
 
@@ -29,7 +31,13 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     override fun attachBaseContext(newBase: Context) {
         try {
-            super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+            val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
+            val ctx = LocaleHelper.applyLocale(newBase)
+            if (BuildConfig.DEBUG) {
+                val dt = SystemClock.uptimeMillis() - t0
+                Timber.d("BaseActivity.attachBaseContext[${this::class.simpleName}]: applyLocale took ${dt}ms")
+            }
+            super.attachBaseContext(ctx)
         } catch (e: Exception) {
             // Handle NoSuchMethodException: rebase() on some Android versions
             // This is a known issue with AndroidX AppCompat
@@ -52,9 +60,18 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // Apply keep screen awake if needed (will be controlled by settings)
         applyKeepScreenAwake()
         
-       // Defer heavy initialization to allow first frame to render quickly
+        // Defer heavy initialization to allow first frame to render quickly
+        val onCreateT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         binding.root.post {
+            if (BuildConfig.DEBUG) {
+                val waitMs = SystemClock.uptimeMillis() - onCreateT0
+                Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: START (waited ${waitMs}ms for first frame)")
+            }
+            val setupT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
             setupViews()
+            if (BuildConfig.DEBUG) {
+                Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: done in ${SystemClock.uptimeMillis() - setupT0}ms")
+            }
             observeData()
         }
     }
