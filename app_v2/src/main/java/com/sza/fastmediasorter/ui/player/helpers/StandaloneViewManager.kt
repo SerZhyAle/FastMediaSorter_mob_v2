@@ -141,6 +141,8 @@ class StandaloneViewManager(
         Timber.d("StandaloneViewManager: release")
         exoPlayer?.release()
         exoPlayer = null
+        // Standalone mode must never continue audio in background — stop before releasing the service controller.
+        audioServiceController?.player?.stop()
         audioServiceController?.release()
         audioServiceController = null
         _pdfViewerManager?.close()
@@ -188,10 +190,13 @@ class StandaloneViewManager(
 
     private fun playAudio(mediaFile: MediaFile) {
         binding.playerView.isVisible = true
+        // For audio: controls must always be visible (no tap needed)
+        binding.playerView.controllerShowTimeoutMs = Int.MAX_VALUE
         val controller = AudioServiceController(activity)
         audioServiceController = controller
         controller.playAudio(Uri.parse(mediaFile.path)) { player ->
             binding.playerView.player = player
+            binding.playerView.showController()
         }
     }
 

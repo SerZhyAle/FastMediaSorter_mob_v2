@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.provider.OpenableColumns
@@ -11,6 +12,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -44,6 +46,18 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
+
+    companion object {
+        private val DEFAULT_PLAYER_COMPONENT_SUFFIXES = listOf(
+            ".StandaloneAudioPlayer",
+            ".StandaloneVideoPlayer",
+            ".StandaloneImagePlayer",
+            ".StandaloneDocsPlayer",
+            ".StandaloneAudioSender",
+            ".StandaloneVideoSender",
+            ".StandaloneImageSender"
+        )
+    }
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
@@ -109,6 +123,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     // ── Intent Parsing ────────────────────────────────────────────────────
 
     private fun parseIncomingIntent() {
+        debugLogLaunchConditions(intent)
+
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data
             Intent.ACTION_SEND -> {
@@ -160,6 +176,110 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         Timber.d("StandalonePlayer: incoming uri=$uri mime=$mimeType name=$displayName")
         viewModel.loadFromUri(uri, mimeType, displayName)
+    }
+
+    private fun debugLogLaunchConditions(incomingIntent: Intent?) {
+        if (!BuildConfig.DEBUG) return
+
+        if (incomingIntent == null) {
+            Timber.d("StandalonePlayer[debug]: launch intent is null")
+            return
+        }
+
+        val categories = incomingIntent.categories?.joinToString(",") ?: "(none)"
+        val clipCount = incomingIntent.clipData?.itemCount ?: 0
+        val streamCount = runCatching {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                incomingIntent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.size ?: 0
+            } else {
+                @Suppress("DEPRECATION")
+                incomingIntent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.size ?: 0
+            }
+        }.getOrDefault(0)
+
+        val resolvedUri = when (incomingIntent.action) {
+            Intent.ACTION_VIEW -> incomingIntent.data
+            Intent.ACTION_SEND -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    incomingIntent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    incomingIntent.getParcelableExtra(Intent.EXTRA_STREAM)
+                }
+            }
+            Intent.ACTION_SEND_MULTIPLE -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    incomingIntent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)?.firstOrNull()
+                } else {
+                    @Suppress("DEPRECATION")
+                    incomingIntent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
+                }
+            }
+            else -> incomingIntent.data
+        }
+
+        val persistedGrant = resolvedUri?.let { uri ->
+            contentResolver.persistedUriPermissions.any { it.uri == uri && it.isReadPermission }
+        } ?: false
+
+        val runtimeReadGrant = resolvedUri?.let { uri ->
+            checkUriPermission(
+                uri,
+                android.os.Process.myPid(),
+                android.os.Process.myUid(),
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            ) == PackageManager.PERMISSION_GRANTED
+        } ?: false
+
+        val aliasStates = DEFAULT_PLAYER_COMPONENT_SUFFIXES.joinToString(", ") { suffix ->
+            val componentName = "$packageName$suffix"
+            val stateLabel = try {
+                when (packageManager.getComponentEnabledSetting(android.content.ComponentName(packageName, componentName))) {
+                    PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> "ENABLED"
+                    PackageManager.COMPONENT_ENABLED_STATE_DISABLED -> "DISABLED"
+                    PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> "DEFAULT"
+                    else -> "UNKNOWN"
+                }
+            } catch (e: Exception) {
+                "ERROR:${e.javaClass.simpleName}"
+            }
+            "$suffix=$stateLabel"
+        }
+
+        Timber.i(
+            "StandalonePlayer[debug]: launch action=%s component=%s categories=%s flags=0x%s type=%s hasData=%s clipItems=%d extraStreams=%d caller=%s referrer=%s",
+            incomingIntent.action,
+            incomingIntent.component?.className,
+            categories,
+            Integer.toHexString(incomingIntent.flags),
+            incomingIntent.type,
+            incomingIntent.data != null,
+            clipCount,
+            streamCount,
+            callingActivity?.flattenToShortString(),
+            referrer?.toString()
+        )
+        Timber.i(
+            "StandalonePlayer[debug]: uri=%s scheme=%s authority=%s readGrant=%s persistedReadGrant=%s",
+            resolvedUri,
+            resolvedUri?.scheme,
+            resolvedUri?.authority,
+            runtimeReadGrant,
+            persistedGrant
+        )
+        Timber.i(
+            "StandalonePlayer[debug]: build debug=%s type=%s flavor=%s supportsDefaultPlayer=%s support(video=%s,audio=%s,images=%s,docs=%s,cloud=%s)",
+            BuildConfig.DEBUG,
+            BuildConfig.BUILD_TYPE,
+            BuildConfig.FLAVOR,
+            BuildConfig.SUPPORTS_DEFAULT_PLAYER,
+            BuildConfig.SUPPORT_VIDEO,
+            BuildConfig.SUPPORT_AUDIO,
+            BuildConfig.SUPPORT_IMAGES,
+            BuildConfig.SUPPORT_DOCUMENTS,
+            BuildConfig.SUPPORT_CLOUD
+        )
+        Timber.i("StandalonePlayer[debug]: default-player components: %s", aliasStates)
     }
 
     // ── Close Button & Back Navigation ────────────────────────────────────
