@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.app.TaskStackBuilder
 import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.sza.fastmediasorter.R
@@ -431,14 +432,16 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         if (viewModel.isFirstRunAfterWelcome()) {
             // Mark first run as completed
             viewModel.setFirstRunCompleted()
-            
+
             // Show toast message
             Toast.makeText(this, R.string.setup_content_first_toast, Toast.LENGTH_LONG).show()
-            
-            // Navigate to Settings
-            val intent = Intent(this, SettingsActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
+
+            // Navigate to Settings with MainActivity as the back-stack root so that
+            // pressing Back from Settings returns to MainActivity instead of closing the app.
+            TaskStackBuilder.create(this)
+                .addNextIntent(Intent(this, MainActivity::class.java))
+                .addNextIntent(Intent(this, SettingsActivity::class.java))
+                .startActivities()
             finish()
         } else {
             // Normal navigation to MainActivity

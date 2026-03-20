@@ -31,7 +31,7 @@
 $ErrorActionPreference = "Stop"
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
-$LocalMediaDir = "C:\GIT\FastMediaSorter_mob_v2\test_media"
+$LocalMediaDir = "c:\Common\test_media"
 $DeviceDestDir = "/sdcard/Download/FastMediaSorter_Test"
 $AndroidMediaDir = "/sdcard/Android/media/com.test.prerelease"
 
