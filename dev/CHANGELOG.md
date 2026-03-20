@@ -726,3 +726,9 @@ Format: | datetime | file | target | description |
 | 2026-03-20 02:50:15 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/GoogleDriveAuthPlugin.kt` | `GoogleDriveAuthPlugin` | Made code-10 Google Sign-In message variant-aware using current BuildConfig application id |
 | 2026-03-20 03:35:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `enablePrimaryMediaPlayer` | Perf: guard DataStore write with isPrimaryMediaPlayer check to eliminate 3 no-op writes per Set-as-Default session |
 | 2026-03-20 03:35:00 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt` | `LocaleHelper.getLanguage` | Perf: in-memory cache for resolved language code; invalidated on saveLanguage to avoid repeated SharedPreferences/LocaleManager reads per Activity creation |
+| 2026-03-20 03:05:08 | `app_v2/build.gradle.kts` | `release signing precheck` | Added explicit Gradle error for missing keystore.properties when release signing tasks are requested |
+| 2026-03-20 03:06:06 | `app_v2/src/main/AndroidManifest.xml` | `activity-alias` | Fix setComponentEnabledSetting crash in all flavors with applicationIdSuffix |
+| 2026-03-20 03:11:37 | `keystore.properties` | `release signing config` | Fixed storeFile path to local fastmediasorter.keystore in workspace root |
+| 2026-03-20 03:11:59 | `keystore.properties` | `release signing config` | Adjusted storeFile path to ../fastmediasorter.keystore for module-relative resolution |
+| 2026-03-20 03:17:06 | `app_v2/build.gradle.kts` | `buildTypes.debug signing` | Removed forced release signing for debug builds to keep separate debug/release keys |
+| 2026-03-20 03:28:22 | `app_v2/build.gradle.kts` | `debug signing config` | Added optional custom debug signing via debug.keystore.properties with validation and fallback to default debug keystore |

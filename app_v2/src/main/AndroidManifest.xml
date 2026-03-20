@@ -169,7 +169,7 @@
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->
         <activity-alias
-            android:name=".StandaloneAudioPlayer"
+            android:name="${applicationId}.StandaloneAudioPlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -195,7 +195,7 @@
 
         <!-- Video alias: mp4, mkv, avi, mov, webm, flv, wmv, 3gp, etc. -->
         <activity-alias
-            android:name=".StandaloneVideoPlayer"
+            android:name="${applicationId}.StandaloneVideoPlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -221,7 +221,7 @@
 
         <!-- Image alias: jpg, png, webp, heic, heif, bmp, avif (NO gif) -->
         <activity-alias
-            android:name=".StandaloneImagePlayer"
+            android:name="${applicationId}.StandaloneImagePlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -245,7 +245,7 @@
         <!-- Documents alias: pdf, epub, txt, json, xml, html, csv, markdown -->
         <!-- Covers all MIME types handled by getMediaTypeFromMime() as TEXT/PDF/EPUB -->
         <activity-alias
-            android:name=".StandaloneDocsPlayer"
+            android:name="${applicationId}.StandaloneDocsPlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -272,7 +272,7 @@
 
         <!-- Audio share receiver -->
         <activity-alias
-            android:name=".StandaloneAudioSender"
+            android:name="${applicationId}.StandaloneAudioSender"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -286,7 +286,7 @@
 
         <!-- Video share receiver -->
         <activity-alias
-            android:name=".StandaloneVideoSender"
+            android:name="${applicationId}.StandaloneVideoSender"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -300,7 +300,7 @@
 
         <!-- Image share receiver -->
         <activity-alias
-            android:name=".StandaloneImageSender"
+            android:name="${applicationId}.StandaloneImageSender"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">

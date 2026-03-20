@@ -12,6 +12,13 @@ plugins {
 
 android {
     val hasReleaseKeystore = rootProject.file("keystore.properties").exists()
+    val debugKeystorePropertiesFile = rootProject.file("debug.keystore.properties")
+    val hasCustomDebugKeystore = debugKeystorePropertiesFile.exists()
+    val requestedTasks = gradle.startParameter.taskNames
+    val requiresReleaseSigning = requestedTasks.any {
+        val t = it.lowercase()
+        t.contains("release") && (t.contains("bundle") || t.contains("sign") || t.contains("assemble"))
+    }
 
     namespace = "com.sza.fastmediasorter"
     // CRITICAL: Do not change - required for latest Android features and Play Store requirements
@@ -29,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260320025
-        versionName = "2.60.3200.253"
+        versionCode = 260320003
+        versionName = "2.60.3200.039"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -151,6 +158,40 @@ android {
     }
 
     signingConfigs {
+        create("debugCustom") {
+            if (hasCustomDebugKeystore) {
+                val debugProps = Properties()
+                FileInputStream(debugKeystorePropertiesFile).use { inputStream ->
+                    debugProps.load(inputStream)
+                }
+
+                val debugKeyAlias = debugProps.getProperty("keyAlias")
+                val debugKeyPassword = debugProps.getProperty("keyPassword")
+                val debugStorePassword = debugProps.getProperty("storePassword")
+                val debugStorePath = debugProps.getProperty("storeFile")
+
+                if (debugKeyAlias.isNullOrBlank() || debugKeyPassword.isNullOrBlank() ||
+                    debugStorePassword.isNullOrBlank() || debugStorePath.isNullOrBlank()) {
+                    throw GradleException(
+                        "debug.keystore.properties is incomplete. Required keys: keyAlias, keyPassword, storePassword, storeFile"
+                    )
+                }
+
+                val resolvedDebugStore = file(debugStorePath)
+                if (!resolvedDebugStore.exists()) {
+                    throw GradleException(
+                        "Debug keystore file not found: ${resolvedDebugStore.absolutePath}. " +
+                        "Fix storeFile in debug.keystore.properties."
+                    )
+                }
+
+                keyAlias = debugKeyAlias
+                keyPassword = debugKeyPassword
+                storeFile = resolvedDebugStore
+                storePassword = debugStorePassword
+            }
+        }
+
         create("release") {
             val keystorePropertiesFile = rootProject.file("keystore.properties")
             if (keystorePropertiesFile.exists()) {
@@ -174,10 +215,8 @@ android {
             versionNameSuffix = "-DEBUG"
             isDebuggable = true
             isMinifyEnabled = false
-            if (hasReleaseKeystore) {
-                // Reuse the release key when available so debug can be installed as an update
-                // over the existing package without requiring uninstall/data wipe.
-                signingConfig = signingConfigs.getByName("release")
+            if (hasCustomDebugKeystore) {
+                signingConfig = signingConfigs.getByName("debugCustom")
             }
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
@@ -195,7 +234,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.getByName("release")
+            } else if (requiresReleaseSigning) {
+                throw GradleException(
+                    "Release signing is requested, but keystore.properties is missing in project root. " +
+                    "Create keystore.properties with keyAlias/keyPassword/storeFile/storePassword and ensure storeFile exists."
+                )
+            }
         }
         create("staging") {
             initWith(getByName("release"))
