@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.Manifest
 import android.app.Activity
+import android.content.ClipData
 import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
@@ -12,10 +13,12 @@ import android.provider.MediaStore
 import android.provider.Settings
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import timber.log.Timber
+import java.io.File
 
 /**
  * Helpers for "Set as default player" UI in Settings and Welcome screens.
@@ -99,15 +102,16 @@ object DefaultPlayerHelper {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             try {
-                activity.startActivity(Intent.createChooser(viewIntent, null))
+                activity.startActivity(viewIntent)
                 return
             } catch (e: Exception) {
-                Timber.w(e, "DefaultPlayerHelper: createChooser failed for %s", mimeType)
+                Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
             }
         }
-        if (tryOpenMimeOnlyChooser(activity, mimeType)) {
+        if (tryOpenProbeChooser(activity, mimeType)) {
             return
         }
+        Timber.w("DefaultPlayerHelper: probe intent failed, fallback to default apps settings for %s", mimeType)
         openDefaultAppsSettingsFromActivity(activity)
     }
 
@@ -123,15 +127,16 @@ object DefaultPlayerHelper {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
             try {
-                fragment.startActivity(Intent.createChooser(viewIntent, null))
+                fragment.startActivity(viewIntent)
                 return
             } catch (e: Exception) {
-                Timber.w(e, "DefaultPlayerHelper: createChooser failed for %s", mimeType)
+                Timber.w(e, "DefaultPlayerHelper: startActivity failed for %s", mimeType)
             }
         }
-        if (tryOpenMimeOnlyChooser(fragment, mimeType)) {
+        if (tryOpenProbeChooser(fragment, mimeType)) {
             return
         }
+        Timber.w("DefaultPlayerHelper: probe intent failed, fallback to default apps settings for %s", mimeType)
         openDefaultAppsSettings(fragment)
     }
 
@@ -157,31 +162,79 @@ object DefaultPlayerHelper {
         }
     }
 
-    private fun tryOpenMimeOnlyChooser(fragment: Fragment, mimeType: String): Boolean {
+    private fun tryOpenProbeChooser(fragment: Fragment, mimeType: String): Boolean {
+        val context = fragment.requireContext()
+        val probe = createProbeUri(context, mimeType) ?: return false
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            type = mimeType
+            setDataAndType(probe.first, probe.second)
             addCategory(Intent.CATEGORY_DEFAULT)
+            clipData = ClipData.newUri(context.contentResolver, "default_player_probe", probe.first)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+        grantReadPermissionToResolvers(context, intent, probe.first)
         return try {
-            fragment.startActivity(Intent.createChooser(intent, null))
+            fragment.startActivity(intent)
             true
         } catch (e: Exception) {
-            Timber.w(e, "DefaultPlayerHelper: MIME-only chooser failed for %s", mimeType)
+            Timber.w(e, "DefaultPlayerHelper: probe intent failed for %s", mimeType)
             false
         }
     }
 
-    private fun tryOpenMimeOnlyChooser(activity: Activity, mimeType: String): Boolean {
+    private fun tryOpenProbeChooser(activity: Activity, mimeType: String): Boolean {
+        val probe = createProbeUri(activity, mimeType) ?: return false
         val intent = Intent(Intent.ACTION_VIEW).apply {
-            type = mimeType
+            setDataAndType(probe.first, probe.second)
             addCategory(Intent.CATEGORY_DEFAULT)
+            clipData = ClipData.newUri(activity.contentResolver, "default_player_probe", probe.first)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
+        grantReadPermissionToResolvers(activity, intent, probe.first)
         return try {
-            activity.startActivity(Intent.createChooser(intent, null))
+            activity.startActivity(intent)
             true
         } catch (e: Exception) {
-            Timber.w(e, "DefaultPlayerHelper: MIME-only chooser failed for %s", mimeType)
+            Timber.w(e, "DefaultPlayerHelper: probe intent failed for %s", mimeType)
             false
+        }
+    }
+
+    private fun createProbeUri(context: Context, mimeType: String): Pair<Uri, String>? {
+        val (extension, concreteMime) = when {
+            mimeType.startsWith("audio") -> "mp3" to "audio/mpeg"
+            mimeType.startsWith("video") -> "mp4" to "video/mp4"
+            mimeType.startsWith("image") -> "jpg" to "image/jpeg"
+            mimeType == "application/pdf" -> "pdf" to "application/pdf"
+            else -> return null
+        }
+
+        return try {
+            val dir = File(context.cacheDir, "default_player_probe").apply { mkdirs() }
+            val file = File(dir, "probe.$extension")
+            if (!file.exists()) {
+                file.writeBytes(byteArrayOf(0x00))
+            }
+            val uri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.fileprovider",
+                file
+            )
+            uri to concreteMime
+        } catch (e: Exception) {
+            Timber.w(e, "DefaultPlayerHelper: failed to create probe file for %s", mimeType)
+            null
+        }
+    }
+
+    private fun grantReadPermissionToResolvers(context: Context, intent: Intent, uri: Uri) {
+        val matches = context.packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        for (resolveInfo in matches) {
+            val packageName = resolveInfo.activityInfo?.packageName ?: continue
+            try {
+                context.grantUriPermission(packageName, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            } catch (e: Exception) {
+                Timber.d(e, "DefaultPlayerHelper: could not pre-grant URI to %s", packageName)
+            }
         }
     }
 

@@ -130,7 +130,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         // Page 6 (first install only): Default Player onboarding
         // markDefaultPlayerOnboardingShown() is called in onPageSelected() when the user reaches
         // this page — so skipping welcome doesn't suppress future display.
-        if (BuildConfig.SUPPORTS_DEFAULT_PLAYER && !viewModel.isDefaultPlayerOnboardingShown()) {
+        val shouldShowDefaultPlayerPage = BuildConfig.SUPPORTS_DEFAULT_PLAYER &&
+            (!viewModel.isDefaultPlayerOnboardingShown() ||
+                !DefaultPlayerHelper.isAlreadyDefaultPlayer(this))
+
+        if (shouldShowDefaultPlayerPage) {
             defaultPlayerPageIndex = pages.size
             pages.add(
                 WelcomePage(

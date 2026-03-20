@@ -14,6 +14,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -331,8 +332,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // Log app version in background (non-critical)
         lifecycleScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             try {
-                val versionName = packageManager.getPackageInfo(packageName, 0).versionName
-                val versionCode = packageManager.getPackageInfo(packageName, 0).longVersionCode
+                val packageInfo = packageManager.getPackageInfo(packageName, 0)
+                val versionName = packageInfo.versionName
+                val versionCode = PackageInfoCompat.getLongVersionCode(packageInfo)
                 Timber.d("App version: $versionName (code: $versionCode)")
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get app version")

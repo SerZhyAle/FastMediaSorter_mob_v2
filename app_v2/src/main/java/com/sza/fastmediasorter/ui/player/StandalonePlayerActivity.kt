@@ -138,6 +138,14 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             return
         }
 
+        // Probe files created by DefaultPlayerHelper for the "set as default" flow must not be
+        // played — they are 1-byte stubs and will crash viewers. Silently finish.
+        if (uri.toString().contains("default_player_probe")) {
+            Timber.d("StandalonePlayer: ignoring default-player probe URI, finishing")
+            finish()
+            return
+        }
+
         val mimeType = intent.type
 
         val displayName = try {
