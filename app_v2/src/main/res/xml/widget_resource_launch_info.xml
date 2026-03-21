@@ -8,6 +8,6 @@
     android:initialLayout="@layout/widget_resource_launch"
     android:configure="com.sza.fastmediasorter.widget.ResourceLaunchWidgetConfigActivity"
     android:description="@string/widget_resource_launch_description"
-    android:resizeMode="horizontal|vertical"
+    android:resizeMode="none"
     android:widgetCategory="home_screen"
     android:previewImage="@drawable/ic_folder" />

@@ -153,6 +153,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         audioSizeMax = data["audioSizeMax"]?.toLong() ?: 1048576000L,
                                         searchAudioCoversOnline = data["searchAudioCoversOnline"]?.toBoolean() ?: false,
                                         searchAudioCoversOnlyOnWifi = data["searchAudioCoversOnlyOnWifi"]?.toBoolean() ?: true,
+                                        saveAudioMetadataLocally = data["saveAudioMetadataLocally"]?.toBoolean() ?: true,
                                         enablePhotosDuringAudio = data["enablePhotosDuringAudio"]?.toBoolean() ?: false,
                                         audioBackgroundPhotosResourceId = data["audioBackgroundPhotosResourceId"],
                                         

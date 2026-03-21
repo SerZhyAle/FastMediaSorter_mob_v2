@@ -59,6 +59,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_AUDIO_SIZE_MAX = longPreferencesKey("audio_size_max")
         private val KEY_SEARCH_AUDIO_COVERS_ONLINE = booleanPreferencesKey("search_audio_covers_online")
         private val KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI = booleanPreferencesKey("search_audio_covers_only_on_wifi")
+        private val KEY_SAVE_AUDIO_METADATA_LOCALLY = booleanPreferencesKey("save_audio_metadata_locally")
         private val KEY_ENABLE_PHOTOS_DURING_AUDIO = booleanPreferencesKey("enable_photos_during_audio")
         private val KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID = stringPreferencesKey("audio_background_photos_resource_id")
         // Persistent audio playback: continue playing audio via foreground service when app is minimized/screen locked (like YouTube Music).
@@ -226,6 +227,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     audioSizeMax = preferences[KEY_AUDIO_SIZE_MAX] ?: 1073741824L, // 1GB
                     searchAudioCoversOnline = preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] ?: false,
                     searchAudioCoversOnlyOnWifi = preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] ?: true,
+                    saveAudioMetadataLocally = preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID],
                     enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
@@ -386,6 +388,7 @@ class SettingsRepositoryImpl @Inject constructor(
             preferences[KEY_AUDIO_SIZE_MAX] = settings.audioSizeMax
             preferences[KEY_SEARCH_AUDIO_COVERS_ONLINE] = settings.searchAudioCoversOnline
             preferences[KEY_SEARCH_AUDIO_COVERS_ONLY_ON_WIFI] = settings.searchAudioCoversOnlyOnWifi
+            preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] = settings.saveAudioMetadataLocally
             preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] = settings.enablePhotosDuringAudio
             if (settings.audioBackgroundPhotosResourceId != null) {
                 preferences[KEY_AUDIO_BACKGROUND_PHOTOS_RESOURCE_ID] = settings.audioBackgroundPhotosResourceId

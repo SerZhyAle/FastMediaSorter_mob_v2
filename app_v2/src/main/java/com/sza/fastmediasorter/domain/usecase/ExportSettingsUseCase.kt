@@ -61,6 +61,7 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <audioSizeMax>${settings.audioSizeMax}</audioSizeMax>")
                 appendLine("    <searchAudioCoversOnline>${settings.searchAudioCoversOnline}</searchAudioCoversOnline>")
                 appendLine("    <searchAudioCoversOnlyOnWifi>${settings.searchAudioCoversOnlyOnWifi}</searchAudioCoversOnlyOnWifi>")
+                appendLine("    <saveAudioMetadataLocally>${settings.saveAudioMetadataLocally}</saveAudioMetadataLocally>")
                 appendLine("    <enablePhotosDuringAudio>${settings.enablePhotosDuringAudio}</enablePhotosDuringAudio>")
                 if (settings.audioBackgroundPhotosResourceId != null) {
                     appendLine("    <audioBackgroundPhotosResourceId>${settings.audioBackgroundPhotosResourceId.escapeXml()}</audioBackgroundPhotosResourceId>")

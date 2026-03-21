@@ -328,6 +328,11 @@
     <string name="audio_size_range">0 KB - 100 MB</string>
     <string name="search_audio_covers_online">Search audio covers online (iTunes API)</string>
     <string name="search_covers_only_on_wifi">Search only on Wi-Fi</string>
+    <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
+    <string name="save_audio_metadata_locally_desc">Reuse covers and metadata without re-downloading</string>
+    <string name="audio_cache_size_warning_title">Audio metadata cache is large</string>
+    <string name="audio_cache_size_warning_message">The audio metadata cache exceeds 10 GB. Delete oldest 50%% of cached files?</string>
+    <string name="delete_old_files">Delete old</string>
 
     <!-- Audio Background Photos -->
     <string name="enable_photos_during_audio_description">Show random photos during audio playback</string>

@@ -134,6 +134,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Background playback**: Keep the music going even when you leave the app or lock the screen. A persistent foreground service with rich notification controls ensures uninterrupted listening.
 - **Notification media controls**: Quickly play, pause, or skip tracks directly from your system's notification shade or lock screen without continuously reopening the app.
 - **Intelligent album cover art**: Enjoy a visually rich music player that automatically retrieves album art from embedded ID3 metadata tags, or falls back to an online search via the iTunes API (with an optional Wi-Fi-only restriction to save mobile data).
+- **Local audio metadata cache**: downloaded covers and track info saved to `audio_metadata_cache/` folder; reused on subsequent plays without network requests; included in cache size display and "Clear Cache" action
 - **Lyrics search and display**: View synchronized lyrics in a full-screen, distraction-free overlay. The app conducts a smart online search to provide read-along text for your current song.
 - **Random photos during playback**: Turn your music into a visual journey by automatically cycling random photos from a selected internal or network resource as a dynamic visual background.
 - **Rich empty state animations**: Prevent a boring black screen if no cover art is found. Choose from mesmerizing audio visualizers including Canvas bars, Canvas waves, AVD pulses, and spectrum analyzers that react to the music.

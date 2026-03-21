@@ -10,11 +10,12 @@
     android:gravity="center">
 
     <ImageView
+        android:id="@+id/widget_resource_icon"
         android:layout_width="@dimen/item_icon_size_small"
         android:layout_height="@dimen/item_icon_size_small"
         android:src="@drawable/ic_folder"
         android:contentDescription="@string/resource"
-        app:tint="@color/white" />
+        android:tint="@color/white" />
 
     <TextView
         android:id="@+id/widget_resource_name"

@@ -292,27 +292,20 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    /** Play local audio files via service with full playlist support. */
+    /** Play local audio file via service (single-file mode).
+     *  Single-file mode ensures that STATE_ENDED fires when the track ends or when
+     *  a hardware NEXT/PREV button triggers ForwardingPlayer.seekToNext/seekToPrevious.
+     *  PlayerActivity.onAudioServicePlaybackEnded then drives forward/backward navigation
+     *  via the ViewModel, keeping UI and playback in sync. */
     private fun playLocalAudioViaService(path: String, controller: AudioServiceController) {
         val allFiles = viewModel.state.value.files
-        val localAudioFiles = allFiles.filter { file ->
-            file.type == MediaType.AUDIO
-                && determineResourceType(file.path, null) == ResourceType.LOCAL
+        val currentFile = allFiles.firstOrNull { it.path == path } ?: run {
+            Timber.w("playLocalAudioViaService: file not found for path=$path")
+            return
         }
-        if (localAudioFiles.isEmpty()) return
-
-        val startIndex = localAudioFiles.indexOfFirst { it.path == path }.coerceAtLeast(0)
-
-        if (localAudioFiles.size == 1) {
-            val uri = buildUriForMediaFile(localAudioFiles[0])
-            controller.playAudio(uri) { player ->
-                activity.runOnUiThread { bindServicePlayerToView(player) }
-            }
-        } else {
-            val uris = localAudioFiles.map { buildUriForMediaFile(it) }
-            controller.playAudioPlaylist(uris, startIndex) { player ->
-                activity.runOnUiThread { bindServicePlayerToView(player) }
-            }
+        val uri = buildUriForMediaFile(currentFile)
+        controller.playAudio(uri) { player ->
+            activity.runOnUiThread { bindServicePlayerToView(player) }
         }
     }
 

@@ -58,6 +58,7 @@ data class BackupSettings(
     val audioSizeMax: Long = 1073741824L,
     val searchAudioCoversOnline: Boolean = false,
     val searchAudioCoversOnlyOnWifi: Boolean = true,
+    val saveAudioMetadataLocally: Boolean = true,
     val enablePhotosDuringAudio: Boolean = false,
     val audioBackgroundPhotosResourceId: String? = null,
     val enablePersistentAudioPlayback: Boolean = false,

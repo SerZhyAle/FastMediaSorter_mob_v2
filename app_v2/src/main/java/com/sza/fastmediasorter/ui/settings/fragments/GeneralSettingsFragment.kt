@@ -44,7 +44,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
+import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 @android.annotation.SuppressLint("SetTextI18n")
@@ -53,6 +55,8 @@ class GeneralSettingsFragment : Fragment() {
     private var _binding: FragmentSettingsGeneralBinding? = null
     private val binding get() = _binding!!
     
+    @Inject lateinit var audioMetadataCacheRepository: AudioMetadataCacheRepository
+
     private val viewModel: SettingsViewModel by activityViewModels()
     private val backupViewModel: BackupRestoreViewModel by viewModels()
 
@@ -1421,11 +1425,18 @@ class GeneralSettingsFragment : Fragment() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val cacheDir = requireContext().cacheDir
-                val totalSize = calculateDirectorySize(cacheDir)
+                val audioMetaCacheDir = java.io.File(requireContext().filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
+                val totalSize = calculateDirectorySize(cacheDir) + calculateDirectorySize(audioMetaCacheDir)
                 val formattedSize = formatFileSize(totalSize)
-                
+
+                // Проверяем лимит audio metadata cache
+                val audioMetaCacheSize = audioMetadataCacheRepository.getCacheSize()
+
                 withContext(Dispatchers.Main) {
                     binding.tvCacheSize.text = getString(R.string.cache_size_format, formattedSize)
+                    if (audioMetaCacheSize > AudioMetadataCacheRepository.MAX_CACHE_BYTES) {
+                        showAudioCacheSizeWarning()
+                    }
                     // Reset button text to static "Clear Cache" in case passed from "calculating..." state
                     binding.btnClearCache.text = getString(R.string.clear_cache)
                     binding.btnClearCache.isEnabled = true
@@ -1551,7 +1562,15 @@ class GeneralSettingsFragment : Fragment() {
                         } catch (e: Exception) {
                             Timber.e(e, "Failed to clear playback positions")
                         }
-                        
+
+                        // 7. Clear audio metadata cache (filesDir/audio_metadata_cache/)
+                        try {
+                            audioMetadataCacheRepository.clearCache()
+                            Timber.d("Cleared AudioMetadataCache")
+                        } catch (e: Exception) {
+                            Timber.d(e, "Failed to clear AudioMetadataCache")
+                        }
+
                         withContext(Dispatchers.Main) {
                             // 7. Clear Glide Memory Cache
                             try {
@@ -1581,6 +1600,20 @@ class GeneralSettingsFragment : Fragment() {
                             updateCacheSize()
                         }
                     }
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showAudioCacheSizeWarning() {
+        if (!isAdded || activity?.isFinishing == true) return
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.audio_cache_size_warning_title)
+            .setMessage(R.string.audio_cache_size_warning_message)
+            .setPositiveButton(R.string.delete_old_files) { _, _ ->
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+                    audioMetadataCacheRepository.trimIfNeeded()
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)

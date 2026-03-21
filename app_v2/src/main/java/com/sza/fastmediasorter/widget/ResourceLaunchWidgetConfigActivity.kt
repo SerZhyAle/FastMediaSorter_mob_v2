@@ -80,6 +80,8 @@ class ResourceLaunchWidgetConfigActivity : ComponentActivity() {
         prefs.edit()
             .putLong("resource_id_$appWidgetId", resource.id)
             .putString("resource_name_$appWidgetId", resource.name)
+            .putString("resource_path_$appWidgetId", resource.path)
+            .putString("resource_type_$appWidgetId", resource.type.name)
             .apply()
     }
 

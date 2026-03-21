@@ -492,6 +492,11 @@
     <string name="supported_pdf_formats">Поддерживаются: PDF (рендеринг через Android PdfRenderer)</string>
     <string name="search_audio_covers_online">Искать обложки аудио онлайн (iTunes API)</string>
     <string name="search_covers_only_on_wifi">Искать только по Wi-Fi</string>
+    <string name="save_audio_metadata_locally">Сохранять загруженные медиаданные локально</string>
+    <string name="save_audio_metadata_locally_desc">Использовать обложки и метаданные без повторной загрузки</string>
+    <string name="audio_cache_size_warning_title">Кэш метаданных аудио занимает много места</string>
+    <string name="audio_cache_size_warning_message">Кэш метаданных аудио превысил 10 ГБ. Удалить 50%% самых старых файлов?</string>
+    <string name="delete_old_files">Удалить старые</string>
     <string name="image_size_limits">Ограничения размера изображений (МБ)</string>
     <string name="video_size_limits">Ограничения размера видео (КБ)</string>
     <string name="audio_size_limits">Ограничения размера аудио (КБ)</string>

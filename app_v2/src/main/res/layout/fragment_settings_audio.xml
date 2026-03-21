@@ -28,6 +28,46 @@
         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/search_covers_only_on_wifi" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_secondary" />
     </LinearLayout>
 
+    <!-- Save audio metadata locally (sub-option of searchAudioCoversOnline) -->
+    <LinearLayout
+        android:id="@+id/layoutSaveAudioMetadataLocally"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:minHeight="@dimen/button_height"
+        android:layout_marginStart="@dimen/settings_nested_margin_start"
+        android:visibility="gone"
+        android:layout_marginBottom="@dimen/margin_small">
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/switchSaveAudioMetadataLocally"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/settings_switch_margin_end"
+            android:checked="true" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save_audio_metadata_locally"
+                android:textSize="@dimen/resource_card_desc_text_size" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save_audio_metadata_locally_desc"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
+    </LinearLayout>
+
     <!-- Audio size limit -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginBottom="@dimen/margin_small">
 

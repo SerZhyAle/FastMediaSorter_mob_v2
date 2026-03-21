@@ -41,6 +41,7 @@ data class AppSettings(
     val audioSizeMax: Long = 1073741824L, // 1GB
     val searchAudioCoversOnline: Boolean = false, // Search for audio covers online (iTunes API) when embedded cover not found
     val searchAudioCoversOnlyOnWifi: Boolean = true, // Search for covers only when connected to Wi-Fi
+    val saveAudioMetadataLocally: Boolean = true, // Save downloaded covers and metadata to local cache
     val enablePhotosDuringAudio: Boolean = false, // Enable random photos from resource during audio playback
     val audioBackgroundPhotosResourceId: String? = null, // ID of resource containing photos for audio background
     val enablePersistentAudioPlayback: Boolean = false, // Continue audio when app minimized/screen locked (foreground service)

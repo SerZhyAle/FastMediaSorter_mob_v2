@@ -27,6 +27,9 @@ import com.sza.fastmediasorter.data.network.glide.NetworkFileData
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
+import com.sza.fastmediasorter.data.repository.AudioMetadataSaveData
+import com.sza.fastmediasorter.data.repository.CachedAudioData
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.SearchAudioCoverUseCase
 import com.sza.fastmediasorter.ui.image.ImageDisplayUtils
@@ -63,6 +66,8 @@ class ImageLoadingManager(
     private val binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
     private val searchAudioCoverUseCase: SearchAudioCoverUseCase,
+    private val audioMetadataCacheRepository: AudioMetadataCacheRepository,
+    private val okHttpClient: okhttp3.OkHttpClient,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val loadingIndicatorHandler: Handler,
     private val showLoadingIndicatorRunnable: Runnable,
@@ -1620,7 +1625,11 @@ class ImageLoadingManager(
                 val coverBitmap = withContext(Dispatchers.IO) {
                     val retriever = android.media.MediaMetadataRetriever()
                     try {
-                        retriever.setDataSource(file.path)
+                        if (file.path.startsWith("content://")) {
+                            retriever.setDataSource(binding.root.context, Uri.parse(file.path))
+                        } else {
+                            retriever.setDataSource(file.path)
+                        }
                         
                         // Try to get embedded picture
                         val embeddedPicture = retriever.embeddedPicture
@@ -1667,7 +1676,46 @@ class ImageLoadingManager(
                                 }
                             return@withContext
                         }
-                        
+
+                        // ШАГ 2.5: Проверяем локальный кэш
+                        val cached = withContext(Dispatchers.IO) {
+                            audioMetadataCacheRepository.readMetadata(file.name)
+                        }
+                        if (cached != null) {
+                            Timber.d("loadAudioCoverArt[$callId]: ✅ LOCAL CACHE hit for ${file.name}")
+                            if (cached.coverFile != null) {
+                                audioEmptyStateController?.hide()
+                                Glide.with(binding.audioCoverArtView.context)
+                                    .load(cached.coverFile)
+                                    .error(R.drawable.ic_music_note)
+                                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                                    .into(binding.audioCoverArtView)
+                                binding.audioCoverArtView.isVisible = true
+                                coverArtDisplayedForPath = file.path
+                                callback.onAudioMetadataLoaded(
+                                    com.sza.fastmediasorter.domain.model.AudioMetadata(
+                                        trackName   = cached.trackName,
+                                        artistName  = cached.artistName,
+                                        albumName   = cached.albumName,
+                                        releaseYear = cached.releaseYear,
+                                        coverArtUrl = cached.coverArtUrl
+                                    )
+                                )
+                                return@withContext
+                            }
+                            if (cached.coverArtUrl != null) {
+                                audioEmptyStateController?.hide()
+                                binding.audioCoverArtView.isVisible = true
+                                Glide.with(binding.audioCoverArtView.context)
+                                    .load(cached.coverArtUrl)
+                                    .error(R.drawable.ic_music_note)
+                                    .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                                    .into(binding.audioCoverArtView)
+                                coverArtDisplayedForPath = file.path
+                                return@withContext
+                            }
+                        }
+
                         // Online search enabled, try it
                         Timber.d("loadAudioCoverArt[$callId]: ❌ NO embedded cover, searching online")
                         
@@ -1680,7 +1728,33 @@ class ImageLoadingManager(
                         if (coverUrl != null) {
                             // Save metadata for display
                             callback.onAudioMetadataLoaded(metadata)
-                            
+
+                            // Сохраняем в локальный кэш (если включено)
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                try {
+                                    val shouldSave = settingsRepository.getSettings().first().saveAudioMetadataLocally
+                                    if (!shouldSave) return@launch
+                                    val ext = if (coverUrl.contains(".png", ignoreCase = true)) "png" else "jpg"
+                                    val imageBytes = downloadImageBytes(coverUrl)
+                                    audioMetadataCacheRepository.saveMetadata(
+                                        file.name,
+                                        AudioMetadataSaveData(
+                                            trackName      = metadata.trackName,
+                                            artistName     = metadata.artistName,
+                                            albumName      = metadata.albumName,
+                                            releaseYear    = metadata.releaseYear,
+                                            coverArtUrl    = coverUrl,
+                                            coverExtension = if (imageBytes != null) ext else null
+                                        )
+                                    )
+                                    if (imageBytes != null) {
+                                        audioMetadataCacheRepository.saveCover(file.name, imageBytes, ext)
+                                    }
+                                } catch (e: Exception) {
+                                    Timber.d(e, "AudioMetadataCache: save failed for %s", file.name)
+                                }
+                            }
+
                             Timber.d("loadAudioCoverArt[$callId]: ✅ ONLINE cover found: $coverUrl")
                             Timber.d("loadAudioCoverArt[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                             // Hide any running animation before showing cover
@@ -1771,14 +1845,80 @@ class ImageLoadingManager(
                 AudioEmptyStateController.MODE_NONE
             }
             try {
+                // ШАГ 2.5: Проверяем локальный кэш (сетевые файлы тоже кэшируем по имени)
+                val cached = audioMetadataCacheRepository.readMetadata(file.name)
+                if (cached != null) {
+                    Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ LOCAL CACHE hit for ${file.name}")
+                    withContext(Dispatchers.Main) {
+                        if (cached.coverFile != null) {
+                            audioEmptyStateController?.hide()
+                            Glide.with(binding.audioCoverArtView.context)
+                                .load(cached.coverFile)
+                                .error(R.drawable.ic_music_note)
+                                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE)
+                                .into(binding.audioCoverArtView)
+                            binding.audioCoverArtView.isVisible = true
+                            coverArtDisplayedForPath = file.path
+                            callback.onAudioMetadataLoaded(
+                                com.sza.fastmediasorter.domain.model.AudioMetadata(
+                                    trackName   = cached.trackName,
+                                    artistName  = cached.artistName,
+                                    albumName   = cached.albumName,
+                                    releaseYear = cached.releaseYear,
+                                    coverArtUrl = cached.coverArtUrl
+                                )
+                            )
+                            return@withContext
+                        }
+                        if (cached.coverArtUrl != null) {
+                            audioEmptyStateController?.hide()
+                            binding.audioCoverArtView.isVisible = true
+                            Glide.with(binding.audioCoverArtView.context)
+                                .load(cached.coverArtUrl)
+                                .error(R.drawable.ic_music_note)
+                                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                                .into(binding.audioCoverArtView)
+                            coverArtDisplayedForPath = file.path
+                            return@withContext
+                        }
+                    }
+                    return@launch
+                }
+
                 val metadata = searchAudioCoverUseCase(file.name, file.path)
                 val coverUrl = metadata?.coverArtUrl
-                
+
                 withContext(Dispatchers.Main) {
                     if (coverUrl != null) {
                         // Save metadata for display
                         callback.onAudioMetadataLoaded(metadata)
-                        
+
+                        // Сохраняем в локальный кэш (если включено)
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            try {
+                                val shouldSave = settingsRepository.getSettings().first().saveAudioMetadataLocally
+                                if (!shouldSave) return@launch
+                                val ext = if (coverUrl.contains(".png", ignoreCase = true)) "png" else "jpg"
+                                val imageBytes = downloadImageBytes(coverUrl)
+                                audioMetadataCacheRepository.saveMetadata(
+                                    file.name,
+                                    AudioMetadataSaveData(
+                                        trackName      = metadata.trackName,
+                                        artistName     = metadata.artistName,
+                                        albumName      = metadata.albumName,
+                                        releaseYear    = metadata.releaseYear,
+                                        coverArtUrl    = coverUrl,
+                                        coverExtension = if (imageBytes != null) ext else null
+                                    )
+                                )
+                                if (imageBytes != null) {
+                                    audioMetadataCacheRepository.saveCover(file.name, imageBytes, ext)
+                                }
+                            } catch (e: Exception) {
+                                Timber.d(e, "AudioMetadataCache: save failed for %s", file.name)
+                            }
+                        }
+
                         Timber.w("searchOnlineAndDisplayCover[$callId]: ✅ Found URL: $coverUrl")
                         Timber.w("searchOnlineAndDisplayCover[$callId]: BEFORE Glide.load - audioCoverArtView.isVisible=${binding.audioCoverArtView.isVisible}")
                         // Hide any running animation before showing cover
@@ -1846,6 +1986,19 @@ class ImageLoadingManager(
                         }
                 }
             }
+        }
+    }
+
+    private suspend fun downloadImageBytes(url: String): ByteArray? = withContext(Dispatchers.IO) {
+        try {
+            val request = okhttp3.Request.Builder().url(url).build()
+            okHttpClient.newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return@withContext null
+                response.body?.bytes()
+            }
+        } catch (e: Exception) {
+            Timber.d(e, "downloadImageBytes: failed for %s", url)
+            null
         }
     }
 

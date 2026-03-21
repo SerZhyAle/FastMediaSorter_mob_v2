@@ -42,7 +42,7 @@ $repoRoot = Split-Path -Parent $scriptDir
 if (-not $repoRoot -or -not (Test-Path (Join-Path $repoRoot "settings.gradle.kts"))) {
     $repoRoot = (Get-Location).Path
 }
-$logFile = Join-Path $repoRoot "dev" "CHANGELOG.md"
+$logFile = Join-Path (Join-Path $repoRoot "dev") "CHANGELOG.md"
 
 # Create log file with header if it doesn't exist
 if (-not (Test-Path $logFile)) {

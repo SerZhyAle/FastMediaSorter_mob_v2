@@ -53,6 +53,14 @@ class AudioPlaybackService : MediaSessionService() {
         private const val AUTO_STOP_DELAY_MS = 10_000L
         @Volatile
         var isRunning: Boolean = false
+
+        /** Direction for the next navigation event triggered via hardware media buttons.
+         *  Set by ForwardingPlayer when the user presses NEXT or PREVIOUS.
+         *  Read (and reset) by PlayerActivity.onAudioServicePlaybackEnded. */
+        const val DIRECTION_NEXT = 1
+        const val DIRECTION_PREV = -1
+        @Volatile
+        var pendingDirection: Int = DIRECTION_NEXT
     }
 
     override fun onCreate() {
@@ -128,20 +136,24 @@ class AudioPlaybackService : MediaSessionService() {
 
             override fun seekToPrevious() {
                 if (exoPlayer.mediaItemCount <= 1) {
-                    Timber.d("AudioPlaybackService: seekToPrevious on single file → restart from beginning")
-                    exoPlayer.seekTo(0)
+                    if (exoPlayer.currentPosition <= 3000L) {
+                        // Near the start: go to previous file — signal Activity via pendingDirection
+                        Timber.d("AudioPlaybackService: seekToPrevious near start → pendingDirection=PREV, seeking to end")
+                        pendingDirection = DIRECTION_PREV
+                        exoPlayer.seekTo(exoPlayer.duration.coerceAtLeast(0))
+                    } else {
+                        // Further into track: just restart from beginning (standard media-player convention)
+                        Timber.d("AudioPlaybackService: seekToPrevious mid-track → restart from beginning")
+                        exoPlayer.seekTo(0)
+                    }
                 } else {
                     super.seekToPrevious()
                 }
             }
 
             override fun seekToPreviousMediaItem() {
-                if (exoPlayer.mediaItemCount <= 1) {
-                    Timber.d("AudioPlaybackService: seekToPreviousMediaItem on single file → restart from beginning")
-                    exoPlayer.seekTo(0)
-                } else {
-                    super.seekToPreviousMediaItem()
-                }
+                // Delegate to seekToPrevious for consistent single-file navigation behaviour
+                seekToPrevious()
             }
         }
 

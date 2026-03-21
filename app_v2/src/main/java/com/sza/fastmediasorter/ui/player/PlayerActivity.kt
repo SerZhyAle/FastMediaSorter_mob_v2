@@ -345,6 +345,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     @Inject
     lateinit var audioBackgroundPhotosManager: com.sza.fastmediasorter.ui.player.helpers.AudioBackgroundPhotosManager
 
+    @Inject
+    lateinit var audioMetadataCacheRepository: com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
+
+    @Inject
+    lateinit var okHttpClient: okhttp3.OkHttpClient
+
     internal val hideControlsRunnable = Runnable {
         // Lifecycle check to prevent operations after destroy
         if (!isDestroyed && !isFinishing && !viewModel.state.value.isPaused) {
@@ -1172,6 +1178,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             binding = binding,
             settingsRepository = settingsRepository,
             searchAudioCoverUseCase = searchAudioCoverUseCase,
+            audioMetadataCacheRepository = audioMetadataCacheRepository,
+            okHttpClient = okHttpClient,
             lifecycleScope = lifecycleScope,
             loadingIndicatorHandler = loadingIndicatorHandler,
             showLoadingIndicatorRunnable = showLoadingIndicatorRunnable,
@@ -1564,9 +1572,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
             },
             onAudioServicePlaybackEnded = {
+                // Read and reset direction flag set by ForwardingPlayer for NEXT/PREV buttons
+                val direction = AudioPlaybackService.pendingDirection
+                AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
+
                 if (viewModel.state.value.isSlideShowActive) {
                     viewModel.nextFile(skipDocuments = true)
                     slideshowController.restartTimer()
+                } else if (direction == AudioPlaybackService.DIRECTION_PREV) {
+                    viewModel.previousFile()
+                } else {
+                    viewModel.nextFile()
                 }
             },
             onAudioServicePlaybackError = { _ ->
