@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.widget
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -23,13 +24,42 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val pendingId = prefs.getLong(KEY_PENDING_RESOURCE_ID, -1L)
+        if (pendingId != -1L) {
+            // Apply pending config to any newly-added unconfigured widget
+            val editor = prefs.edit()
+            for (appWidgetId in appWidgetIds) {
+                if (prefs.getLong("resource_id_$appWidgetId", -1L) == -1L) {
+                    editor.putLong("resource_id_$appWidgetId", pendingId)
+                    editor.putString("resource_name_$appWidgetId", prefs.getString(KEY_PENDING_RESOURCE_NAME, null))
+                    editor.putString("resource_path_$appWidgetId", prefs.getString(KEY_PENDING_RESOURCE_PATH, null))
+                    editor.putString("resource_type_$appWidgetId", prefs.getString(KEY_PENDING_RESOURCE_TYPE, null))
+                }
+            }
+            editor.remove(KEY_PENDING_RESOURCE_ID)
+                .remove(KEY_PENDING_RESOURCE_NAME)
+                .remove(KEY_PENDING_RESOURCE_PATH)
+                .remove(KEY_PENDING_RESOURCE_TYPE)
+                .apply()
+        }
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
 
+    override fun onReceive(context: Context, intent: Intent) {
+        super.onReceive(context, intent)
+        if (intent.action == ACTION_WIDGET_PINNED) {
+            // Trigger an update so pending config gets applied to the new widget
+            val manager = AppWidgetManager.getInstance(context)
+            val ids = manager.getAppWidgetIds(ComponentName(context, ResourceLaunchWidgetProvider::class.java))
+            onUpdate(context, manager, ids)
+        }
+    }
+
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-        val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val editor = prefs.edit()
         for (appWidgetId in appWidgetIds) {
             editor.remove("resource_id_$appWidgetId")
@@ -46,12 +76,19 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
 
     companion object {
 
+        const val PREFS_NAME = "widget_prefs"
+        const val ACTION_WIDGET_PINNED = "com.sza.fastmediasorter.WIDGET_PINNED"
+        const val KEY_PENDING_RESOURCE_ID = "pending_resource_id"
+        const val KEY_PENDING_RESOURCE_NAME = "pending_resource_name"
+        const val KEY_PENDING_RESOURCE_PATH = "pending_resource_path"
+        const val KEY_PENDING_RESOURCE_TYPE = "pending_resource_type"
+
         fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
         ) {
-            val prefs = context.getSharedPreferences("widget_prefs", Context.MODE_PRIVATE)
+            val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             val resourceId = prefs.getLong("resource_id_$appWidgetId", -1L)
             val resourceName = prefs.getString("resource_name_$appWidgetId", null)
             val resourcePath = prefs.getString("resource_path_$appWidgetId", null)

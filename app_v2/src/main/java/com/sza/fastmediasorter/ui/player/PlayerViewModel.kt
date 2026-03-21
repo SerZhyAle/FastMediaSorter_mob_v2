@@ -106,6 +106,7 @@ class PlayerViewModel @Inject constructor(
     private val initialFilePath: String? = savedStateHandle.get<String>("initialFilePath")
     val resumeIsPlaying: Boolean? = savedStateHandle.get<Boolean>("resumeIsPlaying")
     val resumeSlideshowEnabled: Boolean = savedStateHandle.get<Boolean>("resumeSlideshowEnabled") ?: false
+    private val shuffleOnStart: Boolean = savedStateHandle.get<Boolean>("shuffleOnStart") ?: false
     
     private var loadingJob: Job? = null
     private var saveLastViewedFileJob: Job? = null // Debounce job for database updates
@@ -130,17 +131,18 @@ class PlayerViewModel @Inject constructor(
                     val resource = state.value.resource
                     
                     // Determine showCommandPanel:
-                    // Priority: resource-specific → current runtime value (if session active) → global default
-                    // IMPORTANT: Do NOT override showCommandPanel from a running session when an unrelated
-                    // setting (e.g. copyPanelCollapsed) is saved. The state.resource object is a snapshot
-                    // from the initial DB read and does NOT reflect subsequent toggleCommandPanel() calls,
-                    // so using it as a source of truth after the session starts causes spurious resets.
+                    // Priority: runtime session value → initial load via same logic as loadMediaFiles()
+                    // IMPORTANT: Runtime value (files.isNotEmpty) is checked FIRST so that
+                    // toggleCommandPanel() changes are never overridden by subsequent settings emissions.
+                    // On initial load (files empty) we apply the same special logic as loadMediaFiles():
+                    // resource explicit false is NOT honoured when global default is true.
                     val showCommandPanel = when {
-                        resource?.showCommandPanel != null -> resource.showCommandPanel
-                        state.value.files.isNotEmpty() -> state.value.showCommandPanel // keep runtime value
-                        else -> settings.defaultShowCommandPanel // initial load only
+                        state.value.files.isNotEmpty() -> state.value.showCommandPanel // keep runtime value (highest priority)
+                        resource?.showCommandPanel == null -> settings.defaultShowCommandPanel // no resource override
+                        resource.showCommandPanel == false && settings.defaultShowCommandPanel -> settings.defaultShowCommandPanel // global true wins
+                        else -> resource.showCommandPanel
                     }
-                    
+
                     Timber.d("TOUCH_ZONE_DEBUG: loadSettings - resource.showCommandPanel=${resource?.showCommandPanel}, settings.defaultShowCommandPanel=${settings.defaultShowCommandPanel}, filesLoaded=${state.value.files.isNotEmpty()}, RESULT showCommandPanel=$showCommandPanel")
                     
                     Timber.d("PlayerViewModel.loadSettings: enableTranslation=${settings.enableTranslation}, enableOcr=${settings.enableOcr}, enableGoogleLens=${settings.enableGoogleLens}")
@@ -399,14 +401,21 @@ class PlayerViewModel @Inject constructor(
                     val autoSlideshow = resource.profile == ResourceProfile.AUDIO_LIBRARY ||
                             resource.profile == ResourceProfile.VIDEO_LIBRARY
                     
+                    // Apply shuffle if requested from widget launch (only on first load)
+                    val finalFiles = if (shuffleOnStart && state.value.files.isEmpty()) {
+                        filesWithFavorites.shuffled()
+                    } else {
+                        filesWithFavorites
+                    }
+
                     // Update state with resource first
                     // Preserve isPaused on reload (user may have manually paused before going to background);
                     // only use resumeIsPlaying on first load (when files list is still empty)
                     val effectiveIsPaused = if (state.value.files.isNotEmpty()) state.value.isPaused
                                            else (resumeIsPlaying == false)
-                    updateState { 
+                    updateState {
                         it.copy(
-                            files = filesWithFavorites,
+                            files = finalFiles,
                             currentIndex = safeIndex, 
                             resource = resource,
                             slideShowInterval = intervalToUse,

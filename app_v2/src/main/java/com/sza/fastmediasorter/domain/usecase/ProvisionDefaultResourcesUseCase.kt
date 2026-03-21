@@ -4,6 +4,7 @@ import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
+import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -66,7 +67,24 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             )
         }
 
-        // 4. All Images
+        // 4. Camera
+        if (BuildConfig.SUPPORT_IMAGES) {
+            val cameraImageTypes = buildSet {
+                if (settings.supportImages) add(MediaType.IMAGE)
+                if (settings.supportGifs) add(MediaType.GIF)
+                add(MediaType.VIDEO)
+            }
+            createVirtualResource(
+                name = context.getString(R.string.resource_camera),
+                path = LocalMediaScanner.CAMERA_FOLDER_PATH,
+                supportedMediaTypes = cameraImageTypes,
+                profile = ResourceProfile.PHOTO_STORAGE,
+                displayMode = DisplayMode.GRID,
+                displayOrder = displayOrder++
+            )
+        }
+
+        // 5. All Images
         if (BuildConfig.SUPPORT_IMAGES) {
             val imageTypes = buildSet {
                 if (settings.supportImages) add(MediaType.IMAGE)
@@ -83,7 +101,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             }
         }
 
-        // 5. All Documents
+        // 6. All Documents
         if (BuildConfig.SUPPORT_DOCUMENTS) {
             val docTypes = buildSet {
                 if (settings.supportText) add(MediaType.TEXT)
@@ -110,7 +128,8 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         path: String,
         supportedMediaTypes: Set<MediaType>,
         profile: ResourceProfile,
-        displayOrder: Int
+        displayOrder: Int,
+        displayMode: DisplayMode = DisplayMode.LIST
     ) {
         val resource = MediaResource(
             id = 0,
@@ -126,6 +145,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             supportedMediaTypes = supportedMediaTypes,
             sortMode = SortMode.NAME_ASC,
             profile = profile,
+            displayMode = displayMode,
             allFiles = false,
             displayOrder = displayOrder
         )

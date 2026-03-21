@@ -339,6 +339,8 @@
 
                         <TextView android:id="@+id/tvStatWriteSpeed" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:textAppearance="?attr/textAppearanceBodyMedium" tools:text="Write speed: 8.2 MB/s" />
 
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnAddToHomeScreen" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/widget_add_to_home_screen" />
+
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

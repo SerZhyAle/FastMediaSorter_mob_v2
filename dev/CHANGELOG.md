@@ -755,3 +755,25 @@ Format: | datetime | file | target | description |
 | 2026-03-21 03:55:53 | `app_v2/src/main/res/layout/widget_resource_launch.xml` | `widget_resource_launch` | Add id to ImageView for dynamic icon setting |
 | 2026-03-21 03:56:00 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetConfigActivity.kt` | `ResourceLaunchWidgetConfigActivity` | Save resource_path and resource_type to SharedPreferences for icon resolution |
 | 2026-03-21 03:56:05 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `ResourceLaunchWidgetProvider` | Smart icon selection based on virtual path and resource type; cleanup path/type prefs on delete |
+| 2026-03-21 04:12:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel.loadSettings` | Fix showCommandPanel priority: check files.isNotEmpty first to prevent overriding runtime value; apply same global-default logic as loadMediaFiles on initial load |
+| 2026-03-21 04:12:36 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `ResourceLaunchWidgetProvider` | Fix: use setColorFilter(Color.WHITE) for RemoteViews tinting instead of app:tint |
+| 2026-03-21 04:12:43 | `app_v2/src/main/res/layout/widget_resource_launch.xml` | `widget_resource_launch` | Fix: app:tint -> android:tint (RemoteViews supports android: namespace only) |
+| 2026-03-21 04:19:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDialogAndUiStateManager.kt` | `PlayerDialogAndUiStateManager.updatePanelVisibility` | Fix: respect showCommandPanel=true during slideshow — VIDEO_LIBRARY auto-slideshow no longer forces fullscreen when user prefers command panel |
+| 2026-03-21 04:23:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Add shuffleOnStart parameter to createIntent() |
+| 2026-03-21 04:23:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Add shuffleOnStart: shuffle file list on first load when launched from widget |
+| 2026-03-21 04:23:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Add NavigateToPlayerRandomMusic event and startRandomMusicPlayback() |
+| 2026-03-21 04:23:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Handle ACTION_RANDOM_MUSIC intent and NavigateToPlayerRandomMusic event |
+| 2026-03-21 04:23:32 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/RandomMusicWidgetProvider.kt` | `RandomMusicWidgetProvider` | New widget: one-tap random music playback |
+| 2026-03-21 04:23:32 | `app_v2/src/main/res/layout/widget_random_music.xml` | `widget_random_music` | New widget layout (1x1, icon + label) |
+| 2026-03-21 04:23:32 | `app_v2/src/main/res/xml/widget_random_music_info.xml` | `widget_random_music_info` | New widget metadata (1x1, no config) |
+| 2026-03-21 04:23:32 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Register RandomMusicWidgetProvider receiver |
+| 2026-03-21 04:23:32 | `app_v2/src/photos/AndroidManifest.xml` | `AndroidManifest (photos)` | Remove RandomMusicWidgetProvider from photos flavor (no SUPPORT_AUDIO) |
+| 2026-03-21 16:48:27 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `LocalMediaScanner` | Add CAMERA_FOLDER_PATH constant for DCIM/Camera |
+| 2026-03-21 16:48:50 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Add Camera resource provisioning with DisplayMode.GRID; add displayMode param to createVirtualResource |
+| 2026-03-21 16:49:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Add openCameraPhotos() — finds Camera resource by path and navigates to Browse |
+| 2026-03-21 16:49:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Add ACTION_CAMERA_PHOTOS handling — calls viewModel.openCameraPhotos() |
+| 2026-03-21 16:49:20 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/CameraPhotosWidgetProvider.kt` | `CameraPhotosWidgetProvider` | New widget: 1x1 Camera Photos widget, opens DCIM/Camera in grid mode (SUPPORT_IMAGES flavors) |
+| 2026-03-21 16:49:38 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Register CameraPhotosWidgetProvider receiver |
+| 2026-03-21 16:49:43 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add resource_camera, widget_camera_photos_label/description/resource_not_found (EN/RU/UK) |
+| 2026-03-21 17:20:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment` | Add 'Add to Home Screen' button to pin ResourceLaunch widget from resource edit screen |
+| 2026-03-21 17:20:51 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `ResourceLaunchWidgetProvider` | Handle pending pin config in onUpdate; add ACTION_WIDGET_PINNED receiver; expose PREFS_NAME and KEY_PENDING_* constants |

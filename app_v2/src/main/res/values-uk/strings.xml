@@ -202,6 +202,7 @@
     <string name="virtual_all_music">Вся музика</string>
     <string name="virtual_all_video">Усі відео</string>
     <string name="virtual_all_images">Усі зображення</string>
+    <string name="resource_camera">Камера</string>
     <string name="virtual_all_docs">Усі документи</string>
     <string name="special_virtual_folders">Спеціальні папки</string>
     <string name="virtual_resource_already_added">Вже додано</string>
@@ -1011,6 +1012,10 @@
     <string name="widget_resource_launch_description">Запуск конкретного ресурсу</string>
     <string name="widget_select_resource">Виберіть ресурс</string>
     <string name="widget_resource_not_configured">Натисніть для налаштування</string>
+    <string name="widget_add_to_home_screen">Додати на головний екран ↗</string>
+    <string name="widget_pin_not_supported">Ваш лаунчер не підтримує додавання віджетів</string>
+    <string name="widget_already_added">Віджет для цього ресурсу вже додано</string>
+    <string name="widget_unlock_screen_prompt">Розблокуйте екран і спробуйте знову</string>
 
     <!-- Sort Modes -->
     <string name="sort_mode_manual">Ручний порядок</string>
@@ -1854,6 +1859,12 @@
     <string name="tts_reading">Читаю вголос…</string>
     <string name="vinyl_indicator_description">Індикатор відтворення аудіо</string>
     <string name="widget_continue_reading_description">Відновити слайдшоу з останньої позиції</string>
+    <string name="widget_random_music_label">Випадкова музика</string>
+    <string name="widget_random_music_description">Відтворити всю музику у випадковому порядку</string>
+    <string name="widget_random_music_resource_not_found">Ресурс «Вся музика» не знайдено</string>
+    <string name="widget_camera_photos_label">Камера</string>
+    <string name="widget_camera_photos_description">Відкрити фото з камери у вигляді сітки</string>
+    <string name="widget_camera_photos_resource_not_found">Ресурс «Камера» не знайдено</string>
     <string name="zoom_in">Збільшити</string>
     <string name="zoom_out">Зменшити</string>
     <string name="database_reset_message">Базу даних скинуто через помилку оновлення. Ресурси потрібно буде додати знову.</string>

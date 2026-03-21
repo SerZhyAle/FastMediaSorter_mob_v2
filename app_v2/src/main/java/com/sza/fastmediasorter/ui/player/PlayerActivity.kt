@@ -3514,7 +3514,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             skipAvailabilityCheck: Boolean = false,
             initialFilePath: String? = null,
             isPlaying: Boolean? = null,
-            isSlideshowEnabled: Boolean = false
+            isSlideshowEnabled: Boolean = false,
+            shuffleOnStart: Boolean = false
         ): Intent {
             return Intent(context, PlayerActivity::class.java).apply {
                 putExtra("resourceId", resourceId)
@@ -3523,6 +3524,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 initialFilePath?.let { putExtra("initialFilePath", it) }
                 isPlaying?.let { putExtra("resumeIsPlaying", it) }
                 if (isSlideshowEnabled) putExtra("resumeSlideshowEnabled", true)
+                if (shuffleOnStart) putExtra("shuffleOnStart", true)
             }
         }
     }

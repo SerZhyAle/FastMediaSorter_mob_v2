@@ -144,6 +144,7 @@
     <string name="virtual_all_music">All Music</string>
     <string name="virtual_all_video">All Videos</string>
     <string name="virtual_all_images">All Images</string>
+    <string name="resource_camera">Camera</string>
     <string name="virtual_all_docs">All Documents</string>
     <string name="special_virtual_folders">Special Folders</string>
     <string name="virtual_resource_already_added">Already added</string>
@@ -1067,9 +1068,19 @@
     <string name="widget_favorites_description">Quick access to favorite files</string>
     <string name="widget_resource_launch_description">Launch specific resource folder</string>
     <string name="widget_continue_reading_description">Resume slideshow from last position</string>
+    <string name="widget_random_music_label">Random Music</string>
+    <string name="widget_random_music_description">Play all music in random order</string>
+    <string name="widget_random_music_resource_not_found">Resource "All Music" not found</string>
+    <string name="widget_camera_photos_label">Camera</string>
+    <string name="widget_camera_photos_description">Open camera photos in grid view</string>
+    <string name="widget_camera_photos_resource_not_found">Resource "Camera" not found</string>
     <string name="continue_reading">Continue Reading</string>
     <string name="widget_select_resource">Select Resource</string>
     <string name="widget_resource_not_configured">Tap to configure</string>
+    <string name="widget_add_to_home_screen">Add to Home Screen ↗</string>
+    <string name="widget_pin_not_supported">Your launcher does not support adding widgets</string>
+    <string name="widget_already_added">Widget for this resource is already added</string>
+    <string name="widget_unlock_screen_prompt">Unlock the screen and try again</string>
 
 
 

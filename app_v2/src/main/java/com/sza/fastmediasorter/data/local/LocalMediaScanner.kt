@@ -41,6 +41,7 @@ class LocalMediaScanner @Inject constructor(
         const val VIRTUAL_PATH_ALL_VIDEO = "virtual://all_video"
         const val VIRTUAL_PATH_ALL_IMAGES = "virtual://all_images"
         const val VIRTUAL_PATH_ALL_DOCS = "virtual://all_docs"
+        const val CAMERA_FOLDER_PATH = "/storage/emulated/0/DCIM/Camera"
         private const val RECENT_FILES_LIMIT = 1000
         const val VIRTUAL_ALL_FILES_LIMIT = 10_000
     }

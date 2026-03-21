@@ -126,6 +126,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.startPlayer()
             }
         }
+        if (intent?.action == ACTION_RANDOM_MUSIC) {
+            binding.root.post {
+                viewModel.startRandomMusicPlayback()
+            }
+        }
+        if (intent?.action == ACTION_CAMERA_PHOTOS) {
+            binding.root.post {
+                viewModel.openCameraPhotos()
+            }
+        }
         
         // Initialize keyboard navigation handler
         keyboardNavigationHandler = KeyboardNavigationHandler(
@@ -484,6 +494,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             ).apply {
                                 putExtra("slideshow_mode", true)
                             }
+                            startActivity(intent)
+                            @Suppress("DEPRECATION")
+                            overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
+                        }
+                        is MainEvent.NavigateToPlayerRandomMusic -> {
+                            val intent = PlayerActivity.createIntent(
+                                this@MainActivity,
+                                event.resourceId,
+                                initialIndex = 0,
+                                skipAvailabilityCheck = true,
+                                isPlaying = true,
+                                shuffleOnStart = true
+                            )
                             startActivity(intent)
                             @Suppress("DEPRECATION")
                             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
@@ -1090,6 +1113,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     companion object {
         const val ACTION_START_SLIDESHOW = "com.sza.fastmediasorter.ACTION_START_SLIDESHOW"
+        const val ACTION_RANDOM_MUSIC = "com.sza.fastmediasorter.ACTION_RANDOM_MUSIC"
+        const val ACTION_CAMERA_PHOTOS = "com.sza.fastmediasorter.ACTION_CAMERA_PHOTOS"
         private const val PREFS_NAME_APP = "app_prefs"
         private const val KEY_STORAGE_PERMISSION_REQUESTED = "storage_permission_requested"
     }

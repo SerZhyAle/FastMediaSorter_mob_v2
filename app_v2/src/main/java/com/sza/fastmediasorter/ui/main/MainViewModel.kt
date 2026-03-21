@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
@@ -76,6 +77,7 @@ sealed class MainEvent {
     data class RequestPassword(val resource: com.sza.fastmediasorter.domain.model.MediaResource, val forSlideshow: Boolean = false) : MainEvent()
     data class NavigateToBrowse(val resourceId: Long, val skipAvailabilityCheck: Boolean = false) : MainEvent()
     data class NavigateToPlayerSlideshow(val resourceId: Long) : MainEvent()
+    data class NavigateToPlayerRandomMusic(val resourceId: Long) : MainEvent()
     data class NavigateToEditResource(val resourceId: Long) : MainEvent()
     data class NavigateToAddResource(val preselectedTab: ResourceTab) : MainEvent()
     data class NavigateToAddResourceCopy(val copyResourceId: Long) : MainEvent()
@@ -293,6 +295,32 @@ class MainViewModel @Inject constructor(
         }
     }
     
+    fun startRandomMusicPlayback() {
+        viewModelScope.launch(ioDispatcher) {
+            val resource = state.value.resources.firstOrNull {
+                it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO
+            }
+            if (resource == null) {
+                sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.widget_random_music_resource_not_found)))
+            } else {
+                sendEvent(MainEvent.NavigateToPlayerRandomMusic(resource.id))
+            }
+        }
+    }
+
+    fun openCameraPhotos() {
+        viewModelScope.launch(ioDispatcher) {
+            val resource = state.value.resources.firstOrNull {
+                it.path == LocalMediaScanner.CAMERA_FOLDER_PATH
+            }
+            if (resource == null) {
+                sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.widget_camera_photos_resource_not_found)))
+            } else {
+                sendEvent(MainEvent.NavigateToBrowse(resource.id, skipAvailabilityCheck = true))
+            }
+        }
+    }
+
     private suspend fun saveLastUsedResourceId(resourceId: Long) {
         try {
             settingsRepository.saveLastUsedResourceId(resourceId)

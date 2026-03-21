@@ -130,8 +130,25 @@
         <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.sza.fastmediasorter.WIDGET_PINNED" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_resource_launch_info" />
+        </receiver>
+
+        <!-- Random Music Widget (standard / lite / legacy — SUPPORT_AUDIO flavors) -->
+        <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_random_music_info" />
+        </receiver>
+
+        <!-- Camera Photos Widget (standard / photos / legacy — SUPPORT_IMAGES flavors) -->
+        <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_photos_info" />
         </receiver>
 
         <!-- Continue Reading Widget -->

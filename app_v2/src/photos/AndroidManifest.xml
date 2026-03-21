@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Photos flavor manifest overlay.
+    Removes the RandomMusicWidget which requires SUPPORT_AUDIO (not available in photos flavor).
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+
+        <!-- Remove Random Music Widget from photos flavor (no audio support) -->
+        <receiver
+            android:name=".widget.RandomMusicWidgetProvider"
+            tools:node="remove" />
+
+    </application>
+
+</manifest>
