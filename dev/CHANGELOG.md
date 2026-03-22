@@ -866,3 +866,10 @@ Format: | datetime | file | target | description |
 | 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | downgrade PanelGeom/updateCommandAvailability/updateSlideshowButtonColor logs from debug to verbose |
 | 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | smart preload cancellation: only cancel stale jobs not in new adjacent set |
 | 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | change preloadJobs from MutableList to MutableMap for path-keyed smart cancellation |
+| 2026-03-22 05:44:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `getLastNetworkSyncTimestamp` | rethrow CancellationException to suppress false-positive error log on SettingsActivity destroy |
+| 2026-03-22 05:44:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `calculateCacheSize` | rethrow CancellationException to suppress false-positive error log on SettingsActivity destroy |
+| 2026-03-22 05:46:03 | `app_v2/src/main/res/layout/page_welcome_default_player.xml` | `page_welcome_default_player` | Fix landscape: wrap content in ScrollView so buttons are always reachable |
+| 2026-03-22 05:46:03 | `app_v2/src/main/res/layout-land/page_welcome_default_player.xml` | `page_welcome_default_player (land)` | New landscape layout: two-column with icon+description left, action buttons right |
+| 2026-03-22 05:46:04 | `app_v2/src/main/res/layout-land/page_welcome_permissions.xml` | `page_welcome_permissions (land)` | New landscape layout: icon+title left column, description+grant button right column |
+| 2026-03-22 05:46:04 | `app_v2/src/main/res/values-land/dimens.xml` | `values-land/dimens` | Add compact welcome_ dimens for landscape (icon 56dp, reduced margins/padding/text) |
+| 2026-03-22 05:54:40 | `docs/FEATURES.md` | `Section17+header` | add Android 8+ platform note and 2 missing widgets (RandomMusic, CameraPhotos) to all 3 language docs |

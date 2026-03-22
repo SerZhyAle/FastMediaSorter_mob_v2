@@ -317,6 +317,8 @@ class SettingsViewModel @Inject constructor(
                     .filter { it > 0L }
                     .maxOrNull()
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "Error getting last sync timestamp")
             null

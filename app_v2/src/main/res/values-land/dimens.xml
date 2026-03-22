@@ -14,8 +14,14 @@
     <!-- Item layouts - reduce vertical padding -->
     <dimen name="item_padding_vertical">8dp</dimen>
 
-    <!-- Welcome screen landscape -->
+    <!-- Welcome screen landscape — compact sizes so all content fits vertically -->
     <dimen name="padding_xxlarge">16dp</dimen>
+    <dimen name="welcome_page_padding">16dp</dimen>
+    <dimen name="welcome_icon_size">56dp</dimen>
+    <dimen name="welcome_icon_margin_top">4dp</dimen>
+    <dimen name="welcome_title_margin_top">6dp</dimen>
+    <dimen name="welcome_title_text_size">20sp</dimen>
+    <dimen name="welcome_description_margin_top">4dp</dimen>
 
     <!-- Dialogs -->
     <dimen name="dialog_file_info_min_width">560dp</dimen>

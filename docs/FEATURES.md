@@ -1,8 +1,10 @@
 # FastMediaSorter v2 — Complete Feature List
 
-*Last updated: 2026-03-16*
+*Last updated: 2026-03-22*
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. It serves as a comprehensive guide to what the application can do, how each feature works, and why it is useful for the user.
+
+**Platform requirements:** Android 8.0+ (API 26) for Standard, Lite, and Photos flavors. The Legacy flavor extends support down to Android 6.0+ (API 23) covering the same feature set but without cloud integrations.
 
 ## Table of Contents
 
@@ -243,6 +245,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Favorites interactive list**: Deploy a rapidly accessible panel right on your Android home screen. This scrollable widget exclusively displays your flagged favorite files, allowing you to bypass menus completely and launch media instantly.
 - **Resource Launch shortcut**: Condense navigation strictly down to a single tap. Set an actionable widget uniquely mapped to a specific folder or NAS drive, triggering the application to instantly open that specific browser or player view.
 - **Continue Reading beacon**: Resume your place profoundly immediately. This clever widget mathematically identifies your absolute last viewed document or video alongside its parent resource, rocketing you strictly back into your last session with one press.
+- **Random Music shortcut**: Instantly start shuffled playback from your "All Music" virtual resource with a single home screen tap. The widget launches the audio player in shuffle mode with autoplay — no menus required. Available on flavors with audio support.
+- **Camera Photos shortcut**: Open your camera roll directly in grid view from the home screen with one tap. The widget targets the built-in Camera Photos virtual resource and launches the browser in grid mode. Available on flavors with image support.
 
 
 ## 18. Settings

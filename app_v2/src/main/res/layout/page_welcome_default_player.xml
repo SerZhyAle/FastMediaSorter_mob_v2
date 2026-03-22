@@ -1,106 +1,102 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Default Player onboarding page (shown once on first install).
-     Spec §5.1: 4 type-specific buttons, no Skip button (user navigates via pager controls). -->
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+     Spec §5.1: 4 type-specific buttons, no Skip button (user navigates via pager controls).
+     Root ScrollView ensures all buttons are reachable on small/compact screens. -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="@dimen/welcome_page_padding">
+    android:fillViewport="true">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/layoutContent"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="@dimen/welcome_page_padding">
 
-        <ImageView
-            android:id="@+id/ivIcon"
-            android:layout_width="@dimen/welcome_icon_size"
-            android:layout_height="@dimen/welcome_icon_size"
-            android:layout_marginTop="@dimen/welcome_icon_margin_top"
-            android:contentDescription="@string/welcome_default_player_title"
-            android:src="@drawable/ic_audio"
-            app:tint="?attr/colorPrimary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-        <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/welcome_title_margin_top"
-            android:gravity="center"
-            android:text="@string/welcome_default_player_title"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/welcome_title_text_size"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/ivIcon" />
-
-        <TextView
-            android:id="@+id/tvDescription"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/welcome_description_margin_top"
-            android:gravity="center"
-            android:text="@string/welcome_default_player_description"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="@dimen/welcome_description_text_size"
-            android:lineSpacingMultiplier="1.3"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
-
-        <!-- 4 type-specific buttons. Visibility is gated in DefaultPlayerViewHolder by BuildConfig. -->
+        <!-- Content column capped at welcome_content_max_width for wide/TV screens -->
         <LinearLayout
-            android:id="@+id/layoutTypeButtons"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/margin_large"
             android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvDescription">
+            android:gravity="center_horizontal"
+            android:maxWidth="@dimen/welcome_content_max_width">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSetDefaultAudio"
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="@dimen/welcome_icon_size"
+                android:layout_height="@dimen/welcome_icon_size"
+                android:layout_marginTop="@dimen/welcome_icon_margin_top"
+                android:contentDescription="@string/welcome_default_player_title"
+                android:src="@drawable/ic_audio"
+                app:tint="?attr/colorPrimary" />
+
+            <TextView
+                android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="@string/welcome_default_player_btn_audio"
-                android:textAllCaps="false" />
+                android:layout_marginTop="@dimen/welcome_title_margin_top"
+                android:gravity="center"
+                android:text="@string/welcome_default_player_title"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/welcome_title_text_size"
+                android:textStyle="bold" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSetDefaultVideo"
+            <TextView
+                android:id="@+id/tvDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="@string/welcome_default_player_btn_video"
-                android:textAllCaps="false" />
+                android:layout_marginTop="@dimen/welcome_description_margin_top"
+                android:gravity="center"
+                android:text="@string/welcome_default_player_description"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/welcome_description_text_size"
+                android:lineSpacingMultiplier="1.3" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSetDefaultImages"
+            <!-- 4 type-specific buttons. Visibility is gated in DefaultPlayerViewHolder by BuildConfig. -->
+            <LinearLayout
+                android:id="@+id/layoutTypeButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="@string/welcome_default_player_btn_images"
-                android:textAllCaps="false" />
+                android:layout_marginTop="@dimen/margin_large"
+                android:orientation="vertical">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSetDefaultDocs"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/welcome_default_player_btn_docs"
-                android:textAllCaps="false" />
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultAudio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/welcome_default_player_btn_audio"
+                    android:textAllCaps="false" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultVideo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/welcome_default_player_btn_video"
+                    android:textAllCaps="false" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultImages"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/welcome_default_player_btn_images"
+                    android:textAllCaps="false" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSetDefaultDocs"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/welcome_default_player_btn_docs"
+                    android:textAllCaps="false" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

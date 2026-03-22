@@ -1441,6 +1441,8 @@ class GeneralSettingsFragment : Fragment() {
                     binding.btnClearCache.text = getString(R.string.clear_cache)
                     binding.btnClearCache.isEnabled = true
                 }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.e(e, "Failed to calculate cache size")
                 withContext(Dispatchers.Main) {
