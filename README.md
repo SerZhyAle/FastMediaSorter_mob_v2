@@ -69,6 +69,8 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 
 ## Download 📥
 
+📲 **[Get it on Google Play](https://play.google.com/store/apps/details?id=com.sza.fastmediasorter)**
+
 **Compiled APK files are NOT stored in this GitHub repository.** All builds are available on **Google Drive**:
 
 🔗 **[Download All Builds from Google Drive](https://drive.google.com/drive/folders/1_U47It406WWQKaXkGGzNVPcKE4OPV0Jp?usp=sharing)**
@@ -100,10 +102,12 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 - ⭐ **Favorites System:** Mark important files as favorites and access them quickly from a dedicated tab that aggregates favorites across all sources.
 - 🔒 **PIN Protection:** Secure individual resources with access PIN codes to prevent unauthorized browsing and editing.
 - ⚙️ **Per-Resource Configuration:** Customize slideshow interval, scan depth (subdirectories), and thumbnail generation for each folder individually.
+- 📋 **Predefined Smart Resources:** Built-in virtual resources — **All Music**, **All Videos**, **All Photos** — that aggregate media from your entire device with zero configuration. Instantly access your full media library without manually adding individual folders.
 - 🖥️ **Network and Cloud Support:** Work with files on your network drives (SMB with automatic network scanning), SFTP servers, FTP, and in cloud storage (Google Drive, Dropbox, OneDrive).
 - 🖼️ **Flexible Viewing:** Display files as a customizable grid or detailed list with pagination support for large collections (1000+ files).
 - ▶️ **Built-in Player:** Playback of video and audio, viewing images and GIFs without leaving the app. Supports slideshow and full-screen zooming.
 - 🧩 **Default Player Integration:** Optional playback toggles let FastMediaSorter act as a system media handler for open/share intents (ACTION_VIEW / ACTION_SEND), and route hardware media-button wake events to the audio playback service.
+- 🎛️ **Hardware Button Support:** Steering wheel controls, headset buttons, and physical media keys (Play/Pause, Next, Previous) are fully supported via the background audio service — no screen interaction required.
 - 🎵 **Lyrics Support:** View song lyrics for the currently playing track. Automatically searches by metadata (Artist/Title) using `api.lyrics.ovh`, with fallback to filename parsing.
 - 🎶 **Slideshow Background Music:** Play background music during image slideshows. Select any audio resource as your music source, with random track playback, volume control, and track name display. Tap the track name to skip to a different random track. Works seamlessly with network and cloud files.
 - ✏️ **Image Editing:** Rotate, flip, apply filters (grayscale, sepia, negative), adjust brightness/contrast/saturation - for both local and network files.
@@ -158,17 +162,27 @@ Mark important files with the star button while browsing. Later, tap the "Favori
 
 Add your music collection as a resource. In Settings → Audio, enable "Slideshow Background Music" and select your music resource. Now when you start a slideshow of your photos, your favorite tracks will play in the background. Tap the track name to skip to a different random song, creating the perfect ambiance for your photo presentations.
 
-### 7. 🖼️ Digital Photo Frame
+### 7. 🖼️ Digital Photo Frame on a Tablet
 
-Give a second life to an old tablet! Even a slow device can become a beautiful photo frame. Connect it to your home PC (SMB) or cloud storage, start a slideshow with background music, and enjoy your memories without copying a single file to the device.
+Turn any Android **tablet** into a beautiful always-on digital photo frame. Place it on a stand, connect to your home PC (SMB) or cloud storage — photos stream directly without occupying any local storage. Adjust the slide interval, keep the screen always on, add background music, and enjoy your memories. Even old, slow budget tablets work perfectly for this purpose — the app is optimized for low-resource continuous playback.
 
 ### 8. 🍿 Home Cinema & VR
 
 Watch your favorite series stored on your PC or cloud directly on your phone or VR headset. No need to wait for copying or worry about free space. Just press play, and the next episode will start automatically.
 
+**VR Headset Use Cases** — FastMediaSorter runs natively on Android-based VR headsets (Meta Quest, Pico, and similar) without any modifications:
+
+- **🎬 Giant Virtual Cinema**: Open a video from your home NAS or cloud storage and watch it on a virtual screen the size of an entire wall. No need to copy gigabyte files to the headset — the app streams directly over your home network. When one episode ends, the next starts automatically.
+- **🎵 Immersive Music Player**: Launch your music collection in the VR environment. The background audio service keeps music playing even when you switch between apps or open the VR home screen. Hardware headset buttons (play/pause, next track) work without touching the controller.
+- **🖼️ Wall-Sized VR Photo Frame**: Turn your VR headset into an immersive photo experience — start a slideshow and your photos fill an enormous virtual wall around you. Pair it with background music for a cinematic, room-filling memories experience. Stream photos directly from your home PC or cloud so the headset storage stays free.
+
 ### 9. 🧹 Download Organizer
 
 Downloads folder cluttered? Open it in the source panel, set up destination buttons for "Documents", "Images", and "Installers". Quickly scan through files, preview them, and sort them into the right places with a single tap. You can even sort files directly on your network computer using your phone as a remote control.
+
+### 10. 🚗 In-Car Music with Android Head Unit
+
+Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders — or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
 
 ## Documentation / Документація / Документация 📚
 

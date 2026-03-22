@@ -873,3 +873,10 @@ Format: | datetime | file | target | description |
 | 2026-03-22 05:46:04 | `app_v2/src/main/res/layout-land/page_welcome_permissions.xml` | `page_welcome_permissions (land)` | New landscape layout: icon+title left column, description+grant button right column |
 | 2026-03-22 05:46:04 | `app_v2/src/main/res/values-land/dimens.xml` | `values-land/dimens` | Add compact welcome_ dimens for landscape (icon 56dp, reduced margins/padding/text) |
 | 2026-03-22 05:54:40 | `docs/FEATURES.md` | `Section17+header` | add Android 8+ platform note and 2 missing widgets (RandomMusic, CameraPhotos) to all 3 language docs |
+| 2026-03-22 06:16:30 | `docs/README.md` | `README` | Added Google Play Store link to Download section |
+| 2026-03-22 06:16:30 | `README.md` | `README` | Added Google Play Store link to Download section |
+| 2026-03-22 06:16:30 | `docs/README_RU.md` | `README_RU` | Added Google Play Store link to Download section (RU) |
+| 2026-03-22 06:16:30 | `docs/README_UK.md` | `README_UK` | Added Google Play Store link to Download section (UK) |
+| 2026-03-22 06:27:21 | `README.md, docs/README.md, docs/README_RU.md, docs/README_UK.md` | `Documentation` | Add predefined resources (All Music/Videos/Photos), hardware button support bullet, car stereo use case (#10), enhanced tablet photo frame scenario (#7) |
+| 2026-03-22 06:37:58 | `index.html, index-ru.html, index-uk.html, sitemap.xml, _config.yml` | `SEO` | Comprehensive SEO overhaul: improved titles/descriptions/keywords (3 langs), added author/robots/theme-color meta, OG image → real screenshot, Twitter summary_large_image, h2→h3 heading hierarchy fix, expanded JSON-LD schema (featureList/keywords/downloadUrl/screenshot/version), new car stereo+tablet scenarios, predefined resources + hardware buttons in feature lists, sitemap lastmod updated |
+| 2026-03-22 06:38:21 | `docs/README.md,docs/README_RU.md,docs/README_UK.md,README.md,index.html,index-ru.html` | `Usage Scenarios` | Expand scenario 8 with detailed VR use cases: giant virtual cinema, VR music player, wall-sized VR photo frame |

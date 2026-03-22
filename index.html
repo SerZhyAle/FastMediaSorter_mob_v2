@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="qwkzLSJrJ7adxFYz-95YY-Uhs0yX6QakWxZWFWtN-ks" />
     <meta name="description"
-        content="FastMediaSorter v2 - Advanced media organization app for Android supporting local, network (SMB/SFTP/FTP), and cloud storage">
+        content="Sort photos, videos &amp; audio from local storage, SMB/NAS, SFTP and cloud. Free Android app with player, slideshow, EPUB reader, OCR translation and Wear OS support.">
     <meta name="keywords"
-        content="Android, Media Sorter, SMB, SFTP, FTP, Cloud Storage, Google Drive, Dropbox, OneDrive, OCR, Translation, EPUB, PDF">
-    <title>FastMediaSorter v2 - Documentation Portal</title>
+        content="Android file manager, media sorter Android, photo organizer app, video sorter Android, SMB client Android, NAS browser Android, SFTP client Android, FTP client Android, cloud file manager Android, Google Drive manager Android, Dropbox Android, photo slideshow app, digital photo frame tablet, audio player Android, EPUB reader Android, OCR translation Android, car stereo Android media player, Android head unit app, file organizer Android, batch file operations Android">
+    <meta name="author" content="SerZhyAle">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#667eea">
+    <title>FastMediaSorter v2 — Android Media Sorter: SMB, Cloud, Local &amp; Player</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -17,20 +20,22 @@
     <!-- SEO: Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
-    <meta property="og:title" content="FastMediaSorter v2 - Documentation Portal">
+    <meta property="og:title" content="FastMediaSorter v2 — Android Media Sorter: SMB, Cloud &amp; Player">
     <meta property="og:description"
-        content="Advanced media organization app for Android supporting local, network (SMB/SFTP/FTP), and cloud storage">
-    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+        content="Sort photos, videos &amp; audio from local storage, SMB/NAS, SFTP and cloud. Free Android app with player, slideshow, EPUB reader and OCR translation.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:alt" content="FastMediaSorter v2 — Android media management app screenshot">
     <meta property="og:locale" content="en_US">
     <meta property="og:locale:alternate" content="ru_RU">
     <meta property="og:locale:alternate" content="uk_UA">
     <meta property="og:site_name" content="FastMediaSorter v2">
     <!-- SEO: Twitter Card -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="FastMediaSorter v2 - Documentation Portal">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FastMediaSorter v2 — Android Media Sorter: SMB, Cloud &amp; Player">
     <meta name="twitter:description"
-        content="Advanced media organization app for Android supporting local, network (SMB/SFTP/FTP), and cloud storage">
-    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+        content="Sort photos, videos &amp; audio from local storage, SMB/NAS, SFTP and cloud. Free Android app with player, slideshow, EPUB reader and OCR translation.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
     <!-- SEO: Canonical & hreflang -->
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
@@ -95,7 +100,9 @@
                 <li>Thumbnail caching (2GB default, up to 16GB)</li>
                 <li>Pagination for large folders (1000+ files)</li>
                 <li>Auto-Translation (OCR) for Images/PDFs</li>
-                <li>Widget Support for HomeScreen</li>
+                <li>Widget Support for HomeScreen (Resource Shortcut &amp; Continue Reading)</li>
+                <li>Predefined Virtual Resources: All Music, All Videos, All Photos</li>
+                <li>Hardware Button Support (steering wheel, headset, media keys)</li>
                 <li>Clean Architecture + MVVM pattern</li>
                 <li>Advanced Touch Gestures</li>
             </ul>
@@ -106,25 +113,29 @@
             <div class="card">
                 <div class="card-icon">🖼️</div>
                 <div>
-                    <h2>Digital Photo Frame</h2>
-                    <p>Give a second life to an old tablet! Connect it to your home PC or cloud, start a slideshow with
-                        background music, and enjoy memories without copying files.</p>
+                    <h3>Digital Photo Frame on Tablet</h3>
+                    <p>Turn any Android tablet into a beautiful always-on digital photo frame. Stream from home PC (SMB) or cloud — zero local storage used. Add background music, set slide interval, enjoy memories.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🚗</div>
+                <div>
+                    <h3>In-Car Music (Android Head Unit)</h3>
+                    <p>Install on your Android car stereo. Use the built-in <strong>All Music</strong> resource for instant access to your entire collection. Steering wheel buttons work via the background audio service — no screen touch needed.</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-icon">🍿</div>
                 <div>
-                    <h2>Home Cinema & VR</h2>
-                    <p>Watch series from PC or cloud directly on your phone or VR headset. No copying needed - just
-                        press play, and the next episode starts automatically.</p>
+                    <h3>Home Cinema &amp; VR</h3>
+                    <p>Watch series from PC or cloud directly on your phone or VR headset. No copying needed — just press play, and the next episode starts automatically. On Android-based VR headsets (Meta Quest, Pico): giant virtual cinema screen, immersive music player with hardware button support, or a wall-sized VR photo frame with background music — all streamed directly from your home network.</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-icon">🧹</div>
                 <div>
-                    <h2>Download Organizer</h2>
-                    <p>Sort clutter on your device or remote computer. Set up destination buttons and organize files
-                        into folders with a single tap.</p>
+                    <h3>Download Organizer</h3>
+                    <p>Sort clutter on your device or remote computer. Set up destination buttons and organize files into folders with a single tap.</p>
                 </div>
             </div>
         </div>
@@ -135,7 +146,7 @@
             <a href="docs/QUICK_START.html" class="card" target="_blank">
                 <div class="card-icon">⚡</div>
                 <div>
-                    <h2>Quick Start Guide</h2>
+                    <h3>Quick Start Guide</h3>
                     <p>Get started in 5 minutes! Simple step-by-step guide for beginners with touch zones diagram and
                         practical tips.</p>
                 </div>
@@ -145,7 +156,7 @@
             <a href="docs/FAQ.html" class="card" target="_blank">
                 <div class="card-icon">❓</div>
                 <div>
-                    <h2>FAQ</h2>
+                    <h3>FAQ</h3>
                     <p>25+ frequently asked questions covering file operations, network setup, Quick Sort, touch zones,
                         and more.</p>
                 </div>
@@ -155,7 +166,7 @@
             <a href="docs/TROUBLESHOOTING.html" class="card" target="_blank">
                 <div class="card-icon">🔧</div>
                 <div>
-                    <h2>Troubleshooting</h2>
+                    <h3>Troubleshooting</h3>
                     <p>Solutions for 15+ common issues: connection problems, performance, file operations, and app
                         crashes.</p>
                 </div>
@@ -165,7 +176,7 @@
             <a href="docs/HOW_TO.html" class="card" target="_blank">
                 <div class="card-icon">📖</div>
                 <div>
-                    <h2>How-To Guides</h2>
+                    <h3>How-To Guides</h3>
                     <p>10 detailed step-by-step tutorials: connect to SMB/SFTP/Drive, set up Quick Sort, use touch
                         zones, and more.</p>
                 </div>
@@ -175,7 +186,7 @@
             <a href="docs/DOWNLOADS_EN.html" class="card" target="_blank">
                 <div class="card-icon">📦</div>
                 <div>
-                    <h2>Download APK Builds</h2>
+                    <h3>Download APK Builds</h3>
                     <p>Access all compiled APK files from Google Drive. Includes Standard, Lite, Photos, and Legacy
                         variants.</p>
                 </div>
@@ -190,7 +201,7 @@
             <a href="docs/DOCS_MAP.html" class="card" target="_blank">
                 <div class="card-icon">🗺️</div>
                 <div>
-                    <h2>Documentation Map</h2>
+                    <h3>Documentation Map</h3>
                     <p>Index of all available documentation files in the project.</p>
                 </div>
                 <div class="card-footer">View Map</div>
@@ -199,7 +210,7 @@
             <a href="docs/README.html" class="card" target="_blank">
                 <div class="card-icon">📖</div>
                 <div>
-                    <h2>User Guide</h2>
+                    <h3>User Guide</h3>
                     <p>Complete installation guide, feature overview, and usage instructions for all supported storage
                         types.</p>
                 </div>
@@ -209,7 +220,7 @@
             <a href="docs/V2_Specification.html" class="card" target="_blank">
                 <div class="card-icon">📋</div>
                 <div>
-                    <h2>Technical Specification</h2>
+                    <h3>Technical Specification</h3>
                     <p>Detailed technical documentation covering architecture, components, and implementation details.
                     </p>
                 </div>
@@ -219,7 +230,7 @@
             <a href="docs/V2_architecture_overview.html" class="card" target="_blank">
                 <div class="card-icon">🏗️</div>
                 <div>
-                    <h2>Architecture Overview</h2>
+                    <h3>Architecture Overview</h3>
                     <p>Clean Architecture implementation with MVVM pattern, Hilt DI, and modular structure explanation.
                     </p>
                 </div>
@@ -229,7 +240,7 @@
             <a href="docs/V2_TERMS.html" class="card" target="_blank">
                 <div class="card-icon">📝</div>
                 <div>
-                    <h2>Terminology Reference</h2>
+                    <h3>Terminology Reference</h3>
                     <p>Definitions of key terms and concepts used throughout the project (Resources, Destinations, etc).
                     </p>
                 </div>
@@ -239,7 +250,7 @@
             <a href="docs/TODO_V2.html" class="card" target="_blank">
                 <div class="card-icon">✅</div>
                 <div>
-                    <h2>Development Roadmap</h2>
+                    <h3>Development Roadmap</h3>
                     <p>Current development tasks, planned features, recent fixes, and known issues tracking.</p>
                 </div>
                 <div class="card-footer">View Roadmap</div>
@@ -248,7 +259,7 @@
             <a href="docs/TEST_SCENARIOS.html" class="card" target="_blank">
                 <div class="card-icon">🧪</div>
                 <div>
-                    <h2>Test Scenarios</h2>
+                    <h3>Test Scenarios</h3>
                     <p>Comprehensive test cases for all features including network protocols and edge cases.</p>
                 </div>
                 <div class="card-footer">View Tests</div>
@@ -257,7 +268,7 @@
             <a href="docs/FEATURES.html" class="card" target="_blank">
                 <div class="card-icon">📋</div>
                 <div>
-                    <h2>Complete Feature List</h2>
+                    <h3>Complete Feature List</h3>
                     <p>Full inventory of all user-facing features: viewers, players, file operations, network sources, cloud, Wear OS, and more.</p>
                 </div>
                 <div class="card-footer">View Features</div>
@@ -271,7 +282,7 @@
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
                 <div class="card-icon">💻</div>
                 <div>
-                    <h2>GitHub Repository</h2>
+                    <h3>GitHub Repository</h3>
                     <p>Access source code, report issues, contribute to development, and track project activity.</p>
                 </div>
                 <div class="card-footer">View Code</div>
@@ -281,7 +292,7 @@
                 target="_blank">
                 <div class="card-icon">📦</div>
                 <div>
-                    <h2>Releases & Downloads</h2>
+                    <h3>Releases & Downloads</h3>
                     <p>Download the latest APK builds with version history and release notes.</p>
                 </div>
                 <div class="card-footer">Get App</div>
@@ -290,7 +301,7 @@
             <a href="mailto:sza@ukr.net" class="card" target="_blank">
                 <div class="card-icon">🐛</div>
                 <div>
-                    <h2>Issues & Support</h2>
+                    <h3>Issues & Support</h3>
                     <p>Report bugs, request features, or get help with installation and configuration problems.</p>
                 </div>
                 <div class="card-footer">Get Help</div>
@@ -304,7 +315,7 @@
             <a href="docs/PRIVACY_POLICY.html" class="card" target="_blank">
                 <div class="card-icon">🔒</div>
                 <div>
-                    <h2>Privacy Policy</h2>
+                    <h3>Privacy Policy</h3>
                     <p>Detailed information on data handling, permissions, security practices, and user privacy
                         protection.</p>
                 </div>
@@ -314,7 +325,7 @@
             <a href="docs/TERMS_OF_SERVICE.html" class="card" target="_blank">
                 <div class="card-icon">📄</div>
                 <div>
-                    <h2>Terms of Service</h2>
+                    <h3>Terms of Service</h3>
                     <p>User agreement, terms of use, disclaimers, and legal information for application usage.</p>
                 </div>
                 <div class="card-footer">Read Terms</div>
@@ -323,7 +334,7 @@
             <a href="docs/OPEN_SOURCE.html" class="card" target="_blank">
                 <div class="card-icon">🐧</div>
                 <div>
-                    <h2>Open Source</h2>
+                    <h3>Open Source</h3>
                     <p>Information about open source libraries used (SMBJ, epub4j), their licenses (LGPL-2.1), and
                         source code.</p>
                 </div>
@@ -332,7 +343,7 @@
             <a href="https://youtube.com/shorts/hxMUsW3354g" class="card" target="_blank">
                 <div class="card-icon">▶️</div>
                 <div>
-                    <h2>App Preview</h2>
+                    <h3>App Preview</h3>
                     <p>Watch a quick short video preview of FastMediaSorter v2 in action on YouTube.</p>
                 </div>
                 <div class="card-footer">Watch Video</div>
@@ -432,14 +443,23 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "FastMediaSorter v2",
+      "alternateName": "FastMediaSorter",
       "applicationCategory": "MultimediaApplication",
-      "operatingSystem": "Android",
+      "applicationSubCategory": "FileManager",
+      "operatingSystem": "Android 8+",
       "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
-      "description": "Advanced media organization app for Android. Sort, copy, move, delete files on local, SMB/SFTP/FTP network, and cloud storage. Supports OCR, translation, EPUB, PDF, audio playback.",
+      "downloadUrl": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
+      "softwareVersion": "2.6",
+      "dateModified": "2026-03-22",
+      "description": "Free Android app for sorting, viewing and playing photos, videos and audio across local storage, SMB/NAS, SFTP, FTP and cloud (Google Drive, Dropbox, OneDrive). Built-in player, slideshow, EPUB reader, OCR translation, hardware button support, home screen widgets, Wear OS companion.",
+      "keywords": "Android file manager, media sorter, photo organizer, SMB client, NAS browser, SFTP Android, slideshow app, digital photo frame, audio player, EPUB reader, OCR translator, car stereo Android, head unit app",
+      "featureList": "Local file management, SMB/CIFS network shares, SFTP, FTP, Google Drive, Dropbox, OneDrive, video player, audio player with hardware button support, image slideshow, digital photo frame mode, EPUB reader, OCR translation, photo editing, predefined virtual resources (All Music/Videos/Photos), home screen widgets, Wear OS companion app",
+      "screenshot": "https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "url": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
       },
       "author": {
         "@type": "Person",

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="uk">
 
 <head>
@@ -6,10 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="qwkzLSJrJ7adxFYz-95YY-Uhs0yX6QakWxZWFWtN-ks" />
     <meta name="description"
-        content="FastMediaSorter v2 - Потужний додаток для організації медіа на Android з підтримкою локального сховища, мережі (SMB/SFTP/FTP) та хмари">
+        content="Сортування фото, відео та музики з локального сховища, SMB/NAS, SFTP та хмари. Безкоштовний Android-додаток з плеєром, слайд-шоу, читалкою EPUB, OCR-перекладом та підтримкою Wear OS.">
     <meta name="keywords"
-        content="Android, Media Sorter, SMB, SFTP, FTP, Cloud Storage, Google Drive, Dropbox, OneDrive, OCR, Переклад, EPUB, PDF">
-    <title>FastMediaSorter v2 - Портал документації</title>
+        content="файловий менеджер Android, сортування медіафайлів Android, органайзер фотографій, сортувальник відео Android, SMB клієнт Android, браузер NAS Android, SFTP клієнт Android, FTP клієнт Android, менеджер хмарного сховища Android, Google Drive менеджер Android, Dropbox Android, застосунок слайд-шоу, цифрова фоторамка планшет, аудіоплеєр Android, читалка EPUB Android, OCR переклад Android, медіаплеєр автомагнітола Android, застосунок головний пристрій Android, органайзер файлів Android">
+    <meta name="author" content="SerZhyAle">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#667eea">
+    <title>FastMediaSorter v2 — Медіасортувальник для Android: SMB, Хмара, Плеєр</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
@@ -17,20 +20,22 @@
     <!-- SEO: Open Graph -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
-    <meta property="og:title" content="FastMediaSorter v2 - Портал документації">
+    <meta property="og:title" content="FastMediaSorter v2 — Медіасортувальник для Android: SMB, Хмара, Плеєр">
     <meta property="og:description"
-        content="Потужний додаток для організації медіа на Android з підтримкою локального сховища, мережі (SMB/SFTP/FTP) та хмари">
-    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+        content="Сортування фото, відео та музики з локального, SMB/NAS, SFTP та хмарного сховища. Безкоштовний Android-додаток з плеєром, слайд-шоу та OCR-перекладом.">
+    <meta property="og:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
+    <meta property="og:image:width" content="1080">
+    <meta property="og:image:alt" content="FastMediaSorter v2 — застосунок для управління медіафайлами на Android">
     <meta property="og:locale" content="uk_UA">
     <meta property="og:locale:alternate" content="en_US">
     <meta property="og:locale:alternate" content="ru_RU">
     <meta property="og:site_name" content="FastMediaSorter v2">
     <!-- SEO: Twitter Card -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="FastMediaSorter v2 - Портал документації">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="FastMediaSorter v2 — Медіасортувальник для Android: SMB, Хмара, Плеєр">
     <meta name="twitter:description"
-        content="Потужний додаток для організації медіа на Android з підтримкою локального сховища, мережі (SMB/SFTP/FTP) та хмари">
-    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/apple-touch-icon.png">
+        content="Сортування фото, відео та музики з локального, SMB/NAS, SFTP та хмарного сховища. Безкоштовний Android-додаток з плеєром, слайд-шоу та OCR-перекладом.">
+    <meta name="twitter:image" content="https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png">
     <!-- SEO: Canonical & hreflang -->
     <link rel="canonical" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="en" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
@@ -95,7 +100,9 @@
                 <li>Кешування мініатюр (за замовчуванням 2 ГБ, до 16 ГБ)</li>
                 <li>Пагінація для великих папок (1000+ файлів)</li>
                 <li>Авто-переклад (OCR) для зображень/PDF</li>
-                <li>Підтримка віджетів для домашнього екрана</li>
+                <li>Підтримка віджетів для домашнього екрана (Ярлик ресурсу та Продовжити перегляд)</li>
+                <li>Передвизначені віртуальні ресурси: Вся музика, Всі відео, Всі фото</li>
+                <li>Підтримка апаратних кнопок (кермо, гарнітура, медіа-клавіші)</li>
                 <li>Clean Architecture + патерн MVVM</li>
                 <li>Продвинуті сенсорні жести</li>
             </ul>
@@ -106,25 +113,29 @@
             <div class="card">
                 <div class="card-icon">🖼️</div>
                 <div>
-                    <h2>Цифрова Фоторамка</h2>
-                    <p>Дайте друге життя старому планшету! Підключіть до ПК або хмари, запустіть слайд-шоу з музикою та
-                        насолоджуйтесь фото без копіювання.</p>
+                    <h3>Цифрова Фоторамка на Планшеті</h3>
+                    <p>Перетворіть будь-який Android-планшет на красиву завжди ввімкнену цифрову фоторамку. Стримінг з домашнього ПК (SMB) або хмари — без зайняття локальної пам'яті. Додайте музику, налаштуйте інтервал.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon">🚗</div>
+                <div>
+                    <h3>Музика в Авто (Android-магнітола)</h3>
+                    <p>Встановіть на Android-автомагнітолу. Віртуальний ресурс <strong>Вся музика</strong> — миттєвий доступ до всієї колекції без налаштування. Кнопки керма працюють через фоновий аудіосервіс — без дотику до екрана.</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-icon">🍿</div>
                 <div>
-                    <h2>Домашній Кінотеатр та VR</h2>
-                    <p>Дивіться серіали з ПК або хмари на телефоні/VR. Не треба копіювати - просто натисніть Play, і
-                        наступна серія запуститься сама.</p>
+                    <h3>Домашній Кінотеатр та VR</h3>
+                    <p>Дивіться серіали з ПК або хмари на телефоні/VR. Не треба копіювати — просто натисніть Play, і наступна серія запуститься сама.</p>
                 </div>
             </div>
             <div class="card">
                 <div class="card-icon">🧹</div>
                 <div>
-                    <h2>Порядок у Завантаженнях</h2>
-                    <p>Наведіть лад у завантаженнях на пристрої або віддаленому ПК. Налаштуйте кнопки та розкладайте
-                        файли по папках одним дотиком.</p>
+                    <h3>Порядок у Завантаженнях</h3>
+                    <p>Наведіть лад у завантаженнях на пристрої або віддаленому ПК. Налаштуйте кнопки та розкладайте файли по папках одним дотиком.</p>
                 </div>
             </div>
         </div>
@@ -135,7 +146,7 @@
             <a href="docs/QUICK_START_UK.html" class="card" target="_blank">
                 <div class="card-icon">⚡</div>
                 <div>
-                    <h2>Швидкий старт</h2>
+                    <h3>Швидкий старт</h3>
                     <p>Почніть за 5 хвилин! Простий покроковий посібник для початківців з діаграмою сенсорних зон та
                         практичними порадами.</p>
                 </div>
@@ -145,7 +156,7 @@
             <a href="docs/FAQ_UK.html" class="card" target="_blank">
                 <div class="card-icon">❓</div>
                 <div>
-                    <h2>Часті питання</h2>
+                    <h3>Часті питання</h3>
                     <p>25+ питань по роботі з файлами, налаштуванню мережі, Quick Sort, сенсорним зонам та багато
                         іншого.</p>
                 </div>
@@ -155,7 +166,7 @@
             <a href="docs/TROUBLESHOOTING_UK.html" class="card" target="_blank">
                 <div class="card-icon">🔧</div>
                 <div>
-                    <h2>Вирішення проблем</h2>
+                    <h3>Вирішення проблем</h3>
                     <p>Рішення для 15+ типових проблем: підключення, продуктивність, операції з файлами та збої
                         програми.</p>
                 </div>
@@ -165,7 +176,7 @@
             <a href="docs/HOW_TO_UK.html" class="card" target="_blank">
                 <div class="card-icon">📖</div>
                 <div>
-                    <h2>Покрокові інструкції</h2>
+                    <h3>Покрокові інструкції</h3>
                     <p>10 детальних туторіалів: підключення до SMB/SFTP/Drive, налаштування Quick Sort, використання
                         сенсорних зон.</p>
                 </div>
@@ -175,7 +186,7 @@
             <a href="docs/DOWNLOADS_UK.html" class="card" target="_blank">
                 <div class="card-icon">📦</div>
                 <div>
-                    <h2>Завантажити APK збірки</h2>
+                    <h3>Завантажити APK збірки</h3>
                     <p>Доступ до всіх скомпільованих APK з Google Drive. Включає варіанти Standard, Lite, Photos та
                         Legacy.</p>
                 </div>
@@ -190,7 +201,7 @@
             <a href="docs/README_UK.html" class="card" target="_blank">
                 <div class="card-icon">📖</div>
                 <div>
-                    <h2>Посібник користувача</h2>
+                    <h3>Посібник користувача</h3>
                     <p>Повний посібник з встановлення, огляд функцій та інструкції з використання для всіх підтримуваних
                         типів сховищ.</p>
                 </div>
@@ -200,7 +211,7 @@
             <a href="docs/V2_Specification_UK.html" class="card" target="_blank">
                 <div class="card-icon">📋</div>
                 <div>
-                    <h2>Технічна специфікація</h2>
+                    <h3>Технічна специфікація</h3>
                     <p>Детальна технічна документація з описом архітектури, компонентів та деталей реалізації.</p>
                 </div>
                 <div class="card-footer">Дивитися</div>
@@ -209,7 +220,7 @@
             <a href="docs/V2_architecture_overview_UK.html" class="card" target="_blank">
                 <div class="card-icon">🏗️</div>
                 <div>
-                    <h2>Огляд архітектури</h2>
+                    <h3>Огляд архітектури</h3>
                     <p>Реалізація Clean Architecture з патерном MVVM, Hilt DI та поясненням модульної структури.</p>
                 </div>
                 <div class="card-footer">Детальніше</div>
@@ -218,7 +229,7 @@
             <a href="docs/V2_TERMS_UK.html" class="card" target="_blank">
                 <div class="card-icon">📝</div>
                 <div>
-                    <h2>Довідник термінів</h2>
+                    <h3>Довідник термінів</h3>
                     <p>Визначення ключових термінів та концепцій, що використовуються в проєкті (Ресурси, Призначення
                         тощо).</p>
                 </div>
@@ -228,7 +239,7 @@
             <a href="docs/TODO_V2_UK.html" class="card" target="_blank">
                 <div class="card-icon">✅</div>
                 <div>
-                    <h2>Дорожня карта розробки</h2>
+                    <h3>Дорожня карта розробки</h3>
                     <p>Поточні завдання розробки, плановані функції, останні виправлення та відстеження відомих проблем.
                     </p>
                 </div>
@@ -238,7 +249,7 @@
             <a href="docs/TEST_SCENARIOS.html" class="card" target="_blank">
                 <div class="card-icon">🧪</div>
                 <div>
-                    <h2>Сценарії тестування</h2>
+                    <h3>Сценарії тестування</h3>
                     <p>Комплексні тестові випадки для всіх функцій, включаючи мережеві протоколи та граничні випадки.
                     </p>
                 </div>
@@ -248,7 +259,7 @@
             <a href="docs/FEATURES_UK.html" class="card" target="_blank">
                 <div class="card-icon">📋</div>
                 <div>
-                    <h2>Повний перелік можливостей</h2>
+                    <h3>Повний перелік можливостей</h3>
                     <p>Повний реєстр усіх користувацьких функцій: переглядачі, плеєри, файлові операції, мережеві джерела, хмара, Wear OS та інше.</p>
                 </div>
                 <div class="card-footer">Дивитися</div>
@@ -257,7 +268,7 @@
             <a href="https://youtube.com/shorts/hxMUsW3354g" class="card" target="_blank">
                 <div class="card-icon">▶️</div>
                 <div>
-                    <h2>Відео-прев'ю</h2>
+                    <h3>Відео-прев'ю</h3>
                     <p>Перегляньте коротке відео про FastMediaSorter v2 у дії на YouTube.</p>
                 </div>
                 <div class="card-footer">Дивитися Відео</div>
@@ -270,7 +281,7 @@
             <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" class="card" target="_blank">
                 <div class="card-icon">💻</div>
                 <div>
-                    <h2>Репозиторій GitHub</h2>
+                    <h3>Репозиторій GitHub</h3>
                     <p>Доступ до вихідного коду, повідомлення про проблеми, участь у розробці та відстеження активності
                         проєкту.</p>
                 </div>
@@ -281,7 +292,7 @@
                 target="_blank">
                 <div class="card-icon">📦</div>
                 <div>
-                    <h2>Релізи та завантаження</h2>
+                    <h3>Релізи та завантаження</h3>
                     <p>Завантажте останні збірки APK з історією версій та примітками до випусків.</p>
                 </div>
                 <div class="card-footer">Завантажити</div>
@@ -290,7 +301,7 @@
             <a href="mailto:sza@ukr.net" class="card" target="_blank">
                 <div class="card-icon">🐛</div>
                 <div>
-                    <h2>Проблеми та підтримка</h2>
+                    <h3>Проблеми та підтримка</h3>
                     <p>Повідомте про помилки, запитайте функції або отримайте допомогу з встановленням та налаштуванням.
                     </p>
                 </div>
@@ -305,7 +316,7 @@
             <a href="docs/PRIVACY_POLICY.uk.html" class="card" target="_blank">
                 <div class="card-icon">🔒</div>
                 <div>
-                    <h2>Політика конфіденційності</h2>
+                    <h3>Політика конфіденційності</h3>
                     <p>Детальна інформація про обробку даних, дозволах, практиках безпеки та захисті конфіденційності
                         користувачів.</p>
                 </div>
@@ -315,7 +326,7 @@
             <a href="docs/TERMS_OF_SERVICE_UK.html" class="card" target="_blank">
                 <div class="card-icon">📄</div>
                 <div>
-                    <h2>Умови використання</h2>
+                    <h3>Умови використання</h3>
                     <p>Користувацька угода, умови використання, відмова від відповідальності та юридична інформація.</p>
                 </div>
                 <div class="card-footer">Читати</div>
@@ -324,7 +335,7 @@
             <a href="docs/OPEN_SOURCE.html" class="card" target="_blank">
                 <div class="card-icon">🐧</div>
                 <div>
-                    <h2>Open Source</h2>
+                    <h3>Open Source</h3>
                     <p>Інформація про використані бібліотеки (SMBJ, epub4j), ліцензії (LGPL-2.1) та вихідний код.</p>
                 </div>
                 <div class="card-footer">Дивитися</div>
@@ -333,7 +344,7 @@
             <a href="https://youtube.com/shorts/hxMUsW3354g" class="card" target="_blank">
                 <div class="card-icon">▶️</div>
                 <div>
-                    <h2>Відео-прев'ю</h2>
+                    <h3>Відео-прев'ю</h3>
                     <p>Перегляньте коротке відео про FastMediaSorter v2 у дії на YouTube.</p>
                 </div>
                 <div class="card-footer">Дивитися Відео</div>
@@ -435,14 +446,23 @@
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       "name": "FastMediaSorter v2",
+      "alternateName": "FastMediaSorter",
       "applicationCategory": "MultimediaApplication",
-      "operatingSystem": "Android",
-      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/",
-      "description": "Advanced media organization app for Android. Sort, copy, move, delete files on local, SMB/SFTP/FTP network, and cloud storage. Supports OCR, translation, EPUB, PDF, audio playback.",
+      "applicationSubCategory": "FileManager",
+      "operatingSystem": "Android 8+",
+      "url": "https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html",
+      "downloadUrl": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter",
+      "softwareVersion": "2.6",
+      "dateModified": "2026-03-22",
+      "description": "Безкоштовний Android-додаток для сортування, перегляду та відтворення фото, відео і музики з локального сховища, SMB/NAS, SFTP, FTP та хмари (Google Drive, Dropbox, OneDrive). Вбудований плеєр, слайд-шоу, читалка EPUB, OCR-переклад, підтримка апаратних кнопок, віджети, Wear OS.",
+      "keywords": "файловий менеджер Android, сортування медіа, органайзер фото, SMB клієнт, браузер NAS, SFTP Android, слайд-шоу, цифрова фоторамка, аудіоплеєр, читалка EPUB, OCR перекладач, автомагнітола Android, головний пристрій Android",
+      "featureList": "Управління локальними файлами, SMB/CIFS, SFTP, FTP, Google Drive, Dropbox, OneDrive, відеоплеєр, аудіоплеєр з підтримкою кнопок керма, слайд-шоу, цифрова фоторамка, читалка EPUB, OCR-переклад, редактор фото, передвизначені ресурси (Вся музика/Відео/Фото), віджети, Wear OS",
+      "screenshot": "https://serzhyale.github.io/FastMediaSorter_mob_v2/store_assets/screenshots/Screenshot_20260322_060645.png",
       "offers": {
         "@type": "Offer",
         "price": "0",
-        "priceCurrency": "USD"
+        "priceCurrency": "USD",
+        "url": "https://play.google.com/store/apps/details?id=com.sza.fastmediasorter"
       },
       "author": {
         "@type": "Person",
