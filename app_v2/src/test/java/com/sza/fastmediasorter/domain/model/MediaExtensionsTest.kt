@@ -56,7 +56,7 @@ class MediaExtensionsTest {
     fun `isVideo is case insensitive`() {
         assertTrue("Expected MP4", MediaExtensions.isVideo("MP4"))
         assertTrue("Expected Mkv", MediaExtensions.isVideo("Mkv"))
-        assertTrue("Expected AVI", MediaExtensions.isVideo("AVI"))
+        assertTrue("Expected MOV", MediaExtensions.isVideo("MOV"))
     }
 
     @Test

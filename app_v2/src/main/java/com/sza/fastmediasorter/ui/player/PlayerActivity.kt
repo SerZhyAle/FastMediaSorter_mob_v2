@@ -218,8 +218,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal val hideControlsHandler = Handler(Looper.getMainLooper())
     internal val loadingIndicatorHandler = Handler(Looper.getMainLooper())
     
-    // Track preload jobs to cancel on destroy (managed by lifecycleManager)
-    private val preloadJobs = mutableListOf<Job>()
+    // Track preload jobs to cancel on destroy (managed by lifecycleManager); keyed by file path for smart cancellation
+    private val preloadJobs = mutableMapOf<String, Job>()
     private lateinit var gestureDetector: GestureDetector
     private val touchZoneDetector = TouchZoneDetector()
     private var useTouchZones = true // Use touch zones for images, gestures for video
@@ -596,8 +596,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     }
                 }
                 
-                override fun getExoPlayer(): ExoPlayer? = if (_videoPlayerManager != null) videoPlayerManager.getPlayer() else null
-                
+                override fun getActivePlayer(): Player? =
+                    audioServiceController?.player
+                        ?: if (_videoPlayerManager != null) videoPlayerManager.getPlayer() else null
+
                 override fun getCurrentMediaType(): MediaType? = viewModel.state.value.currentFile?.type
                 
                 override fun onPdfNextPage() {
@@ -1569,6 +1571,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     updateAudioFormatInfo()
                     imageLoadingManager.loadAudioCoverArt(currentFile)
                     prefetchNextAudio()
+                    // Refresh song label in audio slideshow photo mode (covers auto-advance case)
+                    updateAudioSlideshowCurrentSongLabel()
                 }
             },
             onAudioServicePlaybackEnded = {
@@ -1576,6 +1580,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 val direction = AudioPlaybackService.pendingDirection
                 AudioPlaybackService.pendingDirection = AudioPlaybackService.DIRECTION_NEXT
 
+                val wasAudio = viewModel.state.value.currentFile?.type == MediaType.AUDIO
                 if (viewModel.state.value.isSlideShowActive) {
                     viewModel.nextFile(skipDocuments = true)
                     slideshowController.restartTimer()
@@ -1583,6 +1588,10 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                     viewModel.previousFile()
                 } else {
                     viewModel.nextFile()
+                }
+                // Advance background photo on audio track auto-advance (mirrors navigateNext behaviour)
+                if (wasAudio) {
+                    advanceAudioBackgroundPhoto()
                 }
             },
             onAudioServicePlaybackError = { _ ->

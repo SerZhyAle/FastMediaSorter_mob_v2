@@ -367,19 +367,19 @@ class PlayerControlsSetupManager(
             UserActionLogger.logButtonClick("TranslateLyrics", "PlayerActivity")
             val currentText = safeViews.tvLyricsContent.text.toString()
             if (currentText.isBlank()) return@setOnClickListener
-            
+
             // Show loading state
             Toast.makeText(activity, R.string.translation_started, Toast.LENGTH_SHORT).show()
-            
+
             // Execute translation
             lifecycleScope.launch(Dispatchers.IO) {
                 try {
                     // Translate to default target language (user's preferred language or Russian)
-                    val targetLang = translationManager.getTargetLanguageCode() 
+                    val targetLang = translationManager.getTargetLanguageCode()
                         ?: com.google.mlkit.nl.translate.TranslateLanguage.RUSSIAN
-                    
+
                     val translatedText = translationManager.translate(currentText, targetLang = targetLang)
-                    
+
                     withContext(Dispatchers.Main) {
                         if (translatedText != null) {
                             safeViews.tvLyricsContent.text = translatedText
@@ -394,6 +394,20 @@ class PlayerControlsSetupManager(
                     }
                 }
             }
+        }
+
+        // Apply WindowInsets to lyricsViewerContainer so close/translate buttons don't hide
+        // behind the status bar (top) or navigation bar (sides in landscape).
+        // Mirrors the same insets handling used for topCommandPanel and bottomPanelsContainer.
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(safeViews.lyricsViewerContainer) { view, insets ->
+            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(navBar.left, statusBar.top, navBar.right, navBar.bottom)
+            Timber.d("LyricsContainer: Applied insets top=${statusBar.top} left=${navBar.left} right=${navBar.right} bottom=${navBar.bottom}")
+            insets
+        }
+        safeViews.lyricsViewerContainer.post {
+            safeViews.lyricsViewerContainer.requestApplyInsets()
         }
     }
     

@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PA
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_DOCS
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_IMAGES
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_VIDEO
+import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_CAMERA_PHOTOS
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_RECENT
 
 object VirtualPathUtils {
@@ -24,6 +25,7 @@ object VirtualPathUtils {
         VIRTUAL_PATH_ALL_AUDIO,
         VIRTUAL_PATH_ALL_VIDEO,
         VIRTUAL_PATH_ALL_IMAGES,
-        VIRTUAL_PATH_ALL_DOCS
+        VIRTUAL_PATH_ALL_DOCS,
+        VIRTUAL_PATH_CAMERA_PHOTOS
     )
 }

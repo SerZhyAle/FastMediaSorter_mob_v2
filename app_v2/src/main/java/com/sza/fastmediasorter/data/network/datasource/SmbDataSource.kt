@@ -37,7 +37,7 @@ class SmbDataSource(
     private val connectionInfo: SmbConnectionInfo
 ) : BaseDataSource(true) {
     companion object {
-        private const val CHUNK_LOG_BYTES = 1_000_000L // ~1 MB summaries
+        private const val CHUNK_LOG_BYTES = 10_000_000L // ~10 MB summaries
         private const val BYTES_IN_MEBIBYTE = 1_048_576.0
         private const val DEFAULT_BUFFER_SIZE = 64 * 1024
     }

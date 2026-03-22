@@ -9,4 +9,5 @@
     android:description="@string/widget_continue_reading_description"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/ic_play" />
+    android:previewImage="@drawable/widget_preview_continue_reading"
+    android:previewLayout="@layout/widget_preview_continue_reading" />

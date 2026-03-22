@@ -1,0 +1,480 @@
+Initialized native services in: C:\Users\serzh\.gradle\native
+Initialized jansi services in: C:\Users\serzh\.gradle\native
+The client will now receive all logging from the daemon (pid: 34984). The daemon log file: C:\Users\serzh\.gradle\daemon\9.3.1\daemon-34984.out.log
+Starting 24th build in daemon [uptime: 4 hrs 51 mins 4.078 secs, performance: 99%, GC rate: 0.00/s, heap usage: 0% of 4 GiB, non-heap usage: 38% of 1 GiB]
+Using 20 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=true, configureOnDemand=false, configurationCache=true, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=true, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Encryption key source: default Gradle keystore (pkcs12)
+Not watching P:\ANDROID\FastMediaSorter_mob_v2 since the file system is not supported
+Reusing configuration cache.
+Not watching P:\ANDROID\FastMediaSorter_mob_v2 since the file system is not supported
+Watching the file system is configured to be enabled if available
+File system watching is active
+Using local directory build cache for the root build (location = C:\Users\serzh\.gradle\caches\build-cache-1, remove unused entries = after 7 days).
+Tasks to be executed: [task ':app_v2:preBuild', task ':app_v2:preStandardDebugBuild', task ':app_v2:checkKotlinGradlePluginConfigurationErrors', task ':app_v2:dataBindingMergeDependencyArtifactsStandardDebug', task ':app_v2:generateStandardDebugResValues', task ':app_v2:generateStandardDebugResources', task ':app_v2:mergeStandardDebugResources', task ':app_v2:packageStandardDebugResources', task ':app_v2:processStandardDebugNavigationResources', task ':app_v2:parseStandardDebugLocalResources', task ':app_v2:dataBindingGenBaseClassesStandardDebug', task ':app_v2:generateSafeArgsStandardDebug', task ':app_v2:generateStandardDebugBuildConfig', task ':app_v2:generateStandardDebugRFile', task ':app_v2:kaptGenerateStubsStandardDebugKotlin', task ':app_v2:kaptStandardDebugKotlin', task ':app_v2:compileStandardDebugKotlin', task ':app_v2:javaPreCompileStandardDebug', task ':app_v2:compileStandardDebugJavaWithJavac', task ':app_v2:hiltAggregateDepsStandardDebug', task ':app_v2:hiltJavaCompileStandardDebug', task ':app_v2:checkStandardDebugAarMetadata', task ':app_v2:mapStandardDebugSourceSetPaths', task ':app_v2:compileStandardDebugNavigationResources', task ':app_v2:createStandardDebugCompatibleScreenManifests', task ':app_v2:extractDeepLinksStandardDebug', task ':app_v2:processStandardDebugMainManifest', task ':app_v2:processStandardDebugManifest', task ':app_v2:processStandardDebugManifestForPackage', task ':app_v2:processStandardDebugResources', task ':app_v2:transformStandardDebugClassesWithAsm', task ':app_v2:bundleStandardDebugClassesToRuntimeJar', task ':app_v2:generateStandardDebugAssets', task ':app_v2:mergeStandardDebugAssets', task ':app_v2:preStandardDebugUnitTestBuild', task ':app_v2:packageStandardDebugUnitTestForUnitTest', task ':app_v2:processStandardDebugUnitTestManifest', task ':app_v2:generateStandardDebugUnitTestConfig', task ':app_v2:processStandardDebugJavaRes', task ':app_v2:bundleStandardDebugClassesToCompileJar', task ':app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin', task ':app_v2:kaptStandardDebugUnitTestKotlin', task ':app_v2:compileStandardDebugUnitTestKotlin', task ':app_v2:javaPreCompileStandardDebugUnitTest', task ':app_v2:compileStandardDebugUnitTestJavaWithJavac', task ':app_v2:hiltAggregateDepsStandardDebugUnitTest', task ':app_v2:hiltJavaCompileStandardDebugUnitTest', task ':app_v2:processStandardDebugUnitTestJavaRes', task ':app_v2:transformStandardDebugUnitTestClassesWithAsm', task ':app_v2:testStandardDebugUnitTest']
+Tasks that were excluded: []
+Resolve mutations for :app_v2:preBuild (Thread[#3841,Execution worker,5,main]) started.
+Resolve mutations for :app_v2:checkKotlinGradlePluginConfigurationErrors (Thread[#3842,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app_v2:generateStandardDebugAssets (Thread[#3843,Execution worker Thread 3,5,main]) started.
+:app_v2:preBuild (Thread[#3846,Execution worker Thread 6,5,main]) started.
+:app_v2:generateStandardDebugAssets (Thread[#3844,Execution worker Thread 4,5,main]) started.
+:app_v2:checkKotlinGradlePluginConfigurationErrors (Thread[#3842,Execution worker Thread 2,5,main]) started.
+
+> Task :app_v2:preBuild UP-TO-DATE
+Skipping task ':app_v2:preBuild' as it has no actions.
+
+> Task :app_v2:generateStandardDebugAssets UP-TO-DATE
+Skipping task ':app_v2:generateStandardDebugAssets' as it has no actions.
+
+> Task :app_v2:checkKotlinGradlePluginConfigurationErrors SKIPPED
+Skipping task ':app_v2:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+Build 89ffb23d-7876-42a4-af21-9ecf2e533af6 is started
+Resolve mutations for :app_v2:preStandardDebugBuild (Thread[#3846,Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app_v2:preStandardDebugUnitTestBuild (Thread[#3842,Execution worker Thread 2,5,main]) started.
+:app_v2:preStandardDebugBuild (Thread[#3841,Execution worker,5,main]) started.
+:app_v2:preStandardDebugUnitTestBuild (Thread[#3852,Execution worker Thread 12,5,main]) started.
+
+> Task :app_v2:preStandardDebugBuild UP-TO-DATE
+Skipping task ':app_v2:preStandardDebugBuild' as it has no actions.
+
+> Task :app_v2:preStandardDebugUnitTestBuild UP-TO-DATE
+Skipping task ':app_v2:preStandardDebugUnitTestBuild' as it has no actions.
+Resolve mutations for :app_v2:javaPreCompileStandardDebugUnitTest (Thread[#3852,Execution worker Thread 12,5,main]) started.
+:app_v2:javaPreCompileStandardDebugUnitTest (Thread[#3852,Execution worker Thread 12,5,main]) started.
+Resolve mutations for :app_v2:dataBindingMergeDependencyArtifactsStandardDebug (Thread[#3841,Execution worker,5,main]) started.
+Resolve mutations for :app_v2:generateStandardDebugResValues (Thread[#3842,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app_v2:processStandardDebugNavigationResources (Thread[#3844,Execution worker Thread 4,5,main]) started.
+Resolve mutations for :app_v2:javaPreCompileStandardDebug (Thread[#3846,Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app_v2:generateStandardDebugBuildConfig (Thread[#3840,included builds,5,main]) started.
+Resolve mutations for :app_v2:createStandardDebugCompatibleScreenManifests (Thread[#3849,Execution worker Thread 9,5,main]) started.
+:app_v2:dataBindingMergeDependencyArtifactsStandardDebug (Thread[#3845,Execution worker Thread 5,5,main]) started.
+:app_v2:javaPreCompileStandardDebug (Thread[#3846,Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app_v2:checkStandardDebugAarMetadata (Thread[#3850,Execution worker Thread 10,5,main]) started.
+Resolve mutations for :app_v2:mergeStandardDebugAssets (Thread[#3847,Execution worker Thread 7,5,main]) started.
+:app_v2:createStandardDebugCompatibleScreenManifests (Thread[#3849,Execution worker Thread 9,5,main]) started.
+:app_v2:generateStandardDebugBuildConfig (Thread[#3840,included builds,5,main]) started.
+:app_v2:checkStandardDebugAarMetadata (Thread[#3850,Execution worker Thread 10,5,main]) started.
+:app_v2:mergeStandardDebugAssets (Thread[#3847,Execution worker Thread 7,5,main]) started.
+
+> Task :app_v2:javaPreCompileStandardDebugUnitTest UP-TO-DATE
+Build cache key for task ':app_v2:javaPreCompileStandardDebugUnitTest' is fc6873476987c30d0bf6569f251eeaf4
+Skipping task ':app_v2:javaPreCompileStandardDebugUnitTest' as it is up-to-date.
+
+> Task :app_v2:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+Caching disabled for task ':app_v2:createStandardDebugCompatibleScreenManifests' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:createStandardDebugCompatibleScreenManifests' as it is up-to-date.
+
+> Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
+Build cache key for task ':app_v2:generateStandardDebugBuildConfig' is bcc1e6ccbd01e00829bfc5d7c1c3bfda
+Skipping task ':app_v2:generateStandardDebugBuildConfig' as it is up-to-date.
+
+> Task :app_v2:javaPreCompileStandardDebug UP-TO-DATE
+Build cache key for task ':app_v2:javaPreCompileStandardDebug' is fc6873476987c30d0bf6569f251eeaf4
+Skipping task ':app_v2:javaPreCompileStandardDebug' as it is up-to-date.
+:app_v2:generateStandardDebugResValues (Thread[#3842,Execution worker Thread 2,5,main]) started.
+:app_v2:processStandardDebugNavigationResources (Thread[#3841,Execution worker,5,main]) started.
+
+> Task :app_v2:generateStandardDebugResValues UP-TO-DATE
+Build cache key for task ':app_v2:generateStandardDebugResValues' is 55a7aa295d76109a0be5315fefb2c044
+Skipping task ':app_v2:generateStandardDebugResValues' as it is up-to-date.
+Resolve mutations for :app_v2:generateStandardDebugResources (Thread[#3842,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app_v2:generateSafeArgsStandardDebug (Thread[#3844,Execution worker Thread 4,5,main]) started.
+Resolve mutations for :app_v2:mapStandardDebugSourceSetPaths (Thread[#3846,Execution worker Thread 6,5,main]) started.
+:app_v2:generateStandardDebugResources (Thread[#3842,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app_v2:extractDeepLinksStandardDebug (Thread[#3849,Execution worker Thread 9,5,main]) started.
+:app_v2:extractDeepLinksStandardDebug (Thread[#3849,Execution worker Thread 9,5,main]) started.
+:app_v2:mapStandardDebugSourceSetPaths (Thread[#3846,Execution worker Thread 6,5,main]) started.
+:app_v2:generateSafeArgsStandardDebug (Thread[#3844,Execution worker Thread 4,5,main]) started.
+
+> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
+Build cache key for task ':app_v2:extractDeepLinksStandardDebug' is 72dcef8972421106e9766ff1b11b6fa8
+Skipping task ':app_v2:extractDeepLinksStandardDebug' as it is up-to-date.
+Resolve mutations for :app_v2:processStandardDebugMainManifest (Thread[#3859,Execution worker Thread 18,5,main]) started.
+work action resolve navigation.json (project :app_v2) (Thread[#3853,Execution worker Thread 13,5,main]) started.
+:app_v2:processStandardDebugMainManifest (Thread[#3848,Execution worker Thread 8,5,main]) started.
+
+> Task :app_v2:generateSafeArgsStandardDebug UP-TO-DATE
+Build cache key for task ':app_v2:generateSafeArgsStandardDebug' is a3a2c3d66de3d64b58aeff13aeba601e
+Skipping task ':app_v2:generateSafeArgsStandardDebug' as it is up-to-date.
+
+> Task :app_v2:checkStandardDebugAarMetadata UP-TO-DATE
+Caching disabled for task ':app_v2:checkStandardDebugAarMetadata' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:checkStandardDebugAarMetadata' as it is up-to-date.
+
+> Task :app_v2:mergeStandardDebugAssets UP-TO-DATE
+Caching disabled for task ':app_v2:mergeStandardDebugAssets' because:
+  Simple merging task
+Skipping task ':app_v2:mergeStandardDebugAssets' as it is up-to-date.
+
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
+Caching disabled for task ':app_v2:dataBindingMergeDependencyArtifactsStandardDebug' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:dataBindingMergeDependencyArtifactsStandardDebug' as it is up-to-date.
+
+> Task :app_v2:generateStandardDebugResources UP-TO-DATE
+Build cache key for task ':app_v2:generateStandardDebugResources' is 27777b35a2af26fad3927ff9917a797e
+Skipping task ':app_v2:generateStandardDebugResources' as it is up-to-date.
+
+> Task :app_v2:mapStandardDebugSourceSetPaths UP-TO-DATE
+Caching disabled for task ':app_v2:mapStandardDebugSourceSetPaths' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:mapStandardDebugSourceSetPaths' as it is up-to-date.
+Resolve mutations for :app_v2:mergeStandardDebugResources (Thread[#3842,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app_v2:packageStandardDebugResources (Thread[#3846,Execution worker Thread 6,5,main]) started.
+:app_v2:packageStandardDebugResources (Thread[#3846,Execution worker Thread 6,5,main]) started.
+:app_v2:mergeStandardDebugResources (Thread[#3842,Execution worker Thread 2,5,main]) started.
+
+> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app_v2:processStandardDebugNavigationResources' is 4ce08c742eafcfa429dabc88aeaec5c6
+Skipping task ':app_v2:processStandardDebugNavigationResources' as it is up-to-date.
+Resolve mutations for :app_v2:compileStandardDebugNavigationResources (Thread[#3841,Execution worker,5,main]) started.
+:app_v2:compileStandardDebugNavigationResources (Thread[#3852,Execution worker Thread 12,5,main]) started.
+
+> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
+Build cache key for task ':app_v2:compileStandardDebugNavigationResources' is 7a119299d14d0f058cd64c74f096b7f4
+Skipping task ':app_v2:compileStandardDebugNavigationResources' as it is up-to-date.
+
+> Task :app_v2:packageStandardDebugResources UP-TO-DATE
+Build cache key for task ':app_v2:packageStandardDebugResources' is 5b7126bfd641ac138ff6972bae79530d
+Skipping task ':app_v2:packageStandardDebugResources' as it is up-to-date.
+Resolve mutations for :app_v2:parseStandardDebugLocalResources (Thread[#3846,Execution worker Thread 6,5,main]) started.
+
+> Task :app_v2:processStandardDebugMainManifest UP-TO-DATE
+Build cache key for task ':app_v2:processStandardDebugMainManifest' is a9ddc2872d7d3e70d3cfd75dd255fe49
+Skipping task ':app_v2:processStandardDebugMainManifest' as it is up-to-date.
+:app_v2:parseStandardDebugLocalResources (Thread[#3846,Execution worker Thread 6,5,main]) started.
+Resolve mutations for :app_v2:processStandardDebugManifest (Thread[#3848,Execution worker Thread 8,5,main]) started.
+Resolve mutations for :app_v2:processStandardDebugUnitTestManifest (Thread[#3852,Execution worker Thread 12,5,main]) started.
+:app_v2:processStandardDebugManifest (Thread[#3848,Execution worker Thread 8,5,main]) started.
+:app_v2:processStandardDebugUnitTestManifest (Thread[#3852,Execution worker Thread 12,5,main]) started.
+
+> Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
+Build cache key for task ':app_v2:parseStandardDebugLocalResources' is 5aba567adc0440fd204495cb1b53cbd3
+Skipping task ':app_v2:parseStandardDebugLocalResources' as it is up-to-date.
+Resolve mutations for :app_v2:generateStandardDebugRFile (Thread[#3846,Execution worker Thread 6,5,main]) started.
+:app_v2:generateStandardDebugRFile (Thread[#3846,Execution worker Thread 6,5,main]) started.
+
+> Task :app_v2:processStandardDebugManifest UP-TO-DATE
+Build cache key for task ':app_v2:processStandardDebugManifest' is 1716254e75b1c3e00a8cf103725ca1d2
+Skipping task ':app_v2:processStandardDebugManifest' as it is up-to-date.
+Resolve mutations for :app_v2:processStandardDebugManifestForPackage (Thread[#3848,Execution worker Thread 8,5,main]) started.
+:app_v2:processStandardDebugManifestForPackage (Thread[#3848,Execution worker Thread 8,5,main]) started.
+
+> Task :app_v2:processStandardDebugManifestForPackage UP-TO-DATE
+Build cache key for task ':app_v2:processStandardDebugManifestForPackage' is 127f8418a2f59b17b3000187ef1589cf
+Skipping task ':app_v2:processStandardDebugManifestForPackage' as it is up-to-date.
+
+> Task :app_v2:generateStandardDebugRFile UP-TO-DATE
+Build cache key for task ':app_v2:generateStandardDebugRFile' is e8666840fa2d0f283cb136872dae8a51
+Skipping task ':app_v2:generateStandardDebugRFile' as it is up-to-date.
+
+> Task :app_v2:processStandardDebugUnitTestManifest UP-TO-DATE
+Caching disabled for task ':app_v2:processStandardDebugUnitTestManifest' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:processStandardDebugUnitTestManifest' as it is up-to-date.
+
+> Task :app_v2:mergeStandardDebugResources UP-TO-DATE
+Build cache key for task ':app_v2:mergeStandardDebugResources' is 6a8ac5f98c602d357432d6f294a5befa
+Skipping task ':app_v2:mergeStandardDebugResources' as it is up-to-date.
+Resolve mutations for :app_v2:dataBindingGenBaseClassesStandardDebug (Thread[#3842,Execution worker Thread 2,5,main]) started.
+Resolve mutations for :app_v2:processStandardDebugResources (Thread[#3852,Execution worker Thread 12,5,main]) started.
+:app_v2:dataBindingGenBaseClassesStandardDebug (Thread[#3859,Execution worker Thread 18,5,main]) started.
+:app_v2:processStandardDebugResources (Thread[#3852,Execution worker Thread 12,5,main]) started.
+
+> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
+Build cache key for task ':app_v2:dataBindingGenBaseClassesStandardDebug' is ed9d35e2964026919b94dd7bbce820c9
+Skipping task ':app_v2:dataBindingGenBaseClassesStandardDebug' as it is up-to-date.
+Resolve mutations for :app_v2:kaptGenerateStubsStandardDebugKotlin (Thread[#3859,Execution worker Thread 18,5,main]) started.
+:app_v2:kaptGenerateStubsStandardDebugKotlin (Thread[#3859,Execution worker Thread 18,5,main]) started.
+
+> Task :app_v2:processStandardDebugResources UP-TO-DATE
+Build cache key for task ':app_v2:processStandardDebugResources' is af0ce4d2b2776e660891643c49606baa
+Skipping task ':app_v2:processStandardDebugResources' as it is up-to-date.
+Resolve mutations for :app_v2:packageStandardDebugUnitTestForUnitTest (Thread[#3852,Execution worker Thread 12,5,main]) started.
+:app_v2:packageStandardDebugUnitTestForUnitTest (Thread[#3856,Execution worker Thread 16,5,main]) started.
+
+> Task :app_v2:packageStandardDebugUnitTestForUnitTest UP-TO-DATE
+Caching disabled for task ':app_v2:packageStandardDebugUnitTestForUnitTest' because:
+  Simple merging task
+Skipping task ':app_v2:packageStandardDebugUnitTestForUnitTest' as it is up-to-date.
+Resolve mutations for :app_v2:generateStandardDebugUnitTestConfig (Thread[#3856,Execution worker Thread 16,5,main]) started.
+:app_v2:generateStandardDebugUnitTestConfig (Thread[#3850,Execution worker Thread 10,5,main]) started.
+
+> Task :app_v2:generateStandardDebugUnitTestConfig UP-TO-DATE
+Caching disabled for task ':app_v2:generateStandardDebugUnitTestConfig' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:generateStandardDebugUnitTestConfig' as it is up-to-date.
+
+> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
+Build cache key for task ':app_v2:kaptGenerateStubsStandardDebugKotlin' is 143a8fe0c863ed957231e06bc9e04e99
+Skipping task ':app_v2:kaptGenerateStubsStandardDebugKotlin' as it is up-to-date.
+Resolve mutations for :app_v2:kaptStandardDebugKotlin (Thread[#3859,Execution worker Thread 18,5,main]) started.
+:app_v2:kaptStandardDebugKotlin (Thread[#3859,Execution worker Thread 18,5,main]) started.
+
+> Task :app_v2:kaptStandardDebugKotlin UP-TO-DATE
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\debug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\debug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\debug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\debug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\kotlin', not found
+Build cache key for task ':app_v2:kaptStandardDebugKotlin' is 6dd674429c411ac07a5fa490514d85ce
+Skipping task ':app_v2:kaptStandardDebugKotlin' as it is up-to-date.
+Resolve mutations for :app_v2:compileStandardDebugKotlin (Thread[#3850,Execution worker Thread 10,5,main]) started.
+:app_v2:compileStandardDebugKotlin (Thread[#3850,Execution worker Thread 10,5,main]) started.
+
+> Task :app_v2:compileStandardDebugKotlin UP-TO-DATE
+Build cache key for task ':app_v2:compileStandardDebugKotlin' is 8da52f183485a659c54ff38fbc510101
+Skipping task ':app_v2:compileStandardDebugKotlin' as it is up-to-date.
+Resolve mutations for :app_v2:compileStandardDebugJavaWithJavac (Thread[#3859,Execution worker Thread 18,5,main]) started.
+:app_v2:compileStandardDebugJavaWithJavac (Thread[#3859,Execution worker Thread 18,5,main]) started.
+
+> Task :app_v2:compileStandardDebugJavaWithJavac UP-TO-DATE
+Build cache key for task ':app_v2:compileStandardDebugJavaWithJavac' is 04b6bf2e40015d7d649f98da913b61cb
+Skipping task ':app_v2:compileStandardDebugJavaWithJavac' as it is up-to-date.
+No compile result for :app_v2:compileStandardDebugJavaWithJavac
+Resolve mutations for :app_v2:hiltAggregateDepsStandardDebug (Thread[#3843,Execution worker Thread 3,5,main]) started.
+:app_v2:hiltAggregateDepsStandardDebug (Thread[#3843,Execution worker Thread 3,5,main]) started.
+
+> Task :app_v2:hiltAggregateDepsStandardDebug UP-TO-DATE
+Build cache key for task ':app_v2:hiltAggregateDepsStandardDebug' is 8b99b9116c1c596637888b8d188ff7e0
+Skipping task ':app_v2:hiltAggregateDepsStandardDebug' as it is up-to-date.
+Resolve mutations for :app_v2:hiltJavaCompileStandardDebug (Thread[#3844,Execution worker Thread 4,5,main]) started.
+:app_v2:hiltJavaCompileStandardDebug (Thread[#3844,Execution worker Thread 4,5,main]) started.
+
+> Task :app_v2:hiltJavaCompileStandardDebug UP-TO-DATE
+Build cache key for task ':app_v2:hiltJavaCompileStandardDebug' is a81a79a3ca10eb52df411edd812972ae
+Skipping task ':app_v2:hiltJavaCompileStandardDebug' as it is up-to-date.
+No compile result for :app_v2:hiltJavaCompileStandardDebug
+Resolve mutations for :app_v2:transformStandardDebugClassesWithAsm (Thread[#3844,Execution worker Thread 4,5,main]) started.
+Resolve mutations for :app_v2:processStandardDebugJavaRes (Thread[#3841,Execution worker,5,main]) started.
+Resolve mutations for :app_v2:bundleStandardDebugClassesToCompileJar (Thread[#3840,included builds,5,main]) started.
+:app_v2:processStandardDebugJavaRes (Thread[#3841,Execution worker,5,main]) started.
+:app_v2:bundleStandardDebugClassesToCompileJar (Thread[#3840,included builds,5,main]) started.
+:app_v2:transformStandardDebugClassesWithAsm (Thread[#3844,Execution worker Thread 4,5,main]) started.
+
+> Task :app_v2:bundleStandardDebugClassesToCompileJar UP-TO-DATE
+Caching disabled for task ':app_v2:bundleStandardDebugClassesToCompileJar' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:bundleStandardDebugClassesToCompileJar' as it is up-to-date.
+work action resolve classes.jar (project :app_v2) (Thread[#3840,included builds,5,main]) started.
+Resolve mutations for :app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin (Thread[#3840,included builds,5,main]) started.
+:app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin (Thread[#3840,included builds,5,main]) started.
+
+> Task :app_v2:processStandardDebugJavaRes UP-TO-DATE
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\resources', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standard\resources', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\debug\resources', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebug\resources', not found
+Caching disabled for task ':app_v2:processStandardDebugJavaRes' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:processStandardDebugJavaRes' as it is up-to-date.
+work action resolve out (project :app_v2) (Thread[#3841,Execution worker,5,main]) started.
+
+> Task :app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin UP-TO-DATE
+Build cache key for task ':app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin' is d7efbe4bf4c7c233f6bfd45b6300ba9f
+Skipping task ':app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin' as it is up-to-date.
+Resolve mutations for :app_v2:kaptStandardDebugUnitTestKotlin (Thread[#3840,included builds,5,main]) started.
+:app_v2:kaptStandardDebugUnitTestKotlin (Thread[#3856,Execution worker Thread 16,5,main]) started.
+
+> Task :app_v2:transformStandardDebugClassesWithAsm UP-TO-DATE
+Build cache key for task ':app_v2:transformStandardDebugClassesWithAsm' is 91d8483a3757e9e23d99e880d2abc52a
+Skipping task ':app_v2:transformStandardDebugClassesWithAsm' as it is up-to-date.
+Resolve mutations for :app_v2:bundleStandardDebugClassesToRuntimeJar (Thread[#3844,Execution worker Thread 4,5,main]) started.
+:app_v2:bundleStandardDebugClassesToRuntimeJar (Thread[#3840,included builds,5,main]) started.
+
+> Task :app_v2:bundleStandardDebugClassesToRuntimeJar UP-TO-DATE
+Caching disabled for task ':app_v2:bundleStandardDebugClassesToRuntimeJar' because:
+  Caching has been disabled for the task
+Skipping task ':app_v2:bundleStandardDebugClassesToRuntimeJar' as it is up-to-date.
+work action resolve classes.jar (project :app_v2) (Thread[#3840,included builds,5,main]) started.
+
+> Task :app_v2:kaptStandardDebugUnitTestKotlin UP-TO-DATE
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebugUnitTest\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+Build cache key for task ':app_v2:kaptStandardDebugUnitTestKotlin' is 5db66b369c0a91ea3e8c3f5bbc35d124
+Skipping task ':app_v2:kaptStandardDebugUnitTestKotlin' as it is up-to-date.
+Resolve mutations for :app_v2:compileStandardDebugUnitTestKotlin (Thread[#3856,Execution worker Thread 16,5,main]) started.
+:app_v2:compileStandardDebugUnitTestKotlin (Thread[#3856,Execution worker Thread 16,5,main]) started.
+
+> Task :app_v2:compileStandardDebugUnitTestKotlin FAILED
+Build cache key for task ':app_v2:compileStandardDebugUnitTestKotlin' is a3842d7fff71e5d18e45907ed873b250
+Task ':app_v2:compileStandardDebugUnitTestKotlin' is not up-to-date because:
+  Input property 'sources' file P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\MigrateCameraResourceUseCaseTest.kt has been added.
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebugUnitTest\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebugUnitTest\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebugUnitTest\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\standardDebugUnitTest\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\java', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandard\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testDebug\kotlin', not found
+file or directory 'P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\testStandardDebug\kotlin', not found
+Kotlin source files: P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\core\util\MediaFormatUtilsTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\cloud\CloudAuthenticationHelperTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\cloud\CloudAuthStateMachineTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\cloud\CloudFileOperationHandlerTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\cloud\GoogleDriveTokenRefreshTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\cloud\MultiAccountAuthTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\common\MediaTypeUtilsTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\local\LocalMediaScannerTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\network\exceptions\NetworkErrorClassifierTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\network\exceptions\RetryPolicyTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\network\smb\SmbConnectionManagerTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\network\smb\SmbDirectoryScannerTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\remote\ftp\FtpMediaScannerTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\repository\AudioMetadataCacheRepositoryTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\repository\NetworkCredentialsRepositoryTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\data\transfer\TempFileNamingStrategyTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\model\MediaExtensionsTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\model\MediaMetadataSortTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\strategy\CloudResourceStrategyContractTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\strategy\FtpResourceStrategyContractTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\strategy\LocalResourceStrategyContractTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\strategy\ResourceEditorContractTestBase.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\strategy\SftpResourceStrategyContractTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\strategy\SmbResourceStrategyContractTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\GetDestinationsUseCaseTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\GetMediaFilesUseCaseTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\MigrateCameraResourceUseCaseTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\ProvisionDefaultResourcesUseCaseTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\scan\IncrementalScanStrategyTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\scan\ScanDeltaDetectorTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\domain\usecase\ScanLocalFoldersUseCaseTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\ui\image\ImageDisplayUtilsTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\util\VirtualPathUtilsTest.kt, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\test\java\com\sza\fastmediasorter\worker\PendingRevocationLogicTest.kt
+Java source files: 
+Script source files: 
+Script file extensions: 
+Using Kotlin/JVM incremental compilation
+[KOTLIN] Kotlin compilation 'jdkHome' argument: null
+Options for KOTLIN DAEMON: IncrementalCompilationOptions(super=CompilationOptions(compilerMode=INCREMENTAL_COMPILER, targetPlatform=JVM, reportCategories=[0, 3], reportSeverity=2, requestedCompilationResults=[0], kotlinScriptExtensions=[]), sourceChanges=org.jetbrains.kotlin.buildtools.api.SourcesChanges$Known@ce78f01, classpathChanges=NoChanges, workingDir=P:\ANDROID\FastMediaSorter_mob_v2\app_v2\build\kotlin\compileStandardDebugUnitTestKotlin\cacheable, multiModuleICSettings=MultiModuleICSettings(buildHistoryFile=P:\ANDROID\FastMediaSorter_mob_v2\app_v2\build\kotlin\compileStandardDebugUnitTestKotlin\local-state\build-history.bin, useModuleDetection=true), icFeatures=IncrementalCompilationFeatures(usePreciseJavaTracking=true, withAbiSnapshot=false, preciseCompilationResultsBackup=true, keepIncrementalCompilationCachesInMemory=true, enableUnsafeIncrementalCompilationForMultiplatform=false, enableMonotonousIncrementalCompileSetExpansion=true), outputFiles=[P:\ANDROID\FastMediaSorter_mob_v2\app_v2\build\tmp\kotlin-classes\standardDebugUnitTest, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\build\kotlin\compileStandardDebugUnitTestKotlin\cacheable, P:\ANDROID\FastMediaSorter_mob_v2\app_v2\build\kotlin\compileStandardDebugUnitTestKotlin\local-state])
+Finished executing kotlin compiler using DAEMON strategy
+Restoring task outputs to pre-compilation state
+Build 89ffb23d-7876-42a4-af21-9ecf2e533af6 is closed
+39 actionable tasks: 1 executed, 38 up-to-date
+Some of the file system contents retained in the virtual file system are on file systems that Gradle doesn't support watching. The relevant state was discarded to ensure changes to these locations are properly detected. You can override this by explicitly enabling file system watching.
+Watched directory hierarchies: []
+Configuration cache entry reused.

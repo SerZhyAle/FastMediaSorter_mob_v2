@@ -262,6 +262,19 @@ class AddResourceViewModel @Inject constructor(
                 setOf(MediaType.VIDEO),
                 ResourceProfile.VIDEO_LIBRARY
             )
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS -> {
+                val cameraTypes = buildSet {
+                    if (settings.supportImages) add(MediaType.IMAGE)
+                    if (settings.supportGifs) add(MediaType.GIF)
+                    if (settings.supportVideos) add(MediaType.VIDEO)
+                }
+                if (cameraTypes.isEmpty()) return null
+                Triple(
+                    context.getString(R.string.virtual_camera_photos),
+                    cameraTypes,
+                    ResourceProfile.PHOTO_STORAGE
+                )
+            }
             LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES -> {
                 val imageTypes = buildSet {
                     if (settings.supportImages) add(MediaType.IMAGE)
@@ -289,6 +302,8 @@ class AddResourceViewModel @Inject constructor(
             }
             else -> return null
         }
+        
+        val defaultSortMode = if (virtualPath == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS) SortMode.DATE_DESC else SortMode.NAME_ASC
 
         return MediaResource(
             id = 0,
@@ -302,7 +317,7 @@ class AddResourceViewModel @Inject constructor(
             isWritable = false,
             scanSubdirectories = false,
             supportedMediaTypes = types,
-            sortMode = SortMode.NAME_ASC,
+            sortMode = defaultSortMode,
             profile = profile,
             allFiles = false
         )

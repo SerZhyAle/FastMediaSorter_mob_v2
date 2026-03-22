@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.usecase.AddResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.DeleteResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.MigrateCameraResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ProvisionDefaultResourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.MediaScannerFactory
 import com.sza.fastmediasorter.domain.usecase.SizeFilter
@@ -100,6 +101,7 @@ class MainViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
+    private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -130,6 +132,7 @@ class MainViewModel @Inject constructor(
     init {
         viewModelScope.launch(ioDispatcher) {
             provisionDefaultResourcesUseCase()
+            migrateCameraResourceUseCase()
             observeResourcesFromDatabase()
         }
     }
@@ -311,7 +314,7 @@ class MainViewModel @Inject constructor(
     fun openCameraPhotos() {
         viewModelScope.launch(ioDispatcher) {
             val resource = state.value.resources.firstOrNull {
-                it.path == LocalMediaScanner.CAMERA_FOLDER_PATH
+                it.path == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS
             }
             if (resource == null) {
                 sendEvent(MainEvent.ShowMessage(context.getString(com.sza.fastmediasorter.R.string.widget_camera_photos_resource_not_found)))

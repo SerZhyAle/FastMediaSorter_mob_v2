@@ -1557,6 +1557,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             R.id.btnVirtualRecent to LocalMediaScanner.VIRTUAL_PATH_RECENT,
             R.id.btnVirtualAllMusic to LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
             R.id.btnVirtualAllVideo to LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+            R.id.btnVirtualCameraPhotos to LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
             R.id.btnVirtualAllImages to LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
             R.id.btnVirtualAllDocs to LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS
         )
@@ -1588,6 +1589,7 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             dialogView.findViewById<android.view.View>(R.id.btnVirtualAllMusic)?.isVisible = false
         }
         if (!BuildConfig.SUPPORT_IMAGES) {
+            dialogView.findViewById<android.view.View>(R.id.btnVirtualCameraPhotos)?.isVisible = false
             dialogView.findViewById<android.view.View>(R.id.btnVirtualAllImages)?.isVisible = false
         }
         if (!BuildConfig.SUPPORT_DOCUMENTS) {

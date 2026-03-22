@@ -601,4 +601,58 @@ class MediaStoreRepositoryImpl @Inject constructor(
         
         folders
     }
+
+    override suspend fun findCameraFolderPath(): String? = withContext(Dispatchers.IO) {
+        val fallbackPath = "/storage/emulated/0/DCIM/Camera"
+        val uri = MediaStore.Images.Media.getContentUri("external")
+        val projection = arrayOf(MediaStore.Images.Media.DATA)
+        val selection = "${MediaStore.Images.Media.BUCKET_DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf("Camera")
+
+        try {
+            val cursor = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                val queryArgs = Bundle().apply {
+                    putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection)
+                    putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs)
+                    putStringArray(
+                        ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                        arrayOf(MediaStore.Images.Media.DATE_MODIFIED)
+                    )
+                    putInt(
+                        ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                        ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+                    )
+                    putInt(ContentResolver.QUERY_ARG_LIMIT, 1)
+                }
+                context.contentResolver.query(uri, projection, queryArgs, null)
+            } else {
+                context.contentResolver.query(
+                    uri,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    "${MediaStore.Images.Media.DATE_MODIFIED} DESC LIMIT 1"
+                )
+            }
+
+            cursor?.use { c ->
+                if (c.moveToFirst()) {
+                    val dataCol = c.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
+                    val filePath = c.getString(dataCol)
+                    if (!filePath.isNullOrEmpty()) {
+                        val parentFolder = File(filePath).parent
+                        if (!parentFolder.isNullOrEmpty()) {
+                            Timber.d("MediaStoreRepository: Found camera folder via MediaStore: $parentFolder")
+                            return@withContext parentFolder
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Timber.e(e, "Error finding Camera folder path in MediaStore")
+        }
+
+        Timber.d("MediaStoreRepository: Camera folder not found in MediaStore. Using fallback: $fallbackPath")
+        fallbackPath
+    }
 }

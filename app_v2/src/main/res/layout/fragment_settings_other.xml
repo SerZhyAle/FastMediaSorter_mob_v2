@@ -20,11 +20,23 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/enable_translation"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enable_translation"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_enable_translation_desc"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
             <ImageButton
                 android:id="@+id/iconHelpTranslation"
@@ -123,11 +135,23 @@
                 android:layout_marginEnd="@dimen/settings_switch_margin_end"
                 android:checked="false" />
 
-            <TextView
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/translation_lens_style"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:layout_weight="1"
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/translation_lens_style"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_translation_lens_style_desc"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
             <ImageButton
                 android:id="@+id/iconHelpTranslationBlocks"
@@ -156,12 +180,23 @@
                 android:layout_marginEnd="@dimen/settings_switch_margin_end"
                 android:checked="false" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/enable_google_lens"
-                android:textSize="@dimen/resource_card_desc_text_size" />
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enable_google_lens"
+                    android:textSize="@dimen/resource_card_desc_text_size" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_enable_google_lens_desc"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- OCR (Text Recognition) -->

@@ -35,7 +35,7 @@ This document outlines the current technical constraints, functional limitations
 
 ### Formats & Codecs
 - **Images:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF, AVIF. **RAW formats (CR2, NEF, ARW, DNG, etc.) are NOT supported.**
-- **Videos:** MP4, MKV, AVI, MOV, WMV, FLV, WEBM, TS, M2TS, VOB, OGV, DIVX, MTS and more. If a file uses an unsupported codec (e.g., HEVC on older devices), you may see a black screen. **Solution:** Use the "Open in External Player" option.
+- **Videos:** MP4, MKV, MOV, WMV, FLV, WEBM, TS, M2TS, VOB, OGV, DIVX, MTS and more. If a file uses an unsupported codec (e.g., HEVC on older devices), you may see a black screen. **Solution:** Use the "Open in External Player" option.
 - **Text:** Large text files (>100MB) may load slowly in the internal viewer.
 - **EPUB:** Supports DRM-free EPUB files only. Encrypted or DRM-protected books will not open.
 

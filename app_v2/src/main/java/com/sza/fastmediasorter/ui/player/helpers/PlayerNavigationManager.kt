@@ -64,7 +64,7 @@ class PlayerNavigationManager(
                     } else {
                         // For images or when playToEnd is disabled - normal auto-advance
                         // Skip documents (PDF, TXT, EPUB) in slideshow
-                        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Slideshow auto-advance")
+                        Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Slideshow auto-advance")
                         navigateNext(skipDocuments = true)
                         return true
                     }
@@ -113,11 +113,11 @@ class PlayerNavigationManager(
         if (verticalScroll != 0f) {
             if (verticalScroll > 0) {
                 // Scroll up = previous file
-                Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Mouse scroll UP")
+                Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: Mouse scroll UP")
                 navigatePrevious()
             } else {
                 // Scroll down = next file
-                Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Mouse scroll DOWN")
+                Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Mouse scroll DOWN")
                 navigateNext()
             }
             return true
@@ -131,11 +131,11 @@ class PlayerNavigationManager(
     fun handleTouchZoneNavigation(zone: com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone) {
         when (zone) {
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.LEFT -> {
-                Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: 2-zone LEFT touch (GestureHelper)")
+                Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: 2-zone LEFT touch (GestureHelper)")
                 navigatePrevious()
             }
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.RIGHT -> {
-                Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: 2-zone RIGHT touch (GestureHelper)")
+                Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: 2-zone RIGHT touch (GestureHelper)")
                 navigateNext()
             }
             com.sza.fastmediasorter.ui.player.PlayerGestureHelper.TouchZone.CENTER -> {
@@ -154,7 +154,7 @@ class PlayerNavigationManager(
      * Navigate to previous file (UI button callback)
      */
     fun navigatePreviousFromButton() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: UI Manager PREVIOUS button clicked")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: UI Manager PREVIOUS button clicked")
         navigatePrevious()
         activity.scheduleHideControls()
     }
@@ -163,7 +163,7 @@ class PlayerNavigationManager(
      * Navigate to next file (UI button callback)
      */
     fun navigateNextFromButton() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: UI Manager NEXT button clicked")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: UI Manager NEXT button clicked")
         navigateNext()
         activity.scheduleHideControls()
     }
@@ -172,7 +172,7 @@ class PlayerNavigationManager(
      * Navigate to previous file (gesture callback)
      */
     fun navigatePreviousFromGesture() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Gesture PREVIOUS")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: Gesture PREVIOUS")
         navigatePrevious()
     }
 
@@ -180,7 +180,7 @@ class PlayerNavigationManager(
      * Navigate to next file (gesture callback)
      */
     fun navigateNextFromGesture() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Gesture NEXT")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Gesture NEXT")
         navigateNext()
     }
 
@@ -265,7 +265,7 @@ class PlayerNavigationManager(
      * Navigate to next file (from auto-advance after copy/move/delete)
      */
     fun navigateNextAfterOperation(reason: String) {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: $reason")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: $reason")
         navigateNext()
     }
 
@@ -273,7 +273,7 @@ class PlayerNavigationManager(
      * Navigate to previous file (from touch zone)
      */
     fun navigatePreviousFromTouchZone() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("PREVIOUS triggered by: Touch zone click")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("PREVIOUS triggered by: Touch zone click")
         navigatePrevious()
     }
 
@@ -281,7 +281,7 @@ class PlayerNavigationManager(
      * Navigate to next file (from touch zone)
      */
     fun navigateNextFromTouchZone() {
-        Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Touch zone click")
+        Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Touch zone click")
         navigateNext()
     }
 

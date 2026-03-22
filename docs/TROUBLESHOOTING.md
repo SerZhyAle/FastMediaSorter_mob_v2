@@ -157,7 +157,7 @@ Common problems and solutions for FastMediaSorter v2.
 
 **Solution:**
 - Try playing file in different app to verify
-- Check file format (supported: MP4, MKV, AVI, MOV)
+- Check file format (supported: MP4, MKV, MOV)
 - Clear app cache
 
 ---

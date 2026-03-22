@@ -10,4 +10,5 @@
     android:description="@string/widget_resource_launch_description"
     android:resizeMode="none"
     android:widgetCategory="home_screen"
-    android:previewImage="@drawable/ic_folder" />
+    android:previewImage="@drawable/widget_preview_resource_launch"
+    android:previewLayout="@layout/widget_preview_resource_launch" />

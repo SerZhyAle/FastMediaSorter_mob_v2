@@ -16,21 +16,21 @@
 
         </LinearLayout>
 
-        <!-- Row: All Videos + All Images -->
+        <!-- Row: All Videos + Camera Photos -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_tiny">
 
             <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllVideo" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/virtual_all_video" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllImages" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/virtual_all_images" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualCameraPhotos" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/virtual_camera_photos" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
         </LinearLayout>
 
-        <!-- Row: All Documents -->
+        <!-- Row: All Images + All Documents -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/margin_medium">
 
-            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllDocs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/virtual_all_docs" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllImages" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="@dimen/margin_tiny" android:text="@string/virtual_all_images" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
-            <Space android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/btnVirtualAllDocs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_tiny" android:text="@string/virtual_all_docs" android:textSize="@dimen/text_size_small" app:iconSize="@dimen/icon_size_menu" />
 
         </LinearLayout>
 

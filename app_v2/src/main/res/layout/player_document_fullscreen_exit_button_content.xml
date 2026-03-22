@@ -9,7 +9,7 @@
     android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd"
     android:src="@android:drawable/ic_menu_close_clear_cancel"
     android:background="@drawable/bg_circle_semi_transparent"
-    app:tint="@color/white"
+    app:tint="@color/selector_player_button_tint"
     android:scaleType="centerInside"
     android:padding="@dimen/activity_player_unified_btnDocumentFullscreenExit_padding"
     android:contentDescription="@string/exit_fullscreen"

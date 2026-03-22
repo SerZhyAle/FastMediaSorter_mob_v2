@@ -89,7 +89,7 @@ FastMediaSorter v2 доступний у **4 різних версіях** за�
 FastMediaSorter v2 підтримує широкий спектр форматів:
 
 - **Зображення:** JPG, JPEG, PNG, GIF, BMP, WEBP, HEIC, HEIF, AVIF
-- **Відео:** MP4, MKV, AVI, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG, TS, M2TS, VOB, OGV, DIVX, MTS
+- **Відео:** MP4, MKV, MOV, WMV, FLV, WEBM, M4V, 3GP, MPG, MPEG, TS, M2TS, VOB, OGV, DIVX, MTS
 - **Аудіо:** MP3, FLAC, AAC, OGG, M4A, WMA, OPUS, AMR, ALAC, CAF, MKA, OGA, AC3, MID, MIDI
 - **Документи:** TXT, MD, LOG, JSON, XML, PDF, **EPUB**
 

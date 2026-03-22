@@ -109,7 +109,7 @@
         </activity>
 
         <!-- Favorites Widget -->
-        <receiver android:name=".widget.FavoritesWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.FavoritesWidgetProvider" android:exported="true" android:label="@string/widget_favorites_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -127,7 +127,7 @@
         </service>
 
         <!-- Resource Launch Widget -->
-        <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true" android:label="@string/widget_resource_launch_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
                 <action android:name="com.sza.fastmediasorter.WIDGET_PINNED" />
@@ -136,7 +136,7 @@
         </receiver>
 
         <!-- Random Music Widget (standard / lite / legacy — SUPPORT_AUDIO flavors) -->
-        <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true" android:label="@string/widget_random_music_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -144,7 +144,7 @@
         </receiver>
 
         <!-- Camera Photos Widget (standard / photos / legacy — SUPPORT_IMAGES flavors) -->
-        <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true" android:label="@string/widget_camera_photos_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -152,7 +152,7 @@
         </receiver>
 
         <!-- Continue Reading Widget -->
-        <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true">
+        <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true" android:label="@string/widget_continue_reading_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>

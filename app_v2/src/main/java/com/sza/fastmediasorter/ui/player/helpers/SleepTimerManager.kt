@@ -92,11 +92,12 @@ class SleepTimerManager(
      * Call when switching away from audio or stopping playback.
      */
     fun stopVinylAnimation() {
+        val wasRunning = rotationAnimator != null
         rotationAnimator?.cancel()
         rotationAnimator = null
         vinylView.isVisible = false
         vinylView.rotation = 0f
-        Timber.d("SleepTimerManager: vinyl animation stopped")
+        if (wasRunning) Timber.d("SleepTimerManager: vinyl animation stopped")
     }
 
     /**

@@ -61,7 +61,7 @@
             android:src="@drawable/ic_arrow_back"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/previous"
-            app:tint="@color/white" />
+            app:tint="@color/selector_player_button_tint" />
 
         <TextView
             android:id="@+id/tvTextPageIndicator"
@@ -79,7 +79,7 @@
             android:src="@drawable/ic_arrow_forward"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/next"
-            app:tint="@color/white" />
+            app:tint="@color/selector_player_button_tint" />
 
         <View
             android:layout_width="1dp"
@@ -149,7 +149,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/previous"
                 android:src="@drawable/ic_arrow_back"
-                app:tint="@color/white" />
+                app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
                 android:id="@+id/btnFindNext"
@@ -158,7 +158,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/next"
                 android:src="@drawable/ic_arrow_forward"
-                app:tint="@color/white" />
+                app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
                 android:id="@+id/btnFindClose"
@@ -167,7 +167,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/close"
                 android:src="@drawable/ic_cancel"
-                app:tint="@color/white" />
+                app:tint="@color/selector_player_button_tint" />
         </LinearLayout>
 
         <!-- Replace row -->
@@ -243,7 +243,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/undo"
                 android:src="@drawable/ic_undo"
-                app:tint="@color/white"
+                app:tint="@color/selector_player_button_tint"
                 android:alpha="0.3" />
 
             <ImageButton
@@ -253,7 +253,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/redo"
                 android:src="@drawable/ic_redo"
-                app:tint="@color/white"
+                app:tint="@color/selector_player_button_tint"
                 android:alpha="0.3" />
 
             <View
@@ -269,7 +269,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/search"
                 android:src="@android:drawable/ic_menu_search"
-                app:tint="@color/white" />
+                app:tint="@color/selector_player_button_tint" />
 
             <ImageButton
                 android:id="@+id/btnEditorFindReplace"
@@ -278,7 +278,7 @@
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="@string/find_and_replace"
                 android:src="@drawable/ic_find_replace"
-                app:tint="@color/white" />
+                app:tint="@color/selector_player_button_tint" />
 
             <View
                 android:layout_width="0dp"

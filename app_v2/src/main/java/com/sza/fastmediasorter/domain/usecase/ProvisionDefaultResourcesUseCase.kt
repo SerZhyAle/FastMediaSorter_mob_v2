@@ -72,16 +72,19 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             val cameraImageTypes = buildSet {
                 if (settings.supportImages) add(MediaType.IMAGE)
                 if (settings.supportGifs) add(MediaType.GIF)
-                add(MediaType.VIDEO)
+                if (settings.supportVideos) add(MediaType.VIDEO)
             }
-            createVirtualResource(
-                name = context.getString(R.string.resource_camera),
-                path = LocalMediaScanner.CAMERA_FOLDER_PATH,
-                supportedMediaTypes = cameraImageTypes,
-                profile = ResourceProfile.PHOTO_STORAGE,
-                displayMode = DisplayMode.GRID,
-                displayOrder = displayOrder++
-            )
+            if (cameraImageTypes.isNotEmpty()) {
+                createVirtualResource(
+                    name = context.getString(R.string.virtual_camera_photos),
+                    path = LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+                    supportedMediaTypes = cameraImageTypes,
+                    profile = ResourceProfile.PHOTO_STORAGE,
+                    displayMode = DisplayMode.GRID,
+                    sortMode = SortMode.DATE_DESC,
+                    displayOrder = displayOrder++
+                )
+            }
         }
 
         // 5. All Images
@@ -129,7 +132,8 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         supportedMediaTypes: Set<MediaType>,
         profile: ResourceProfile,
         displayOrder: Int,
-        displayMode: DisplayMode = DisplayMode.LIST
+        displayMode: DisplayMode = DisplayMode.LIST,
+        sortMode: SortMode = SortMode.NAME_ASC
     ) {
         val resource = MediaResource(
             id = 0,
@@ -140,10 +144,10 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             fileCount = 0,
             isDestination = false,
             destinationOrder = null,
-            isWritable = true,
+            isWritable = false,
             scanSubdirectories = false,
             supportedMediaTypes = supportedMediaTypes,
-            sortMode = SortMode.NAME_ASC,
+            sortMode = sortMode,
             profile = profile,
             displayMode = displayMode,
             allFiles = false,

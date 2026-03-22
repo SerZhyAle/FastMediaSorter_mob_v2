@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.os.SystemClock
 import android.view.KeyEvent
 import android.view.MotionEvent
-import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.common.Player
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import timber.log.Timber
@@ -38,7 +38,8 @@ class PlayerKeyboardHandler(
         fun onToggleCopyPanel()
         fun onToggleMovePanel()
         fun onShowEditDialog()
-        fun getExoPlayer(): ExoPlayer?
+        /** Returns the currently active player: service MediaController (background audio) or Activity ExoPlayer. */
+        fun getActivePlayer(): Player?
         fun getCurrentMediaType(): MediaType?
         fun onPdfNextPage()
         fun onPdfPreviousPage()
@@ -368,7 +369,7 @@ class PlayerKeyboardHandler(
     private fun handlePlayPause() {
         val currentType = callback.getCurrentMediaType()
         if (currentType == MediaType.VIDEO || currentType == MediaType.AUDIO) {
-            callback.getExoPlayer()?.let { player ->
+            callback.getActivePlayer()?.let { player ->
                 if (player.isPlaying) {
                     player.pause()
                     Timber.d("PlayerKeyboardHandler: Paused playback")
@@ -386,7 +387,7 @@ class PlayerKeyboardHandler(
     private fun handlePlay() {
         val currentType = callback.getCurrentMediaType()
         if (currentType == MediaType.VIDEO || currentType == MediaType.AUDIO) {
-            callback.getExoPlayer()?.let { player ->
+            callback.getActivePlayer()?.let { player ->
                 if (!player.isPlaying) {
                     player.play()
                     Timber.d("PlayerKeyboardHandler: Started playback via MEDIA_PLAY")
@@ -401,7 +402,7 @@ class PlayerKeyboardHandler(
     private fun handlePause() {
         val currentType = callback.getCurrentMediaType()
         if (currentType == MediaType.VIDEO || currentType == MediaType.AUDIO) {
-            callback.getExoPlayer()?.let { player ->
+            callback.getActivePlayer()?.let { player ->
                 if (player.isPlaying) {
                     player.pause()
                     Timber.d("PlayerKeyboardHandler: Paused playback via MEDIA_PAUSE/STOP")

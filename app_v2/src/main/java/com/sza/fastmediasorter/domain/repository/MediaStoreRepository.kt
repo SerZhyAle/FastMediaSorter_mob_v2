@@ -55,4 +55,6 @@ interface MediaStoreRepository {
     ): Int
     
     suspend fun getStandardFolders(): List<FolderInfo>
+
+    suspend fun findCameraFolderPath(): String?
 }

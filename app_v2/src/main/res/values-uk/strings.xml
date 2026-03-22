@@ -202,6 +202,9 @@
     <string name="virtual_all_music">Вся музика</string>
     <string name="virtual_all_video">Усі відео</string>
     <string name="virtual_all_images">Усі зображення</string>
+    <string name="virtual_camera_photos">Фото камери</string>
+    <string name="desc_camera_photos_folder">Фотографії з камери пристрою</string>
+    <string name="resource_type_camera_photos">Папка камери</string>
     <string name="resource_camera">Камера</string>
     <string name="virtual_all_docs">Усі документи</string>
     <string name="special_virtual_folders">Спеціальні папки</string>
@@ -488,6 +491,76 @@
     <string name="supported_pdf_formats">Підтримуються: PDF (рендеринг через Android PdfRenderer)</string>
     <string name="search_audio_covers_online">Шукати обкладинки аудіо онлайн (iTunes API)</string>
     <string name="search_covers_only_on_wifi">Шукати тільки по Wi-Fi</string>
+
+    <!-- Settings toggle subtitles -->
+    <string name="setting_all_files_desc">Показує всі типи файлів незалежно від поточного режиму</string>
+    <string name="setting_show_hidden_files_desc">Включає dot-файли та системні теки у браузері</string>
+    <string name="setting_show_subfolders_as_items_desc">Підтеки відображаються у загальному списку, а не окремо</string>
+    <string name="setting_small_controls_desc">Зменшує кнопки для компактного відображення контенту</string>
+    <string name="setting_enable_favorites_desc">Закріплює часто використовувані теки на панелі вибраного</string>
+    <string name="setting_default_remember_file_list_desc">Нові ресурси відкриваються з останньої переглянутої позиції</string>
+    <string name="setting_safe_mode_desc">Вмикає підтвердження для захисту від випадкових змін</string>
+    <string name="setting_confirm_delete_desc">Запитувати підтвердження перед остаточним видаленням</string>
+    <string name="setting_confirm_move_desc">Запитувати підтвердження при переміщенні файлів</string>
+    <string name="setting_prevent_sleep_desc">Не вимикає екран, поки застосунок активний</string>
+    <string name="setting_background_sync_desc">Періодично оновлює список файлів мережевих ресурсів у фоні</string>
+    <string name="setting_support_audio_desc">Відтворення MP3, FLAC, AAC, OGG та інших аудіоформатів</string>
+    <string name="setting_search_audio_covers_online_desc">Завантажує обкладинки через iTunes для файлів без вбудованих обкладинок</string>
+    <string name="setting_search_covers_only_wifi_desc">Не використовує мобільний інтернет для завантаження обкладинок</string>
+    <string name="setting_photos_during_audio_desc">Показує випадкові фотографії під час відтворення аудіо</string>
+    <string name="setting_support_videos_desc">Відтворення MP4, MKV, MOV та інших відеоформатів</string>
+    <string name="setting_show_video_thumbnails_desc">Створює кадри попереднього перегляду для відеофайлів у браузері</string>
+    <string name="setting_support_images_desc">Перегляд JPG, PNG, WEBP, HEIC та інших форматів зображень</string>
+    <string name="setting_support_gifs_desc">Відтворює анімовані GIF у браузері та плеєрі</string>
+    <string name="setting_load_full_size_images_desc">Завантажує оригінальне розрізнення для зуму; потребує більше пам\'яті</string>
+    <string name="setting_crop_images_to_fullscreen_desc">Заповнює весь екран, обрізаючи краї зображення</string>
+    <string name="setting_dynamic_background_desc">Продовжує кольори зображення за його межі (ефект Ambilight)</string>
+    <string name="setting_slideshow_background_music_desc">Відтворює аудіодоріжку під час перегляду слайдшоу</string>
+    <string name="setting_support_text_desc">Відкриває .txt, .md, .log, .json і .xml у вбудованому переглядачі</string>
+    <string name="setting_show_text_line_numbers_desc">Відображає номери рядків у лівому полі при перегляді тексту</string>
+    <string name="setting_support_pdf_desc">Відкриває PDF у вбудованому переглядачі з мініатюрами та пошуком</string>
+    <string name="setting_support_epub_desc">Читає EPUB-книги із закладками та змістом</string>
+    <string name="setting_enable_translation_desc">Перекладає текст на екрані за допомогою вибраного сервісу перекладу</string>
+    <string name="setting_translation_lens_style_desc">Показує перекладені блоки тексту окремо, без об\'єднання</string>
+    <string name="setting_enable_google_lens_desc">Надсилає зображення до Google Lens для візуального пошуку</string>
+    <string name="setting_play_to_end_desc">Медіафайл відтворюється повністю перед переходом до наступного</string>
+    <string name="setting_allow_rename_desc">Показує пункт «Перейменувати» в меню плеєра</string>
+    <string name="setting_allow_delete_desc">Показує пункт «Видалити» в меню плеєра</string>
+    <string name="setting_confirm_delete_player_desc">Запитує підтвердження при видаленні з плеєра</string>
+    <string name="setting_hide_grid_action_buttons_desc">Чистий вигляд мініатюр без кнопок копіювання та переміщення</string>
+    <string name="setting_hide_system_ui_desc">Приховує рядок стану та панель навігації у повноекранному режимі</string>
+    <string name="setting_show_command_panel_desc">Показує панель призначення при відкритті плеєра</string>
+    <string name="setting_detailed_errors_desc">Показує технічні подробиці помилок для діагностики</string>
+    <string name="setting_primary_media_player_desc">Відкриває аудіо та відео з інших застосунків і файлових менеджерів</string>
+    <string name="setting_accept_shared_files_desc">З\'являється в меню «Поділитися» при передачі медіафайлів</string>
+    <string name="setting_enable_copying_desc">Показує напрямки та кнопку копіювання у плеєрі</string>
+    <string name="setting_overwrite_on_copy_desc">Замінює файл у теці призначення, якщо імена збігаються</string>
+    <string name="setting_enable_moving_desc">Показує напрямки та кнопку переміщення у плеєрі</string>
+    <string name="setting_overwrite_on_move_desc">Замінює файл у теці призначення при переміщенні, якщо імена збігаються</string>
+
+    <!-- Checkbox subtitle descriptions -->
+    <string name="cb_local_scan_subdirectories_desc">Рекурсивно включає всі вкладені папки під час сканування медіа</string>
+    <string name="cb_local_add_to_destinations_desc">Робить цю папку доступною як ціль копіювання/переміщення у плеєрі</string>
+    <string name="cb_local_read_only_mode_desc">Файли не можна переміщати, копіювати або видаляти з цього ресурсу</string>
+    <string name="cb_smb_add_to_destinations_desc">Робить цю мережеву папку доступною як ціль копіювання/переміщення у плеєрі</string>
+    <string name="cb_smb_read_only_mode_desc">Файли не можна переміщати, копіювати або видаляти з цієї мережевої папки</string>
+    <string name="cb_smb_scan_subdirectories_desc">Рекурсивно включає всі вкладені папки під час сканування медіа</string>
+    <string name="cb_smb_all_files_desc">Показує всі типи файлів незалежно від налаштованих медіафільтрів</string>
+    <string name="cb_smb_disable_thumbnails_desc">Вимикає генерацію мініатюр для зменшення мережевого трафіку та прискорення завантаження</string>
+    <string name="cb_smb_remember_file_list_desc">Відкриває ресурс на останній переглянутій позиції файлу</string>
+    <string name="cb_sftp_add_to_destinations_desc">Робить цю папку SFTP/FTP доступною як ціль копіювання/переміщення у плеєрі</string>
+    <string name="cb_sftp_read_only_mode_desc">Файли не можна переміщати, копіювати або видаляти з цього сервера</string>
+    <string name="cb_sftp_scan_subdirectories_desc">Рекурсивно включає всі вкладені папки під час сканування медіа</string>
+    <string name="cb_sftp_all_files_desc">Показує всі типи файлів незалежно від налаштованих медіафільтрів</string>
+    <string name="cb_sftp_disable_thumbnails_desc">Вимикає генерацію мініатюр для зменшення мережевого трафіку та прискорення завантаження</string>
+    <string name="cb_sftp_remember_file_list_desc">Відкриває ресурс на останній переглянутій позиції файлу</string>
+    <string name="cb_cloud_read_only_mode_desc">Файли не можна переміщати, копіювати або видаляти з цього хмарного сховища</string>
+    <string name="cb_cloud_picker_add_as_destination_desc">Робить цю хмарну папку доступною як ціль копіювання/переміщення у плеєрі</string>
+    <string name="cb_cloud_picker_scan_subdirectories_desc">Рекурсивно включає вкладені хмарні папки під час сканування медіа</string>
+    <string name="cb_repeat_video_desc">Зациклює поточне відео замість переходу до наступного</string>
+    <string name="cb_show_subtitles_desc">Відображає доріжку субтитрів за наявності у відеофайлі</string>
+    <string name="cb_play_to_end_desc">Очікує завершення кожного відео або аудіо перед переходом у слайдшоу</string>
+
     <string name="image_size_limits">Обмеження розміру зображень (МБ)</string>
     <string name="video_size_limits">Обмеження розміру відео (КБ)</string>
     <string name="audio_size_limits">Обмеження розміру аудіо (КБ)</string>
@@ -1008,7 +1081,9 @@
     <string name="language_ukrainian">Українська</string>
 
     <!-- Widgets -->
+    <string name="widget_favorites_label">Обране</string>
     <string name="widget_favorites_description">Швидкий доступ до обраних файлів</string>
+    <string name="widget_resource_launch_label">Ярлик ресурсу</string>
     <string name="widget_resource_launch_description">Запуск конкретного ресурсу</string>
     <string name="widget_select_resource">Виберіть ресурс</string>
     <string name="widget_resource_not_configured">Натисніть для налаштування</string>
@@ -1858,6 +1933,7 @@
     <string name="translation_started">Переклад запущено…</string>
     <string name="tts_reading">Читаю вголос…</string>
     <string name="vinyl_indicator_description">Індикатор відтворення аудіо</string>
+    <string name="widget_continue_reading_label">Продовжити читання</string>
     <string name="widget_continue_reading_description">Відновити слайдшоу з останньої позиції</string>
     <string name="widget_random_music_label">Випадкова музика</string>
     <string name="widget_random_music_description">Відтворити всю музику у випадковому порядку</string>

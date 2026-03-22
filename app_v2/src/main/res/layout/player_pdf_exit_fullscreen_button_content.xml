@@ -9,7 +9,7 @@
     android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd"
     android:src="@drawable/ic_fullscreen_exit"
     android:background="@drawable/bg_circle_dark"
-    app:tint="@color/white"
+    app:tint="@color/selector_player_button_tint"
     android:scaleType="fitCenter"
     android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding"
     android:contentDescription="@string/exit_fullscreen" />

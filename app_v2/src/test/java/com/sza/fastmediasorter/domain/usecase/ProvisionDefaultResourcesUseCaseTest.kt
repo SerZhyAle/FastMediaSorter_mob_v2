@@ -55,7 +55,7 @@ class ProvisionDefaultResourcesUseCaseTest {
     // ── Full provisioning (all features enabled) ─────────────
 
     @Test
-    fun `invoke creates 4 resources when DB is empty and all features enabled`() = runTest {
+    fun `invoke creates 6 resources when DB is empty and all features enabled`() = runTest {
         coEvery { resourceRepository.getAllResources() } returns flowOf(emptyList())
         val settings = AppSettings(
             supportAudio = true,
@@ -70,7 +70,7 @@ class ProvisionDefaultResourcesUseCaseTest {
         val result = useCase()
 
         assertTrue(result)
-        coVerify(exactly = 4) { resourceRepository.addResource(any()) }
+        coVerify(exactly = 6) { resourceRepository.addResource(any()) }
     }
 
     // ── DisplayOrder increments sequentially ──────────────────
@@ -92,11 +92,13 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         useCase()
 
-        assertEquals(4, captured.size)
+        assertEquals(6, captured.size)
         assertEquals(0, captured[0].displayOrder)
         assertEquals(1, captured[1].displayOrder)
         assertEquals(2, captured[2].displayOrder)
         assertEquals(3, captured[3].displayOrder)
+        assertEquals(4, captured[4].displayOrder)
+        assertEquals(5, captured[5].displayOrder)
     }
 
     // ── Virtual paths are correct ─────────────────────────────
@@ -119,7 +121,9 @@ class ProvisionDefaultResourcesUseCaseTest {
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_RECENT, captured[0].path)
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO, captured[1].path)
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO, captured[2].path)
-        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, captured[3].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS, captured[3].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES, captured[4].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, captured[5].path)
     }
 
     // ── Profile assignment ────────────────────────────────────
@@ -142,7 +146,9 @@ class ProvisionDefaultResourcesUseCaseTest {
         assertEquals(ResourceProfile.NONE, captured[0].profile)
         assertEquals(ResourceProfile.AUDIO_LIBRARY, captured[1].profile)
         assertEquals(ResourceProfile.VIDEO_LIBRARY, captured[2].profile)
-        assertEquals(ResourceProfile.DOCUMENTS, captured[3].profile)
+        assertEquals(ResourceProfile.PHOTO_STORAGE, captured[3].profile)
+        assertEquals(ResourceProfile.PHOTO_STORAGE, captured[4].profile)
+        assertEquals(ResourceProfile.DOCUMENTS, captured[5].profile)
     }
 
     // ── Audio disabled → 3 resources ──────────────────────────
@@ -162,10 +168,12 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         useCase()
 
-        assertEquals(3, captured.size)
+        assertEquals(5, captured.size)
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_RECENT, captured[0].path)
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO, captured[1].path)
-        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, captured[2].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS, captured[2].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES, captured[3].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, captured[4].path)
     }
 
     // ── Videos disabled → 3 resources ─────────────────────────
@@ -185,10 +193,12 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         useCase()
 
-        assertEquals(3, captured.size)
+        assertEquals(5, captured.size)
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_RECENT, captured[0].path)
         assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO, captured[1].path)
-        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, captured[2].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS, captured[2].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES, captured[3].path)
+        assertEquals(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS, captured[4].path)
     }
 
     // ── No doc types enabled → skip documents ─────────────────
@@ -210,7 +220,7 @@ class ProvisionDefaultResourcesUseCaseTest {
 
         useCase()
 
-        assertEquals(3, captured.size)
+        assertEquals(5, captured.size)
         assertTrue(captured.none { it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS })
     }
 

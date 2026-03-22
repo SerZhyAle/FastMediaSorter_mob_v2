@@ -482,7 +482,6 @@ class VideoPlayerManager(
             "mp4", "m4v" -> MimeTypes.VIDEO_MP4
             "webm" -> MimeTypes.VIDEO_WEBM
             "mkv" -> MimeTypes.VIDEO_MATROSKA
-            "avi" -> MimeTypes.VIDEO_AVI
             "ts", "m2ts", "mts" -> MimeTypes.VIDEO_MP2T
             "ogv" -> MimeTypes.VIDEO_OGG
             "vob", "mpg", "mpeg", "m2v" -> MimeTypes.VIDEO_MPEG2
@@ -646,7 +645,6 @@ class VideoPlayerManager(
     fun releasePlayer() {
         // Skip if already released (prevent redundant calls)
         if (exoPlayer == null && activeResourceKey == null) {
-            Timber.d("VideoPlayerManager: releasePlayer() skipped - already released")
             return
         }
         

@@ -144,6 +144,9 @@
     <string name="virtual_all_music">All Music</string>
     <string name="virtual_all_video">All Videos</string>
     <string name="virtual_all_images">All Images</string>
+    <string name="virtual_camera_photos">Camera Photos</string>
+    <string name="desc_camera_photos_folder">Device camera photos</string>
+    <string name="resource_type_camera_photos">Camera</string>
     <string name="resource_camera">Camera</string>
     <string name="virtual_all_docs">All Documents</string>
     <string name="special_virtual_folders">Special Folders</string>
@@ -331,6 +334,76 @@
     <string name="search_covers_only_on_wifi">Search only on Wi-Fi</string>
     <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
     <string name="save_audio_metadata_locally_desc">Reuse covers and metadata without re-downloading</string>
+
+    <!-- Settings toggle subtitles -->
+    <string name="setting_all_files_desc">Shows all file types regardless of current media mode</string>
+    <string name="setting_show_hidden_files_desc">Includes dot-files and system folders in browser</string>
+    <string name="setting_show_subfolders_as_items_desc">Subfolders appear inline instead of being grouped separately</string>
+    <string name="setting_small_controls_desc">Reduces button sizes for smaller screens or more content</string>
+    <string name="setting_enable_favorites_desc">Pin frequently used folders to the quick-access favorites bar</string>
+    <string name="setting_default_remember_file_list_desc">New resources open at the last viewed file position</string>
+    <string name="setting_safe_mode_desc">Groups confirmations that protect against accidental changes</string>
+    <string name="setting_confirm_delete_desc">Ask before permanently deleting files</string>
+    <string name="setting_confirm_move_desc">Ask before moving files to a different folder</string>
+    <string name="setting_prevent_sleep_desc">Keeps screen on while the app is in the foreground</string>
+    <string name="setting_background_sync_desc">Periodically refreshes network resource file lists in background</string>
+    <string name="setting_support_audio_desc">Enable playback of MP3, FLAC, AAC, OGG and other audio formats</string>
+    <string name="setting_search_audio_covers_online_desc">Fetch album art via iTunes for files without embedded covers</string>
+    <string name="setting_search_covers_only_wifi_desc">Avoid mobile data usage when downloading cover art</string>
+    <string name="setting_photos_during_audio_desc">Displays a random image slideshow while audio is playing</string>
+    <string name="setting_support_videos_desc">Enable playback of MP4, MKV, MOV and other video formats</string>
+    <string name="setting_show_video_thumbnails_desc">Generates preview frames for video files in browse view</string>
+    <string name="setting_support_images_desc">Enable viewing of JPG, PNG, WEBP, HEIC and other image formats</string>
+    <string name="setting_support_gifs_desc">Play animated GIFs in browse and player views</string>
+    <string name="setting_load_full_size_images_desc">Loads original resolution for pinch-to-zoom; uses more memory</string>
+    <string name="setting_crop_images_to_fullscreen_desc">Fills entire screen by cropping image edges</string>
+    <string name="setting_dynamic_background_desc">Extends image colors to fill screen borders (Ambilight effect)</string>
+    <string name="setting_slideshow_background_music_desc">Plays a selected audio track while viewing images in slideshow</string>
+    <string name="setting_support_text_desc">Open .txt, .md, .log, .json and .xml files in built-in viewer</string>
+    <string name="setting_show_text_line_numbers_desc">Shows line numbers at left margin in text viewer</string>
+    <string name="setting_support_pdf_desc">Open PDF files in built-in viewer with page thumbnails and search</string>
+    <string name="setting_support_epub_desc">Read EPUB e-books with bookmarks and table of contents</string>
+    <string name="setting_enable_translation_desc">Translate on-screen text using selected translation service</string>
+    <string name="setting_translation_lens_style_desc">Shows each translated text block separately instead of merged</string>
+    <string name="setting_enable_google_lens_desc">Send images to Google Lens for visual search and recognition</string>
+    <string name="setting_play_to_end_desc">Media plays fully before advancing to next item in slideshow</string>
+    <string name="setting_allow_rename_desc">Show rename option in player action menu</string>
+    <string name="setting_allow_delete_desc">Show delete option in player action menu</string>
+    <string name="setting_confirm_delete_player_desc">Ask for confirmation before deleting from within the player</string>
+    <string name="setting_hide_grid_action_buttons_desc">Cleaner thumbnails without copy/move quick-action buttons</string>
+    <string name="setting_hide_system_ui_desc">Hides status bar and navigation bar in fullscreen</string>
+    <string name="setting_show_command_panel_desc">Displays the copy/move destination panel when opening player</string>
+    <string name="setting_detailed_errors_desc">Shows technical error details for troubleshooting playback issues</string>
+    <string name="setting_primary_media_player_desc">Opens audio and video files from other apps and file managers</string>
+    <string name="setting_accept_shared_files_desc">Appears in Android share sheet when sharing media from other apps</string>
+    <string name="setting_enable_copying_desc">Show copy destinations and copy button in the player</string>
+    <string name="setting_overwrite_on_copy_desc">Replace file at destination if one with same name already exists</string>
+    <string name="setting_enable_moving_desc">Show move destinations and move button in the player</string>
+    <string name="setting_overwrite_on_move_desc">Replace file at destination if one with same name already exists</string>
+
+    <!-- Checkbox subtitle descriptions -->
+    <string name="cb_local_scan_subdirectories_desc">Recursively includes all nested folders when scanning for media</string>
+    <string name="cb_local_add_to_destinations_desc">Makes this folder available as a copy/move target in the player</string>
+    <string name="cb_local_read_only_mode_desc">Files cannot be moved, copied, or deleted from this resource</string>
+    <string name="cb_smb_add_to_destinations_desc">Makes this network share available as a copy/move target in the player</string>
+    <string name="cb_smb_read_only_mode_desc">Files cannot be moved, copied, or deleted from this network share</string>
+    <string name="cb_smb_scan_subdirectories_desc">Recursively includes all nested folders when scanning for media</string>
+    <string name="cb_smb_all_files_desc">Shows all file types regardless of the configured media filters</string>
+    <string name="cb_smb_disable_thumbnails_desc">Skips thumbnail generation to reduce network traffic and speed up loading</string>
+    <string name="cb_smb_remember_file_list_desc">Reopens the resource at the last browsed file position</string>
+    <string name="cb_sftp_add_to_destinations_desc">Makes this SFTP/FTP folder available as a copy/move target in the player</string>
+    <string name="cb_sftp_read_only_mode_desc">Files cannot be moved, copied, or deleted from this server</string>
+    <string name="cb_sftp_scan_subdirectories_desc">Recursively includes all nested folders when scanning for media</string>
+    <string name="cb_sftp_all_files_desc">Shows all file types regardless of the configured media filters</string>
+    <string name="cb_sftp_disable_thumbnails_desc">Skips thumbnail generation to reduce network traffic and speed up loading</string>
+    <string name="cb_sftp_remember_file_list_desc">Reopens the resource at the last browsed file position</string>
+    <string name="cb_cloud_read_only_mode_desc">Files cannot be moved, copied, or deleted from this cloud storage</string>
+    <string name="cb_cloud_picker_add_as_destination_desc">Makes this cloud folder available as a copy/move target in the player</string>
+    <string name="cb_cloud_picker_scan_subdirectories_desc">Recursively includes nested cloud folders when scanning for media</string>
+    <string name="cb_repeat_video_desc">Loops the current video continuously instead of advancing to next</string>
+    <string name="cb_show_subtitles_desc">Displays subtitle track when available in the video file</string>
+    <string name="cb_play_to_end_desc">Waits for each video or audio to finish before advancing in slideshow</string>
+
     <string name="audio_cache_size_warning_title">Audio metadata cache is large</string>
     <string name="audio_cache_size_warning_message">The audio metadata cache exceeds 10 GB. Delete oldest 50%% of cached files?</string>
     <string name="delete_old_files">Delete old</string>
@@ -1065,8 +1138,11 @@
     <string name="language_ukrainian">Ukrainian</string>
 
     <!-- Widgets -->
+    <string name="widget_favorites_label">Favorites</string>
     <string name="widget_favorites_description">Quick access to favorite files</string>
+    <string name="widget_resource_launch_label">Resource Shortcut</string>
     <string name="widget_resource_launch_description">Launch specific resource folder</string>
+    <string name="widget_continue_reading_label">Continue Reading</string>
     <string name="widget_continue_reading_description">Resume slideshow from last position</string>
     <string name="widget_random_music_label">Random Music</string>
     <string name="widget_random_music_description">Play all music in random order</string>

@@ -21,7 +21,10 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableCopying" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_copying" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/enable_copying" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_copying" android:textSize="@dimen/resource_card_desc_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_copying_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -30,7 +33,10 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchOverwriteOnCopy" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/overwrite_on_copy" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/overwrite_on_copy" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/overwrite_on_copy" android:textSize="@dimen/resource_card_desc_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_overwrite_on_copy_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -54,7 +60,10 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableMoving" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/enable_moving" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/enable_moving" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_moving" android:textSize="@dimen/resource_card_desc_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_moving_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -63,7 +72,10 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchOverwriteOnMove" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/overwrite_on_move" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/overwrite_on_move" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/overwrite_on_move" android:textSize="@dimen/resource_card_desc_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_overwrite_on_move_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
 
                         </LinearLayout>
 

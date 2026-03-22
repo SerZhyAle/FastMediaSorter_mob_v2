@@ -7,6 +7,8 @@ import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PA
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_DOCS
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_IMAGES
 import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_ALL_VIDEO
+import com.sza.fastmediasorter.data.local.LocalMediaScanner.Companion.VIRTUAL_PATH_CAMERA_PHOTOS
+import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -135,6 +137,37 @@ class ScanLocalFoldersUseCase @Inject constructor(
                             supportedMediaTypes = imageTypes,
                             sortMode = SortMode.NAME_ASC,
                             profile = ResourceProfile.PHOTO_STORAGE,
+                            allFiles = false
+                        )
+                    )
+                }
+            }
+
+            // Virtual aggregate: Camera Photos
+            if (BuildConfig.SUPPORT_IMAGES && VIRTUAL_PATH_CAMERA_PHOTOS !in existingPaths) {
+                val cameraTypes = buildSet {
+                    if (settings.supportImages) add(MediaType.IMAGE)
+                    if (settings.supportGifs) add(MediaType.GIF)
+                    if (settings.supportVideos) add(MediaType.VIDEO)
+                }
+                if (cameraTypes.isNotEmpty()) {
+                    resources.add(
+                        MediaResource(
+                            id = 0,
+                            name = context.getString(R.string.virtual_camera_photos),
+                            path = VIRTUAL_PATH_CAMERA_PHOTOS,
+                            type = ResourceType.LOCAL,
+                            createdDate = System.currentTimeMillis(),
+                            fileCount = 0,
+                            isDestination = false,
+                            destinationOrder = null,
+                            isWritable = false,
+                            slideshowInterval = settings.slideshowInterval,
+                            scanSubdirectories = false,
+                            supportedMediaTypes = cameraTypes,
+                            sortMode = SortMode.DATE_DESC,
+                            profile = ResourceProfile.PHOTO_STORAGE,
+                            displayMode = DisplayMode.GRID,
                             allFiles = false
                         )
                     )

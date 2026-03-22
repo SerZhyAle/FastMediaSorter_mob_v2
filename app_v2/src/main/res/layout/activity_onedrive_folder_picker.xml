@@ -70,19 +70,45 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent">
 
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/cbAddAsDestination"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:layout_marginEnd="@dimen/margin_large"
-                    android:text="@string/add_as_destination" />
+                    android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbAddAsDestination"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/add_as_destination" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/checkbox_subtitle_margin_start"
+                        android:text="@string/cb_cloud_picker_add_as_destination_desc"
+                        android:textSize="@dimen/text_size_small"
+                        android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/cbScanSubdirectories"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/scan_subdirectories"
-                    android:checked="true" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbScanSubdirectories"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/scan_subdirectories"
+                        android:checked="true" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="@dimen/checkbox_subtitle_margin_start"
+                        android:text="@string/cb_cloud_picker_scan_subdirectories_desc"
+                        android:textSize="@dimen/text_size_small"
+                        android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
             </LinearLayout>
 

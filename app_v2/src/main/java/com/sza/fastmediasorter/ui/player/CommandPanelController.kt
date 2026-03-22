@@ -376,8 +376,8 @@ class CommandPanelController(
         val copyPanelVisible = effectiveShowCommandPanel && state.enableCopying && hasCopyButtons
         val movePanelVisible = effectiveShowCommandPanel && state.enableMoving && hasMoveButtons && canWrite
         
-        Timber.d("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${safeViews.copyToButtonsGrid.childCount})")
-        Timber.d("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${safeViews.moveToButtonsGrid.childCount})")
+        Timber.v("CommandPanelController.updateCommandAvailability: copyPanel=$copyPanelVisible (showCmd=${state.showCommandPanel}, enableCopy=${state.enableCopying}, hasCopy=$hasCopyButtons, childCount=${safeViews.copyToButtonsGrid.childCount})")
+        Timber.v("CommandPanelController.updateCommandAvailability: movePanel=$movePanelVisible (showCmd=${state.showCommandPanel}, enableMove=${state.enableMoving}, hasMove=$hasMoveButtons, canWrite=$canWrite, childCount=${safeViews.moveToButtonsGrid.childCount})")
         
         safeViews.copyToPanel.isVisible = copyPanelVisible
         safeViews.moveToPanel.isVisible = movePanelVisible
@@ -441,15 +441,15 @@ class CommandPanelController(
         val copyLocalVisible = safeViews.copyToPanel.getLocalVisibleRect(copyLocalRect)
         val moveLocalVisible = safeViews.moveToPanel.getLocalVisibleRect(moveLocalRect)
 
-        Timber.d(
+        Timber.v(
             "PanelGeom[$stage]: visibleFrame=[${visibleFrame.left},${visibleFrame.top}..${visibleFrame.right},${visibleFrame.bottom}] h=${visibleFrame.height()} | root=(x=${rootLoc[0]},y=${rootLoc[1]},w=${binding.root.width},h=${binding.root.height}) | media=(x=${mediaLoc[0]},y=${mediaLoc[1]},w=${binding.mediaContentArea.width},h=${binding.mediaContentArea.height}) | bottom=(x=${bottomLoc[0]},y=${bottomLoc[1]},w=${safeViews.bottomPanelsContainer.width},h=${safeViews.bottomPanelsContainer.height},vis=${safeViews.bottomPanelsContainer.visibility})"
         )
 
-        Timber.d(
+        Timber.v(
             "PanelGeom[$stage]: copy=(vis=${safeViews.copyToPanel.visibility},isVisible=${safeViews.copyToPanel.isVisible},x=${copyLoc[0]},y=${copyLoc[1]},w=${safeViews.copyToPanel.width},h=${safeViews.copyToPanel.height},globalVisible=$copyGlobalVisible,globalRect=$copyGlobalRect,localVisible=$copyLocalVisible,localRect=$copyLocalRect,childRows=${safeViews.copyToButtonsGrid.childCount})"
         )
 
-        Timber.d(
+        Timber.v(
             "PanelGeom[$stage]: move=(vis=${safeViews.moveToPanel.visibility},isVisible=${safeViews.moveToPanel.isVisible},x=${moveLoc[0]},y=${moveLoc[1]},w=${safeViews.moveToPanel.width},h=${safeViews.moveToPanel.height},globalVisible=$moveGlobalVisible,globalRect=$moveGlobalRect,localVisible=$moveLocalVisible,localRect=$moveLocalRect,childRows=${safeViews.moveToButtonsGrid.childCount})"
         )
     }
@@ -458,7 +458,7 @@ class CommandPanelController(
      * Update slideshow button visual state (color/alpha) based on active state
      */
     fun updateSlideshowButtonColor(isActive: Boolean) {
-        Timber.d("CommandPanelController.updateSlideshowButtonColor: isActive=$isActive, btn=${binding.btnSlideshowCmd}")
+        Timber.v("CommandPanelController.updateSlideshowButtonColor: isActive=$isActive, btn=${binding.btnSlideshowCmd}")
         binding.btnSlideshowCmd.alpha = if (isActive) 1.0f else 0.5f
         // ImageButton uses imageTintList instead of setTextColor
         if (isActive) {

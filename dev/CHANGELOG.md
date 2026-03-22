@@ -777,3 +777,92 @@ Format: | datetime | file | target | description |
 | 2026-03-21 16:49:43 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add resource_camera, widget_camera_photos_label/description/resource_not_found (EN/RU/UK) |
 | 2026-03-21 17:20:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment` | Add 'Add to Home Screen' button to pin ResourceLaunch widget from resource edit screen |
 | 2026-03-21 17:20:51 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `ResourceLaunchWidgetProvider` | Handle pending pin config in onUpdate; add ACTION_WIDGET_PINNED receiver; expose PREFS_NAME and KEY_PENDING_* constants |
+| 2026-03-21 23:07:29 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general` | add missing btnExportLogs to landscape layout |
+| 2026-03-21 23:26:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | Fix: advance background photo and refresh song label on audio auto-advance (onPlaybackEnded + onPlaybackReady) |
+| 2026-03-21 23:26:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Fix: advance background photo and refresh song label on audio auto-advance via service (onAudioServicePlaybackEnded + onAudioServiceReady) |
+| 2026-03-21 23:55:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `PlayerKeyboardHandler` | Fix: getActivePlayer() returns service MediaController when background audio active, fixing play/pause from car head unit |
+| 2026-03-21 23:55:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Fix: PlayerKeyboardCallback.getActivePlayer() prefers audioServiceController.player over VideoPlayerManager ExoPlayer |
+| 2026-03-22 01:04:16 | `PLAN/SPEC_SETTINGS_TOGGLE_SUBTITLES.md` | `Settings toggles` | Create spec for adding inline subtitle text to all settings toggles (EN/RU/UK) |
+| 2026-03-22 01:06:44 | `app_v2/src/main/AndroidManifest.xml` | `Widget receivers` | Add android:label to all 5 widget receivers so they show distinct names in the widget picker instead of the app name |
+| 2026-03-22 01:25:03 | `app_v2/src/main/res/xml/widget_*_info.xml` | `Widget picker previews` | Add android:previewLayout to all 5 widgets; create 5 widget_preview_*.xml layouts with representative sample content for Android 12+ widget picker |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add 48 setting_*_desc subtitle strings for all settings toggles (EN) |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Add 48 setting_*_desc subtitle strings for all settings toggles (RU) |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add 48 setting_*_desc subtitle strings for all settings toggles (UK) |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general` | Add subtitle descriptions to 11 toggles in general settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `fragment_settings_general` | Add subtitle descriptions to 11 toggles in general settings landscape |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `fragment_settings_audio` | Add subtitle descriptions to 4 toggles in audio settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `fragment_settings_video` | Add subtitle descriptions to 2 toggles in video settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_images.xml` | `fragment_settings_images` | Add subtitle descriptions to 6 toggles in images settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `fragment_settings_documents` | Add subtitle descriptions to 4 toggles in documents settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_other.xml` | `fragment_settings_other` | Add subtitle descriptions to 3 toggles in other settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout-land/fragment_settings_other.xml` | `fragment_settings_other` | Add subtitle descriptions to 3 toggles in other settings landscape |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback` | Add subtitle descriptions to 9 toggles in playback settings |
+| 2026-03-22 01:27:54 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `fragment_settings_destinations` | Add subtitle descriptions to 4 toggles in destinations settings |
+| 2026-03-22 01:41:13 | `app_v2/src/main/res/xml/widget_resource_launch_info.xml` | `widget_resource_launch_info.xml` | Added widget_preview_resource_launch fallback image |
+| 2026-03-22 01:41:15 | `app_v2/src/main/res/xml/widget_random_music_info.xml` | `widget_random_music_info.xml` | Added widget_preview_random_music fallback image |
+| 2026-03-22 01:41:17 | `app_v2/src/main/res/xml/widget_favorites_info.xml` | `widget_favorites_info.xml` | Added widget_preview_favorites fallback image |
+| 2026-03-22 02:00:39 | `app_v2/src/main/res/xml/widget_continue_reading_info.xml` | `widget_continue_reading_info.xml` | Added widget_preview_continue_reading fallback image |
+| 2026-03-22 02:04:02 | `app_v2/src/main/res/drawable/widget_preview_*.png` | `Widget preview PNGs` | Add 5 custom 320x320 PNG preview images for all widgets; update android:previewImage references from generic icons to dedicated preview PNGs |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/values/dimens.xml` | `dimens` | Add checkbox_subtitle_margin_start dimen (48dp) for checkbox subtitle alignment |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add 21 cb_*_desc subtitle strings for boolean checkboxes (EN) |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Add 21 cb_*_desc subtitle strings for boolean checkboxes (RU) |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add 21 cb_*_desc subtitle strings for boolean checkboxes (UK) |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/layout/activity_add_resource.xml` | `activity_add_resource` | Add subtitle descriptions to 16 boolean checkboxes in local/SMB/SFTP/cloud sections |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/layout/dialog_player_settings.xml` | `dialog_player_settings` | Add subtitle descriptions to cbRepeatVideo and cbShowSubtitles |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/layout/activity_dropbox_folder_picker.xml` | `activity_dropbox_folder_picker` | Add subtitle descriptions to cbAddAsDestination and cbScanSubdirectories |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/layout/activity_google_drive_folder_picker.xml` | `activity_google_drive_folder_picker` | Add subtitle descriptions to cbAddAsDestination and cbScanSubdirectories |
+| 2026-03-22 02:16:51 | `app_v2/src/main/res/layout/activity_onedrive_folder_picker.xml` | `activity_onedrive_folder_picker` | Add subtitle descriptions to cbAddAsDestination and cbScanSubdirectories |
+| 2026-03-22 02:27:54 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MediaExtensions.kt,app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt,app_v2/src/main/res/values/strings.xml,docs/README.md,docs/LIMITATIONS.md` | `MediaExtensions,VideoPlayerManager,strings` | Remove AVI from supported video formats (code, UI strings, all documentation) |
+| 2026-03-22 02:37:02 | `app_v2/src/main/res/drawable/ic_next_circle_red.xml` | `drawable` | Added red circle icon for next button |
+| 2026-03-22 02:37:02 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `custom_player_controls` | Made next button twice as wide and used red circle icon |
+| 2026-03-22 02:38:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioWaveParticleView.kt` | `AudioWaveParticleView` | Randomize all visual params per session: wave count 5-12, step ±20%, stroke 3-6px, hue ±30%, amplitude 28-48%, particles 15-55, radius 1-6px, speed ±50% |
+| 2026-03-22 02:39:04 | `app_v2/src/main/res/drawable/ic_next_circle_red_pressed.xml` | `drawable` | Added pressed state icon for next button |
+| 2026-03-22 02:39:04 | `app_v2/src/main/res/drawable/ic_next_circle_selector.xml` | `drawable` | Added selector for next button pressed state |
+| 2026-03-22 02:39:04 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `custom_player_controls` | Applied pressed state selector to exo_next_file |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\activity_player_unified.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\custom_player_controls.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_deprecated_google_lens_image_button_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_deprecated_translate_image_button_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_document_fullscreen_exit_button_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_epub_controls_overlay_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_pdf_controls_overlay_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_pdf_exit_fullscreen_button_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:41:10 | `P:\ANDROID\FastMediaSorter_mob_v2\app_v2\src\main\res\layout\player_text_viewer_container_content.xml` | `layout` | Applied red glow selector player_button_tint to app:tint |
+| 2026-03-22 02:45:43 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `layout` | Applied red glow selector player_button_tint to textColor for text buttons |
+| 2026-03-22 02:48:53 | `app_v2/src/main/res/color/selector_themed_button_tint.xml` | `selector_themed_button_tint` | New color selector: pressed=#FF3333, default=text_color_primary (for themed backgrounds) |
+| 2026-03-22 02:48:56 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `btnTranslateEpubCmd` | Add missing selector_player_button_tint to btnTranslateEpubCmd |
+| 2026-03-22 02:48:59 | `app_v2/src/main/res/layout/player_search_panel_content.xml` | `btnSearchPrev,btnSearchNext,btnCloseSearch` | Replace hardcoded #FFFFFF tint with selector_player_button_tint for press highlight |
+| 2026-03-22 02:49:03 | `app_v2/src/main/res/layout/activity_browse.xml` | `fabScrollToTop,fabPageUp,fabPageDown,fabScrollToBottom` | Replace hardcoded @color/white tint with selector_player_button_tint for press highlight |
+| 2026-03-22 02:49:06 | `app_v2/src/main/res/layout/player_lyrics_viewer_container.xml` | `btnTranslateLyrics,btnCloseLyricsViewer` | Replace text_color_primary tint with selector_themed_button_tint for press highlight |
+| 2026-03-22 02:55:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerControlsSetupManager.kt` | `setupLyricsViewerControls` | Fix lyrics viewer close/translate buttons hidden behind status bar and landscape nav bar — add WindowInsets listener to lyricsViewerContainer |
+| 2026-03-22 03:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `LocalMediaScanner` | Added VIRTUAL_PATH_CAMERA_PHOTOS, removed CAMERA_FOLDER_PATH |
+| 2026-03-22 03:48:44 | `app_v2/src/main/java/com/sza/fastmediasorter/util/VirtualPathUtils.kt` | `VirtualPathUtils` | Added VIRTUAL_PATH_CAMERA_PHOTOS to ALL_VIRTUAL_PATHS |
+| 2026-03-22 03:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/MediaStoreRepository.kt` | `MediaStoreRepository` | Added findCameraFolderPath method |
+| 2026-03-22 03:50:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/MediaStoreRepositoryImpl.kt` | `MediaStoreRepositoryImpl` | Implemented findCameraFolderPath |
+| 2026-03-22 03:50:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `LocalMediaScanner` | Updated scanFolder and getFileCount to handle VIRTUAL_PATH_CAMERA_PHOTOS |
+| 2026-03-22 03:50:34 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MigrateCameraResourceUseCase.kt` | `MigrateCameraResourceUseCase` | Created generic migration for Camera physical to virtual resource |
+| 2026-03-22 03:50:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Provision Camera as virtual URL |
+| 2026-03-22 03:50:38 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ScanLocalFoldersUseCase.kt` | `ScanLocalFoldersUseCase` | Added scan fallback logic for virtual camera setup |
+| 2026-03-22 03:51:54 | `app_v2/src/main/res/layout/dialog_folder_selection.xml` | `dialog_folder_selection` | Added btnVirtualCameraPhotos |
+| 2026-03-22 03:51:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Trigger Camera migration and updated openCameraPhotos |
+| 2026-03-22 03:51:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceViewModel.kt` | `AddResourceViewModel` | Added mapping for VIRTUAL_PATH_CAMERA_PHOTOS |
+| 2026-03-22 03:52:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | Wired up new Camera Photos button |
+| 2026-03-22 04:07:14 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added Camera Photos virtual folder strings (EN) |
+| 2026-03-22 04:07:18 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml (ru)` | Added Camera Photos virtual folder strings (RU) |
+| 2026-03-22 04:07:22 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml (uk)` | Added Camera Photos virtual folder strings (UK) |
+| 2026-03-22 04:08:46 | `docs/FEATURES.md` | `FEATURES.md` | Added Camera Photos virtual folder documentation (EN) |
+| 2026-03-22 04:08:53 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added Camera Photos virtual folder documentation (RU) |
+| 2026-03-22 04:09:00 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added Camera Photos virtual folder documentation (UK) |
+| 2026-03-22 04:09:33 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `ResourceLaunchWidgetProvider` | Added icon mapping for VIRTUAL_PATH_CAMERA_PHOTOS |
+| 2026-03-22 04:17:18 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCaseTest.kt` | `ProvisionDefaultResourcesUseCaseTest` | Updated assertions to expect VIRTUAL_PATH_CAMERA_PHOTOS and ALL_IMAGES |
+| 2026-03-22 04:17:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ScanLocalFoldersUseCase.kt` | `ScanLocalFoldersUseCase` | Fixed missing DisplayMode import |
+| 2026-03-22 04:21:46 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MigrateCameraResourceUseCaseTest.kt` | `MigrateCameraResourceUseCaseTest` | Added tests for camera virtual folder migration |
+| 2026-03-22 05:21:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/SleepTimerManager.kt` | `SleepTimerManager` | guard stopVinylAnimation log: only emit when animator was running |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt` | `PlayerPlaybackCallbackImpl` | downgrade TOUCH_ZONE_DEBUG Playback ended from warn to debug |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerGestureCallbackImpl.kt` | `PlayerGestureCallbackImpl` | downgrade TOUCH_ZONE_DEBUG swipe logs from warn to debug |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt` | `PlayerNavigationManager` | downgrade all TOUCH_ZONE_DEBUG navigation logs from warn to debug |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SmbDataSource.kt` | `SmbDataSource` | increase SMB stream log threshold from 1MB to 10MB to reduce log noise |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | suppress redundant releasePlayer already-released log (expected no-op path) |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | downgrade PanelGeom/updateCommandAvailability/updateSlideshowButtonColor logs from debug to verbose |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | smart preload cancellation: only cancel stale jobs not in new adjacent set |
+| 2026-03-22 05:22:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | change preloadJobs from MutableList to MutableMap for path-keyed smart cancellation |

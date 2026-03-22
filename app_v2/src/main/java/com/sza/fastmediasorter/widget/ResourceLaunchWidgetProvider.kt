@@ -143,6 +143,7 @@ class ResourceLaunchWidgetProvider : AppWidgetProvider() {
                 LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> return R.drawable.ic_virtual_music
                 LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> return R.drawable.ic_virtual_video
                 LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES -> return R.drawable.ic_image
+                LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS -> return R.drawable.ic_resource_local
                 LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> return R.drawable.ic_virtual_docs
                 LocalMediaScanner.VIRTUAL_PATH_RECENT -> return R.drawable.ic_virtual_recent
             }

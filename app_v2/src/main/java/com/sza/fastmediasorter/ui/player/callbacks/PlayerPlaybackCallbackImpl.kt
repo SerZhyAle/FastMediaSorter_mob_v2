@@ -33,19 +33,21 @@ class PlayerPlaybackCallbackImpl(
     override fun onPlaybackReady() {
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         binding.progressBar.isVisible = false
-        
+
         // Apply player settings when ready
         playerSettingsManagerProvider().applyPlayerSettings()
-        
+
         // Update track switcher buttons visibility (audio/subtitle)
         activity.updateTrackButtonsVisibility()
-        
+
         // Update audio info and load cover art for audio files
         val currentFile = viewModel.state.value.currentFile
         if (currentFile?.type == MediaType.AUDIO) {
             activity.updateAudioFormatInfo()
             imageLoadingManagerProvider().loadAudioCoverArt(currentFile)
             activity.prefetchNextAudio()
+            // Refresh song label in audio slideshow photo mode (covers auto-advance case)
+            activity.updateAudioSlideshowCurrentSongLabel()
         }
     }
     
@@ -71,10 +73,15 @@ class PlayerPlaybackCallbackImpl(
     }
     
     override fun onPlaybackEnded() {
+        val wasAudio = viewModel.state.value.currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.AUDIO
         if (viewModel.state.value.isSlideShowActive) {
-            Timber.tag("TOUCH_ZONE_DEBUG").w("NEXT triggered by: Playback ended (slideshow)")
+            Timber.tag("TOUCH_ZONE_DEBUG").d("NEXT triggered by: Playback ended (slideshow)")
             viewModel.nextFile(skipDocuments = true)
             slideshowController.restartTimer()
+            // Advance background photo on audio track auto-advance (mirrors navigateNext behaviour)
+            if (wasAudio) {
+                activity.advanceAudioBackgroundPhoto()
+            }
         }
     }
     

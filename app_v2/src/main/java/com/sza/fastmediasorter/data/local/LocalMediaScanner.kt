@@ -41,7 +41,7 @@ class LocalMediaScanner @Inject constructor(
         const val VIRTUAL_PATH_ALL_VIDEO = "virtual://all_video"
         const val VIRTUAL_PATH_ALL_IMAGES = "virtual://all_images"
         const val VIRTUAL_PATH_ALL_DOCS = "virtual://all_docs"
-        const val CAMERA_FOLDER_PATH = "/storage/emulated/0/DCIM/Camera"
+        const val VIRTUAL_PATH_CAMERA_PHOTOS = "virtual://camera_photos"
         private const val RECENT_FILES_LIMIT = 1000
         const val VIRTUAL_ALL_FILES_LIMIT = 10_000
     }
@@ -84,6 +84,29 @@ class LocalMediaScanner @Inject constructor(
                 onProgress?.onComplete(0, 0)
                 emptyList()
             }
+        }
+        
+        if (path == VIRTUAL_PATH_CAMERA_PHOTOS) {
+            val cameraPath = mediaStoreRepository.findCameraFolderPath()
+                ?: return@withContext emptyList<MediaFile>().also {
+                    Timber.w("LocalMediaScanner: Camera folder not found on this device")
+                }
+            Timber.d("LocalMediaScanner: Scanning camera path='$cameraPath'")
+            try {
+                val files = mediaStoreRepository.getFilesInFolder(cameraPath, supportedTypes, scanSubdirectories, showHiddenFiles)
+                if (files.isNotEmpty()) {
+                    val filtered = files.filter { file ->
+                        sizeFilter == null || file.size <= 0L || MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter)
+                    }
+                    if (filtered.isNotEmpty() || sizeFilter == null) {
+                        onProgress?.onComplete(filtered.size, 0)
+                        return@withContext filtered
+                    }
+                }
+            } catch (e: Exception) {
+                Timber.w(e, "MediaStore scan failed for Camera folder")
+            }
+            return@withContext scanFolderLegacy(cameraPath, supportedTypes, sizeFilter, scanSubdirectories, showHiddenFiles, onProgress)
         }
         
         // SAF handling - use fast cursor-based scanning
@@ -330,6 +353,29 @@ class LocalMediaScanner @Inject constructor(
             return@withContext if (docTypes.isNotEmpty()) {
                 countAllByTypes(docTypes, sizeFilter, showHiddenFiles)
             } else 0
+        }
+
+        if (path == VIRTUAL_PATH_CAMERA_PHOTOS) {
+            val cameraPath = mediaStoreRepository.findCameraFolderPath() ?: return@withContext 0
+            try {
+                val files = mediaStoreRepository.getFilesInFolder(cameraPath, supportedTypes, scanSubdirectories, showHiddenFiles)
+                if (files.isNotEmpty()) {
+                    return@withContext files.count { file ->
+                       sizeFilter == null || MediaTypeUtils.isFileSizeInRange(file.size, file.type, sizeFilter)
+                    }
+                }
+            } catch (e: Exception) {
+                // ignore
+            }
+            val folder = File(cameraPath)
+            if (!folder.exists()) return@withContext 0
+            val children = folder.listFiles() ?: return@withContext 0
+            val visibleFiles = if (showHiddenFiles) children.toList() else children.filter { !it.isHidden }
+            return@withContext visibleFiles.count { file ->
+                val type = MediaTypeUtils.getMediaType(file.name) ?: return@count false
+                if (type !in supportedTypes) return@count false
+                sizeFilter == null || MediaTypeUtils.isFileSizeInRange(file.length(), type, sizeFilter)
+            }
         }
 
         if (path.startsWith("content://")) {

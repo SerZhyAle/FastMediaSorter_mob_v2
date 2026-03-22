@@ -100,14 +100,23 @@
         <!-- Scan Subdirectories and Destination checkboxes -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_padding_zero" android:visibility="gone" android:id="@+id/layoutLocalOptions">
 
-            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="true" android:text="@string/scan_subdirectories" />
+            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
-            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/add_to_destinations" />
+            <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/add_to_destinations" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
         </LinearLayout>
 
         <!-- Read-Only Mode checkbox -->
-        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_margin_2dp" android:checked="false" android:text="@string/read_only_mode" android:visibility="gone" />
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
+            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbLocalReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_local_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
 
         <!-- PIN Code (Optional) -->
         <com.google.android.material.textfield.TextInputLayout android:id="@+id/tilLocalPinCode" android:layout_width="@dimen/resource_port_width" android:layout_height="wrap_content" android:hint="@string/resource_pin_code" app:helperText="@string/resource_pin_code_hint" app:helperTextEnabled="true" app:endIconMode="password_toggle" android:layout_marginTop="@dimen/resource_margin_2dp" android:visibility="gone">
@@ -198,29 +207,48 @@
                  or try to fit all 3 if text is short.
                  Actually, existing code has a horizontal LinearLayout. Let's add it there and see if it fits.
                  The previous layout had 2 weights: 1 and 1. We can make it 1, 1, 1. -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/register_as_destination" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbReadOnlyMode" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/read_only_mode" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
             </LinearLayout>
 
             <!-- Scan Subdirectories and All Files in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="true" android:text="@string/scan_subdirectories" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/all_files" android:checked="false" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
+
             </LinearLayout>
 
             <!-- Disable Thumbnails -->
-            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:checked="false" android:text="@string/disable_thumbnails" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
             <!-- Remember File List -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbRememberFileList" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/remember_file_list" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSmbRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_smb_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
                 <ImageButton android:id="@+id/btnSmbHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@android:drawable/ic_menu_help" app:tint="?attr/colorPrimary" />
 
@@ -453,28 +481,46 @@
             <!-- Destination and Read-Only checkboxes -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/resource_section_margin_top" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAddToDestinations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/register_as_destination" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAddToDestinations" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/register_as_destination" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_add_to_destinations_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpReadOnlyMode" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/read_only_mode" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
             </LinearLayout>
 
             <!-- Scan Subdirectories and All Files in one row -->
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginBottom="@dimen/resource_margin_4dp">
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpScanSubdirectories" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:checked="true" android:text="@string/scan_subdirectories" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpScanSubdirectories" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="true" android:text="@string/scan_subdirectories" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_scan_subdirectories_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAllFiles" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/all_files" android:checked="false" />
+                <LinearLayout android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/all_files" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
             </LinearLayout>
 
             <!-- Disable Thumbnails -->
-            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/resource_margin_4dp" android:checked="false" android:text="@string/disable_thumbnails" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
+                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpDisableThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/disable_thumbnails" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_disable_thumbnails_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
             <!-- Remember File List -->
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginBottom="@dimen/resource_margin_4dp">
 
-                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpRememberFileList" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:checked="false" android:text="@string/remember_file_list" />
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbSftpRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/remember_file_list" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_sftp_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                </LinearLayout>
 
                 <ImageButton android:id="@+id/btnSftpHelpRememberFileList" android:layout_width="40dp" android:layout_height="40dp" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@android:drawable/ic_menu_help" app:tint="?attr/colorPrimary" />
 
@@ -586,7 +632,10 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/cloud_storage_info" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="?android:textColorSecondary" android:layout_marginBottom="@dimen/resource_card_margin_bottom" />
 
             <!-- Read-Only Mode checkbox -->
-            <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbCloudReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/resource_section_margin_top" android:checked="false" android:text="@string/read_only_mode" />
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="@dimen/resource_section_margin_top">
+                <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/cbCloudReadOnlyMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:checked="false" android:text="@string/read_only_mode" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/checkbox_subtitle_margin_start" android:text="@string/cb_cloud_read_only_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
 
         </LinearLayout>
 

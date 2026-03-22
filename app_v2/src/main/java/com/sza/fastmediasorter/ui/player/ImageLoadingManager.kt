@@ -71,7 +71,7 @@ class ImageLoadingManager(
     private val lifecycleScope: LifecycleCoroutineScope,
     private val loadingIndicatorHandler: Handler,
     private val showLoadingIndicatorRunnable: Runnable,
-    private val preloadJobs: MutableList<Job>,
+    private val preloadJobs: MutableMap<String, Job>,
     private val callback: ImageLoadingCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
@@ -268,7 +268,7 @@ class ImageLoadingManager(
         }
         
         // Cancel all preload jobs
-        preloadJobs.forEach { it.cancel() }
+        preloadJobs.values.forEach { it.cancel() }
         preloadJobs.clear()
         prefetchQueue.clear()
         animatedImageController.release()
@@ -393,12 +393,15 @@ class ImageLoadingManager(
         // Glide will automatically replace the image when the new one is ready.
         // Memory cleanup happens when the new request completes and replaces the old bitmap.
         
-        // Cancel all preload jobs to prevent memory accumulation
+        // Smart cancellation: only cancel jobs for files no longer adjacent to the new position
+        val nextAdjacentPaths = callback.getAdjacentFiles().map { it.path }.toSet()
+        val cancelledCount: Int
         synchronized(preloadJobs) {
-            preloadJobs.forEach { it.cancel() }
-            preloadJobs.clear()
+            val stale = preloadJobs.keys.filter { it !in nextAdjacentPaths }
+            stale.forEach { path -> preloadJobs.remove(path)?.cancel() }
+            cancelledCount = stale.size
         }
-        Timber.d("ImageLoadingManager.displayImage: Cancelled all preload jobs")
+        Timber.d("ImageLoadingManager.displayImage: Cancelled $cancelledCount stale preload job(s), kept ${preloadJobs.size} still-useful")
         
         // Ensure any pending loading indicator from previous request is cancelled immediately
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
@@ -1229,12 +1232,12 @@ class ImageLoadingManager(
 
         job.invokeOnCompletion {
             synchronized(preloadJobs) {
-                preloadJobs.remove(job)
+                preloadJobs.remove(file.path)
             }
         }
 
         synchronized(preloadJobs) {
-            preloadJobs.add(job)
+            preloadJobs[file.path] = job
         }
     }
 

@@ -119,7 +119,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/resource_checkbox_min_height"
         android:layout_marginBottom="@dimen/margin_tiny">
 
         <com.google.android.material.checkbox.MaterialCheckBox
@@ -132,12 +131,23 @@
             android:paddingTop="0dp"
             android:paddingBottom="0dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/player_repeat_video"
-            android:textSize="@dimen/resource_card_title_text_size" />
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/player_repeat_video"
+                android:textSize="@dimen/resource_card_title_text_size" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cb_repeat_video_desc"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
 
     </LinearLayout>
 
@@ -148,7 +158,6 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:minHeight="@dimen/resource_checkbox_min_height"
         android:layout_marginBottom="@dimen/margin_tiny">
 
         <com.google.android.material.checkbox.MaterialCheckBox
@@ -161,12 +170,23 @@
             android:paddingTop="0dp"
             android:paddingBottom="0dp" />
 
-        <TextView
+        <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/player_show_subtitles"
-            android:textSize="@dimen/resource_card_title_text_size" />
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/player_show_subtitles"
+                android:textSize="@dimen/resource_card_title_text_size" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/cb_show_subtitles_desc"
+                android:textSize="@dimen/text_size_small"
+                android:textColor="@color/text_color_secondary" />
+        </LinearLayout>
 
     </LinearLayout>
 

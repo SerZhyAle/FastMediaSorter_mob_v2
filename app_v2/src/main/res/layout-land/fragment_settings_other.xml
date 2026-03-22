@@ -28,12 +28,23 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="12dp" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/enable_translation"
-                android:textSize="14sp" />
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enable_translation"
+                    android:textSize="14sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_enable_translation_desc"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Translation Languages Container (HORIZONTAL in landscape) -->
@@ -123,12 +134,23 @@
                 android:layout_marginEnd="12dp"
                 android:checked="false" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/translation_lens_style"
-                android:textSize="14sp" />
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/translation_lens_style"
+                    android:textSize="14sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_translation_lens_style_desc"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- Google Lens -->
@@ -147,12 +169,23 @@
                 android:layout_marginEnd="12dp"
                 android:checked="false" />
 
-            <TextView
+            <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/enable_google_lens"
-                android:textSize="14sp" />
+                android:orientation="vertical">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/enable_google_lens"
+                    android:textSize="14sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/setting_enable_google_lens_desc"
+                    android:textSize="@dimen/text_size_small"
+                    android:textColor="@color/text_color_secondary" />
+            </LinearLayout>
         </LinearLayout>
 
         <!-- OCR (Text Recognition) -->

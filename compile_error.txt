@@ -1,0 +1,56 @@
+Reusing configuration cache.
+> Task :app_v2:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :app_v2:preBuild UP-TO-DATE
+> Task :app_v2:preStandardDebugBuild UP-TO-DATE
+> Task :app_v2:generateStandardDebugResValues UP-TO-DATE
+> Task :app_v2:createStandardDebugCompatibleScreenManifests UP-TO-DATE
+> Task :app_v2:generateStandardDebugBuildConfig UP-TO-DATE
+> Task :app_v2:javaPreCompileStandardDebug UP-TO-DATE
+> Task :app_v2:generateSafeArgsStandardDebug UP-TO-DATE
+> Task :app_v2:extractDeepLinksStandardDebug UP-TO-DATE
+> Task :app_v2:generateStandardDebugResources UP-TO-DATE
+> Task :app_v2:checkStandardDebugAarMetadata UP-TO-DATE
+> Task :app_v2:mapStandardDebugSourceSetPaths UP-TO-DATE
+> Task :app_v2:dataBindingMergeDependencyArtifactsStandardDebug UP-TO-DATE
+> Task :app_v2:processStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:compileStandardDebugNavigationResources UP-TO-DATE
+> Task :app_v2:packageStandardDebugResources UP-TO-DATE
+> Task :app_v2:processStandardDebugMainManifest UP-TO-DATE
+> Task :app_v2:processStandardDebugManifest UP-TO-DATE
+> Task :app_v2:parseStandardDebugLocalResources UP-TO-DATE
+> Task :app_v2:processStandardDebugManifestForPackage UP-TO-DATE
+> Task :app_v2:generateStandardDebugRFile UP-TO-DATE
+> Task :app_v2:mergeStandardDebugResources UP-TO-DATE
+> Task :app_v2:dataBindingGenBaseClassesStandardDebug UP-TO-DATE
+> Task :app_v2:processStandardDebugResources UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:kaptStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:compileStandardDebugKotlin UP-TO-DATE
+> Task :app_v2:compileStandardDebugJavaWithJavac UP-TO-DATE
+> Task :app_v2:hiltAggregateDepsStandardDebug UP-TO-DATE
+> Task :app_v2:hiltJavaCompileStandardDebug UP-TO-DATE
+> Task :app_v2:bundleStandardDebugClassesToCompileJar UP-TO-DATE
+> Task :app_v2:kaptGenerateStubsStandardDebugUnitTestKotlin UP-TO-DATE
+> Task :app_v2:kaptStandardDebugUnitTestKotlin UP-TO-DATE
+
+> Task :app_v2:compileStandardDebugUnitTestKotlin FAILED
+e: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MigrateCameraResourceUseCaseTest.kt:33:38 Unresolved reference 'TYPE_LOCAL'.
+e: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MigrateCameraResourceUseCaseTest.kt:57:38 Unresolved reference 'TYPE_LOCAL'.
+e: file:///P:/ANDROID/FastMediaSorter_mob_v2/app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MigrateCameraResourceUseCaseTest.kt:76:38 Unresolved reference 'TYPE_LOCAL'.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':app_v2:compileStandardDebugUnitTestKotlin'.
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.GradleCompilerRunnerWithWorkers$GradleKotlinCompilerWorkAction
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 2s
+31 actionable tasks: 1 executed, 30 up-to-date
+Configuration cache entry reused.
