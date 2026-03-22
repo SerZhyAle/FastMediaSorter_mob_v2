@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="24dp"
+    android:paddingBottom="8dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/import_fav_conflict_label"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        android:layout_marginBottom="8dp" />
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/radioSkipDuplicates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/import_fav_conflict_skip"
+            android:checked="true" />
+
+        <RadioButton
+            android:id="@+id/radioOverwriteDuplicates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/import_fav_conflict_overwrite" />
+
+    </RadioGroup>
+
+</LinearLayout>

@@ -210,7 +210,10 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowPlayerHint" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/show_player_hint" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_player_hint" android:textSize="@dimen/resource_card_desc_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_player_hint_description" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -219,7 +222,10 @@
 
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAlwaysShowTouchZones" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:text="@string/always_show_touch_zones_overlay" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/margin_small" android:orientation="vertical">
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/always_show_touch_zones_overlay" android:textSize="@dimen/resource_card_desc_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/always_show_touch_zones_overlay_description" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpTouchZones" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_touch_zones_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
 
@@ -229,7 +235,7 @@
 
                     </LinearLayout>
 
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/always_show_touch_zones_overlay_description" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" android:layout_marginStart="@dimen/fragment_settings_other_layoutOcrFontFamily_layout_marginStart" android:layout_marginEnd="@dimen/fragment_settings_playback_iconHelpTouchZones_layout_marginEnd" android:layout_marginBottom="@dimen/bottom_sheet_binary_file_tvFileName_layout_marginBottom"/>
+
 
                     <!-- Touch Zones Scheme Header and Button -->
                     <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:orientation="horizontal">

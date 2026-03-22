@@ -220,7 +220,7 @@
     <string name="settings_tab_backup">Backup</string>
     <string name="backup_to_google_drive">Backup to Google Drive</string>
     <string name="restore_from_google_drive">Restore from Google Drive</string>
-    <string name="backup_info_description">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
+    <string name="backup_info_description">The backup contains all settings and resources list. Credentials are not backed up — you will need to re-authenticate network and cloud resources after restore.</string>
     <string name="tooltip_backup_info_title">Backup Information</string>
     <string name="tooltip_backup_info_message">Backup includes all settings and resource list. Credentials are not backed up — you\'ll need to re-authenticate network/cloud resources after restore.</string>
     <string name="backup_success">Backed up %1$d resources and all settings to %2$s</string>
@@ -235,6 +235,26 @@
     <string name="restore_failed">Restore failed: %s</string>
     <string name="last_backup_date">Last backup: %s</string>
     <string name="backup_account">Account: %s</string>
+    <!-- Favorites Export/Import -->
+    <string name="backup_export_favorites">Export Favorites</string>
+    <string name="backup_import_favorites">Import Favorites</string>
+    <string name="export_fav_success_title">Export Successful</string>
+    <string name="export_fav_success_message">Exported %1$d favorites\n\nLocation:\n%2$s\n\nSize: %3$d KB</string>
+    <string name="export_fav_failed">Failed to export favorites</string>
+    <string name="export_fav_share_failed">Could not share file</string>
+    <string name="import_fav_preview_title">Import Favorites</string>
+    <string name="import_fav_preview_message">Source device: %1$s\nFavorites in file: %2$d</string>
+    <string name="import_fav_conflict_label">Handle duplicates:</string>
+    <string name="import_fav_conflict_skip">Skip existing (safer)</string>
+    <string name="import_fav_conflict_overwrite">Overwrite existing</string>
+    <string name="import_fav_action">Import</string>
+    <string name="import_fav_success_title">Import Complete</string>
+    <string name="import_fav_result_added">Added: %1$d</string>
+    <string name="import_fav_result_skipped">Skipped: %1$d (duplicates)</string>
+    <string name="import_fav_result_unresolved">Unresolved: %1$d (resource not found)</string>
+    <string name="import_fav_result_failed">Failed: %1$d</string>
+    <string name="import_fav_invalid_file">File is corrupted or invalid</string>
+    <string name="import_fav_failed">Failed to import favorites</string>
     <string name="google_sign_in_failed">Google sign-in failed: %1$s</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
     <string name="auth_failed">Authentication failed: %1$s</string>
@@ -301,7 +321,7 @@
     <string name="show_logs">Show logs</string>
     <string name="open_documentation">Open Documentation</string>
     <string name="support_images">Support Images</string>
-    <string name="support_images_description">Support static images</string>
+    <string name="support_images_description">Support for static images</string>
     <string name="supported_image_formats">Supported: JPG, PNG, BMP, WEBP</string>
     <string name="max_recipients">Max recipients (1-30)</string>
     <string name="max_recipients_error">Value must be between 1 and 30</string>
@@ -319,97 +339,98 @@
     <string name="image_and_animation_size_limit">Image and animation size limits</string>
     <string name="image_size_range">1 KB - 10 MB</string>
     <string name="support_gif">Support GIF</string>
-    <string name="support_gif_description">Support GIF animation</string>
+    <string name="support_gif_description">Support for GIF animations</string>
     <string name="support_video">Support Video</string>
-    <string name="support_video_description">Support video</string>
+    <string name="support_video_description">Support for videos</string>
     <string name="supported_video_formats">Supported: MP4, MKV, MOV, WEBM</string>
     <string name="video_size_limit">Video file size limit</string>
     <string name="video_size_range">1 KB - 1 GB</string>
     <string name="support_audio">Support Audio</string>
-    <string name="support_audio_description">Support audio</string>
+    <string name="support_audio_description">Support for audio</string>
     <string name="supported_audio_formats">Supported: MP3, AAC, FLAC, OGG</string>
     <string name="audio_size_limit">Audio file size limit</string>
     <string name="audio_size_range">0 KB - 100 MB</string>
     <string name="search_audio_covers_online">Search audio covers online (iTunes API)</string>
     <string name="search_covers_only_on_wifi">Search only on Wi-Fi</string>
     <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
-    <string name="save_audio_metadata_locally_desc">Reuse covers and metadata without re-downloading</string>
+    <string name="save_audio_metadata_locally_desc">Covers and metadata without re-downloading from the internet</string>
 
     <!-- Settings toggle subtitles -->
-    <string name="setting_all_files_desc">Shows all file types regardless of current media mode</string>
-    <string name="setting_show_hidden_files_desc">Includes dot-files and system folders in browser</string>
-    <string name="setting_show_subfolders_as_items_desc">Subfolders appear inline instead of being grouped separately</string>
-    <string name="setting_small_controls_desc">Reduces button sizes for smaller screens or more content</string>
-    <string name="setting_enable_favorites_desc">Pin frequently used folders to the quick-access favorites bar</string>
-    <string name="setting_default_remember_file_list_desc">New resources open at the last viewed file position</string>
-    <string name="setting_safe_mode_desc">Groups confirmations that protect against accidental changes</string>
-    <string name="setting_confirm_delete_desc">Ask before permanently deleting files</string>
-    <string name="setting_confirm_move_desc">Ask before moving files to a different folder</string>
-    <string name="setting_prevent_sleep_desc">Keeps screen on while the app is in the foreground</string>
-    <string name="setting_background_sync_desc">Periodically refreshes network resource file lists in background</string>
-    <string name="setting_support_audio_desc">Enable playback of MP3, FLAC, AAC, OGG and other audio formats</string>
-    <string name="setting_search_audio_covers_online_desc">Fetch album art via iTunes for files without embedded covers</string>
-    <string name="setting_search_covers_only_wifi_desc">Avoid mobile data usage when downloading cover art</string>
-    <string name="setting_photos_during_audio_desc">Displays a random image slideshow while audio is playing</string>
-    <string name="setting_support_videos_desc">Enable playback of MP4, MKV, MOV and other video formats</string>
-    <string name="setting_show_video_thumbnails_desc">Generates preview frames for video files in browse view</string>
-    <string name="setting_support_images_desc">Enable viewing of JPG, PNG, WEBP, HEIC and other image formats</string>
-    <string name="setting_support_gifs_desc">Play animated GIFs in browse and player views</string>
-    <string name="setting_load_full_size_images_desc">Loads original resolution for pinch-to-zoom; uses more memory</string>
-    <string name="setting_crop_images_to_fullscreen_desc">Fills entire screen by cropping image edges</string>
-    <string name="setting_dynamic_background_desc">Extends image colors to fill screen borders (Ambilight effect)</string>
-    <string name="setting_slideshow_background_music_desc">Plays a selected audio track while viewing images in slideshow</string>
-    <string name="setting_support_text_desc">Open .txt, .md, .log, .json and .xml files in built-in viewer</string>
-    <string name="setting_show_text_line_numbers_desc">Shows line numbers at left margin in text viewer</string>
-    <string name="setting_support_pdf_desc">Open PDF files in built-in viewer with page thumbnails and search</string>
-    <string name="setting_support_epub_desc">Read EPUB e-books with bookmarks and table of contents</string>
-    <string name="setting_enable_translation_desc">Translate on-screen text using selected translation service</string>
-    <string name="setting_translation_lens_style_desc">Shows each translated text block separately instead of merged</string>
-    <string name="setting_enable_google_lens_desc">Send images to Google Lens for visual search and recognition</string>
-    <string name="setting_play_to_end_desc">Media plays fully before advancing to next item in slideshow</string>
-    <string name="setting_allow_rename_desc">Show rename option in player action menu</string>
-    <string name="setting_allow_delete_desc">Show delete option in player action menu</string>
-    <string name="setting_confirm_delete_player_desc">Ask for confirmation before deleting from within the player</string>
-    <string name="setting_hide_grid_action_buttons_desc">Cleaner thumbnails without copy/move quick-action buttons</string>
-    <string name="setting_hide_system_ui_desc">Hides status bar and navigation bar in fullscreen</string>
-    <string name="setting_show_command_panel_desc">Displays the copy/move destination panel when opening player</string>
-    <string name="setting_detailed_errors_desc">Shows technical error details for troubleshooting playback issues</string>
-    <string name="setting_primary_media_player_desc">Opens audio and video files from other apps and file managers</string>
-    <string name="setting_accept_shared_files_desc">Appears in Android share sheet when sharing media from other apps</string>
-    <string name="setting_enable_copying_desc">Show copy destinations and copy button in the player</string>
-    <string name="setting_overwrite_on_copy_desc">Replace file at destination if one with same name already exists</string>
-    <string name="setting_enable_moving_desc">Show move destinations and move button in the player</string>
-    <string name="setting_overwrite_on_move_desc">Replace file at destination if one with same name already exists</string>
+    <string name="setting_all_files_desc">Shows files of all types for operations with them</string>
+    <string name="setting_show_hidden_files_desc">System files and folders in the browser</string>
+    <string name="setting_show_subfolders_as_items_desc">Subfolders are displayed as items in the browser</string>
+    <string name="setting_small_controls_desc">Reduces buttons, increases the area for content</string>
+    <string name="setting_enable_favorites_desc">Files can be added to the favorites list for quick access</string>
+    <string name="setting_default_remember_file_list_desc">Reopens faster, but may require a manual refresh</string>
+    <string name="setting_safe_mode_desc">Enables confirmations to protect against accidental changes</string>
+    <string name="setting_confirm_delete_desc">Requires confirmation before final deletion</string>
+    <string name="setting_confirm_move_desc">Requires confirmation when moving files</string>
+    <string name="setting_prevent_sleep_desc">Keeps the screen on while the app is active</string>
+    <string name="setting_background_sync_desc">Periodically updates the file list of network resources in the background</string>
+    <string name="setting_support_audio_desc">Playback of MP3, FLAC, AAC, OGG, and other audio formats</string>
+    <string name="setting_search_audio_covers_online_desc">Downloads covers from the internet for files without embedded covers</string>
+    <string name="setting_search_covers_only_wifi_desc">Does not use mobile data for downloading covers</string>
+    <string name="setting_photos_during_audio_desc">Random images during playback (select a list of audio - watch images)</string>
+    <string name="setting_support_videos_desc">Playback of MP4, MKV, MOV, and other video formats</string>
+    <string name="setting_show_video_thumbnails_desc">Creates preview frames for video files in the browser</string>
+    <string name="setting_support_images_desc">Viewing of JPG, PNG, WEBP, HEIC, and other image formats</string>
+    <string name="setting_support_gifs_desc">Plays animated GIFs in the browser and player</string>
+    <string name="setting_load_full_size_images_desc">Downloads original resolution from the network for zooming (slower and uses more memory)</string>
+    <string name="setting_crop_images_to_fullscreen_desc">Fills the entire screen, but cropping the edges of the image</string>
+    <string name="setting_dynamic_background_desc">Extends the image colors beyond its edges</string>
+    <string name="setting_slideshow_background_music_desc">A list of audio during viewing (select images - listen to audio)</string>
+    <string name="setting_support_text_desc">Opens .txt, .md, .log, .json, and .xml</string>
+    <string name="setting_show_text_line_numbers_desc">Displays line numbers on the left when viewing text</string>
+    <string name="setting_support_pdf_desc">Opens PDFs in the built-in viewer</string>
+    <string name="setting_support_epub_desc">Reads EPUB books with bookmarks and table of contents</string>
+    <string name="setting_enable_translation_desc">Translates text in the specified direction</string>
+    <string name="setting_translation_lens_style_desc">Shows translated text blocks separately, without merging</string>
+    <string name="setting_enable_google_lens_desc">Send button for visual search</string>
+    <string name="setting_play_to_end_desc">The media file is played completely before moving to the next</string>
+    <string name="setting_allow_rename_desc">Shows the \"Rename\" button in the player menu</string>
+    <string name="setting_allow_delete_desc">Shows the \"Delete\" button in the player menu</string>
+    <string name="setting_confirm_delete_player_desc">Requires confirmation when deleting</string>
+    <string name="setting_hide_grid_action_buttons_desc">Clean grid view without copy and move buttons</string>
+    <string name="setting_hide_system_ui_desc">Hides the status bar and navigation bar in full-screen mode</string>
+    <string name="setting_show_command_panel_desc">Shows commands and operation panels when opening the player</string>
+    <string name="setting_detailed_errors_desc">Technical details of all errors for diagnostics</string>
+    <string name="setting_primary_media_player_desc">Opens audio and video from other apps and file managers</string>
+    <string name="setting_accept_shared_files_desc">Appears in the \"Share\" menu when transferring media files</string>
+    <string name="setting_enable_copying_desc">Shows destinations and the copy button in the player</string>
+    <string name="setting_overwrite_on_copy_desc">Replaces the file in the destination folder if the names match</string>
+    <string name="setting_enable_moving_desc">Shows destinations and the move button in the player</string>
+    <string name="setting_overwrite_on_move_desc">Replaces the file in the destination folder when moving, if the names match</string>
+    <string name="setting_go_to_next_after_copy_desc">Automatically plays the next file in the list</string>
 
     <!-- Checkbox subtitle descriptions -->
-    <string name="cb_local_scan_subdirectories_desc">Recursively includes all nested folders when scanning for media</string>
-    <string name="cb_local_add_to_destinations_desc">Makes this folder available as a copy/move target in the player</string>
+    <string name="cb_local_scan_subdirectories_desc">Recursively includes all nested folders when scanning media</string>
+    <string name="cb_local_add_to_destinations_desc">Makes this folder available as a copy/move destination in the player</string>
     <string name="cb_local_read_only_mode_desc">Files cannot be moved, copied, or deleted from this resource</string>
-    <string name="cb_smb_add_to_destinations_desc">Makes this network share available as a copy/move target in the player</string>
-    <string name="cb_smb_read_only_mode_desc">Files cannot be moved, copied, or deleted from this network share</string>
-    <string name="cb_smb_scan_subdirectories_desc">Recursively includes all nested folders when scanning for media</string>
+    <string name="cb_smb_add_to_destinations_desc">Makes this network folder available as a copy/move destination in the player</string>
+    <string name="cb_smb_read_only_mode_desc">Files cannot be moved, copied, or deleted from this network folder</string>
+    <string name="cb_smb_scan_subdirectories_desc">Recursively includes all nested folders when scanning media</string>
     <string name="cb_smb_all_files_desc">Shows all file types regardless of the configured media filters</string>
-    <string name="cb_smb_disable_thumbnails_desc">Skips thumbnail generation to reduce network traffic and speed up loading</string>
-    <string name="cb_smb_remember_file_list_desc">Reopens the resource at the last browsed file position</string>
-    <string name="cb_sftp_add_to_destinations_desc">Makes this SFTP/FTP folder available as a copy/move target in the player</string>
+    <string name="cb_smb_disable_thumbnails_desc">Disables thumbnail generation to reduce network traffic and speed up loading</string>
+    <string name="cb_smb_remember_file_list_desc">Opens the resource at the last viewed file position</string>
+    <string name="cb_sftp_add_to_destinations_desc">Makes this SFTP/FTP folder available as a copy/move destination in the player</string>
     <string name="cb_sftp_read_only_mode_desc">Files cannot be moved, copied, or deleted from this server</string>
-    <string name="cb_sftp_scan_subdirectories_desc">Recursively includes all nested folders when scanning for media</string>
+    <string name="cb_sftp_scan_subdirectories_desc">Recursively includes all nested folders when scanning media</string>
     <string name="cb_sftp_all_files_desc">Shows all file types regardless of the configured media filters</string>
-    <string name="cb_sftp_disable_thumbnails_desc">Skips thumbnail generation to reduce network traffic and speed up loading</string>
-    <string name="cb_sftp_remember_file_list_desc">Reopens the resource at the last browsed file position</string>
+    <string name="cb_sftp_disable_thumbnails_desc">Disables thumbnail generation to reduce network traffic and speed up loading</string>
+    <string name="cb_sftp_remember_file_list_desc">Opens the resource at the last viewed file position</string>
     <string name="cb_cloud_read_only_mode_desc">Files cannot be moved, copied, or deleted from this cloud storage</string>
-    <string name="cb_cloud_picker_add_as_destination_desc">Makes this cloud folder available as a copy/move target in the player</string>
-    <string name="cb_cloud_picker_scan_subdirectories_desc">Recursively includes nested cloud folders when scanning for media</string>
-    <string name="cb_repeat_video_desc">Loops the current video continuously instead of advancing to next</string>
-    <string name="cb_show_subtitles_desc">Displays subtitle track when available in the video file</string>
-    <string name="cb_play_to_end_desc">Waits for each video or audio to finish before advancing in slideshow</string>
+    <string name="cb_cloud_picker_add_as_destination_desc">Makes this cloud folder available as a copy/move destination in the player</string>
+    <string name="cb_cloud_picker_scan_subdirectories_desc">Recursively includes nested cloud folders when scanning media</string>
+    <string name="cb_repeat_video_desc">Loops the current video instead of moving to the next</string>
+    <string name="cb_show_subtitles_desc">Displays the subtitle track if present in the video file</string>
+    <string name="cb_play_to_end_desc">Waits for the end of each video or audio before moving in the slideshow</string>
 
     <string name="audio_cache_size_warning_title">Audio metadata cache is large</string>
     <string name="audio_cache_size_warning_message">The audio metadata cache exceeds 10 GB. Delete oldest 50%% of cached files?</string>
     <string name="delete_old_files">Delete old</string>
 
     <!-- Audio Background Photos -->
-    <string name="enable_photos_during_audio_description">Show random photos during audio playback</string>
+    <string name="enable_photos_during_audio_description">Show random photos when playing audio</string>
     <string name="audio_background_photos_source_label">Background photos source:</string>
     <string name="select_photos_source">Select Photos Source</string>
     <string name="no_photos_source_selected">No resource selected</string>
@@ -431,18 +452,18 @@
     <string name="audio_size_limits">Audio size limits (KB)</string>
     <string name="support_text">Support Text</string>
     <string name="support_txt">Support TXT</string>
-    <string name="support_text_description">Support text files (.txt, .md, .log, .json, .xml)</string>
+    <string name="support_text_description">Support for text files</string>
     <string name="show_text_line_numbers">Number lines</string>
     <string name="supported_text_formats">Supported: TXT, MD, LOG, JSON, XML, CSV</string>
     <string name="support_pdf">Support PDF</string>
-    <string name="support_pdf_description">Support PDF documents</string>
+    <string name="support_pdf_description">Support for PDF documents</string>
     <string name="pdf_export_to_jpg">Export pages as JPG</string>
     <string name="pdf_edit_title">PDF Tools</string>
     <string name="pdf_exporting_started">Exporting pages…</string>
     <string name="pdf_export_success">Successfully exported %d pages to Downloads</string>
     <string name="pdf_export_failed">Export failed: %s</string>
     <string name="support_epub">Support EPUB</string>
-    <string name="support_epub_description">Support EPUB e-books</string>
+    <string name="support_epub_description">Support for EPUB ebooks</string>
     <string name="epub_table_of_contents">Table of Contents</string>
     <string name="epub_no_toc">No table of contents available</string>
     <string name="epub_chapter_progress">Chapter %1$d of %2$d</string>
@@ -468,7 +489,7 @@
     <string name="translation_started">Translation started…</string>
     <string name="translation_error">Translation failed</string>
     <string name="show_pdf_thumbnails">Large PDF Thumbnails (slow)</string>
-    <string name="show_pdf_thumbnails_description">Download and generate thumbnails for large PDF files: up to 50 MB for SMB, up to 10 MB for S/FTP/Cloud (may take significant time)</string>
+    <string name="show_pdf_thumbnails_description">Thumbnails for large PDFs: up to 50 MB for SMB, up to 10 MB for S/FTP/Cloud (may take significant time)</string>
     <string name="enable_translation">Enable Translation</string>
     <string name="translation_settings">Text Settings</string>
     <string name="translation_source_language">Original Language</string>
@@ -508,13 +529,13 @@
     <string name="show_command_panel_by_default">Show command panel by default</string>
     <string name="show_detailed_errors">Show detailed errors</string>
     <string name="show_player_hint">Show touch zones hint on first run</string>
-    <string name="show_player_hint_description">Display touch zones overlay when opening player for the first time</string>
+    <string name="show_player_hint_description">Show touch zones overlay when opening the player for the first time</string>
     <string name="always_show_touch_zones_overlay">Always show touch zones overlay</string>
-    <string name="always_show_touch_zones_overlay_description">Display semi-transparent touch zones grid over media in fullscreen mode</string>
+    <string name="always_show_touch_zones_overlay_description">Show translucent touch zones grid over media in full-screen mode</string>
     <string name="show_hint_now">Show Hint Next Time</string>
     <string name="hint_will_be_shown_next_time">Touch zones hint will be shown next time you open media player</string>
     <string name="show_video_thumbnails">Show video thumbnails</string>
-    <string name="show_video_thumbnails_description">Extract and display first frame for video files (may take 2+ seconds for network files)</string>
+    <string name="show_video_thumbnails_description">Extract and display the first frame of video files (may take 2+ seconds for network files)</string>
     <string name="touch_zones_scheme">Touch Zones Scheme (Images/Video) for full screen mode</string>
     <string name="default_icon_size">Icon size for grid (pixels)</string>
     <string name="enable_copying">Allow copying</string>
@@ -523,7 +544,7 @@
     <string name="enable_moving">Allow moving</string>
     <string name="overwrite_on_move">Overwrite existing file when moving</string>
     <string name="destinations_list">Quick Sort (0-9)</string>
-    <string name="destinations_description">Up to 30 quick sort folders. Each has a color and number.</string>
+    <string name="destinations_description">Up to 10 quick sorting folders. Each has a color and a number (0-9).</string>
     <string name="add_destination">Add to Quick Sort</string>
     <string name="destinations_list_header">Quick Sort List for Sorting Commands</string>
     <string name="add_resources_first_message">Add the folders first at the main screen, before mark any for quick sort.</string>
@@ -586,7 +607,7 @@
     <string name="current_folder">Current folder</string>
     <string name="folder_up">Parent folder</string>
     <string name="disable_thumbnails">Disable thumbnails</string>
-    <string name="disable_thumbnails_description">Show only file extension icons (no image/video preview). Auto-enabled for folders with &gt;10000 files.</string>
+    <string name="disable_thumbnails_description">Show only file extension icons (no preview). Automatically enabled for folders with &gt;10000 files.</string>
     <string name="read_only_mode">Read-only mode</string>
     <string name="read_only_mode_hint">Prevents file operations (copy, move, delete)</string>
     <string name="error_read_only">This resource is read-only</string>
@@ -681,9 +702,9 @@
     <string name="welcome_title_5">Powerful Extras</string>
     <string name="welcome_description_5">Go beyond simple media viewing — FastMediaSorter packs professional tools for text, documents, and audio.</string>
     <string name="welcome_permissions_title">Media Files Access</string>
-    <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not transfer your files to third parties.</string>
+    <string name="welcome_permissions_description">FastMediaSorter needs access to your photos, videos, and audio files to scan and display media. We do not share your files with third parties.</string>
     <string name="welcome_default_player_title">Set as Default Player</string>
-    <string name="welcome_default_player_description">Tap a button below — Android will show an app chooser. Select FastMediaSorter and tap \"Always\" to set it as default for that file type.</string>
+    <string name="welcome_default_player_description">Tap the desired button — Android will show the app chooser. Select FastMediaSorter and tap \"Always\" to make it the default player for this file type.</string>
     <string name="welcome_default_player_btn_audio">Audio</string>
     <string name="welcome_default_player_btn_video">Video</string>
     <string name="welcome_default_player_btn_images">Images</string>
@@ -831,11 +852,11 @@
     <string name="scan_network_button">Scan Network</string>
     <string name="add_network_folder">Add Network Folder (SMB)</string>
     <string name="network_folder">Network Folder</string>
-    <string name="network_folder_description">Add SMB network shares</string>
+    <string name="network_folder_description">Add SMB network resources</string>
     <string name="cloud_folder">Cloud Folder</string>
     <string name="cloud_folder_description">Add Google Drive, Dropbox, OneDrive</string>
     <string name="sftp_ftp_folder">SFTP / FTP</string>
-    <string name="sftp_ftp_folder_description">Add SFTP or FTP remote folders</string>
+    <string name="sftp_ftp_folder_description">Add remote SFTP or FTP folders</string>
 
     <!-- Validation Messages -->
     <string name="share_name_required">Share name is required</string>
@@ -1072,13 +1093,13 @@
 
     <!-- Sort modes -->
     <string name="sort_by_name_asc">by Name ↑</string>
-    <string name="sort_by_name_desc">by Name ↓</string>
+    <string name="sort_by_name_desc">by name ↓</string>
     <string name="sort_by_date_asc">by Date ↑</string>
-    <string name="sort_by_date_desc">by Date ↓</string>
+    <string name="sort_by_date_desc">by date ↓</string>
     <string name="sort_by_size_asc">by Size ↑</string>
-    <string name="sort_by_size_desc">by Size ↓</string>
+    <string name="sort_by_size_desc">by size ↓</string>
     <string name="sort_by_type_asc">by Type ↑</string>
-    <string name="sort_by_type_desc">by Type ↓</string>
+    <string name="sort_by_type_desc">by type ↓</string>
     <string name="sort_by_manual">Manual Order</string>
     <string name="sort_by_random">Random</string>
     <string name="sort_by">Sort By</string>
@@ -1141,14 +1162,14 @@
     <string name="widget_favorites_label">Favorites</string>
     <string name="widget_favorites_description">Quick access to favorite files</string>
     <string name="widget_resource_launch_label">Resource Shortcut</string>
-    <string name="widget_resource_launch_description">Launch specific resource folder</string>
+    <string name="widget_resource_launch_description">Launch a specific resource</string>
     <string name="widget_continue_reading_label">Continue Reading</string>
-    <string name="widget_continue_reading_description">Resume slideshow from last position</string>
+    <string name="widget_continue_reading_description">Resume slideshow from the last position</string>
     <string name="widget_random_music_label">Random Music</string>
     <string name="widget_random_music_description">Play all music in random order</string>
     <string name="widget_random_music_resource_not_found">Resource "All Music" not found</string>
     <string name="widget_camera_photos_label">Camera</string>
-    <string name="widget_camera_photos_description">Open camera photos in grid view</string>
+    <string name="widget_camera_photos_description">Open camera photos as a grid</string>
     <string name="widget_camera_photos_resource_not_found">Resource "Camera" not found</string>
     <string name="continue_reading">Continue Reading</string>
     <string name="widget_select_resource">Select Resource</string>
@@ -1165,9 +1186,9 @@
     <string name="sort_mode_name_asc">Name (A-Z)</string>
     <string name="sort_mode_name_desc">Name (Z-A)</string>
     <string name="sort_mode_date_asc">Date (Old first)</string>
-    <string name="sort_mode_date_desc">Date (New first)</string>
+    <string name="sort_mode_date_desc">Date (Newest)</string>
     <string name="sort_mode_size_asc">Size (Small first)</string>
-    <string name="sort_mode_size_desc">Size (Large first)</string>
+    <string name="sort_mode_size_desc">Size (Largest)</string>
     <string name="sort_mode_type_asc">Type (A-Z)</string>
     <string name="sort_mode_type_desc">Type (Z-A)</string>
     <string name="sort_mode_artist_asc">Artist (A-Z)</string>
@@ -1175,9 +1196,9 @@
     <string name="sort_mode_title_asc">Title (A-Z)</string>
     <string name="sort_mode_title_desc">Title (Z-A)</string>
     <string name="sort_mode_duration_asc">Duration (Short first)</string>
-    <string name="sort_mode_duration_desc">Duration (Long first)</string>
+    <string name="sort_mode_duration_desc">Duration (Longest)</string>
     <string name="sort_mode_date_taken_asc">Date taken (Old first)</string>
-    <string name="sort_mode_date_taken_desc">Date taken (New first)</string>
+    <string name="sort_mode_date_taken_desc">Date Taken (Newest)</string>
     <string name="sort_mode_random">Random</string>
 
     <!-- Settings Messages -->
@@ -1427,7 +1448,7 @@
     <string name="ocr_requires_newer_device">OCR requires newer device (Memory: %1$s, API: %2$d). Requires API 26+ and 4GB+ RAM.</string>
     <string name="ocr_font_size">OCR Font Size</string>
     <string name="ocr_font_family">OCR Font Family</string>
-    <string name="ocr_button_description">Extract Text</string>
+    <string name="ocr_button_description">Extract text</string>
     <string name="ocr_processing">Recognizing text…</string>
     <string name="ocr_no_text_found">No text found in image</string>
     <string name="translation_no_text_found">No text found to translate</string>
@@ -1979,9 +2000,9 @@
 
     <!-- Audio background playback -->
     <string name="notification_channel_audio_playback">Audio Playback</string>
-    <string name="notification_channel_audio_description">Controls for background audio playback</string>
+    <string name="notification_channel_audio_description">Background audio playback controls</string>
     <string name="background_audio_setting_title">Background Playback</string>
-    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
+    <string name="background_audio_setting_summary">Audio will continue playing if you switch to another app or lock the device</string>
     <string name="background_audio_exit_title">Background Audio</string>
     <string name="background_audio_exit_message">Music is playing in the background. What would you like to do?</string>
     <string name="background_audio_exit_stop">Stop</string>
@@ -2036,7 +2057,15 @@
     <string name="settings_default_player_dialog_message">An app chooser will open. Select FastMediaSorter and tap \"Always\" to set it as your default player for this file type.</string>
     <string name="settings_default_player_dialog_confirm">Open chooser</string>
 
+    <!-- Network Delete Confirmation -->
+    <string name="delete_action_cannot_be_undone_title">THIS ACTION CANNOT BE UNDONE</string>
+    <string name="delete_n_files_from_network_title">Delete %1$d file(s) from network?</string>
+    <string name="and_n_more_files_network">…and %1$d more file(s)</string>
+    <string name="network_delete_warning">Network and cloud resources do NOT support Undo. Files will be PERMANENTLY deleted.</string>
+    <string name="dont_show_again_for_resource">Don\'t show this warning again for %1$s</string>
+    <string name="delete_permanently">Delete Permanently</string>
 </resources>
+
 
 
 

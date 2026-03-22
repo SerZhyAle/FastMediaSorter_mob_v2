@@ -8,7 +8,10 @@ enum class ResourceType {
     SMB,
     SFTP,
     FTP,
-    CLOUD
+    CLOUD;
+
+    val isNetworkResource: Boolean
+        get() = this in listOf(SMB, SFTP, FTP, CLOUD)
 }
 
 /**

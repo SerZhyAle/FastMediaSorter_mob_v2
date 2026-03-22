@@ -289,8 +289,28 @@ class BrowseDialogHelper(
         }
     }
     
-    fun showDeleteConfirmation(fileCount: Int, settings: AppSettings) {
-        // Check Safe Mode for delete confirmation
+    fun showDeleteConfirmation(
+        files: List<MediaFile>, 
+        resource: com.sza.fastmediasorter.domain.model.MediaResource?, 
+        settings: AppSettings
+    ) {
+        val fileCount = files.size
+        if (fileCount == 0) return
+
+        val isNetwork = resource?.type?.isNetworkResource == true
+        
+        if (isNetwork) {
+            val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)
+            val prefKey = "dont_show_network_delete_${resource?.id ?: 0}"
+            val dontShowAgain = prefs.getBoolean(prefKey, false)
+            
+            if (!dontShowAgain) {
+                showNetworkDeleteConfirmation(files, resource, fileCount, prefKey)
+                return
+            }
+        }
+        
+        // Standard check
         val shouldConfirmDelete = settings.enableSafeMode && settings.confirmDelete
         
         if (shouldConfirmDelete) {
@@ -306,6 +326,58 @@ class BrowseDialogHelper(
             // Skip confirmation - execute immediately
             callbacks.onDeleteConfirmed(fileCount)
         }
+    }
+    
+    private fun showNetworkDeleteConfirmation(
+        files: List<MediaFile>, 
+        resource: com.sza.fastmediasorter.domain.model.MediaResource?, 
+        fileCount: Int,
+        prefKey: String
+    ) {
+        val view = LayoutInflater.from(activity).inflate(R.layout.dialog_network_delete_confirmation, null)
+        
+        val tvDeleteMessage = view.findViewById<android.widget.TextView>(R.id.tvDeleteMessage)
+        val tvFilesList = view.findViewById<android.widget.TextView>(R.id.tvFilesList)
+        val tvMoreFilesCount = view.findViewById<android.widget.TextView>(R.id.tvMoreFilesCount)
+        val tvResourceInfo = view.findViewById<android.widget.TextView>(R.id.tvResourceInfo)
+        val cbDontShowAgain = view.findViewById<android.widget.CheckBox>(R.id.cbDontShowAgain)
+        
+        tvDeleteMessage.text = activity.getString(R.string.delete_n_files_from_network_title, fileCount)
+        
+        val displayLimit = 5
+        val filesToDisplay = files.take(displayLimit)
+        val sb = java.lang.StringBuilder()
+        filesToDisplay.forEachIndexed { index, file ->
+            sb.append("• ").append(file.name)
+            if (index < filesToDisplay.size - 1) sb.append("\n")
+        }
+        tvFilesList.text = sb.toString()
+        
+        if (fileCount > displayLimit) {
+            tvMoreFilesCount.visibility = android.view.View.VISIBLE
+            tvMoreFilesCount.text = activity.getString(R.string.and_n_more_files_network, fileCount - displayLimit)
+        }
+        
+        val resourceName = resource?.name ?: "Unknown"
+        val basePath = resource?.path ?: ""
+        tvResourceInfo.text = "$resourceName\n$basePath"
+        cbDontShowAgain.text = activity.getString(R.string.dont_show_again_for_resource, resourceName)
+        
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setView(view)
+            .setPositiveButton(R.string.delete_permanently) { _, _ ->
+                if (cbDontShowAgain.isChecked) {
+                    val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)
+                    prefs.edit().putBoolean(prefKey, true).apply()
+                }
+                callbacks.onDeleteConfirmed(fileCount)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
+            
+        // Make positive button text error color
+        val colorError = com.google.android.material.color.MaterialColors.getColor(view, androidx.appcompat.R.attr.colorError)
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setTextColor(colorError)
     }
     
     fun showErrorDialog(message: String, details: String?) {

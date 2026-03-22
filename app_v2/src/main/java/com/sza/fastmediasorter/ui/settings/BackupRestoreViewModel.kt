@@ -3,13 +3,20 @@ package com.sza.fastmediasorter.ui.settings
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.helpers.GoogleDriveCredentialsManager
+import com.sza.fastmediasorter.domain.model.FavoritesConflictStrategy
+import com.sza.fastmediasorter.domain.model.FavoritesExportResult
+import com.sza.fastmediasorter.domain.model.FavoritesImportPreview
+import com.sza.fastmediasorter.domain.model.FavoritesImportResult
 import com.sza.fastmediasorter.domain.usecase.BackupToGoogleDriveUseCase
+import com.sza.fastmediasorter.domain.usecase.ExportFavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.ImportFavoritesUseCase
 import com.sza.fastmediasorter.domain.usecase.RestoreFromGoogleDriveUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -19,6 +26,26 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
+
+// ── Favorites export/import UI state ─────────────────────────────────────────
+
+sealed class FavoritesExportUiState {
+    object Idle : FavoritesExportUiState()
+    object Loading : FavoritesExportUiState()
+    data class Success(val result: FavoritesExportResult) : FavoritesExportUiState()
+    data class Error(val message: String) : FavoritesExportUiState()
+}
+
+sealed class FavoritesImportUiState {
+    object Idle : FavoritesImportUiState()
+    object LoadingPreview : FavoritesImportUiState()
+    data class Preview(val preview: FavoritesImportPreview, val uri: Uri) : FavoritesImportUiState()
+    object Importing : FavoritesImportUiState()
+    data class Success(val result: FavoritesImportResult) : FavoritesImportUiState()
+    data class Error(val message: String) : FavoritesImportUiState()
+}
+
+// ── Google Drive backup/restore UI state ─────────────────────────────────────
 
 sealed class BackupRestoreUiState {
     object Idle : BackupRestoreUiState()
@@ -39,11 +66,19 @@ class BackupRestoreViewModel @Inject constructor(
     private val backupUseCase: BackupToGoogleDriveUseCase,
     private val restoreUseCase: RestoreFromGoogleDriveUseCase,
     private val googleDriveClient: GoogleDriveRestClient,
-    private val credentialsManager: GoogleDriveCredentialsManager
+    private val credentialsManager: GoogleDriveCredentialsManager,
+    private val exportFavoritesUseCase: ExportFavoritesUseCase,
+    private val importFavoritesUseCase: ImportFavoritesUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BackupRestoreUiState>(BackupRestoreUiState.Idle)
     val uiState: StateFlow<BackupRestoreUiState> = _uiState.asStateFlow()
+
+    private val _exportFavState = MutableStateFlow<FavoritesExportUiState>(FavoritesExportUiState.Idle)
+    val exportFavState: StateFlow<FavoritesExportUiState> = _exportFavState.asStateFlow()
+
+    private val _importFavState = MutableStateFlow<FavoritesImportUiState>(FavoritesImportUiState.Idle)
+    val importFavState: StateFlow<FavoritesImportUiState> = _importFavState.asStateFlow()
 
     /** Pending action after auth completes: "backup" or "restore" */
     private var pendingAction: String? = null
@@ -199,5 +234,61 @@ class BackupRestoreViewModel @Inject constructor(
                 context.getString(R.string.restore_failed, error.message ?: "")
             )
         }
+    }
+
+    // ── Favorites Export ──────────────────────────────────────────────────────
+
+    fun exportFavorites() {
+        viewModelScope.launch {
+            _exportFavState.value = FavoritesExportUiState.Loading
+            val result = exportFavoritesUseCase()
+            _exportFavState.value = if (result.isSuccess) {
+                FavoritesExportUiState.Success(result)
+            } else {
+                FavoritesExportUiState.Error(
+                    result.errorMessage ?: context.getString(R.string.export_fav_failed)
+                )
+            }
+        }
+    }
+
+    fun resetExportFavState() {
+        _exportFavState.value = FavoritesExportUiState.Idle
+    }
+
+    // ── Favorites Import ──────────────────────────────────────────────────────
+
+    fun previewFavoritesImport(uri: Uri) {
+        viewModelScope.launch {
+            _importFavState.value = FavoritesImportUiState.LoadingPreview
+            importFavoritesUseCase.preview(uri)
+                .onSuccess { preview ->
+                    _importFavState.value = FavoritesImportUiState.Preview(preview, uri)
+                }
+                .onFailure { error ->
+                    Timber.e(error, "Import preview failed")
+                    _importFavState.value = FavoritesImportUiState.Error(
+                        error.message ?: context.getString(R.string.import_fav_invalid_file)
+                    )
+                }
+        }
+    }
+
+    fun confirmFavoritesImport(uri: Uri, strategy: FavoritesConflictStrategy) {
+        viewModelScope.launch {
+            _importFavState.value = FavoritesImportUiState.Importing
+            val result = importFavoritesUseCase(uri, strategy)
+            _importFavState.value = if (result.isSuccess) {
+                FavoritesImportUiState.Success(result)
+            } else {
+                FavoritesImportUiState.Error(
+                    result.errorMessage ?: context.getString(R.string.import_fav_failed)
+                )
+            }
+        }
+    }
+
+    fun resetImportFavState() {
+        _importFavState.value = FavoritesImportUiState.Idle
     }
 }

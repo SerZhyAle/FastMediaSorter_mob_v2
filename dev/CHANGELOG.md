@@ -881,3 +881,24 @@ Format: | datetime | file | target | description |
 | 2026-03-22 06:37:58 | `index.html, index-ru.html, index-uk.html, sitemap.xml, _config.yml` | `SEO` | Comprehensive SEO overhaul: improved titles/descriptions/keywords (3 langs), added author/robots/theme-color meta, OG image → real screenshot, Twitter summary_large_image, h2→h3 heading hierarchy fix, expanded JSON-LD schema (featureList/keywords/downloadUrl/screenshot/version), new car stereo+tablet scenarios, predefined resources + hardware buttons in feature lists, sitemap lastmod updated |
 | 2026-03-22 06:38:21 | `docs/README.md,docs/README_RU.md,docs/README_UK.md,README.md,index.html,index-ru.html` | `Usage Scenarios` | Expand scenario 8 with detailed VR use cases: giant virtual cinema, VR music player, wall-sized VR photo frame |
 | 2026-03-22 06:43:32 | `docs/FAQ.md,docs/FAQ_RU.md,docs/FAQ_UK.md` | `FAQ` | Fix Android minimum version: API 28 -> API 26 (Android 8+), add Legacy flavor API 23 note |
+| 2026-03-22 15:54:38 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `fragment_settings_documents.xml` | Added missing description for show_pdf_thumbnails switch |
+| 2026-03-22 16:10:25 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Refactored Touch Zones switches to include inline descriptions |
+| 2026-03-22 16:12:06 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `fragment_settings_destinations.xml` | Added description for switchGoToNextAfterCopy and string keys |
+| 2026-03-22 16:19:11 | `app_v2/src/main/res/` | `strings.xml` | Bulk updated UI trigger hints in EN, RU, UK |
+| 2026-03-22 16:50:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `ResourceType` | Added isNetworkResource property |
+| 2026-03-22 16:50:24 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added strings for network delete dialog |
+| 2026-03-22 16:50:24 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Added Russian translations for network delete dialog |
+| 2026-03-22 16:50:24 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Added Ukrainian translations for network delete dialog |
+| 2026-03-22 16:50:24 | `app_v2/src/main/res/layout/dialog_network_delete_confirmation.xml` | `dialog_network_delete_confirmation` | Created layout for network delete confirmation |
+| 2026-03-22 16:50:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Pass MediaFiles and MediaResource to showDeleteConfirmation |
+| 2026-03-22 16:50:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Added logic to show Network Delete Dialog with dont-show-again option |
+| 2026-03-22 17:09:04 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/FavoritesExportModel.kt` | `FavoritesExportModel` | Add data models for favorites export/import JSON format |
+| 2026-03-22 17:09:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportFavoritesUseCase.kt` | `ExportFavoritesUseCase` | Implement favorites export to JSON in Downloads folder |
+| 2026-03-22 17:10:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportFavoritesUseCase.kt` | `ImportFavoritesUseCase` | Implement favorites import from JSON with conflict resolution and preview |
+| 2026-03-22 17:10:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `BackupRestoreViewModel` | Add favorites export/import state flows and trigger methods |
+| 2026-03-22 17:10:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BackupRestoreFragment.kt` | `BackupRestoreFragment` | Add favorites export/import UI with file pickers, preview and result dialogs |
+| 2026-03-22 17:10:20 | `app_v2/src/main/res/layout/fragment_settings_backup_restore.xml` | `fragment_settings_backup_restore` | Add Export Favorites and Import Favorites buttons to Backup tab |
+| 2026-03-22 17:10:20 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add EN/RU/UK localized strings for favorites export/import feature |
+| 2026-03-22 17:10:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/FavoritesDao.kt` | `FavoritesDao` | Add getAllFavoritesSync() and getFavoritesCount() methods |
+| 2026-03-22 19:34:03 | `PLAN/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Comprehensive revision: removed completed items, marked III.2/III.3/III.4 as in-progress, updated IV.1 LOC table (all files grew, IntegrationTestRunner 4471 LOC), added new items III.11-14 and IX.6, added IV.10 debug-code section |
+| 2026-03-22 20:13:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Fix RV thumbnail load race: retry notifyItemRangeChanged via OnChildAttachStateChangeListener when post{} fires before items are bound |

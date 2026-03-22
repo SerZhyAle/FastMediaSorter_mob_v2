@@ -28,4 +28,10 @@ interface FavoritesDao {
     
     @Query("DELETE FROM favorites WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT * FROM favorites ORDER BY addedTimestamp DESC")
+    suspend fun getAllFavoritesSync(): List<FavoritesEntity>
+
+    @Query("SELECT COUNT(*) FROM favorites")
+    suspend fun getFavoritesCount(): Int
 }

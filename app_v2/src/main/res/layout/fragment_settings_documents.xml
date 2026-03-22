@@ -163,12 +163,23 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                    <TextView
+                    <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="@string/show_pdf_thumbnails"
-                        android:textSize="@dimen/resource_card_desc_text_size" />
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/show_pdf_thumbnails"
+                            android:textSize="@dimen/resource_card_desc_text_size" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/show_pdf_thumbnails_description"
+                            android:textSize="@dimen/text_size_small"
+                            android:textColor="@color/text_color_secondary" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>

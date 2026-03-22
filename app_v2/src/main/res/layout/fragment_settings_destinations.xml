@@ -47,7 +47,10 @@
 
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchGoToNextAfterCopy" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/go_to_next_after_copy" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/go_to_next_after_copy" android:textSize="@dimen/resource_card_title_text_size" />
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/go_to_next_after_copy" android:textSize="@dimen/resource_card_desc_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_go_to_next_after_copy_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
 
                         <ImageButton android:id="@+id/iconHelpGoToNextAfterCopy" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_go_to_next_after_copy_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
                     </LinearLayout>

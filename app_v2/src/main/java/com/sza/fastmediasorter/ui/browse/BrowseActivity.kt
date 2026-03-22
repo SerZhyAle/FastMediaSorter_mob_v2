@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import android.view.InputDevice
+import android.view.View
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.widget.PopupMenu
@@ -932,8 +933,22 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                             mediaFileAdapter.notifyItemRangeChanged(firstVisible, visibleCount, "LOAD_THUMBNAILS")
                                             Timber.d("<<< notifyItemRangeChanged completed")
                                         } else {
-                                            Timber.w("NOT calling notifyItemRangeChanged in post - invalid range: $firstVisible to $lastVisible")
+                                            Timber.w("NOT calling notifyItemRangeChanged in post - invalid range: $firstVisible to $lastVisible, retrying on first child attach")
                                             Timber.w("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
+                                            binding.rvMediaFiles.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
+                                                override fun onChildViewAttachedToWindow(view: View) {
+                                                    binding.rvMediaFiles.removeOnChildAttachStateChangeListener(this)
+                                                    if (isDestroyed || isFinishing) return
+                                                    val lm = binding.rvMediaFiles.layoutManager
+                                                    val f = (lm as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: 0
+                                                    val l = (lm as? LinearLayoutManager)?.findLastVisibleItemPosition() ?: minOf(20, mediaFileAdapter.itemCount - 1)
+                                                    if (f >= 0 && l >= f) {
+                                                        Timber.d("Child attach retry: notifyItemRangeChanged($f, ${l - f + 1}, LOAD_THUMBNAILS)")
+                                                        mediaFileAdapter.notifyItemRangeChanged(f, l - f + 1, "LOAD_THUMBNAILS")
+                                                    }
+                                                }
+                                                override fun onChildViewDetachedFromWindow(view: View) {}
+                                            })
                                         }
                                         
                                         // Reset flag after post execution
@@ -1836,9 +1851,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
         
         val count = state.selectedFiles.size
+        // We need to fetch the actual MediaFile objects
+        val selectedFiles = state.mediaFiles.filter { it.path in state.selectedFiles }
+        
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
-            dialogHelper.showDeleteConfirmation(count, settings)
+            dialogHelper.showDeleteConfirmation(selectedFiles, resource, settings)
         }
     }
     
