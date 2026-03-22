@@ -16,7 +16,7 @@ FastMediaSorter v2 is an Android app for quickly organizing photos, videos, and 
 Yes! FastMediaSorter v2 is completely free and open-source.
 
 ### What Android version do I need?
-Android 9.0 (API 28) or newer.
+Android 8.0 (API 26) or newer. The **Legacy** flavor supports Android 6.0 (API 23) or newer.
 
 ### Does it require internet?
 **No** for local files. **Yes** for network drives and cloud storage.
