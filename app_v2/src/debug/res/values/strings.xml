@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug build overrides. These values replace the corresponding entries in src/main/res/values/strings.xml
+     for com.sza.fastmediasorter.debug builds only. -->
+<resources>
+    <!-- Dedicated Dropbox app key for the debug build type.
+         Keeps db-u43ocp6pqvwaiu1:// separate from the production db-dpy64e70kqobr6x://,
+         preventing the Dropbox SDK security alert when both builds are installed. -->
+    <string name="dropbox_app_key" translatable="false">u43ocp6pqvwaiu1</string>
+</resources>

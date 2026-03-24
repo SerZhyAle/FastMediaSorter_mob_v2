@@ -45,6 +45,13 @@
             android:name=".StandaloneImageSender"
             tools:node="remove" />
 
+        <!-- Remove Dropbox Auth Activity: lite has no cloud support.
+             Prevents multiple apps registering for db-<appKey>:// which triggers
+             the Dropbox SDK security alert when two flavors are installed. -->
+        <activity
+            android:name="com.dropbox.core.android.AuthActivity"
+            tools:node="remove" />
+
     </application>
 
 </manifest>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Legacy flavor manifest overlay.
+    Removes components that are not supported or not needed in the legacy build.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application>
+
+        <!-- Remove Dropbox Auth Activity: legacy has no cloud support.
+             Prevents multiple apps registering for db-<appKey>:// which triggers
+             the Dropbox SDK security alert when two flavors are installed. -->
+        <activity
+            android:name="com.dropbox.core.android.AuthActivity"
+            tools:node="remove" />
+
+    </application>
+
+</manifest>

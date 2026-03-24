@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260324004
-        versionName = "2.60.3240.044"
+        versionCode = 260324023
+        versionName = "2.60.3240.236"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -221,6 +221,10 @@ android {
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
             buildConfigField("boolean", "ENABLE_LEAKCANARY", "false")
+            // Dedicated Dropbox app key for debug (com.sza.fastmediasorter.debug).
+            // Prevents the "Security alert" triggered when debug + release are both installed
+            // and both register for the same db-<appKey>:// URI scheme.
+            manifestPlaceholders["dropboxAppKey"] = "u43ocp6pqvwaiu1"
         }
         release {
             isMinifyEnabled = true

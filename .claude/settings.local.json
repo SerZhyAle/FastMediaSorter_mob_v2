@@ -9,7 +9,9 @@
       "Bash(powershell.exe -NonInteractive -Command \"& { . ''''./scripts/add_to_dev_log.ps1'''' -RelativePath ''''app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt'''' -Target ''''DefaultPlayerHelper'''' -Description ''''Add RoleManager.ROLE_MEDIA_PLAYER check \\(API31+\\) isAlreadyDefaultPlayer + applyButtonState helper'''' }\")",
       "Bash(powershell.exe -NonInteractive -Command \"Get-Help ''''./scripts/add_to_dev_log.ps1''''\")",
       "Bash(powershell.exe -NonInteractive -Command \"& ''./scripts/add_to_dev_log.ps1'' ''app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerHelper.kt'' ''DefaultPlayerHelper'' ''Add RoleManager ROLE_MEDIA_PLAYER check API31+ isAlreadyDefaultPlayer and applyButtonState helper''\")",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Read(//tmp/**)",
+      "Bash(javap -p com/dropbox/core/android/Auth.class)"
     ]
   }
 }
