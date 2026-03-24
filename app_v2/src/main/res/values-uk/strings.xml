@@ -481,8 +481,8 @@
     <string name="font_family_monospace">Моноширинний</string>
     <string name="enable_google_lens">Дозволити надсилання в Google Lens</string>
     <string name="swap_languages">Поміняти мови місцями</string>
-    <string name="supported_pdf_formats">Підтримуються: PDF (рендеринг через Android PdfRenderer)</string>
-    <string name="search_audio_covers_online">Шукати обкладинки аудіо онлайн (iTunes API)</string>
+    <string name="supported_pdf_formats">Підтримуються: PDF (рендеринг через PdfRenderer)</string>
+    <string name="search_audio_covers_online">Шукати обкладинки аудіо онлайн</string>
     <string name="search_covers_only_on_wifi">Шукати тільки по Wi-Fi</string>
     <string name="image_size_limits">Обмеження розміру зображень (МБ)</string>
     <string name="video_size_limits">Обмеження розміру відео (КБ)</string>

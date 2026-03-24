@@ -111,6 +111,14 @@ if ($LASTEXITCODE -eq 0) {
         $apkName = Split-Path $apkPath -Leaf
         Copy-Item $apkPath "$gdDir\$apkName" -Force
         Write-Host "APK copied to Google Drive: $gdDir\$apkName" -ForegroundColor Cyan
+
+        # Copy to tc folder
+        $tcDir = "c:\GD\tc\SZA\_APP"
+        if (-not (Test-Path $tcDir)) {
+            New-Item -ItemType Directory -Path $tcDir -Force | Out-Null
+        }
+        Copy-Item $apkPath "$tcDir\$apkName" -Force
+        Write-Host "APK copied to tc folder: $tcDir\$apkName" -ForegroundColor Green
     }
     
     # ==========================================

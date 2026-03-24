@@ -178,6 +178,10 @@ class SearchLyricsUseCase @Inject constructor(
             } finally {
                 retriever.release()
             }
+        } catch (e: IllegalArgumentException) {
+            // Expected for deleted/inaccessible files
+            Timber.d("SearchLyricsUseCase: file not accessible for metadata extraction: ${e.message}")
+            Pair(null, null)
         } catch (e: Exception) {
             Timber.e(e, "Failed to extract metadata")
             Pair(null, null)

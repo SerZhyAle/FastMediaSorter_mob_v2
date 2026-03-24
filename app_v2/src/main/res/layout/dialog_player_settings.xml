@@ -140,12 +140,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/player_repeat_video"
-                android:textSize="@dimen/resource_card_title_text_size" />
+                android:textSize="@dimen/toggler_title_text_size" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cb_repeat_video_desc"
-                android:textSize="@dimen/text_size_small"
+                android:textSize="@dimen/toggler_desc_text_size"
                 android:textColor="@color/text_color_secondary" />
         </LinearLayout>
 
@@ -179,12 +179,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/player_show_subtitles"
-                android:textSize="@dimen/resource_card_title_text_size" />
+                android:textSize="@dimen/toggler_title_text_size" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/cb_show_subtitles_desc"
-                android:textSize="@dimen/text_size_small"
+                android:textSize="@dimen/toggler_desc_text_size"
                 android:textColor="@color/text_color_secondary" />
         </LinearLayout>
 

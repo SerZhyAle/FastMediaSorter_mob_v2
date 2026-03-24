@@ -6,7 +6,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportVideos" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_video_description" android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_video_description" android:textSize="@dimen/toggler_title_text_size" />
 
         <ImageButton android:id="@+id/iconHelpSupportVideos" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/supported_video_formats" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
     </LinearLayout>
@@ -16,7 +16,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowVideoThumbnails" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_video_thumbnails" android:textSize="@dimen/resource_card_desc_text_size" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_video_thumbnails" android:textSize="@dimen/toggler_title_text_size" />
 
         <ImageButton android:id="@+id/iconHelpVideoThumbnails" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_video_thumbnails_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
     </LinearLayout>

@@ -323,7 +323,7 @@
     <string name="supported_audio_formats">Supported: MP3, AAC, FLAC, OGG</string>
     <string name="audio_size_limit">Audio file size limit</string>
     <string name="audio_size_range">0 KB - 100 MB</string>
-    <string name="search_audio_covers_online">Search audio covers online (iTunes API)</string>
+    <string name="search_audio_covers_online">Search audio covers online</string>
     <string name="search_covers_only_on_wifi">Search only on Wi-Fi</string>
 
     <!-- Audio Background Photos -->

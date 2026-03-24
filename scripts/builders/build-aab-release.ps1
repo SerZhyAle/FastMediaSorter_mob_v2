@@ -158,5 +158,15 @@ $buildInfo = "AAB+APK Release - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') - AAB:
 Add-Content -Path $journalPath -Value $buildInfo
 Write-Host "Build logged to journal" -ForegroundColor Cyan
 
+# Copy APK to tc folder
+$tcDir = "c:\GD\tc\SZA\_APP"
+if (!(Test-Path -Path $tcDir)) {
+    New-Item -ItemType Directory -Path $tcDir | Out-Null
+}
+if (Test-Path -Path $destApkPath) {
+    Copy-Item -Path $destApkPath -Destination "$tcDir\FastMediaSorter_standard_release.apk" -Force
+    Write-Host "APK copied to $tcDir\FastMediaSorter_standard_release.apk" -ForegroundColor Green
+}
+
 Write-Host "`nAAB + APK build complete!" -ForegroundColor Green
 Write-Host "Ready for upload to Google Play Console" -ForegroundColor Cyan

@@ -459,6 +459,16 @@ class VideoPlayerManager(
     private fun getMimeTypeFromPath(path: String): String? {
         // Cloud URIs (cloud://provider/fileId) have no extension - skip detection
         if (path.startsWith("cloud://")) return null
+        // content:// URIs have no file extension — use ContentResolver for accurate MIME type
+        if (path.startsWith("content://")) {
+            return try {
+                context.contentResolver.getType(android.net.Uri.parse(path))
+                    .also { Timber.d("VideoPlayerManager.getMimeTypeFromPath: content:// → ContentResolver type=$it") }
+            } catch (e: Exception) {
+                Timber.d("VideoPlayerManager.getMimeTypeFromPath: ContentResolver failed for $path: ${e.message}")
+                null
+            }
+        }
         // Extract filename from URI path (remove query parameters and fragments)
         val cleanPath = path.substringBefore('?').substringBefore('#')
         val extension = cleanPath.substringAfterLast('.', "").lowercase()

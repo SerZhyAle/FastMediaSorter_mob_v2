@@ -32,8 +32,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchAllFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/all_files" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_files" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_all_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/all_files" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_all_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpAllFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_all_files_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -46,8 +46,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowHiddenFiles" android:layout_width="wrap_content" android:layout_height="wrap_content" android:contentDescription="@string/show_hidden_files" android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
                             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hidden_files" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_hidden_files_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_hidden_files" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_hidden_files_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpShowHiddenFiles" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_show_hidden_files" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -64,8 +64,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchShowSubfoldersAsItems" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/show_subfolders_as_items" />
 
                             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_subfolders_as_items" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_subfolders_as_items_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/show_subfolders_as_items" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_show_subfolders_as_items_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpShowSubfolders" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/show_subfolders_as_items" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -77,8 +77,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSmallControls" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/small_controls" />
 
                             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/small_controls" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_small_controls_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/small_controls" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_small_controls_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpCompactControls" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_compact_controls_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -93,8 +93,8 @@
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableFavorites" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/enable_favorites" />
 
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_favorites" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_favorites_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_favorites" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_enable_favorites_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/iconHelpFavorites" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_favorites_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -140,8 +140,8 @@
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchDefaultRememberFileList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:contentDescription="@string/default_remember_file_list" />
 
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/default_remember_file_list" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_default_remember_file_list_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/default_remember_file_list" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_default_remember_file_list_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/btnHelpRememberFileList" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/help_remember_file_list" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -155,8 +155,8 @@
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableSafeMode" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/enable_safe_mode" />
 
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_safe_mode" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_safe_mode_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_safe_mode_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                     </LinearLayout>
@@ -170,8 +170,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmDelete" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/confirm_delete_safe_mode" />
 
                             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_delete_safe_mode" android:textSize="@dimen/resource_card_desc_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_delete_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_delete_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_delete_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpSafeMode" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_safe_mode_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -184,8 +184,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchConfirmMove" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/confirm_move_safe_mode" />
 
                             <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_move_safe_mode" android:textSize="@dimen/resource_card_desc_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_move_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/confirm_move_safe_mode" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_confirm_move_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                         </LinearLayout>
@@ -274,8 +274,8 @@
                         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchPreventSleep" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/prevent_sleep" />
 
                         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/prevent_sleep" android:textSize="@dimen/resource_card_title_text_size" />
-                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_prevent_sleep_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/prevent_sleep" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_prevent_sleep_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                         </LinearLayout>
 
                         <ImageButton android:id="@+id/iconHelpPreventSleep" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_prevent_sleep_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
@@ -299,8 +299,8 @@
                             <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableBackgroundSync" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/enable_background_sync" />
 
                             <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_background_sync" android:textSize="@dimen/resource_card_title_text_size" />
-                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_background_sync" android:textSize="@dimen/toggler_title_text_size" />
+                                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_background_sync_desc" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
                             </LinearLayout>
 
                             <ImageButton android:id="@+id/iconHelpBackgroundSync" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/background_sync_description" android:src="@android:drawable/ic_menu_help" android:tooltipText="@string/background_sync_description" app:tint="@color/text_color_secondary" />

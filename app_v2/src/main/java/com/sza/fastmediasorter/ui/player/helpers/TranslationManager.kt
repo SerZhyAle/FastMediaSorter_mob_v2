@@ -59,11 +59,8 @@ class TranslationManager(
     }
 
     suspend fun getTargetLanguageCode(): String? {
-        @Suppress("UNUSED_VARIABLE")
         val settings = settingsRepository.getSettings().first()
-        // COMPILE FIX: Temporarily hardcoded due to build issue
-        // return Companion.languageCodeToMLKit(settings.translationTargetLanguage)
-        return Companion.languageCodeToMLKit("ru")
+        return Companion.languageCodeToMLKit(settings.translationTargetLanguage)
     }
     
     companion object {
@@ -612,11 +609,9 @@ class TranslationManager(
                         return null
                     }
                     
-                    // Download model and wait for completion
+                    // Download model and wait for completion (no WiFi-only restriction)
                     Timber.d("Starting translation model download: $targetLang")
-                    val conditions = DownloadConditions.Builder()
-                        .requireWifi()
-                        .build()
+                    val conditions = DownloadConditions.Builder().build()
                     translator?.downloadModelIfNeeded(conditions)?.await()
                     Timber.i("Translation model download completed: $targetLang")
                 }
@@ -666,11 +661,9 @@ class TranslationManager(
                         return null
                     }
                     
-                    // Re-download model
+                    // Re-download model (no WiFi-only restriction)
                     Timber.d("Starting translation model re-download: $targetLang")
-                    val conditions = DownloadConditions.Builder()
-                        .requireWifi()
-                        .build()
+                    val conditions = DownloadConditions.Builder().build()
                     translator?.downloadModelIfNeeded(conditions)?.await()
                     Timber.i("Translation model re-download completed: $targetLang")
                     

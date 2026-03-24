@@ -13,6 +13,10 @@
     <dimen name="text_size_title_dialog">20sp</dimen>
     <dimen name="text_line_spacing_extra">4dp</dimen>
 
+    <!-- Toggler Font Sizes -->
+    <dimen name="toggler_title_text_size">14sp</dimen>
+    <dimen name="toggler_desc_text_size">12sp</dimen>
+
     <!-- Padding and margins -->
     <dimen name="padding_huge">24dp</dimen>
     <dimen name="padding_xxlarge">32dp</dimen>

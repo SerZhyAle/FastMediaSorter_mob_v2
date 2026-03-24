@@ -121,6 +121,13 @@ foreach ($apk in $apkFiles) {
     else {
         Write-Host "  -> Warning: 7-Zip not found. APK not copied to Google Drive." -ForegroundColor Yellow
     }
+
+    # Copy APK to tc folder
+    $tcDir = "c:\GD\tc\SZA\_APP"
+    if (!(Test-Path -Path $tcDir)) {
+        New-Item -ItemType Directory -Path $tcDir | Out-Null
+    }
+    Copy-Item -Path $destPath -Destination "$tcDir\$newName" -Force
 }
 
 Write-Host "`nArtifacts copied to $downloadsDir" -ForegroundColor Green

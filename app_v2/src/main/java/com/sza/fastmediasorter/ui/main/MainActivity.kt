@@ -959,10 +959,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
         if (!wasStoragePermissionRequested()) {
             markStoragePermissionRequested()
-            showStoragePermissionRequestDialog()
-        } else {
-            Toast.makeText(this, R.string.storage_permission_denied_toast, Toast.LENGTH_LONG).show()
         }
+        showStoragePermissionRequestDialog()
     }
 
     private fun showStoragePermissionRequestDialog() {

@@ -119,7 +119,10 @@ class AudioPlaybackService : MediaSessionService() {
             override fun seekToNext() {
                 if (exoPlayer.mediaItemCount <= 1) {
                     Timber.d("AudioPlaybackService: seekToNext on single file → seeking to end")
-                    exoPlayer.seekTo(exoPlayer.duration.coerceAtLeast(0))
+                    // Use actual duration when known; fall back to a safe large value so ExoPlayer
+                    // clamps to end and fires STATE_ENDED (duration may be C.TIME_UNSET early in playback)
+                    val target = exoPlayer.duration.takeIf { it > 0 } ?: Int.MAX_VALUE.toLong()
+                    exoPlayer.seekTo(target)
                 } else {
                     super.seekToNext()
                 }
@@ -128,7 +131,8 @@ class AudioPlaybackService : MediaSessionService() {
             override fun seekToNextMediaItem() {
                 if (exoPlayer.mediaItemCount <= 1) {
                     Timber.d("AudioPlaybackService: seekToNextMediaItem on single file → seeking to end")
-                    exoPlayer.seekTo(exoPlayer.duration.coerceAtLeast(0))
+                    val target = exoPlayer.duration.takeIf { it > 0 } ?: Int.MAX_VALUE.toLong()
+                    exoPlayer.seekTo(target)
                 } else {
                     super.seekToNextMediaItem()
                 }
@@ -140,7 +144,8 @@ class AudioPlaybackService : MediaSessionService() {
                         // Near the start: go to previous file — signal Activity via pendingDirection
                         Timber.d("AudioPlaybackService: seekToPrevious near start → pendingDirection=PREV, seeking to end")
                         pendingDirection = DIRECTION_PREV
-                        exoPlayer.seekTo(exoPlayer.duration.coerceAtLeast(0))
+                        val target = exoPlayer.duration.takeIf { it > 0 } ?: Int.MAX_VALUE.toLong()
+                        exoPlayer.seekTo(target)
                     } else {
                         // Further into track: just restart from beginning (standard media-player convention)
                         Timber.d("AudioPlaybackService: seekToPrevious mid-track → restart from beginning")

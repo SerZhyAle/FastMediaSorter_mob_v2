@@ -1649,6 +1649,10 @@ class ImageLoadingManager(
                             Timber.d("No embedded cover art found")
                             null
                         }
+                    } catch (e: IllegalArgumentException) {
+                        // Expected for deleted/inaccessible files or content:// URIs that can't be opened
+                        Timber.d("Cover art: file not accessible (${file.path}): ${e.message}")
+                        null
                     } catch (e: Exception) {
                         Timber.w(e, "Failed to extract embedded cover art")
                         null

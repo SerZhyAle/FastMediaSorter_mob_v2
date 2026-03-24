@@ -214,7 +214,18 @@ object PermissionHelper {
                 hasManageStorage
             }
             
-            // API 23-29 (Android 6-10): Standard READ + WRITE permissions
+            // API 29 (Android 10): WRITE_EXTERNAL_STORAGE is deprecated and may not be grantable;
+            // only READ_EXTERNAL_STORAGE is needed and requestable
+            Build.VERSION.SDK_INT == Build.VERSION_CODES.Q -> {
+                val hasRead = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.READ_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+                Timber.d("PermissionHelper: API ${Build.VERSION.SDK_INT} (Android 10) - READ_EXTERNAL_STORAGE=$hasRead")
+                hasRead
+            }
+
+            // API 23-28 (Android 6-9): Standard READ + WRITE permissions
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
                 val hasRead = ContextCompat.checkSelfPermission(
                     context,

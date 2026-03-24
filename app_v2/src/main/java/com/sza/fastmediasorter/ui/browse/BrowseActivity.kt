@@ -970,8 +970,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                             mediaFileAdapter.notifyItemRangeChanged(firstVisible, visibleCount, "LOAD_THUMBNAILS")
                                             Timber.d("<<< notifyItemRangeChanged completed")
                                         } else {
-                                            Timber.w("NOT calling notifyItemRangeChanged in post - invalid range: $firstVisible to $lastVisible, retrying on first child attach")
-                                            Timber.w("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
+                                            Timber.d("notifyItemRangeChanged in post: no children yet ($firstVisible..$lastVisible), retrying on first child attach")
+                                            Timber.d("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
                                             binding.rvMediaFiles.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
                                                 override fun onChildViewAttachedToWindow(view: View) {
                                                     binding.rvMediaFiles.removeOnChildAttachStateChangeListener(this)
