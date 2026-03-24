@@ -229,8 +229,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Dropbox connectivity**: Integrate seamlessly with your Dropbox vaults. Browse nested hierarchies elegantly, stream media live, and copy files directly between disparate locations.
 - **OneDrive support**: Harness Microsoft’s ecosystem deeply. Leverage fluid streaming protocols, thorough directory exploration, and intensive file management right from the app.
 - **Unified OAuth authentication**: Log in securely and officially within the app utilizing safe browser OAuth flows. Security tokens are rigidly encrypted and persisted locally, meaning you only ever have to log in exactly once.
-- **Rigorous state backups**: Guard heavily against data loss. You can serialize your customized application settings, connection profiles, and directories into a strict JSON payload format tightly vaulted straight into your Google Drive.
-- **Seamless cloud restoration**: Recover instantly upon installing on a new device. Connect to Google Drive specifically to download your backup JSON, magically reconstructing your settings and endpoints effortlessly.
+- **Rigorous state backups**: Guard heavily against data loss. You can serialize your customized application settings, connection profiles, directories, and favorites into a strict JSON payload format tightly vaulted straight into your Google Drive.
+- **Seamless cloud restoration**: Recover instantly upon installing on a new device. Connect to Google Drive specifically to download your backup JSON, magically reconstructing your settings, endpoints, and favorites effortlessly.
 
 
 ## 16. Favorites
@@ -247,6 +247,8 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Continue Reading beacon**: Resume your place profoundly immediately. This clever widget mathematically identifies your absolute last viewed document or video alongside its parent resource, rocketing you strictly back into your last session with one press.
 - **Random Music shortcut**: Instantly start shuffled playback from your "All Music" virtual resource with a single home screen tap. The widget launches the audio player in shuffle mode with autoplay — no menus required. Available on flavors with audio support.
 - **Camera Photos shortcut**: Open your camera roll directly in grid view from the home screen with one tap. The widget targets the built-in Camera Photos virtual resource and launches the browser in grid mode. Available on flavors with image support.
+- **App Shortcuts (long-press)**: Long-press the app icon on your launcher to access static shortcuts (Favorites, Slideshow) and up to 3 dynamic shortcuts for your most recently browsed resources. Jump straight into any folder or NAS share without opening the main screen.
+- **Quick Settings Audio Tile**: Control background audio playback directly from the Android notification shade. Add the "FMS Audio" tile to your Quick Settings panel to play, pause, or start shuffled music in a single tap — no need to unlock and navigate to the player. Available on flavors with audio support.
 
 
 ## 18. Settings
@@ -298,6 +300,7 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **File metadata cache**: Discard repetitive read iterations natively. Crucial embedded file intelligence, involving heavy EXIF image data or layered ID3 tags, perfectly replicate securely into rapid flat databases, systematically sidestepping excruciating redundant read requests on repeated viewing entirely.
 - **Credential audit**: Manage network keys securely definitively. The audit mechanism logs precise timestamp metrics corresponding to remote login validations, automatically drawing specific attention regarding completely stagnant, unused password profiles ready for strict manual deletion explicitly.
 - **Default player system hooks**: Integrate with Android intent routing when user-enabled. Runtime component toggles control ACTION_VIEW aliases (audio/video/image/document groups), ACTION_SEND aliases for share-sheet intake, and media-button wake-up wiring through the audio playback service path.
+- **Standalone player file operations**: Perform file actions directly when opening media from external apps via "Open with" or Share. Delete the file (with confirmation), share it to other apps, toggle favorite status, or navigate to its folder in the main FMS browser — all from the standalone player toolbar.
 
 
 

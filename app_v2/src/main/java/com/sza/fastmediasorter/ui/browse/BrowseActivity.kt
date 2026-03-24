@@ -207,6 +207,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     override fun setupViews() {
+        // Apply edge-to-edge insets: push top bar below status bar, bottom bar above nav bar
+        applyEdgeToEdgeInsets()
+
         // Reset Glide cache stats for this browsing session
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()
 
@@ -803,6 +806,40 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                 totalCount
             )
             Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+
+            // Top toolbar below status bar
+            binding.layoutControls.setPadding(
+                binding.layoutControls.paddingLeft, statusBar.top + binding.layoutControls.paddingBottom,
+                binding.layoutControls.paddingRight, binding.layoutControls.paddingBottom
+            )
+
+            // Bottom bar above navigation bar
+            binding.layoutOperations.setPadding(
+                binding.layoutOperations.paddingLeft, binding.layoutOperations.paddingTop,
+                binding.layoutOperations.paddingRight, navBar.bottom + binding.layoutOperations.paddingTop
+            )
+
+            // Filter warning at very bottom
+            binding.tvFilterWarning.setPadding(
+                binding.tvFilterWarning.paddingLeft, binding.tvFilterWarning.paddingTop,
+                binding.tvFilterWarning.paddingRight, navBar.bottom
+            )
+
+            // Scroll FABs need nav bar offset
+            val fabBottomMargin = navBar.bottom + resources.getDimensionPixelSize(R.dimen.margin_small)
+            (binding.fabScrollToBottom.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
+                it.bottomMargin = fabBottomMargin
+                binding.fabScrollToBottom.layoutParams = it
+            }
+
+            insets
         }
     }
 

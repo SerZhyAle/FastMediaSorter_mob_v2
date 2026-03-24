@@ -21,9 +21,9 @@
         <item name="colorOutline">#FF6F6875</item>
         <item name="colorOutlineVariant">#FF8A8391</item>
         
-        <!-- Status bar and navigation bar -->
-        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
-        <item name="android:navigationBarColor">@color/black</item>
+        <!-- Status bar and navigation bar (transparent for edge-to-edge) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         
         <!-- Window background - white for day mode -->
         <item name="android:windowBackground">@color/white</item>

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -43,6 +44,7 @@ class ScheduleNetworkSyncUseCase @Inject constructor(
             .setConstraints(constraints)
             .setInitialDelay(initialDelayMinutes, TimeUnit.MINUTES) // Delay first sync
             .addTag(NetworkFilesSyncWorker.WORK_NAME)
+            .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()
         
         // Replace existing work (REPLACE policy ensures only one instance runs)

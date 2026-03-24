@@ -902,3 +902,77 @@ Format: | datetime | file | target | description |
 | 2026-03-22 17:10:20 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/FavoritesDao.kt` | `FavoritesDao` | Add getAllFavoritesSync() and getFavoritesCount() methods |
 | 2026-03-22 19:34:03 | `PLAN/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Comprehensive revision: removed completed items, marked III.2/III.3/III.4 as in-progress, updated IV.1 LOC table (all files grew, IntegrationTestRunner 4471 LOC), added new items III.11-14 and IX.6, added IV.10 debug-code section |
 | 2026-03-22 20:13:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | Fix RV thumbnail load race: retry notifyItemRangeChanged via OnChildAttachStateChangeListener when post{} fires before items are bound |
+| 2026-03-23 13:40:39 | `PLAN/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Updated: marked III.2/III.3/III.4 as completed, added 11 new proposals (X.9-X.19), refreshed prioritization list |
+| 2026-03-23 13:40:46 | `PLAN/IMPROVEMENT_ROADMAP.md` | `IMPROVEMENT_ROADMAP` | Full rewrite: added TIER 0 security/compliance, re-prioritized security-first execution, added 7 new tier items, phased sprint plan, change delta table |
+| 2026-03-23 13:51:11 | `PLAN/SPEC_EDGE_TO_EDGE_X15.md` | `X.15 Edge-to-Edge` | Created detailed task specification for edge-to-edge migration (X.15) in Russian |
+| 2026-03-23 14:24:17 | `gradle.properties` | `org.gradle.jvmargs/kotlin.daemon.jvm.options` | Fixed hardcoded tmpdir path from P:/ANDROID to D:/GIT to match current machine |
+| 2026-03-23 14:54:00 | `gradle/wrapper/gradle-wrapper.properties` | `distributionUrl` | Updated Gradle wrapper from 8.11.1 to 9.3.1 (required by AGP minimum version check) |
+| 2026-03-23 15:05:29 | `app_v2/src/.../core/ui/BaseActivity.kt` | `BaseActivity` | enableEdgeToEdge() replaces setDecorFitsSystemWindows(true); added shouldEnableEdgeToEdge() hook |
+| 2026-03-23 15:05:43 | `app_v2/src/.../ui/player/PlayerActivity.kt` | `PlayerActivity` | Override shouldEnableEdgeToEdge()=false to preserve custom immersive edge-to-edge |
+| 2026-03-23 15:05:43 | `app_v2/src/main/res/values*/themes.xml` | `Themes` | Transparent system bars for edge-to-edge; removed windowOptOutEdgeToEdgeEnforcement |
+| 2026-03-23 15:05:44 | `app_v2/src/main/res/layout*/activity_*.xml` | `Layouts` | Removed fitsSystemWindows from 8 ConstraintLayout-rooted layouts; kept on 5 CoordinatorLayout roots |
+| 2026-03-23 15:05:45 | `Multiple Activities` | `Edge-to-Edge X.15` | Added WindowInsets listeners to 10 Activities for status/nav bar padding |
+| 2026-03-23 15:05:45 | `app_v2/build.gradle.kts` | `build config` | Fixed proguard-android-optimize.txt, staging shrinkResources, added compose plugin |
+| 2026-03-23 15:05:46 | `wear/build.gradle.kts` | `build config` | Added compose compiler plugin for Kotlin 2.x compatibility |
+| 2026-03-23 15:05:49 | `app_v2/src/main/res/values*/themes.xml` | `Themes` | Transparent system bars for edge-to-edge; removed windowOptOutEdgeToEdgeEnforcement |
+| 2026-03-23 15:05:56 | `app_v2/src/main/res/layout*/activity_*.xml` | `Layouts` | Removed fitsSystemWindows from 8 ConstraintLayout roots; kept on 5 CoordinatorLayout roots |
+| 2026-03-23 15:06:03 | `Multiple Activities` | `Edge-to-Edge X.15` | Added WindowInsets listeners to 10 Activities for status/nav bar padding |
+| 2026-03-23 15:06:09 | `app_v2/build.gradle.kts, wear/build.gradle.kts` | `build config` | Fixed proguard-android-optimize.txt, staging shrinkResources, added compose plugin for Kotlin 2.x |
+| 2026-03-23 16:39:51 | `app_v2/src/main/res/values/strings.xml` | `strings.xml` | Added 56 missing string resources (cb_*_desc, setting_*_desc, widget_*, import_fav_*, export_fav_*, network delete dialog, audio cache, welcome default player) |
+| 2026-03-23 16:40:02 | `app_v2/src/main/res/values/dimens.xml` | `dimens.xml` | Added checkbox_subtitle_margin_start (16dp) for Add Resource checkbox subtitles |
+| 2026-03-23 16:40:02 | `app_v2/build.gradle.kts` | `build.gradle.kts` | Updated Hilt 2.50->2.57.2, Room 2.6.1->2.7.1, hilt-work 1.1.0->1.2.0 for Kotlin 2.2 metadata compat; added SUPPORTS_DEFAULT_PLAYER flag per flavor |
+| 2026-03-23 16:40:02 | `app_v2/src/.../DefaultPlayerHelper.kt` | `DefaultPlayerHelper` | Added isAlreadyDefaultPlayer, applyButtonState, showSetDefaultDialogForType, openChooserOrFallbackFromActivity methods |
+| 2026-03-23 16:47:42 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Added 118 Russian translations for all new string resources |
+| 2026-03-23 16:47:46 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Added 118 Ukrainian translations for all new string resources |
+| 2026-03-23 16:50:05 | `PLAN/IMPROVEMENT_ROADMAP.md` | `IMPROVEMENT_ROADMAP` | Moved X.15 Edge-to-Edge to Recently Completed (March 23); removed from TIER 0 and TIER 4; renumbered execution order |
+| 2026-03-23 16:59:12 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | X.14: Added DynamicColors.applyToActivitiesIfAvailable() for Material You wallpaper-based theming on Android 12+ |
+| 2026-03-23 16:59:18 | `PLAN/IMPROVEMENT_ROADMAP.md` | `IMPROVEMENT_ROADMAP` | Moved X.14 Material You to Recently Completed; removed from TIER 1 and Phase 2; renumbered execution order (33 items) |
+| 2026-03-23 17:31:42 | `gradle/libs.versions.toml` | `VersionCatalog` | Created Gradle Version Catalog (libs.versions.toml) with all dependency versions, library aliases, and plugin aliases |
+| 2026-03-23 17:31:50 | `build.gradle.kts` | `RootBuild` | Migrated root build.gradle.kts from buildscript{} classpath + plugins{} version blocks to alias(libs.plugins.*) from version catalog |
+| 2026-03-23 17:31:57 | `app_v2/build.gradle.kts` | `AppBuild` | Migrated app_v2 plugins{} and all 80+ dependencies to version catalog aliases (libs.plugins.*, libs.*) |
+| 2026-03-23 17:32:03 | `wear/build.gradle.kts` | `WearBuild` | Migrated wear plugins{} and all 40+ dependencies to version catalog aliases (libs.plugins.*, libs.*) |
+| 2026-03-23 17:44:32 | `app_v2/src/.../ui/settings/SettingsActivity.kt` | `SettingsActivity` | IV.10: Guarded setupStartUptimeMs and startup timing Timber.i() with BuildConfig.DEBUG |
+| 2026-03-23 17:44:37 | `app_v2/src/.../data/network/SmbConnectionManager.kt` | `SmbConnectionManager` | IV.10: Guarded 3 timing blocks (connect/auth/share) with BuildConfig.DEBUG on SMB hot path |
+| 2026-03-23 17:44:42 | `app_v2/src/.../data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | IV.10: Guarded cache-sync Timber.d() with BuildConfig.DEBUG |
+| 2026-03-23 17:54:00 | `app_v2/src/main/res/xml/shortcuts.xml` | `AppShortcuts` | X.19: Created shortcuts.xml with 2 static shortcuts (Favorites, Slideshow) |
+| 2026-03-23 17:54:06 | `app_v2/src/.../core/AppShortcutsManager.kt` | `AppShortcutsManager` | X.19: Created AppShortcutsManager — updates top-3 recent resources as dynamic launcher shortcuts |
+| 2026-03-23 17:54:12 | `app_v2/src/main/AndroidManifest.xml` | `MainActivity` | X.19: Added shortcuts meta-data to launcher activity |
+| 2026-03-23 17:54:19 | `app_v2/src/.../ui/main/MainActivity.kt` | `MainActivity` | X.19: Added ACTION_OPEN_FAVORITES, ACTION_BROWSE_RESOURCE constants + intent handling for app shortcuts |
+| 2026-03-23 17:54:26 | `app_v2/src/.../ui/main/MainViewModel.kt` | `MainViewModel` | X.19: Injected AppShortcutsManager, added openResourceDirect(), trigger shortcut refresh on resource load |
+| 2026-03-23 17:54:32 | `app_v2/src/.../data/local/db/ResourceDao.kt` | `ResourceDao` | X.19: Added getRecentResourcesSync(limit) query for dynamic shortcuts |
+| 2026-03-23 18:54:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData` | Added BackupFavorite DTO, favorites field to BackupPayload, bumped CURRENT_VERSION to 2 |
+| 2026-03-23 18:54:13 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Added toBackupFavorites() and toFavoritesEntity() methods, updated toBackupPayload() with favorites param |
+| 2026-03-23 18:54:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCase.kt` | `BackupToGoogleDriveUseCase` | Injected FavoritesDao, collect favorites in backup, added favoritesCount to BackupResult, updated README texts |
+| 2026-03-23 18:54:38 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RestoreFromGoogleDriveUseCase.kt` | `RestoreFromGoogleDriveUseCase` | Injected FavoritesDao, added Step 3 favorites merge with dedup by URI, added favoritesCount to BackupInfo, favoritesAdded/Skipped to RestoreResult |
+| 2026-03-23 18:54:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/BackupRestoreViewModel.kt` | `BackupRestoreViewModel` | Added favoritesCount to BackupSuccess UI state |
+| 2026-03-23 18:54:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BackupRestoreFragment.kt` | `BackupRestoreFragment` | Updated backup success, restore confirm dialog and restore success to show favorites counts |
+| 2026-03-23 18:55:03 | `app_v2/src/main/res/values/strings.xml` | `strings` | Updated backup_success, restore_confirm_message, restore_success strings to include favorites counts (EN/RU/UK) |
+| 2026-03-23 18:55:45 | `docs/FEATURES.md` | `FEATURES` | Updated backup/restore descriptions to mention favorites in GDrive backup (X.17) |
+| 2026-03-23 19:02:11 | `app_v2/src/main/java/com/sza/fastmediasorter/core/AudioToggleTileService.kt` | `AudioToggleTileService` | NEW: Quick Settings tile for audio play/pause toggle with MediaController integration |
+| 2026-03-23 19:02:16 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Registered AudioToggleTileService with BIND_QUICK_SETTINGS_TILE permission |
+| 2026-03-23 19:02:22 | `app_v2/src/photos/AndroidManifest.xml` | `photos manifest` | Removed AudioToggleTileService from photos flavor (no audio support) |
+| 2026-03-23 19:02:29 | `app_v2/src/main/res/drawable/ic_tile_play.xml` | `drawable` | NEW: Play arrow vector icon for Quick Settings tile |
+| 2026-03-23 19:02:29 | `app_v2/src/main/res/drawable/ic_tile_pause.xml` | `drawable` | NEW: Pause bars vector icon for Quick Settings tile |
+| 2026-03-23 19:02:29 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added 4 Quick Settings tile strings (EN/RU/UK) |
+| 2026-03-23 19:03:39 | `docs/FEATURES.md` | `FEATURES` | Added Quick Settings Audio Tile feature entry (EN/RU/UK) for X.16 |
+| 2026-03-23 19:21:42 | `app_v2/src/debug/java/com/sza/fastmediasorter/domain/usecase/IntegrationTestRunner.kt` | `IntegrationTestRunner` | Moved from src/main to src/debug source set (4471 LOC removed from production) |
+| 2026-03-23 19:21:48 | `app_v2/src/debug/java/com/sza/fastmediasorter/ui/settings/IntegrationTestViewModel.kt` | `IntegrationTestViewModel` | Moved from src/main to src/debug source set |
+| 2026-03-23 19:21:53 | `app_v2/src/debug/java/com/sza/fastmediasorter/ui/settings/IntegrationTestDialog.kt` | `IntegrationTestDialog` | Moved from src/main to src/debug source set |
+| 2026-03-23 19:21:58 | `app_v2/src/release/java/com/sza/fastmediasorter/domain/usecase/IntegrationTestRunner.kt` | `IntegrationTestRunner` | Created no-op release stub (Context-only injection, empty methods) |
+| 2026-03-23 19:22:04 | `app_v2/src/release/java/com/sza/fastmediasorter/ui/settings/IntegrationTestViewModel.kt` | `IntegrationTestViewModel` | Created no-op release stub (empty HiltViewModel) |
+| 2026-03-23 19:22:12 | `app_v2/src/release/java/com/sza/fastmediasorter/ui/settings/IntegrationTestDialog.kt` | `IntegrationTestDialog` | Created no-op release stub (isAvailable()=false) |
+| 2026-03-23 19:24:26 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/WorkManagerScheduler.kt` | `WorkManagerScheduler` | Added BackoffPolicy.EXPONENTIAL (30s) to all 4 workers: TrashCleanup, NetworkFilesSync, OrphanCleanup, PendingRevocation |
+| 2026-03-23 19:24:31 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ScheduleNetworkSyncUseCase.kt` | `ScheduleNetworkSyncUseCase` | Added BackoffPolicy.EXPONENTIAL (30s) to sync work request |
+| 2026-03-23 19:31:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerViewModel.kt` | `StandalonePlayerViewModel` | Injected FavoritesUseCase + ResourceRepository; added isFavorite state, toggleFavorite(), checkFavoriteStatus(), findResourceForPath() |
+| 2026-03-23 19:31:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Added 4 file operation buttons: Delete (with confirm dialog), Share (FileProvider for file:// URIs), Favorite toggle, Open in FMS (resolve path to BrowseActivity) |
+| 2026-03-23 19:31:54 | `app_v2/src/main/res/drawable/ic_open_in_browse.xml` | `ic_open_in_browse` | Created Material open_in_new vector icon for Open in FMS button |
+| 2026-03-23 19:32:00 | `app_v2/src/main/res/values/strings.xml` | `strings` | Added 5 standalone player file operation strings (EN/RU/UK): confirm_delete_standalone, file_deleted, delete_permission_denied, share_via, open_in_fms |
+| 2026-03-23 19:33:05 | `docs/FEATURES.md` | `FEATURES` | Added Standalone player file operations feature entry (EN/RU/UK) for III.11 |
+| 2026-03-23 19:39:05 | `app_v2/build.gradle.kts` | `build.gradle.kts` | X.12 KAPT to KSP: added KSP plugin, migrated Hilt (2x) + Room to ksp(), kept Glide on kapt, simplified kapt block, changed kaptAndroidTest to kspAndroidTest |
+| 2026-03-23 20:23:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AudioMetadataCacheRepository.kt` | `AudioMetadataCacheRepository` | IX.6: Reduced MAX_CACHE_BYTES 10GB to 500MB, added TTL_MS 30d, cleanupExpired method, touch-on-read LRU in readMetadata |
+| 2026-03-23 20:23:53 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/OrphanCleanupWorker.kt` | `OrphanCleanupWorker` | IX.6: Injected AudioMetadataCacheRepository, added cleanAudioMetadataCache step calling cleanupExpired + trimIfNeeded |
+| 2026-03-23 20:23:59 | `app_v2/src/test/java/com/sza/fastmediasorter/data/repository/AudioMetadataCacheRepositoryTest.kt` | `AudioMetadataCacheRepositoryTest` | IX.6: Added tests for cleanupExpired removing stale files and readMetadata touch-on-read LRU |
+| 2026-03-23 22:45:10 | `app_v2/src/main/java/com/sza/fastmediasorter` | `IntegrationTestDialog/ViewModel/Runner` | Remove duplicate debug-only classes from src/main (were also in src/debug, causing Redeclaration compile error) |
+| 2026-03-23 23:28:00 | `app_v2/src/main/res/values` | `strings.xml / strings-ru / strings-uk` | Restore 18 missing trigger hint strings (setting_support_*, setting_*_desc, cb_play_to_end_desc, save_audio_metadata_locally_desc) in all 3 languages |
+| 2026-03-23 23:46:26 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/DropboxAuthPlugin.kt` | `DropboxAuthPlugin` | Switch from legacy OAuth2 to PKCE auth to fix Dropbox security alert |
+| 2026-03-24 00:09:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCloudAuthManager.kt` | `BrowseCloudAuthManager` | Switch Dropbox re-auth in Browse from legacy OAuth2 to PKCE via dropboxClient.startPkceAuthentication |

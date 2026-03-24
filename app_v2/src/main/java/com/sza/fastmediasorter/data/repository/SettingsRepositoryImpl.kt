@@ -188,7 +188,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 val savedCacheSize = glidePrefs.getInt("cache_size_mb_cached", 0)
                 if (savedCacheSize != cacheSizeMb) {
                     glidePrefs.edit().putInt("cache_size_mb_cached", cacheSizeMb).apply()
-                    Timber.d("SettingsRepositoryImpl: Synced cacheSizeMb to SharedPreferences: ${cacheSizeMb}MB")
+                    if (BuildConfig.DEBUG) Timber.d("SettingsRepositoryImpl: Synced cacheSizeMb to SharedPreferences: ${cacheSizeMb}MB")
                 }
                 
                 AppSettings(

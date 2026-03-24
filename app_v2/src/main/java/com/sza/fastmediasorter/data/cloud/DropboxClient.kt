@@ -207,9 +207,17 @@ class DropboxClient @Inject constructor(
     }
     
     /**
+     * Start Dropbox OAuth 2.0 PKCE flow from an Activity.
+     * Replaces the legacy Auth.startOAuth2Authentication() to avoid Dropbox security alerts.
+     */
+    fun startPkceAuthentication(activity: android.app.Activity, appKey: String) {
+        Auth.startOAuth2PKCE(activity, appKey, dbxRequestConfig)
+    }
+
+    /**
      * Start Dropbox OAuth 2.0 flow
      * This launches browser/Dropbox app for user authentication
-     * 
+     *
      * After user authorizes, call finishAuthentication() to complete
      */
     override suspend fun authenticate(): AuthResult {
@@ -273,7 +281,7 @@ class DropboxClient @Inject constructor(
     
     /**
      * Complete authentication after OAuth flow
-     * Call this from Activity's onResume() after Auth.startOAuth2Authentication()
+     * Call this from Activity's onResume() after startPkceAuthentication()
      */
     suspend fun finishAuthentication(): AuthResult {
         return withContext(Dispatchers.Main) {

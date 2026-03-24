@@ -102,12 +102,11 @@ class BrowseCloudAuthManager(
     fun launchDropboxSignIn() {
         coroutineScope.launch {
             try {
-                // Use simple OAuth2 authentication without explicit scopes
-                // Scopes are configured in Dropbox App Console
-                com.dropbox.core.android.Auth.startOAuth2Authentication(
-                    context,
-                    context.getString(R.string.dropbox_app_key)
-                )
+                val activity = context as? android.app.Activity
+                    ?: return@launch callbacks.onAuthenticationFailure().also {
+                        Timber.e("launchDropboxSignIn: context is not an Activity")
+                    }
+                dropboxClient.startPkceAuthentication(activity, context.getString(R.string.dropbox_app_key))
                 isDropboxAuthenticating = true
             } catch (e: Exception) {
                 Timber.e(e, "Failed to start Dropbox authentication")

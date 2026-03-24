@@ -20,10 +20,11 @@ data class BackupPayload(
     // Nullable so that Gson correctly reflects a missing field rather than silently
     // leaving a non-null default that Kotlin cannot distinguish from a real value.
     val settings: BackupSettings? = null,
-    val resources: List<BackupResource>? = null
+    val resources: List<BackupResource>? = null,
+    val favorites: List<BackupFavorite>? = null
 ) {
     companion object {
-        const val CURRENT_VERSION = 1
+        const val CURRENT_VERSION = 2
     }
 }
 
@@ -159,4 +160,19 @@ data class BackupResource(
     val rememberFileList: Boolean = false,
     val comment: String? = null,
     val showCommandPanel: Boolean? = null
+)
+
+/**
+ * Serializable favorite for backup (uses resource name+path for cross-device resolution).
+ */
+data class BackupFavorite(
+    val uri: String = "",
+    val resourceName: String = "",
+    val resourcePath: String = "",
+    val displayName: String = "",
+    val mediaType: Int = 0,
+    val size: Long = 0,
+    val lastKnownPath: String = "",
+    val dateModified: Long = 0,
+    val addedTimestamp: Long = 0
 )

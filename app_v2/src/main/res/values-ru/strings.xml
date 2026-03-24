@@ -10,9 +10,6 @@
     <string name="settings_category_grid_view">Сетка</string>
     <string name="settings_category_player_ui">Интерфейс плеера</string>
     <string name="settings_category_touch_zones">Сенсорные зоны</string>
-    <string name="settings_category_default_player">Плеер по умолчанию</string>
-    <string name="settings_primary_media_player">Использовать как основной медиаплеер (аппаратные кнопки и ассоциации файлов)</string>
-    <string name="settings_accept_shared_files">Принимать медиафайлы через «Поделиться»</string>
     <string name="start_player">Запустить плеер</string>
     <string name="add">Добавить</string>
     <string name="settings">Настройки</string>
@@ -203,10 +200,6 @@
     <string name="virtual_all_music">Вся музыка</string>
     <string name="virtual_all_video">Все видео</string>
     <string name="virtual_all_images">Все изображения</string>
-    <string name="virtual_camera_photos">Фото камеры</string>
-    <string name="desc_camera_photos_folder">Фотографии с камеры устройства</string>
-    <string name="resource_type_camera_photos">Папка камеры</string>
-    <string name="resource_camera">Камера</string>
     <string name="virtual_all_docs">Все документы</string>
     <string name="special_virtual_folders">Специальные папки</string>
     <string name="virtual_resource_already_added">Уже добавлен</string>
@@ -304,26 +297,6 @@
     <string name="restart_required_message">Настройки импортированы. Перезапустите приложение для применения изменений.</string>
     <string name="restart_now">Перезапустить</string>
     <string name="restart_later">Позже</string>
-    <!-- Favorites Export/Import -->
-    <string name="backup_export_favorites">Экспортировать избранное</string>
-    <string name="backup_import_favorites">Импортировать избранное</string>
-    <string name="export_fav_success_title">Экспорт выполнен</string>
-    <string name="export_fav_success_message">Экспортировано %1$d избранных\n\nПуть:\n%2$s\n\nРазмер: %3$d КБ</string>
-    <string name="export_fav_failed">Не удалось экспортировать избранное</string>
-    <string name="export_fav_share_failed">Не удалось поделиться файлом</string>
-    <string name="import_fav_preview_title">Импорт избранного</string>
-    <string name="import_fav_preview_message">Исходное устройство: %1$s\nИзбранных в файле: %2$d</string>
-    <string name="import_fav_conflict_label">Обработка дубликатов:</string>
-    <string name="import_fav_conflict_skip">Пропустить существующие (безопаснее)</string>
-    <string name="import_fav_conflict_overwrite">Перезаписать существующие</string>
-    <string name="import_fav_action">Импорт</string>
-    <string name="import_fav_success_title">Импорт завершён</string>
-    <string name="import_fav_result_added">Добавлено: %1$d</string>
-    <string name="import_fav_result_skipped">Пропущено: %1$d (дубликаты)</string>
-    <string name="import_fav_result_unresolved">Неразрешено: %1$d (ресурс не найден)</string>
-    <string name="import_fav_result_failed">Ошибок: %1$d</string>
-    <string name="import_fav_invalid_file">Файл повреждён или недействителен</string>
-    <string name="import_fav_failed">Не удалось импортировать избранное</string>
     <string name="reset_settings_to_defaults">СБРОС настроек</string>
     <string name="reset_settings_title">Сбросить все настройки?</string>
     <string name="reset_settings_message">Это сбросит все настройки на значения по умолчанию. Ваши ресурсы и папки будут сохранены. Продолжить?</string>
@@ -460,7 +433,7 @@
     <string name="audio_size_range">0 КБ - 100 МБ</string>
     <string name="support_text">Поддержка текста</string>
     <string name="support_txt">Поддержка TXT</string>
-    <string name="support_text_description">Поддержка текстовых файлов</string>
+    <string name="support_text_description">Поддержка текстовых файлов (.txt, .md, .log, .json, .xml)</string>
     <string name="supported_text_formats">Поддерживаются: TXT, MD, LOG, JSON, XML, CSV</string>
     <string name="support_pdf">Поддержка PDF</string>
     <string name="support_pdf_description">Поддержка PDF-документов</string>
@@ -493,7 +466,7 @@
     <string name="battery_optimization_hint_title">Предупреждение об оптимизации батареи</string>
     <string name="battery_optimization_hint_message">Оптимизация батареи может препятствовать воспроизведению аудио в фоне. Отключите оптимизацию батареи для FastMediaSorter в системных настройках для надежного фонового аудио.</string>
     <string name="show_pdf_thumbnails">Миниатюры для больших PDF (долго)</string>
-    <string name="show_pdf_thumbnails_description">Миниатюры для больших PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Облака (может занять значительное время)</string>
+    <string name="show_pdf_thumbnails_description">Скачивать и генерировать миниатюры для больших PDF: до 50 МБ для SMB, до 10 МБ для S/FTP/Облака (может занять значительное время)</string>
     <string name="enable_translation">Включить перевод</string>
     <string name="translation_settings">Настройки текста</string>
     <string name="translation_source_language">Исходный язык</string>
@@ -516,82 +489,6 @@
     <string name="supported_pdf_formats">Поддерживаются: PDF (рендеринг через Android PdfRenderer)</string>
     <string name="search_audio_covers_online">Искать обложки аудио онлайн (iTunes API)</string>
     <string name="search_covers_only_on_wifi">Искать только по Wi-Fi</string>
-    <string name="save_audio_metadata_locally">Сохранять загруженные медиаданные локально</string>
-    <string name="save_audio_metadata_locally_desc">Обложки и метаданные без повторной загрузки из интернет</string>
-
-    <!-- Settings toggle subtitles -->
-    <string name="setting_all_files_desc">Показыват файлы всех типов для операцй с ними</string>
-    <string name="setting_show_hidden_files_desc">Системные файлы и папки в обозревателе</string>
-    <string name="setting_show_subfolders_as_items_desc">Подпапки отображаются как элементы в обозревателе</string>
-    <string name="setting_small_controls_desc">Уменьшает кнопки, увеличивает область для контента</string>
-    <string name="setting_enable_favorites_desc">Файлы можно добавлять в список избранного для быстрого доступа</string>
-    <string name="setting_default_remember_file_list_desc">Повторно открываются быстрее, но может потребоваться обновление</string>
-    <string name="setting_safe_mode_desc">Включает подтверждения для защиты от случайных изменений</string>
-    <string name="setting_confirm_delete_desc">Запрашивает подтверждение перед окончательным удалением</string>
-    <string name="setting_confirm_move_desc">Запрашивает подтверждение при перемещении файлов</string>
-    <string name="setting_prevent_sleep_desc">Не выключает экран, пока приложение активно</string>
-    <string name="setting_background_sync_desc">Периодически обновляет список файлов сетевых ресурсов в фоне</string>
-    <string name="setting_support_audio_desc">Воспроизведение MP3, FLAC, AAC, OGG и других аудиоформатов</string>
-    <string name="setting_search_audio_covers_online_desc">Загружает обложки из интернет для файлов без встроенных обложек</string>
-    <string name="setting_search_covers_only_wifi_desc">Не использует мобильный интернет для загрузки обложек</string>
-    <string name="setting_photos_during_audio_desc">Случайные изображения во время воспроизведения (выбираешь список аудио - смотришь изображения)</string>
-    <string name="setting_support_videos_desc">Воспроизведение MP4, MKV, MOV и других видеоформатов</string>
-    <string name="setting_show_video_thumbnails_desc">Создаёт превью-кадры для видеофайлов в обозревателе</string>
-    <string name="setting_support_images_desc">Просмотр JPG, PNG, WEBP, HEIC и других форматов изображений</string>
-    <string name="setting_support_gifs_desc">Воспроизводит анимированные GIF в обозревателе и плеере</string>
-    <string name="setting_load_full_size_images_desc">Из сети загружает оригинальное разрешение для зума (медленнее и больше памяти)</string>
-    <string name="setting_crop_images_to_fullscreen_desc">Заполняет весь экран, но обрезая края изображения</string>
-    <string name="setting_dynamic_background_desc">Продолжает цвета изображения за его края</string>
-    <string name="setting_slideshow_background_music_desc">Список аудио во время просмотра (выбираешь изображения - слушаешь аудио)</string>
-    <string name="setting_support_text_desc">Открывает .txt, .md, .log, .json и .xml</string>
-    <string name="setting_show_text_line_numbers_desc">Отображает номера строк слева при просмотре текста</string>
-    <string name="setting_support_pdf_desc">Открывает PDF во встроенном просмотрщике</string>
-    <string name="setting_support_epub_desc">Читает EPUB-книги с закладками и оглавлением</string>
-    <string name="setting_enable_translation_desc">Переводит текст в указанном направлении</string>
-    <string name="setting_translation_lens_style_desc">Показывает переведённые блоки текста отдельно, без объединения</string>
-    <string name="setting_enable_google_lens_desc">Кнопка отправки для визуального поиска</string>
-    <string name="setting_play_to_end_desc">Медиафайл воспроизводится полностью перед переходом к следующему</string>
-    <string name="setting_allow_rename_desc">Показывает кнопку «Переименовать» в меню плеера</string>
-    <string name="setting_allow_delete_desc">Показывает кнопку «Удалить» в меню плеера</string>
-    <string name="setting_confirm_delete_player_desc">Запрашивает подтверждение при удалении</string>
-    <string name="setting_hide_grid_action_buttons_desc">Чистый вид сетки без кнопок копирования и перемещения</string>
-    <string name="setting_hide_system_ui_desc">Скрывает строку состояния и панель навигации в полноэкранном режиме</string>
-    <string name="setting_show_command_panel_desc">Показывает команды и панели операций при открытии плеера</string>
-    <string name="setting_detailed_errors_desc">Технические подробности всех ошибок для диагностики</string>
-    <string name="setting_primary_media_player_desc">Открывает аудио и видео из других приложений и файловых менеджеров</string>
-    <string name="setting_accept_shared_files_desc">Появляется в меню «Поделиться» при передаче медиафайлов</string>
-    <string name="setting_enable_copying_desc">Показывает направления и кнопку копирования в плеере</string>
-    <string name="setting_overwrite_on_copy_desc">Заменяет файл в папке назначения, если имена совпадают</string>
-    <string name="setting_enable_moving_desc">Показывает направления и кнопку перемещения в плеере</string>
-    <string name="setting_overwrite_on_move_desc">Заменяет файл в папке назначения при перемещении, если имена совпадают</string>
-    <string name="setting_go_to_next_after_copy_desc">Автоматически проигрывает следующий файл по списку</string>
-
-    <!-- Checkbox subtitle descriptions -->
-    <string name="cb_local_scan_subdirectories_desc">Рекурсивно включает все вложенные папки при сканировании медиа</string>
-    <string name="cb_local_add_to_destinations_desc">Делает эту папку доступной как цель копирования/перемещения в плеере</string>
-    <string name="cb_local_read_only_mode_desc">Файлы нельзя перемещать, копировать или удалять из этого ресурса</string>
-    <string name="cb_smb_add_to_destinations_desc">Делает эту сетевую папку доступной как цель копирования/перемещения в плеере</string>
-    <string name="cb_smb_read_only_mode_desc">Файлы нельзя перемещать, копировать или удалять из этой сетевой папки</string>
-    <string name="cb_smb_scan_subdirectories_desc">Рекурсивно включает все вложенные папки при сканировании медиа</string>
-    <string name="cb_smb_all_files_desc">Показывает все типы файлов независимо от настроенных медиафильтров</string>
-    <string name="cb_smb_disable_thumbnails_desc">Отключает генерацию миниатюр для снижения сетевого трафика и ускорения загрузки</string>
-    <string name="cb_smb_remember_file_list_desc">Открывает ресурс на последней просмотренной позиции файла</string>
-    <string name="cb_sftp_add_to_destinations_desc">Делает эту папку SFTP/FTP доступной как цель копирования/перемещения в плеере</string>
-    <string name="cb_sftp_read_only_mode_desc">Файлы нельзя перемещать, копировать или удалять с этого сервера</string>
-    <string name="cb_sftp_scan_subdirectories_desc">Рекурсивно включает все вложенные папки при сканировании медиа</string>
-    <string name="cb_sftp_all_files_desc">Показывает все типы файлов независимо от настроенных медиафильтров</string>
-    <string name="cb_sftp_disable_thumbnails_desc">Отключает генерацию миниатюр для снижения сетевого трафика и ускорения загрузки</string>
-    <string name="cb_sftp_remember_file_list_desc">Открывает ресурс на последней просмотренной позиции файла</string>
-    <string name="cb_cloud_read_only_mode_desc">Файлы нельзя перемещать, копировать или удалять из этого облачного хранилища</string>
-    <string name="cb_cloud_picker_add_as_destination_desc">Делает эту облачную папку доступной как цель копирования/перемещения в плеере</string>
-    <string name="cb_cloud_picker_scan_subdirectories_desc">Рекурсивно включает вложенные облачные папки при сканировании медиа</string>
-    <string name="cb_repeat_video_desc">Зацикливает текущее видео вместо перехода к следующему</string>
-    <string name="cb_show_subtitles_desc">Отображает дорожку субтитров при её наличии в видеофайле</string>
-    <string name="cb_play_to_end_desc">Ожидает окончания каждого видео или аудио перед переходом в слайдшоу</string>
-
-    <string name="audio_cache_size_warning_title">Кэш метаданных аудио занимает много места</string>
-    <string name="audio_cache_size_warning_message">Кэш метаданных аудио превысил 10 ГБ. Удалить 50%% самых старых файлов?</string>
-    <string name="delete_old_files">Удалить старые</string>
     <string name="image_size_limits">Ограничения размера изображений (МБ)</string>
     <string name="video_size_limits">Ограничения размера видео (КБ)</string>
     <string name="audio_size_limits">Ограничения размера аудио (КБ)</string>
@@ -689,7 +586,7 @@
     <string name="current_folder">Текущая папка</string>
     <string name="folder_up">Вверх</string>
     <string name="disable_thumbnails">Отключить миниатюры</string>
-    <string name="disable_thumbnails_description">Показывать только иконки расширений файлов (без предпросмотра). Автоматически включается для папок с &gt;10000 файлов.</string>
+    <string name="disable_thumbnails_description">Показывать только иконки расширений файлов (без предпросмотра). Автоматически включается для папок с >10000 файлов.</string>
     <string name="read_only_mode">Только чтение</string>
     <string name="read_only_mode_hint">Запрещает файловые операции (копирование, перемещение, удаление)</string>
     <string name="error_read_only">Этот ресурс доступен только для чтения</string>
@@ -757,14 +654,6 @@
     <string name="welcome_description_5">Не только просмотр медиа — FastMediaSorter содержит профессиональные инструменты для текста, документов и аудио.</string>
     <string name="welcome_permissions_title">Доступ к медиафайлам</string>
     <string name="welcome_permissions_description">FastMediaSorter требуется доступ к вашим фото, видео и аудиофайлам для сканирования и отображения медиа. Мы не передаём ваши файлы третьим лицам.</string>
-    <string name="welcome_default_player_title">Назначить плеером по умолчанию</string>
-    <string name="welcome_default_player_description">Нажмите нужную кнопку — Android покажет выбор приложений. Выберите FastMediaSorter и нажмите «Всегда», чтобы назначить его плеером по умолчанию для этого типа файлов.</string>
-    <string name="welcome_default_player_btn_audio">Аудио</string>
-    <string name="welcome_default_player_btn_video">Видео</string>
-    <string name="welcome_default_player_btn_images">Изображения</string>
-    <string name="welcome_default_player_btn_docs">Документы</string>
-    <string name="welcome_default_player_btn_set_default">Назначить по умолчанию</string>
-    <string name="welcome_default_player_skip">Пропустить</string>
     <string name="grant_permissions">Предоставить доступ</string>
     <string name="permissions_denied_title">Требуется разрешение</string>
     <string name="permissions_denied_warning">Без доступа к медиафайлам основной функционал приложения будет недоступен.</string>
@@ -1111,16 +1000,10 @@
     <string name="language_ukrainian">Украинский</string>
 
     <!-- Widgets -->
-    <string name="widget_favorites_label">Избранное</string>
     <string name="widget_favorites_description">Быстрый доступ к избранным файлам</string>
-    <string name="widget_resource_launch_label">Ярлык ресурса</string>
     <string name="widget_resource_launch_description">Запуск конкретного ресурса</string>
     <string name="widget_select_resource">Выберите ресурс</string>
     <string name="widget_resource_not_configured">\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u0434\u043b\u044f \u043d\u0430\u0441\u0442\u0440\u043e\u0439\u043a\u0438</string>
-    <string name="widget_add_to_home_screen">Добавить на главный экран ↗</string>
-    <string name="widget_pin_not_supported">Ваш лаунчер не поддерживает добавление виджетов</string>
-    <string name="widget_already_added">Виджет для этого ресурса уже добавлен</string>
-    <string name="widget_unlock_screen_prompt">Разблокируйте экран и попробуйте снова</string>
 
     <!-- Sort Modes -->
     <string name="sort_mode_manual">\u0420\u0443\u0447\u043d\u043e\u0439 \u043f\u043e\u0440\u044f\u0434\u043e\u043a</string>
@@ -1742,7 +1625,7 @@
     <string name="and_more_files">and %d more files</string>
     <string name="audio_a">Audio (A)</string>
     <string name="audio_title_label">Title: %1$s</string>
-    <string name="background_audio_setting_summary">Аудио продолжит звучать, если переключиться на другое приложение или заблокировать устройство</string>
+    <string name="background_audio_setting_summary">Continue audio playback when app is minimized</string>
     <string name="button_icon_alignment_start">start</string>
     <string name="button_icon_alignment_text_start">textStart</string>
     <string name="button_text_alignment_center">center</string>
@@ -1957,14 +1840,7 @@
     <string name="translation_started">Перевод запущен…</string>
     <string name="tts_reading">Читаю вслух…</string>
     <string name="vinyl_indicator_description">Индикатор воспроизведения аудио</string>
-    <string name="widget_continue_reading_label">Продолжить чтение</string>
     <string name="widget_continue_reading_description">Возобновить слайдшоу с последней позиции</string>
-    <string name="widget_random_music_label">Случайная музыка</string>
-    <string name="widget_random_music_description">Воспроизвести всю музыку в случайном порядке</string>
-    <string name="widget_random_music_resource_not_found">Ресурс «Вся музыка» не найден</string>
-    <string name="widget_camera_photos_label">Камера</string>
-    <string name="widget_camera_photos_description">Открыть фото с камеры в виде сетки</string>
-    <string name="widget_camera_photos_resource_not_found">Ресурс «Камера» не найден</string>
     <string name="zoom_in">Увеличить</string>
     <string name="zoom_out">Уменьшить</string>
     <string name="database_reset_message">База данных сброшена из-за ошибки обновления. Ресурсы потребуется добавить заново.</string>
@@ -1977,16 +1853,184 @@
     <string name="settings_set_default_image_viewer">Назначить просмотрщиком изображений по умолчанию</string>
     <string name="settings_set_default_docs_viewer">Назначить приложением для документов по умолчанию</string>
     <string name="settings_already_default_player">✓ Уже установлено по умолчанию</string>
-    <string name="settings_set_default_media_player">Назначить медиаплеером по умолчанию</string>
     <string name="settings_default_player_dialog_title">Назначить по умолчанию</string>
-    <string name="settings_default_player_dialog_message">Откроется выбор приложений. Выберите FastMediaSorter и нажмите «Всегда», чтобы назначить его плеером по умолчанию для этого типа файлов.</string>
-    <string name="settings_default_player_dialog_confirm">Открыть выбор</string>
-    <!-- Подтверждение удаления из сети -->
-    <string name="delete_action_cannot_be_undone_title">ЭТО ДЕЙСТВИЕ НЕОБРАТИМО</string>
-    <string name="delete_n_files_from_network_title">Удалить %1$d файл(ов) из сети?</string>
-    <string name="and_n_more_files_network">…и еще %1$d файл(ов)</string>
-    <string name="network_delete_warning">Сетевые и облачные ресурсы НЕ поддерживают корзину. Файлы будут УДАЛЕНЫ БЕЗВОЗВРАТНО.</string>
-    <string name="dont_show_again_for_resource">Больше не показывать для %1$s</string>
-    <string name="delete_permanently">Удалить безвозвратно</string>
-</resources>
+    <string name="settings_default_player_dialog_message">Вы будете перенаправлены в системные настройки Android, где сможете выбрать FastMediaSorter приложением по умолчанию для этого типа файлов.</string>
+    <string name="settings_default_player_dialog_confirm">Открыть настройки</string>
 
+    <!-- Page navigation -->
+    <string name="scroll_page_up">Страница вверх</string>
+    <string name="scroll_page_down">Страница вниз</string>
+
+    <!-- Backup & Restore -->
+    <string name="settings_tab_backup">Резервное копирование</string>
+    <string name="backup_to_google_drive">Копировать в Google Drive</string>
+    <string name="restore_from_google_drive">Восстановить из Google Drive</string>
+    <string name="backup_success">Сохранено %1$d ресурсов, %2$d избранных и все настройки в %3$s</string>
+    <string name="backup_failed">Ошибка резервного копирования: %s</string>
+    <string name="backup_in_progress">Создание резервной копии настроек и ресурсов…</string>
+    <string name="restore_in_progress">Восстановление настроек и ресурсов…</string>
+    <string name="restore_confirm_title">Восстановить из резервной копии?</string>
+    <string name="restore_confirm_message">Копия от: %1$s\nУстройство: %2$s\nРесурсы: %3$d\nИзбранное: %4$d\n\n• Настройки будут ЗАМЕНЕНЫ\n• Ресурсы будут ДОБАВЛЕНЫ (дубликаты пропущены)\n• Избранное будет ДОБАВЛЕНО (дубликаты пропущены)</string>
+    <string name="restore_success">Все настройки восстановлены. Добавлено %1$d ресурсов (%2$d уже существовали). Добавлено %3$d избранных (%4$d уже существовали).</string>
+    <string name="restore_needs_auth">Некоторые ресурсы используют сетевые или облачные аккаунты. Потребуется повторная авторизация.</string>
+    <string name="restore_no_backup">Резервная копия для этого аккаунта не найдена.</string>
+    <string name="restore_failed">Ошибка восстановления: %s</string>
+    <string name="last_backup_date">Последнее копирование: %s</string>
+    <string name="backup_account">Аккаунт: %s</string>
+    <string name="no_internet_connection">Нет подключения к интернету. Попробуйте позже.</string>
+
+    <!-- Checkbox subtitle descriptions (Add Resource) -->
+    <string name="cb_local_scan_subdirectories_desc">Искать медиафайлы во всех вложенных подпапках</string>
+    <string name="cb_local_add_to_destinations_desc">Отметить эту папку как назначение для быстрой сортировки</string>
+    <string name="cb_local_read_only_mode_desc">Запрещает операции с файлами (копирование, перемещение, удаление)</string>
+    <string name="cb_smb_add_to_destinations_desc">Отметить этот ресурс как назначение для быстрой сортировки</string>
+    <string name="cb_smb_read_only_mode_desc">Запрещает операции с файлами (копирование, перемещение, удаление)</string>
+    <string name="cb_smb_scan_subdirectories_desc">Искать медиафайлы во всех вложенных подпапках</string>
+    <string name="cb_smb_all_files_desc">Показывать все типы файлов, а не только медиа</string>
+    <string name="cb_smb_disable_thumbnails_desc">Показывать иконки расширений вместо превью</string>
+    <string name="cb_smb_remember_file_list_desc">Кэшировать список файлов локально для ускорения загрузки</string>
+    <string name="cb_sftp_add_to_destinations_desc">Отметить этот сервер как назначение для быстрой сортировки</string>
+    <string name="cb_sftp_read_only_mode_desc">Запрещает операции с файлами (копирование, перемещение, удаление)</string>
+    <string name="cb_sftp_scan_subdirectories_desc">Искать медиафайлы во всех вложенных подпапках</string>
+    <string name="cb_sftp_all_files_desc">Показывать все типы файлов, а не только медиа</string>
+    <string name="cb_sftp_disable_thumbnails_desc">Показывать иконки расширений вместо превью</string>
+    <string name="cb_sftp_remember_file_list_desc">Кэшировать список файлов локально для ускорения загрузки</string>
+    <string name="cb_cloud_read_only_mode_desc">Запрещает операции с файлами (копирование, перемещение, удаление)</string>
+    <string name="cb_cloud_picker_add_as_destination_desc">Отметить эту облачную папку как назначение для быстрой сортировки</string>
+    <string name="cb_cloud_picker_scan_subdirectories_desc">Искать медиафайлы во всех вложенных подпапках</string>
+    <string name="cb_repeat_video_desc">Непрерывное повторение текущего видео</string>
+    <string name="cb_show_subtitles_desc">Показывать субтитры при наличии</string>
+
+    <!-- Settings descriptions -->
+    <string name="setting_enable_copying_desc">Разрешить копирование файлов в папки назначения</string>
+    <string name="setting_overwrite_on_copy_desc">Заменять существующий файл при совпадении имени</string>
+    <string name="setting_go_to_next_after_copy_desc">Автоматически переходить к следующему файлу после копирования</string>
+    <string name="setting_all_files_desc">Показывать все типы файлов, а не только медиа</string>
+    <string name="setting_allow_delete_desc">Разрешить удаление файлов из проигрывателя</string>
+    <string name="setting_allow_rename_desc">Разрешить переименование файлов из проигрывателя</string>
+    <string name="setting_background_sync_desc">Автоматическая проверка сетевых ресурсов на изменения в фоне</string>
+    <string name="setting_confirm_delete_desc">Запрашивать подтверждение перед удалением файлов</string>
+    <string name="setting_confirm_move_desc">Запрашивать подтверждение перед перемещением файлов</string>
+    <string name="setting_default_remember_file_list_desc">Кэшировать списки файлов локально для ускорения загрузки новых ресурсов</string>
+    <string name="setting_enable_favorites_desc">Разрешить отмечать файлы как избранные</string>
+    <string name="setting_enable_google_lens_desc">Разрешить отправку изображений в Google Lens для анализа</string>
+    <string name="setting_enable_moving_desc">Разрешить перемещение файлов в папки назначения</string>
+    <string name="setting_enable_translation_desc">Включить поддержку перевода текста через OCR</string>
+    <string name="setting_overwrite_on_move_desc">Заменять существующий файл при совпадении имени при перемещении</string>
+    <string name="setting_play_to_end_desc">Воспроизводить медиа до конца вместо интервала слайдшоу</string>
+    <string name="setting_prevent_sleep_desc">Не выключать экран при просмотре медиа</string>
+    <string name="setting_safe_mode_desc">Подтверждать перед деструктивными операциями (удаление, перемещение)</string>
+    <string name="setting_show_hidden_files_desc">Показывать файлы и папки, начинающиеся с точки</string>
+    <string name="setting_show_subfolders_as_items_desc">Показывать подпапки как кликабельные элементы в списке файлов</string>
+    <string name="setting_small_controls_desc">Компактные элементы управления для экономии места</string>
+    <string name="setting_translation_lens_style_desc">Показывать результаты перевода блоками</string>
+    <string name="settings_set_default_media_player">Назначить медиаплеером по умолчанию</string>
+    <string name="setting_accept_shared_files_desc">Разрешить получение файлов из других приложений</string>
+    <string name="setting_confirm_delete_player_desc">Запрашивать подтверждение перед удалением файлов в проигрывателе</string>
+    <string name="setting_detailed_errors_desc">Показывать полные детали ошибок вместо упрощённых сообщений</string>
+    <string name="setting_hide_grid_action_buttons_desc">Скрыть кнопки быстрых действий на миниатюрах</string>
+    <string name="setting_hide_system_ui_desc">Скрыть статус-бар и навигацию в полноэкранном режиме</string>
+    <string name="setting_primary_media_player_desc">Использовать FastMediaSorter как основной плеер для медиафайлов</string>
+    <string name="setting_show_command_panel_desc">Автоматически показывать панель команд при входе в проигрыватель</string>
+    <string name="setting_support_audio_desc">Воспроизведение MP3, FLAC, AAC, OGG и других аудиоформатов</string>
+    <string name="setting_support_videos_desc">Воспроизведение MP4, MKV, MOV и других видеоформатов</string>
+    <string name="setting_support_images_desc">Просмотр JPG, PNG, WEBP, HEIC и других форматов изображений</string>
+    <string name="setting_support_gifs_desc">Воспроизводит анимированные GIF в обозревателе и плеере</string>
+    <string name="setting_support_text_desc">Открывает .txt, .md, .log, .json и .xml</string>
+    <string name="setting_support_pdf_desc">Открывает PDF во встроенном просмотрщике</string>
+    <string name="setting_support_epub_desc">Читает EPUB-книги с закладками и оглавлением</string>
+    <string name="setting_show_video_thumbnails_desc">Создаёт превью-кадры для видеофайлов в обозревателе</string>
+    <string name="setting_load_full_size_images_desc">Из сети загружает оригинальное разрешение для зума (медленнее и больше памяти)</string>
+    <string name="setting_crop_images_to_fullscreen_desc">Заполняет весь экран, но обрезая края изображения</string>
+    <string name="setting_dynamic_background_desc">Продолжает цвета изображения за его края</string>
+    <string name="setting_slideshow_background_music_desc">Список аудио во время просмотра (выбираешь изображения - слушаешь аудио)</string>
+    <string name="setting_show_text_line_numbers_desc">Отображает номера строк слева при просмотре текста</string>
+    <string name="setting_search_audio_covers_online_desc">Загружает обложки из интернет для файлов без встроенных обложек</string>
+    <string name="setting_search_covers_only_wifi_desc">Не использует мобильный интернет для загрузки обложек</string>
+    <string name="setting_photos_during_audio_desc">Случайные изображения во время воспроизведения (выбираешь список аудио - смотришь изображения)</string>
+    <string name="save_audio_metadata_locally_desc">Обложки и метаданные без повторной загрузки из интернет</string>
+    <string name="cb_play_to_end_desc">Ожидает окончания каждого видео или аудио перед переходом в слайдшоу</string>
+    <string name="settings_accept_shared_files">Принимать общие файлы</string>
+    <string name="settings_category_default_player">Медиаплеер по умолчанию</string>
+    <string name="settings_primary_media_player">Основной медиаплеер</string>
+
+    <!-- Virtual resources -->
+    <string name="virtual_camera_photos">Фото с камеры</string>
+
+    <!-- Widget strings -->
+    <string name="widget_add_to_home_screen">Добавить на главный экран</string>
+    <string name="widget_pin_not_supported">Закрепление виджетов не поддерживается на этом устройстве</string>
+    <string name="widget_unlock_screen_prompt">Разблокируйте экран для добавления виджета</string>
+    <string name="widget_already_added">Виджет уже добавлен на главный экран</string>
+    <string name="widget_camera_photos_label">Фото с камеры</string>
+    <string name="widget_camera_photos_description">Быстрый доступ к фото с камеры</string>
+    <string name="widget_camera_photos_resource_not_found">Ресурс \"Фото с камеры\" не найден</string>
+    <string name="widget_continue_reading_label">Продолжить чтение</string>
+    <string name="widget_random_music_label">Случайная музыка</string>
+    <string name="widget_random_music_description">Воспроизвести случайный трек</string>
+    <string name="widget_random_music_resource_not_found">Ресурс \"Случайная музыка\" не найден</string>
+
+    <!-- Favorites backup/import -->
+    <string name="backup_export_favorites">Экспорт избранного</string>
+    <string name="backup_import_favorites">Импорт избранного</string>
+    <string name="import_fav_conflict_label">Разрешение конфликтов:</string>
+    <string name="import_fav_conflict_skip">Пропустить дубликаты</string>
+    <string name="import_fav_conflict_overwrite">Перезаписать дубликаты</string>
+    <string name="export_fav_failed">Не удалось экспортировать избранное</string>
+    <string name="export_fav_share_failed">Не удалось поделиться файлом избранного</string>
+    <string name="export_fav_success_title">Экспорт завершён</string>
+    <string name="export_fav_success_message">Избранное успешно экспортировано</string>
+    <string name="import_fav_action">Импортировать</string>
+    <string name="import_fav_failed">Не удалось импортировать избранное</string>
+    <string name="import_fav_invalid_file">Некорректный файл избранного</string>
+    <string name="import_fav_preview_title">Предпросмотр импорта</string>
+    <string name="import_fav_preview_message">Просмотрите избранное для импорта</string>
+    <string name="import_fav_success_title">Импорт завершён</string>
+    <string name="import_fav_result_added">Добавлено: %d</string>
+    <string name="import_fav_result_skipped">Пропущено: %d</string>
+    <string name="import_fav_result_unresolved">Не найдено: %d</string>
+    <string name="import_fav_result_failed">Сбой: %d</string>
+
+    <!-- Network delete dialog -->
+    <string name="delete_n_files_from_network_title">Удалить %d файлов из сети?</string>
+    <string name="and_n_more_files_network">…и ещё %d файлов</string>
+    <string name="delete_permanently">Удалить безвозвратно</string>
+    <string name="dont_show_again_for_resource">Не показывать снова для этого ресурса</string>
+    <string name="delete_action_cannot_be_undone_title">Это действие нельзя отменить</string>
+    <string name="network_delete_warning">Файлы будут безвозвратно удалены из сетевого расположения</string>
+
+    <!-- Audio cache -->
+    <string name="audio_cache_size_warning_title">Большой аудиокэш</string>
+    <string name="audio_cache_size_warning_message">Аудиокэш занимает значительное место. Удалить старые файлы для освобождения пространства?</string>
+    <string name="delete_old_files">Удалить старые файлы</string>
+
+    <!-- Welcome default player -->
+    <string name="welcome_default_player_btn_audio">Аудио</string>
+    <string name="welcome_default_player_btn_docs">Документы</string>
+    <string name="welcome_default_player_btn_images">Изображения</string>
+    <string name="welcome_default_player_btn_video">Видео</string>
+    <string name="welcome_default_player_description">Назначить FastMediaSorter медиаплеером по умолчанию</string>
+    <string name="welcome_default_player_title">Плеер по умолчанию</string>
+
+    <!-- Permissions -->
+    <string name="storage_permission_denied_toast">Разрешения на хранилище не предоставлены. Предоставьте их в Настройки → Разрешения.</string>
+
+    <!-- App Shortcuts (X.19) -->
+    <string name="shortcut_favorites_short">Избранное</string>
+    <string name="shortcut_favorites_long">Открыть избранное</string>
+    <string name="shortcut_slideshow_short">Слайдшоу</string>
+    <string name="shortcut_slideshow_long">Запустить слайдшоу</string>
+
+    <!-- Standalone Player File Operations -->
+    <string name="confirm_delete_standalone">Удалить «%1$s»?</string>
+    <string name="file_deleted">«%1$s» удалён</string>
+    <string name="delete_permission_denied">Нет разрешения на удаление этого файла</string>
+    <string name="share_via">Отправить через</string>
+    <string name="open_in_fms">Открыть в FastMediaSorter</string>
+
+    <!-- Quick Settings Tile -->
+    <string name="tile_audio_label">FMS Аудио</string>
+    <string name="tile_audio_play">Воспроизвести</string>
+    <string name="tile_audio_pause">Пауза</string>
+    <string name="tile_audio_play_music">Воспроизвести музыку</string>
+</resources>

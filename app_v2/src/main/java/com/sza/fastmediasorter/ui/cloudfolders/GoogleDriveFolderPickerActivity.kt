@@ -54,6 +54,9 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
             return
         }
 
+        // Apply edge-to-edge insets for CoordinatorLayout + AppBarLayout
+        applyEdgeToEdgeInsets()
+
         binding.toolbar.setNavigationOnClickListener {
             handleBackNavigation()
         }
@@ -96,6 +99,16 @@ class GoogleDriveFolderPickerActivity : BaseActivity<ActivityGoogleDriveFolderPi
 
         // Initial load
         viewModel.loadFolders()
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        // RecyclerView needs bottom padding so last item isn't behind nav bar
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvFolders) { view, insets ->
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
+            (view as? android.view.ViewGroup)?.clipToPadding = false
+            insets
+        }
     }
 
     override fun observeData() {

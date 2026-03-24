@@ -8,15 +8,23 @@ import com.sza.fastmediasorter.core.ui.BaseViewModel
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class StandalonePlayerViewModel @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    private val favoritesUseCase: FavoritesUseCase,
+    private val resourceRepository: ResourceRepository
 ) :
     BaseViewModel<StandalonePlayerViewModel.StandalonePlayerState, StandalonePlayerViewModel.StandalonePlayerEvent>() {
 
@@ -31,6 +39,9 @@ class StandalonePlayerViewModel @Inject constructor(
         data class ShowError(val message: String) : StandalonePlayerEvent()
         object FinishActivity : StandalonePlayerEvent()
     }
+
+    private val _isFavorite = MutableStateFlow(false)
+    val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
 
     override fun getInitialState(): StandalonePlayerState = StandalonePlayerState()
 
@@ -71,5 +82,29 @@ class StandalonePlayerViewModel @Inject constructor(
                 errorMessage = null
             )
         }
+
+        checkFavoriteStatus(uri.toString())
+    }
+
+    fun checkFavoriteStatus(uri: String) {
+        viewModelScope.launch {
+            _isFavorite.value = favoritesUseCase.isFavoriteSync(uri)
+        }
+    }
+
+    fun toggleFavorite() {
+        val file = state.value.mediaFile ?: return
+        viewModelScope.launch {
+            favoritesUseCase.toggleFavorite(file, resourceId = 0L)
+            _isFavorite.value = !_isFavorite.value
+        }
+    }
+
+    suspend fun findResourceForPath(folderPath: String?): Long? {
+        if (folderPath == null) return null
+        val resources = resourceRepository.getAllResourcesSync()
+        return resources.firstOrNull { resource ->
+            resource.type == ResourceType.LOCAL && folderPath.startsWith(resource.path)
+        }?.id
     }
 }

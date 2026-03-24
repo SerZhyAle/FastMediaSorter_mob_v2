@@ -10,6 +10,7 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import com.bumptech.glide.Glide
+import com.google.android.material.color.DynamicColors
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
@@ -81,6 +82,9 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Material You: apply wallpaper-based dynamic colors on Android 12+
+        DynamicColors.applyToActivitiesIfAvailable(this)
 
         if (BuildConfig.DEBUG) {
             DebugToolsBridge.install(this)

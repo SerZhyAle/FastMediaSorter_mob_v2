@@ -154,6 +154,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     override fun setupViews() {
+        // Apply edge-to-edge insets: toolbar below status bar
+        applyEdgeToEdgeInsets()
+
         binding.toolbar.setNavigationOnClickListener {
             finish()
         }
@@ -610,6 +613,27 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
                 binding.cbSftpAllFiles.isChecked = true
             }
             else -> Unit
+        }
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+
+            // Toolbar below status bar
+            binding.toolbar.setPadding(
+                binding.toolbar.paddingLeft, statusBar.top,
+                binding.toolbar.paddingRight, binding.toolbar.paddingBottom
+            )
+
+            // Root padding for nav bar at bottom (ConstraintLayout with scrollable content)
+            binding.root.setPadding(
+                binding.root.paddingLeft, binding.root.paddingTop,
+                binding.root.paddingRight, navBar.bottom
+            )
+
+            insets
         }
     }
 

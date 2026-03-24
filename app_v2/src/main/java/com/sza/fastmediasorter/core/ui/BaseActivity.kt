@@ -5,8 +5,8 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.WindowManager
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.WindowCompat
 import androidx.viewbinding.ViewBinding
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.LocaleHelper
@@ -46,13 +46,20 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         }
     }
 
+    /**
+     * Override to disable edge-to-edge for activities that handle their own window insets 
+     * (e.g. PlayerActivity which has custom immersive mode).
+     */
+    protected open fun shouldEnableEdgeToEdge(): Boolean = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Enable edge-to-edge rendering: content draws behind system bars.
+        // Each Activity applies its own WindowInsets padding via ViewCompat.setOnApplyWindowInsetsListener.
+        if (shouldEnableEdgeToEdge()) {
+            enableEdgeToEdge()
+        }
         super.onCreate(savedInstanceState)
         Timber.d("onCreate: ${this::class.simpleName}")
-        
-        // Ensure proper system bar handling (combined with android:fitsSystemWindows="true" in layouts)
-        // This prevents app content from going behind status/navigation bars on all Android versions
-        WindowCompat.setDecorFitsSystemWindows(window, true)
         
         _binding = getViewBinding()
         setContentView(binding.root)

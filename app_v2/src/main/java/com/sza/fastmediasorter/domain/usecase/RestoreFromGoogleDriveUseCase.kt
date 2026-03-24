@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -25,7 +26,8 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
-    private val googleDriveClient: GoogleDriveRestClient
+    private val googleDriveClient: GoogleDriveRestClient,
+    private val favoritesDao: FavoritesDao
 ) {
     companion object {
         private const val FOLDER_NAME = "FastMediaSorter"
@@ -37,7 +39,8 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
         val createdAt: String,
         val resourceCount: Int,
         val appVersionName: String,
-        val deviceModel: String
+        val deviceModel: String,
+        val favoritesCount: Int = 0
     )
 
     /** Result of a restore operation. */
@@ -45,7 +48,9 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
         val settingsRestored: Boolean,
         val resourcesAdded: Int,
         val resourcesSkipped: Int,
-        val resourcesNeedingAuth: Int
+        val resourcesNeedingAuth: Int,
+        val favoritesAdded: Int = 0,
+        val favoritesSkipped: Int = 0
     )
 
     /**
@@ -66,7 +71,8 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                     createdAt = payload.createdAt.orEmpty(),
                     resourceCount = payload.resources?.size ?: 0,
                     appVersionName = payload.appVersionName.orEmpty(),
-                    deviceModel = payload.deviceModel.orEmpty()
+                    deviceModel = payload.deviceModel.orEmpty(),
+                    favoritesCount = payload.favorites?.size ?: 0
                 )
             )
         } catch (e: Exception) {
@@ -135,14 +141,43 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 resourceRepository.addResource(resource)
             }
 
-            Timber.i("Restore complete: ${resourcesToAdd.size} added, $skipped skipped, $needsAuth need auth")
+            // 3. Merge favorites (append with dedup by URI)
+            var favoritesAdded = 0
+            var favoritesSkipped = 0
+            val allResources = resourceRepository.getAllResourcesSync()
+            val resourcesByPath = allResources.associateBy { it.path }
+
+            for (backupFav in payload.favorites.orEmpty()) {
+                val isDuplicate = favoritesDao.isFavoriteSync(backupFav.uri)
+                if (isDuplicate) {
+                    favoritesSkipped++
+                    continue
+                }
+                val localResource = resourcesByPath[backupFav.resourcePath]
+                if (localResource == null) {
+                    favoritesSkipped++
+                    continue
+                }
+                try {
+                    val entity = BackupMapper.toFavoritesEntity(backupFav, localResource.id)
+                    favoritesDao.insert(entity)
+                    favoritesAdded++
+                } catch (e: Exception) {
+                    Timber.w(e, "Skipping favorite '%s'", backupFav.displayName)
+                    favoritesSkipped++
+                }
+            }
+
+            Timber.i("Restore complete: ${resourcesToAdd.size} added, $skipped skipped, $needsAuth need auth, $favoritesAdded favorites added, $favoritesSkipped favorites skipped")
 
             Result.success(
                 RestoreResult(
                     settingsRestored = true,
                     resourcesAdded = resourcesToAdd.size,
                     resourcesSkipped = skipped,
-                    resourcesNeedingAuth = needsAuth
+                    resourcesNeedingAuth = needsAuth,
+                    favoritesAdded = favoritesAdded,
+                    favoritesSkipped = favoritesSkipped
                 )
             )
         } catch (e: JsonSyntaxException) {

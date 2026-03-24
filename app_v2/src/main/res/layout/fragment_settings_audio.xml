@@ -7,10 +7,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSupportAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_audio_description" android:textSize="@dimen/resource_card_desc_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_support_audio_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/support_audio_description" android:textSize="@dimen/resource_card_desc_text_size" />
 
         <ImageButton android:id="@+id/iconHelpSupportAudio" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/supported_audio_formats" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
     </LinearLayout>
@@ -20,10 +17,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSearchAudioCoversOnline" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/search_audio_covers_online" android:textSize="@dimen/resource_card_desc_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_search_audio_covers_online_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/search_audio_covers_online" android:textSize="@dimen/resource_card_desc_text_size" />
     </LinearLayout>
 
     <!-- Search covers only on WiFi -->
@@ -31,50 +25,7 @@
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchSearchCoversOnlyWifi" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/search_covers_only_on_wifi" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_secondary" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_search_covers_only_wifi_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Save audio metadata locally (sub-option of searchAudioCoversOnline) -->
-    <LinearLayout
-        android:id="@+id/layoutSaveAudioMetadataLocally"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:minHeight="@dimen/button_height"
-        android:layout_marginStart="@dimen/settings_nested_margin_start"
-        android:visibility="gone"
-        android:layout_marginBottom="@dimen/margin_small">
-
-        <com.google.android.material.switchmaterial.SwitchMaterial
-            android:id="@+id/switchSaveAudioMetadataLocally"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="@dimen/settings_switch_margin_end"
-            android:checked="true" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/save_audio_metadata_locally"
-                android:textSize="@dimen/resource_card_desc_text_size" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/save_audio_metadata_locally_desc"
-                android:textSize="@dimen/text_size_small"
-                android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/search_covers_only_on_wifi" android:textSize="@dimen/resource_card_desc_text_size" android:textColor="@color/text_color_secondary" />
     </LinearLayout>
 
     <!-- Audio size limit -->
@@ -99,14 +50,11 @@
     </LinearLayout>
 
     <!-- Enable photos during audio playback -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
+    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="@dimen/fragment_settings_audio_etAudioSizeMax_layout_marginStart" android:layout_marginBottom="@dimen/margin_small" android:gravity="center_vertical" android:minHeight="@dimen/button_height" android:orientation="horizontal">
 
         <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnablePhotosDuringAudio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" />
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/enable_photos_during_audio_description" android:textSize="@dimen/resource_card_desc_text_size" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/setting_photos_during_audio_desc" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" />
-        </LinearLayout>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/enable_photos_during_audio_description" android:textSize="@dimen/resource_card_desc_text_size" />
 
         <ImageButton android:id="@+id/iconHelpPhotosDuringAudio" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_photos_during_audio_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
     </LinearLayout>

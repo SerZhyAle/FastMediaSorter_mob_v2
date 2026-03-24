@@ -74,6 +74,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         ActivityWelcomeBinding.inflate(layoutInflater)
 
     override fun setupViews() {
+        // Apply edge-to-edge insets: skip button below status bar, bottom nav above nav bar
+        applyEdgeToEdgeInsets()
+
         setupViewPager()
         setupButtons()
         updateUI()
@@ -81,6 +84,27 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     override fun observeData() {
         // No data to observe
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+
+            // Skip button below status bar
+            (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
+                it.topMargin = statusBar.top + resources.getDimensionPixelSize(R.dimen.margin_small)
+                binding.btnSkip.layoutParams = it
+            }
+
+            // Bottom nav above navigation bar
+            binding.layoutBottomNav?.setPadding(
+                binding.layoutBottomNav?.paddingLeft ?: 0, binding.layoutBottomNav?.paddingTop ?: 0,
+                binding.layoutBottomNav?.paddingRight ?: 0, navBar.bottom
+            )
+
+            insets
+        }
     }
 
     private fun setupViewPager() {

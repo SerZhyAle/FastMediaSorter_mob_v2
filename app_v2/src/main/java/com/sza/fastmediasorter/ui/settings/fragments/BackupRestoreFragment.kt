@@ -294,7 +294,7 @@ class BackupRestoreFragment : Fragment() {
             }
 
             is BackupRestoreUiState.BackupSuccess -> {
-                showSnackbar(getString(R.string.backup_success, state.resourceCount, state.accountEmail))
+                showSnackbar(getString(R.string.backup_success, state.resourceCount, state.favoritesCount, state.accountEmail))
                 updateAccountInfo()
                 viewModel.resetState()
             }
@@ -328,7 +328,7 @@ class BackupRestoreFragment : Fragment() {
     private fun showRestoreConfirmDialog(info: RestoreFromGoogleDriveUseCase.BackupInfo) {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.restore_confirm_title)
-            .setMessage(getString(R.string.restore_confirm_message, info.createdAt, info.deviceModel, info.resourceCount))
+            .setMessage(getString(R.string.restore_confirm_message, info.createdAt, info.deviceModel, info.resourceCount, info.favoritesCount))
             .setPositiveButton(R.string.restore_from_google_drive) { _, _ ->
                 viewModel.confirmRestore()
             }
@@ -342,7 +342,7 @@ class BackupRestoreFragment : Fragment() {
     }
 
     private fun showRestoreSuccessMessage(result: RestoreFromGoogleDriveUseCase.RestoreResult) {
-        showSnackbar(getString(R.string.restore_success, result.resourcesAdded, result.resourcesSkipped))
+        showSnackbar(getString(R.string.restore_success, result.resourcesAdded, result.resourcesSkipped, result.favoritesAdded, result.favoritesSkipped))
         if (result.resourcesNeedingAuth > 0) {
             Snackbar.make(binding.root, getString(R.string.restore_needs_auth), Snackbar.LENGTH_LONG).show()
         }

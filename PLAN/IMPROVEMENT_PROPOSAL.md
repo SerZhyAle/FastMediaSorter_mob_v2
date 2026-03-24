@@ -1,12 +1,12 @@
 # FastMediaSorter v2 — Бэклог улучшений
 
-**Дата**: 4 марта 2026 (обновлено: 22 марта 2026)
+**Дата**: 4 марта 2026 (обновлено: 23 марта 2026)
 **Тип документа**: Бэклог нереализованных улучшений
 **Статус**: живой документ — удалять реализованное, добавлять новое
 
 ---
 
-## Реализовано с момента последней ревизии (11 марта 2026)
+## Реализовано с момента последней ревизии (22 марта 2026)
 
 > Перечислено для контекста — не требует действий. Подробности в `dev/CHANGELOG.md`.
 
@@ -18,8 +18,23 @@
 | 16–19 март | Persistent background audio (AudioPlaybackService + ExoPlayer) |
 | 18–20 март | Standalone player / "Открыть с помощью" для всех типов файлов |
 | 21 март | Виджет Random Music, виджет Camera Photos, pin-виджет из редактора ресурсов |
-| 21–22 март | Виджеты: умные иконки, preview-картинки для пикера |
+| 21–22 март | Виджеты: умные иконки, preview-картинки для Android 12+ пикера |
 | 22 март | Подзаголовки (subtitle) для всех переключателей и чекбоксов в Settings |
+| 22 март | **III.2** — Network delete confirmation dialog (ГОТОВО) |
+| 22 март | **III.3** — Экспорт/Импорт избранного JSON (ГОТОВО) |
+| 22 март | Camera Photos виртуальная папка + виджет |
+| 22 март | Player: красная подсветка кнопок при нажатии (pressed state) |
+| 22 март | Улучшенный поиск текстов песен (AZLyrics, Musixmatch, Genius, Megalyrics.ru) |
+| 22 март | Улучшенный поиск обложек (Deezer, MusicBrainz/CAA fallback) |
+| 22 март | CP1251 авто-детект для кириллических ID3 тегов |
+| 22 март | Разнообразие AudioWaveParticleView (рандом параметров каждую сессию) |
+| 23 март | **X.15** — Edge-to-Edge / Insets — полная реализация WindowInsets для всех Activities |
+| 23 март | **X.14** — Material You — DynamicColors для тем на основе обоев (Android 12+) |
+| 23 март | **X.13** — Gradle Version Catalog — `libs.versions.toml` для управления зависимостями |
+| 23 март | **IV.10** — Debug timing cleanup — защита DEBUG кода через BuildConfig.DEBUG |
+| 23 март | **X.19** — App Shortcuts — статические + динамические ярлыки при долгом нажатии |
+| 23 март | **X.17** — Favorites в GDrive backup — избранное включено в BackupPayload v2 |
+| 23 март | **X.16** — Quick Settings Tile — тайл управления аудио (play/pause) в шторке |
 
 ---
 
@@ -69,35 +84,23 @@
 
 ## III. ФУНКЦИОНАЛЬНОСТЬ
 
-### III.2 Confirmation dialog для сетевых удалений — **[В РАЗРАБОТКЕ]**
+### III.2 Confirmation dialog для сетевых удалений — **[ГОТОВО ✓]** (22 март 2026)
 
-**Статус**: В работе — `dialog_network_delete_confirmation.xml` создан, интеграция не закоммичена.
-
-**Проблема**: Удалённые с сетевых ресурсов файлы невозвратимы. Undo не поддерживается для сети.
-
-**Целевое UX**: Усиленный confirm-диалог с явным предупреждением «Undo недоступен». В идеале — «сетевая корзина» (`/.trash` на сервере, если доступно).
+**Реализовано**: `dialog_network_delete_confirmation.xml` + `BrowseDialogHelper` интеграция с don't-show-again опцией. `ResourceType.isNetworkResource` property добавлен.
 
 ---
 
-### III.3 Экспорт/Импорт избранного — **[В РАЗРАБОТКЕ]**
+### III.3 Экспорт/Импорт избранного — **[ГОТОВО ✓]** (22 март 2026)
 
-**Статус**: В работе — `ExportFavoritesUseCase.kt`, `ImportFavoritesUseCase.kt`, `FavoritesExportModel.kt`, `dialog_import_favorites_preview.xml` созданы, не закоммичены.
+**Реализовано**: `ExportFavoritesUseCase.kt` (JSON в Downloads), `ImportFavoritesUseCase.kt` (conflict resolution + preview), UI через `BackupRestoreFragment` с file pickers.
 
-**Проблема**: Избранное хранится локально в Room DB. При смене устройства — теряется.
-
-**Целевое UX**: Export/Import JSON через стандартный file picker. Отчёт: «Импортировано N записей».
-
-**Следующий шаг после реализации**: Синхронизация через облако (GDrive/Dropbox).
+**Следующий шаг**: Синхронизация через облако (GDrive/Dropbox) — автоматический экспорт/импорт при backup/restore.
 
 ---
 
-### III.4 Бэкап избранного — **[В РАЗРАБОТКЕ]**
+### III.4 Бэкап избранного — **[ГОТОВО ✓]** (22 март 2026)
 
-**Статус**: В работе — `BackupRestoreViewModel.kt` и `BackupRestoreFragment.kt` изменены, не закоммичены.
-
-**Проблема**: GDrive backup охватывает настройки и ресурсы, но не избранное.
-
-**Целевое UX**: Backup содержит блок избранного. В restore-диалоге чекбокс «Восстановить избранное». При восстановлении — итог: добавлено/пропущено/конфликты.
+**Реализовано**: Favorites export/import реализован через BackupRestoreFragment. JSON-формат включает все данные избранного. При backup/restore через GDrive — отдельные кнопки для экспорта/импорта избранного.
 
 ---
 
@@ -267,7 +270,7 @@
 
 ---
 
-### IV.10 Debug-timing код в production-источниках
+### IV.10 Debug-timing код в production-источниках — ✅ РЕАЛИЗОВАНО (23 марта 2026)
 
 **Проблема**: В `BaseActivity.kt`, `SettingsActivity.kt`, `LocaleHelper.kt`, `SettingsRepositoryImpl.kt`, `StandalonePlayerActivity.kt` добавлены DEBUG: timing/diff logging без явного `BuildConfig.DEBUG` guard или — с guard, но в production-ветке. Засоряет logs.
 
@@ -501,54 +504,170 @@
 
 ---
 
+### X.9 Auto-sort rules (правила автосортировки)
+
+**Юс-кейс**: Пользователь создаёт правило: «Все .CR2 из папки DCIM → перемести в NAS/RAW». При открытии ресурса или по расписанию — правила срабатывают автоматически.
+
+**Предложение**: Rule builder (условия: расширение, размер, дата, имя; действия: переместить, скопировать, удалить). Scheduler + file watcher. Preview до применения.
+
+**Приоритет**: Низкий (сложная реализация, но высокий wow-фактор).
+
+---
+
+### X.10 Crashlytics + Performance Monitoring
+
+**Проблема**: Нет централизованного crash-reporting. Ошибки в production видны только если пользователь пришлёт логи. Нет данных о производительности (scan time, thumbnail load time).
+
+**Предложение**: Активировать Firebase Crashlytics (dependency уже может быть подключена через google-services). Добавить custom traces для scan, thumbnail, playback start.
+
+**Приоритет**: Средний.
+
+---
+
+### X.11 Background thumbnail preload
+
+**Юс-кейс**: При подключении к NAS — автоматически скачать/сгенерировать thumbnails для новых файлов в фоне (WorkManager). При следующем открытии Browse — мгновенная загрузка.
+
+**Предложение**: WorkManager задача после sync. Приоритеты: сначала первый экран (viewport), затем остальные. Лимит по трафику/размеру.
+
+**Приоритет**: Средний.
+
+---
+
+### X.12 KAPT → KSP миграция
+
+**Проблема**: KAPT устаревает, замедляет сборку. KSP (Kotlin Symbol Processing) — рекомендованная замена. Room, Hilt, Glide поддерживают KSP.
+
+**Предложение**: Мигрировать пошагово: Room KSP → Hilt KSP → Glide KSP. Замерить время сборки до и после.
+
+**Приоритет**: Средний (техническое здоровье сборки).
+
+---
+
+### X.13 Gradle Version Catalog (libs.versions.toml) — ✅ РЕАЛИЗОВАНО (23 марта 2026)
+
+**Проблема**: Все зависимости хардкодятся в `app_v2/build.gradle.kts` и `wear/build.gradle.kts`. Нет единого места для управления версиями. Обновление требует ручного поиска по двум файлам.
+
+**Предложение**: Создать `gradle/libs.versions.toml`. Мигрировать все зависимости. IDE получит авто-подсказки обновлений.
+
+**Приоритет**: Низкий (удобство разработки, нет user impact).
+
+---
+
+### X.14 Material You / Dynamic Color — ✅ РЕАЛИЗОВАНО (23 марта 2026)
+
+**Проблема**: Приложение использует фиксированную цветовую схему. На Android 12+ доступна Dynamic Color API (Material You), которая подстраивает UI под обои устройства.
+
+**Предложение**: `DynamicColors.applyToActivitiesIfAvailable()` в Application. Fallback на текущую схему для Android < 12.
+
+**Приоритет**: Низкий (визуальное улучшение).
+
+---
+
+### X.15 Edge-to-Edge / Android 15 insets — ✅ РЕАЛИЗОВАНО (23 марта 2026)
+
+**Проблема**: С Android 15 (API 35) edge-to-edge становится обязательным (opt-out невозможен). Текущий UI может некорректно обрабатывать system bars на targetSdk 35.
+
+**Предложение**: Провести аудит всех Activity на WindowInsets. Внедрить `enableEdgeToEdge()` + `ViewCompat.setOnApplyWindowInsetsListener` для всех корневых layout. Тестировать на 3-button, gesture, и cutout-режимах.
+
+**Приоритет**: **Высокий** (обязательно для targetSdk 35 compliance — compileSdk уже 35).
+
+---
+
+### X.16 Quick Settings Tile — ✅ РЕАЛИЗОВАНО (23 марта 2026)
+
+**Юс-кейс**: Пользователь свайпит Quick Settings → видит тайл "FMS Play" → нажимает → возобновляется Background Audio.
+
+**Предложение**: `TileService` (API 24+). Статус: Playing/Paused. При нажатии: toggle play/pause (через AudioPlaybackService). Если нет активной сессии — открыть "Все аудио" с shuffle.
+
+**Приоритет**: Низкий (отличный UX для audio-пользователей).
+
+---
+
+### X.17 Избранное в GDrive backup — ✅ РЕАЛИЗОВАНО (23 марта 2026)
+
+**Проблема**: GDrive backup охватывает настройки и ресурсы, но не избранное. Экспорт/импорт избранного (III.3) сделан как отдельная ручная операция.
+
+**Предложение**: Включить favorites JSON blob в основной backup payload (`BackupPayload`). При restore — чекбокс «Восстановить избранное» с preview количества.
+
+**Приоритет**: Средний.
+
+---
+
+### X.18 File comparison / Diff viewer
+
+**Юс-кейс**: Пользователь видит два похожих файла → «Сравнить» → side-by-side просмотр (для изображений — visual diff, для текста — text diff).
+
+**Предложение**: Начать с текстового diff (встроенный в Text Viewer). Image comparison — swipe/overlay. Критично для сценария «найти дубликаты и решить какой оставить».
+
+**Приоритет**: Низкий.
+
+---
+
+### X.19 App Shortcuts (Quick Actions) — расширенная версия — ✅ РЕАЛИЗОВАНО (23 марта 2026)
+
+**Юс-кейс**: Долгое нажатие иконки → «Последний ресурс», «Избранное», «Продолжить воспроизведение», «Случайная музыка» → одно нажатие в нужный контекст.
+
+**Предложение**: Static shortcuts в `res/xml/shortcuts.xml`. Динамические — через `ShortcutManager` для последних 3 использованных ресурсов. Интегрировать с Resume State.
+
+**Приоритет**: Низкий (но высокий user value при минимальных усилиях).
+
+---
+
 ## VI. ПРИОРИТИЗАЦИЯ
 
 ### Критично
-1. **IV.2** — TrustAllX509TrustManager (MITM-уязвимость)
+1. **IV.2** — TrustAllX509TrustManager (MITM-уязвимость) — в lint-baseline, аудит необходим
 2. **V.2** — Тестовые credentials в production-сборке (APK-риск)
+3. **X.15** — Edge-to-Edge / Android 15 insets (compileSdk 35 → обязательно)
 
 ### Высокий приоритет
-3. **III.2** — Confirm dialog для сетевых удалений *(В РАЗРАБОТКЕ)*
-4. **III.3** — Экспорт/Импорт избранного *(В РАЗРАБОТКЕ)*
-5. **III.4** — Бэкап избранного *(В РАЗРАБОТКЕ)*
+4. **III.13** — Background audio: UI управления очередью (фича неполная без UI)
+5. **IX.2** — IntegrationTestRunner (4471 LOC) вынести из production-кода
 6. **III.6** — Wear OS: экспорт/импорт ресурсов
-7. **III.13** — Background audio: UI управления очередью
-8. **IX.2** — IntegrationTestRunner (4471 LOC) вынести из production-кода
+7. **X.17** — Избранное в GDrive backup (интеграция III.3 результата в backup)
 
 ### Средний приоритет
-9. **IV.1** — Рефакторинг файлов-гигантов (начать с BrowseViewModel / ImageLoadingManager)
-10. **IV.10** — Debug-timing код в production-источниках (убрать до следующего релиза)
-11. **III.11** — StandalonePlayer: минимальные файловые операции
-12. **III.12** — StandalonePlayer: плейлист при нескольких файлах
-13. **VIII.1** — Accessibility: min text size 12sp
-14. **VIII.3** — Wear OS локализация
-15. **VIII.4** — Landscape-варианты диалогов
-16. **IV.8–9** — CI/CD + Coverage
-17. **IX.1** — Unified Result type
-18. **IX.3** — FileMetadataCache TTL
-19. **IX.6** — AudioMetadataCacheRepository TTL/LRU
-20. **X.1** — Дубликаты файлов
-21. **X.5** — HEIC поддержка
+8. **IV.1** — Рефакторинг файлов-гигантов (начать с BrowseViewModel / ImageLoadingManager)
+9. **IV.10** — Debug-timing код в production-источниках
+10. **III.11** — StandalonePlayer: минимальные файловые операции
+11. **III.12** — StandalonePlayer: плейлист при нескольких файлах
+12. **VIII.1** — Accessibility: min text size 12sp
+13. **VIII.3** — Wear OS локализация
+14. **VIII.4** — Landscape-варианты диалогов
+15. **IV.8–9** — CI/CD + Coverage
+16. **IX.1** — Unified Result type
+17. **IX.3** — FileMetadataCache TTL
+18. **IX.6** — AudioMetadataCacheRepository TTL/LRU
+19. **X.1** — Дубликаты файлов
+20. **X.5** — HEIC поддержка
+21. **X.10** — Crashlytics + Performance
+22. **X.11** — Background thumbnail preload
+23. **X.12** — KAPT → KSP миграция
 
 ### Низкий приоритет (стратегические)
-22. **II.1** — Navigation Component
-23. **II.2** — Compose adoption
-24. **II.3** — Tablet/large screen
-25. **III.7** — Batch rename
-26. **III.8** — Система тегов
-27. **III.9** — Статистика
-28. **III.10** — Drag-and-drop
-29. **III.14** — Custom virtual folders
-30. **IV.4** — Обновление зависимостей
-31. **VIII.2** — TalkBack аудит
-32. **VIII.5** — RTL аудит/документация
-33. **V.3** — FTP deprecation
-34. **X.2** — Cast/Chromecast
-35. **X.3** — App Shortcuts
-36. **X.4** — Кэш-индикатор
+24. **II.1** — Navigation Component
+25. **II.2** — Compose adoption
+26. **II.3** — Tablet/large screen
+27. **III.7** — Batch rename
+28. **III.8** — Система тегов
+29. **III.9** — Статистика использования
+30. **III.10** — Drag-and-drop
+31. **III.14** — Custom virtual folders
+32. **IV.4** — Обновление зависимостей
+33. **VIII.2** — TalkBack аудит
+34. **VIII.5** — RTL аудит/документация
+35. **V.3** — FTP deprecation
+36. **X.2** — Cast/Chromecast
 37. **X.6** — Batch EXIF edit
 38. **X.7** — DLNA server
 39. **X.8** — Голосовые команды
+40. **X.9** — Auto-sort rules
+41. **X.13** — Gradle Version Catalog
+42. **X.14** — Material You / Dynamic Color
+43. **X.16** — Quick Settings Tile
+44. **X.18** — File comparison / Diff viewer
+45. **X.19** — App Shortcuts
 
 ---
 
@@ -556,19 +675,17 @@
 
 | # | Задача | Сложность | Ориентир |
 |---|--------|-----------|----------|
-| III.2 | Confirm dialog сетевых удалений | Простая | 2–4 часа |
-| III.3 | Экспорт/Импорт избранного | Средняя | 4–8 часов |
-| III.4 | Бэкап избранного | Средняя | 4–8 часов |
 | III.6 | Wear OS: экспорт ресурсов | Средняя | 8–16 часов |
 | III.7 | Batch rename | Средняя | 8–16 часов |
 | III.11 | StandalonePlayer: файловые операции | Средняя | 4–8 часов |
 | III.12 | StandalonePlayer: плейлист | Средняя | 4–8 часов |
-| III.13 | Background audio UI | Средняя | 8–16 часов |
+| III.13 | Background audio UI (Now Playing) | Средняя | 8–16 часов |
 | III.14 | Custom virtual folders | Сложная | 16–24 часа |
 | IV.1 | Рефакторинг гигантов | Сложная | 30–60 часов (постепенно) |
-| IV.2 | Аудит TrustAll SSL | Средняя | 4–8 часов |
+| IV.2 | Аудит TrustAll SSL | Простая | 2–4 часа (аудит lint-baseline) |
 | IV.8–9 | CI/CD + Coverage | Средняя | 8–16 часов |
 | IV.10 | Debug code cleanup | Простая | 1–2 часа |
+| V.2 | test creds → debug sourceSet | Простая | 1–2 часа |
 | VIII.1 | Accessibility text size | Простая | 1–2 часа |
 | VIII.3 | Wear OS локализация | Простая | 2–4 часа |
 | VIII.4 | Landscape диалоги | Средняя | 8–12 часов |
@@ -578,6 +695,16 @@
 | X.1 | Дубликаты файлов | Сложная | 16–24 часа |
 | X.2 | Cast/Chromecast | Сложная | 16–24 часа |
 | X.5 | HEIC поддержка | Средняя | 4–8 часов |
+| X.10 | Crashlytics + Performance | Средняя | 4–8 часов |
+| X.11 | Background thumbnail preload | Средняя | 8–16 часов |
+| X.12 | KAPT → KSP | Средняя | 4–8 часов |
+| X.13 | Gradle Version Catalog | Простая | 2–4 часа |
+| X.14 | Material You Dynamic Color | Простая | 1–2 часа |
+| X.15 | Edge-to-Edge / Insets | Средняя | 8–16 часов |
+| X.16 | Quick Settings Tile | Простая | 2–4 часа |
+| X.17 | Favorites в GDrive backup | Простая | 2–4 часа |
+| X.18 | File comparison / Diff | Сложная | 16–24 часа |
+| X.19 | App Shortcuts | Простая | 2–4 часа |
 | I.4 | Скриншоты | Средняя | 2–4 часа |
 | II.3 | Tablet two-pane layout | Сложная | 20–40 часов |
 | III.5 | RAW preview | Сложная | 16–24 часа |

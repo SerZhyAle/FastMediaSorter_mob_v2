@@ -102,6 +102,7 @@ class MainViewModel @Inject constructor(
     private val smbOperationsUseCase: SmbOperationsUseCase,
     private val provisionDefaultResourcesUseCase: ProvisionDefaultResourcesUseCase,
     private val migrateCameraResourceUseCase: MigrateCameraResourceUseCase,
+    private val appShortcutsManager: com.sza.fastmediasorter.core.AppShortcutsManager,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : BaseViewModel<MainState, MainEvent>() {
 
@@ -195,6 +196,9 @@ class MainViewModel @Inject constructor(
                 )
                 
                 updateState { it.copy(resources = resources) }
+
+                // Update app shortcuts with recent resources
+                appShortcutsManager.updateRecentResourceShortcuts()
             } catch (e: Exception) {
                 Timber.e(e, "Error loading resources")
                 handleError(e)
@@ -485,6 +489,22 @@ class MainViewModel @Inject constructor(
         }
         // Open Browse with Favorites resource directly
         sendEvent(MainEvent.NavigateToFavorites)
+    }
+
+    fun openResourceDirect(resourceId: Long) {
+        viewModelScope.launch(ioDispatcher) {
+            try {
+                val resource = state.value.resources.firstOrNull { it.id == resourceId }
+                if (resource != null) {
+                    sendEvent(MainEvent.NavigateToBrowse(resourceId, skipAvailabilityCheck = true))
+                } else {
+                    sendEvent(MainEvent.ShowMessage("Resource not found"))
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Error opening resource via shortcut")
+                sendEvent(MainEvent.ShowMessage("Error: ${e.message}"))
+            }
+        }
     }
     
     fun restorePreviousTab() {

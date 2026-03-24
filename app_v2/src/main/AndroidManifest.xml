@@ -46,6 +46,9 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <activity android:name=".ui.browse.BrowseActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
@@ -109,7 +112,7 @@
         </activity>
 
         <!-- Favorites Widget -->
-        <receiver android:name=".widget.FavoritesWidgetProvider" android:exported="true" android:label="@string/widget_favorites_label">
+        <receiver android:name=".widget.FavoritesWidgetProvider" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -126,33 +129,31 @@
             </intent-filter>
         </service>
 
+        <!-- Quick Settings tile for audio play/pause toggle -->
+        <service
+            android:name=".core.AudioToggleTileService"
+            android:icon="@drawable/ic_tile_play"
+            android:label="@string/tile_audio_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+            <meta-data
+                android:name="android.service.quicksettings.ACTIVE_TILE"
+                android:value="false" />
+        </service>
+
         <!-- Resource Launch Widget -->
-        <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true" android:label="@string/widget_resource_launch_label">
+        <receiver android:name=".widget.ResourceLaunchWidgetProvider" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-                <action android:name="com.sza.fastmediasorter.WIDGET_PINNED" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_resource_launch_info" />
         </receiver>
 
-        <!-- Random Music Widget (standard / lite / legacy — SUPPORT_AUDIO flavors) -->
-        <receiver android:name=".widget.RandomMusicWidgetProvider" android:exported="true" android:label="@string/widget_random_music_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_random_music_info" />
-        </receiver>
-
-        <!-- Camera Photos Widget (standard / photos / legacy — SUPPORT_IMAGES flavors) -->
-        <receiver android:name=".widget.CameraPhotosWidgetProvider" android:exported="true" android:label="@string/widget_camera_photos_label">
-            <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
-            </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_camera_photos_info" />
-        </receiver>
-
         <!-- Continue Reading Widget -->
-        <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true" android:label="@string/widget_continue_reading_label">
+        <receiver android:name=".widget.ContinueReadingWidgetProvider" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -171,22 +172,11 @@
             android:exported="true"
             android:theme="@style/Theme.FastMediaSorter" />
 
-        <!-- Phase 5: Hardware media button receiver for cold service restart (disabled by default) -->
-        <!-- Enabled/disabled via DefaultPlayerManager when "Use as primary media player" toggle is ON -->
-        <receiver
-            android:name=".ui.player.MediaButtonRestartReceiver"
-            android:enabled="false"
-            android:exported="true">
-            <intent-filter android:priority="1000">
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
-
         <!-- Phase 2: Activity aliases for file-type associations (disabled by default) -->
 
         <!-- Audio alias: mp3, flac, aac, ogg, m4a, wma, opus, amr, etc. -->
         <activity-alias
-            android:name="${applicationId}.StandaloneAudioPlayer"
+            android:name=".StandaloneAudioPlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -212,7 +202,7 @@
 
         <!-- Video alias: mp4, mkv, avi, mov, webm, flv, wmv, 3gp, etc. -->
         <activity-alias
-            android:name="${applicationId}.StandaloneVideoPlayer"
+            android:name=".StandaloneVideoPlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -238,7 +228,7 @@
 
         <!-- Image alias: jpg, png, webp, heic, heif, bmp, avif (NO gif) -->
         <activity-alias
-            android:name="${applicationId}.StandaloneImagePlayer"
+            android:name=".StandaloneImagePlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -259,10 +249,9 @@
             </intent-filter>
         </activity-alias>
 
-        <!-- Documents alias: pdf, epub, txt, json, xml, html, csv, markdown -->
-        <!-- Covers all MIME types handled by getMediaTypeFromMime() as TEXT/PDF/EPUB -->
+        <!-- Documents alias: pdf, epub, txt -->
         <activity-alias
-            android:name="${applicationId}.StandaloneDocsPlayer"
+            android:name=".StandaloneDocsPlayer"
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
@@ -275,57 +264,6 @@
                 <data android:mimeType="application/pdf" />
                 <data android:mimeType="application/epub+zip" />
                 <data android:mimeType="text/plain" />
-                <data android:mimeType="text/xml" />
-                <data android:mimeType="text/html" />
-                <data android:mimeType="text/csv" />
-                <data android:mimeType="text/markdown" />
-                <data android:mimeType="application/json" />
-                <data android:mimeType="application/xml" />
-            </intent-filter>
-        </activity-alias>
-
-        <!-- Phase 6: ACTION_SEND / ACTION_SEND_MULTIPLE aliases (Share sheet, disabled by default) -->
-        <!-- Enabled/disabled via DefaultPlayerManager when "Accept shared media files" toggle is ON -->
-
-        <!-- Audio share receiver -->
-        <activity-alias
-            android:name="${applicationId}.StandaloneAudioSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="audio/*" />
-            </intent-filter>
-        </activity-alias>
-
-        <!-- Video share receiver -->
-        <activity-alias
-            android:name="${applicationId}.StandaloneVideoSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="video/*" />
-            </intent-filter>
-        </activity-alias>
-
-        <!-- Image share receiver -->
-        <activity-alias
-            android:name="${applicationId}.StandaloneImageSender"
-            android:enabled="false"
-            android:exported="true"
-            android:targetActivity=".ui.player.StandalonePlayerActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.SEND" />
-                <action android:name="android.intent.action.SEND_MULTIPLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="image/*" />
             </intent-filter>
         </activity-alias>
 

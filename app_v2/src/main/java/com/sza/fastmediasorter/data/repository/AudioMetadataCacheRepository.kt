@@ -14,8 +14,9 @@ class AudioMetadataCacheRepository @Inject constructor(
 ) {
     companion object {
         const val CACHE_DIR_NAME = "audio_metadata_cache"
-        const val MAX_CACHE_BYTES = 10L * 1024 * 1024 * 1024 // 10 GB
+        const val MAX_CACHE_BYTES = 500L * 1024 * 1024 // 500 MB
         private const val CLEANUP_FRACTION = 0.5
+        private const val TTL_MS = 30L * 24 * 60 * 60 * 1000 // 30 days
     }
 
     private val cacheDir: File get() = File(context.filesDir, CACHE_DIR_NAME)
@@ -24,6 +25,9 @@ class AudioMetadataCacheRepository @Inject constructor(
         val metaFile = File(cacheDir, "$audioFileName.metadata")
         if (!metaFile.exists()) return null
         return try {
+            // Touch file to update lastModified (LRU: recently accessed files survive longer)
+            metaFile.setLastModified(System.currentTimeMillis())
+
             val json = JSONObject(metaFile.readText())
             val ext = json.optString("coverExtension", "").ifEmpty { null }
             val coverFile = ext?.let {
@@ -90,6 +94,23 @@ class AudioMetadataCacheRepository @Inject constructor(
         files.take(toDelete).forEach { it.delete() }
         Timber.d("AudioMetadataCache: trimmed %d files (was %d MB)", toDelete, totalSize / 1024 / 1024)
         return true
+    }
+
+    /**
+     * Delete files older than TTL_MS. Called by OrphanCleanupWorker every 24h.
+     * @return number of deleted files
+     */
+    fun cleanupExpired(): Int {
+        val cutoff = System.currentTimeMillis() - TTL_MS
+        val files = cacheDir.listFiles() ?: return 0
+        var deleted = 0
+        files.filter { it.lastModified() < cutoff }.forEach { file ->
+            if (file.delete()) deleted++
+        }
+        if (deleted > 0) {
+            Timber.d("AudioMetadataCache: TTL cleanup removed %d expired files", deleted)
+        }
+        return deleted
     }
 
     private fun ensureCacheDirExists() {

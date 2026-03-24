@@ -261,10 +261,8 @@ class PlayerDialogAndUiStateManager(
         // OVERRIDE: Audio files ALWAYS show command panel (except in audio slideshow photo mode)
         val forceShowPanel = showCommandPanel || (isAudioFile && !isAudioSlideshowPhotoMode)
         
-        // CRITICAL: Hide topCommandPanel during slideshow mode for fullscreen experience.
-        // EXCEPTION: If user explicitly enabled command panel (showCommandPanel=true), respect it —
-        // this covers VIDEO_LIBRARY resources where autoSlideshow is set but the user still wants navigation.
-        val shouldHideForSlideshow = isSlideshowActive && !isAudioFile && !showCommandPanel
+        // CRITICAL: Hide topCommandPanel during slideshow mode for fullscreen experience
+        val shouldHideForSlideshow = isSlideshowActive && !isAudioFile
         
         Timber.d("PlayerDialogAndUiStateManager: updatePanelVisibility(showCommandPanel=$showCommandPanel, isAudio=$isAudioFile, slideshow=$isSlideshowActive, RESULT=${forceShowPanel && !shouldHideForSlideshow})")
         

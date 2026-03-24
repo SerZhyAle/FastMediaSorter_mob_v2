@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.worker
 
 import android.content.Context
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
@@ -33,6 +34,7 @@ class WorkManagerScheduler @Inject constructor(
                 repeatIntervalTimeUnit = TimeUnit.MINUTES
             )
                 .setInitialDelay(1, TimeUnit.MINUTES) // Delay first run to reduce startup load
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
             
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -80,6 +82,7 @@ class WorkManagerScheduler @Inject constructor(
                 .setConstraints(constraints)
                 .setInitialDelay(5, TimeUnit.MINUTES)
                 .addTag(NetworkFilesSyncWorker.WORK_NAME)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -117,6 +120,7 @@ class WorkManagerScheduler @Inject constructor(
                 repeatIntervalTimeUnit = TimeUnit.HOURS
             )
                 .setInitialDelay(10, TimeUnit.MINUTES)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -146,6 +150,7 @@ class WorkManagerScheduler @Inject constructor(
             )
                 .setConstraints(constraints)
                 .setInitialDelay(2, TimeUnit.MINUTES)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(

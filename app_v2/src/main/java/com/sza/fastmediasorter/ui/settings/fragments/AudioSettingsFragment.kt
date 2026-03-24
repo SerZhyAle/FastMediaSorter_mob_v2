@@ -101,7 +101,6 @@ class AudioSettingsFragment : Fragment() {
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(searchAudioCoversOnline = isChecked))
                 binding.layoutSearchCoversOnlyWifi.isVisible = isChecked
-                binding.layoutSaveAudioMetadataLocally.isVisible = isChecked
             }
         }
 
@@ -110,14 +109,6 @@ class AudioSettingsFragment : Fragment() {
             if (!isUpdatingFromSettings) {
                 val current = viewModel.settings.value
                 viewModel.updateSettings(current.copy(searchAudioCoversOnlyOnWifi = isChecked))
-            }
-        }
-
-        // Save audio metadata locally
-        binding.switchSaveAudioMetadataLocally.setOnCheckedChangeListener { _, isChecked ->
-            if (!isUpdatingFromSettings) {
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(saveAudioMetadataLocally = isChecked))
             }
         }
 
@@ -222,9 +213,6 @@ class AudioSettingsFragment : Fragment() {
 
         // Background audio playback
         setupBackgroundAudioSection()
-
-        // Default player button
-        setupDefaultPlayerButton()
     }
 
     private fun observeData() {
@@ -241,11 +229,9 @@ class AudioSettingsFragment : Fragment() {
                     
                     binding.switchSearchAudioCoversOnline.isChecked = settings.searchAudioCoversOnline
                     binding.switchSearchCoversOnlyWifi.isChecked = settings.searchAudioCoversOnlyOnWifi
-                    binding.layoutSaveAudioMetadataLocally.isVisible = settings.searchAudioCoversOnline
-                    binding.switchSaveAudioMetadataLocally.isChecked = settings.saveAudioMetadataLocally
-
+                    
                     binding.layoutSearchCoversOnlyWifi.isVisible = settings.searchAudioCoversOnline
-
+                    
                     // Photos during audio playback
                     binding.switchEnablePhotosDuringAudio.isChecked = settings.enablePhotosDuringAudio
                     binding.layoutPhotosSourceSelector.isVisible = settings.enablePhotosDuringAudio
@@ -375,21 +361,9 @@ class AudioSettingsFragment : Fragment() {
         _binding = null
     }
 
-    override fun onResume() {
-        super.onResume()
-        _binding?.let {
-            DefaultPlayerHelper.applyButtonState(
-                it.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
-            )
-        }
-    }
-
     private fun setupDefaultPlayerButton() {
-        DefaultPlayerHelper.applyButtonState(
-            binding.btnSetDefaultAudioPlayer, requireContext(), R.string.settings_set_default_audio_player
-        )
         binding.btnSetDefaultAudioPlayer.setOnClickListener {
-            DefaultPlayerHelper.showSetDefaultDialogForType(this, "audio/*")
+            DefaultPlayerHelper.showSetDefaultDialog(this)
         }
     }
 }

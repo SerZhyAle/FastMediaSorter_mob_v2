@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.sza.fastmediasorter.data.local.db.CachedFileListDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
+import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import timber.log.Timber
@@ -30,7 +31,8 @@ class OrphanCleanupWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val cachedFileListDao: CachedFileListDao,
     private val networkCredentialsDao: NetworkCredentialsDao,
-    private val fileMetadataCacheDao: FileMetadataCacheDao
+    private val fileMetadataCacheDao: FileMetadataCacheDao,
+    private val audioMetadataCacheRepository: AudioMetadataCacheRepository
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -46,6 +48,7 @@ class OrphanCleanupWorker @AssistedInject constructor(
         return try {
             cleanOrphanedCaches(correlationId)
             cleanMetadataCache(correlationId)
+            cleanAudioMetadataCache(correlationId)
             auditOrphanedCredentials(correlationId)
             Timber.i("[orphan-cleanup/$correlationId] completed successfully")
             Result.success()
@@ -88,6 +91,22 @@ class OrphanCleanupWorker @AssistedInject constructor(
             )
         } else {
             Timber.d("[orphan-cleanup/$correlationId] metadata cache is clean (no expired/orphaned entries)")
+        }
+    }
+
+    /**
+     * Expire stale audio metadata cache files (TTL) and trim to size budget.
+     */
+    private fun cleanAudioMetadataCache(correlationId: String) {
+        val expired = audioMetadataCacheRepository.cleanupExpired()
+        val trimmed = audioMetadataCacheRepository.trimIfNeeded()
+        if (expired > 0 || trimmed) {
+            Timber.i(
+                "[orphan-cleanup/$correlationId] audio metadata cache: " +
+                    "$expired expired, trimmed=$trimmed"
+            )
+        } else {
+            Timber.d("[orphan-cleanup/$correlationId] audio metadata cache is clean")
         }
     }
 

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.network
 import com.hierynomus.smbj.SMBClient
 import com.hierynomus.smbj.SmbConfig
 import com.hierynomus.smbj.auth.AuthenticationContext
+import com.sza.fastmediasorter.BuildConfig
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
@@ -310,12 +311,13 @@ class SmbConnectionManager @Inject constructor(
         // Always run regardless of useDegradedTimeout to avoid waiting 5-15s for offline hosts.
         checkConnectivity(connectionInfo.server, connectionInfo.port, CONNECTIVITY_CHECK_TIMEOUT_MS)
 
-        val startTime = System.currentTimeMillis()
+        val startTime = if (BuildConfig.DEBUG) System.currentTimeMillis() else 0L
         // Use degraded client for recovery after timeout to get extended timeouts
         val client = if (useDegradedTimeout) getDegradedClient() else getClient(connectionInfo.server, connectionInfo.port)
         val connection = client.connect(connectionInfo.server, connectionInfo.port)
-        val connectTime = System.currentTimeMillis() - startTime
-        Timber.d("SMB connect to ${connectionInfo.server}:${connectionInfo.port} took ${connectTime}ms (degraded=$useDegradedTimeout)")
+        if (BuildConfig.DEBUG) {
+            Timber.d("SMB connect to ${connectionInfo.server}:${connectionInfo.port} took ${System.currentTimeMillis() - startTime}ms (degraded=$useDegradedTimeout)")
+        }
         
         val finalDomain = connectionInfo.domain.trim().ifEmpty { null }
         val pwdLen = connectionInfo.password.length
@@ -334,20 +336,22 @@ class SmbConnectionManager @Inject constructor(
             )
         }
         
-        val authStartTime = System.currentTimeMillis()
+        val authStartTime = if (BuildConfig.DEBUG) System.currentTimeMillis() else 0L
         val session = try {
             connection.authenticate(authContext)
         } catch (e: com.hierynomus.mssmb2.SMBApiException) {
             Timber.e("SMB STATUS_LOGON_FAILURE for user='${connectionInfo.username}', pwdLen=$pwdLen, domain=${finalDomain ?: "<none>"}, server=${connectionInfo.server}:${connectionInfo.port}")
             throw e
         }
-        val authTime = System.currentTimeMillis() - authStartTime
-        Timber.d("SMB authenticate took ${authTime}ms")
+        if (BuildConfig.DEBUG) {
+            Timber.d("SMB authenticate took ${System.currentTimeMillis() - authStartTime}ms")
+        }
         
-        val shareStartTime = System.currentTimeMillis()
+        val shareStartTime = if (BuildConfig.DEBUG) System.currentTimeMillis() else 0L
         val share = session.connectShare(connectionInfo.shareName) as DiskShare
-        val shareTime = System.currentTimeMillis() - shareStartTime
-        Timber.d("SMB connect to share ${connectionInfo.shareName} took ${shareTime}ms")
+        if (BuildConfig.DEBUG) {
+            Timber.d("SMB connect to share ${connectionInfo.shareName} took ${System.currentTimeMillis() - shareStartTime}ms")
+        }
         
         // Store in pool
         val key = ConnectionKey(

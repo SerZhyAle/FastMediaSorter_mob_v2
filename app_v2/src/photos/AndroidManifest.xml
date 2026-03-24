@@ -13,6 +13,11 @@
             android:name=".widget.RandomMusicWidgetProvider"
             tools:node="remove" />
 
+        <!-- Remove Audio Quick Settings Tile from photos flavor (no audio support) -->
+        <service
+            android:name=".core.AudioToggleTileService"
+            tools:node="remove" />
+
     </application>
 
 </manifest>

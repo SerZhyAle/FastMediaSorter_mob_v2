@@ -136,6 +136,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                 viewModel.openCameraPhotos()
             }
         }
+        if (intent?.action == ACTION_OPEN_FAVORITES) {
+            binding.root.post {
+                viewModel.openFavorites()
+            }
+        }
+        if (intent?.action == ACTION_BROWSE_RESOURCE) {
+            val resourceId = intent.getLongExtra(EXTRA_SHORTCUT_RESOURCE_ID, -1L)
+            if (resourceId != -1L) {
+                binding.root.post {
+                    viewModel.openResourceDirect(resourceId)
+                }
+            }
+        }
         
         // Initialize keyboard navigation handler
         keyboardNavigationHandler = KeyboardNavigationHandler(
@@ -214,6 +227,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isReturningFromAnotherActivity = false
 
     override fun setupViews() {
+        // Apply edge-to-edge insets: RecyclerView bottom padding for nav bar
+        applyEdgeToEdgeInsets()
+
         resourceAdapter = ResourceAdapter(
             onItemClick = { resource ->
                 // Simple click = select and open Browse
@@ -349,6 +365,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             } catch (e: Exception) {
                 Timber.e(e, "Failed to get app version")
             }
+        }
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        // RecyclerView needs bottom padding so last item isn't behind nav bar
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvResources) { view, insets ->
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
+            (view as? android.view.ViewGroup)?.clipToPadding = false
+            insets
         }
     }
 
@@ -1115,6 +1141,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         const val ACTION_START_SLIDESHOW = "com.sza.fastmediasorter.ACTION_START_SLIDESHOW"
         const val ACTION_RANDOM_MUSIC = "com.sza.fastmediasorter.ACTION_RANDOM_MUSIC"
         const val ACTION_CAMERA_PHOTOS = "com.sza.fastmediasorter.ACTION_CAMERA_PHOTOS"
+        const val ACTION_OPEN_FAVORITES = "com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
+        const val ACTION_BROWSE_RESOURCE = "com.sza.fastmediasorter.ACTION_BROWSE_RESOURCE"
+        const val EXTRA_SHORTCUT_RESOURCE_ID = "shortcut_resource_id"
         private const val PREFS_NAME_APP = "app_prefs"
         private const val KEY_STORAGE_PERMISSION_REQUESTED = "storage_permission_requested"
     }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.os.Build
+import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -18,6 +19,7 @@ object BackupMapper {
     fun toBackupPayload(
         settings: AppSettings,
         resources: List<MediaResource>,
+        favorites: List<BackupFavorite>,
         appVersionCode: Long,
         appVersionName: String
     ): BackupPayload {
@@ -32,7 +34,8 @@ object BackupMapper {
             deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}",
             androidVersion = Build.VERSION.SDK_INT,
             settings = toBackupSettings(settings),
-            resources = resources.map { toBackupResource(it) }
+            resources = resources.map { toBackupResource(it) },
+            favorites = favorites
         )
     }
 
@@ -318,5 +321,41 @@ object BackupMapper {
     private fun safeParseResourceProfile(value: String): com.sza.fastmediasorter.domain.model.ResourceProfile {
         return try { com.sza.fastmediasorter.domain.model.ResourceProfile.valueOf(value) }
         catch (_: Exception) { com.sza.fastmediasorter.domain.model.ResourceProfile.NONE }
+    }
+
+    fun toBackupFavorites(
+        favorites: List<FavoritesEntity>,
+        resourceLookup: Map<Long, MediaResource>
+    ): List<BackupFavorite> {
+        return favorites.map { entity ->
+            val resource = resourceLookup[entity.resourceId]
+            BackupFavorite(
+                uri = entity.uri,
+                resourceName = resource?.name ?: "",
+                resourcePath = resource?.path ?: "",
+                displayName = entity.displayName,
+                mediaType = entity.mediaType,
+                size = entity.size,
+                lastKnownPath = entity.lastKnownPath,
+                dateModified = entity.dateModified,
+                addedTimestamp = entity.addedTimestamp
+            )
+        }
+    }
+
+    fun toFavoritesEntity(
+        backup: BackupFavorite,
+        resolvedResourceId: Long
+    ): FavoritesEntity {
+        return FavoritesEntity(
+            uri = backup.uri,
+            resourceId = resolvedResourceId,
+            displayName = backup.displayName,
+            mediaType = backup.mediaType,
+            size = backup.size,
+            lastKnownPath = backup.lastKnownPath,
+            dateModified = backup.dateModified,
+            addedTimestamp = backup.addedTimestamp
+        )
     }
 }

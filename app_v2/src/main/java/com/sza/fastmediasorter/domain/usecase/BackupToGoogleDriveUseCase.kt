@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
+import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -26,7 +27,8 @@ class BackupToGoogleDriveUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
-    private val googleDriveClient: GoogleDriveRestClient
+    private val googleDriveClient: GoogleDriveRestClient,
+    private val favoritesDao: FavoritesDao
 ) {
     companion object {
         const val FOLDER_NAME = "FastMediaSorter"
@@ -59,12 +61,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |  translation/OCR, cache, etc.)
             |- **Resource list** — configured media sources (local folders, network shares,
             |  cloud folders) with their display and behavior settings
+            |- **Favorites** — bookmarked media files with metadata
             |
             |Backups do **not** contain:
             |
             |- Media files, thumbnails, or cached data
             |- Passwords, OAuth tokens, or other credentials
-            |- Database indexes or favorites
+            |- Database indexes
             |
             |## Restoring
             |
@@ -94,12 +97,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |  воспроизведение, сеть, перевод/OCR, кэш и т.д.)
             |- **Список ресурсов** — настроенные источники медиа (локальные папки,
             |  сетевые шары, облачные папки) с параметрами отображения и поведения
+            |- **Избранное** — закладки медиафайлов с метаданными
             |
             |Резервные копии **не** содержат:
             |
             |- Медиафайлы, миниатюры или кэшированные данные
             |- Пароли, OAuth-токены и другие учётные данные
-            |- Индексы базы данных или избранное
+            |- Индексы базы данных
             |
             |## Восстановление
             |
@@ -130,12 +134,13 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             |  відтворення, мережа, переклад/OCR, кеш тощо)
             |- **Список ресурсів** — налаштовані джерела медіа (локальні папки,
             |  мережеві ресурси, хмарні папки) з параметрами відображення та поведінки
+            |- **Обране** — закладки медіафайлів з метаданими
             |
             |Резервні копії **не** містять:
             |
             |- Медіафайли, мініатюри або кешовані дані
             |- Паролі, OAuth-токени та інші облікові дані
-            |- Індекси бази даних або обране
+            |- Індекси бази даних
             |
             |## Відновлення
             |
@@ -149,6 +154,7 @@ class BackupToGoogleDriveUseCase @Inject constructor(
 
     data class BackupResult(
         val resourceCount: Int,
+        val favoritesCount: Int,
         val accountEmail: String
     )
 
@@ -164,10 +170,16 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             val settings = settingsRepository.getSettings().first()
             val resources = resourceRepository.getAllResourcesSync()
 
+            // 1b. Collect favorites
+            val favoritesEntities = favoritesDao.getAllFavoritesSync()
+            val resourceLookup = resources.associateBy { it.id }
+            val backupFavorites = BackupMapper.toBackupFavorites(favoritesEntities, resourceLookup)
+
             // 2. Build payload
             val payload = BackupMapper.toBackupPayload(
                 settings = settings,
                 resources = resources,
+                favorites = backupFavorites,
                 appVersionCode = BuildConfig.VERSION_CODE.toLong(),
                 appVersionName = BuildConfig.VERSION_NAME
             )
@@ -193,8 +205,8 @@ class BackupToGoogleDriveUseCase @Inject constructor(
 
             when (uploadResult) {
                 is CloudResult.Success -> {
-                    Timber.i("Backup uploaded as $fileName: ${resources.size} resources")
-                    Result.success(BackupResult(resources.size, accountEmail))
+                    Timber.i("Backup uploaded as $fileName: ${resources.size} resources, ${backupFavorites.size} favorites")
+                    Result.success(BackupResult(resources.size, backupFavorites.size, accountEmail))
                 }
                 is CloudResult.Error -> {
                     Timber.e("Backup upload failed: ${uploadResult.message}")

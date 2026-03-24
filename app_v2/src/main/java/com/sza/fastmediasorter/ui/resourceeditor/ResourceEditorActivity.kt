@@ -18,7 +18,13 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
     }
 
     override fun setupViews() {
-        // Fragment manages its own views
+        // Apply edge-to-edge insets: fragment toolbar below status bar, content above nav bar
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.fragmentContainer) { view, insets ->
+            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(0, statusBar.top, 0, navBar.bottom)
+            insets
+        }
     }
 
     override fun observeData() {

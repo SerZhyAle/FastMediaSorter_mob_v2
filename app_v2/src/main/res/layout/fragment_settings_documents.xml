@@ -38,23 +38,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                    <LinearLayout
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/support_text_description"
-                            android:textSize="@dimen/resource_card_desc_text_size" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_support_text_desc"
-                            android:textSize="@dimen/text_size_small"
-                            android:textColor="@color/text_color_secondary" />
-                    </LinearLayout>
+                        android:text="@string/support_text_description"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
                 </LinearLayout>
 
                 <!-- Show Text Line Numbers (nested under Support Text) -->
@@ -74,23 +63,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                    <LinearLayout
-                        android:layout_width="0dp"
+                    <TextView
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/show_text_line_numbers"
-                            android:textSize="@dimen/resource_card_desc_text_size" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_show_text_line_numbers_desc"
-                            android:textSize="@dimen/text_size_small"
-                            android:textColor="@color/text_color_secondary" />
-                    </LinearLayout>
+                        android:text="@string/show_text_line_numbers"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
 
                     <ImageButton
                         android:id="@+id/iconHelpLineNumbers"
@@ -127,23 +104,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                    <LinearLayout
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/support_pdf_description"
-                            android:textSize="@dimen/resource_card_desc_text_size" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/setting_support_pdf_desc"
-                            android:textSize="@dimen/text_size_small"
-                            android:textColor="@color/text_color_secondary" />
-                    </LinearLayout>
+                        android:text="@string/support_pdf_description"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
                 </LinearLayout>
 
                 <!-- Show PDF Thumbnails (nested under Support PDF) -->
@@ -163,23 +129,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-                    <LinearLayout
+                    <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:orientation="vertical">
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/show_pdf_thumbnails"
-                            android:textSize="@dimen/resource_card_desc_text_size" />
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/show_pdf_thumbnails_description"
-                            android:textSize="@dimen/text_size_small"
-                            android:textColor="@color/text_color_secondary" />
-                    </LinearLayout>
+                        android:text="@string/show_pdf_thumbnails"
+                        android:textSize="@dimen/resource_card_desc_text_size" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -200,23 +155,12 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="@dimen/settings_switch_margin_end" />
 
-            <LinearLayout
+            <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="vertical">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/support_epub_description"
-                    android:textSize="@dimen/resource_card_desc_text_size" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/setting_support_epub_desc"
-                    android:textSize="@dimen/text_size_small"
-                    android:textColor="@color/text_color_secondary" />
-            </LinearLayout>
+                android:text="@string/support_epub_description"
+                android:textSize="@dimen/resource_card_desc_text_size" />
         </LinearLayout>
 
     <Button

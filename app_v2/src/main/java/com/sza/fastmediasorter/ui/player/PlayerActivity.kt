@@ -424,6 +424,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     // Touch zone gesture detector managed by TouchZoneGestureManager
     private lateinit var imageTouchGestureDetector: GestureDetector
 
+    override fun shouldEnableEdgeToEdge(): Boolean = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // PlayerActivity uses Edge-to-Edge ALWAYS to allow precise manual insets control.
         // We handle padding manually via OnApplyWindowInsetsListener in setupSystemBars().

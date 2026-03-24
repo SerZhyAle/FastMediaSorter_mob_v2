@@ -75,4 +75,35 @@ class AudioMetadataCacheRepositoryTest {
         repo.saveCover("track.mp3", ByteArray(100), "jpg")
         assertFalse(repo.trimIfNeeded())
     }
+
+    @Test
+    fun `cleanupExpired removes old files`() {
+        repo.saveMetadata("old.mp3", AudioMetadataSaveData(null, null, null, null, null, null))
+        // Backdate the metadata file to 31 days ago
+        val cacheDir = java.io.File(context.cacheDir, "audio_meta")
+        val hash = "old.mp3".hashCode().toUInt().toString(16)
+        val metaFile = java.io.File(cacheDir, "${hash}_meta.json")
+        assertTrue(metaFile.exists())
+        metaFile.setLastModified(System.currentTimeMillis() - 31L * 24 * 60 * 60 * 1000)
+
+        val removed = repo.cleanupExpired()
+        assertTrue(removed > 0)
+        assertNull(repo.readMetadata("old.mp3"))
+    }
+
+    @Test
+    fun `readMetadata touches lastModified for LRU`() {
+        repo.saveMetadata("lru.mp3", AudioMetadataSaveData("Track", null, null, null, null, null))
+        val cacheDir = java.io.File(context.cacheDir, "audio_meta")
+        val hash = "lru.mp3".hashCode().toUInt().toString(16)
+        val metaFile = java.io.File(cacheDir, "${hash}_meta.json")
+        // Backdate to 10 days ago
+        val oldTime = System.currentTimeMillis() - 10L * 24 * 60 * 60 * 1000
+        metaFile.setLastModified(oldTime)
+
+        val cached = repo.readMetadata("lru.mp3")
+        assertNotNull(cached)
+        // After read, lastModified should be updated (more recent than oldTime)
+        assertTrue(metaFile.lastModified() > oldTime)
+    }
 }

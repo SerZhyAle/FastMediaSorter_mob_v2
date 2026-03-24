@@ -17,12 +17,9 @@
         <item name="colorOnBackground">@color/white</item>
         <item name="colorOnSurface">@color/white</item>
         
-        <!-- Status bar and navigation bar -->
-        <item name="android:statusBarColor">@color/black</item>
-        <item name="android:navigationBarColor">@color/black</item>
-        
-        <!-- Disable edge-to-edge to prevent system UI overlap -->
-        <item name="android:windowLayoutInDisplayCutoutMode">default</item>
+        <!-- Status bar and navigation bar (transparent for edge-to-edge) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
         <!-- Window background - dark for night mode -->
         <item name="android:windowBackground">@color/item_normal</item>
     </style>

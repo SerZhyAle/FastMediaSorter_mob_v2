@@ -44,8 +44,11 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     }
 
     override fun setupViews() {
-        setupStartUptimeMs = SystemClock.uptimeMillis()
-        fun elapsed() = SystemClock.uptimeMillis() - setupStartUptimeMs
+        // Apply edge-to-edge insets: toolbar below status bar, ViewPager above nav bar
+        applyEdgeToEdgeInsets()
+
+        if (BuildConfig.DEBUG) setupStartUptimeMs = SystemClock.uptimeMillis()
+        fun elapsed() = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() - setupStartUptimeMs else 0L
 
         binding.backButton.setOnClickListener {
             finish()
@@ -99,14 +102,37 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         setupGlobalSearch()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] setupGlobalSearch done (${SettingsSearchRegistry.entries.size} search entries)")
 
-        binding.root.post {
-            val startupDurationMs = SystemClock.uptimeMillis() - setupStartUptimeMs
-            Timber.i("SettingsActivity ready in ${startupDurationMs}ms")
+        if (BuildConfig.DEBUG) {
+            binding.root.post {
+                val startupDurationMs = SystemClock.uptimeMillis() - setupStartUptimeMs
+                Timber.d("SettingsActivity ready in ${startupDurationMs}ms")
+            }
         }
     }
 
     override fun observeData() {
         // Settings are observed in individual fragments
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+
+            // Toolbar container below status bar
+            binding.toolbarContainer.setPadding(
+                binding.toolbarContainer.paddingLeft, statusBar.top,
+                binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
+            )
+
+            // ViewPager content above nav bar
+            binding.viewPager.setPadding(
+                binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
+                binding.viewPager.paddingRight, navBar.bottom
+            )
+
+            insets
+        }
     }
 
     override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {

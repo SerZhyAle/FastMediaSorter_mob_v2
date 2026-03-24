@@ -37,7 +37,10 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
             finish()
             return
         }
-        
+
+        // Apply edge-to-edge insets for CoordinatorLayout + AppBarLayout
+        applyEdgeToEdgeInsets()
+
         binding.toolbar.setNavigationOnClickListener {
             handleBackNavigation()
         }
@@ -78,6 +81,15 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
         }
 
         viewModel.loadFolders()
+    }
+
+    private fun applyEdgeToEdgeInsets() {
+        androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.rvFolders) { view, insets ->
+            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            view.setPadding(view.paddingLeft, view.paddingTop, view.paddingRight, navBar.bottom)
+            (view as? android.view.ViewGroup)?.clipToPadding = false
+            insets
+        }
     }
 
     override fun observeData() {

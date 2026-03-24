@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Static: Open Favorites -->
+    <shortcut
+        android:shortcutId="favorites"
+        android:enabled="true"
+        android:icon="@drawable/ic_resource_favorites"
+        android:shortcutShortLabel="@string/shortcut_favorites_short"
+        android:shortcutLongLabel="@string/shortcut_favorites_long">
+        <intent
+            android:action="com.sza.fastmediasorter.ACTION_OPEN_FAVORITES"
+            android:targetPackage="com.sza.fastmediasorter"
+            android:targetClass="com.sza.fastmediasorter.ui.main.MainActivity" />
+    </shortcut>
+
+    <!-- Static: Start Slideshow -->
+    <shortcut
+        android:shortcutId="slideshow"
+        android:enabled="true"
+        android:icon="@drawable/ic_slideshow"
+        android:shortcutShortLabel="@string/shortcut_slideshow_short"
+        android:shortcutLongLabel="@string/shortcut_slideshow_long">
+        <intent
+            android:action="com.sza.fastmediasorter.ACTION_START_SLIDESHOW"
+            android:targetPackage="com.sza.fastmediasorter"
+            android:targetClass="com.sza.fastmediasorter.ui.main.MainActivity" />
+    </shortcut>
+
+</shortcuts>

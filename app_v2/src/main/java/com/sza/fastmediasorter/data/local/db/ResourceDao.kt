@@ -89,6 +89,9 @@ abstract class ResourceDao {
     
     @Query("SELECT * FROM resources ORDER BY displayOrder ASC, name ASC")
     abstract suspend fun getAllResourcesSync(): List<ResourceEntity>
+
+    @Query("SELECT * FROM resources WHERE lastBrowseDate IS NOT NULL ORDER BY lastBrowseDate DESC LIMIT :limit")
+    abstract suspend fun getRecentResourcesSync(limit: Int): List<ResourceEntity>
     
     @Query("SELECT * FROM resources WHERE isDestination = 1 ORDER BY destinationOrder ASC")
     abstract fun getDestinations(): Flow<List<ResourceEntity>>

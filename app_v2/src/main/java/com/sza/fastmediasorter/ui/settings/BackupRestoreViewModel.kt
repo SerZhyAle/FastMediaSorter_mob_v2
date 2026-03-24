@@ -54,7 +54,7 @@ sealed class BackupRestoreUiState {
     object BackingUp : BackupRestoreUiState()
     object Restoring : BackupRestoreUiState()
     object FetchingInfo : BackupRestoreUiState()
-    data class BackupSuccess(val resourceCount: Int, val accountEmail: String) : BackupRestoreUiState()
+    data class BackupSuccess(val resourceCount: Int, val favoritesCount: Int, val accountEmail: String) : BackupRestoreUiState()
     data class RestoreSuccess(val result: RestoreFromGoogleDriveUseCase.RestoreResult) : BackupRestoreUiState()
     data class BackupInfoReady(val info: RestoreFromGoogleDriveUseCase.BackupInfo) : BackupRestoreUiState()
     data class Error(val message: String) : BackupRestoreUiState()
@@ -200,6 +200,7 @@ class BackupRestoreViewModel @Inject constructor(
         result.onSuccess { backupResult ->
             _uiState.value = BackupRestoreUiState.BackupSuccess(
                 backupResult.resourceCount,
+                backupResult.favoritesCount,
                 backupResult.accountEmail
             )
         }.onFailure { error ->

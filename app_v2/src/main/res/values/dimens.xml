@@ -8,7 +8,6 @@
     <dimen name="text_size_normal">16sp</dimen>
     <dimen name="settings_group_header_text_size">16sp</dimen>
     <dimen name="text_size_small">14sp</dimen>
-    <dimen name="checkbox_subtitle_margin_start">48dp</dimen>
     <dimen name="text_size_11sp">11sp</dimen>
     <dimen name="text_size_tiny">10sp</dimen>
     <dimen name="text_size_title_dialog">20sp</dimen>
@@ -177,6 +176,7 @@
     <!-- Add Resource Activity -->
     <dimen name="add_resource_title_text_size">18sp</dimen>
     <dimen name="add_resource_title_margin">16dp</dimen>
+    <dimen name="checkbox_subtitle_margin_start">16dp</dimen>
 
     <!-- Welcome Activity -->
     <dimen name="welcome_button_min_height">48dp</dimen>
