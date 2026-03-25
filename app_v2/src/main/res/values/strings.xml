@@ -595,6 +595,7 @@
     <string name="welcome_default_player_btn_images">Images</string>
     <string name="welcome_default_player_btn_video">Video</string>
     <string name="welcome_default_player_description">Set FastMediaSorter as your default media player</string>
+    <string name="welcome_default_player_hint">Tap a button below — a dialog will appear. Select FastMediaSorter and tap <b>Always</b>.</string>
     <string name="welcome_default_player_title">Default Player</string>
     <string name="widget_camera_photos_label">Camera Photos</string>
     <string name="widget_camera_photos_description">Quick access to camera photos</string>

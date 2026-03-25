@@ -168,8 +168,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                     descriptionRes = 0,
                     isDefaultPlayerPage = true,
                     onSetDefaultForTypeClick = { mimeType ->
-                        // Enable aliases so the app registers as a handler, then open chooser.
-                        viewModel.enablePrimaryMediaPlayer()
+                        // Enable aliases synchronously first — the system must see the alias
+                        // as enabled before it will consider the app eligible for ROLE_MUSIC.
+                        DefaultPlayerManager.applyPrimaryPlayerState(this, true)
+                        viewModel.enablePrimaryMediaPlayer() // persist to DataStore
                         DefaultPlayerHelper.openChooserOrFallbackFromActivity(this, mimeType)
                     }
                 )

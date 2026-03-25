@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
@@ -162,9 +163,15 @@ class WelcomePagerAdapter(
                 page.onSetDefaultForTypeClick?.invoke("application/pdf")
             }
 
+            binding.tvHint?.text = HtmlCompat.fromHtml(
+                binding.root.context.getString(com.sza.fastmediasorter.R.string.welcome_default_player_hint),
+                HtmlCompat.FROM_HTML_MODE_LEGACY
+            )
+
             animateEntrance(binding.ivIcon, 0L)
             animateEntrance(binding.tvTitle, 150L)
             animateEntrance(binding.tvDescription, 250L)
+            binding.tvHint?.let { animateEntrance(it, 320L) }
             animateEntrance(binding.layoutTypeButtons, 400L)
         }
     }

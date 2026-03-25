@@ -486,8 +486,8 @@
     <string name="font_family_monospace">Моноширинный</string>
     <string name="enable_google_lens">Разрешить отправку в Google Lens</string>
     <string name="swap_languages">Поменять языки местами</string>
-    <string name="supported_pdf_formats">Поддерживаются: PDF (рендеринг через Android PdfRenderer)</string>
-    <string name="search_audio_covers_online">Искать обложки аудио онлайн (iTunes API)</string>
+    <string name="supported_pdf_formats">Поддерживаются: PDF (рендеринг через PdfRenderer)</string>
+    <string name="search_audio_covers_online">Искать обложки аудио онлайн</string>
     <string name="search_covers_only_on_wifi">Искать только по Wi-Fi</string>
     <string name="image_size_limits">Ограничения размера изображений (МБ)</string>
     <string name="video_size_limits">Ограничения размера видео (КБ)</string>
@@ -2010,6 +2010,7 @@
     <string name="welcome_default_player_btn_images">Изображения</string>
     <string name="welcome_default_player_btn_video">Видео</string>
     <string name="welcome_default_player_description">Назначить FastMediaSorter медиаплеером по умолчанию</string>
+    <string name="welcome_default_player_hint">Нажмите кнопку ниже — появится системный диалог. Выберите FastMediaSorter и нажмите <b>Всегда</b>.</string>
     <string name="welcome_default_player_title">Плеер по умолчанию</string>
 
     <!-- Permissions -->

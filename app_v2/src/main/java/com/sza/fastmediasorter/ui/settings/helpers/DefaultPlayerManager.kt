@@ -26,6 +26,17 @@ import timber.log.Timber
 object DefaultPlayerManager {
 
     /**
+     * The manifest namespace used for activity-alias class names.
+     *
+     * Android resolves `android:name=".StandaloneAudioPlayer"` relative to the manifest
+     * *namespace* ("com.sza.fastmediasorter"), not the runtime *applicationId* which may
+     * carry a suffix like ".debug" or ".lite". ComponentName's class-name argument must
+     * use the namespace, while its package argument must use context.packageName (applicationId)
+     * so the system can locate the installed APK.
+     */
+    private const val NAMESPACE = "com.sza.fastmediasorter"
+
+    /**
      * Phase 7: Returns only the ACTION_VIEW alias suffixes that are valid for this flavor.
      * Aliases for unsupported media types are intentionally left in their manifest-default
      * (disabled) state — they are never activated at runtime.
@@ -60,7 +71,7 @@ object DefaultPlayerManager {
         val pkg = context.packageName
 
         viewAliasesForFlavor().forEach { alias ->
-            setComponentState(pm, ComponentName(pkg, "$pkg$alias"), state)
+            setComponentState(pm, ComponentName(pkg, "$NAMESPACE$alias"), state)
         }
 
         setComponentState(
@@ -86,7 +97,7 @@ object DefaultPlayerManager {
         val pkg = context.packageName
 
         sendAliasesForFlavor().forEach { alias ->
-            setComponentState(pm, ComponentName(pkg, "$pkg$alias"), state)
+            setComponentState(pm, ComponentName(pkg, "$NAMESPACE$alias"), state)
         }
 
         Timber.d("DefaultPlayerManager: share receiver ${if (enabled) "ENABLED" else "DISABLED"} (aliases: ${sendAliasesForFlavor()})")

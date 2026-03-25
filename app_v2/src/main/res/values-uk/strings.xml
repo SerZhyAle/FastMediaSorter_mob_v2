@@ -2012,6 +2012,7 @@
     <string name="welcome_default_player_btn_images">Зображення</string>
     <string name="welcome_default_player_btn_video">Відео</string>
     <string name="welcome_default_player_description">Призначити FastMediaSorter медіапрогравачем за замовчуванням</string>
+    <string name="welcome_default_player_hint">Натисніть кнопку нижче — з\'явиться системний діалог. Виберіть FastMediaSorter і натисніть <b>Завжди</b>.</string>
     <string name="welcome_default_player_title">Програвач за замовчуванням</string>
 
     <!-- Permissions -->

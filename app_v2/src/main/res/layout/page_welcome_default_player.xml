@@ -54,6 +54,16 @@
                 android:textSize="@dimen/welcome_description_text_size"
                 android:lineSpacingMultiplier="1.3" />
 
+            <TextView
+                android:id="@+id/tvHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:gravity="center"
+                android:text="@string/welcome_default_player_hint"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="14sp" />
+
             <!-- 4 type-specific buttons. Visibility is gated in DefaultPlayerViewHolder by BuildConfig. -->
             <LinearLayout
                 android:id="@+id/layoutTypeButtons"

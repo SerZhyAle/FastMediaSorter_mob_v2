@@ -156,11 +156,11 @@
 
         <TextView android:id="@+id/tvAnimatedBadge" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="top|end" android:layout_marginTop="@dimen/activity_player_unified_tvFileNameOverlay_layout_marginTop" android:layout_marginEnd="@dimen/player_epub_button_margin_end" android:background="@drawable/bg_circle_dark" android:paddingHorizontal="@dimen/player_button_padding" android:paddingVertical="@dimen/player_button_padding" android:text="@string/animated_badge_gif" android:textColor="@color/white" android:textSize="@dimen/player_audio_info_text_size" android:textStyle="bold" android:visibility="gone" />
 
+        <include layout="@layout/player_pdf_controls_overlay_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="bottom" />
+
     </FrameLayout>
 
     <include layout="@layout/player_search_panel_content" />
-
-    <include layout="@layout/player_pdf_controls_overlay_content" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 
     <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:layout_constraintTop_toTopOf="parent" app:layout_constraintBottom_toBottomOf="parent" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent" />
 

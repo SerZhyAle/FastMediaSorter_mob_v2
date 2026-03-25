@@ -160,6 +160,16 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_continue_reading_info" />
         </receiver>
 
+        <!-- Media button receiver for cold service restart (enabled only when isPrimaryMediaPlayer=true) -->
+        <receiver
+            android:name=".ui.player.MediaButtonRestartReceiver"
+            android:enabled="false"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
         <!-- FileProvider for sharing files -->
         <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.fileprovider" android:exported="false" android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_provider_paths" />
@@ -180,6 +190,7 @@
             android:enabled="false"
             android:exported="true"
             android:targetActivity=".ui.player.StandalonePlayerActivity">
+            <!-- Open audio files from file managers / share sheets -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -197,6 +208,12 @@
                 <data android:mimeType="audio/midi" />
                 <data android:mimeType="audio/x-matroska" />
                 <data android:mimeType="audio/*" />
+            </intent-filter>
+            <!-- Required for RoleManager.ROLE_MUSIC eligibility (Android 10+) -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.APP_MUSIC" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity-alias>
 
