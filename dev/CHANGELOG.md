@@ -1024,3 +1024,4 @@ Format: | datetime | file | target | description |
 | 2026-03-26 00:06:03 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `switchSupportVideos` | Restore subtitle wrapper (regression from 0b26b39) |
 | 2026-03-26 00:06:03 | `app_v2/src/main/res/layout/fragment_settings_images.xml` | `switchSupportImages,switchSupportGifs` | Restore subtitle wrappers (regression from 0b26b39) |
 | 2026-03-26 00:06:03 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `switchSupportText` | Restore subtitle wrapper (regression from 0b26b39) |
+| 2026-03-26 00:40:52 | `app_v2/src/main/res/values-v35/themes.xml` | `Theme.FastMediaSorter.Base` | Fix deprecated Window.setStatusBarColor Play Store warning: override BottomSheetDialog enableEdgeToEdge=false on API 35+ (system handles it) |
