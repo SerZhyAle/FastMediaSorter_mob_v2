@@ -89,7 +89,8 @@
             android:layout_marginEnd="@dimen/margin_tiny"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="@string/swap_languages"
-            android:src="@drawable/ic_swap_horizontal" />
+            android:src="@drawable/ic_swap_horizontal"
+            app:tint="@color/selector_player_button_tint" />
 
         <Spinner
             android:id="@+id/spinnerTargetLanguage"

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/llOperations"
     android:layout_width="wrap_content"
@@ -22,6 +23,7 @@
         android:contentDescription="@string/copy"
         android:scaleType="fitCenter"
         android:src="@android:drawable/ic_menu_save"
+        app:tint="@color/selector_player_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -37,6 +39,7 @@
         android:contentDescription="@string/move"
         android:scaleType="fitCenter"
         android:src="@android:drawable/ic_menu_revert"
+        app:tint="@color/selector_player_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -52,6 +55,7 @@
         android:contentDescription="@string/rename"
         android:scaleType="fitCenter"
         android:src="@android:drawable/ic_menu_edit"
+        app:tint="@color/selector_player_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
 
@@ -67,6 +71,7 @@
         android:contentDescription="@string/delete"
         android:scaleType="fitCenter"
         android:src="@android:drawable/ic_menu_delete"
+        app:tint="@color/selector_player_button_tint"
         android:visibility="gone"
         tools:visibility="visible" />
 

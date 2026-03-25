@@ -997,3 +997,30 @@ Format: | datetime | file | target | description |
 | 2026-03-25 00:04:32 | `app_v2/src/main/res/layout/page_welcome_default_player.xml` | `DefaultPlayerPage` | Add Always hint text below description on default player welcome page |
 | 2026-03-25 00:15:59 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `pdfControlsLayout include` | fix: PDF controls invisible on direct landscape open - add layout_width/height to include tag so constraint attributes are applied |
 | 2026-03-25 00:44:10 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `pdfControlsLayout position` | fix: move pdfControlsLayout inside mediaContentArea FrameLayout in landscape - was outside causing it to render below/behind destination panels instead of overlaying the PDF |
+| 2026-03-25 22:14:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | fix: override shouldEnableEdgeToEdge()=false - was inheriting BaseActivity default=true causing transparent status bar with no insets handling (toolbar/command panel overlapping status bar when opening files externally) |
+| 2026-03-25 22:52:07 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `switchSearchAudioCoversOnline, switchSearchCoversOnlyWifi` | Add subtitle descriptions to 2 toggles |
+| 2026-03-25 22:52:16 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `switchShowVideoThumbnails` | Add subtitle description to video thumbnails toggle |
+| 2026-03-25 22:52:26 | `app_v2/src/main/res/layout/fragment_settings_images.xml` | `switchLoadFullSizeImages, switchCropImagesToFullscreen, switchDynamicBackground, switchSlideshowBackgroundMusic` | Add subtitle descriptions to 4 toggles |
+| 2026-03-25 22:52:29 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `switchShowTextLineNumbers` | Add subtitle description to line numbers toggle |
+| 2026-03-25 23:39:43 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `29 player buttons` | Apply selector_player_button_tint pressed state (keep btnBack + btnExitEpubFullscreen white) |
+| 2026-03-25 23:39:50 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `29 player buttons` | Apply selector_player_button_tint pressed state (landscape) |
+| 2026-03-25 23:39:55 | `app_v2/src/main/res/layout/activity_browse.xml` | `btnResourceAction + 6 operation buttons` | Apply selector_player_button_tint pressed state |
+| 2026-03-25 23:39:56 | `app_v2/src/main/res/layout/item_media_file.xml` | `btnFavorite + 5 operation buttons` | Add selector_player_button_tint tint for pressed state |
+| 2026-03-25 23:40:00 | `app_v2/src/main/res/layout/item_media_file_grid_operations.xml` | `btnCopyItem/Move/Rename/Delete` | Add xmlns:app and selector_player_button_tint tint |
+| 2026-03-25 23:40:00 | `app_v2/src/main/res/layout/dialog_translation_settings.xml` | `btnSwapLanguages` | Add selector_player_button_tint tint for pressed state |
+| 2026-03-25 23:40:06 | `app_v2/src/main/res/layout-land/player_pdf_controls_overlay_content.xml` | `all 6 buttons` | Apply selector tints: white->selector_player_button_tint, green->selector_pdf_nav_green_tint, blue->selector_pdf_nav_blue_tint |
+| 2026-03-25 23:40:12 | `app_v2/src/main/res/layout-land/player_epub_controls_overlay_content.xml` | `all 6 buttons` | Apply selector tints: white->selector_player_button_tint, green/blue->custom selectors |
+| 2026-03-25 23:40:12 | `app_v2/src/main/res/color/selector_pdf_nav_green_tint.xml` | `new file` | Color selector: #4CAF50 default, #FF3333 on pressed |
+| 2026-03-25 23:40:17 | `app_v2/src/main/res/color/selector_pdf_nav_blue_tint.xml` | `new file` | Color selector: #2196F3 default, #FF3333 on pressed |
+| 2026-03-25 23:46:27 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `exo_next_file` | Restore: 2x wide (96dp), red circle selector icon, remove rotation+tint (regression fix) |
+| 2026-03-25 23:58:19 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `exo_repeat/prev/rewind/play/forward/speed/audio/subtitle/pip` | Restore selector_player_button_tint on 9 buttons (regression from 0b26b39) |
+| 2026-03-26 00:05:40 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `btnOcrImageCmd` | Restore selector_player_button_tint on OCR image button (portrait) |
+| 2026-03-26 00:05:44 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `btnOcrImageCmd` | Restore selector_player_button_tint on OCR image button (landscape) |
+| 2026-03-26 00:05:49 | `app_v2/src/main/res/layout/fragment_settings_audio.xml` | `switchSupportAudio,switchEnablePhotosDuringAudio,layoutSaveAudioMetadataLocally` | Restore 3 missing subtitle wrappers + re-add layoutSaveAudioMetadataLocally toggle (regression from 0b26b39) |
+| 2026-03-26 00:05:53 | `app_v2/src/main/res/values/strings.xml` | `save_audio_metadata_locally` | Restore missing title string (regression from 0b26b39) |
+| 2026-03-26 00:05:54 | `app_v2/src/main/res/values-ru/strings.xml` | `save_audio_metadata_locally` | Restore missing RU title string |
+| 2026-03-26 00:05:54 | `app_v2/src/main/res/values-uk/strings.xml` | `save_audio_metadata_locally` | Restore missing UK title string |
+| 2026-03-26 00:05:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `AudioSettingsFragment` | Restore switchSaveAudioMetadataLocally binding, onResume, setupDefaultPlayerButton, observeData visibility (regression from 0b26b39) |
+| 2026-03-26 00:06:03 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `switchSupportVideos` | Restore subtitle wrapper (regression from 0b26b39) |
+| 2026-03-26 00:06:03 | `app_v2/src/main/res/layout/fragment_settings_images.xml` | `switchSupportImages,switchSupportGifs` | Restore subtitle wrappers (regression from 0b26b39) |
+| 2026-03-26 00:06:03 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `switchSupportText` | Restore subtitle wrapper (regression from 0b26b39) |

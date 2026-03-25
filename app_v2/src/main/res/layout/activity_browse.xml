@@ -51,7 +51,7 @@
 
     <LinearLayout android:id="@+id/layoutResourceInfo" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="@dimen/padding_small" android:paddingEnd="@dimen/padding_small" app:layout_constraintTop_toBottomOf="@id/layoutControls" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageButton android:id="@+id/btnResourceAction" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding" android:scaleType="fitCenter" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="?attr/colorControlNormal" tools:visibility="visible" />
+        <ImageButton android:id="@+id/btnResourceAction" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="@dimen/activity_browse_btnResourceAction_layout_marginEnd" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/edit" android:padding="@dimen/activity_player_unified_btnExitPdfFullscreen_padding" android:scaleType="fitCenter" android:src="@drawable/ic_edit_20" android:visibility="gone" app:tint="@color/selector_player_button_tint" tools:visibility="visible" />
 
         <TextView android:id="@+id/tvResourceInfo" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingTop="@dimen/padding_small" android:paddingBottom="@dimen/padding_small" android:textSize="@dimen/text_size_small" android:textColor="@color/text_color_secondary" android:gravity="center_vertical" tools:text="Downloads • /storage/emulated/0/Download • 0 selected" />
 
@@ -79,22 +79,22 @@
     <LinearLayout android:id="@+id/layoutOperations" android:layout_width="@dimen/match_constraint" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/control_bar_padding" android:background="?attr/colorSurface" android:elevation="@dimen/elevation_operations_bar" android:visibility="visible" app:layout_constraintBottom_toTopOf="@id/tvFilterWarning" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Copy -->
-        <ImageButton android:id="@+id/btnCopy" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@android:drawable/ic_menu_save" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnCopy" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@android:drawable/ic_menu_save" app:tint="@color/selector_player_button_tint" android:visibility="gone" />
 
         <!-- Move -->
-        <ImageButton android:id="@+id/btnMove" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/move" android:src="@android:drawable/ic_menu_revert" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnMove" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/move" android:src="@android:drawable/ic_menu_revert" app:tint="@color/selector_player_button_tint" android:visibility="gone" />
 
         <!-- Rename -->
-        <ImageButton android:id="@+id/btnRename" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@android:drawable/ic_menu_edit" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnRename" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/rename" android:src="@android:drawable/ic_menu_edit" app:tint="@color/selector_player_button_tint" android:visibility="gone" />
 
         <!-- Delete -->
-        <ImageButton android:id="@+id/btnDelete" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@android:drawable/ic_menu_delete" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnDelete" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/delete" android:src="@android:drawable/ic_menu_delete" app:tint="@color/selector_player_button_tint" android:visibility="gone" />
 
         <!-- Undo -->
-        <ImageButton android:id="@+id/btnUndo" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/undo" android:src="@android:drawable/ic_menu_revert" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnUndo" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/undo" android:src="@android:drawable/ic_menu_revert" app:tint="@color/selector_player_button_tint" android:visibility="gone" />
 
         <!-- Share -->
-        <ImageButton android:id="@+id/btnShare" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+        <ImageButton android:id="@+id/btnShare" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="@color/selector_player_button_tint" android:visibility="gone" />
 
     </LinearLayout>
 

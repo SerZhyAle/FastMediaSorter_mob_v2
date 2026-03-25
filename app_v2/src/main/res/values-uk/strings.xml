@@ -1950,6 +1950,7 @@
     <string name="setting_search_audio_covers_online_desc">Завантажує обкладинки з інтернету для файлів без вбудованих обкладинок</string>
     <string name="setting_search_covers_only_wifi_desc">Не використовує мобільний інтернет для завантаження обкладинок</string>
     <string name="setting_photos_during_audio_desc">Випадкові зображення під час відтворення (обираєш список аудіо - дивишся зображення)</string>
+    <string name="save_audio_metadata_locally">Зберігати завантажені медіадані локально</string>
     <string name="save_audio_metadata_locally_desc">Обкладинки та метадані без повторного завантаження з інтернету</string>
     <string name="cb_play_to_end_desc">Чекає закінчення кожного відео або аудіо перед переходом у слайдшоу</string>
     <string name="settings_accept_shared_files">Приймати спільні файли</string>

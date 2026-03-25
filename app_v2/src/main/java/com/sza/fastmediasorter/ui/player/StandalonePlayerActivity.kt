@@ -93,6 +93,9 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         return ActivityPlayerUnifiedBinding.inflate(layoutInflater)
     }
 
+    // Player layout has its own immersive insets handling — skip global edge-to-edge
+    override fun shouldEnableEdgeToEdge(): Boolean = false
+
     override fun setupViews() {
         val t0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
 

@@ -585,6 +585,7 @@
     <string name="setting_search_audio_covers_online_desc">Downloads covers from the internet for files without embedded covers</string>
     <string name="setting_search_covers_only_wifi_desc">Does not use mobile data for downloading covers</string>
     <string name="setting_photos_during_audio_desc">Random images during playback (select a list of audio - watch images)</string>
+    <string name="save_audio_metadata_locally">Save downloaded media data locally</string>
     <string name="save_audio_metadata_locally_desc">Covers and metadata without re-downloading from the internet</string>
     <string name="cb_play_to_end_desc">Waits for the end of each video or audio before moving in the slideshow</string>
     <string name="settings_accept_shared_files">Accept shared files</string>
