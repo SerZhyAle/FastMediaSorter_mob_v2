@@ -810,30 +810,56 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     private fun applyEdgeToEdgeInsets() {
+        // Capture original padding values from XML before any insets are applied.
+        // These are used as the base so repeated insets dispatches don't accumulate.
+        val topBarOrigPaddingLeft   = binding.layoutControls.paddingLeft
+        val topBarOrigPaddingTop    = binding.layoutControls.paddingTop
+        val topBarOrigPaddingRight  = binding.layoutControls.paddingRight
+        val topBarOrigPaddingBottom = binding.layoutControls.paddingBottom
+
+        val bottomBarOrigPaddingLeft   = binding.layoutOperations.paddingLeft
+        val bottomBarOrigPaddingTop    = binding.layoutOperations.paddingTop
+        val bottomBarOrigPaddingRight  = binding.layoutOperations.paddingRight
+        val bottomBarOrigPaddingBottom = binding.layoutOperations.paddingBottom
+
+        val filterOrigPaddingLeft   = binding.tvFilterWarning.paddingLeft
+        val filterOrigPaddingTop    = binding.tvFilterWarning.paddingTop
+        val filterOrigPaddingRight  = binding.tvFilterWarning.paddingRight
+        val filterOrigPaddingBottom = binding.tvFilterWarning.paddingBottom
+
+        val fabOrigBottomMargin = (binding.fabScrollToBottom.layoutParams as? android.view.ViewGroup.MarginLayoutParams)
+            ?.bottomMargin ?: resources.getDimensionPixelSize(R.dimen.margin_small)
+
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
             val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
             val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
 
             // Top toolbar below status bar
             binding.layoutControls.setPadding(
-                binding.layoutControls.paddingLeft, statusBar.top + binding.layoutControls.paddingBottom,
-                binding.layoutControls.paddingRight, binding.layoutControls.paddingBottom
+                topBarOrigPaddingLeft,
+                topBarOrigPaddingTop + statusBar.top,
+                topBarOrigPaddingRight,
+                topBarOrigPaddingBottom
             )
 
             // Bottom bar above navigation bar
             binding.layoutOperations.setPadding(
-                binding.layoutOperations.paddingLeft, binding.layoutOperations.paddingTop,
-                binding.layoutOperations.paddingRight, navBar.bottom + binding.layoutOperations.paddingTop
+                bottomBarOrigPaddingLeft,
+                bottomBarOrigPaddingTop,
+                bottomBarOrigPaddingRight,
+                bottomBarOrigPaddingBottom + navBar.bottom
             )
 
             // Filter warning at very bottom
             binding.tvFilterWarning.setPadding(
-                binding.tvFilterWarning.paddingLeft, binding.tvFilterWarning.paddingTop,
-                binding.tvFilterWarning.paddingRight, navBar.bottom
+                filterOrigPaddingLeft,
+                filterOrigPaddingTop,
+                filterOrigPaddingRight,
+                filterOrigPaddingBottom + navBar.bottom
             )
 
             // Scroll FABs need nav bar offset
-            val fabBottomMargin = navBar.bottom + resources.getDimensionPixelSize(R.dimen.margin_small)
+            val fabBottomMargin = fabOrigBottomMargin + navBar.bottom
             (binding.fabScrollToBottom.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
                 it.bottomMargin = fabBottomMargin
                 binding.fabScrollToBottom.layoutParams = it
@@ -841,6 +867,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
             insets
         }
+        // setupViews() runs inside binding.root.post{}, meaning the initial insets dispatch
+        // has already happened before this listener was registered. Force re-dispatch so the
+        // listener fires immediately and padding is applied on first render.
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
     }
 
     override fun observeData() {

@@ -48,6 +48,13 @@
         android:title="@string/lyrics"
         app:showAsAction="never" />
 
+    <!-- Search in YouTube Music (Audio files) -->
+    <item
+        android:id="@+id/menu_search_youtube_music"
+        android:icon="@drawable/ic_youtube_music"
+        android:title="@string/search_in_youtube_music"
+        app:showAsAction="never" />
+
     <!-- Rename -->
     <item
         android:id="@+id/menu_rename"

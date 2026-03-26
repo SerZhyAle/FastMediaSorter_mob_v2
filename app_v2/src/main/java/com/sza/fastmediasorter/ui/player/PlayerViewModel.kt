@@ -81,6 +81,10 @@ class PlayerViewModel @Inject constructor(
         // Circular navigation: always allow prev/next if files.size > 1
         val hasPrevious: Boolean get() = files.size > 1
         val hasNext: Boolean get() = files.size > 1
+        // True only for IMAGE/GIF slideshows — drives UI hiding, 9-zone gestures, system bars.
+        // VIDEO/AUDIO use isSlideShowActive for auto-advance only, not visual slideshow mode.
+        val isPhotoSlideshowActive: Boolean get() =
+            isSlideShowActive && (currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF)
     }
 
     sealed class PlayerEvent {

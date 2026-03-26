@@ -178,6 +178,12 @@ class PlayerControlsSetupManager(
             activity.scheduleHideControls()
         }
 
+        binding.btnSearchYoutubeMusicCmd?.setOnClickListener {
+            UserActionLogger.logButtonClick("SearchYoutubeMusicCmd", "PlayerActivity")
+            activity.searchInYoutubeMusic()
+            activity.scheduleHideControls()
+        }
+
         binding.btnFavorite.setOnClickListener {
             UserActionLogger.logButtonClick("Favorite", "PlayerActivity")
             viewModel.toggleFavorite()

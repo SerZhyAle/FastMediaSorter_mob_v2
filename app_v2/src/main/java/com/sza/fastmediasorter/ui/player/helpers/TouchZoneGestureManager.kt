@@ -171,8 +171,8 @@ class TouchZoneGestureManager(
                 Timber.d("TOUCH_DEBUG: imageTouchGestureDetector.onSingleTapConfirmed - FIRED! x=${e.x.toInt()}, y=${e.y.toInt()}")
                 val currentFile = viewModel.state.value.currentFile
                 val state = viewModel.state.value
-                // CRITICAL: During slideshow, always use fullscreen mode (9 zones) even if command panel is enabled
-                val isInFullscreenMode = !state.showCommandPanel || state.isSlideShowActive
+                // CRITICAL: During photo slideshow, always use fullscreen mode (9 zones) even if command panel is enabled
+                val isInFullscreenMode = !state.showCommandPanel || state.isPhotoSlideshowActive
                 val isImage = currentFile?.type == MediaType.IMAGE || currentFile?.type == MediaType.GIF
                 
                 Timber.d("SingleTap: pos=(${e.x.toInt()},${e.y.toInt()}), duration=${e.eventTime - e.downTime}ms, image=$isImage, fullscreen=$isInFullscreenMode, slideshow=${state.isSlideShowActive}")

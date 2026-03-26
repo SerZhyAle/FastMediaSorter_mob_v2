@@ -55,6 +55,7 @@ class CommandPanelController(
         fun onMovePanelHeaderClicked()
         fun onInfoClicked()
         fun onLyricsClicked()
+        fun onSearchYoutubeMusicClicked()
         fun onFavoriteClicked()
         fun onSearchClicked()
         fun onTranslateClicked()
@@ -296,6 +297,7 @@ class CommandPanelController(
             
             safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
             safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
+            safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             // Edit is visible for images (if writable) OR video (always, as it's controls)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf || isPdf
             
@@ -655,7 +657,8 @@ class CommandPanelController(
         safeViews.btnOcrImageCmd,
         safeViews.btnGoogleLensImageCmd,
         // Audio commands
-        safeViews.btnLyricsCmd
+        safeViews.btnLyricsCmd,
+        safeViews.btnSearchYoutubeMusicCmd
     )
 
     private fun resolveOriginalButtonHeight(button: View): Int {
@@ -708,6 +711,7 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_text_settings)?.icon?.setTint(iconColor)
         // popup.menu.findItem(R.id.menu_info)?.icon?.setTint(iconColor) // Removed from menu
         popup.menu.findItem(R.id.menu_lyrics)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_search_youtube_music)?.icon?.setTint(iconColor)
 
         // popup.menu.findItem(R.id.menu_favorite)?.icon?.setTint(iconColor) // Removed from menu
         popup.menu.findItem(R.id.menu_copy_text)?.icon?.setTint(iconColor)
@@ -731,6 +735,7 @@ class CommandPanelController(
         // popup.menu.findItem(R.id.menu_share)?.isVisible = true // Removed
         // popup.menu.findItem(R.id.menu_info)?.isVisible = true // Removed
         popup.menu.findItem(R.id.menu_lyrics)?.isVisible = currentFile.type == MediaType.AUDIO
+        popup.menu.findItem(R.id.menu_search_youtube_music)?.isVisible = currentFile.type == MediaType.AUDIO
         popup.menu.findItem(R.id.menu_edit)?.apply {
             isVisible = (isImage && !isReadOnly) || isVideo || isPdf || isPdf
             // Update title based on file type
@@ -767,6 +772,7 @@ class CommandPanelController(
                 // R.id.menu_share -> callback.onShareClicked() // Removed
                 // R.id.menu_info -> callback.onInfoClicked() // Removed
                 R.id.menu_lyrics -> callback.onLyricsClicked()
+                R.id.menu_search_youtube_music -> callback.onSearchYoutubeMusicClicked()
                 R.id.menu_edit -> callback.onEditClicked()
                 // R.id.menu_favorite -> callback.onFavoriteClicked() // Removed
                 R.id.menu_search -> callback.onSearchClicked()
@@ -854,6 +860,7 @@ class CommandPanelController(
     private fun getOverflowableButtons(): List<View> = listOf(
         safeViews.btnRenameCmd,
         safeViews.btnLyricsCmd,
+        safeViews.btnSearchYoutubeMusicCmd,
         safeViews.btnEditCmd,
         safeViews.btnUndoCmd,
         safeViews.btnGoogleLensPdfCmd,
