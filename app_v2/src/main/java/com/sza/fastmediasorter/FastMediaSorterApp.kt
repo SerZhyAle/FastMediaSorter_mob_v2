@@ -179,6 +179,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 workManagerScheduler.scheduleOrphanCleanup()
                 // Retry any OAuth token revocations that failed during sign-out (B5-T3)
                 workManagerScheduler.schedulePendingRevocation()
+                // Reschedule all enabled scheduled file operations (survived force-stop / app update)
+                if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS && settings.enableScheduledOperations) {
+                    workManagerScheduler.rescheduleAll()
+                    Timber.d("FastMediaSorterApp: Scheduled operations rescheduled on startup")
+                }
             } catch (e: Exception) {
                 Timber.e(e, "FastMediaSorterApp: Failed to apply background sync settings on startup")
             }

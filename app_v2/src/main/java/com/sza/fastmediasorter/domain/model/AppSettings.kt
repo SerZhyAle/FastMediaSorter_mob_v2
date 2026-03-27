@@ -98,6 +98,9 @@ data class AppSettings(
     // Safe Mode settings (Phase 2.1) - Master toggle for confirmations
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
     
+    // Scheduled operations
+    val enableScheduledOperations: Boolean = false,
+
     // Destinations settings
     val enableCopying: Boolean = true,
     val goToNextAfterCopy: Boolean = true,

@@ -3,8 +3,12 @@ package com.sza.fastmediasorter.domain.usecase
 import android.os.Build
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.FileTypeFilter
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.TimeFilter
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -21,7 +25,8 @@ object BackupMapper {
         resources: List<MediaResource>,
         favorites: List<BackupFavorite>,
         appVersionCode: Long,
-        appVersionName: String
+        appVersionName: String,
+        scheduledOperations: List<BackupScheduledOperation> = emptyList()
     ): BackupPayload {
         val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
             timeZone = TimeZone.getTimeZone("UTC")
@@ -35,7 +40,71 @@ object BackupMapper {
             androidVersion = Build.VERSION.SDK_INT,
             settings = toBackupSettings(settings),
             resources = resources.map { toBackupResource(it) },
-            favorites = favorites
+            favorites = favorites,
+            scheduledOperations = scheduledOperations
+        )
+    }
+
+    fun toBackupScheduledOperation(
+        op: ScheduledOperation,
+        resourceLookup: Map<Long, MediaResource>
+    ): BackupScheduledOperation? {
+        val src = resourceLookup[op.sourceResourceId] ?: return null
+        val dst = if (op.targetResourceId != null) resourceLookup[op.targetResourceId] else null
+        return BackupScheduledOperation(
+            isEnabled = op.isEnabled,
+            sourceResourcePath = src.path,
+            sourceResourceType = src.type.name,
+            operationType = op.operationType.name,
+            targetResourcePath = dst?.path,
+            targetResourceType = dst?.type?.name,
+            fileTypeFilter = op.fileTypeFilter.name,
+            timeFilter = op.timeFilter.name,
+            startTimeHour = op.startTimeHour,
+            startTimeMinute = op.startTimeMinute,
+            intervalHours = op.intervalHours,
+            intervalMinutes = op.intervalMinutes,
+            overwrite = op.overwrite,
+            silentMode = op.silentMode
+        )
+    }
+
+    fun toScheduledOperation(
+        backup: BackupScheduledOperation,
+        resourcesByPath: Map<String, MediaResource>
+    ): ScheduledOperation? {
+        val srcKey = "${backup.sourceResourcePath}|${backup.sourceResourceType}"
+        val src = resourcesByPath.values.firstOrNull {
+            it.path == backup.sourceResourcePath && it.type.name == backup.sourceResourceType
+        } ?: return null
+
+        val opType = runCatching { ScheduledOpType.valueOf(backup.operationType) }
+            .getOrElse { ScheduledOpType.COPY }
+
+        val dst = if (backup.targetResourcePath != null && backup.targetResourceType != null) {
+            resourcesByPath.values.firstOrNull {
+                it.path == backup.targetResourcePath && it.type.name == backup.targetResourceType
+            }
+        } else null
+
+        if (opType != ScheduledOpType.DELETE && dst == null) return null
+
+        return ScheduledOperation(
+            id = 0,
+            isEnabled = backup.isEnabled,
+            sourceResourceId = src.id,
+            operationType = opType,
+            targetResourceId = dst?.id,
+            fileTypeFilter = runCatching { FileTypeFilter.valueOf(backup.fileTypeFilter) }
+                .getOrElse { FileTypeFilter.ALL },
+            timeFilter = runCatching { TimeFilter.valueOf(backup.timeFilter) }
+                .getOrElse { TimeFilter.ALL },
+            startTimeHour = backup.startTimeHour,
+            startTimeMinute = backup.startTimeMinute,
+            intervalHours = backup.intervalHours,
+            intervalMinutes = backup.intervalMinutes,
+            overwrite = backup.overwrite,
+            silentMode = backup.silentMode
         )
     }
 
@@ -114,6 +183,7 @@ object BackupMapper {
             enablePlayerWarmup = settings.enablePlayerWarmup,
             rendererMigrationEnabled = settings.rendererMigrationEnabled,
             enableSafeMode = settings.enableSafeMode,
+            enableScheduledOperations = settings.enableScheduledOperations,
             enableCopying = settings.enableCopying,
             goToNextAfterCopy = settings.goToNextAfterCopy,
             overwriteOnCopy = settings.overwriteOnCopy,
@@ -240,6 +310,7 @@ object BackupMapper {
             enablePlayerWarmup = backup.enablePlayerWarmup,
             rendererMigrationEnabled = backup.rendererMigrationEnabled,
             enableSafeMode = backup.enableSafeMode,
+            enableScheduledOperations = backup.enableScheduledOperations,
             enableCopying = backup.enableCopying,
             goToNextAfterCopy = backup.goToNextAfterCopy,
             overwriteOnCopy = backup.overwriteOnCopy,

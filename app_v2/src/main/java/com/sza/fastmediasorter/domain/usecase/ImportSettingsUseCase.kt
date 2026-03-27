@@ -10,8 +10,14 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
+import com.sza.fastmediasorter.domain.model.ScheduledOpType
+import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import org.xmlpull.v1.XmlPullParser
@@ -30,7 +36,9 @@ class ImportSettingsUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
-    private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
+    private val credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository,
+    private val scheduledOperationRepository: ScheduledOperationRepository,
+    private val workManagerScheduler: WorkManagerScheduler
 ) {
     /**
      * Import settings from XML file.
@@ -73,26 +81,38 @@ class ImportSettingsUseCase @Inject constructor(
                 val factory = XmlPullParserFactory.newInstance()
                 val parser = factory.newPullParser()
                 parser.setInput(stream, "UTF-8")
-            
+
                 var settings: AppSettings? = null
                 val resources = mutableListOf<MediaResource>()
                 val credentials = mutableListOf<com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity>()
-                
+                val scheduledOps = mutableListOf<MutableMap<String, String>>()
+                var backupVersion = 0 // parsed from root element attribute
+
                 var eventType = parser.eventType
                 var currentSection: String? = null
                 var currentResource: MutableMap<String, String>? = null
                 var currentTag: String? = null
-            
+
             while (eventType != XmlPullParser.END_DOCUMENT) {
                 when (eventType) {
                     XmlPullParser.START_TAG -> {
                         val tagName = parser.name
                         when (tagName) {
+                            "FastMediaSorterBackup" -> {
+                                val versionAttr = parser.getAttributeValue(null, "version")
+                                backupVersion = versionAttr?.substringBefore(".")?.toIntOrNull() ?: 0
+                            }
                             "Settings" -> currentSection = "Settings"
                             "NetworkCredentials" -> currentSection = "NetworkCredentials"
                             "Credential" -> currentResource = mutableMapOf()
                             "Resources" -> currentSection = "Resources"
                             "Resource" -> currentResource = mutableMapOf()
+                            "ScheduledOperations" -> {
+                                if (backupVersion >= 3) currentSection = "ScheduledOperations"
+                            }
+                            "ScheduledOperation" -> {
+                                if (currentSection == "ScheduledOperations") currentResource = mutableMapOf()
+                            }
                             else -> currentTag = tagName
                         }
                     }
@@ -111,6 +131,9 @@ class ImportSettingsUseCase @Inject constructor(
                                     currentResource?.set(currentTag, text)
                                 }
                                 "Resources" -> {
+                                    currentResource?.set(currentTag, text)
+                                }
+                                "ScheduledOperations" -> {
                                     currentResource?.set(currentTag, text)
                                 }
                             }
@@ -197,6 +220,7 @@ class ImportSettingsUseCase @Inject constructor(
                                         rendererMigrationEnabled = data["rendererMigrationEnabled"]?.toBoolean() ?: false,
                                         enableSafeMode = data["enableSafeMode"]?.toBoolean() ?: true,
                                         enableFavorites = data["enableFavorites"]?.toBoolean() ?: false,
+                                        enableScheduledOperations = data["enableScheduledOperations"]?.toBoolean() ?: false,
                                         enableCopying = data["enableCopying"]?.toBoolean() ?: true,
                                         goToNextAfterCopy = data["goToNextAfterCopy"]?.toBoolean() ?: true,
                                         overwriteOnCopy = data["overwriteOnCopy"]?.toBoolean() ?: false,
@@ -293,6 +317,13 @@ class ImportSettingsUseCase @Inject constructor(
                             "Resources" -> {
                                 currentSection = null
                             }
+                            "ScheduledOperation" -> {
+                                currentResource?.let { scheduledOps.add(it) }
+                                currentResource = null
+                            }
+                            "ScheduledOperations" -> {
+                                currentSection = null
+                            }
                             else -> currentTag = null
                         }
                     }
@@ -363,7 +394,60 @@ class ImportSettingsUseCase @Inject constructor(
                 }
                 Timber.d("Processed import of ${resources.size} resources (Merge Mode)")
             }
-            
+
+            // Import scheduled operations (version 3+ only)
+            if (backupVersion >= 3 && scheduledOps.isNotEmpty()) {
+                // Build path+type → id lookup from current DB state (after resource merge above)
+                val allResources = resourceRepository.getAllResources().first()
+                val resourceLookup = allResources.associateBy { "${it.path}|${it.type.name}" }
+
+                scheduledOps.forEach { data ->
+                    val srcKey = "${data["sourceResourcePath"]}|${data["sourceResourceType"]}"
+                    val srcResource = resourceLookup[srcKey]
+                    if (srcResource == null) {
+                        Timber.w("ImportSettings: ScheduledOp skipped — source not found: $srcKey")
+                        return@forEach
+                    }
+
+                    val dstPath = data["targetResourcePath"]
+                    val dstType = data["targetResourceType"]
+                    val dstResource = if (dstPath != null && dstType != null) {
+                        resourceLookup["$dstPath|$dstType"]
+                    } else null
+
+                    val opType = runCatching { ScheduledOpType.valueOf(data["operationType"] ?: "") }
+                        .getOrElse { ScheduledOpType.COPY }
+                    if (opType != ScheduledOpType.DELETE && dstResource == null) {
+                        Timber.w("ImportSettings: ScheduledOp skipped — target not found for $opType")
+                        return@forEach
+                    }
+
+                    val op = ScheduledOperation(
+                        id = 0,
+                        isEnabled = data["isEnabled"]?.toBoolean() ?: true,
+                        sourceResourceId = srcResource.id,
+                        operationType = opType,
+                        targetResourceId = dstResource?.id,
+                        fileTypeFilter = runCatching { FileTypeFilter.valueOf(data["fileTypeFilter"] ?: "") }
+                            .getOrElse { FileTypeFilter.ALL },
+                        timeFilter = runCatching { TimeFilter.valueOf(data["timeFilter"] ?: "") }
+                            .getOrElse { TimeFilter.ALL },
+                        startTimeHour = data["startTimeHour"]?.toIntOrNull() ?: 0,
+                        startTimeMinute = data["startTimeMinute"]?.toIntOrNull() ?: 0,
+                        intervalHours = data["intervalHours"]?.toIntOrNull() ?: 1,
+                        intervalMinutes = data["intervalMinutes"]?.toIntOrNull() ?: 0,
+                        overwrite = data["overwrite"]?.toBoolean() ?: false,
+                        silentMode = data["silentMode"]?.toBoolean() ?: false
+                    )
+                    val newId = scheduledOperationRepository.upsert(op)
+                    if (op.isEnabled) {
+                        val savedOp = scheduledOperationRepository.getById(newId)
+                        if (savedOp != null) workManagerScheduler.scheduleOperation(savedOp)
+                    }
+                }
+                Timber.d("Imported ${scheduledOps.size} scheduled operations")
+            }
+
             Result.success(Unit)
             } // End of inputStream.use block
         } catch (e: Exception) {

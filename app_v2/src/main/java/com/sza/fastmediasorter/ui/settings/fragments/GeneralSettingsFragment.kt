@@ -1227,6 +1227,37 @@ class GeneralSettingsFragment : Fragment() {
         } else {
             binding.btnNotificationPermission?.visibility = View.GONE
         }
+
+        // Battery Optimization Permission — always shown so user can check/change
+        val pm = requireContext().getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+        val isIgnoring = pm.isIgnoringBatteryOptimizations(requireContext().packageName)
+        binding.btnBatteryOptimizationPermission?.isEnabled = true
+        binding.btnBatteryOptimizationPermission?.alpha = 1.0f
+        binding.btnBatteryOptimizationPermission?.text = if (isIgnoring) {
+            getString(R.string.manage_battery_optimization_permission)
+        } else {
+            getString(R.string.grant_battery_optimization_permission)
+        }
+        binding.btnBatteryOptimizationPermission?.setOnClickListener {
+            val pmNow = requireContext().getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+            if (pmNow.isIgnoringBatteryOptimizations(requireContext().packageName)) {
+                // Already ignoring — open battery settings to let user revert
+                try {
+                    startActivity(android.content.Intent(android.provider.Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                } catch (_: Exception) {
+                    openAppSettings()
+                }
+            } else {
+                try {
+                    val intent = android.content.Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = android.net.Uri.parse("package:${requireContext().packageName}")
+                    }
+                    startActivity(intent)
+                } catch (_: Exception) {
+                    openAppSettings()
+                }
+            }
+        }
     }
 
     private fun handleLocalFilesPermissionAction() {

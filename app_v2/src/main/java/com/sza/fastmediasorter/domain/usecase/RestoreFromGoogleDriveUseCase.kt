@@ -9,7 +9,9 @@ import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -27,7 +29,9 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val googleDriveClient: GoogleDriveRestClient,
-    private val favoritesDao: FavoritesDao
+    private val favoritesDao: FavoritesDao,
+    private val scheduledOperationRepository: ScheduledOperationRepository,
+    private val workManagerScheduler: WorkManagerScheduler
 ) {
     companion object {
         private const val FOLDER_NAME = "FastMediaSorter"
@@ -168,7 +172,33 @@ class RestoreFromGoogleDriveUseCase @Inject constructor(
                 }
             }
 
-            Timber.i("Restore complete: ${resourcesToAdd.size} added, $skipped skipped, $needsAuth need auth, $favoritesAdded favorites added, $favoritesSkipped favorites skipped")
+            // 4. Restore scheduled operations (version 3+ only)
+            var scheduledOpsAdded = 0
+            val backupScheduledOps = payload.scheduledOperations.orEmpty()
+            if (backupScheduledOps.isNotEmpty()) {
+                val allResources = resourceRepository.getAllResourcesSync()
+                val resourcesByPath = allResources.associateBy { it.path }
+                for (backupOp in backupScheduledOps) {
+                    try {
+                        val op = BackupMapper.toScheduledOperation(backupOp, resourcesByPath)
+                            ?: run {
+                                Timber.w("RestoreGDrive: Skipping scheduled op — resource not found")
+                                continue
+                            }
+                        val newId = scheduledOperationRepository.upsert(op)
+                        if (op.isEnabled) {
+                            val savedOp = scheduledOperationRepository.getById(newId)
+                            if (savedOp != null) workManagerScheduler.scheduleOperation(savedOp)
+                        }
+                        scheduledOpsAdded++
+                    } catch (e: Exception) {
+                        Timber.w(e, "RestoreGDrive: Skipping scheduled op — ${e.message}")
+                    }
+                }
+                Timber.i("RestoreGDrive: $scheduledOpsAdded scheduled operations restored")
+            }
+
+            Timber.i("Restore complete: ${resourcesToAdd.size} added, $skipped skipped, $needsAuth need auth, $favoritesAdded favorites added, $favoritesSkipped favorites skipped, $scheduledOpsAdded scheduled ops added")
 
             Result.success(
                 RestoreResult(

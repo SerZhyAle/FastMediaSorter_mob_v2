@@ -1,6 +1,6 @@
 # FastMediaSorter v2 — Complete Feature List
 
-*Last updated: 2026-03-22*
+*Last updated: 2026-03-27*
 
 This document is the canonical, up-to-date inventory of all user-facing features implemented in the application. It serves as a comprehensive guide to what the application can do, how each feature works, and why it is useful for the user.
 
@@ -29,6 +29,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - [19. Settings Search](#19-settings-search)
 - [20. Wear OS Companion App](#20-wear-os-companion-app)
 - [21. Background & System Services](#21-background--system-services)
+- [22. Scheduled File Operations](#22-scheduled-file-operations)
 
 ---
 
@@ -302,6 +303,22 @@ The Settings module provides deeply comprehensive control over nearly every face
 - **Credential audit**: Manage network keys securely definitively. The audit mechanism logs precise timestamp metrics corresponding to remote login validations, automatically drawing specific attention regarding completely stagnant, unused password profiles ready for strict manual deletion explicitly.
 - **Default player system hooks**: Integrate with Android intent routing when user-enabled. Runtime component toggles control ACTION_VIEW aliases (audio/video/image/document groups), ACTION_SEND aliases for share-sheet intake, and media-button wake-up wiring through the audio playback service path.
 - **Standalone player file operations**: Perform file actions directly when opening media from external apps via "Open with" or Share. Delete the file (with confirmation), share it to other apps, toggle favorite status, or navigate to its folder in the main FMS browser — all from the standalone player toolbar.
+
+
+## 22. Scheduled File Operations
+
+- **Scheduled copy / move / delete**: Automate recurring file management tasks by creating scheduled operations that run in the background at a set time and repeat on a chosen interval (minimum 15 minutes). Ideal for automatically moving camera photos to a NAS every night or clearing a downloads folder daily.
+- **Flexible file-type filter**: Narrow each operation to a specific media category — All files, Audio, Images, Video, or Documents — so a single scheduled job only touches the files you intend.
+- **Time window filter**: Further restrict which files are processed: all files, only files created since the last run, files from the last hour, or files from the last day. This prevents reprocessing files that were already handled.
+- **Remote and cloud destinations**: Scheduled operations fully support all resource types — local folders, SMB/NAS, FTP, SFTP, Google Drive, OneDrive, and Dropbox — as both source and destination. Target reachability is verified before any file is touched; if the destination is offline the run is logged as an error and retried on the next schedule cycle.
+- **Safe atomic MOVE**: Moving files is performed per-file: the source file is copied first, the copy is verified, and only then the original is deleted. A failed copy never removes the source.
+- **Enable / disable per operation**: Each scheduled job has its own on/off toggle in the Operations settings tab. Disabling a job cancels its pending WorkManager task without deleting the configuration.
+- **Run now**: Trigger any scheduled operation immediately from the settings table without waiting for its next scheduled time.
+- **Operations log**: Every run writes a per-file log entry to a persistent on-device log file (rotated at 1 MB). Entries include timestamp, operation type, source, destination, file name, and success or error status. The log is accessible from the Operations settings screen and can be cleared at any time.
+- **Error badge**: If the last run of an operation produced any error, a warning badge (⚠) is shown next to that operation in the table, prompting review of the log.
+- **Silent mode**: Optionally suppress all notifications for a scheduled operation so background tasks do not disturb the user.
+- **Boot persistence**: Scheduled operations are automatically rescheduled after a device reboot so your automation survives restarts without manual intervention.
+- **Battery optimization prompt**: On first use, the app offers to disable battery optimization for itself, ensuring operations run reliably on OEM devices (Xiaomi, Huawei, Samsung) that aggressively kill background processes. The same setting is accessible at any time from the General settings screen.
 
 
 

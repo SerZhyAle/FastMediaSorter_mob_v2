@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260326193
-        versionName = "2.60.3261.930"
+        versionCode = 260327032
+        versionName = "2.60.3270.324"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -221,6 +221,8 @@ android {
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "true")
             buildConfigField("boolean", "ENABLE_LEAKCANARY", "false")
+            buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "true")
+            buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "true")
             // Dedicated Dropbox app key for debug (com.sza.fastmediasorter.debug).
             // Prevents the "Security alert" triggered when debug + release are both installed
             // and both register for the same db-<appKey>:// URI scheme.
@@ -231,6 +233,8 @@ android {
             isShrinkResources = true
             buildConfigField("boolean", "LOG_SMB_IO", "false")
             buildConfigField("boolean", "LOG_NETWORK_THUMBNAILS", "false")
+            buildConfigField("boolean", "ENABLE_SCHEDULED_OPERATIONS", "false")
+            buildConfigField("boolean", "ENABLE_BACKGROUND_AUDIO", "false")
             ndk {
                 debugSymbolLevel = "FULL"
             }

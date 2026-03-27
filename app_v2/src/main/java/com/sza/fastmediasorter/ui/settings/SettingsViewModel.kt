@@ -75,6 +75,13 @@ class SettingsViewModel @Inject constructor(
             initialValue = emptyList()
         )
 
+    val resources: StateFlow<List<MediaResource>> = getResourcesUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
     fun updateSettings(settings: AppSettings) {
         val prev = this.settings.value
         viewModelScope.launch {
@@ -88,8 +95,27 @@ class SettingsViewModel @Inject constructor(
                         intervalHours = settings.backgroundSyncIntervalHours.toLong()
                     )
                 }
+                if (settings.enableScheduledOperations != prev.enableScheduledOperations) {
+                    applyScheduledOperationsToggle(settings.enableScheduledOperations)
+                }
             } catch (e: Exception) {
                 Timber.e(e, "Error updating settings")
+            }
+        }
+    }
+
+    private fun applyScheduledOperationsToggle(enabled: Boolean) {
+        viewModelScope.launch {
+            try {
+                if (enabled) {
+                    workManagerScheduler.rescheduleAll()
+                    Timber.i("SettingsViewModel: Scheduled operations enabled — rescheduled all")
+                } else {
+                    workManagerScheduler.cancelAllScheduledOperations()
+                    Timber.i("SettingsViewModel: Scheduled operations disabled — cancelled all workers")
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "SettingsViewModel: applyScheduledOperationsToggle failed")
             }
         }
     }

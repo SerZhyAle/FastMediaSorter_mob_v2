@@ -266,6 +266,25 @@ EPUB viewer automatically adapts to your app theme (Settings → Appearance → 
 
 ---
 
+## Scheduled Operations
+
+### What are Scheduled Operations?
+Time-based automation rules that run Copy, Move, or Delete operations between any of your resources (local folders, NAS, cloud) on a repeating schedule — even when the app is closed.
+
+### Where do I set up Scheduled Operations?
+Settings → **Operations** → **Scheduled Operations** section. Tap **"+"** to add a new rule.
+
+### Will it run if my app is closed?
+**Yes.** Operations are scheduled via Android **WorkManager**, which runs them in the background regardless of whether the app is open.
+
+### Why didn't a scheduled operation run at the exact time?
+Android may defer WorkManager tasks by a few minutes to optimize battery. For more reliable timing, grant the app **Battery Optimization** exemption (Settings → General → Battery Optimization). The minimum interval is 15 minutes.
+
+### Can I see what was processed?
+**Yes.** Tap **"View Log"** in the Scheduled Operations section to see a timestamped history of every run including per-file results.
+
+---
+
 ## Still have questions?
 
 - 📧 **Email:** [sza@ukr.net](mailto:sza@ukr.net)

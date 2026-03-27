@@ -16,9 +16,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ThumbnailCacheEntity::class,
         CachedFileListEntity::class,
         FileMetadataCacheEntity::class,
-        PendingRevocationEntity::class
+        PendingRevocationEntity::class,
+        ScheduledOperationEntity::class
     ],
-    version = 18,
+    version = 20,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -31,6 +32,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun thumbnailCacheDao(): ThumbnailCacheDao
     abstract fun cachedFileListDao(): CachedFileListDao
     abstract fun fileMetadataCacheDao(): FileMetadataCacheDao
+    abstract fun scheduledOperationDao(): ScheduledOperationDao
 
     companion object {
         /**
@@ -188,6 +190,18 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP TABLE IF EXISTS pending_revocations")
                 createFinalPendingRevocationsTable(db)
+            }
+        }
+
+        val MIGRATION_19_20 = object : Migration(19, 20) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE scheduled_operations ADD COLUMN overwrite INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        val MIGRATION_18_19 = object : Migration(18, 19) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                createScheduledOperationsTable(db)
             }
         }
 
@@ -434,6 +448,36 @@ abstract class AppDatabase : RoomDatabase() {
             ensureIndex(db, "idx_fmc_resource_path", "CREATE UNIQUE INDEX idx_fmc_resource_path ON file_metadata_cache (resourceId, filePath)")
             ensureIndex(db, "idx_fmc_credentials_id", "CREATE INDEX idx_fmc_credentials_id ON file_metadata_cache (credentialsId)")
             ensureIndex(db, "idx_fmc_cached_at", "CREATE INDEX idx_fmc_cached_at ON file_metadata_cache (cachedAt)")
+        }
+
+        private fun createScheduledOperationsTable(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS scheduled_operations (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    is_enabled INTEGER NOT NULL DEFAULT 1,
+                    source_resource_id INTEGER NOT NULL,
+                    operation_type TEXT NOT NULL,
+                    target_resource_id INTEGER,
+                    file_type_filter TEXT NOT NULL,
+                    time_filter TEXT NOT NULL,
+                    start_time_hour INTEGER NOT NULL,
+                    start_time_minute INTEGER NOT NULL,
+                    interval_hours INTEGER NOT NULL,
+                    interval_minutes INTEGER NOT NULL,
+                    silent_mode INTEGER NOT NULL DEFAULT 0,
+                    last_run_at INTEGER,
+                    next_run_at INTEGER,
+                    last_run_status TEXT,
+                    worker_id TEXT,
+                    FOREIGN KEY(source_resource_id) REFERENCES resources(id) ON DELETE CASCADE,
+                    FOREIGN KEY(target_resource_id) REFERENCES resources(id) ON DELETE CASCADE
+                )
+                """.trimIndent()
+            )
+            ensureIndex(db, "idx_sched_ops_source", "CREATE INDEX idx_sched_ops_source ON scheduled_operations (source_resource_id)")
+            ensureIndex(db, "idx_sched_ops_target", "CREATE INDEX idx_sched_ops_target ON scheduled_operations (target_resource_id)")
+            ensureIndex(db, "idx_sched_ops_enabled", "CREATE INDEX idx_sched_ops_enabled ON scheduled_operations (is_enabled)")
         }
 
         private fun createFinalPendingRevocationsTable(db: SupportSQLiteDatabase) {

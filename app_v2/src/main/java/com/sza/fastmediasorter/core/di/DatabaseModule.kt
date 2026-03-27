@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
 import com.sza.fastmediasorter.data.local.db.PlaybackPositionDao
 import com.sza.fastmediasorter.data.local.db.ResourceDao
+import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
 import dagger.Module
 import dagger.Provides
@@ -76,7 +77,9 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_14_15,
                 AppDatabase.MIGRATION_15_16,
                 AppDatabase.MIGRATION_16_17,
-                AppDatabase.MIGRATION_17_18
+                AppDatabase.MIGRATION_17_18,
+                AppDatabase.MIGRATION_18_19,
+                AppDatabase.MIGRATION_19_20
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
@@ -128,6 +131,12 @@ object DatabaseModule {
     @Singleton
     fun providePendingRevocationDao(database: AppDatabase): PendingRevocationDao {
         return database.pendingRevocationDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideScheduledOperationDao(database: AppDatabase): ScheduledOperationDao {
+        return database.scheduledOperationDao()
     }
 
     @Provides

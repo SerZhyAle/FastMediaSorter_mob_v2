@@ -125,7 +125,7 @@
 | `room-compiler`                | 2.6.1      | Room annotation processor          |
 | `datastore-preferences`        | 1.0.0      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 6          | Current schema version             |
+| Room DB version                  | 19         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -430,7 +430,7 @@
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 18                    | Latest schema with audio metadata cache        |
+| Room DB version        | 19                    | Latest schema with Scheduled Operations        |
 | Number of entities     | 15+                   | MediaResource, MediaFile, Cloud credentials, etc. |
 | Migrations             | 17                    | Schema evolution from v1.0 to v2.x             |
 

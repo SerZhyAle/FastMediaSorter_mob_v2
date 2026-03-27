@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,8 @@ class BackupToGoogleDriveUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
     private val googleDriveClient: GoogleDriveRestClient,
-    private val favoritesDao: FavoritesDao
+    private val favoritesDao: FavoritesDao,
+    private val scheduledOperationRepository: ScheduledOperationRepository
 ) {
     companion object {
         const val FOLDER_NAME = "FastMediaSorter"
@@ -175,13 +177,20 @@ class BackupToGoogleDriveUseCase @Inject constructor(
             val resourceLookup = resources.associateBy { it.id }
             val backupFavorites = BackupMapper.toBackupFavorites(favoritesEntities, resourceLookup)
 
+            // 1c. Collect scheduled operations
+            val scheduledOps = scheduledOperationRepository.getAll().first()
+            val backupScheduledOps = scheduledOps.mapNotNull { op ->
+                BackupMapper.toBackupScheduledOperation(op, resourceLookup)
+            }
+
             // 2. Build payload
             val payload = BackupMapper.toBackupPayload(
                 settings = settings,
                 resources = resources,
                 favorites = backupFavorites,
                 appVersionCode = BuildConfig.VERSION_CODE.toLong(),
-                appVersionName = BuildConfig.VERSION_NAME
+                appVersionName = BuildConfig.VERSION_NAME,
+                scheduledOperations = backupScheduledOps
             )
 
             // 3. Serialize to JSON

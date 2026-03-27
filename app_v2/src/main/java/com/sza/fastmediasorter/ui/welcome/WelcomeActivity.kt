@@ -40,6 +40,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private var hasTriggeredLastPagePermissionRequest = false
     private var hasRequestedManageMediaInSession = false
     private var hasRequestedAllFilesAccessInSession = false
+    private var hasRequestedBatteryOptimizationInSession = false
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -56,6 +57,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         continueSpecialPermissionsFlowOrComplete()
     }
     private val allFilesAccessPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        continueSpecialPermissionsFlowOrComplete()
+    }
+    private val batteryOptimizationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
         continueSpecialPermissionsFlowOrComplete()
@@ -373,6 +379,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             return
         }
 
+        if (requestBatteryOptimizationIfNeeded()) {
+            return
+        }
+
         if (waitingPermissionForFinish || currentPage == pagerAdapter.itemCount - 1) {
             waitingPermissionForFinish = false
             completeWelcomeFlow()
@@ -424,6 +434,40 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         }
 
         allFilesAccessPermissionLauncher.launch(intent)
+        return true
+    }
+
+    private fun requestBatteryOptimizationIfNeeded(): Boolean {
+        if (hasRequestedBatteryOptimizationInSession) {
+            return false
+        }
+
+        val pm = getSystemService(android.content.Context.POWER_SERVICE) as android.os.PowerManager
+        if (pm.isIgnoringBatteryOptimizations(packageName)) {
+            return false
+        }
+
+        hasRequestedBatteryOptimizationInSession = true
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.battery_optimization_dialog_title)
+            .setMessage(R.string.battery_optimization_dialog_message)
+            .setPositiveButton(R.string.battery_optimization_dialog_btn_allow) { _, _ ->
+                try {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:$packageName")
+                    }
+                    batteryOptimizationPermissionLauncher.launch(intent)
+                } catch (_: Exception) {
+                    continueSpecialPermissionsFlowOrComplete()
+                }
+            }
+            .setNegativeButton(R.string.battery_optimization_dialog_btn_skip) { _, _ ->
+                continueSpecialPermissionsFlowOrComplete()
+            }
+            .setCancelable(false)
+            .show()
+
         return true
     }
 

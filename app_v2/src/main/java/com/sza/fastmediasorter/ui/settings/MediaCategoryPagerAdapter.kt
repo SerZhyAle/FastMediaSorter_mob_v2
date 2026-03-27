@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.ui.settings.fragments.AudioSettingsFragment
-import com.sza.fastmediasorter.ui.settings.fragments.DestinationsSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.DocumentsSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.ImagesSettingsFragment
 import com.sza.fastmediasorter.ui.settings.fragments.OtherMediaSettingsFragment

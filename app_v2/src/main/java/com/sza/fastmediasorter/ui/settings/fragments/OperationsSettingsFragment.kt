@@ -15,26 +15,35 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.databinding.ItemDestinationBinding
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
+import com.sza.fastmediasorter.ui.dialog.ScheduledLogDialog
+import com.sza.fastmediasorter.ui.dialog.ScheduledOperationDialog
+import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
+import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
-class DestinationsSettingsFragment : Fragment() {
+class OperationsSettingsFragment : Fragment() {
     companion object {
         private const val PREFS_NAME = "settings_section_states"
         private const val KEY_FILE_OPS_EXPANDED = "destinations_file_ops_expanded"
         private const val KEY_DESTINATIONS_EXPANDED = "destinations_list_expanded"
+        private const val KEY_SCHEDULED_EXPANDED = "scheduled_ops_expanded"
     }
 
     private var _binding: FragmentSettingsDestinationsBinding? = null
     private val binding get() = _binding!!
     private val viewModel: SettingsViewModel by activityViewModels()
+    private val scheduledViewModel: ScheduledOperationsViewModel by activityViewModels()
     private lateinit var adapter: DestinationsAdapter
+    private lateinit var scheduledAdapter: ScheduledOperationsAdapter
     private var isUpdatingFromSettings = false
     
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
@@ -46,6 +55,7 @@ class DestinationsSettingsFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
         setupExpandableSections()
+        setupScheduledSection()
         observeData()
     }
     
@@ -209,6 +219,8 @@ class DestinationsSettingsFragment : Fragment() {
                 launch {
                     viewModel.settings.collect { settings ->
                         isUpdatingFromSettings = true
+                        binding.switchEnableScheduledOps.isChecked = settings.enableScheduledOperations
+                        binding.containerScheduledContent.isVisible = settings.enableScheduledOperations
                         // Update switches
                         binding.switchEnableCopying.isChecked = settings.enableCopying
                         binding.switchGoToNextAfterCopy.isChecked = settings.goToNextAfterCopy
@@ -233,6 +245,12 @@ class DestinationsSettingsFragment : Fragment() {
                         // Update visibility based on current destinations list
                         updateAddDestinationVisibility(destinations.isNotEmpty())
                     }
+                }
+
+                // Keep resources StateFlow warm so viewModel.resources.value is populated
+                // when the user opens the scheduled operation dialog.
+                launch {
+                    viewModel.resources.collect { /* no UI update needed here */ }
                 }
                 
                 // Initial check for resources availability
@@ -273,6 +291,90 @@ class DestinationsSettingsFragment : Fragment() {
             prefKey = KEY_DESTINATIONS_EXPANDED,
             initiallyExpanded = prefs.getBoolean(KEY_DESTINATIONS_EXPANDED, false)
         )
+        if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS) {
+            bindSectionToggle(
+                header = binding.headerScheduled,
+                content = binding.containerScheduled,
+                title = getString(R.string.scheduled_ops_section_title),
+                prefKey = KEY_SCHEDULED_EXPANDED,
+                initiallyExpanded = prefs.getBoolean(KEY_SCHEDULED_EXPANDED, false)
+            )
+        } else {
+            binding.headerScheduled.isVisible = false
+            binding.containerScheduled.isVisible = false
+        }
+    }
+
+    private fun setupScheduledSection() {
+        binding.switchEnableScheduledOps.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableScheduledOperations = isChecked))
+            binding.containerScheduledContent.isVisible = isChecked
+        }
+
+        scheduledAdapter = ScheduledOperationsAdapter(
+            onToggle = { op -> scheduledViewModel.toggleEnabled(op) },
+            onEdit = { op -> showScheduledOperationDialog(op) },
+            onDelete = { op -> confirmDeleteScheduledOp(op) },
+            onRunNow = { op -> scheduledViewModel.runNow(op.id) },
+            resourceNameProvider = { id ->
+                viewModel.resources.value.find { it.id == id }?.name
+            }
+        )
+        binding.rvScheduledOps.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(requireContext())
+        binding.rvScheduledOps.adapter = scheduledAdapter
+
+        binding.btnAddScheduledOp.setOnClickListener { showScheduledOperationDialog(null) }
+
+        binding.btnScheduledLog.setOnClickListener {
+            ScheduledLogDialog(
+                requireContext(),
+                logContent = scheduledViewModel.getLog(),
+                onClearLog = { scheduledViewModel.clearLog() }
+            ).show()
+        }
+
+        binding.btnClearAllScheduled.setOnClickListener {
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(R.string.scheduled_ops_confirm_clear)
+                .setPositiveButton(R.string.delete) { _, _ ->
+                    viewLifecycleOwner.lifecycleScope.launch {
+                        scheduledViewModel.operations.value.forEach { scheduledViewModel.delete(it.id) }
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show()
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                scheduledViewModel.operations.collect { ops ->
+                    scheduledAdapter.submitList(ops)
+                    binding.tvNoScheduledOps.isVisible = ops.isEmpty()
+                }
+            }
+        }
+    }
+
+    private fun showScheduledOperationDialog(existing: ScheduledOperation?) {
+        val allResources = viewModel.resources.value
+        val destinations = viewModel.destinations.value
+        ScheduledOperationDialog(
+            context = requireContext(),
+            resources = allResources,
+            destinations = destinations,
+            existing = existing,
+            onSave = { op -> scheduledViewModel.upsert(op) }
+        ).show()
+    }
+
+    private fun confirmDeleteScheduledOp(op: ScheduledOperation) {
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(R.string.scheduled_ops_confirm_delete)
+            .setPositiveButton(R.string.delete) { _, _ -> scheduledViewModel.delete(op.id) }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun bindSectionToggle(

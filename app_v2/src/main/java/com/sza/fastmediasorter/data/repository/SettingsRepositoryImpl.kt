@@ -118,6 +118,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // Safe Mode settings key (Phase 2.1)
         private val KEY_ENABLE_SAFE_MODE = booleanPreferencesKey("enable_safe_mode")
         
+        // Scheduled operations
+        private val KEY_ENABLE_SCHEDULED_OPERATIONS = booleanPreferencesKey("enable_scheduled_operations")
+
         // Destinations settings keys
         private val KEY_ENABLE_COPYING = booleanPreferencesKey("enable_copying")
         private val KEY_GO_TO_NEXT_AFTER_COPY = booleanPreferencesKey("go_to_next_after_copy")
@@ -289,6 +292,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     // Safe Mode (Phase 2.1)
                     enableSafeMode = preferences[KEY_ENABLE_SAFE_MODE] ?: true,
                     
+                    // Scheduled operations
+                    enableScheduledOperations = preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] ?: false,
+
                     // Destinations
                     enableCopying = preferences[KEY_ENABLE_COPYING] ?: true,
                     goToNextAfterCopy = preferences[KEY_GO_TO_NEXT_AFTER_COPY] ?: true,
@@ -458,6 +464,9 @@ class SettingsRepositoryImpl @Inject constructor(
             // Safe Mode (Phase 2.1)
             preferences[KEY_ENABLE_SAFE_MODE] = settings.enableSafeMode
             
+            // Scheduled operations
+            preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] = settings.enableScheduledOperations
+
             // Destinations
             preferences[KEY_ENABLE_COPYING] = settings.enableCopying
             preferences[KEY_GO_TO_NEXT_AFTER_COPY] = settings.goToNextAfterCopy

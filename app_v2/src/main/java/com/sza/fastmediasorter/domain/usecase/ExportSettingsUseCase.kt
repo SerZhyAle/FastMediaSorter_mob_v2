@@ -8,6 +8,7 @@ import android.provider.MediaStore
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
@@ -23,18 +24,21 @@ class ExportSettingsUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val settingsRepository: SettingsRepository,
     private val resourceRepository: ResourceRepository,
-    private val credentialsRepository: NetworkCredentialsRepository
+    private val credentialsRepository: NetworkCredentialsRepository,
+    private val scheduledOperationRepository: ScheduledOperationRepository
 ) {
     suspend operator fun invoke(): Result<String> {
         return try {
             val settings = settingsRepository.getSettings().first()
             val resources = resourceRepository.getAllResources().first()
             val credentials = credentialsRepository.getAllCredentials().first()
+            val scheduledOps = scheduledOperationRepository.getAll().first()
+            val resourceMap = resources.associateBy { it.id }
             
             // Build XML content
             val xml = buildString {
                 appendLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>")
-                appendLine("<FastMediaSorterBackup version=\"2.1\">")
+                appendLine("<FastMediaSorterBackup version=\"3.0\">")
                 
                 // Settings section
                 appendLine("  <Settings>")
@@ -116,6 +120,7 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <rendererMigrationEnabled>${settings.rendererMigrationEnabled}</rendererMigrationEnabled>")
                 appendLine("    <enableSafeMode>${settings.enableSafeMode}</enableSafeMode>")
                 appendLine("    <enableFavorites>${settings.enableFavorites}</enableFavorites>")
+                appendLine("    <enableScheduledOperations>${settings.enableScheduledOperations}</enableScheduledOperations>")
                 appendLine("    <enableCopying>${settings.enableCopying}</enableCopying>")
                 appendLine("    <goToNextAfterCopy>${settings.goToNextAfterCopy}</goToNextAfterCopy>")
                 appendLine("    <overwriteOnCopy>${settings.overwriteOnCopy}</overwriteOnCopy>")
@@ -208,7 +213,34 @@ class ExportSettingsUseCase @Inject constructor(
                     appendLine("    </Resource>")
                 }
                 appendLine("  </Resources>")
-                
+
+                // Scheduled Operations section (version 3.0+)
+                appendLine("  <ScheduledOperations>")
+                for (op in scheduledOps) {
+                    val src = resourceMap[op.sourceResourceId]
+                    val dst = if (op.targetResourceId != null) resourceMap[op.targetResourceId] else null
+                    if (src == null) continue // skip if source resource gone
+                    appendLine("    <ScheduledOperation>")
+                    appendLine("      <isEnabled>${op.isEnabled}</isEnabled>")
+                    appendLine("      <sourceResourcePath>${src.path.escapeXml()}</sourceResourcePath>")
+                    appendLine("      <sourceResourceType>${src.type.name}</sourceResourceType>")
+                    appendLine("      <operationType>${op.operationType.name}</operationType>")
+                    if (dst != null) {
+                        appendLine("      <targetResourcePath>${dst.path.escapeXml()}</targetResourcePath>")
+                        appendLine("      <targetResourceType>${dst.type.name}</targetResourceType>")
+                    }
+                    appendLine("      <fileTypeFilter>${op.fileTypeFilter.name}</fileTypeFilter>")
+                    appendLine("      <timeFilter>${op.timeFilter.name}</timeFilter>")
+                    appendLine("      <startTimeHour>${op.startTimeHour}</startTimeHour>")
+                    appendLine("      <startTimeMinute>${op.startTimeMinute}</startTimeMinute>")
+                    appendLine("      <intervalHours>${op.intervalHours}</intervalHours>")
+                    appendLine("      <intervalMinutes>${op.intervalMinutes}</intervalMinutes>")
+                    appendLine("      <overwrite>${op.overwrite}</overwrite>")
+                    appendLine("      <silentMode>${op.silentMode}</silentMode>")
+                    appendLine("    </ScheduledOperation>")
+                }
+                appendLine("  </ScheduledOperations>")
+
                 appendLine("</FastMediaSorterBackup>")
             }
             

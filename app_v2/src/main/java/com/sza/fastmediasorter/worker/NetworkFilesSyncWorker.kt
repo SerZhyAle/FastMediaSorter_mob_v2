@@ -1,9 +1,18 @@
 package com.sza.fastmediasorter.worker
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
+import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
+import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -20,16 +29,20 @@ import timber.log.Timber
  */
 @HiltWorker
 class NetworkFilesSyncWorker @AssistedInject constructor(
-    @Assisted appContext: Context,
+    @Assisted applicationContext: Context,
     @Assisted workerParams: WorkerParameters,
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
     private val mediaScannerFactory: MediaScannerFactory
-) : CoroutineWorker(appContext, workerParams) {
+) : CoroutineWorker(applicationContext, workerParams) {
 
     override suspend fun doWork(): Result {
         Timber.d("NetworkFilesSyncWorker: Starting background sync (local + network)")
-        
+        try {
+            setForeground(createForegroundInfo())
+        } catch (e: Exception) {
+            Timber.w(e, "NetworkFilesSyncWorker: setForeground failed (non-fatal)")
+        }
         return try {
             val resources = resourceRepository.getAllResources().first()
             val settings = settingsRepository.getSettings().first()
@@ -99,14 +112,51 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
             
             Timber.i("NetworkFilesSyncWorker: Background sync completed (local + network)")
             Result.success()
-
         } catch (e: Exception) {
             Timber.e(e, "NetworkFilesSyncWorker: Background sync failed")
             Result.failure()
         }
     }
     
+    private fun createForegroundInfo(): ForegroundInfo {
+        createNotificationChannel()
+        val notification = buildNotification()
+        // FOREGROUND_SERVICE_DATA_SYNC permission is only declared in debug builds.
+        // In release we use a plain ForegroundInfo without a service type.
+        return if (BuildConfig.ENABLE_SCHEDULED_OPERATIONS && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+        } else {
+            ForegroundInfo(NOTIFICATION_ID, notification)
+        }
+    }
+
+    private fun buildNotification(): Notification {
+        return NotificationCompat.Builder(applicationContext, NOTIFICATION_CHANNEL_ID)
+            .setContentTitle(applicationContext.getString(R.string.network_sync_settings))
+            .setContentText(applicationContext.getString(R.string.sync_status_in_progress))
+            .setSmallIcon(R.drawable.ic_notification_audio) // Use generic or sync icon
+            .setOngoing(true)
+            .setSilent(true)
+            .build()
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                applicationContext.getString(R.string.network_sync_settings),
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setShowBadge(false)
+            }
+            val nm = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            nm.createNotificationChannel(channel)
+        }
+    }
+
     companion object {
         const val WORK_NAME = "network_files_sync"
+        const val NOTIFICATION_CHANNEL_ID = "network_sync_channel"
+        private const val NOTIFICATION_ID = 4201
     }
 }

@@ -2,9 +2,12 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.DisplayMode
+import com.sza.fastmediasorter.domain.model.FileTypeFilter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.TimeFilter
 
 /**
  * Backup payload serialized to/from JSON for Google Drive backup.
@@ -21,10 +24,11 @@ data class BackupPayload(
     // leaving a non-null default that Kotlin cannot distinguish from a real value.
     val settings: BackupSettings? = null,
     val resources: List<BackupResource>? = null,
-    val favorites: List<BackupFavorite>? = null
+    val favorites: List<BackupFavorite>? = null,
+    val scheduledOperations: List<BackupScheduledOperation>? = null
 ) {
     companion object {
-        const val CURRENT_VERSION = 2
+        const val CURRENT_VERSION = 3
     }
 }
 
@@ -108,6 +112,8 @@ data class BackupSettings(
     val enablePlayerWarmup: Boolean = false,
     val rendererMigrationEnabled: Boolean = false,
     val enableSafeMode: Boolean = true,
+    // Scheduled operations
+    val enableScheduledOperations: Boolean = false,
     // Destinations
     val enableCopying: Boolean = true,
     val goToNextAfterCopy: Boolean = true,
@@ -160,6 +166,27 @@ data class BackupResource(
     val rememberFileList: Boolean = false,
     val comment: String? = null,
     val showCommandPanel: Boolean? = null
+)
+
+/**
+ * Serializable scheduled operation for backup.
+ * Resources are identified by path+type so they survive cross-device restore.
+ */
+data class BackupScheduledOperation(
+    val isEnabled: Boolean = true,
+    val sourceResourcePath: String = "",
+    val sourceResourceType: String = "LOCAL",
+    val operationType: String = "COPY",
+    val targetResourcePath: String? = null,
+    val targetResourceType: String? = null,
+    val fileTypeFilter: String = "ALL",
+    val timeFilter: String = "ALL",
+    val startTimeHour: Int = 0,
+    val startTimeMinute: Int = 0,
+    val intervalHours: Int = 1,
+    val intervalMinutes: Int = 0,
+    val overwrite: Boolean = false,
+    val silentMode: Boolean = false
 )
 
 /**

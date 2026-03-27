@@ -30,6 +30,11 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- Scheduled file operations -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+
     <!-- Screen sizes and densities supported -->
     <!-- Supports phones, tablets, and compact devices (480x480+) -->
     <supports-screens android:smallScreens="true" android:normalScreens="true" android:largeScreens="true" android:xlargeScreens="true" android:requiresSmallestWidthDp="320" />
@@ -158,6 +163,21 @@
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_continue_reading_info" />
+        </receiver>
+
+        <!-- Scheduled file operations: foreground service type for WorkManager (Android 14+) -->
+        <service
+            android:name="androidx.work.impl.foreground.SystemForegroundService"
+            android:foregroundServiceType="mediaPlayback|dataSync"
+            tools:node="merge" />
+
+        <!-- Scheduled file operations: reschedule on device boot -->
+        <receiver
+            android:name=".worker.ScheduledOperationsBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
         </receiver>
 
         <!-- Media button receiver for cold service restart (enabled only when isPrimaryMediaPlayer=true) -->

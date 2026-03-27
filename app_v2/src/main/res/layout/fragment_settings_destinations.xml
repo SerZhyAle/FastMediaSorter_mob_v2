@@ -124,6 +124,148 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Scheduled Operations Card -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Header -->
+                <TextView
+                    android:id="@+id/headerScheduled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/colorSurfaceVariant"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="@dimen/settings_padding_vertical"
+                    android:text="@string/scheduled_ops_section_title"
+                    android:textSize="@dimen/settings_group_header_text_size"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/containerScheduled"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/margin_small"
+                    android:paddingEnd="@dimen/margin_small"
+                    android:paddingBottom="@dimen/margin_small"
+                    android:visibility="gone">
+
+                    <!-- Master toggle: enable/disable all scheduled operations -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="@dimen/margin_small"
+                        android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/switchEnableScheduledOps"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="@dimen/margin_small" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/scheduled_ops_toggle"
+                                android:textAppearance="?attr/textAppearanceBody2" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/scheduled_ops_toggle_hint"
+                                android:textAppearance="?attr/textAppearanceCaption"
+                                android:alpha="0.7" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Operations list and toolbar (hidden when toggle is off) -->
+                    <LinearLayout
+                        android:id="@+id/containerScheduledContent"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                    <!-- Top toolbar: Add + Log buttons -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="@dimen/margin_tiny">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnAddScheduledOp"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/scheduled_ops_btn_add"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnScheduledLog"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/scheduled_ops_btn_log"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnClearAllScheduled"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/scheduled_ops_btn_clear_all"
+                            android:textColor="?attr/colorError"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                    <!-- Empty state message -->
+                    <TextView
+                        android:id="@+id/tvNoScheduledOps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:padding="@dimen/bottom_sheet_binary_file_unknown_padding"
+                        android:text="@string/scheduled_ops_no_destinations"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="@dimen/resource_card_desc_text_size"
+                        android:visibility="gone" />
+
+                    <!-- Scheduled operations list -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvScheduledOps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:nestedScrollingEnabled="false" />
+
+                    </LinearLayout><!-- end containerScheduledContent -->
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
 

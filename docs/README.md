@@ -122,6 +122,7 @@ FastMediaSorter v2 is available in **4 different flavors** to suit different nee
 - �📥 **Download & Open:** Download network files (SMB/SFTP/FTP) to local storage and open them in external apps with progress tracking.
 - 🌐 **Auto-Translation:** Instantly translate text from images, PDFs, and text files using a **Hybrid OCR System** (Google ML Kit + Tesseract) for superior accuracy in both Latin and Cyrillic scripts. Supports both standard and **lens-style overlay mode** for in-place translations.
 - 📱 **Widget Support:** Quick access to your favorite folders directly from your home screen with two widget types: **Resource Shortcut** (opens any folder instantly) and **Continue Reading** (launches slideshow mode immediately).
+- ⏰ **Scheduled File Operations:** Automate file management with time-based rules. Schedule recurring Copy, Move, or Delete operations between any resources (local, network, cloud) with file-type and time filters. Operations run silently in the background via WorkManager even when the app is closed.
 - 👆 **Advanced Gestures:** Smart zoom controls (2x/3x/4x) for images and intuitive touch zones for file navigation.
 
 ## Supported Media Formats 🎞️
@@ -183,6 +184,10 @@ Downloads folder cluttered? Open it in the source panel, set up destination butt
 ### 10. 🚗 In-Car Music with Android Head Unit
 
 Install FastMediaSorter on your Android-powered car stereo or head unit. Add USB drive or SD card music folders — or use the built-in **All Music** virtual resource to instantly access your entire collection with zero setup. Hardware media buttons (steering wheel controls, volume knobs) work seamlessly via the background audio service: play/pause, next/previous track, all without touching the screen. The app remembers playback position and resumes automatically on startup.
+
+### 11. ⏰ Automated Nightly Backup
+
+Set up a scheduled Copy operation from your **Camera** folder to your **NAS (SMB)** once a day. Enable "Since Last Run" time filter so only new photos are copied each time. The operation runs in the background at the configured hour — even if the app is closed — and writes a detailed log you can review anytime in Settings → Operations.
 
 ## Documentation / Документація / Документация 📚
 
