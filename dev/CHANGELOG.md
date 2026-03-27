@@ -1088,3 +1088,8 @@ Format: | datetime | file | target | description |
 | 2026-03-27 03:10:23 | `app_v2/src/release/AndroidManifest.xml` | `release manifest overlay` | Hide FOREGROUND_SERVICE_DATA_SYNC, FOREGROUND_SERVICE_MEDIA_PLAYBACK, BootReceiver for Play Store submission |
 | 2026-03-27 03:10:23 | `app_v2/build.gradle.kts` | `buildTypes` | Add ENABLE_SCHEDULED_OPERATIONS and ENABLE_BACKGROUND_AUDIO flags (true=debug, false=release) |
 | 2026-03-27 03:14:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScheduledLogDialog.kt` | `ScheduledLogDialog` | Add Copy button to copy log to clipboard |
+| 2026-03-27 13:29:45 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | Fix release log: startup info now WARN level, add settings dump on startup |
+| 2026-03-27 13:29:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Fix release log: playback start and file metadata now logged at WARN level |
+| 2026-03-27 14:03:12 | `app_v2/src/main/res/layout/activity_welcome.xml` | `btnNext/btnFinish` | Fix invisible Next/Finish buttons on welcome screen — replace M3 TonalButton with filled MaterialComponents.Button + colorPrimary tint |
+| 2026-03-27 14:05:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `applyEdgeToEdgeInsets` | Fix Next/Finish buttons covered by system nav bar: force inset re-dispatch via requestApplyInsets after post{} delay |
+| 2026-03-27 16:47:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Fix: provision virtual resources with isWritable=true so Delete/Move/Rename work on first launch |

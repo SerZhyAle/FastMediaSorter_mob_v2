@@ -141,7 +141,7 @@ class PlayerMediaLoaderManager(
      * Play video or audio file with comprehensive media type routing
      */
     fun playVideo(path: String) {
-        Timber.i("PlayerMediaLoaderManager.playVideo: START - path=$path")
+        Timber.w("PlayerMediaLoaderManager.playVideo: START - path=$path")
         // Only cancel prefetch if the new file differs from what is being prefetched
         if (audioPrefetchPath != path) {
             cancelAudioPrefetch()
@@ -168,7 +168,14 @@ class PlayerMediaLoaderManager(
         val currentFile = viewModel.state.value.currentFile
         val resource = viewModel.state.value.resource
         val isAudioFile = currentFile?.type == MediaType.AUDIO
-        
+        Timber.w(
+            "PlayerMediaLoaderManager: playing file=" + (currentFile?.name ?: "<unknown>") +
+            " type=" + (currentFile?.type ?: "?") +
+            " size=" + ((currentFile?.size ?: 0L) / 1024L) + "KB" +
+            " resource=" + (resource?.name ?: "<none>") +
+            " isAudio=$isAudioFile"
+        )
+
         // Hide all image-related views (keep audio cover art for audio files)
         hideImageViews(keepAudioCover = isAudioFile)
 

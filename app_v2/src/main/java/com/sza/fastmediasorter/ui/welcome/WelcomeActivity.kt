@@ -111,6 +111,9 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
             insets
         }
+        // setupViews() runs inside post{} — insets may already be dispatched by then.
+        // Force re-dispatch so the listener above actually fires.
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
     }
 
     private fun setupViewPager() {

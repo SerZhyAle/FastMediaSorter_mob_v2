@@ -45,28 +45,32 @@
         <!-- Next Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/next"
             android:textSize="@dimen/welcome_button_text_size"
+            android:textColor="@color/white"
             android:padding="@dimen/welcome_button_padding"
             android:minHeight="@dimen/welcome_button_min_height"
-            android:minWidth="0dp" />
+            android:minWidth="0dp"
+            app:backgroundTint="?attr/colorPrimary" />
 
         <!-- Finish Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinish"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/finish"
             android:textSize="@dimen/welcome_button_text_size"
+            android:textColor="@color/white"
             android:padding="@dimen/welcome_button_padding"
             android:minHeight="@dimen/welcome_button_min_height"
             android:minWidth="0dp"
+            app:backgroundTint="?attr/colorPrimary"
             android:visibility="gone" />
 
         <!-- Skip Button -->

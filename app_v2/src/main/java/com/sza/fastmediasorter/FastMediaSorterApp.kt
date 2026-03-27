@@ -165,6 +165,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             try {
                 kotlinx.coroutines.delay(2000) // Wait for UI to render first
                 val settings = settingsRepository.getSettings().first()
+                logSettingsInfo(settings)
                 if (settings.enableBackgroundSync) {
                     workManagerScheduler.scheduleResourcesSync(
                         settings.backgroundSyncIntervalHours.toLong()
@@ -428,6 +429,32 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         sb.append("==========================================")
 
-        Timber.i(sb.toString())
+        Timber.w(sb.toString())
+    }
+
+    private fun logSettingsInfo(settings: com.sza.fastmediasorter.domain.model.AppSettings) {
+        val sb = StringBuilder()
+        sb.append("\n==========================================\n")
+        sb.append("   FAST MEDIA SORTER V2 - SETTINGS DUMP\n")
+        sb.append("==========================================\n")
+        sb.append(String.format(Locale.US, "%-30s: %s\n", "Language", settings.language))
+        sb.append(String.format(Locale.US, "%-30s: %s\n", "Flavor", BuildConfig.FLAVOR))
+        sb.append(String.format(Locale.US, "%-30s: %s\n", "Build type", BuildConfig.BUILD_TYPE))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportAudio", settings.supportAudio))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportVideos", settings.supportVideos))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "supportImages", settings.supportImages))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "enablePersistentAudio", settings.enablePersistentAudioPlayback))
+        sb.append(String.format(Locale.US, "%-30s: %s\n", "audioEmptyStateMode", settings.audioEmptyStateMode))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "enablePhotosDuringAudio", settings.enablePhotosDuringAudio))
+        sb.append(String.format(Locale.US, "%-30s: %s\n", "defaultSortMode", settings.defaultSortMode))
+        sb.append(String.format(Locale.US, "%-30s: %d\n", "networkParallelism", settings.networkParallelism))
+        sb.append(String.format(Locale.US, "%-30s: %d MB\n", "cacheSizeMb", settings.cacheSizeMb))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "loadFullSizeImages", settings.loadFullSizeImages))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "rendererMigrationEnabled", settings.rendererMigrationEnabled))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "enableTranslation", settings.enableTranslation))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "enableBackgroundSync", settings.enableBackgroundSync))
+        sb.append(String.format(Locale.US, "%-30s: %b\n", "showDetailedErrors", settings.showDetailedErrors))
+        sb.append("==========================================")
+        Timber.w(sb.toString())
     }
 }

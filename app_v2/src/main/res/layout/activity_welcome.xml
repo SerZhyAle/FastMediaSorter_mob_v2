@@ -72,11 +72,13 @@
         <!-- Next Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNext"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/next"
             android:textSize="@dimen/welcome_button_text_size"
+            android:textColor="@color/white"
+            app:backgroundTint="?attr/colorPrimary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"/>
@@ -84,11 +86,13 @@
         <!-- Finish Button (same position as Next) -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnFinish"
-            style="@style/Widget.Material3.Button.TonalButton"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/finish"
             android:textSize="@dimen/welcome_button_text_size"
+            android:textColor="@color/white"
+            app:backgroundTint="?attr/colorPrimary"
             android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
