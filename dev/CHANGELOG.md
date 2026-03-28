@@ -1174,3 +1174,4 @@ Format: | datetime | file | target | description |
 | 2026-03-28 21:52:58 | `app_v2/src/test/java/com/sza/fastmediasorter/core/util/HeifSupportUtilsTest.kt` | `HeifSupportUtilsTest` | New: unit tests for HeifSupportUtils covering heic/heif/avif API-level combinations |
 | 2026-03-28 22:56:22 | `app_v2/src/main/res/layout-land/page_welcome_enhanced.xml` | `page_welcome_enhanced` | Add landscape layout for Enhanced welcome pages (icon left, content right) |
 | 2026-03-28 23:26:11 | `.claude/commands/build.md` | `build skill` | Add /build slash command for build system reference |
+| 2026-03-29 00:03:48 | `app_v2/src/main/AndroidManifest.xml` | `StandaloneImageSender,StandaloneAudioSender,StandaloneVideoSender` | Add missing ACTION_SEND activity-aliases to main manifest; were only in lite overlay causing IAE on standard/debug builds |
