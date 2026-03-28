@@ -299,6 +299,7 @@ class CommandPanelController(
             safeViews.btnUndoCmd.isVisible = state.lastOperation != null && canWrite
             safeViews.btnLyricsCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
             safeViews.btnSearchYoutubeMusicCmd.isVisible = isVideo && currentFile.type == MediaType.AUDIO
+            safeViews.btnCastCmd.isVisible = (isImage || isVideo) && isLandscapeMode && isWifiConnected(binding.root.context)
             // Edit is visible for images (if writable) OR video (always, as it's controls)
             safeViews.btnEditCmd.isVisible = (isImage && canWrite) || isVideo || isPdf || isPdf
             
@@ -659,7 +660,9 @@ class CommandPanelController(
         safeViews.btnGoogleLensImageCmd,
         // Audio commands
         safeViews.btnLyricsCmd,
-        safeViews.btnSearchYoutubeMusicCmd
+        safeViews.btnSearchYoutubeMusicCmd,
+        // Cast
+        safeViews.btnCastCmd
     )
 
     private fun resolveOriginalButtonHeight(button: View): Int {

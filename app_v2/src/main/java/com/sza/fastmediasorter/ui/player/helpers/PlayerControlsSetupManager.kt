@@ -184,6 +184,12 @@ class PlayerControlsSetupManager(
             activity.scheduleHideControls()
         }
 
+        binding.root.findViewById<android.widget.ImageButton>(com.sza.fastmediasorter.R.id.btnCastCmd)?.setOnClickListener {
+            UserActionLogger.logButtonClick("CastCmd", "PlayerActivity")
+            activity.castCurrentMedia()
+            activity.scheduleHideControls()
+        }
+
         binding.btnFavorite.setOnClickListener {
             UserActionLogger.logButtonClick("Favorite", "PlayerActivity")
             viewModel.toggleFavorite()

@@ -695,7 +695,7 @@
     <string name="searching_lyrics">Searching lyrics…</string>
     <string name="lyrics_not_found">Lyrics not found</string>
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
-    <string name="search_in_youtube_music">Search in YouTube Music</string>
+    <string name="search_in_youtube_music">In YouMusic</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Cast to…</string>

@@ -779,6 +779,8 @@
     <string name="searching_lyrics">Поиск текста песни…</string>
     <string name="lyrics_not_found">Лирика не найдена</string>
     <string name="error_timeout_lyrics">Время ожидания истекло. Пожалуйста, проверьте подключение к Интернету и попробуйте снова.</string>
+    <string name="search_in_youtube_music">В YouMusic</string>
+    <string name="search_in_youtube_music_no_app">Приложение YouTube Music не найдено</string>
 
     <!-- Add Resource -->
     <string name="add_local_folder">Добавить локальную папку</string>

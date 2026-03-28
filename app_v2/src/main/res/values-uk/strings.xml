@@ -775,6 +775,8 @@
     <string name="searching_lyrics">Пошук тексту пісні…</string>
     <string name="lyrics_not_found">Лірика не знайдена</string>
     <string name="error_timeout_lyrics">Час очікування вичерпано. Будь ласка, перевірте підключення до Інтернету та спробуйте ще раз.</string>
+    <string name="search_in_youtube_music">У YouMusic</string>
+    <string name="search_in_youtube_music_no_app">Програму YouTube Music не знайдено</string>
 
     <!-- Add Resource -->
     <string name="add_local_folder">Додати локальну теку</string>

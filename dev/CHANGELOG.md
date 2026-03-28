@@ -1175,3 +1175,7 @@ Format: | datetime | file | target | description |
 | 2026-03-28 22:56:22 | `app_v2/src/main/res/layout-land/page_welcome_enhanced.xml` | `page_welcome_enhanced` | Add landscape layout for Enhanced welcome pages (icon left, content right) |
 | 2026-03-28 23:26:11 | `.claude/commands/build.md` | `build skill` | Add /build slash command for build system reference |
 | 2026-03-29 00:03:48 | `app_v2/src/main/AndroidManifest.xml` | `StandaloneImageSender,StandaloneAudioSender,StandaloneVideoSender` | Add missing ACTION_SEND activity-aliases to main manifest; were only in lite overlay causing IAE on standard/debug builds |
+| 2026-03-29 00:23:41 | `app_v2/src/main/res/values/strings.xml` | `strings` | Rename 'Search in YouTube Music' to 'In YouMusic'; add RU/UK translations; add cast_to_chromecast label |
+| 2026-03-29 00:23:41 | `app_v2/src/main/res/drawable/ic_cast.xml` | `ic_cast` | Add Material cast vector drawable for Chromecast button |
+| 2026-03-29 00:23:41 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `btnCastCmd` | Add btnCastCmd ImageButton to portrait and landscape player layouts |
+| 2026-03-29 00:23:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wire btnCastCmd visibility in landscape (image/video + Wi-Fi); register in commandPanelButtons() |
