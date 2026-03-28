@@ -48,7 +48,7 @@
 
 | # | Item | Description | Why easy |
 |---|------|-------------|----------|
-| IX.4 | WorkManager backoff | Add `BackoffPolicy.EXPONENTIAL` to 4 workers | Config change only |
+| ~~IX.4~~ | ~~WorkManager backoff~~ | ~~Add `BackoffPolicy.EXPONENTIAL` to 4 workers~~ | **DONE** — all 6 workers now have exponential backoff |
 | VIII.1 | Text min 12sp | Set minimum 12sp for all text elements | Update 3-4 values in `dimens.xml` |
 | I.4 | Update screenshots | Refresh store_assets/ and docs/images/ | Manual capture, no code risk |
 
@@ -58,8 +58,8 @@
 
 | # | Item | Description | Why easy |
 |---|------|-------------|----------|
-| IX.2 | IntegrationTestRunner → debug | Move 4471-LOC test runner out of production code | sourceSet move + lazy wrapper |
-| VIII.3 | Wear OS localization | Add `values-ru/` and `values-uk/` to wear | Copy + translate ~45 strings |
+| ~~IX.2~~ | ~~IntegrationTestRunner → debug~~ | ~~Move 4471-LOC test runner out of production code~~ | **DONE** — already in src/debug + src/release stub |
+| ~~VIII.3~~ | ~~Wear OS localization~~ | ~~Add `values-ru/` and `values-uk/` to wear~~ | **DONE** — 52 strings translated to RU + UK |
 | IX.3 | Metadata cache TTL | Auto-cleanup old FileMetadataCache entries | Add timestamp column + cleanup query |
 | IX.6 | Audio cache TTL | TTL/LRU for AudioMetadataCacheRepository | Add timestamp + size limit |
 

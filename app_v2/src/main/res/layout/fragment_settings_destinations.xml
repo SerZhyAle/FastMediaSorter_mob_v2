@@ -196,6 +196,17 @@
 
                     </LinearLayout>
 
+                    <!-- Notification permission button (Android 13+, shown when permission missing) -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnScheduledNotificationPermission"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:text="@string/grant_notifications_permission"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
                     <!-- Operations list and toolbar (hidden when toggle is off) -->
                     <LinearLayout
                         android:id="@+id/containerScheduledContent"

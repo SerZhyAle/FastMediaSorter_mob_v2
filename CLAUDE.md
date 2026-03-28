@@ -2,6 +2,13 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Specification Rule
+
+**Whenever creating or updating any file matching `PLAN/spec_*.md`, you MUST use the `/spec` command.**
+Do not write spec files manually. The `/spec` command enforces the full project template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs.
+
+---
+
 ## Research Entrypoints
 
 Before making changes, read these files in order based on task type:

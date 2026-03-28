@@ -223,7 +223,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     cropImagesToFullscreen = preferences[KEY_CROP_IMAGES_TO_FULLSCREEN] ?: true,
                     supportGifs = preferences[KEY_SUPPORT_GIFS] ?: true,
                     supportVideos = preferences[KEY_SUPPORT_VIDEOS] ?: true,
-                    videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: 1048576L, // 1MB in bytes
+                    videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: 102400L, // 100KB in bytes
                     videoSizeMax = preferences[KEY_VIDEO_SIZE_MAX] ?: 107374182400L,
                     supportAudio = preferences[KEY_SUPPORT_AUDIO] ?: true,
                     audioSizeMin = preferences[KEY_AUDIO_SIZE_MIN] ?: 0L,

@@ -8,15 +8,6 @@
     android:background="@drawable/bg_copy_dialog">
 
     <TextView
-        android:id="@+id/tvDialogTitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/copying_files"
-        android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-        android:textAlignment="center"
-        android:paddingBottom="@dimen/margin_large" />
-
-    <TextView
         android:id="@+id/tvFileCount"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

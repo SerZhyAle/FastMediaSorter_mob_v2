@@ -167,6 +167,7 @@ class WorkManagerScheduler @Inject constructor(
             val request = OneTimeWorkRequestBuilder<ScheduledOperationsWorker>()
                 .setInputData(inputData)
                 .setInitialDelay(delayMs, TimeUnit.MILLISECONDS)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_${operation.id}")
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(
@@ -191,6 +192,7 @@ class WorkManagerScheduler @Inject constructor(
                 .build()
             val request = OneTimeWorkRequestBuilder<ScheduledOperationsWorker>()
                 .setInputData(inputData)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .addTag("sched_op_$operationId")
                 .build()
             WorkManager.getInstance(context).enqueueUniqueWork(

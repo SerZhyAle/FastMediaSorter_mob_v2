@@ -1093,3 +1093,26 @@ Format: | datetime | file | target | description |
 | 2026-03-27 14:03:12 | `app_v2/src/main/res/layout/activity_welcome.xml` | `btnNext/btnFinish` | Fix invisible Next/Finish buttons on welcome screen — replace M3 TonalButton with filled MaterialComponents.Button + colorPrimary tint |
 | 2026-03-27 14:05:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `applyEdgeToEdgeInsets` | Fix Next/Finish buttons covered by system nav bar: force inset re-dispatch via requestApplyInsets after post{} delay |
 | 2026-03-27 16:47:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Fix: provision virtual resources with isWritable=true so Delete/Move/Rename work on first launch |
+| 2026-03-27 21:56:12 | `app_v2/src/main/res/layout/dialog_copy_to.xml` | `dialog_copy_to` | Remove redundant dialog title tvDialogTitle from file operation destination dialog |
+| 2026-03-27 22:03:54 | `app_v2/src/main/res/layout/activity_add_resource.xml` | `layoutLocalFolder` | Wrap local folder section in NestedScrollView to fix btnAddToResources hidden behind OS navigation bar (edge-to-edge) |
+| 2026-03-27 22:16:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Request POST_NOTIFICATIONS on first run when ENABLE_SCHEDULED_OPERATIONS is true (Android 13+) |
+| 2026-03-27 22:16:18 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `containerScheduled` | Add btnScheduledNotificationPermission button in scheduled section (shown when permission missing) |
+| 2026-03-27 22:16:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `OperationsSettingsFragment` | Check and request POST_NOTIFICATIONS + battery optimization when enabling scheduled operations toggle |
+| 2026-03-27 22:38:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Lower default videoSizeMin from 1MB to 100KB |
+| 2026-03-28 02:11:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImageTranslationManager.kt` | `PlayerImageTranslationManager` | Extract image translation/OCR logic from PlayerActivity (Step 7) |
+| 2026-03-28 02:11:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `PlayerShareManager` | Extract share/external player logic from PlayerActivity (Step 8) |
+| 2026-03-28 02:11:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `PlayerDialogHelper` | Add showAudioTrackDialog/showSubtitleTrackDialog (Step 9) |
+| 2026-03-28 02:11:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Split initializeManagers into 10 sub-methods; delegate translation/share/dialog to managers (Steps 7-10) |
+| 2026-03-28 02:32:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | Extract showError/handleEvent/showCloudAuthError/showUnsupportedFormatError from PlayerActivity |
+| 2026-03-28 02:32:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerDialogHelper.kt` | `PlayerDialogHelper` | Add showEncodingDialog/showReaderSettingsDialog/showSleepTimerDialog (Plan Step 14) |
+| 2026-03-28 02:32:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Delegate error/event/dialog methods to PlayerEventHandler and PlayerDialogHelper; 226 lines removed |
+| 2026-03-28 03:39:48 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/WorkManagerScheduler.kt` | `WorkManagerScheduler` | IX.4: Add BackoffPolicy.EXPONENTIAL to ScheduledOperationsWorker one-time requests (schedule + runNow) |
+| 2026-03-28 04:05:06 | `wear/src/main/res/values-ru/strings.xml` | `Wear strings-ru` | VIII.3: Add Russian localization for Wear OS (52 strings) |
+| 2026-03-28 04:05:07 | `wear/src/main/res/values-uk/strings.xml` | `Wear strings-uk` | VIII.3: Add Ukrainian localization for Wear OS (52 strings) |
+| 2026-03-28 04:29:23 | `.claude/commands/spec.md` | `skill` | Add /spec slash command for specification writing |
+| 2026-03-28 04:34:43 | `PLAN/spec_background-thumbnail-preload.md` | `spec` | Add specification for X.11 — Background Thumbnail Preload |
+| 2026-03-28 04:37:03 | `PLAN/spec_cast-chromecast.md` | `spec` | Add specification for X.2 |
+| 2026-03-28 04:37:53 | `.claude/commands/spec.md` | `spec command` | Enlarge spec skill with project requirements, flavor/API scope, architecture compliance, testing, accessibility, ADR sections |
+| 2026-03-28 04:37:57 | `CLAUDE.md` | `project rules` | Add mandatory /spec command rule for all PLAN/spec_*.md file creation/updates |
+| 2026-03-28 04:43:12 | `PLAN/spec_duplicate_detection.md` | `spec` | Add specification for X.1 Duplicate Detection |
+| 2026-03-28 04:44:43 | `PLAN/spec_decompose-giant-files.md` | `spec` | Add specification for IV.1 |

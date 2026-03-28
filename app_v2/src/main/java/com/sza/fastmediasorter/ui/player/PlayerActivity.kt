@@ -112,16 +112,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var destinationButtonsManager: DestinationButtonsManager
     internal lateinit var navigationManager: PlayerNavigationManager
-    private var translationJob: Job? = null
     internal lateinit var commandPanelController: CommandPanelController
     internal lateinit var imageLoadingManager: ImageLoadingManager
     private var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     internal var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
-    private var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
+    internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
     private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
     private lateinit var dialogAndUiStateManager: PlayerDialogAndUiStateManager
+
     internal lateinit var audioSlideshowPhotoModeManager: com.sza.fastmediasorter.ui.player.helpers.AudioSlideshowPhotoModeManager
     private lateinit var keyboardHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
     internal lateinit var networkFileManager: com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager
@@ -163,7 +163,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             return _textViewerManager!!
         }
     private lateinit var uiStateCoordinator: com.sza.fastmediasorter.ui.player.helpers.PlayerUiStateCoordinator
-    private lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
+    internal lateinit var undoOperationManager: com.sza.fastmediasorter.ui.player.helpers.UndoOperationManager
     internal lateinit var playerSettingsManager: com.sza.fastmediasorter.ui.player.helpers.PlayerSettingsManager
     internal lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
     internal lateinit var translationManager: com.sza.fastmediasorter.ui.player.helpers.TranslationManager
@@ -171,13 +171,16 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var translationButtonManager: com.sza.fastmediasorter.ui.player.helpers.TranslationButtonManager
     private lateinit var exoPlayerControlsManager: com.sza.fastmediasorter.ui.player.helpers.ExoPlayerControlsManager
     internal lateinit var searchControlsManager: com.sza.fastmediasorter.ui.player.helpers.SearchControlsManager
-    private lateinit var lifecycleManager: com.sza.fastmediasorter.ui.player.helpers.PlayerLifecycleManager
+    internal lateinit var lifecycleManager: com.sza.fastmediasorter.ui.player.helpers.PlayerLifecycleManager
     private lateinit var controlsSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager
     private lateinit var gestureSetupManager: com.sza.fastmediasorter.ui.player.helpers.PlayerGestureSetupManager
     private lateinit var imageOcrManager: com.sza.fastmediasorter.ui.player.helpers.ImageOcrManager
     private lateinit var lyricsManager: com.sza.fastmediasorter.ui.player.helpers.LyricsManager
     private lateinit var googleLensButtonsManager: com.sza.fastmediasorter.ui.player.helpers.GoogleLensButtonsManager
     private lateinit var systemBarsManager: com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
+    internal lateinit var imageTranslationManager: com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
+    internal lateinit var shareManager: com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
+    internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
 
     private val googleSignInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -205,7 +208,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
     
     // For handling Android 10 single-file delete permission requests (RecoverableSecurityException)
-    private val deletePermissionLauncher = registerForActivityResult(
+    internal val deletePermissionLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
@@ -478,6 +481,19 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
      * Centralized initialization to keep onCreate clean and organized.
      */
     private fun initializeManagers() {
+        initBackgroundMedia()
+        initCoreCoordination()
+        initDialogHelper()
+        initFileOps()
+        initCommandPanelAndImageLoading()
+        initNetworkAndTranslation()
+        initPlayerControlsAndOcr()
+        initAudioAndMediaServices()
+        initUiCoordinators()
+        initSetupManagers()
+    }
+
+    private fun initBackgroundMedia() {
         // Initialize Background Music Manager
         backgroundMusicManager.initialize()
         
@@ -519,8 +535,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         audioBackgroundPhotosManager.setOnErrorListener { errorMessage ->
             Toast.makeText(this@PlayerActivity, errorMessage, Toast.LENGTH_SHORT).show()
         }
+    }
 
-        // 1. Independent Managers / Fundamental Logic
+    private fun initCoreCoordination() {
         cloudAuthManager = com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager(
             context = this,
             coroutineScope = lifecycleScope,
@@ -583,7 +600,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             activity = this
         )
 
-        // 2. Basic Dependencies
+        imageTranslationManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager(activity = this)
+        shareManager = com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager(activity = this)
+        eventHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler(activity = this)
+    }
+
+    private fun initDialogHelper() {
         dialogHelper = PlayerDialogHelper(
             activity = this,
             viewModel = viewModel,
@@ -606,26 +628,29 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onImageEditComplete() {
                     // Update file size in ViewModel (triggers cache invalidation due to size change)
                     viewModel.refreshCurrentFileInfo()
-                    
+
                     // Reload image after edit to show changes
                     reloadCurrentImage()
                     Toast.makeText(this@PlayerActivity, getString(R.string.msg_image_edit_completed), Toast.LENGTH_SHORT).show()
                 }
-                
+
                 override fun onGifEditComplete() {
                     // Update file size in ViewModel (GIF speed change modifies file)
                     viewModel.refreshCurrentFileInfo()
-                    
+
                     // Reload GIF after speed change
                     reloadCurrentImage()
                     Toast.makeText(this@PlayerActivity, R.string.gif_edit_completed, Toast.LENGTH_SHORT).show()
                 }
-                
+
                 override fun onRenameComplete() {
                     // Reload file in player after rename
                     viewModel.reloadAfterRename()
                 }
-            }
+            },
+            videoPlayerManagerProvider = { videoPlayerManager },
+            textViewerManagerProvider = { textViewerManager },
+            sleepTimerManagerProvider = { sleepTimerManager }
         )
         
         dialogHelper.setAuthCallback { provider ->
@@ -636,8 +661,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 else -> Timber.w("Unknown provider for auth request: $provider")
             }
         }
+    }
 
-        // Initialize FileOperationsHandler for file operations
+    private fun initFileOps() {
         fileOperationsHandler = FileOperationsHandler(
             context = this,
             lifecycleScope = lifecycleScope,
@@ -738,7 +764,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
         )
         
-        // Initialize CommandPanelController
+    }
+
+    private fun initCommandPanelAndImageLoading() {
         commandPanelController = CommandPanelController(
             binding = binding,
             settingsRepository = settingsRepository,
@@ -776,8 +804,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             wavesView = binding.audioWaveParticleView
         )
         imageLoadingManager.setAudioEmptyStateController(audioEmptyStateController!!)
+    }
 
-        // 3. Network & Document Helpers
+    private fun initNetworkAndTranslation() {
         networkFileManager = com.sza.fastmediasorter.ui.player.helpers.NetworkFileManager(
             context = this,
             smbClient = smbClient,
@@ -827,11 +856,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
         )
 
+    }
+
+    private fun initPlayerControlsAndOcr() {
         // OPTIMIZATION: Document Viewers (PDF, EPUB, Text) and VideoPlayerManager use lazy initialization
         // They are created only when files of those types are opened (see createXxxManager() methods)
-        // This saves ~2.5 seconds on IMAGE file opening
-
-        // 5. Intermediate UI Helpers
         playerGestureCallback = com.sza.fastmediasorter.ui.player.callbacks.PlayerGestureCallbackImpl(
             activity = this,
             viewModel = viewModel,
@@ -894,8 +923,8 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 override fun onPreviousFile() = navigationManager.navigatePreviousFromControl()
                 override fun onNextFile() = navigationManager.navigateNextFromControl()
                 override fun showPlaybackSpeedDialog() = playerSettingsManager.showPlaybackSpeedDialog()
-                override fun showAudioTrackDialog() = this@PlayerActivity.showAudioTrackDialog()
-                override fun showSubtitleTrackDialog() = this@PlayerActivity.showSubtitleTrackDialog()
+                override fun showAudioTrackDialog() = dialogHelper.showAudioTrackDialog()
+                override fun showSubtitleTrackDialog() = dialogHelper.showSubtitleTrackDialog()
             }
         )
         
@@ -961,7 +990,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
         )
 
-        // 7. Primary Coordinators (Dependencies on almost everything!)
+    }
+
+    private fun initAudioAndMediaServices() {
         audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
         sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
             vinylView = binding.vinylIndicator,
@@ -1033,6 +1064,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             }
         )
         
+    }
+
+    private fun initUiCoordinators() {
         dialogAndUiStateManager = PlayerDialogAndUiStateManager(
             activity = this,
             viewModel = viewModel,
@@ -1067,8 +1101,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         // Wire audioSlideshowPhotoModeManager into dialogAndUiStateManager (created earlier)
         dialogAndUiStateManager.audioSlideshowPhotoModeManager = audioSlideshowPhotoModeManager
+    }
 
-        // 8. Setup Managers
+    private fun initSetupManagers() {
         controlsSetupManager = com.sza.fastmediasorter.ui.player.helpers.PlayerControlsSetupManager(
             activity = this,
             binding = binding,
@@ -1241,132 +1276,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         dialogAndUiStateManager.showRenameDialog()
     }
 
-    internal fun showEncodingDialog() {
-        val manager = textViewerManager
-        val charsets = manager.getSupportedCharsets()
-        val currentCharset = manager.getCurrentCharsetName()
-        val labels = charsets.map { (name, charset) ->
-            if (charset.name() == currentCharset) "✓ $name" else name
-        }.toTypedArray()
+    internal fun showEncodingDialog() = dialogHelper.showEncodingDialog()
 
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.select_encoding)
-            .setItems(labels) { _, which ->
-                val selectedCharset = charsets[which].second
-                manager.reopenWithEncoding(selectedCharset)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
+    internal fun showReaderSettingsDialog() = dialogHelper.showReaderSettingsDialog()
 
-    internal fun showReaderSettingsDialog() {
-        val themes = com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme.entries
-        val themeLabels = arrayOf(
-            getString(R.string.reader_theme_light),
-            getString(R.string.reader_theme_dark),
-            getString(R.string.reader_theme_sepia)
-        )
-        val currentTheme = textViewerManager.getCurrentTheme()
-        val currentIndex = themes.indexOf(currentTheme).coerceAtLeast(0)
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.reader_settings)
-            .setSingleChoiceItems(themeLabels, currentIndex) { dialog, which ->
-                textViewerManager.applyReaderTheme(themes[which])
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    internal fun showSleepTimerDialog() {
-        val manager = sleepTimerManager ?: return
-        val options = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager.SLEEP_TIMER_OPTIONS
-        val labels = options.map { minutes ->
-            if (minutes >= 60) {
-                getString(R.string.sleep_timer_hours, minutes / 60, minutes % 60)
-            } else {
-                getString(R.string.sleep_timer_minutes, minutes)
-            }
-        }.toTypedArray()
-
-        val items = if (manager.isSleepTimerActive) {
-            arrayOf(getString(R.string.sleep_timer_off)) + labels
-        } else {
-            labels
-        }
-
-        val indexOffset = if (manager.isSleepTimerActive) 1 else 0
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.sleep_timer_title)
-            .setItems(items) { _, which ->
-                if (manager.isSleepTimerActive && which == 0) {
-                    manager.cancelSleepTimer()
-                    Toast.makeText(this, R.string.sleep_timer_cancelled, Toast.LENGTH_SHORT).show()
-                    Timber.d("PlayerActivity: sleep timer cancelled by user")
-                } else {
-                    val selectedMinutes = options[which - indexOffset]
-                    manager.startSleepTimer(selectedMinutes)
-                    val label = items[which]
-                    Toast.makeText(this, getString(R.string.sleep_timer_set, label), Toast.LENGTH_SHORT).show()
-                    Timber.d("PlayerActivity: sleep timer set for $selectedMinutes min")
-                }
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showAudioTrackDialog() {
-        val tracks = videoPlayerManager.getAvailableAudioTracks()
-        if (tracks.isEmpty()) return
-
-        val labels = tracks.map { it.label }.toTypedArray()
-        val selectedIndex = tracks.indexOfFirst { it.isSelected }.coerceAtLeast(0)
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.select_audio_track)
-            .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
-                val track = tracks[which]
-                videoPlayerManager.selectAudioTrack(track.groupIndex, track.trackIndex)
-                Timber.d("PlayerActivity: selected audio track: ${track.label}")
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showSubtitleTrackDialog() {
-        val tracks = videoPlayerManager.getAvailableSubtitleTracks()
-
-        // Build items: "Off" + available tracks
-        val labels = mutableListOf(getString(R.string.subtitle_off))
-        labels.addAll(tracks.map { it.label })
-
-        val selectedIndex = if (tracks.any { it.isSelected }) {
-            tracks.indexOfFirst { it.isSelected } + 1 // +1 for "Off" at index 0
-        } else {
-            0 // "Off" selected
-        }
-
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.select_subtitle_track)
-            .setSingleChoiceItems(labels.toTypedArray(), selectedIndex) { dialog, which ->
-                if (which == 0) {
-                    // First valid group index or 0
-                    val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
-                    videoPlayerManager.selectSubtitleTrack(groupIndex, -1)
-                    Timber.d("PlayerActivity: subtitles turned off")
-                } else {
-                    val track = tracks[which - 1]
-                    videoPlayerManager.selectSubtitleTrack(track.groupIndex, track.trackIndex)
-                    Timber.d("PlayerActivity: selected subtitle track: ${track.label}")
-                }
-                dialog.dismiss()
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
+    internal fun showSleepTimerDialog() = dialogHelper.showSleepTimerDialog()
 
     private fun setupToolbar() = controlsSetupManager.setupToolbar()
 
@@ -1964,236 +1878,17 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         }
     }
 
-    private fun handleEvent(event: PlayerViewModel.PlayerEvent) {
-        when (event) {
-            is PlayerViewModel.PlayerEvent.ShowError -> {
-                showError(event.message)
-            }
-            is PlayerViewModel.PlayerEvent.ShowMessage -> {
-                Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show()
-            }
-            is PlayerViewModel.PlayerEvent.FileModified -> {
-                // Track deleted/moved file
-                lifecycleManager.trackModifiedFile(event.filePath)
-            }
-            is PlayerViewModel.PlayerEvent.ShowUndoSnackbar -> {
-                undoOperationManager.showUndoSnackbar(event.operation)
-            }
-            is PlayerViewModel.PlayerEvent.CloudAuthRequired -> {
-                showCloudAuthenticationError(event.provider)
-            }
-            is PlayerViewModel.PlayerEvent.ShowMissingFileDialog -> {
-                androidx.appcompat.app.AlertDialog.Builder(this)
-                    .setTitle(R.string.file_not_found_title)
-                    .setMessage(getString(R.string.file_not_found_message, event.fileName))
-                    .setPositiveButton(R.string.refresh_resource) { _, _ ->
-                        viewModel.handleMissingFileRefresh(event.filePath)
-                    }
-                    .setNegativeButton(android.R.string.cancel) { _, _ ->
-                        finish()
-                    }
-                    .show()
-            }
-            // Removed: LoadingProgress event handler (dialog not needed)
-            PlayerViewModel.PlayerEvent.FinishActivity -> {
-                finish()
-            }
-        }
-    }
-    
-    /**
-     * Show error message respecting showDetailedErrors setting
-     * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
-     * If showDetailedErrors=false: shows Toast (short notification)
-     */
-    internal fun showError(message: String, throwable: Throwable? = null) {
-        // Check if activity is finishing to prevent WindowLeaked exception
-        if (isFinishing || isDestroyed) {
-            Timber.w("showError: Activity is finishing/destroyed, skipping error dialog")
-            return
-        }
-        
-        // Handle Android 10+ RecoverableSecurityException for delete operations
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q && 
-            throwable is android.app.RecoverableSecurityException) {
-            try {
-                Timber.i("showError: Launching delete permission request for user")
-                val intentSender = throwable.userAction.actionIntent.intentSender
-                deletePermissionLauncher.launch(
-                    androidx.activity.result.IntentSenderRequest.Builder(intentSender).build()
-                )
-                return
-            } catch (e: Exception) {
-                Timber.e(e, "showError: Failed to launch delete permission request")
-                // Fall through to show error message
-            }
-        }
-        
-        lifecycleScope.launch {
-            val settings = viewModel.getSettings()
-            // Don't show blocking dialogs if slideshow is active
-            val isSlideshowActive = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
-            
-            if (settings.showDetailedErrors && !isSlideshowActive) {
-                // Double-check before showing dialog
-                if (isFinishing || isDestroyed) {
-                    Timber.w("showError: Activity finished during settings load, skipping dialog")
-                    return@launch
-                }
-                
-                if (throwable != null) {
-                    // Use ErrorDialog with full stack trace
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@PlayerActivity,
-                        title = getString(R.string.error),
-                        message = message,
-                        details = throwable.stackTraceToString()
-                    )
-                } else {
-                    // Use ErrorDialog without details
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@PlayerActivity,
-                        title = getString(R.string.error),
-                        message = message
-                    )
-                }
-            } else {
-                // Non-fatal network errors: debug-only toast, always logged
-                com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
-                    this@PlayerActivity, message
-                )
-            }
-        }
-    }
+    private fun handleEvent(event: PlayerViewModel.PlayerEvent) = eventHandler.handleEvent(event)
 
-    /**
-     * Show specialized dialog for Cloud authentication errors
-     */
-    private fun showCloudAuthenticationError(providerName: String? = null) {
-        dialogHelper.showCloudAuthError(providerName) {
-            // Trigger authentication based on provider
-            when (providerName?.lowercase()) {
-                "dropbox" -> cloudAuthManager.launchDropboxSignIn()
-                "google drive", "google_drive" -> cloudAuthManager.launchGoogleSignIn()
-                "onedrive" -> cloudAuthManager.launchOneDriveSignIn()
-                else -> {
-                    // If provider is unknown, maybe show a chooser or default to something?
-                    // For now, just log warning
-                    Timber.w("Unknown provider for auth request: $providerName")
-                }
-            }
-        }
-    }
-    
-    /**
-     * Show error dialog for unsupported format with option to open in external player
-     */
-    internal fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) {
-        if (isFinishing || isDestroyed) {
-            Timber.w("showUnsupportedFormatError: Activity is finishing/destroyed, skipping dialog")
-            return
-        }
-        
-        lifecycleScope.launch {
-            val settings = viewModel.getSettings()
-            val isSlideshowActive = viewModel.state.value.isSlideShowActive && !viewModel.state.value.isPaused
-            
-            if (settings.showDetailedErrors && !isSlideshowActive) {
-                if (isFinishing || isDestroyed) {
-                    Timber.w("showUnsupportedFormatError: Activity finished during settings load, skipping dialog")
-                    return@launch
-                }
-                
-                if (isLocalFile) {
-                    // Local file - offer to open in external player
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@PlayerActivity,
-                        title = getString(R.string.error),
-                        message = message,
-                        actionButtonText = getString(R.string.open_in_external_player),
-                        onActionClick = { openInExternalPlayer(filePath) }
-                    )
-                } else {
-                    // Network file - suggest copying to local resource
-                    val networkMessage = "$message\n\n" +
-                        getString(R.string.unsupported_format_network_hint)
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@PlayerActivity,
-                        title = getString(R.string.error),
-                        message = networkMessage
-                    )
-                }
-            } else {
-                // Show toast
-                val toastMessage = if (isLocalFile) {
-                    getString(R.string.unsupported_format_use_external_player)
-                } else {
-                    getString(R.string.unsupported_format_copy_to_local)
-                }
-                Toast.makeText(this@PlayerActivity, toastMessage, Toast.LENGTH_LONG).show()
-            }
-        }
-    }
-    
-    /**
-     * Open file in external player using ACTION_VIEW intent
-     */
-    private fun openInExternalPlayer(filePath: String) {
-        try {
-            val file = File(filePath)
-            if (!file.exists()) {
-                Toast.makeText(this, R.string.file_not_found, Toast.LENGTH_SHORT).show()
-                return
-            }
-            
-            // Use FileProvider for secure file access
-            val uri = androidx.core.content.FileProvider.getUriForFile(
-                this,
-                "${packageName}.fileprovider",
-                file
-            )
-            
-            // Determine MIME type
-            val mimeType = when (file.extension.lowercase()) {
-                "flv" -> "video/x-flv"
-                "avi" -> "video/x-msvideo"
-                "mid", "midi" -> "audio/midi"
-                "wmv" -> "video/x-ms-wmv"
-                "rm", "rmvb" -> "video/vnd.rn-realvideo"
-                "vob" -> "video/dvd"
-                "ogv" -> "video/ogg"
-                "mp4" -> "video/mp4"
-                "mkv" -> "video/x-matroska"
-                "mp3" -> "audio/mpeg"
-                "aac" -> "audio/aac"
-                else -> "*/*"
-            }
-            
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, mimeType)
-                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            
-            // Check if any app can handle this intent
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(Intent.createChooser(intent, getString(R.string.open_with)))
-            } else {
-                Toast.makeText(
-                    this,
-                    getString(R.string.no_app_to_handle_format),
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to open file in external player")
-            Toast.makeText(
-                this,
-                getString(R.string.error_opening_external_player, e.message),
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
+    internal fun showError(message: String, throwable: Throwable? = null) =
+        eventHandler.showError(message, throwable)
 
+    private fun showCloudAuthenticationError(providerName: String? = null) =
+        eventHandler.showCloudAuthenticationError(providerName)
+
+    internal fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean) =
+        eventHandler.showUnsupportedFormatError(message, filePath, isLocalFile)
+    
     /**
      * Show popup message when slideshow is enabled
      */
@@ -2313,242 +2008,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         fileOperationsHandler.performShare()
     }
     
-    /**
-     * Extract bitmap from any drawable type.
-     * Handles BitmapDrawable, GifDrawable, TransitionDrawable (from Glide crossfade),
-     * and any other drawable by rendering it to a bitmap canvas.
-     */
-    private fun extractBitmapFromDrawable(drawable: android.graphics.drawable.Drawable?, source: String): android.graphics.Bitmap? {
-        if (drawable == null) {
-            Timber.d("extractBitmapFromDrawable: drawable is null ($source)")
-            return null
-        }
-        
-        return when (drawable) {
-            is android.graphics.drawable.BitmapDrawable -> {
-                Timber.d("extractBitmapFromDrawable: BitmapDrawable ($source)")
-                drawable.bitmap
-            }
-            is com.bumptech.glide.load.resource.gif.GifDrawable -> {
-                Timber.d("extractBitmapFromDrawable: GifDrawable - extracting current frame ($source)")
-                val width = drawable.intrinsicWidth
-                val height = drawable.intrinsicHeight
-                if (width <= 0 || height <= 0) return null
-                val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-                val canvas = android.graphics.Canvas(bitmap)
-                drawable.setBounds(0, 0, width, height)
-                drawable.draw(canvas)
-                bitmap
-            }
-            is android.graphics.drawable.TransitionDrawable -> {
-                // Glide crossfade wraps the actual drawable in TransitionDrawable
-                // The last layer (index numberOfLayers-1) is the loaded image
-                Timber.d("extractBitmapFromDrawable: TransitionDrawable with ${drawable.numberOfLayers} layers ($source)")
-                val lastLayer = drawable.getDrawable(drawable.numberOfLayers - 1)
-                extractBitmapFromDrawable(lastLayer, "$source/transitionLayer")
-            }
-            else -> {
-                // Fallback: render any drawable to bitmap
-                Timber.d("extractBitmapFromDrawable: fallback rendering ${drawable.javaClass.simpleName} ($source)")
-                val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: return null
-                val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: return null
-                val bitmap = android.graphics.Bitmap.createBitmap(width, height, android.graphics.Bitmap.Config.ARGB_8888)
-                val canvas = android.graphics.Canvas(bitmap)
-                drawable.setBounds(0, 0, width, height)
-                drawable.draw(canvas)
-                bitmap
-            }
-        }
-    }
+    internal fun stopTranslation() = imageTranslationManager.stopTranslation()
 
-    /**
-     * Stop active translation and hide overlays.
-     * Cancels any running translation job.
-     */
-    private fun stopTranslation() {
-        translationJob?.cancel()
-        safeViews.translationOverlay.isVisible = false
-        safeViews.translationOverlayBackground.isVisible = false // Also hide background
-        binding.translationLensOverlay.isVisible = false
-        binding.translationLensOverlay.clear() // Clear blocks
-        
-        // Remove matrix change listener from PhotoView
-        if (binding.photoView.isVisible) {
-            binding.photoView.setOnMatrixChangeListener(null)
-        }
-        
-        safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-        binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-        safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-        safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
-        Timber.d("Translation stopped and overlays hidden")
-    }
-    
-    /**
-     * Translate current image using OCR + Translation
-     */
-    internal fun translateCurrentImage() {
-        val currentFile = viewModel.state.value.currentFile
-        if (currentFile?.type != MediaType.IMAGE && currentFile?.type != MediaType.GIF) {
-            binding.btnTranslateImageCmd.visibility = android.view.View.GONE
-            showError("Translation is only available for images")
-            return
-        }
-        
-        // Toggle translation state - check both overlay types
-        val isCurrentlyVisible = safeViews.translationOverlay.isVisible || binding.translationLensOverlay.isVisible
-        
-        if (isCurrentlyVisible) {
-            stopTranslation()
-            return
-        }
-        
-        // Cancel any existing job just in case
-        translationJob?.cancel()
-        
-        // Get bitmap from current image view (including GIF first frame)
-        // Check all possible image surfaces: photoView, photoViewSurfaceB (dual surface), imageView
-        val bitmap = when {
-            binding.photoView.isVisible -> {
-                extractBitmapFromDrawable(binding.photoView.drawable, "photoView")
-            }
-            binding.photoViewSurfaceB?.isVisible == true -> {
-                extractBitmapFromDrawable(binding.photoViewSurfaceB?.drawable, "photoViewSurfaceB")
-            }
-            binding.imageView.isVisible -> {
-                extractBitmapFromDrawable(binding.imageView.drawable, "imageView")
-            }
-            else -> {
-                Timber.w("translateCurrentImage: No image view is visible (photoView=${binding.photoView.isVisible}, surfaceB=${binding.photoViewSurfaceB?.isVisible}, imageView=${binding.imageView.isVisible})")
-                null
-            }
-        }
-        
-        if (bitmap == null) {
-            showError("Could not extract image from file")
-            return
-        }
-        
-        // Turn on translation - set button to red
-        safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
-        binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFF44336.toInt()) // Red
-        
-        // Get view dimensions for overlay scaling
-        val viewWidth = if (binding.photoView.isVisible) binding.photoView.width else binding.imageView.width
-        val viewHeight = if (binding.photoView.isVisible) binding.photoView.height else binding.imageView.height
-        
-        // Get PhotoView's current display rect if available (includes zoom/pan state)
-        val displayRect = if (binding.photoView.isVisible) {
-            val rect = binding.photoView.displayRect
-            Timber.d("TRANSLATION_DEBUG: Captured displayRect from PhotoView: $rect")
-            Timber.d("TRANSLATION_DEBUG: PhotoView dimensions: ${binding.photoView.width}x${binding.photoView.height}")
-            Timber.d("TRANSLATION_DEBUG: Bitmap dimensions: ${bitmap.width}x${bitmap.height}")
-            rect
-        } else {
-            Timber.d("TRANSLATION_DEBUG: PhotoView not visible, using ImageView")
-            null
-        }
-        
-        translationJob = lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val settings = settingsRepository.getSettings().first()
-                val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
-                val targetLang = TranslationManager.languageCodeToMLKit(settings.translationTargetLanguage)
-                val useLensStyle = settings.translationLensStyle
-                
-                Timber.d("TRANSLATION_DEBUG: Settings - useLensStyle=$useLensStyle, sourceLang=$sourceLang, targetLang=$targetLang")
-                Timber.d("TRANSLATION_DEBUG: Bitmap size: ${bitmap.width}x${bitmap.height}")
-                Timber.d("TRANSLATION_DEBUG: DisplayRect captured: $displayRect")
-                
-                if (useLensStyle) {
-                    Timber.d("TRANSLATION_DEBUG: Taking GOOGLE LENS style path")
-                    // Use Google Lens style translation with block positions
-                    val lensHelper = com.sza.fastmediasorter.ui.player.helpers.GoogleLensTranslationHelper(
-                        binding.translationLensOverlay,
-                        translationManager
-                    )
-                    
-                    lensHelper.translateBitmap(
-                        bitmap = bitmap,
-                        sourceLang = sourceLang,
-                        targetLang = targetLang,
-                        viewWidth = viewWidth,
-                        viewHeight = viewHeight,
-                        displayRect = displayRect,
-                        onSuccess = { _ ->
-                            // Hide the old-style overlay
-                            safeViews.translationOverlay.isVisible = false
-                            
-                            // Setup matrix change listener for PhotoView to update overlay position
-                            if (binding.photoView.isVisible) {
-                                binding.photoView.setOnMatrixChangeListener { rect ->
-                                    binding.translationLensOverlay.updateImageDisplayRect(rect)
-                                }
-                                // Initial update
-                                binding.photoView.displayRect?.let { rect ->
-                                    binding.translationLensOverlay.updateImageDisplayRect(rect)
-                                }
-                            }
-                            
-                            // Show font size controls when translation is active
-                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.VISIBLE
-                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.VISIBLE
-                        },
-                        onEmpty = {
-                            // No text detected - reset button and show toast
-                            safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
-                            showError(getString(R.string.translation_no_text_found))
-                        },
-                        onError = { message ->
-                            safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            showError("Translation failed: $message")
-                        }
-                    )
-                } else {
-                    Timber.d("TRANSLATION_DEBUG: Taking LEGACY text viewer style path")
-                    // Use text viewer to display translation (same as OCR results)
-                    val result = translationManager.recognizeAndTranslate(
-                        bitmap = bitmap,
-                        sourceLang = sourceLang,
-                        targetLang = targetLang
-                    )
-                    
-                    withContext(Dispatchers.Main) {
-                        if (result != null) {
-                            val (_, translated) = result
-                            // Display translated text in text viewer (same as OCR)
-                            if (_textViewerManager != null) {
-                                textViewerManager.displayTranslatedText(translated)
-                            }
-                            binding.translationLensOverlay.isVisible = false // Hide lens overlay
-                            
-                            // Hide font size controls (text viewer has its own)
-                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
-                        } else {
-                            // No text or error
-                            safeViews.btnTranslateImage.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            binding.btnTranslateImageCmd.imageTintList = android.content.res.ColorStateList.valueOf(0xFFFFFFFF.toInt()) // White
-                            safeViews.btnTranslationFontDecrease?.visibility = android.view.View.GONE
-                            safeViews.btnTranslationFontIncrease?.visibility = android.view.View.GONE
-                            showError(getString(R.string.translation_no_text_found))
-                        }
-                    }
-                }
-            } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) throw e
-                
-                withContext(Dispatchers.Main) {
-                    stopTranslation()
-                    showError("Translation failed: ${e.message}")
-                }
-            }
-        }
-    }
+    internal fun translateCurrentImage() = imageTranslationManager.translateCurrentImage()
     
     /**
      * Extract text from current image using OCR (no translation)
@@ -2671,69 +2133,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         googleLensButtonsManager.setupButtons()
     }
     
-    internal fun shareCurrentFileToGoogleLens() {
-        val currentFile = viewModel.state.value.currentFile ?: return
-        
-        // If it's a local file, we can share it directly
-        if (!currentFile.path.contains("://")) {
-            shareFileToGoogleLens(File(currentFile.path))
-        } else {
-            // For network files, we need to download/cache it first
-            lifecycleScope.launch {
-                try {
-                    val file = networkFileManager.prepareFileForRead(currentFile)
-                    shareFileToGoogleLens(file)
-                } catch (e: Exception) {
-                    Timber.e(e, "Failed to prepare file for Google Lens")
-                    Toast.makeText(this@PlayerActivity, R.string.toast_failed_to_prepare_file, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
-    
-    private fun shareFileToGoogleLens(file: File) {
-        try {
-            val uri = FileProvider.getUriForFile(
-                this,
-                "${packageName}.fileprovider",
-                file
-            )
-            
-            val intent = Intent(Intent.ACTION_SEND)
-            intent.type = "image/*"
-            intent.putExtra(Intent.EXTRA_STREAM, uri)
-            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            // Add ClipData for better permission propagation (fixes SecurityException on some devices)
-            intent.clipData = android.content.ClipData.newRawUri(null, uri)
-            
-            // Try to find Google Lens package
-            val lensPackage = "com.google.ar.lens"
-            val googlePackage = "com.google.android.googlequicksearchbox"
-            val packageManager = packageManager
-            
-            // 1. Try standalone Lens app
-            intent.setPackage(lensPackage)
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(intent)
-                return
-            } 
-            
-            // 2. Try Google App (often handles Lens)
-            intent.setPackage(googlePackage)
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(intent)
-                return
-            }
-            
-            // 3. Fallback to generic chooser
-            intent.setPackage(null)
-            startActivity(Intent.createChooser(intent, getString(R.string.enable_google_lens)))
-            
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to share to Google Lens")
-            Toast.makeText(this, R.string.toast_error_google_lens, Toast.LENGTH_SHORT).show()
-        }
-    }
+    internal fun shareCurrentFileToGoogleLens() = shareManager.shareCurrentFileToGoogleLens()
     
     /**
      * Show dialog for PDF editing options
@@ -2868,7 +2268,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
                 
                 override fun shareFileToGoogleLens(file: File) {
-                    this@PlayerActivity.shareFileToGoogleLens(file)
+                    shareManager.shareFileToGoogleLens(file)
                 }
                 
                 override fun isLandscapeMode(): Boolean {

@@ -1,11 +1,18 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
+import android.Manifest
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -45,7 +52,13 @@ class OperationsSettingsFragment : Fragment() {
     private lateinit var adapter: DestinationsAdapter
     private lateinit var scheduledAdapter: ScheduledOperationsAdapter
     private var isUpdatingFromSettings = false
-    
+
+    private val notificationsPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        updateScheduledNotificationPermissionButton()
+    }
+
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentSettingsDestinationsBinding.inflate(inflater, container, false)
         return binding.root
@@ -59,6 +72,11 @@ class OperationsSettingsFragment : Fragment() {
         observeData()
     }
     
+    override fun onResume() {
+        super.onResume()
+        updateScheduledNotificationPermissionButton()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
@@ -306,11 +324,14 @@ class OperationsSettingsFragment : Fragment() {
     }
 
     private fun setupScheduledSection() {
+        updateScheduledNotificationPermissionButton()
+
         binding.switchEnableScheduledOps.setOnCheckedChangeListener { _, isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableScheduledOperations = isChecked))
             binding.containerScheduledContent.isVisible = isChecked
+            if (isChecked) checkAndRequestScheduledPermissions()
         }
 
         scheduledAdapter = ScheduledOperationsAdapter(
@@ -501,6 +522,42 @@ class OperationsSettingsFragment : Fragment() {
         }
     }
     
+    private fun updateScheduledNotificationPermissionButton() {
+        val btn = binding.btnScheduledNotificationPermission ?: return
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            btn.isVisible = false
+            return
+        }
+        val hasPermission = ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.POST_NOTIFICATIONS
+        ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+        btn.isVisible = !hasPermission
+        btn.setOnClickListener {
+            notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    private fun checkAndRequestScheduledPermissions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val hasNotification = ContextCompat.checkSelfPermission(
+                requireContext(), Manifest.permission.POST_NOTIFICATIONS
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            if (!hasNotification) {
+                notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                return
+            }
+        }
+        val pm = requireContext().getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+        if (!pm.isIgnoringBatteryOptimizations(requireContext().packageName)) {
+            try {
+                val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:${requireContext().packageName}")
+                }
+                startActivity(intent)
+            } catch (_: Exception) { }
+        }
+    }
+
     private object DestinationDiffCallback : DiffUtil.ItemCallback<MediaResource>() {
         override fun areItemsTheSame(oldItem: MediaResource, newItem: MediaResource): Boolean {
             return oldItem.id == newItem.id

@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.usecase.SaveGifFirstFrameUseCase
 import com.sza.fastmediasorter.domain.model.FileOperationType
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.RenameDialog
+import com.sza.fastmediasorter.ui.player.VideoPlayerManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -64,7 +65,10 @@ class PlayerDialogHelper(
     private val saveGifFirstFrameUseCase: SaveGifFirstFrameUseCase,
     private val changeGifSpeedUseCase: ChangeGifSpeedUseCase,
     private val downloadNetworkFileUseCase: com.sza.fastmediasorter.domain.usecase.DownloadNetworkFileUseCase,
-    private val dialogCallback: DialogCallback
+    private val dialogCallback: DialogCallback,
+    private val videoPlayerManagerProvider: (() -> VideoPlayerManager)? = null,
+    private val textViewerManagerProvider: (() -> com.sza.fastmediasorter.ui.player.helpers.TextViewerManager)? = null,
+    private val sleepTimerManagerProvider: (() -> com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager?)? = null
 ) {
     
     private var onAuthRequestCallback: ((String) -> Unit)? = null
@@ -410,6 +414,125 @@ class PlayerDialogHelper(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
+            .show()
+    }
+
+    fun showEncodingDialog() {
+        val manager = textViewerManagerProvider?.invoke() ?: return
+        val charsets = manager.getSupportedCharsets()
+        val currentCharset = manager.getCurrentCharsetName()
+        val labels = charsets.map { (name, charset) ->
+            if (charset.name() == currentCharset) "✓ $name" else name
+        }.toTypedArray()
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.select_encoding)
+            .setItems(labels) { _, which ->
+                manager.reopenWithEncoding(charsets[which].second)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun showReaderSettingsDialog() {
+        val manager = textViewerManagerProvider?.invoke() ?: return
+        val themes = com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme.entries
+        val themeLabels = arrayOf(
+            activity.getString(R.string.reader_theme_light),
+            activity.getString(R.string.reader_theme_dark),
+            activity.getString(R.string.reader_theme_sepia)
+        )
+        val currentIndex = themes.indexOf(manager.getCurrentTheme()).coerceAtLeast(0)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.reader_settings)
+            .setSingleChoiceItems(themeLabels, currentIndex) { dialog, which ->
+                manager.applyReaderTheme(themes[which])
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun showSleepTimerDialog() {
+        val manager = sleepTimerManagerProvider?.invoke() ?: return
+        val options = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager.SLEEP_TIMER_OPTIONS
+        val labels = options.map { minutes ->
+            if (minutes >= 60) {
+                activity.getString(R.string.sleep_timer_hours, minutes / 60, minutes % 60)
+            } else {
+                activity.getString(R.string.sleep_timer_minutes, minutes)
+            }
+        }.toTypedArray()
+        val items = if (manager.isSleepTimerActive) {
+            arrayOf(activity.getString(R.string.sleep_timer_off)) + labels
+        } else {
+            labels
+        }
+        val indexOffset = if (manager.isSleepTimerActive) 1 else 0
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.sleep_timer_title)
+            .setItems(items) { _, which ->
+                if (manager.isSleepTimerActive && which == 0) {
+                    manager.cancelSleepTimer()
+                    Toast.makeText(activity, R.string.sleep_timer_cancelled, Toast.LENGTH_SHORT).show()
+                    Timber.d("PlayerDialogHelper: sleep timer cancelled by user")
+                } else {
+                    val selectedMinutes = options[which - indexOffset]
+                    manager.startSleepTimer(selectedMinutes)
+                    Toast.makeText(
+                        activity,
+                        activity.getString(R.string.sleep_timer_set, items[which]),
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    Timber.d("PlayerDialogHelper: sleep timer set for $selectedMinutes min")
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun showAudioTrackDialog() {
+        val videoManager = videoPlayerManagerProvider?.invoke() ?: return
+        val tracks = videoManager.getAvailableAudioTracks()
+        if (tracks.isEmpty()) return
+        val labels = tracks.map { it.label }.toTypedArray()
+        val selectedIndex = tracks.indexOfFirst { it.isSelected }.coerceAtLeast(0)
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.select_audio_track)
+            .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
+                val track = tracks[which]
+                videoManager.selectAudioTrack(track.groupIndex, track.trackIndex)
+                Timber.d("PlayerDialogHelper: selected audio track: ${track.label}")
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    fun showSubtitleTrackDialog() {
+        val videoManager = videoPlayerManagerProvider?.invoke() ?: return
+        val tracks = videoManager.getAvailableSubtitleTracks()
+        val labels = mutableListOf(activity.getString(R.string.subtitle_off))
+        labels.addAll(tracks.map { it.label })
+        val selectedIndex = if (tracks.any { it.isSelected }) {
+            tracks.indexOfFirst { it.isSelected } + 1
+        } else {
+            0
+        }
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.select_subtitle_track)
+            .setSingleChoiceItems(labels.toTypedArray(), selectedIndex) { dialog, which ->
+                if (which == 0) {
+                    val groupIndex = tracks.firstOrNull()?.groupIndex ?: 0
+                    videoManager.selectSubtitleTrack(groupIndex, -1)
+                    Timber.d("PlayerDialogHelper: subtitles turned off")
+                } else {
+                    val track = tracks[which - 1]
+                    videoManager.selectSubtitleTrack(track.groupIndex, track.trackIndex)
+                    Timber.d("PlayerDialogHelper: selected subtitle track: ${track.label}")
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
             .show()
     }
 

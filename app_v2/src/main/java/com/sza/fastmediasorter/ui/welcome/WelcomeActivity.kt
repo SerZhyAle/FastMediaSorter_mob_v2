@@ -41,6 +41,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     private var hasRequestedManageMediaInSession = false
     private var hasRequestedAllFilesAccessInSession = false
     private var hasRequestedBatteryOptimizationInSession = false
+    private var hasRequestedNotificationsInSession = false
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -63,6 +64,11 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
     private val batteryOptimizationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
+    ) {
+        continueSpecialPermissionsFlowOrComplete()
+    }
+    private val notificationsPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
     ) {
         continueSpecialPermissionsFlowOrComplete()
     }
@@ -386,6 +392,10 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             return
         }
 
+        if (requestNotificationsPermissionIfNeeded()) {
+            return
+        }
+
         if (waitingPermissionForFinish || currentPage == pagerAdapter.itemCount - 1) {
             waitingPermissionForFinish = false
             completeWelcomeFlow()
@@ -471,6 +481,18 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             .setCancelable(false)
             .show()
 
+        return true
+    }
+
+    private fun requestNotificationsPermissionIfNeeded(): Boolean {
+        if (!BuildConfig.ENABLE_SCHEDULED_OPERATIONS) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return false
+        if (hasRequestedNotificationsInSession) return false
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED) return false
+
+        hasRequestedNotificationsInSession = true
+        notificationsPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         return true
     }
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FastMedia Wear</string>
+    <string name="music">Музика</string>
+    <string name="videos">Відео</string>
+    <string name="photos">Фото</string>
+    <string name="play">Відтворити</string>
+    <string name="pause">Пауза</string>
+    <string name="previous">Попередній</string>
+    <string name="next">Наступний</string>
+    <string name="no_files_found">Файли не знайдено</string>
+    <string name="battery_warning">Відтворення відео може швидко розрядити батарею</string>
+
+    <!-- Permission strings -->
+    <string name="permission_title">Потрібен доступ до медіа</string>
+    <string name="permission_description">Надайте доступ для перегляду музики, відео та фото</string>
+    <string name="permission_grant_button">Надати доступ</string>
+    <string name="permission_rationale">Дозвіл потрібен для відображення медіафайлів</string>
+
+    <!-- Settings strings -->
+    <string name="settings">Налаштування</string>
+    <string name="media_types">Типи медіа</string>
+    <string name="enable_audio">Увімкнути аудіо</string>
+    <string name="enable_video">Увімкнути відео</string>
+    <string name="enable_images">Увімкнути зображення</string>
+    <string name="slideshow_settings">Слайд-шоу</string>
+    <string name="enable_slideshow">Увімкнути слайд-шоу</string>
+    <string name="slideshow_interval">Інтервал: %dс</string>
+    <string name="wait_for_finish">Чекати завершення</string>
+    <string name="audio_settings">Налаштування аудіо</string>
+    <string name="download_album_art">Завантажувати обкладинки</string>
+    <string name="about">Про застосунок</string>
+    <string name="version">Версія: %s</string>
+    <string name="build_number">Збірка: %s</string>
+
+    <!-- Slideshow strings -->
+    <string name="slideshow_active">Слайд-шоу активне</string>
+    <string name="slideshow_paused">Слайд-шоу на паузі</string>
+    <string name="start_slideshow">Запустити слайд-шоу</string>
+    <string name="stop_slideshow">Зупинити слайд-шоу</string>
+
+    <!-- Network SMB strings -->
+    <string name="network_storage">Мережеве сховище</string>
+    <string name="add_smb_connection">Додати SMB</string>
+    <string name="server_address">Адреса сервера</string>
+    <string name="share_name">Ім\'я спільного ресурсу</string>
+    <string name="username">Ім\'я користувача</string>
+    <string name="password">Пароль</string>
+    <string name="test_connection">Перевірити</string>
+    <string name="save">Зберегти</string>
+    <string name="smb_sources">SMB-ресурси</string>
+</resources>
