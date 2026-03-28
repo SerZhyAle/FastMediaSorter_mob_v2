@@ -85,31 +85,45 @@ class BrowseDialogHelper(
         
         // Configure each checkbox: hide if not allowed by resource OR not supported by flavor
         dialogBinding.cbFilterImage.apply {
-            visibility = if (MediaType.IMAGE in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.IMAGE in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.IMAGE in allowed && BuildConfig.SUPPORT_IMAGES && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.IMAGE) == true)
         }
         dialogBinding.cbFilterVideo.apply {
-            visibility = if (MediaType.VIDEO in allowed && BuildConfig.SUPPORT_VIDEO) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.VIDEO in allowed && BuildConfig.SUPPORT_VIDEO) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.VIDEO in allowed && BuildConfig.SUPPORT_VIDEO && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.VIDEO) == true)
         }
         dialogBinding.cbFilterAudio.apply {
-            visibility = if (MediaType.AUDIO in allowed && BuildConfig.SUPPORT_AUDIO) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.AUDIO in allowed && BuildConfig.SUPPORT_AUDIO) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.AUDIO in allowed && BuildConfig.SUPPORT_AUDIO && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.AUDIO) == true)
         }
         dialogBinding.cbFilterGif.apply {
-            visibility = if (MediaType.GIF in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.GIF in allowed && BuildConfig.SUPPORT_IMAGES) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.GIF in allowed && BuildConfig.SUPPORT_IMAGES && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.GIF) == true)
         }
         dialogBinding.cbFilterText.apply {
-            visibility = if (MediaType.TEXT in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.TEXT in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.TEXT in allowed && BuildConfig.SUPPORT_DOCUMENTS && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.TEXT) == true)
         }
         dialogBinding.cbFilterPdf.apply {
-            visibility = if (MediaType.PDF in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.PDF in allowed && BuildConfig.SUPPORT_DOCUMENTS) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.PDF in allowed && BuildConfig.SUPPORT_DOCUMENTS && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.PDF) == true)
         }
         dialogBinding.cbFilterEpub.apply {
-            visibility = if (MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB) android.view.View.VISIBLE else android.view.View.GONE
+            val vis = if (MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB) android.view.View.VISIBLE else android.view.View.GONE
+            (parent as android.view.View).visibility = vis
+            visibility = vis
             isChecked = MediaType.EPUB in allowed && BuildConfig.ENABLE_EPUB && (allTypesSelected || currentFilter?.mediaTypes?.contains(MediaType.EPUB) == true)
         }
         

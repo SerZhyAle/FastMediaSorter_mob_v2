@@ -2,6 +2,18 @@
 # You can control the set of applied configuration files using the
 # proguardFiles setting in build.gradle.kts.
 
+# Google Cast SDK + MediaRouter
+-keep class com.google.android.gms.cast.** { *; }
+-keep class com.google.android.gms.cast.framework.** { *; }
+-dontwarn com.google.android.gms.cast.**
+-dontwarn com.google.android.gms.cast.framework.**
+-keep class androidx.mediarouter.** { *; }
+-dontwarn androidx.mediarouter.**
+
+# NanoHTTPD
+-keep class fi.iki.elonen.** { *; }
+-dontwarn fi.iki.elonen.**
+
 # Keep data classes used with Room
 -keep class com.sza.fastmediasorter.data.local.db.** { *; }
 

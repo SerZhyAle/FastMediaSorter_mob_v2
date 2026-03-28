@@ -33,7 +33,8 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val resourceRepository: ResourceRepository,
     private val settingsRepository: SettingsRepository,
-    private val mediaScannerFactory: MediaScannerFactory
+    private val mediaScannerFactory: MediaScannerFactory,
+    private val workManagerScheduler: WorkManagerScheduler
 ) : CoroutineWorker(applicationContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -111,6 +112,22 @@ class NetworkFilesSyncWorker @AssistedInject constructor(
             }
             
             Timber.i("NetworkFilesSyncWorker: Background sync completed (local + network)")
+
+            // X.11: Trigger thumbnail preload for each network resource (SMB/SFTP/FTP)
+            if (settings.enableThumbnailPreload) {
+                val networkResources = resourcesToSync.filter {
+                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.SMB ||
+                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.SFTP ||
+                    it.type == com.sza.fastmediasorter.domain.model.ResourceType.FTP
+                }
+                networkResources.forEach { resource ->
+                    workManagerScheduler.scheduleThumbnailPreload(resource.id, settings.thumbnailPreloadWifiOnly)
+                }
+                if (networkResources.isNotEmpty()) {
+                    Timber.i("NetworkFilesSyncWorker: queued thumbnail preload for ${networkResources.size} network resource(s)")
+                }
+            }
+
             Result.success()
         } catch (e: Exception) {
             Timber.e(e, "NetworkFilesSyncWorker: Background sync failed")

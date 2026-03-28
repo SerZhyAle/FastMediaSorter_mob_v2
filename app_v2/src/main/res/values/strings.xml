@@ -697,6 +697,16 @@
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
     <string name="search_in_youtube_music">Search in YouTube Music</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
+    <!-- Chromecast / Cast -->
+    <string name="cast_to_chromecast">Cast to…</string>
+    <string name="cast_connected">Casting to %s</string>
+    <string name="cast_disconnected">Cast disconnected</string>
+    <string name="cast_video_too_large">Video too large to cast (&gt; 50 MB)</string>
+    <string name="cast_preparing">Preparing cast\u2026</string>
+    <string name="cast_no_wifi">Cast requires a Wi-Fi connection</string>
+    <string name="cast_unavailable">Chromecast not available on this device</string>
+    <string name="cast_error_file">Could not load file for casting</string>
+    <string name="cast_error_load">Cast playback failed</string>
     <string name="error_connection_auth">Cannot connect to \"%1$s\" - authentication failed.\n\nCheck username and password.</string>
     <string name="error_connection_access">Cannot connect to \"%1$s\" - access denied.\n\nCheck share permissions.</string>
     <string name="error_connection_share_not_found">Cannot connect to \"%1$s\" - share not found.\n\nVerify share name on server.</string>
@@ -1130,6 +1140,10 @@
     <string name="network_parallelism_summary">Number of parallel threads for network operations (SMB, FTP, SFTP)</string>
     <string name="enable_background_sync">Enable background sync</string>
     <string name="background_sync_description">Automatically check network resources for file changes in the background</string>
+    <string name="thumbnail_preload_title">Preload thumbnails</string>
+    <string name="thumbnail_preload_summary">Pre-generate thumbnails for network video and PDF files in the background after sync</string>
+    <string name="thumbnail_preload_wifi_only_title">Wi-Fi only preload</string>
+    <string name="thumbnail_preload_wifi_only_summary">Only preload thumbnails when connected to an unmetered (Wi-Fi) network</string>
     <string name="sync_interval">Sync interval (min)</string>
     <string name="sync_interval_hint">Enter minutes or select from list</string>
     <plurals name="sync_interval_hours">
@@ -1415,6 +1429,7 @@
     <string name="unsupported_format_network_hint">To play this file with external player, copy it to a local resource first.</string>
     <string name="unsupported_format_use_external_player">Format not supported. Try opening with external player.</string>
     <string name="unsupported_format_copy_to_local">Format not supported. Copy file to local resource to use external player.</string>
+    <string name="heic_not_supported_on_device">%1$s requires %2$s or newer to display on this device.</string>
     <string name="panel_copy_to">Copy to…</string>
     <string name="panel_move_to">Move to…</string>
     <string name="more_options">More options</string>

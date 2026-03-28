@@ -100,26 +100,37 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
     private fun applyEdgeToEdgeInsets() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-
-            // Skip button below status bar
-            (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
-                it.topMargin = statusBar.top + resources.getDimensionPixelSize(R.dimen.margin_small)
-                binding.btnSkip.layoutParams = it
-            }
-
-            // Bottom nav above navigation bar
-            binding.layoutBottomNav?.setPadding(
-                binding.layoutBottomNav?.paddingLeft ?: 0, binding.layoutBottomNav?.paddingTop ?: 0,
-                binding.layoutBottomNav?.paddingRight ?: 0, navBar.bottom
-            )
-
+            applyWindowInsets(insets)
             insets
         }
-        // setupViews() runs inside post{} — insets may already be dispatched by then.
-        // Force re-dispatch so the listener above actually fires.
-        androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
+        // setupViews() runs inside post{} — the first insets dispatch has already happened.
+        // Use getRootWindowInsets() to apply them immediately; fall back to requestApplyInsets
+        // for the rare case where insets aren't cached yet.
+        val current = androidx.core.view.ViewCompat.getRootWindowInsets(binding.root)
+        if (current != null) {
+            applyWindowInsets(current)
+        } else {
+            androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
+        }
+    }
+
+    private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
+        val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+        val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+
+        // Skip button below status bar
+        (binding.btnSkip.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.let {
+            it.topMargin = statusBar.top + resources.getDimensionPixelSize(R.dimen.margin_small)
+            binding.btnSkip.layoutParams = it
+        }
+
+        // Bottom nav above navigation bar
+        binding.layoutBottomNav?.setPadding(
+            binding.layoutBottomNav?.paddingLeft ?: 0,
+            binding.layoutBottomNav?.paddingTop ?: 0,
+            binding.layoutBottomNav?.paddingRight ?: 0,
+            navBar.bottom
+        )
     }
 
     private fun setupViewPager() {

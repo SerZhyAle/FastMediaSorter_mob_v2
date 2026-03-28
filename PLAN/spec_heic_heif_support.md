@@ -1,6 +1,6 @@
 # Specification: X.5 — HEIF/HEIC Support
 
-**Status:** Draft
+**Status:** Implemented
 **Date:** 2026-03-28
 **Tier:** 3 — Moderate (4–8h, medium risk)
 **Roadmap entry:** Test Glide support; add fallback decoder if needed
@@ -178,10 +178,10 @@ Test the following scenarios manually. Use an Android 8.1 emulator (API 27) and 
 
 ## 9. Acceptance Criteria
 
-- [ ] `SmbOperationsUseCase.detectMediaType` no longer throws for `heic`, `heif`, `avif`
-- [ ] On API 28+: HEIC images from local storage and SMB/SFTP/FTP display correctly in both Browse and Player
-- [ ] On API 26–27: HEIC images show a clear "format not supported on this device" placeholder instead of a broken-image icon or spinner
-- [ ] No unhandled exceptions or ANRs triggered by HEIC files on any supported API level
-- [ ] AVIF files follow the same placeholder/supported logic as HEIC (supported API 31+)
-- [ ] `HeifSupportUtils` has unit tests covering the three format/API-level combinations
-- [ ] `CHANGELOG.md` updated
+- [x] `SmbOperationsUseCase.detectMediaType` no longer throws for `heic`, `heif`, `avif`
+- [x] On API 28+: HEIC images from local storage and SMB/SFTP/FTP display correctly in both Browse and Player
+- [x] On API 26–27: HEIC images show a clear "format not supported on this device" placeholder instead of a broken-image icon or spinner
+- [x] No unhandled exceptions or ANRs triggered by HEIC files on any supported API level
+- [x] AVIF files follow the same placeholder/supported logic as HEIC (supported API 31+)
+- [x] `HeifSupportUtils` has unit tests covering the three format/API-level combinations
+- [x] `CHANGELOG.md` updated

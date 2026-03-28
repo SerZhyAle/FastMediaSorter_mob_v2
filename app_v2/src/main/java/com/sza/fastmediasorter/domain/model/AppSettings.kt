@@ -129,7 +129,11 @@ data class AppSettings(
     val isPrimaryMediaPlayer: Boolean = false,
 
     // Phase 6: Accept shared media files (enables ACTION_SEND aliases in Share sheet)
-    val acceptSharedFiles: Boolean = false
+    val acceptSharedFiles: Boolean = false,
+
+    // X.11: Background thumbnail pre-generation
+    val enableThumbnailPreload: Boolean = false,       // Background thumbnail pre-generation (opt-in, consumes network bandwidth)
+    val thumbnailPreloadWifiOnly: Boolean = true       // Restrict preload to unmetered (Wi-Fi) connections
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

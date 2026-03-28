@@ -2,10 +2,25 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Specification Rule
+## Communication
 
-**Whenever creating or updating any file matching `PLAN/spec_*.md`, you MUST use the `/spec` command.**
-Do not write spec files manually. The `/spec` command enforces the full project template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs.
+- **Language**: RUSSIAN in chat/conversation, ENGLISH in code, docs, logs, and commit messages.
+- **Tone**: PROFESSIONAL / DRY / CONCISE. No filler, no guessing — ask if ambiguous.
+- **Missing input**: Request the file or data needed. DO NOT hallucinate values or paths.
+
+---
+
+## Skill Rules
+
+These skills MUST be used automatically — do not handle these tasks manually:
+
+| Trigger | Skill | Rule |
+|---------|-------|------|
+| Creating or updating any `PLAN/spec_*.md` file | `/spec` | **Mandatory** — enforces full project template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs |
+| Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature docs) | `/doc-update` | **Mandatory** — ensures EN/RU/UK mirrors stay in sync and format is consistent |
+| User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis |
+| User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** — routes to the correct flavor/variant build command |
+| User asks about git commits, staging, pushing, diffs, old file versions, or "what should I commit" | `/git` | **Mandatory** — provides project-aware git workflow guidance |
 
 ---
 
@@ -16,7 +31,10 @@ Before making changes, read these files in order based on task type:
 - **Architecture/data flow**: `docs/ARCHITECTURE.md`
 - **Build/scripts/flags**: `docs/DEV_OPS.md` + `app_v2/build.gradle.kts`
 - **Dependencies/protocols**: `docs/TECH_STACK.md` + `dev/TECH_REQUIREMENTS.md`
-- **Multi-step tasks**: `dev/AGENT_WORKFLOW.md` (mandatory 5-step process)
+- **Network tasks**: `dev/NETWORK_SPECS.md` (SMB/SFTP/FTP/protocol-specific constraints)
+- **Multi-step tasks**: `dev/AGENT_WORKFLOW.md` — **MUST be read BEFORE execution** for any task larger than a single-file fix (mandatory 5-step process)
+
+**Research order**: `dev/PROJECT_OPERATIONS_INDEX.md` → domain-specific doc → implementation files. Use the `Feature-to-Path Map` section before doing a global search.
 
 ## Build Commands (PowerShell)
 
@@ -111,6 +129,8 @@ Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 4. **Read-only zones**: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/` — do not modify.
 5. **Backup rule**: if modifying a file >500 lines, create a timestamped backup in `temp/` first.
 6. **Naming**: `VerbNounUseCase`, `NounRepository`, `NounViewModel`, `NounVerbManager`.
+7. **Lint**: ALWAYS resolve warnings in files you touch. Use canonical naming only.
+8. **Backup files**: Ignore `*.backup` files in primary analysis unless the user explicitly requests a historical comparison.
 
 ## Feature Inventory
 
@@ -118,16 +138,29 @@ Features are gated via `BuildConfig` fields in `app_v2/build.gradle.kts`.
 
 ## Mandatory Post-Change Steps
 
-After **every** code/config change:
+**Applies to ALL agents (Copilot, Cursor, Windsurf, CLI agents). NO exceptions.**
+
+### 1. Dev Changelog — after EVERY code/config file change
+
+Run at the end of each implementation step, BEFORE moving to the next task:
 ```powershell
 .\scripts\add_to_dev_log.ps1 "<relative_path>" "<class_or_target>" "<short_description>"
 ```
-This appends a timestamped row to `dev/CHANGELOG.md`.
+This appends a timestamped row to `dev/CHANGELOG.md`. Never edit `CHANGELOG.md` directly.
 
-After implementing any **new user-facing feature**, update all three:
-- `docs/FEATURES.md` (EN)
+Example:
+```powershell
+.\scripts\add_to_dev_log.ps1 "app_v2/src/.../GlideAppModule.kt" "GlideAppModule" "Fixed memory cache formula to heap×10%"
+```
+
+### 2. Feature Docs — after implementing any new user-facing feature
+
+At the end of Step 4 (Implementation), BEFORE marking the task complete, update all three language variants:
+- `docs/FEATURES.md` (EN — canonical)
 - `docs/FEATURES_RU.md` (RU)
 - `docs/FEATURES_UK.md` (UK)
+
+Add a concise bullet under the relevant section. Keep consistent style with existing entries.
 
 ## Version Format
 

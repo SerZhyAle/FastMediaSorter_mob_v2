@@ -538,6 +538,21 @@ class GeneralSettingsFragment : Fragment() {
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(enableBackgroundSync = isChecked))
         }
+
+        // X.11: Thumbnail preload toggle
+        binding.switchEnableThumbnailPreload?.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(enableThumbnailPreload = isChecked))
+            binding.layoutThumbnailPreloadWifiOnly?.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
+        // X.11: Thumbnail preload Wi-Fi only sub-toggle
+        binding.switchThumbnailPreloadWifiOnly?.setOnCheckedChangeListener { _, isChecked ->
+            if (isUpdatingSpinner) return@setOnCheckedChangeListener
+            val current = viewModel.settings.value
+            viewModel.updateSettings(current.copy(thumbnailPreloadWifiOnly = isChecked))
+        }
         
         // Sync interval dropdown
         val syncIntervalOptions = arrayOf("5", "15", "60", "120", "300")
@@ -866,7 +881,17 @@ class GeneralSettingsFragment : Fragment() {
                     if (binding.switchEnableBackgroundSync.isChecked != settings.enableBackgroundSync) {
                         binding.switchEnableBackgroundSync.isChecked = settings.enableBackgroundSync
                     }
-                    
+
+                    // X.11: Thumbnail preload
+                    binding.switchEnableThumbnailPreload?.let { sw ->
+                        if (sw.isChecked != settings.enableThumbnailPreload) sw.isChecked = settings.enableThumbnailPreload
+                    }
+                    binding.layoutThumbnailPreloadWifiOnly?.visibility =
+                        if (settings.enableThumbnailPreload) View.VISIBLE else View.GONE
+                    binding.switchThumbnailPreloadWifiOnly?.let { sw ->
+                        if (sw.isChecked != settings.thumbnailPreloadWifiOnly) sw.isChecked = settings.thumbnailPreloadWifiOnly
+                    }
+
                     isUpdatingSpinner = false
                     
                     // Update network parallelism

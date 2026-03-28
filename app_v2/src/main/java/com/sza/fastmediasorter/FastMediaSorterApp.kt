@@ -139,11 +139,25 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             CacheStatusHelper.logGlideDiskCacheStatus(this@FastMediaSorterApp)
         }
         
+        // Initialise Cast SDK early so device discovery begins before PlayerActivity opens.
+        // Wrapped in try/catch: fails gracefully on devices without Google Play Services.
+        try {
+            com.google.android.gms.cast.framework.CastContext.getSharedInstance(this)
+            Timber.d("FastMediaSorterApp: Cast SDK initialized")
+        } catch (e: Exception) {
+            Timber.w("FastMediaSorterApp: Cast SDK not available — ${e.message}")
+        }
+
         Timber.d("FastMediaSorter v2 initialized with locale: ${LocaleHelper.getLanguage(this)}")
         
         // Log detailed app startup information
         logAppStartupInfo()
-        
+
+        // Warn if the previous session ended with a crash (user should export logs)
+        if (LoggingHelper.hasPreviousCrash()) {
+            Timber.w("=== PREVIOUS SESSION ENDED WITH A CRASH — use 'Export debug logs' to collect reports ===")
+        }
+
         // Initialize all background tasks
         val startupInitializer = AppStartupInitializer(
             context = applicationContext,
@@ -281,6 +295,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         com.sza.fastmediasorter.core.debug.StrictModeHelper.allowDiskIO {
             try {
                 LoggingHelper.initialize(base)
+                LoggingHelper.installCrashHandler()
             } catch (e: Exception) {
                 Timber.tag("FastMediaSorterApp").e(e, "Early logging init failed")
             }

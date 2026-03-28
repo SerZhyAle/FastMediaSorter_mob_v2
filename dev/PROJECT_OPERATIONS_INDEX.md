@@ -105,6 +105,10 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 	- `data/network/datasource/`, `data/network/exceptions/`, `data/network/pool/`
 	- Connectivity monitor: `core/network/`
 
+- Chromecast / Cast output:
+	- `core/cast/` (`CastOptionsProvider`, `LocalCastProxyServer`)
+	- `ui/player/helpers/CastMediaManager.kt` (session, proxy, download)
+
 - File transfer and strategy layer:
 	- `data/transfer/`
 	- `data/transfer/strategy/`, `data/transfer/strategies/`, `data/transfer/access/`

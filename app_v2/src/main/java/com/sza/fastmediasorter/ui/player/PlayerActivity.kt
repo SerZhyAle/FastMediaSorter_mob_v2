@@ -181,6 +181,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal lateinit var imageTranslationManager: com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
     internal lateinit var shareManager: com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
+    internal lateinit var castMediaManager: com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 
     private val googleSignInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
@@ -993,6 +994,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     private fun initAudioAndMediaServices() {
+        castMediaManager = com.sza.fastmediasorter.ui.player.helpers.CastMediaManager(
+            context = this,
+            lifecycleScope = lifecycleScope,
+            onCastStateChanged = { isCasting, deviceName ->
+                viewModel.updateCastState(isCasting, deviceName)
+                if (isCasting) {
+                    val currentFile = viewModel.state.value.currentFile
+                    if (currentFile != null) castMediaManager.sendCurrentMedia(currentFile)
+                }
+            }
+        )
+        castMediaManager.init()
         audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
         sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
             vinylView = binding.vinylIndicator,
@@ -1797,6 +1810,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     }
 
     /**
+     * Opens Chromecast device picker and casts the current media file.
+     * Delegates all logic to CastMediaManager.
+     */
+    internal fun castCurrentMedia() {
+        castMediaManager.showCastDialog(this)
+        val currentFile = viewModel.state.value.currentFile ?: return
+        if (castMediaManager.isCasting) {
+            castMediaManager.sendCurrentMedia(currentFile)
+        }
+    }
+
+    /**
      * Hide lyrics viewer overlay.
      */
     internal fun hideLyricsViewer() {
@@ -2087,7 +2112,12 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         if (_textViewerManager != null) {
             textViewerManager.release()
         }
-        
+
+        // Release Cast manager (stop proxy server, cancel downloads, unregister listener)
+        if (::castMediaManager.isInitialized) {
+            castMediaManager.release()
+        }
+
         // Delegate to lifecycle manager
         lifecycleManager.onDestroy()
 

@@ -1116,3 +1116,61 @@ Format: | datetime | file | target | description |
 | 2026-03-28 04:37:57 | `CLAUDE.md` | `project rules` | Add mandatory /spec command rule for all PLAN/spec_*.md file creation/updates |
 | 2026-03-28 04:43:12 | `PLAN/spec_duplicate_detection.md` | `spec` | Add specification for X.1 Duplicate Detection |
 | 2026-03-28 04:44:43 | `PLAN/spec_decompose-giant-files.md` | `spec` | Add specification for IV.1 |
+| 2026-03-28 04:57:16 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings` | Add enableThumbnailPreload + thumbnailPreloadWifiOnly fields (X.11) |
+| 2026-03-28 04:57:26 | `app_v2/.../data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Add DataStore keys for thumbnail preload settings (X.11) |
+| 2026-03-28 04:57:29 | `app_v2/.../worker/ThumbnailExtractorHelper.kt` | `ThumbnailExtractorHelper` | New: extract thumbnail from network file without Glide (X.11) |
+| 2026-03-28 04:57:30 | `app_v2/.../worker/ThumbnailPreloadWorker.kt` | `ThumbnailPreloadWorker` | New: background thumbnail pre-generation HiltWorker (X.11) |
+| 2026-03-28 04:57:34 | `app_v2/.../worker/WorkManagerScheduler.kt` | `WorkManagerScheduler` | Add scheduleThumbnailPreload/cancel methods (X.11) |
+| 2026-03-28 04:57:35 | `app_v2/.../worker/NetworkFilesSyncWorker.kt` | `NetworkFilesSyncWorker` | Inject WorkManagerScheduler; trigger thumbnail preload after successful sync (X.11) |
+| 2026-03-28 04:57:42 | `app_v2/.../domain/usecase/BackupData.kt` | `BackupData` | Add enableThumbnailPreload + thumbnailPreloadWifiOnly to BackupSettings (X.11) |
+| 2026-03-28 04:57:43 | `app_v2/.../domain/usecase/BackupMapper.kt` | `BackupMapper` | Map enableThumbnailPreload + thumbnailPreloadWifiOnly in both directions (X.11) |
+| 2026-03-28 04:57:46 | `app_v2/.../domain/usecase/ExportSettingsUseCase.kt` | `ExportSettingsUseCase` | Export enableThumbnailPreload + thumbnailPreloadWifiOnly as XML (X.11) |
+| 2026-03-28 04:57:47 | `app_v2/.../domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Parse enableThumbnailPreload + thumbnailPreloadWifiOnly from XML (X.11) |
+| 2026-03-28 04:57:50 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add thumbnail preload EN strings (X.11) |
+| 2026-03-28 04:57:51 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add thumbnail preload RU strings (X.11) |
+| 2026-03-28 04:57:52 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add thumbnail preload UK strings (X.11) |
+| 2026-03-28 04:57:56 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general` | Add thumbnail preload toggle rows (X.11) |
+| 2026-03-28 04:57:58 | `app_v2/.../ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | Add thumbnail preload toggle + Wi-Fi only sub-toggle UI logic (X.11) |
+| 2026-03-28 13:44:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Fix filter dialog: hide parent cell when checkbox is hidden (GIF/EPUB labels were visible without checkbox, looking disabled) |
+| 2026-03-28 13:44:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `MediaFileAdapter` | Fix PDF thumbnails: remove LOW-memory gate that blocked all PDF/EPUB previews in list and grid views; network PDFs already protected by size limits |
+| 2026-03-28 14:45:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | fix: apply window insets immediately via getRootWindowInsets() to prevent nav buttons being covered by system bars |
+| 2026-03-28 14:48:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `SettingsActivity` | fix: apply window insets immediately via getRootWindowInsets() so toolbarContainer/tabs are not hidden behind system bar |
+| 2026-03-28 16:46:30 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `fragment_settings_general` | Backup and Restore Google Drive buttons placed in one row |
+| 2026-03-28 17:06:50 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `LoggingHelper / FileLoggingTree` | Add crash handler: installCrashHandler(), writeCrashSynchronously(), hasCrashFiles() |
+| 2026-03-28 17:06:55 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | Install crash handler in attachBaseContext, warn on startup if previous crash detected |
+| 2026-03-28 20:29:18 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `btnSearchYoutubeMusicCmd` | fix: add missing btnSearchYoutubeMusicCmd to landscape layout - caused crash on landscape devices (Android 8.1 car headunit) via PlayerBindingSafeViews.required() throwing IllegalStateException |
+| 2026-03-28 20:52:15 | `PLAN/spec_cast-chromecast.md` | `spec` | Revise specification for X.2 — expand Cast to IMAGE/GIF/AUDIO/VIDEO; fix LAN IP bug |
+| 2026-03-28 20:59:00 | `.claude/commands/doc-update.md` | `doc-update skill` | Add /doc-update skill: comprehensive documentation update checklist for all project doc touchpoints |
+| 2026-03-28 21:02:55 | `.claude/commands/doc-update.md` | `doc-update skill` | Add website landing pages (index.html/ru/uk) and root README.md as group G and F6 doc touchpoints |
+| 2026-03-28 21:07:22 | `app_v2/build.gradle.kts` | `build` | Add Cast SDK, MediaRouter, NanoHTTPD dependencies |
+| 2026-03-28 21:07:41 | `app_v2/src/main/java/com/sza/fastmediasorter/core/cast/CastOptionsProvider.kt` | `CastOptionsProvider` | Add CastOptionsProvider for Cast SDK entry point |
+| 2026-03-28 21:08:19 | `app_v2/src/main/java/com/sza/fastmediasorter/core/cast/LocalCastProxyServer.kt` | `LocalCastProxyServer` | Add NanoHTTPD proxy bound to LAN IP for Cast receiver |
+| 2026-03-28 21:09:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `CastMediaManager` | Add CastMediaManager for IMAGE/GIF/AUDIO/VIDEO Chromecast output |
+| 2026-03-28 21:09:53 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Register CastOptionsProvider meta-data for Cast device discovery |
+| 2026-03-28 21:10:09 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `menu` | Add Cast to Chromecast overflow menu item |
+| 2026-03-28 21:11:14 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add Cast string resources (EN) |
+| 2026-03-28 21:11:14 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Add Cast string resources (RU) |
+| 2026-03-28 21:11:15 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add Cast string resources (UK) |
+| 2026-03-28 21:11:32 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `FastMediaSorterApp` | Initialise Cast SDK in Application.onCreate() |
+| 2026-03-28 21:12:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Add Cast menu item visibility, click routing, and onCastClicked interface method |
+| 2026-03-28 21:13:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Implement onCastClicked delegation to PlayerActivity |
+| 2026-03-28 21:13:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Add isCasting/castDeviceName to PlayerState, CastStateChanged event, updateCastState() |
+| 2026-03-28 21:14:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Wire CastMediaManager: init, castCurrentMedia(), release in onDestroy |
+| 2026-03-28 21:14:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | Handle CastStateChanged event with Toast feedback |
+| 2026-03-28 21:15:13 | `app_v2/proguard-rules.pro` | `proguard` | Add Cast SDK, MediaRouter and NanoHTTPD keep rules |
+| 2026-03-28 21:16:14 | `docs/FEATURES.md` | `FEATURES` | Add Cast to Chromecast feature entry (EN) |
+| 2026-03-28 21:16:14 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Cast to Chromecast feature entry (RU) |
+| 2026-03-28 21:16:14 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Cast to Chromecast feature entry (UK) |
+| 2026-03-28 21:17:09 | `docs/TECH_STACK.md` | `TECH_STACK` | Add Cast SDK, MediaRouter, NanoHTTPD to tech stack |
+| 2026-03-28 21:17:09 | `dev/PROJECT_OPERATIONS_INDEX.md` | `PROJECT_OPERATIONS_INDEX` | Add Cast output feature path (core/cast/ + CastMediaManager) |
+| 2026-03-28 21:17:10 | `PLAN/spec_cast-chromecast.md` | `spec` | Mark spec X.2 as Implemented |
+| 2026-03-28 21:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Fix updateCastState: use it.copy() and sendEvent() (BaseViewModel API) |
+| 2026-03-28 21:22:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `CastMediaManager` | Fix resolveAndSend: detect local vs remote via path prefix, not resourceType |
+| 2026-03-28 21:36:09 | `app_v2/src/main/res/values/strings.xml` | `strings` | Shorten cast_to_chromecast label to 'Cast to…' (EN/RU/UK) |
+| 2026-03-28 21:52:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt` | `SmbOperationsUseCase.detectMediaType` | Fix: remove IllegalArgumentException throw for heic/heif/avif; classify as MediaType.IMAGE |
+| 2026-03-28 21:52:57 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/HeifSupportUtils.kt` | `HeifSupportUtils` | New: API-level guard utility for HEIC (API28+) and AVIF (API31+) decode support |
+| 2026-03-28 21:52:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager.displayImage` | Add pre-flight HeifSupportUtils check; show localized error on unsupported API level |
+| 2026-03-28 21:52:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `MediaFileAdapter.loadThumbnail` | Add pre-flight HeifSupportUtils check for IMAGE/GIF thumbnails in list and grid views |
+| 2026-03-28 21:52:58 | `app_v2/src/test/java/com/sza/fastmediasorter/core/util/HeifSupportUtilsTest.kt` | `HeifSupportUtilsTest` | New: unit tests for HeifSupportUtils covering heic/heif/avif API-level combinations |
+| 2026-03-28 22:56:22 | `app_v2/src/main/res/layout-land/page_welcome_enhanced.xml` | `page_welcome_enhanced` | Add landscape layout for Enhanced welcome pages (icon left, content right) |
+| 2026-03-28 23:26:11 | `.claude/commands/build.md` | `build skill` | Add /build slash command for build system reference |

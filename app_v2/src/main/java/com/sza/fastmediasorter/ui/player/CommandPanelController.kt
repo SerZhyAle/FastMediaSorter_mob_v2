@@ -56,6 +56,7 @@ class CommandPanelController(
         fun onInfoClicked()
         fun onLyricsClicked()
         fun onSearchYoutubeMusicClicked()
+        fun onCastClicked()
         fun onFavoriteClicked()
         fun onSearchClicked()
         fun onTranslateClicked()
@@ -712,6 +713,7 @@ class CommandPanelController(
         // popup.menu.findItem(R.id.menu_info)?.icon?.setTint(iconColor) // Removed from menu
         popup.menu.findItem(R.id.menu_lyrics)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_search_youtube_music)?.icon?.setTint(iconColor)
+        popup.menu.findItem(R.id.menu_cast)?.icon?.setTint(iconColor)
 
         // popup.menu.findItem(R.id.menu_favorite)?.icon?.setTint(iconColor) // Removed from menu
         popup.menu.findItem(R.id.menu_copy_text)?.icon?.setTint(iconColor)
@@ -736,6 +738,11 @@ class CommandPanelController(
         // popup.menu.findItem(R.id.menu_info)?.isVisible = true // Removed
         popup.menu.findItem(R.id.menu_lyrics)?.isVisible = currentFile.type == MediaType.AUDIO
         popup.menu.findItem(R.id.menu_search_youtube_music)?.isVisible = currentFile.type == MediaType.AUDIO
+        popup.menu.findItem(R.id.menu_cast)?.isVisible = run {
+            val canCast = isImage || isVideo  // isImage covers IMAGE+GIF; isVideo covers VIDEO+AUDIO
+            val wifiOk = isWifiConnected(binding.root.context)
+            canCast && wifiOk
+        }
         popup.menu.findItem(R.id.menu_edit)?.apply {
             isVisible = (isImage && !isReadOnly) || isVideo || isPdf || isPdf
             // Update title based on file type
@@ -773,6 +780,7 @@ class CommandPanelController(
                 // R.id.menu_info -> callback.onInfoClicked() // Removed
                 R.id.menu_lyrics -> callback.onLyricsClicked()
                 R.id.menu_search_youtube_music -> callback.onSearchYoutubeMusicClicked()
+                R.id.menu_cast -> callback.onCastClicked()
                 R.id.menu_edit -> callback.onEditClicked()
                 // R.id.menu_favorite -> callback.onFavoriteClicked() // Removed
                 R.id.menu_search -> callback.onSearchClicked()
@@ -893,4 +901,16 @@ class CommandPanelController(
         binding.btnPreviousCmd,
         binding.btnNextCmd
     )
+
+    private fun isWifiConnected(context: android.content.Context): Boolean {
+        return try {
+            val cm = context.getSystemService(android.content.Context.CONNECTIVITY_SERVICE)
+                as android.net.ConnectivityManager
+            val network = cm.activeNetwork ?: return false
+            val caps = cm.getNetworkCapabilities(network) ?: return false
+            caps.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI)
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

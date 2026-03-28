@@ -116,23 +116,35 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
 
     private fun applyEdgeToEdgeInsets() {
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
-            val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
-            val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
-
-            // Toolbar container below status bar
-            binding.toolbarContainer.setPadding(
-                binding.toolbarContainer.paddingLeft, statusBar.top,
-                binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
-            )
-
-            // ViewPager content above nav bar
-            binding.viewPager.setPadding(
-                binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
-                binding.viewPager.paddingRight, navBar.bottom
-            )
-
+            applyWindowInsets(insets)
             insets
         }
+        // setupViews() runs inside post{} — the first insets dispatch has already happened.
+        // Use getRootWindowInsets() to apply them immediately; fall back to requestApplyInsets
+        // for the rare case where insets aren't cached yet.
+        val current = androidx.core.view.ViewCompat.getRootWindowInsets(binding.root)
+        if (current != null) {
+            applyWindowInsets(current)
+        } else {
+            androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
+        }
+    }
+
+    private fun applyWindowInsets(insets: androidx.core.view.WindowInsetsCompat) {
+        val statusBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+        val navBar = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+
+        // Toolbar container below status bar
+        binding.toolbarContainer.setPadding(
+            binding.toolbarContainer.paddingLeft, statusBar.top,
+            binding.toolbarContainer.paddingRight, binding.toolbarContainer.paddingBottom
+        )
+
+        // ViewPager content above nav bar
+        binding.viewPager.setPadding(
+            binding.viewPager.paddingLeft, binding.viewPager.paddingTop,
+            binding.viewPager.paddingRight, navBar.bottom
+        )
     }
 
     override fun onLayoutConfigurationChanged(newConfig: android.content.res.Configuration) {

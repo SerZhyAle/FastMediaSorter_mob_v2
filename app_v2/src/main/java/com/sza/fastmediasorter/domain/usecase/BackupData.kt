@@ -130,7 +130,10 @@ data class BackupSettings(
     // File list caching
     val defaultRememberFileList: Boolean = false,
     // Dynamic background
-    val dynamicBackgroundExtension: Boolean = false
+    val dynamicBackgroundExtension: Boolean = false,
+    // X.11: Background thumbnail pre-generation
+    val enableThumbnailPreload: Boolean = false,
+    val thumbnailPreloadWifiOnly: Boolean = true
 )
 
 /**

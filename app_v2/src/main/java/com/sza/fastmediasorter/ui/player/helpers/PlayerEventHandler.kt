@@ -41,6 +41,14 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                     .show()
             }
             PlayerViewModel.PlayerEvent.FinishActivity -> activity.finish()
+            is PlayerViewModel.PlayerEvent.CastStateChanged -> {
+                val msg = if (event.isCasting && event.deviceName != null) {
+                    activity.getString(com.sza.fastmediasorter.R.string.cast_connected, event.deviceName)
+                } else if (!event.isCasting) {
+                    activity.getString(com.sza.fastmediasorter.R.string.cast_disconnected)
+                } else null
+                if (msg != null) Toast.makeText(activity, msg, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

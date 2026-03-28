@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.render.RenderModeHint
 import com.sza.fastmediasorter.ui.player.render.RenderPriority
 import com.sza.fastmediasorter.ui.player.render.RenderTarget
 import com.sza.fastmediasorter.ui.player.render.StaticImageRenderer
+import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.ui.player.helpers.AnimatedImageController
 import com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController
 import com.sza.fastmediasorter.ui.player.helpers.PlayerBindingSafeViews
@@ -461,7 +462,26 @@ class ImageLoadingManager(
 
         val currentFile = callback.getCurrentFile()
         val resource = callback.getCurrentResource()
-        
+
+        // Pre-flight: HEIC/HEIF needs API 28+, AVIF needs API 31+. Show a clear message on
+        // unsupported devices instead of letting Glide fail silently.
+        val pathExtension = path.substringAfterLast('.', "").lowercase()
+        if (!HeifSupportUtils.isSupported(pathExtension)) {
+            loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
+            loadingIndicatorHandler.removeCallbacks(hideLoadingSafetyRunnable)
+            binding.progressBar.isVisible = false
+            val minVersion = HeifSupportUtils.minimumAndroidVersion(pathExtension) ?: pathExtension
+            Timber.w("ImageLoadingManager: ${pathExtension.uppercase()} not supported on this device (requires $minVersion)")
+            callback.showError(
+                binding.root.context.getString(
+                    R.string.heic_not_supported_on_device,
+                    pathExtension.uppercase(),
+                    minVersion
+                )
+            )
+            return
+        }
+
         // Get settings to determine which view to use
         lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
@@ -1150,7 +1170,8 @@ class ImageLoadingManager(
             msg.contains("DecodeException", ignoreCase = true) ||
             msg.contains("ImageDecoder", ignoreCase = true) ||
             msg.contains("HEIC", ignoreCase = true) ||
-            msg.contains("HEIF", ignoreCase = true)
+            msg.contains("HEIF", ignoreCase = true) ||
+            msg.contains("AVIF", ignoreCase = true)
         }
     }
 

@@ -240,6 +240,64 @@ class WorkManagerScheduler @Inject constructor(
         }
     }
 
+    // -------------------------------------------------------------------------
+    // X.11: Background thumbnail preload (one-time per resource)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Enqueue a one-time thumbnail preload job for [resourceId].
+     * Uses KEEP policy — if a job is already pending/running for this resource it is not replaced.
+     *
+     * @param resourceId ID of the network resource to preload thumbnails for.
+     * @param wifiOnly If true, adds NetworkType.UNMETERED constraint (default: true).
+     */
+    fun scheduleThumbnailPreload(resourceId: Long, wifiOnly: Boolean = true) {
+        try {
+            val constraints = Constraints.Builder()
+                .setRequiredNetworkType(if (wifiOnly) NetworkType.UNMETERED else NetworkType.CONNECTED)
+                .setRequiresBatteryNotLow(true)
+                .setRequiresStorageNotLow(true)
+                .build()
+            val inputData = Data.Builder()
+                .putLong(ThumbnailPreloadWorker.KEY_RESOURCE_ID, resourceId)
+                .build()
+            val request = OneTimeWorkRequestBuilder<ThumbnailPreloadWorker>()
+                .setConstraints(constraints)
+                .setInputData(inputData)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, java.util.concurrent.TimeUnit.SECONDS)
+                .addTag("thumbnail_preload")
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                ThumbnailPreloadWorker.workName(resourceId),
+                ExistingWorkPolicy.KEEP,
+                request
+            )
+            Timber.i("WorkManagerScheduler: queued thumbnail preload for resource $resourceId (wifiOnly=$wifiOnly)")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: failed to schedule thumbnail preload for resource $resourceId")
+        }
+    }
+
+    /** Cancel any pending/running thumbnail preload for [resourceId]. */
+    fun cancelThumbnailPreload(resourceId: Long) {
+        try {
+            WorkManager.getInstance(context).cancelUniqueWork(ThumbnailPreloadWorker.workName(resourceId))
+            Timber.i("WorkManagerScheduler: cancelled thumbnail preload for resource $resourceId")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: failed to cancel thumbnail preload for resource $resourceId")
+        }
+    }
+
+    /** Cancel ALL pending/running thumbnail preload jobs across all resources. */
+    fun cancelAllThumbnailPreloads() {
+        try {
+            WorkManager.getInstance(context).cancelAllWorkByTag("thumbnail_preload")
+            Timber.i("WorkManagerScheduler: cancelled all thumbnail preload jobs")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: failed to cancel all thumbnail preloads")
+        }
+    }
+
     fun schedulePendingRevocation() {
         try {
             val constraints = Constraints.Builder()

@@ -55,6 +55,13 @@
         android:title="@string/search_in_youtube_music"
         app:showAsAction="never" />
 
+    <!-- Cast to Chromecast (IMAGE/GIF/AUDIO/VIDEO, Wi-Fi only) -->
+    <item
+        android:id="@+id/menu_cast"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="@string/cast_to_chromecast"
+        app:showAsAction="never" />
+
     <!-- Rename -->
     <item
         android:id="@+id/menu_rename"

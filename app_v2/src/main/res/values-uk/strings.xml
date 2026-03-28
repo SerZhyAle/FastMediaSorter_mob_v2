@@ -953,6 +953,10 @@
     <string name="network_parallelism_summary">Число паралельних потоків для мережевих операцій (SMB, FTP, SFTP)</string>
     <string name="enable_background_sync">Увімкнути фонову синхронізацію</string>
     <string name="background_sync_description">Автоматично перевіряти мережеві ресурси на зміни файлів у фоновому режимі</string>
+    <string name="thumbnail_preload_title">Попереднє завантаження мініатюр</string>
+    <string name="thumbnail_preload_summary">Фонова генерація мініатюр для мережевих відео та PDF після синхронізації</string>
+    <string name="thumbnail_preload_wifi_only_title">Лише через Wi-Fi</string>
+    <string name="thumbnail_preload_wifi_only_summary">Попереднє завантаження мініатюр лише при підключенні до бездротової мережі</string>
     <string name="sync_interval">Інтервал синхронізації (хв)</string>
     <string name="sync_interval_hint">Введіть хвилини або оберіть зі списку</string>
     <plurals name="sync_interval_hours">
@@ -1188,6 +1192,7 @@
     <string name="unsupported_format_network_hint">Для відтворення цього файлу у зовнішньому програвачі спочатку скопіюйте його на локальний ресурс.</string>
     <string name="unsupported_format_use_external_player">Формат не підтримується. Спробуйте відкрити у зовнішньому програвачі.</string>
     <string name="unsupported_format_copy_to_local">Формат не підтримується. Скопіюйте файл на локальний ресурс, щоб використовувати зовнішній програвач.</string>
+    <string name="heic_not_supported_on_device">Для відображення %1$s потрібен %2$s або новіший.</string>
     <string name="panel_copy_to">Копіювати до…</string>
     <string name="panel_move_to">Перемістити до…</string>
     <string name="msg_gif_prepare_failed">Не вдалося підготувати GIF файл</string>
@@ -2122,4 +2127,14 @@
     <string name="perm_battery_optim_grant">Дозволити роботу у фоні</string>
     <string name="perm_battery_optim_manage">Керування оптимізацією батареї</string>
     <string name="perm_battery_optim_hint">Потрібно для надійної роботи операцій за розкладом</string>
+    <!-- Chromecast / Cast -->
+    <string name="cast_to_chromecast">Трансляція…</string>
+    <string name="cast_connected">Трансляція на %s</string>
+    <string name="cast_disconnected">Трансляцію завершено</string>
+    <string name="cast_video_too_large">Відео завелике для трансляції (&gt; 50 МБ)</string>
+    <string name="cast_preparing">Підготовка трансляції\u2026</string>
+    <string name="cast_no_wifi">Для трансляції потрібне Wi-Fi з\'єднання</string>
+    <string name="cast_unavailable">Chromecast недоступний на цьому пристрої</string>
+    <string name="cast_error_file">Не вдалося завантажити файл для трансляції</string>
+    <string name="cast_error_load">Помилка відтворення на Chromecast</string>
 </resources>

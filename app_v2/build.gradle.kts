@@ -36,8 +36,8 @@ android {
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = 260328044
-        versionName = "2.60.3280.444"
+        versionCode = 260328232
+        versionName = "2.60.3282.321"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -495,6 +495,13 @@ dependencies {
     // Cloud Storage - OneDrive (REST API + MSAL OAuth)
     implementation("com.microsoft.identity.client:msal:6.0.1")
     
+    // Google Cast SDK + MediaRouter (Chromecast output from player)
+    implementation("com.google.android.gms:play-services-cast-framework:21.4.0")
+    implementation("androidx.mediarouter:mediarouter:1.7.0")
+
+    // NanoHTTPD — in-process HTTP proxy to serve local/cached files to Cast receiver
+    implementation("org.nanohttpd:nanohttpd:2.3.1")
+
     // Logging
     implementation("com.jakewharton.timber:timber:5.0.1")
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")

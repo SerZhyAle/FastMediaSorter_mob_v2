@@ -196,7 +196,9 @@ object BackupMapper {
             movePanelCollapsed = settings.movePanelCollapsed,
             enablePictureInPicture = settings.enablePictureInPicture,
             defaultRememberFileList = settings.defaultRememberFileList,
-            dynamicBackgroundExtension = settings.dynamicBackgroundExtension
+            dynamicBackgroundExtension = settings.dynamicBackgroundExtension,
+            enableThumbnailPreload = settings.enableThumbnailPreload,
+            thumbnailPreloadWifiOnly = settings.thumbnailPreloadWifiOnly
         )
     }
 
@@ -323,7 +325,9 @@ object BackupMapper {
             movePanelCollapsed = backup.movePanelCollapsed,
             enablePictureInPicture = backup.enablePictureInPicture,
             defaultRememberFileList = backup.defaultRememberFileList,
-            dynamicBackgroundExtension = backup.dynamicBackgroundExtension
+            dynamicBackgroundExtension = backup.dynamicBackgroundExtension,
+            enableThumbnailPreload = backup.enableThumbnailPreload,
+            thumbnailPreloadWifiOnly = backup.thumbnailPreloadWifiOnly
         )
     }
 

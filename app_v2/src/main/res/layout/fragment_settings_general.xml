@@ -231,7 +231,15 @@
                     <!-- Google Drive Backup/Restore -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />
 
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBackup" style="@style/Widget.Material3.Button.TonalButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/backup_to_google_drive" app:icon="@drawable/ic_cloud_upload" app:iconGravity="start" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/margin_small" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
+
+                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
+
+                    </LinearLayout>
 
                     <FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp">
 
@@ -245,17 +253,9 @@
 
                         <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressBackup" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="36dp" />
 
+                        <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressRestore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:indeterminate="true" android:visibility="gone" app:indicatorSize="36dp" />
+
                     </FrameLayout>
-
-                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small" android:gravity="center_vertical">
-
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnRestore" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/restore_from_google_drive" app:icon="@drawable/ic_cloud_download" app:iconGravity="start" />
-
-                        <ImageButton android:id="@+id/iconHelpBackupInfo" android:layout_width="@dimen/settings_help_icon_size" android:layout_height="@dimen/settings_help_icon_size" android:layout_marginStart="@dimen/settings_help_icon_margin" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/tooltip_backup_info_title" android:src="@android:drawable/ic_menu_help" app:tint="@color/text_color_secondary" />
-
-                    </LinearLayout>
-
-                    <com.google.android.material.progressindicator.CircularProgressIndicator android:id="@+id/progressRestore" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:layout_marginTop="4dp" android:indeterminate="true" android:visibility="gone" app:indicatorSize="36dp" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -317,6 +317,30 @@
                         </LinearLayout>
 
                         <TextView android:id="@+id/tvSyncLastStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_tiny" android:text="@string/never_synced" android:textColor="@color/text_color_secondary" android:textSize="@dimen/text_size_small" />
+
+                    </LinearLayout>
+
+                    <!-- X.11: Thumbnail Preload Toggle -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreload" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchEnableThumbnailPreload" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="false" android:contentDescription="@string/thumbnail_preload_title" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/thumbnail_preload_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/thumbnail_preload_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- X.11: Thumbnail Preload Wi-Fi Only Sub-Toggle -->
+                    <LinearLayout android:id="@+id/layoutThumbnailPreloadWifiOnly" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/settings_item_margin_bottom" android:layout_marginStart="32dp" android:gravity="center_vertical" android:minHeight="@dimen/settings_item_min_height" android:orientation="horizontal">
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/switchThumbnailPreloadWifiOnly" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginEnd="@dimen/settings_switch_margin_end" android:checked="true" android:contentDescription="@string/thumbnail_preload_wifi_only_title" />
+
+                        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/thumbnail_preload_wifi_only_title" android:textSize="@dimen/toggler_title_text_size" />
+                            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/thumbnail_preload_wifi_only_summary" android:textSize="@dimen/toggler_desc_text_size" android:textColor="@color/text_color_secondary" />
+                        </LinearLayout>
 
                     </LinearLayout>
 

@@ -294,14 +294,11 @@ class SmbOperationsUseCase @Inject constructor(
      */
     private fun detectMediaType(fileName: String): MediaType {
         val extension = fileName.substringAfterLast('.', "").lowercase()
-        
-        // Exclude unsupported formats (AVIF, HEIF - not natively supported by Android)
-        if (extension in setOf("avif", "heif", "heic")) {
-            throw IllegalArgumentException("Unsupported file format: $extension")
-        }
-        
+
         return when (extension) {
             "jpg", "jpeg", "png", "bmp", "webp" -> MediaType.IMAGE
+            "heic", "heif" -> MediaType.IMAGE   // API 28+ decodes natively; 26-27 shows placeholder
+            "avif" -> MediaType.IMAGE            // API 31+ decodes natively; older shows placeholder
             "gif" -> MediaType.GIF
             "mp4", "mov", "avi", "mkv", "wmv", "flv", "webm" -> MediaType.VIDEO
             "mp3", "aac", "flac", "ogg", "m4a" -> MediaType.AUDIO

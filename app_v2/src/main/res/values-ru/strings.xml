@@ -957,6 +957,10 @@
     <string name="network_parallelism_summary">Число параллельных потоков для сетевых операций (SMB, FTP, SFTP)</string>
     <string name="enable_background_sync">Включить фоновую синхронизацию</string>
     <string name="background_sync_description">Автоматически проверять сетевые ресурсы на изменения файлов в фоновом режиме</string>
+    <string name="thumbnail_preload_title">Предзагрузка миниатюр</string>
+    <string name="thumbnail_preload_summary">Фоновая генерация миниатюр для сетевых видео и PDF после синхронизации</string>
+    <string name="thumbnail_preload_wifi_only_title">Только по Wi-Fi</string>
+    <string name="thumbnail_preload_wifi_only_summary">Предзагрузка миниатюр только при подключении к беспроводной сети</string>
     <string name="sync_interval">Интервал синхронизации (мин)</string>
     <string name="sync_interval_hint">Введите минуты или выберите из списка</string>
     <plurals name="sync_interval_hours">
@@ -1198,6 +1202,7 @@
     <string name="unsupported_format_network_hint">Для воспроизведения этого файла во внешнем проигрывателе сначала скопируйте его на локальный ресурс.</string>
     <string name="unsupported_format_use_external_player">Формат не поддерживается. Попробуйте открыть во внешнем проигрывателе.</string>
     <string name="unsupported_format_copy_to_local">Формат не поддерживается. Скопируйте файл на локальный ресурс, чтобы использовать внешний проигрыватель.</string>
+    <string name="heic_not_supported_on_device">Для отображения %1$s требуется %2$s или новее.</string>
     <string name="panel_copy_to">Копировать в…</string>
     <string name="panel_move_to">Переместить в…</string>
 
@@ -2120,4 +2125,14 @@
     <string name="perm_battery_optim_grant">Разрешить работу в фоне</string>
     <string name="perm_battery_optim_manage">Управление оптимизацией батареи</string>
     <string name="perm_battery_optim_hint">Требуется для надёжной работы операций по расписанию</string>
+    <!-- Chromecast / Cast -->
+    <string name="cast_to_chromecast">Трансляция…</string>
+    <string name="cast_connected">Трансляция на %s</string>
+    <string name="cast_disconnected">Трансляция завершена</string>
+    <string name="cast_video_too_large">Видео слишком большое для трансляции (&gt; 50 МБ)</string>
+    <string name="cast_preparing">Подготовка трансляции\u2026</string>
+    <string name="cast_no_wifi">Для трансляции необходимо Wi-Fi соединение</string>
+    <string name="cast_unavailable">Chromecast недоступен на этом устройстве</string>
+    <string name="cast_error_file">Не удалось загрузить файл для трансляции</string>
+    <string name="cast_error_load">Ошибка воспроизведения на Chromecast</string>
 </resources>

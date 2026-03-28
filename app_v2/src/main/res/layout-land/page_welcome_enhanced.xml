@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landscape enhanced welcome page: icon left, title + description + feature cards right.
+     Mirrors the two-column pattern from layout-land/page_welcome.xml.
+     All IDs must stay in sync with the portrait page_welcome_enhanced.xml binding. -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/welcome_page_padding">
+
+    <!-- Centred content column capped at welcome_content_max_width -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/layoutContent"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintWidth_max="@dimen/welcome_content_max_width"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Icon on the Left (vertically centred) -->
+        <ImageView
+            android:id="@+id/ivIcon"
+            android:layout_width="@dimen/welcome_icon_size"
+            android:layout_height="@dimen/welcome_icon_size"
+            android:contentDescription="@string/app_name"
+            android:scaleType="fitCenter"
+            android:src="@mipmap/ic_launcher"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Right column: scrollable (title + description + feature cards) -->
+        <ScrollView
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_marginStart="@dimen/margin_large"
+            android:fillViewport="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivIcon"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center_horizontal">
+
+                <!-- Title -->
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="start"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_title_text_size"
+                    android:textStyle="bold"
+                    tools:text="Welcome to FastMediaSorter!" />
+
+                <!-- Description -->
+                <TextView
+                    android:id="@+id/tvDescription"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/welcome_description_margin_top"
+                    android:gravity="start"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="@dimen/welcome_description_text_size"
+                    android:lineSpacingMultiplier="1.3"
+                    android:alpha="0.85"
+                    tools:text="Your all-in-one media organizer" />
+
+                <!-- Feature Cards Row -->
+                <LinearLayout
+                    android:id="@+id/layoutFeatureCards"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/welcome_description_margin_top"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- Feature Card 1 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardFeature1"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="@dimen/welcome_feature_card_margin"
+                        android:clickable="false"
+                        android:focusable="false"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:rippleColor="@android:color/transparent"
+                        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="@dimen/welcome_feature_card_padding">
+
+                            <ImageView
+                                android:id="@+id/ivFeature1"
+                                android:layout_width="@dimen/welcome_feature_card_icon_size"
+                                android:layout_height="@dimen/welcome_feature_card_icon_size"
+                                android:contentDescription="Feature 1"
+                                app:tint="?attr/colorPrimary"
+                                tools:src="@drawable/ic_image" />
+
+                            <TextView
+                                android:id="@+id/tvFeature1"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center"
+                                android:textSize="@dimen/welcome_feature_card_text_size"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:maxLines="2"
+                                android:ellipsize="end"
+                                tools:text="Photos &amp; Videos" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Feature Card 2 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardFeature2"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/welcome_feature_card_margin"
+                        android:layout_marginEnd="@dimen/welcome_feature_card_margin"
+                        android:clickable="false"
+                        android:focusable="false"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:rippleColor="@android:color/transparent"
+                        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="@dimen/welcome_feature_card_padding">
+
+                            <ImageView
+                                android:id="@+id/ivFeature2"
+                                android:layout_width="@dimen/welcome_feature_card_icon_size"
+                                android:layout_height="@dimen/welcome_feature_card_icon_size"
+                                android:contentDescription="Feature 2"
+                                app:tint="?attr/colorPrimary"
+                                tools:src="@drawable/ic_resource_cloud" />
+
+                            <TextView
+                                android:id="@+id/tvFeature2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center"
+                                android:textSize="@dimen/welcome_feature_card_text_size"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:maxLines="2"
+                                android:ellipsize="end"
+                                tools:text="Cloud Storage" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Feature Card 3 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardFeature3"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="@dimen/welcome_feature_card_margin"
+                        android:clickable="false"
+                        android:focusable="false"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:strokeWidth="0dp"
+                        app:rippleColor="@android:color/transparent"
+                        app:cardBackgroundColor="?attr/colorSurfaceVariant">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:padding="@dimen/welcome_feature_card_padding">
+
+                            <ImageView
+                                android:id="@+id/ivFeature3"
+                                android:layout_width="@dimen/welcome_feature_card_icon_size"
+                                android:layout_height="@dimen/welcome_feature_card_icon_size"
+                                android:contentDescription="Feature 3"
+                                app:tint="?attr/colorPrimary"
+                                tools:src="@drawable/ic_sort" />
+
+                            <TextView
+                                android:id="@+id/tvFeature3"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="6dp"
+                                android:gravity="center"
+                                android:textSize="@dimen/welcome_feature_card_text_size"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:maxLines="2"
+                                android:ellipsize="end"
+                                tools:text="Smart Sorting" />
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </ScrollView>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

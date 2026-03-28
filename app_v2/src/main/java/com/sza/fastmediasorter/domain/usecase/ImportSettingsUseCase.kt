@@ -232,7 +232,9 @@ class ImportSettingsUseCase @Inject constructor(
                                         copyPanelCollapsed = data["copyPanelCollapsed"]?.toBoolean() ?: false,
                                         movePanelCollapsed = data["movePanelCollapsed"]?.toBoolean() ?: false,
                                         
-                                        lastUsedResourceId = data["lastUsedResourceId"]?.toLong() ?: -1L
+                                        lastUsedResourceId = data["lastUsedResourceId"]?.toLong() ?: -1L,
+                                        enableThumbnailPreload = data["enableThumbnailPreload"]?.toBoolean() ?: false,
+                                        thumbnailPreloadWifiOnly = data["thumbnailPreloadWifiOnly"]?.toBoolean() ?: true
                                     )
                                 }
                                 currentResource = null

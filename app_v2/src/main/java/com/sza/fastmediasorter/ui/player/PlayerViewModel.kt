@@ -75,7 +75,9 @@ class PlayerViewModel @Inject constructor(
         val enableGoogleLens: Boolean = false,
         val resource: MediaResource? = null,
         val lastOperation: UndoOperation? = null,
-        val undoOperationTimestamp: Long? = null
+        val undoOperationTimestamp: Long? = null,
+        val isCasting: Boolean = false,
+        val castDeviceName: String? = null
     ) {
         val currentFile: MediaFile? get() = files.getOrNull(currentIndex)
         // Circular navigation: always allow prev/next if files.size > 1
@@ -96,6 +98,7 @@ class PlayerViewModel @Inject constructor(
         data class ShowMissingFileDialog(val fileName: String, val filePath: String) : PlayerEvent()
         // Removed: LoadingProgress event (dialog not needed for single file loads)
         object FinishActivity : PlayerEvent()
+        data class CastStateChanged(val isCasting: Boolean, val deviceName: String?) : PlayerEvent()
     }
 
     override fun getInitialState(): PlayerState {
@@ -126,6 +129,11 @@ class PlayerViewModel @Inject constructor(
      */
     fun reloadFiles() {
         loadMediaFiles()
+    }
+
+    fun updateCastState(isCasting: Boolean, deviceName: String?) {
+        updateState { it.copy(isCasting = isCasting, castDeviceName = deviceName) }
+        sendEvent(PlayerEvent.CastStateChanged(isCasting, deviceName))
     }
 
     private fun loadSettings() {

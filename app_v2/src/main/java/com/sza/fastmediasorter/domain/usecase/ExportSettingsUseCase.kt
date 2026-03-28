@@ -135,6 +135,8 @@ class ExportSettingsUseCase @Inject constructor(
                 appendLine("    <showHiddenFiles>${settings.showHiddenFiles}</showHiddenFiles>")
                 
                 appendLine("    <lastUsedResourceId>${settings.lastUsedResourceId}</lastUsedResourceId>")
+                appendLine("    <enableThumbnailPreload>${settings.enableThumbnailPreload}</enableThumbnailPreload>")
+                appendLine("    <thumbnailPreloadWifiOnly>${settings.thumbnailPreloadWifiOnly}</thumbnailPreloadWifiOnly>")
                 appendLine("  </Settings>")
                 
                 // Network Credentials section (without passwords!)

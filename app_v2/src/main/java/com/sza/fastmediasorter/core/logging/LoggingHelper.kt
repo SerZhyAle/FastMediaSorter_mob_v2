@@ -25,6 +25,29 @@ object LoggingHelper {
 
     /** Returns all log files managed by the file logging tree. */
     fun getLogFiles(): List<File> = fileLoggingTree?.getLogFiles() ?: emptyList()
+
+    private var previousCrashHandler: Thread.UncaughtExceptionHandler? = null
+
+    /**
+     * Install a global uncaught exception handler that writes crash reports to a dedicated
+     * log file and flushes the current session log before yielding to the system handler.
+     * Safe to call multiple times — installs only once. Call early in attachBaseContext.
+     */
+    fun installCrashHandler() {
+        if (previousCrashHandler != null) return
+        previousCrashHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            fileLoggingTree?.writeCrashSynchronously(thread, throwable)
+            previousCrashHandler?.uncaughtException(thread, throwable)
+        }
+    }
+
+    /**
+     * Returns true if crash report files from any previous session exist on disk.
+     * Use at startup to warn the user to export logs.
+     */
+    fun hasPreviousCrash(): Boolean = fileLoggingTree?.hasCrashFiles() ?: false
+
     private const val TAG_PREFETCH = "PrefetchQueue"
     
     /**
@@ -289,10 +312,49 @@ object LoggingHelper {
             }
         }
 
+        /**
+         * Write crash report synchronously without going through Timber.
+         * Called from UncaughtExceptionHandler — must not throw, must not use coroutines.
+         * Creates a dedicated crash file AND marks the current session log.
+         */
+        fun writeCrashSynchronously(thread: Thread, throwable: Throwable) {
+            try {
+                val now = Date()
+                val timestamp = dateFormat.format(now)
+                val crashFile = File(logDir, "fastmediasorter_crash_${fileNameFormat.format(now)}.log")
+
+                PrintWriter(FileWriter(crashFile, false), true).use { pw ->
+                    pw.println("=== CRASH REPORT: $timestamp ===")
+                    pw.println("=== App: ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE}) ===")
+                    pw.println("=== Thread: ${thread.name} [id=${thread.id}] ===")
+                    pw.println("=== ${throwable.javaClass.name}: ${throwable.message} ===")
+                    pw.println(android.util.Log.getStackTraceString(throwable))
+                    pw.println("=== END CRASH REPORT ===")
+                }
+
+                // Also mark the current session log for correlation
+                synchronized(this) {
+                    printWriter?.apply {
+                        println("$timestamp E/CrashHandler: *** FATAL CRASH *** ${throwable.javaClass.simpleName}: ${throwable.message}")
+                        println(android.util.Log.getStackTraceString(throwable))
+                        flush()
+                    }
+                }
+            } catch (_: Exception) {
+                // Never interfere with crash flow
+            }
+        }
+
+        /** Returns true if crash files from any previous session exist on disk. */
+        fun hasCrashFiles(): Boolean =
+            logDir.listFiles { f ->
+                f.isFile && f.name.startsWith("fastmediasorter_crash_")
+            }?.isNotEmpty() ?: false
+
         fun getLogDir(): File = logDir
-        
+
         fun getLogFiles(): List<File> {
-            return logDir.listFiles { file -> 
+            return logDir.listFiles { file ->
                 file.isFile && file.name.startsWith("fastmediasorter_") && file.name.endsWith(".log")
             }?.sortedByDescending { it.lastModified() } ?: emptyList()
         }

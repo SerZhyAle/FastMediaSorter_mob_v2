@@ -121,6 +121,10 @@ class PlayerCommandPanelCallbackImpl(
         activity.searchInYoutubeMusic()
     }
 
+    override fun onCastClicked() {
+        activity.castCurrentMedia()
+    }
+
     override fun onFavoriteClicked() {
         viewModel.toggleFavorite()
     }

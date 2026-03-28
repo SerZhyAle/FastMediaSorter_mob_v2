@@ -29,6 +29,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.util.AudioMetadataLoader
 import com.sza.fastmediasorter.core.util.formatMediaDuration
+import com.sza.fastmediasorter.core.util.HeifSupportUtils
 import com.sza.fastmediasorter.core.util.PathUtils
 import timber.log.Timber
 import com.sza.fastmediasorter.databinding.ItemMediaFileBinding
@@ -956,22 +957,6 @@ class MediaFileAdapter(
             // Check if this is a network path (SMB/SFTP/FTP)
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
 
-            if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
-                Timber.v("THUMBNAIL_DEBUG: Document preview disabled on LOW memory for ${file.name}")
-                when (file.type) {
-                    MediaType.PDF -> {
-                        showGeneratedPlaceholder(imageView, file)
-                    }
-                    MediaType.EPUB -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                        applyPlaceholderStyle(imageView, file.type, true)
-                    }
-                    else -> Unit
-                }
-                return
-            }
-            
             // Check if file exists before loading thumbnail
             if (!isNetworkPath && !isCloudPath) {
                 val fileExists = if (file.path.startsWith("content://")) {
@@ -1227,6 +1212,13 @@ class MediaFileAdapter(
                     }
                 }
                 MediaType.IMAGE, MediaType.GIF -> {
+                    // Pre-flight: HEIC/HEIF requires API 28+; AVIF requires API 31+.
+                    val fileExt = file.name.substringAfterLast('.', "").lowercase()
+                    if (!HeifSupportUtils.isSupported(fileExt)) {
+                        Timber.w("loadThumbnail: ${fileExt.uppercase()} not supported on this device — showing placeholder for ${file.name}")
+                        showGeneratedPlaceholder(imageView, file)
+                        return
+                    }
                     when {
                         isCloudPath -> {
                             // Load cloud thumbnail using CloudThumbnailData for authenticated access
@@ -1975,19 +1967,6 @@ class MediaFileAdapter(
             // Check if this is a network path (SMB/SFTP/FTP)
             val isNetworkPath = file.path.startsWith("smb://") || file.path.startsWith("sftp://") || file.path.startsWith("ftp://")
 
-            if (shouldDisableDocumentPreviews(context) && (file.type == MediaType.PDF || file.type == MediaType.EPUB)) {
-                Timber.v("THUMBNAIL_DEBUG: Grid document preview disabled on LOW memory for ${file.name}")
-                when (file.type) {
-                    MediaType.PDF -> imageView.setImageBitmap(createExtensionBitmap("PDF"))
-                    MediaType.EPUB -> {
-                        val extension = file.name.substringAfterLast('.', "").uppercase()
-                        imageView.setImageBitmap(createExtensionBitmap(extension))
-                    }
-                    else -> Unit
-                }
-                return
-            }
-            
             // For local files, check if file exists (skip for content:// URIs)
             if (!isNetworkPath && !isCloudPath && !file.path.startsWith("content://")) {
                 val localFile = File(file.path)
@@ -2021,6 +2000,13 @@ class MediaFileAdapter(
             
             when (file.type) {
                 MediaType.IMAGE, MediaType.GIF -> {
+                    // Pre-flight: HEIC/HEIF requires API 28+; AVIF requires API 31+.
+                    val fileExt = file.name.substringAfterLast('.', "").lowercase()
+                    if (!HeifSupportUtils.isSupported(fileExt)) {
+                        Timber.w("loadThumbnail (Grid): ${fileExt.uppercase()} not supported on this device — showing placeholder for ${file.name}")
+                        showGeneratedPlaceholder(imageView, file)
+                        return
+                    }
                     when {
                         isCloudPath -> {
                             // Load cloud thumbnail using CloudThumbnailData for authenticated access

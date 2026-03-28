@@ -159,6 +159,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
         // Phase 6: Accept shared media files
         private val KEY_ACCEPT_SHARED_FILES = booleanPreferencesKey("accept_shared_files")
+
+        // X.11: Background thumbnail pre-generation
+        private val KEY_ENABLE_THUMBNAIL_PRELOAD = booleanPreferencesKey("enable_thumbnail_preload")
+        private val KEY_THUMBNAIL_PRELOAD_WIFI_ONLY = booleanPreferencesKey("thumbnail_preload_wifi_only")
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -324,7 +328,11 @@ class SettingsRepositoryImpl @Inject constructor(
 
                     // Phase 5+6: Default Player
                     isPrimaryMediaPlayer = preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] ?: false,
-                    acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: false
+                    acceptSharedFiles = preferences[KEY_ACCEPT_SHARED_FILES] ?: false,
+
+                    // X.11: Background thumbnail pre-generation
+                    enableThumbnailPreload = preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] ?: false,
+                    thumbnailPreloadWifiOnly = preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] ?: true
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -497,6 +505,10 @@ class SettingsRepositoryImpl @Inject constructor(
             // Phase 5+6: Default Player
             preferences[KEY_IS_PRIMARY_MEDIA_PLAYER] = settings.isPrimaryMediaPlayer
             preferences[KEY_ACCEPT_SHARED_FILES] = settings.acceptSharedFiles
+
+            // X.11: Background thumbnail pre-generation
+            preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] = settings.enableThumbnailPreload
+            preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] = settings.thumbnailPreloadWifiOnly
         }
     }
 

@@ -1620,10 +1620,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             msg.contains("DecodeException", ignoreCase = true) ||
             msg.contains("ImageDecoder", ignoreCase = true) ||
             msg.contains("HEIC", ignoreCase = true) ||
-            msg.contains("HEIF", ignoreCase = true)
+            msg.contains("HEIF", ignoreCase = true) ||
+            msg.contains("AVIF", ignoreCase = true)
         }
     }
-    
+
     /**
      * Show Snackbar with operation description and Undo button
      */
