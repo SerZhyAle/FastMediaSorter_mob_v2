@@ -144,7 +144,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             fileCount = 0,
             isDestination = false,
             destinationOrder = null,
-            isWritable = true,
+            isWritable = false,
             scanSubdirectories = false,
             supportedMediaTypes = supportedMediaTypes,
             sortMode = sortMode,

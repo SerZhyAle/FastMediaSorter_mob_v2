@@ -79,12 +79,13 @@ class VirtualPathUtilsTest {
     }
 
     @Test
-    fun `ALL_VIRTUAL_PATHS contains all five paths`() {
-        assertEquals(5, VirtualPathUtils.ALL_VIRTUAL_PATHS.size)
+    fun `ALL_VIRTUAL_PATHS contains all six paths`() {
+        assertEquals(6, VirtualPathUtils.ALL_VIRTUAL_PATHS.size)
         assertTrue(VirtualPathUtils.ALL_VIRTUAL_PATHS.contains(LocalMediaScanner.VIRTUAL_PATH_RECENT))
         assertTrue(VirtualPathUtils.ALL_VIRTUAL_PATHS.contains(LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO))
         assertTrue(VirtualPathUtils.ALL_VIRTUAL_PATHS.contains(LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO))
         assertTrue(VirtualPathUtils.ALL_VIRTUAL_PATHS.contains(LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES))
         assertTrue(VirtualPathUtils.ALL_VIRTUAL_PATHS.contains(LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS))
+        assertTrue(VirtualPathUtils.ALL_VIRTUAL_PATHS.contains(LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS))
     }
 }

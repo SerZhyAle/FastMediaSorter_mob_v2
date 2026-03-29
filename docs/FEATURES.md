@@ -148,6 +148,7 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Sleep timer**: Drift off to music peacefully. This shared sleep timer will automatically pause playback when the defined countdown finishes, ensuring your battery—and your sleep—aren't drained.
 - **Track metadata display**: Clearly read essential track information natively pulled from the file, properly displaying the artist, title, album, and track duration.
 - **Resume Next Time**: Seamlessly pickup your listening session. Upon a cold start, the app restores your last active audio track and perfectly reconstructs your entire historical playlist and queue.
+- **Now Playing UI**: While audio plays in the background, a persistent mini bar at the bottom of the player shows the current track title and play/pause button. Tapping it opens a full bottom sheet with album art, seek bar, prev/next controls, and a scrollable queue panel where you can tap any track to jump directly to it.
 
 
 ## 9. Slideshow
@@ -273,6 +274,8 @@ The Settings module provides deeply comprehensive control over nearly every face
 | **Network / Sync** | Dictate connectivity performance completely. Empower automated background WorkManager sync routines prioritizing fresh directory trees, lock the sync timing interval, and deeply dictate the optimal parallel synchronous thread count for maximizing data flow securely. |
 | **Cache** | Control graphical memory strictness. Definitively allot specific storage minimums and maximums (from minor 512 MB up to massive 16 GB pools) expressly dedicated solely for caching Image and Video thumbnail outputs. |
 | **Backup** | Manage holistic state persistence securely. Produce strict JSON payloads encapsulating your precise application state ready for local export, facilitate JSON data importing, or automate Backup and Restoration operations utilizing rigorous Google Drive integration. |
+
+- **Landscape-adaptive dialogs**: All dialogs across the app include dedicated landscape layout variants (`layout-land/`). In landscape orientation every dialog is constrained to 320 dp maximum height and made scrollable, with action buttons and close controls pinned at the top of content so they are always immediately reachable regardless of how far the user has scrolled. Applies to all product flavors (Standard, Lite, Photos, Legacy).
 
 
 ## 19. Settings Search

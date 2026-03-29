@@ -299,20 +299,31 @@ class PlayerMediaLoaderManager(
         }
     }
 
-    /** Play local audio file via service (single-file mode).
-     *  Single-file mode ensures that STATE_ENDED fires when the track ends or when
-     *  a hardware NEXT/PREV button triggers ForwardingPlayer.seekToNext/seekToPrevious.
-     *  PlayerActivity.onAudioServicePlaybackEnded then drives forward/backward navigation
-     *  via the ViewModel, keeping UI and playback in sync. */
+    /** Play local audio file via service.
+     *  If NowPlayingManager is available, uses playAudioPlaylistWithMetadata() which passes
+     *  title metadata for all tracks and enables native ExoPlayer next/prev for N-item queues.
+     *  Falls back to single-file playAudio() if NowPlayingManager is unavailable. */
     private fun playLocalAudioViaService(path: String, controller: AudioServiceController) {
         val allFiles = viewModel.state.value.files
-        val currentFile = allFiles.firstOrNull { it.path == path } ?: run {
+        val currentIndex = allFiles.indexOfFirst { it.path == path }
+        if (currentIndex < 0) {
             Timber.w("playLocalAudioViaService: file not found for path=$path")
             return
         }
-        val uri = buildUriForMediaFile(currentFile)
-        controller.playAudio(uri) { player ->
-            activity.runOnUiThread { bindServicePlayerToView(player) }
+
+        val nowPlayingManager = activity.nowPlayingManager
+        if (nowPlayingManager != null) {
+            Timber.d("playLocalAudioViaService: using NowPlayingManager playlist path size=${allFiles.size}")
+            nowPlayingManager.startPlayback(allFiles, currentIndex) { player ->
+                activity.runOnUiThread { bindServicePlayerToView(player) }
+            }
+        } else {
+            // Fallback: single-file mode (ForwardingPlayer handles next/prev via STATE_ENDED)
+            val currentFile = allFiles[currentIndex]
+            val uri = buildUriForMediaFile(currentFile)
+            controller.playAudio(uri) { player ->
+                activity.runOnUiThread { bindServicePlayerToView(player) }
+            }
         }
     }
 

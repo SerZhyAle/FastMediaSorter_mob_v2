@@ -460,7 +460,7 @@
     <string name="epub_search_no_results">Результатов не найдено</string>
     <string name="epub_searching">Поиск…</string>
     <string name="translation_error_no_text">Нет текста для перевода</string>
-    <string name="google_sign_in_failed">Вход не удался: %1$s</string>
+    <string name="google_sign_in_failed">Вход не удался: %1$d</string>
     <string name="auth_failed">Ошибка аутентификации: %1$s</string>
 
     <string name="battery_optimization_hint_title">Предупреждение об оптимизации батареи</string>
@@ -2042,6 +2042,8 @@
     <string name="delete_permission_denied">Нет разрешения на удаление этого файла</string>
     <string name="share_via">Отправить через</string>
     <string name="open_in_fms">Открыть в FastMediaSorter</string>
+    <string name="cd_add_to_favorites">Добавить в избранное</string>
+    <string name="cd_remove_from_favorites">Убрать из избранного</string>
 
     <!-- Quick Settings Tile -->
     <string name="tile_audio_label">FMS Аудио</string>
@@ -2137,4 +2139,18 @@
     <string name="cast_unavailable">Chromecast недоступен на этом устройстве</string>
     <string name="cast_error_file">Не удалось загрузить файл для трансляции</string>
     <string name="cast_error_load">Ошибка воспроизведения на Chromecast</string>
+
+    <!-- Now Playing UI (III.13) -->
+    <string name="now_playing_label">Сейчас играет</string>
+    <string name="now_playing_queue_label">Очередь</string>
+    <string name="now_playing_queue_title">Очередь</string>
+    <string name="now_playing_track_count">Очередь (%d)</string>
+    <string name="now_playing_back_to_player">← Сейчас играет</string>
+    <string name="now_playing_play_pause_desc">Воспроизвести / Пауза</string>
+    <string name="now_playing_play_desc">Воспроизвести</string>
+    <string name="now_playing_pause_desc">Пауза</string>
+    <string name="now_playing_previous_desc">Предыдущий трек</string>
+    <string name="now_playing_next_desc">Следующий трек</string>
+    <string name="now_playing_seek_bar_desc">Перемотка</string>
+    <string name="now_playing_mini_bar_desc">Сейчас играет — нажмите, чтобы открыть управление</string>
 </resources>

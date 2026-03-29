@@ -244,6 +244,15 @@
 
     </FrameLayout>
 
+    <!-- Mini Now Playing bar — shown only while AudioPlaybackService.isRunning == true.
+         Tap anywhere to open NowPlayingBottomSheetFragment. -->
+    <include
+        android:id="@+id/miniNowPlayingBar"
+        layout="@layout/view_mini_now_playing"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/mini_now_playing_height"
+        android:visibility="gone" />
+
     <include layout="@layout/player_bottom_panels_container_content" />
 
 </LinearLayout>

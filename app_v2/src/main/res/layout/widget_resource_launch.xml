@@ -15,7 +15,7 @@
         android:layout_height="@dimen/item_icon_size_small"
         android:src="@drawable/ic_folder"
         android:contentDescription="@string/resource"
-        android:tint="@color/white" />
+        app:tint="@color/white" />
 
     <TextView
         android:id="@+id/widget_resource_name"

@@ -375,7 +375,7 @@ class BrowseDialogHelper(
         val resourceName = resource?.name ?: "Unknown"
         val basePath = resource?.path ?: ""
         tvResourceInfo.text = "$resourceName\n$basePath"
-        cbDontShowAgain.text = activity.getString(R.string.dont_show_again_for_resource, resourceName)
+        cbDontShowAgain.text = activity.getString(R.string.dont_show_again_for_resource)
         
         val dialog = MaterialAlertDialogBuilder(activity)
             .setView(view)

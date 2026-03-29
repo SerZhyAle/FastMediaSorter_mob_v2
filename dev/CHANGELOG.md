@@ -1183,3 +1183,79 @@ Format: | datetime | file | target | description |
 | 2026-03-29 00:55:46 | `app_v2/src/main/res/values-night/themes.xml` | `Theme.FastMediaSorter.App` | Extracted core branding styles for Android 15 compatibility (Night Mode) |
 | 2026-03-29 00:55:51 | `app_v2/src/main/res/values-v35/themes.xml` | `BottomSheetDialog` | Fixed Edge-to-Edge for Android 15 and restored branding |
 | 2026-03-29 01:09:44 | `PLAN/spec_landscape_dialogs.md` | `spec` | Expand specification VIII.4 to full template with flavor scope, architecture, ADRs, and 28-step implementation plan |
+| 2026-03-29 01:12:22 | `app_v2/src/main/res/values/dimens.xml` | `dimens` | Add landscape dialog dimension resources (dialog_landscape_max_height, dialog_landscape_list_max_height) |
+| 2026-03-29 01:25:43 | `app_v2/src/main/res/layout-land/dialog_sort.xml` | `layout-land` | Add landscape layout for dialog_sort (constrained RV height) |
+| 2026-03-29 01:25:48 | `app_v2/src/main/res/layout-land/dialog_resource_type_selector.xml` | `layout-land` | Add landscape layout for dialog_resource_type_selector |
+| 2026-03-29 01:25:48 | `app_v2/src/main/res/layout-land/dialog_network_delete_confirmation.xml` | `layout-land` | Add landscape layout for dialog_network_delete_confirmation |
+| 2026-03-29 01:25:48 | `app_v2/src/main/res/layout-land/dialog_file_copy_progress.xml` | `layout-land` | Add landscape layout for dialog_file_copy_progress |
+| 2026-03-29 01:25:48 | `app_v2/src/main/res/layout-land/dialog_file_operation_progress.xml` | `layout-land` | Add landscape layout for dialog_file_operation_progress |
+| 2026-03-29 01:25:53 | `app_v2/src/main/res/layout-land/dialog_filter_resource.xml` | `layout-land` | Add landscape layout for dialog_filter_resource (buttons at top) |
+| 2026-03-29 01:25:53 | `app_v2/src/main/res/layout-land/dialog_scrollable_text.xml` | `layout-land` | Add landscape layout for dialog_scrollable_text (explicit maxHeight) |
+| 2026-03-29 01:25:53 | `app_v2/src/main/res/layout-land/dialog_log_view.xml` | `layout-land` | Add landscape layout for dialog_log_view (reduced height) |
+| 2026-03-29 01:25:53 | `app_v2/src/main/res/layout-land/dialog_folder_selection.xml` | `layout-land` | Add landscape layout for dialog_folder_selection |
+| 2026-03-29 01:25:58 | `app_v2/src/main/res/layout-land/dialog_translation_settings.xml` | `layout-land` | Add landscape layout for dialog_translation_settings |
+| 2026-03-29 01:25:59 | `app_v2/src/main/res/layout-land/dialog_epub_reader_settings.xml` | `layout-land` | Add landscape layout for dialog_epub_reader_settings |
+| 2026-03-29 01:25:59 | `app_v2/src/main/res/layout-land/dialog_image_edit.xml` | `layout-land` | Add landscape layout for dialog_image_edit (btnClose at top) |
+| 2026-03-29 01:25:59 | `app_v2/src/main/res/layout-land/dialog_gif_editor.xml` | `layout-land` | Add landscape layout for dialog_gif_editor (btnClose at top) |
+| 2026-03-29 01:25:59 | `app_v2/src/main/res/layout-land/dialog_player_settings.xml` | `layout-land` | Add landscape layout for dialog_player_settings (title+buttons at top) |
+| 2026-03-29 01:26:06 | `app_v2/src/main/res/layout-land/dialog_copy_to.xml` | `layout-land` | Add landscape layout for dialog_copy_to (layoutDestinations in NestedScrollView) |
+| 2026-03-29 01:26:06 | `app_v2/src/main/res/layout-land/dialog_network_discovery.xml` | `layout-land` | Add landscape layout for dialog_network_discovery (rvHosts capped at landscape height) |
+| 2026-03-29 01:26:06 | `app_v2/src/main/res/layout-land/dialog_resource_picker.xml` | `layout-land` | Add landscape layout for dialog_resource_picker (buttons at top) |
+| 2026-03-29 01:26:06 | `app_v2/src/main/res/layout-land/dialog_scheduled_log.xml` | `layout-land` | Add landscape layout for dialog_scheduled_log (reduced scroll height) |
+| 2026-03-29 01:26:10 | `app_v2/src/main/res/layout-land/dialog_slideshow_settings.xml` | `layout-land` | Add landscape layout for dialog_slideshow_settings (ConstraintLayout in NestedScrollView) |
+| 2026-03-29 01:26:10 | `app_v2/src/main/res/layout-land/dialog_scheduled_operation.xml` | `layout-land` | Add landscape layout for dialog_scheduled_operation (buttons pinned outside scroll) |
+| 2026-03-29 01:26:11 | `app_v2/src/main/res/layout-land/dialog_color_picker.xml` | `layout-land` | Add landscape layout for dialog_color_picker (buttons at top, RV capped) |
+| 2026-03-29 01:27:52 | `docs/FEATURES.md` | `FEATURES` | Add landscape-adaptive dialogs bullet to Settings section |
+| 2026-03-29 01:27:52 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add landscape-adaptive dialogs bullet to Settings section (RU) |
+| 2026-03-29 01:27:52 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add landscape-adaptive dialogs bullet to Settings section (UK) |
+| 2026-03-29 01:28:05 | `PLAN/spec_landscape_dialogs.md` | `spec_landscape_dialogs` | Mark spec as Implemented |
+| 2026-03-29 22:41:03 | `PLAN/spec_standalone_player_file_ops.md` | `spec` | Update III.11 spec: reflect implemented state, lifecycle fix, API matrix, accessibility, ADRs |
+| 2026-03-29 22:41:07 | `PLAN/spec_standalone_player_delete_fix.md` | `spec` | Add BUG-III.11 spec: delete API-level correctness (isDocumentUri, API 29, API 30+) |
+| 2026-03-29 22:44:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix delete: isDocumentUri check + API 29 RecoverableSecurityException + API 30+ createDeleteRequest + disable button on SecurityException |
+| 2026-03-29 22:57:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/MediaExtensions.kt` | `MediaExtensions` | Added missing avi to VIDEO extensions set |
+| 2026-03-29 22:57:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Fix isWritable=false for virtual resources |
+| 2026-03-29 22:57:53 | `app_v2/src/test/java/com/sza/fastmediasorter/data/repository/AudioMetadataCacheRepositoryTest.kt` | `AudioMetadataCacheRepositoryTest` | Fix Robolectric SDK config and cache file paths in tests |
+| 2026-03-29 22:57:53 | `app_v2/src/test/java/com/sza/fastmediasorter/util/VirtualPathUtilsTest.kt` | `VirtualPathUtilsTest` | Update test to expect 6 virtual paths including CAMERA_PHOTOS |
+| 2026-03-29 23:02:49 | `app_v2/src/main/java/com/sza/fastmediasorter/util/BinaryFileTypeDetector.kt` | `BinaryFileTypeDetector` | Add avi to OTHER binary set — not supported as video |
+| 2026-03-29 23:02:50 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/MediaExtensionsTest.kt` | `MediaExtensionsTest` | Fix avi assertions — treat as binary not video |
+| 2026-03-29 23:16:03 | `app_v2/src/main/java/com/sza/fastmediasorter/core/AudioToggleTileService.kt` | `AudioToggleTileService` | Fix StartActivityAndCollapseDeprecated lint: extend @Suppress to include lint rule ID |
+| 2026-03-29 23:16:03 | `app_v2/src/main/res/layout/widget_camera_photos.xml` | `widget_camera_photos` | Fix UseAppTint lint: add xmlns:app, replace android:tint with app:tint |
+| 2026-03-29 23:16:03 | `app_v2/src/main/res/layout/widget_preview_resource_launch.xml` | `widget_preview_resource_launch` | Fix UseAppTint lint: replace android:tint with app:tint |
+| 2026-03-29 23:16:04 | `app_v2/src/main/res/layout/widget_random_music.xml` | `widget_random_music` | Fix UseAppTint lint: add xmlns:app, replace android:tint with app:tint |
+| 2026-03-29 23:16:04 | `app_v2/src/main/res/layout/widget_resource_launch.xml` | `widget_resource_launch` | Fix UseAppTint lint: replace android:tint with app:tint |
+| 2026-03-29 23:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/BackupRestoreFragment.kt` | `BackupRestoreFragment` | Fix StringFormatInvalid lint: remove unused args from getString for non-format strings |
+| 2026-03-29 23:16:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `BrowseDialogHelper` | Fix StringFormatInvalid lint: remove unused resourceName arg from dont_show_again getString |
+| 2026-03-29 23:16:04 | `app_v2/src/main/res/values/strings.xml` | `strings` | Fix StringFormatMatches lint: google_sign_in_failed change %1$s to %1$d (all 3 locales) |
+| 2026-03-29 23:16:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | Fix StringFormatMatches lint: add missing favoritesCount/favoritesAdded/favoritesSkipped args to backup/restore getString calls |
+| 2026-03-29 23:17:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix isFavorite lifecycle: move collect to observeFavoriteState() with repeatOnLifecycle(STARTED) + update contentDescription |
+| 2026-03-29 23:17:27 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add cd_add_to_favorites / cd_remove_from_favorites accessibility strings (EN/RU/UK) |
+| 2026-03-29 23:24:50 | `PLAN/spec_now_playing_ui.md` | `spec` | Update specification for III.13 Now Playing UI to full template |
+| 2026-03-29 23:25:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt` | `MediaItemWithMeta` | Add MediaItemWithMeta data class for playlist passthrough with metadata |
+| 2026-03-29 23:25:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioServiceController.kt` | `AudioServiceController` | Add playAudioPlaylistWithMetadata with per-item MediaMetadata |
+| 2026-03-29 23:26:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/NowPlayingViewModel.kt` | `NowPlayingViewModel` | Add NowPlayingViewModel with MediaController state flow and position poll |
+| 2026-03-29 23:26:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/QueueTrackAdapter.kt` | `QueueTrackAdapter` | Add QueueTrackAdapter for Now Playing queue panel |
+| 2026-03-29 23:27:36 | `app_v2/src/main/res/layout/view_mini_now_playing.xml` | `layout` | Add mini Now Playing bar layout |
+| 2026-03-29 23:27:36 | `app_v2/src/main/res/layout/item_queue_track.xml` | `layout` | Add queue track item row layout |
+| 2026-03-29 23:27:36 | `app_v2/src/main/res/layout/bottom_sheet_now_playing.xml` | `layout` | Add Now Playing bottom sheet layout |
+| 2026-03-29 23:28:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/NowPlayingBottomSheetFragment.kt` | `NowPlayingBottomSheetFragment` | Add Now Playing bottom sheet fragment with queue panel |
+| 2026-03-29 23:29:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt` | `NowPlayingManager` | Add NowPlayingManager for mini bar and Now Playing sheet orchestration |
+| 2026-03-29 23:32:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Wire NowPlayingManager: instantiate after audioServiceController, call onStart() in onResume |
+| 2026-03-29 23:32:37 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add mini Now Playing bar include stub above bottom panels |
+| 2026-03-29 23:32:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `PlayerMediaLoaderManager` | Route local audio through NowPlayingManager.startPlayback() with playlist metadata |
+| 2026-03-29 23:33:44 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add Now Playing UI strings EN |
+| 2026-03-29 23:33:44 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Add Now Playing UI strings RU |
+| 2026-03-29 23:33:44 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add Now Playing UI strings UK |
+| 2026-03-29 23:33:44 | `app_v2/src/main/res/values/dimens.xml` | `dimens` | Add mini Now Playing bar dimension values |
+| 2026-03-29 23:36:07 | `docs/FEATURES.md` | `FEATURES` | Add Now Playing UI feature entry (III.13) EN |
+| 2026-03-29 23:36:07 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Now Playing UI feature entry (III.13) RU |
+| 2026-03-29 23:36:07 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Now Playing UI feature entry (III.13) UK |
+| 2026-03-29 23:36:07 | `index.html` | `index.html` | Add Now Playing UI to key features list EN |
+| 2026-03-29 23:36:08 | `index-ru.html` | `index-ru.html` | Add Now Playing UI to key features list RU |
+| 2026-03-29 23:36:08 | `index-uk.html` | `index-uk.html` | Add Now Playing UI to key features list UK |
+| 2026-03-29 23:36:19 | `PLAN/spec_now_playing_ui.md` | `spec` | Mark spec III.13 as Implemented |
+| 2026-03-29 23:48:34 | `app_v2/src/main/res/layout/bottom_sheet_now_playing.xml` | `bottom_sheet_now_playing` | Removed duplicate android:importantForAccessibility attribute from View |
+| 2026-03-29 23:50:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/QueueTrackAdapter.kt` | `QueueTrackAdapter` | Fixed colorAccent reference |
+| 2026-03-29 23:50:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt` | `NowPlayingManager` | Fixed ViewMiniNowPlayingBinding nullability mismatch |
+| 2026-03-29 23:53:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NowPlayingManager.kt` | `NowPlayingManager` | Fixed unresolved reference ic_play_arrow to ic_play |
+| 2026-03-29 23:57:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/NowPlayingViewModel.kt` | `NowPlayingViewModel` | Migrated deprecated seekToMediaItem and nextMediaItem calls to newer Media3 equivalents |
+| 2026-03-29 23:57:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | Removed overrides of removed seekToNextMediaItem / seekToPreviousMediaItem from ForwardingPlayer |

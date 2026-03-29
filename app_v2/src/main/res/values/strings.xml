@@ -228,7 +228,7 @@
     <string name="restore_failed">Restore failed: %s</string>
     <string name="last_backup_date">Last backup: %s</string>
     <string name="backup_account">Account: %s</string>
-    <string name="google_sign_in_failed">Google sign-in failed: %1$s</string>
+    <string name="google_sign_in_failed">Google sign-in failed: %1$d</string>
     <string name="google_sign_in_cancelled">Google sign-in was cancelled</string>
     <string name="auth_failed">Authentication failed: %1$s</string>
     <string name="battery_optimization_hint_title">Battery Optimization Warning</string>
@@ -2096,6 +2096,8 @@
     <string name="delete_permission_denied">No permission to delete this file</string>
     <string name="share_via">Share via</string>
     <string name="open_in_fms">Open in FastMediaSorter</string>
+    <string name="cd_add_to_favorites">Add to favorites</string>
+    <string name="cd_remove_from_favorites">Remove from favorites</string>
 
     <!-- Quick Settings Tile -->
     <string name="tile_audio_label">FMS Audio</string>
@@ -2182,6 +2184,19 @@
     <string name="perm_battery_optim_manage">Manage battery optimization</string>
     <string name="perm_battery_optim_hint">Required for reliable scheduled operations</string>
 
+    <!-- Now Playing UI (III.13) -->
+    <string name="now_playing_label">Now Playing</string>
+    <string name="now_playing_queue_label">Queue</string>
+    <string name="now_playing_queue_title">Queue</string>
+    <string name="now_playing_track_count">Queue (%d)</string>
+    <string name="now_playing_back_to_player">← Now Playing</string>
+    <string name="now_playing_play_pause_desc">Play / Pause</string>
+    <string name="now_playing_play_desc">Play</string>
+    <string name="now_playing_pause_desc">Pause</string>
+    <string name="now_playing_previous_desc">Previous track</string>
+    <string name="now_playing_next_desc">Next track</string>
+    <string name="now_playing_seek_bar_desc">Seek bar</string>
+    <string name="now_playing_mini_bar_desc">Now Playing — tap to open player controls</string>
 </resources>
 
 

@@ -19,7 +19,7 @@ object VirtualPathUtils {
         path == VIRTUAL_PATH_ALL_IMAGES ||
         path == VIRTUAL_PATH_ALL_DOCS
 
-    /** All five predefined virtual paths. */
+    /** All six predefined virtual paths. */
     val ALL_VIRTUAL_PATHS = setOf(
         VIRTUAL_PATH_RECENT,
         VIRTUAL_PATH_ALL_AUDIO,

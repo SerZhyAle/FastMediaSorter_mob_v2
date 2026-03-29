@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Landscape: maxHeight added to ScrollView; btnClose is first item so always visible -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="@dimen/dialog_landscape_max_height">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/dialog_padding_large">
+
+        <!-- Title and Close button at top -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_large">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/gif_edit_title"
+                android:textSize="@dimen/text_size_large"
+                android:textStyle="bold" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnClose"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/close" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvGifPath"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="@dimen/resource_card_desc_text_size"
+            android:ellipsize="middle"
+            android:singleLine="true"
+            android:layout_marginBottom="@dimen/margin_xlarge" />
+
+        <!-- Extract Frames Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_large">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnExtractFrames"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="@string/gif_edit_extract_frames" />
+
+            <ImageView
+                android:id="@+id/ivHelpExtractFrames"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:src="@drawable/ic_help_outline_24"
+                android:contentDescription="@string/gif_edit_extract_help"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <!-- Speed Control Section -->
+        <TextView
+            android:id="@+id/tvSpeedSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gif_edit_speed"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <TextView
+            android:id="@+id/tvSpeedValue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gif_edit_speed_normal"
+            android:textSize="@dimen/resource_card_desc_text_size"
+            android:gravity="center"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <LinearLayout
+            android:id="@+id/layoutSpeedSeekRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_small">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/gif_edit_speed_slower"
+                android:textSize="@dimen/text_size_small"
+                android:layout_marginEnd="@dimen/dialog_field_spacing" />
+
+            <SeekBar
+                android:id="@+id/seekSpeed"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:max="@integer/seekbar_max_percent"
+                android:progress="@integer/seekbar_default_half" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/gif_edit_speed_faster"
+                android:textSize="@dimen/text_size_small"
+                android:layout_marginStart="@dimen/dialog_field_spacing" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutSpeedApplyRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="@dimen/margin_large">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnApplySpeed"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="@string/gif_edit_apply_speed" />
+
+            <ImageView
+                android:id="@+id/ivHelpSpeed"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:src="@drawable/ic_help_outline_24"
+                android:contentDescription="@string/gif_edit_speed_help"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+        <!-- First Frame to Image Section -->
+        <TextView
+            android:id="@+id/tvFirstFrameSectionTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/gif_edit_first_frame"
+            android:textSize="@dimen/resource_card_title_text_size"
+            android:textStyle="bold"
+            android:layout_marginTop="@dimen/margin_small"
+            android:layout_marginBottom="@dimen/margin_small" />
+
+        <LinearLayout
+            android:id="@+id/layoutFirstFrameRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnFirstFrameToImage"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="@dimen/dialog_field_spacing"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="@string/gif_edit_save_first_frame" />
+
+            <ImageView
+                android:id="@+id/ivHelpFirstFrame"
+                android:layout_width="@dimen/settings_help_icon_size"
+                android:layout_height="@dimen/settings_help_icon_size"
+                android:src="@drawable/ic_help_outline_24"
+                android:contentDescription="@string/gif_edit_first_frame_help"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

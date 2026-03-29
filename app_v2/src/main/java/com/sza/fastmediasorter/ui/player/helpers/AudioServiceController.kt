@@ -4,12 +4,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.net.Uri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
 import com.sza.fastmediasorter.ui.player.AudioPlaybackService
+import com.sza.fastmediasorter.ui.player.model.MediaItemWithMeta
 import timber.log.Timber
 
 /**
@@ -98,6 +100,44 @@ class AudioServiceController(
         connect { player ->
             Timber.d("AudioServiceController: playAudioPlaylist size=${uris.size}, startIndex=$startIndex")
             val mediaItems = uris.map { MediaItem.fromUri(it) }
+            player.setMediaItems(mediaItems, startIndex, 0)
+            player.repeatMode = Player.REPEAT_MODE_ALL
+            player.prepare()
+            player.play()
+            onPlayerReady(player)
+        }
+    }
+
+    /**
+     * Play a playlist of audio files with per-track metadata (title, artist, album art).
+     * Builds MediaItems with full MediaMetadata so the MediaSession and system notification
+     * can display track info and cover art.
+     *
+     * Backward compatibility: [playAudio] and [playAudioPlaylist] remain unchanged.
+     *
+     * @param items List of tracks with metadata; albumArtUri should be a local file:// URI
+     * @param startIndex Index to start from
+     * @param onPlayerReady Callback with the MediaController as Player
+     */
+    fun playAudioPlaylistWithMetadata(
+        items: List<MediaItemWithMeta>,
+        startIndex: Int = 0,
+        onPlayerReady: (Player) -> Unit
+    ) {
+        connect { player ->
+            Timber.d("AudioServiceController: playAudioPlaylistWithMetadata size=${items.size}, startIndex=$startIndex")
+            val mediaItems = items.map { item ->
+                MediaItem.Builder()
+                    .setUri(item.uri)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(item.title)
+                            .setArtist(item.artist)
+                            .setArtworkUri(item.albumArtUri)
+                            .build()
+                    )
+                    .build()
+            }
             player.setMediaItems(mediaItems, startIndex, 0)
             player.repeatMode = Player.REPEAT_MODE_ALL
             player.prepare()

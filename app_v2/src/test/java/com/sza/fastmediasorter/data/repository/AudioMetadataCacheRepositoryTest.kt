@@ -7,8 +7,10 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class AudioMetadataCacheRepositoryTest {
 
     private lateinit var context: Context
@@ -80,9 +82,8 @@ class AudioMetadataCacheRepositoryTest {
     fun `cleanupExpired removes old files`() {
         repo.saveMetadata("old.mp3", AudioMetadataSaveData(null, null, null, null, null, null))
         // Backdate the metadata file to 31 days ago
-        val cacheDir = java.io.File(context.cacheDir, "audio_meta")
-        val hash = "old.mp3".hashCode().toUInt().toString(16)
-        val metaFile = java.io.File(cacheDir, "${hash}_meta.json")
+        val cacheDir = java.io.File(context.filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
+        val metaFile = java.io.File(cacheDir, "old.mp3.metadata")
         assertTrue(metaFile.exists())
         metaFile.setLastModified(System.currentTimeMillis() - 31L * 24 * 60 * 60 * 1000)
 
@@ -94,9 +95,8 @@ class AudioMetadataCacheRepositoryTest {
     @Test
     fun `readMetadata touches lastModified for LRU`() {
         repo.saveMetadata("lru.mp3", AudioMetadataSaveData("Track", null, null, null, null, null))
-        val cacheDir = java.io.File(context.cacheDir, "audio_meta")
-        val hash = "lru.mp3".hashCode().toUInt().toString(16)
-        val metaFile = java.io.File(cacheDir, "${hash}_meta.json")
+        val cacheDir = java.io.File(context.filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
+        val metaFile = java.io.File(cacheDir, "lru.mp3.metadata")
         // Backdate to 10 days ago
         val oldTime = System.currentTimeMillis() - 10L * 24 * 60 * 60 * 1000
         metaFile.setLastModified(oldTime)

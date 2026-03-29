@@ -117,6 +117,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private var audioEmptyStateController: com.sza.fastmediasorter.ui.player.helpers.AudioEmptyStateController? = null
     private lateinit var mediaLoaderManager: com.sza.fastmediasorter.ui.player.helpers.PlayerMediaLoaderManager
     internal var audioServiceController: com.sza.fastmediasorter.ui.player.helpers.AudioServiceController? = null
+    internal var nowPlayingManager: com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager? = null
     internal var sleepTimerManager: com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager? = null
     private var pipManager: com.sza.fastmediasorter.ui.player.helpers.PictureInPictureManager? = null
     internal val safeViews by lazy { PlayerBindingSafeViews(binding) }
@@ -1007,6 +1008,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         )
         castMediaManager.init()
         audioServiceController = com.sza.fastmediasorter.ui.player.helpers.AudioServiceController(this)
+        nowPlayingManager = com.sza.fastmediasorter.ui.player.helpers.NowPlayingManager(
+            activityBinding = binding,
+            fragmentManager = supportFragmentManager,
+            audioServiceController = audioServiceController!!
+        )
         sleepTimerManager = com.sza.fastmediasorter.ui.player.helpers.SleepTimerManager(
             vinylView = binding.vinylIndicator,
             sleepTimerBadge = binding.sleepTimerBadge,
@@ -2050,10 +2056,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     
     override fun onResume() {
         super.onResume()
-        
+
         // Delegate to lifecycle manager
         lifecycleManager.onResume()
         audioEmptyStateController?.onResume()
+        nowPlayingManager?.onStart()
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

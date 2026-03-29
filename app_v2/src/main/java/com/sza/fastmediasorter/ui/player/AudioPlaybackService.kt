@@ -128,16 +128,6 @@ class AudioPlaybackService : MediaSessionService() {
                 }
             }
 
-            override fun seekToNextMediaItem() {
-                if (exoPlayer.mediaItemCount <= 1) {
-                    Timber.d("AudioPlaybackService: seekToNextMediaItem on single file → seeking to end")
-                    val target = exoPlayer.duration.takeIf { it > 0 } ?: Int.MAX_VALUE.toLong()
-                    exoPlayer.seekTo(target)
-                } else {
-                    super.seekToNextMediaItem()
-                }
-            }
-
             override fun seekToPrevious() {
                 if (exoPlayer.mediaItemCount <= 1) {
                     if (exoPlayer.currentPosition <= 3000L) {
@@ -156,10 +146,6 @@ class AudioPlaybackService : MediaSessionService() {
                 }
             }
 
-            override fun seekToPreviousMediaItem() {
-                // Delegate to seekToPrevious for consistent single-file navigation behaviour
-                seekToPrevious()
-            }
         }
 
         // Phase 5: MediaButtonRestartReceiver is registered in the manifest with android:priority=1000.
@@ -246,9 +232,7 @@ class AudioPlaybackService : MediaSessionService() {
             // even for single-file playback (Activity handles the actual advance).
             val playerCommands = ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()
                 .add(Player.COMMAND_SEEK_TO_NEXT)
-                .add(Player.COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
                 .add(Player.COMMAND_SEEK_TO_PREVIOUS)
-                .add(Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
                 .build()
             return ConnectionResult.AcceptedResultBuilder(session)
                 .setAvailablePlayerCommands(playerCommands)

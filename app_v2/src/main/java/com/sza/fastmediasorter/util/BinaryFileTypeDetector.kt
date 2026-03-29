@@ -29,7 +29,7 @@ object BinaryFileTypeDetector {
     )
     
     private val OTHER = setOf(
-        "bin", "dat", "tmp", "cache", "bak", "backup", "old", "swp"
+        "bin", "dat", "tmp", "cache", "bak", "backup", "old", "swp", "avi"
     )
     
     /**

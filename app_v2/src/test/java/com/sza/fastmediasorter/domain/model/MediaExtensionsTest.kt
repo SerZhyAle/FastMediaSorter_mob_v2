@@ -38,10 +38,11 @@ class MediaExtensionsTest {
     fun `isVideo returns true for common video formats`() {
         assertTrue("Expected mp4", MediaExtensions.isVideo("mp4"))
         assertTrue("Expected mkv", MediaExtensions.isVideo("mkv"))
-        assertTrue("Expected avi", MediaExtensions.isVideo("avi"))
         assertTrue("Expected mov", MediaExtensions.isVideo("mov"))
         assertTrue("Expected wmv", MediaExtensions.isVideo("wmv"))
         assertTrue("Expected webm", MediaExtensions.isVideo("webm"))
+        // avi is not supported — treated as binary
+        assertFalse("Expected false for avi", MediaExtensions.isVideo("avi"))
     }
 
     @Test
@@ -109,8 +110,9 @@ class MediaExtensionsTest {
     fun `getMediaType returns correct type for videos`() {
         assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("mp4"))
         assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("mkv"))
-        assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("avi"))
         assertEquals(MediaType.VIDEO, MediaExtensions.getMediaType("mov"))
+        // avi is not supported — returns binary type
+        assertEquals(MediaType.BINARY_OTHER, MediaExtensions.getMediaType("avi"))
     }
 
     @Test
@@ -144,12 +146,12 @@ class MediaExtensionsTest {
 
     @Test
     fun `VIDEO set contains common extensions`() {
-        // v2 has more video extensions
         assertTrue("mp4 in VIDEO", "mp4" in MediaExtensions.VIDEO)
         assertTrue("mkv in VIDEO", "mkv" in MediaExtensions.VIDEO)
-        assertTrue("avi in VIDEO", "avi" in MediaExtensions.VIDEO)
         assertTrue("mov in VIDEO", "mov" in MediaExtensions.VIDEO)
         assertTrue("webm in VIDEO", "webm" in MediaExtensions.VIDEO)
+        // avi is not supported — treated as binary, not in VIDEO
+        assertFalse("avi not in VIDEO", "avi" in MediaExtensions.VIDEO)
     }
 
     @Test

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/mini_now_playing_height"
+    android:background="?attr/colorSurface"
+    android:elevation="4dp"
+    android:clickable="true"
+    android:focusable="true"
+    android:importantForAccessibility="yes">
+
+    <!-- Thin top divider -->
+    <View
+        android:id="@+id/miniNowPlayingDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"
+        android:alpha="0.3"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Small album art thumbnail (32 dp) -->
+    <ImageView
+        android:id="@+id/miniArtwork"
+        android:layout_width="@dimen/mini_now_playing_artwork"
+        android:layout_height="@dimen/mini_now_playing_artwork"
+        android:layout_marginStart="12dp"
+        android:scaleType="centerCrop"
+        android:importantForAccessibility="no"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Track title -->
+    <TextView
+        android:id="@+id/miniTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="4dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceBodyMedium"
+        app:layout_constraintStart_toEndOf="@id/miniArtwork"
+        app:layout_constraintEnd_toStartOf="@id/miniPlayPause"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Play/Pause button -->
+    <ImageButton
+        android:id="@+id/miniPlayPause"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/now_playing_play_pause_desc"
+        android:src="@drawable/ic_play"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -70,6 +70,40 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
     private val viewModel: StandalonePlayerViewModel by viewModels()
 
+    // ── Delete permission launchers ───────────────────────────────────────
+    // API 30+: MediaStore.createDeleteRequest auto-deletes after user grants permission
+    private val batchDeleteLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        val name = pendingDeleteFileName ?: return@registerForActivityResult
+        if (result.resultCode == RESULT_OK) {
+            onDeleteSuccess(name)
+        } else {
+            Timber.w("StandalonePlayer: batch delete denied by user for $name")
+            Toast.makeText(this, getString(R.string.delete_failed, name), Toast.LENGTH_SHORT).show()
+        }
+        pendingDeleteFileName = null
+    }
+
+    // API 29: RecoverableSecurityException — user grants, then we retry delete
+    private val recoverableDeleteLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        val name = pendingDeleteFileName ?: return@registerForActivityResult
+        if (result.resultCode == RESULT_OK) {
+            val uri = pendingDeleteUri ?: return@registerForActivityResult
+            retryDeleteAfterPermission(uri, name)
+        } else {
+            Timber.w("StandalonePlayer: recoverable delete denied for $name")
+            Toast.makeText(this, getString(R.string.delete_failed, name), Toast.LENGTH_SHORT).show()
+        }
+        pendingDeleteFileName = null
+        pendingDeleteUri = null
+    }
+
+    private var pendingDeleteFileName: String? = null
+    private var pendingDeleteUri: Uri? = null
+
     // Injected network/cloud clients — needed to construct StandaloneViewManager's NetworkFileManager.
     // Not exercised for content:// URIs from external intents but required by the constructor.
     @Inject lateinit var smbClient: SmbClient
@@ -153,6 +187,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     override fun observeData() {
         observeViewModelState()
         observeViewModelEvents()
+        observeFavoriteState()
     }
 
     override fun onDestroy() {
@@ -364,14 +399,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         binding.btnInfoCmd.contentDescription = getString(R.string.open_in_fms)
         binding.btnInfoCmd.setOnClickListener { openInFms() }
 
-        // Observe favorite state
-        lifecycleScope.launch {
-            viewModel.isFavorite.collect { isFav ->
-                binding.btnFavorite.setImageResource(
-                    if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-                )
-            }
-        }
     }
 
     // ── Delete ────────────────────────────────────────────────────────────
@@ -388,32 +415,92 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
             .show()
     }
 
-    @Suppress("SetTextI18n")
     private fun performDelete(uri: Uri, fileName: String) {
         lifecycleScope.launch {
             try {
-                val deleted = when (uri.scheme) {
-                    "content" -> DocumentsContract.deleteDocument(contentResolver, uri)
-                    "file" -> {
-                        val localFile = File(uri.path!!)
-                        localFile.delete()
+                when {
+                    uri.scheme == "file" -> {
+                        val deleted = File(uri.path!!).delete()
+                        if (deleted) onDeleteSuccess(fileName)
+                        else Toast.makeText(this@StandalonePlayerActivity,
+                            getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
                     }
-                    else -> false
-                }
-                if (deleted) {
-                    Toast.makeText(this@StandalonePlayerActivity,
-                        getString(R.string.file_deleted, fileName), Toast.LENGTH_SHORT).show()
-                    finish()
-                } else {
-                    Toast.makeText(this@StandalonePlayerActivity,
-                        getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
+
+                    uri.scheme == "content" && DocumentsContract.isDocumentUri(this@StandalonePlayerActivity, uri) -> {
+                        val deleted = DocumentsContract.deleteDocument(contentResolver, uri)
+                        if (deleted) onDeleteSuccess(fileName)
+                        else Toast.makeText(this@StandalonePlayerActivity,
+                            getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
+                    }
+
+                    uri.scheme == "content" && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
+                        // API 30+: system dialog auto-deletes after user grants
+                        val pendingIntent = MediaStore.createDeleteRequest(contentResolver, listOf(uri))
+                        pendingDeleteFileName = fileName
+                        batchDeleteLauncher.launch(
+                            androidx.activity.result.IntentSenderRequest.Builder(pendingIntent.intentSender).build()
+                        )
+                    }
+
+                    uri.scheme == "content" -> {
+                        // API 26–29: direct delete; on API 29 catch RecoverableSecurityException
+                        try {
+                            val rows = contentResolver.delete(uri, null, null)
+                            if (rows > 0) onDeleteSuccess(fileName)
+                            else Toast.makeText(this@StandalonePlayerActivity,
+                                getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
+                        } catch (se: SecurityException) {
+                            @Suppress("NewApi")
+                            val rse = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q)
+                                se as? android.app.RecoverableSecurityException else null
+                            if (rse != null) {
+                                pendingDeleteFileName = fileName
+                                pendingDeleteUri = uri
+                                recoverableDeleteLauncher.launch(
+                                    androidx.activity.result.IntentSenderRequest.Builder(
+                                        rse.userAction.actionIntent.intentSender
+                                    ).build()
+                                )
+                            } else {
+                                throw se
+                            }
+                        }
+                    }
+
+                    else -> {
+                        Timber.w("StandalonePlayer: delete not supported for scheme=${uri.scheme}")
+                        Toast.makeText(this@StandalonePlayerActivity,
+                            getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
+                    }
                 }
             } catch (e: SecurityException) {
-                Timber.w(e, "StandalonePlayer: delete permission denied")
+                Timber.w(e, "StandalonePlayer: non-recoverable delete permission denied for $fileName")
+                binding.btnDeleteCmd.isVisible = false
                 Toast.makeText(this@StandalonePlayerActivity,
                     R.string.delete_permission_denied, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
-                Timber.e(e, "StandalonePlayer: delete failed")
+                Timber.e(e, "StandalonePlayer: delete failed for $fileName")
+                Toast.makeText(this@StandalonePlayerActivity,
+                    getString(R.string.delete_failed, e.message ?: fileName), Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun onDeleteSuccess(fileName: String) {
+        Toast.makeText(this, getString(R.string.file_deleted, fileName), Toast.LENGTH_SHORT).show()
+        finish()
+    }
+
+    private fun retryDeleteAfterPermission(uri: Uri, fileName: String) {
+        // Called after RecoverableSecurityException recovery on API 29 — permission now granted
+        lifecycleScope.launch {
+            try {
+                val rows = contentResolver.delete(uri, null, null)
+                if (rows > 0) onDeleteSuccess(fileName)
+                else Toast.makeText(this@StandalonePlayerActivity,
+                    getString(R.string.delete_failed, fileName), Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Timber.e(e, "StandalonePlayer: retry delete failed for $fileName")
                 Toast.makeText(this@StandalonePlayerActivity,
                     getString(R.string.delete_failed, e.message ?: fileName), Toast.LENGTH_LONG).show()
             }
@@ -494,6 +581,23 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
                 }
             }
             else -> null
+        }
+    }
+
+    // ── Favorite State Observation ───────────────────────────────────────
+
+    private fun observeFavoriteState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isFavorite.collect { isFav ->
+                    binding.btnFavorite.setImageResource(
+                        if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+                    )
+                    binding.btnFavorite.contentDescription = getString(
+                        if (isFav) R.string.cd_remove_from_favorites else R.string.cd_add_to_favorites
+                    )
+                }
+            }
         }
     }
 

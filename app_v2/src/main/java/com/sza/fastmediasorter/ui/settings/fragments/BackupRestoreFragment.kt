@@ -191,7 +191,7 @@ class BackupRestoreFragment : Fragment() {
         val sizeKb = (sizeBytes / 1024).coerceAtLeast(1)
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.export_fav_success_title)
-            .setMessage(getString(R.string.export_fav_success_message, count, filePath, sizeKb))
+            .setMessage(getString(R.string.export_fav_success_message))
             .setPositiveButton(R.string.share) { _, _ -> shareFile(filePath) }
             .setNegativeButton(android.R.string.ok, null)
             .show()
@@ -205,7 +205,7 @@ class BackupRestoreFragment : Fragment() {
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.import_fav_preview_title)
-            .setMessage(getString(R.string.import_fav_preview_message, sourceDevice, count))
+            .setMessage(getString(R.string.import_fav_preview_message))
             .setView(dialogView)
             .setPositiveButton(R.string.import_fav_action) { _, _ ->
                 val strategy = if (radioSkip.isChecked) FavoritesConflictStrategy.SKIP else FavoritesConflictStrategy.OVERWRITE

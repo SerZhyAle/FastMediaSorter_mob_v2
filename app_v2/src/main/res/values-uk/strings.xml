@@ -267,7 +267,7 @@
     <string name="min_size_mb">Мін. розмір</string>
     <string name="max_size_mb">Макс. розмір</string>
     <string name="filter_active">Фільтр активний: %1$s</string>
-    <string name="google_sign_in_failed">Вхід не вдався: %1$s</string>
+    <string name="google_sign_in_failed">Вхід не вдався: %1$d</string>
     <string name="auth_failed">Помилка аутентифікації: %1$s</string>
 
     <string name="battery_optimization_hint_title">Попередження про оптимізацію батареї</string>
@@ -2044,6 +2044,8 @@
     <string name="delete_permission_denied">Немає дозволу на видалення цього файлу</string>
     <string name="share_via">Надіслати через</string>
     <string name="open_in_fms">Відкрити в FastMediaSorter</string>
+    <string name="cd_add_to_favorites">Додати до вибраного</string>
+    <string name="cd_remove_from_favorites">Прибрати з вибраного</string>
 
     <!-- Quick Settings Tile -->
     <string name="tile_audio_label">FMS Аудіо</string>
@@ -2139,4 +2141,18 @@
     <string name="cast_unavailable">Chromecast недоступний на цьому пристрої</string>
     <string name="cast_error_file">Не вдалося завантажити файл для трансляції</string>
     <string name="cast_error_load">Помилка відтворення на Chromecast</string>
+
+    <!-- Now Playing UI (III.13) -->
+    <string name="now_playing_label">Зараз грає</string>
+    <string name="now_playing_queue_label">Черга</string>
+    <string name="now_playing_queue_title">Черга</string>
+    <string name="now_playing_track_count">Черга (%d)</string>
+    <string name="now_playing_back_to_player">← Зараз грає</string>
+    <string name="now_playing_play_pause_desc">Відтворити / Пауза</string>
+    <string name="now_playing_play_desc">Відтворити</string>
+    <string name="now_playing_pause_desc">Пауза</string>
+    <string name="now_playing_previous_desc">Попередній трек</string>
+    <string name="now_playing_next_desc">Наступний трек</string>
+    <string name="now_playing_seek_bar_desc">Перемотування</string>
+    <string name="now_playing_mini_bar_desc">Зараз грає — торкніться, щоб відкрити керування</string>
 </resources>

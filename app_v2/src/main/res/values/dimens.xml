@@ -634,4 +634,12 @@
     <dimen name="item_resource_btnMoveDown_padding">@dimen/layout_spacing_normal</dimen>
     <dimen name="item_resource_btnMoveUp_padding">@dimen/layout_spacing_normal</dimen>
 
+    <!-- Landscape dialog constraints — referenced only from layout-land/ files -->
+    <dimen name="dialog_landscape_max_height">320dp</dimen>
+    <dimen name="dialog_landscape_list_max_height">240dp</dimen>
+
+    <!-- Now Playing mini bar (III.13) -->
+    <dimen name="mini_now_playing_height">56dp</dimen>
+    <dimen name="mini_now_playing_artwork">32dp</dimen>
+
 </resources>
