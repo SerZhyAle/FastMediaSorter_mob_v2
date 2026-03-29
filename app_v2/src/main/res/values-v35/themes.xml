@@ -6,12 +6,16 @@
         Override BottomSheetDialog theme to disable its own edge-to-edge setup so it no
         longer calls the deprecated APIs — the OS handles it instead.
     -->
-    <style name="Theme.FastMediaSorter.Base" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
+        <!-- 
+             Android 15 (API 35) enforces edge-to-edge. 
+             Status bar/Navigation bar colors are ignored. 
+        -->
         <item name="bottomSheetDialogTheme">@style/Theme.App.BottomSheetDialog.EdgeToEdgeCompat</item>
     </style>
 
     <style name="Theme.App.BottomSheetDialog.EdgeToEdgeCompat" parent="ThemeOverlay.Material3.BottomSheetDialog">
-        <item name="enableEdgeToEdge">false</item>
+        <item name="enableEdgeToEdge">true</item>
     </style>
 
     <!-- Edge-to-edge is handled programmatically via enableEdgeToEdge() in BaseActivity. -->

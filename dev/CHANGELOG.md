@@ -1179,3 +1179,7 @@ Format: | datetime | file | target | description |
 | 2026-03-29 00:23:41 | `app_v2/src/main/res/drawable/ic_cast.xml` | `ic_cast` | Add Material cast vector drawable for Chromecast button |
 | 2026-03-29 00:23:41 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `btnCastCmd` | Add btnCastCmd ImageButton to portrait and landscape player layouts |
 | 2026-03-29 00:23:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wire btnCastCmd visibility in landscape (image/video + Wi-Fi); register in commandPanelButtons() |
+| 2026-03-29 00:55:23 | `app_v2/src/main/res/values/themes.xml` | `Theme.FastMediaSorter.App` | Extracted core branding styles for Android 15 compatibility |
+| 2026-03-29 00:55:46 | `app_v2/src/main/res/values-night/themes.xml` | `Theme.FastMediaSorter.App` | Extracted core branding styles for Android 15 compatibility (Night Mode) |
+| 2026-03-29 00:55:51 | `app_v2/src/main/res/values-v35/themes.xml` | `BottomSheetDialog` | Fixed Edge-to-Edge for Android 15 and restored branding |
+| 2026-03-29 01:09:44 | `PLAN/spec_landscape_dialogs.md` | `spec` | Expand specification VIII.4 to full template with flavor scope, architecture, ADRs, and 28-step implementation plan |

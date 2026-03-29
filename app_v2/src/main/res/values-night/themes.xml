@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.FastMediaSorter.Base" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.FastMediaSorter.App" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary colors - Lighter blue for dark theme -->
         <item name="colorPrimary">@color/blue_500</item>
         <item name="colorPrimaryVariant">@color/blue_700</item>
@@ -17,11 +17,14 @@
         <item name="colorOnBackground">@color/white</item>
         <item name="colorOnSurface">@color/white</item>
         
-        <!-- Status bar and navigation bar (transparent for edge-to-edge) -->
-        <item name="android:statusBarColor">@android:color/transparent</item>
-        <item name="android:navigationBarColor">@android:color/transparent</item>
         <!-- Window background - dark for night mode -->
         <item name="android:windowBackground">@color/item_normal</item>
+    </style>
+
+    <style name="Theme.FastMediaSorter.Base" parent="Theme.FastMediaSorter.App">
+        <!-- Status bar and navigation bar (transparent for edge-to-edge on API < 35) -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
     </style>
 
     <style name="Theme.FastMediaSorter" parent="Theme.FastMediaSorter.Base" />
