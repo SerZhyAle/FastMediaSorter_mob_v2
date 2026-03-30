@@ -16,7 +16,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
-import androidx.media3.common.TrackSelectionOverride
 import androidx.media3.datasource.DataSource
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -51,9 +50,6 @@ import java.util.Locale
 import java.io.File
 import android.media.MediaPlayer
 import android.view.SurfaceHolder
-import android.graphics.Color
-import android.graphics.Typeface
-import androidx.media3.ui.CaptionStyleCompat
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 
@@ -134,7 +130,12 @@ class VideoPlayerManager(
     private var mediaPlayer: MediaPlayer? = null
     private var currentPlayerView: PlayerView? = null
     private var isUsingMediaPlayer = false
-    
+
+    private val trackSelectionManager = VideoTrackSelectionManager(
+        getPlayer = { exoPlayer },
+        getPlayerView = { currentPlayerView }
+    )
+
     // Retry logic for EOF exceptions
     private var playbackRetryCount = 0
     private var lastPlaybackPosition = 0L
@@ -742,104 +743,12 @@ class VideoPlayerManager(
         )
         Timber.d("VideoPlayerManager: Set repeat mode to ${if (settings.repeatVideo) "ONE" else "OFF"}")
 
-        applyTrackSelection(player, settings, appLanguage)
+        trackSelectionManager.applyTrackSelection(player, settings, appLanguage)
     }
 
-    /**
-     * Apply subtitle and audio track selection based on settings.
-     */
-    private fun applyTrackSelection(player: ExoPlayer, settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) {
-        var paramsBuilder = player.trackSelectionParameters.buildUpon()
+    // === Track Selection — delegated to VideoTrackSelectionManager ===
 
-        val preferredAudioLang = when (settings.audioLanguage) {
-            PlayerSettingsDialog.LanguageOption.DEFAULT -> appLanguage
-            PlayerSettingsDialog.LanguageOption.ENGLISH -> "en"
-            PlayerSettingsDialog.LanguageOption.RUSSIAN -> "ru"
-            PlayerSettingsDialog.LanguageOption.UKRAINIAN -> "uk"
-        }
-        paramsBuilder = paramsBuilder.setPreferredAudioLanguage(preferredAudioLang)
-        Timber.d("VideoPlayerManager: Set preferred audio language to $preferredAudioLang")
-
-        if (settings.showSubtitles) {
-            val preferredSubtitleLang = when (settings.subtitleLanguage) {
-                PlayerSettingsDialog.LanguageOption.DEFAULT -> appLanguage
-                PlayerSettingsDialog.LanguageOption.ENGLISH -> "en"
-                PlayerSettingsDialog.LanguageOption.RUSSIAN -> "ru"
-                PlayerSettingsDialog.LanguageOption.UKRAINIAN -> "uk"
-            }
-            paramsBuilder = paramsBuilder
-                .setPreferredTextLanguage(preferredSubtitleLang)
-                .setIgnoredTextSelectionFlags(0)
-            Timber.d("VideoPlayerManager: Set preferred subtitle language to $preferredSubtitleLang")
-        } else {
-            paramsBuilder = paramsBuilder
-                .setIgnoredTextSelectionFlags(
-                    C.SELECTION_FLAG_DEFAULT or C.SELECTION_FLAG_AUTOSELECT or C.SELECTION_FLAG_FORCED
-                )
-            Timber.d("VideoPlayerManager: Subtitles disabled")
-        }
-
-        player.trackSelectionParameters = paramsBuilder.build()
-    }
-    
-    /**
-     * Apply subtitle text style (font size and family) from app settings.
-     * Called when subtitles are enabled.
-     */
-    fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) {
-        val subtitleView = currentPlayerView?.subtitleView ?: run {
-            Timber.w("VideoPlayerManager: No subtitle view available")
-            return
-        }
-        
-        // Calculate font size: base size (24sp) * multiplier
-        // For AUTO, use fractionalTextSize (fraction of view height)
-        val textSizeSp = if (fontSize == TranslationFontSize.AUTO) {
-            // Use default ExoPlayer sizing (fraction of view height)
-            subtitleView.setFractionalTextSize(0.0533f) // ~24sp on standard screen
-            null
-        } else {
-            // Fixed text size based on multiplier
-            val baseSizeSp = 24f
-            baseSizeSp * fontSize.multiplier
-        }
-        
-        // Get typeface for font family
-        val typeface = when (fontFamily) {
-            TranslationFontFamily.DEFAULT -> Typeface.DEFAULT
-            TranslationFontFamily.SERIF -> Typeface.SERIF
-            TranslationFontFamily.MONOSPACE -> Typeface.MONOSPACE
-        }
-        
-        // Create caption style with custom font
-        // Use default colors: white text on semi-transparent black background
-        val captionStyle = CaptionStyleCompat(
-            Color.WHITE,                    // foregroundColor
-            Color.argb(200, 0, 0, 0),       // backgroundColor (semi-transparent black)
-            Color.TRANSPARENT,              // windowColor
-            CaptionStyleCompat.EDGE_TYPE_OUTLINE,  // edgeType
-            Color.BLACK,                    // edgeColor
-            typeface                        // typeface
-        )
-        
-        subtitleView.setStyle(captionStyle)
-        
-        // Apply fixed text size if not AUTO
-        if (textSizeSp != null) {
-            subtitleView.setFixedTextSize(
-                android.util.TypedValue.COMPLEX_UNIT_SP,
-                textSizeSp
-            )
-        }
-        
-        Timber.d("VideoPlayerManager: Applied subtitle style - fontSize=${fontSize.name}, fontFamily=${fontFamily.name}")
-    }
-
-    // === Track Selection Methods ===
-
-    /**
-     * Track info for display in quick-switcher dialogs.
-     */
+    /** Track info for display in quick-switcher dialogs. */
     data class TrackInfo(
         val groupIndex: Int,
         val trackIndex: Int,
@@ -847,130 +756,27 @@ class VideoPlayerManager(
         val isSelected: Boolean
     )
 
-    /**
-     * Get available audio tracks with labels.
-     * Returns empty list if no multiple audio tracks available.
-     */
-    fun getAvailableAudioTracks(): List<TrackInfo> {
-        val player = exoPlayer ?: return emptyList()
-        val tracks = player.currentTracks
-        val result = mutableListOf<TrackInfo>()
-        var trackNumber = 1
+    private fun applyTrackSelection(player: ExoPlayer, settings: PlayerSettingsDialog.PlayerSettings, appLanguage: String) =
+        trackSelectionManager.applyTrackSelection(player, settings, appLanguage)
 
-        for ((groupIndex, group) in tracks.groups.withIndex()) {
-            if (group.type != C.TRACK_TYPE_AUDIO) continue
-            for (trackIndex in 0 until group.length) {
-                val format = group.getTrackFormat(trackIndex)
-                val lang = format.language?.uppercase() ?: ""
-                val codec = format.sampleMimeType?.substringAfter("/") ?: ""
-                val channels = when (format.channelCount) {
-                    1 -> "Mono"
-                    2 -> "Stereo"
-                    6 -> "5.1"
-                    8 -> "7.1"
-                    else -> if (format.channelCount > 0) "${format.channelCount}ch" else ""
-                }
-                val parts = listOfNotNull(
-                    lang.ifEmpty { null },
-                    codec.ifEmpty { null },
-                    channels.ifEmpty { null }
-                )
-                val label = if (parts.isNotEmpty()) {
-                    "Track $trackNumber (${parts.joinToString(", ")})"
-                } else {
-                    "Track $trackNumber"
-                }
-                result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
-                trackNumber++
-            }
-        }
-        return result
-    }
+    fun applySubtitleStyle(fontSize: TranslationFontSize, fontFamily: TranslationFontFamily) =
+        trackSelectionManager.applySubtitleStyle(fontSize, fontFamily)
 
-    /**
-     * Get available subtitle tracks with labels.
-     * Returns empty list if no subtitle tracks available.
-     */
-    fun getAvailableSubtitleTracks(): List<TrackInfo> {
-        val player = exoPlayer ?: return emptyList()
-        val tracks = player.currentTracks
-        val result = mutableListOf<TrackInfo>()
-        var trackNumber = 1
+    fun getAvailableAudioTracks(): List<TrackInfo> =
+        trackSelectionManager.getAvailableAudioTracks().map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
 
-        for ((groupIndex, group) in tracks.groups.withIndex()) {
-            if (group.type != C.TRACK_TYPE_TEXT) continue
-            for (trackIndex in 0 until group.length) {
-                val format = group.getTrackFormat(trackIndex)
-                val lang = format.language?.let { java.util.Locale(it).displayLanguage } ?: ""
-                val label = if (lang.isNotEmpty()) {
-                    "$lang (Track $trackNumber)"
-                } else {
-                    "Track $trackNumber"
-                }
-                result.add(TrackInfo(groupIndex, trackIndex, label, group.isTrackSelected(trackIndex)))
-                trackNumber++
-            }
-        }
-        return result
-    }
+    fun getAvailableSubtitleTracks(): List<TrackInfo> =
+        trackSelectionManager.getAvailableSubtitleTracks().map { TrackInfo(it.groupIndex, it.trackIndex, it.label, it.isSelected) }
 
-    /**
-     * Select specific audio track by group and track index.
-     */
-    fun selectAudioTrack(groupIndex: Int, trackIndex: Int) {
-        val player = exoPlayer ?: return
-        val tracks = player.currentTracks
-        if (groupIndex >= tracks.groups.size) return
+    fun selectAudioTrack(groupIndex: Int, trackIndex: Int) =
+        trackSelectionManager.selectAudioTrack(groupIndex, trackIndex)
 
-        val group = tracks.groups[groupIndex]
-        val override = TrackSelectionOverride(group.mediaTrackGroup, listOf(trackIndex))
-        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-            .setOverrideForType(override)
-            .build()
-        Timber.d("VideoPlayerManager: Selected audio track group=$groupIndex, track=$trackIndex")
-    }
+    fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) =
+        trackSelectionManager.selectSubtitleTrack(groupIndex, trackIndex)
 
-    /**
-     * Select specific subtitle track by group and track index.
-     * Pass trackIndex = -1 to disable subtitles.
-     */
-    fun selectSubtitleTrack(groupIndex: Int, trackIndex: Int) {
-        val player = exoPlayer ?: return
+    fun hasMultipleAudioTracks(): Boolean = trackSelectionManager.hasMultipleAudioTracks()
 
-        if (trackIndex < 0) {
-            // Disable subtitles
-            player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-                .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
-                .build()
-            Timber.d("VideoPlayerManager: Subtitles disabled")
-            return
-        }
-
-        val tracks = player.currentTracks
-        if (groupIndex >= tracks.groups.size) return
-
-        val group = tracks.groups[groupIndex]
-        val override = TrackSelectionOverride(group.mediaTrackGroup, listOf(trackIndex))
-        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
-            .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
-            .setOverrideForType(override)
-            .build()
-        Timber.d("VideoPlayerManager: Selected subtitle track group=$groupIndex, track=$trackIndex")
-    }
-
-    /**
-     * Check if current media has multiple audio tracks.
-     */
-    fun hasMultipleAudioTracks(): Boolean {
-        return getAvailableAudioTracks().size > 1
-    }
-
-    /**
-     * Check if current media has subtitle tracks.
-     */
-    fun hasSubtitleTracks(): Boolean {
-        return getAvailableSubtitleTracks().isNotEmpty()
-    }
+    fun hasSubtitleTracks(): Boolean = trackSelectionManager.hasSubtitleTracks()
     
     // === Protocol-specific playback methods ===
     
