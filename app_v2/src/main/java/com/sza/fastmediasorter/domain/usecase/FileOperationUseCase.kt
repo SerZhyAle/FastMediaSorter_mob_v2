@@ -45,13 +45,17 @@ sealed class FileOperationResult {
     data class Success(
         val processedCount: Int, 
         val operation: FileOperation,
-        val copiedFilePaths: List<String> = emptyList() // Paths of destination files for undo
+        val copiedFilePaths: List<String> = emptyList(), // Paths of destination files for undo
+        val skippedCount: Int = 0,
+        val skippedPaths: List<String> = emptyList()
     ) : FileOperationResult()
     data class PartialSuccess(
         val processedCount: Int, 
         val failedCount: Int, 
         val errors: List<String>,
-        val deletedPaths: List<String> = emptyList() // Paths of actually deleted/moved files
+        val deletedPaths: List<String> = emptyList(), // Paths of actually deleted/moved files
+        val skippedCount: Int = 0,
+        val skippedPaths: List<String> = emptyList()
     ) : FileOperationResult()
     data class Failure(
         val error: String,
@@ -399,8 +403,11 @@ class FileOperationUseCase @Inject constructor(
             }
             
             when (result) {
-                is FileOperationResult.Success -> StructuredLogger.i("SUCCESS", "count" to result.processedCount)
-                is FileOperationResult.PartialSuccess -> StructuredLogger.w("PARTIAL SUCCESS", "processed" to result.processedCount, "failed" to result.failedCount)
+                is FileOperationResult.Success -> {
+                    if (result.skippedCount > 0) StructuredLogger.i("SUCCESS (with skips)", "count" to result.processedCount, "skipped" to result.skippedCount)
+                    else StructuredLogger.i("SUCCESS", "count" to result.processedCount)
+                }
+                is FileOperationResult.PartialSuccess -> StructuredLogger.w("PARTIAL SUCCESS", "processed" to result.processedCount, "failed" to result.failedCount, "skipped" to result.skippedCount)
                 is FileOperationResult.Failure -> StructuredLogger.e("FAILURE", "error" to result.error)
                 is FileOperationResult.AuthenticationRequired -> StructuredLogger.w("AUTH REQUIRED", "provider" to result.provider)
                 is FileOperationResult.PermissionRequired -> StructuredLogger.i("PERMISSION REQUIRED", "uris" to result.fileUris.size)
@@ -443,6 +450,8 @@ class FileOperationUseCase @Inject constructor(
         val errors = mutableListOf<String>()
         val copiedPaths = mutableListOf<String>()
         var successCount = 0
+        var skippedCount = 0
+        val skippedPaths = mutableListOf<String>()
         val total = operation.sources.size
         
         operation.sources.forEachIndexed { index, source ->
@@ -471,9 +480,9 @@ class FileOperationUseCase @Inject constructor(
                     
                     if (destFile.exists() && !operation.overwrite) {
                         val destinationName = destFile.parentFile?.name ?: operation.destination.name
-                        val error = context.getString(R.string.file_already_exists_in_folder, fileName, destinationName)
-                        Timber.w("executeCopy: File already exists - $fileName in $destinationName")
-                        errors.add(error)
+                        Timber.i("executeCopy: SKIPPED SAF - $fileName (already exists in $destinationName)")
+                        skippedCount++
+                        skippedPaths.add(destFile.absolutePath)
                         return@forEachIndexed
                     }
                     
@@ -514,9 +523,9 @@ class FileOperationUseCase @Inject constructor(
                 
                 if (destFile.exists() && !operation.overwrite) {
                     val destinationName = destFile.parentFile?.name ?: operation.destination.name
-                    val error = context.getString(R.string.file_already_exists_in_folder, source.name, destinationName)
-                    Timber.w("executeCopy: File already exists - ${source.name} in $destinationName")
-                    errors.add(error)
+                    Timber.i("executeCopy: SKIPPED - ${source.name} (already exists in $destinationName)")
+                    skippedCount++
+                    skippedPaths.add(destFile.absolutePath)
                     return@forEachIndexed
                 }
                 
@@ -541,14 +550,15 @@ class FileOperationUseCase @Inject constructor(
             }
         }
         
+        val totalProcessed = successCount + skippedCount
         val result = when {
-            successCount == operation.sources.size -> {
-                Timber.i("executeCopy: All $successCount files copied successfully")
-                FileOperationResult.Success(successCount, operation, copiedPaths)
+            totalProcessed == operation.sources.size -> {
+                Timber.i("executeCopy: All ${operation.sources.size} files processed (copied: $successCount, skipped: $skippedCount)")
+                FileOperationResult.Success(successCount, operation, copiedPaths, skippedCount, skippedPaths)
             }
-            successCount > 0 -> {
-                Timber.w("executeCopy: Partial success - $successCount/${operation.sources.size} files copied. Errors: $errors")
-                FileOperationResult.PartialSuccess(successCount, errors.size, errors, copiedPaths)
+            totalProcessed > 0 -> {
+                Timber.w("executeCopy: Partial success - $totalProcessed/${operation.sources.size} processed. Errors: $errors")
+                FileOperationResult.PartialSuccess(successCount, errors.size, errors, copiedPaths, skippedCount, skippedPaths)
             }
             else -> {
                 Timber.e("executeCopy: All copy operations failed. Errors: $errors")
@@ -577,6 +587,8 @@ class FileOperationUseCase @Inject constructor(
         val errors = mutableListOf<String>()
         val movedPaths = mutableListOf<String>()
         var successCount = 0
+        var skippedCount = 0
+        val skippedPaths = mutableListOf<String>()
         val total = operation.sources.size
         
         operation.sources.forEachIndexed { index, source ->
@@ -605,9 +617,9 @@ class FileOperationUseCase @Inject constructor(
                     
                     if (destFile.exists() && !operation.overwrite) {
                         val destinationName = destFile.parentFile?.name ?: operation.destination.name
-                        val error = context.getString(R.string.file_already_exists_in_folder, fileName, destinationName)
-                        Timber.w("executeMove: File already exists - $fileName in $destinationName")
-                        errors.add(error)
+                        Timber.i("executeMove: SKIPPED SAF - $fileName (already exists in $destinationName)")
+                        skippedCount++
+                        skippedPaths.add(destFile.absolutePath)
                         return@forEachIndexed
                     }
                     
@@ -671,9 +683,9 @@ class FileOperationUseCase @Inject constructor(
                 
                 if (destFile.exists() && !operation.overwrite) {
                     val destinationName = destFile.parentFile?.name ?: operation.destination.name
-                    val error = context.getString(R.string.file_already_exists_in_folder, source.name, destinationName)
-                    Timber.w("executeMove: File already exists - ${source.name} in $destinationName")
-                    errors.add(error)
+                    Timber.i("executeMove: SKIPPED - ${source.name} (already exists in $destinationName)")
+                    skippedCount++
+                    skippedPaths.add(destFile.absolutePath)
                     return@forEachIndexed
                 }
                 
@@ -736,14 +748,15 @@ class FileOperationUseCase @Inject constructor(
             }
         }
         
+        val totalProcessed = successCount + skippedCount
         val result = when {
-            successCount == operation.sources.size -> {
-                Timber.i("executeMove: All $successCount files moved successfully")
-                FileOperationResult.Success(successCount, operation, movedPaths)
+            totalProcessed == operation.sources.size -> {
+                Timber.i("executeMove: All ${operation.sources.size} files processed (moved: $successCount, skipped: $skippedCount)")
+                FileOperationResult.Success(successCount, operation, movedPaths, skippedCount, skippedPaths)
             }
-            successCount > 0 -> {
-                Timber.w("executeMove: Partial success - $successCount/${operation.sources.size} files moved. Errors: $errors")
-                FileOperationResult.PartialSuccess(successCount, errors.size, errors, movedPaths)
+            totalProcessed > 0 -> {
+                Timber.w("executeMove: Partial success - $totalProcessed/${operation.sources.size} processed. Errors: $errors")
+                FileOperationResult.PartialSuccess(successCount, errors.size, errors, movedPaths, skippedCount, skippedPaths)
             }
             else -> {
                 Timber.e("executeMove: All move operations failed. Errors: $errors")

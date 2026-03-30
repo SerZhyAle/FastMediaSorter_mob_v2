@@ -72,6 +72,8 @@ abstract class BaseFileOperationHandler(
         val errors = mutableListOf<String>()
         val copiedPaths = mutableListOf<String>()
         var successCount = 0
+        var skippedCount = 0
+        val skippedPaths = mutableListOf<String>()
         
         operation.sources.forEachIndexed { index, source ->
             val total = operation.sources.size
@@ -93,47 +95,60 @@ abstract class BaseFileOperationHandler(
                         Timber.i("executeCopy: SUCCESS - copied ${source.name}")
                     },
                     onFailure = { error ->
-                        val errorMsg = if (error is FileExistsException) {
-                            // Use localized string for file exists error
-                            context.getString(
-                                R.string.error_file_exists_copy,
-                                error.fileName,
-                                error.destinationPath
-                            )
+                        if (error is FileExistsException && !operation.overwrite) {
+                            skippedCount++
+                            skippedPaths.add(destPath)
+                            Timber.i("executeCopy: SKIPPED - $destPath (already exists)")
                         } else {
-                            FileOperationError.formatTransferError(
-                                fileName = source.name,
-                                sourcePath = sourcePath,
-                                destinationPath = destPath,
-                                errorMessage = error.message ?: "Unknown error"
-                            )
+                            val errorMsg = if (error is FileExistsException) {
+                                // Use localized string for file exists error
+                                context.getString(
+                                    R.string.error_file_exists_copy,
+                                    error.fileName,
+                                    error.destinationPath
+                                )
+                            } else {
+                                FileOperationError.formatTransferError(
+                                    fileName = source.name,
+                                    sourcePath = sourcePath,
+                                    destinationPath = destPath,
+                                    errorMessage = error.message ?: "Unknown error"
+                                )
+                            }
+                            Timber.e("executeCopy: FAILED - $errorMsg")
+                            errors.add(errorMsg)
                         }
-                        Timber.e("executeCopy: FAILED - $errorMsg")
-                        errors.add(errorMsg)
                     }
                 )
             } catch (e: Exception) {
-                val error = if (e is FileExistsException) {
-                    // Use localized string for file exists error
-                    context.getString(
-                        R.string.error_file_exists_copy,
-                        e.fileName,
-                        e.destinationPath
-                    )
+                if (e is FileExistsException && !operation.overwrite) {
+                    val destPath = joinPath(destinationPath, extractFileName(getSafePath(source), source.name))
+                    skippedCount++
+                    skippedPaths.add(destPath)
+                    Timber.i("executeCopy: SKIPPED - $destPath (already exists)")
                 } else {
-                    FileOperationError.formatTransferError(
-                        fileName = source.name,
-                        sourcePath = getSafePath(source),
-                        destinationPath = joinPath(destinationPath, source.name),
-                        errorMessage = FileOperationError.extractErrorMessage(e)
-                    )
+                    val error = if (e is FileExistsException) {
+                        // Use localized string for file exists error
+                        context.getString(
+                            R.string.error_file_exists_copy,
+                            e.fileName,
+                            e.destinationPath
+                        )
+                    } else {
+                        FileOperationError.formatTransferError(
+                            fileName = source.name,
+                            sourcePath = getSafePath(source),
+                            destinationPath = joinPath(destinationPath, source.name),
+                            errorMessage = FileOperationError.extractErrorMessage(e)
+                        )
+                    }
+                    Timber.e(e, "executeCopy: ERROR - $error")
+                    errors.add(error)
                 }
-                Timber.e(e, "executeCopy: ERROR - $error")
-                errors.add(error)
             }
         }
         
-        return@withContext buildCopyResult(successCount, operation, copiedPaths, errors)
+        return@withContext buildCopyResult(successCount, operation, copiedPaths, errors, skippedCount, skippedPaths)
     }
     
     /**
@@ -154,6 +169,8 @@ abstract class BaseFileOperationHandler(
         val errors = mutableListOf<String>()
         val movedPaths = mutableListOf<String>()
         var successCount = 0
+        var skippedCount = 0
+        val skippedPaths = mutableListOf<String>()
         
         operation.sources.forEachIndexed { index, source ->
             val total = operation.sources.size
@@ -175,47 +192,60 @@ abstract class BaseFileOperationHandler(
                         Timber.i("executeMove: SUCCESS - moved ${source.name}")
                     },
                     onFailure = { error ->
-                        val errorMsg = if (error is FileExistsException) {
-                            // Use localized string for file exists error
-                            context.getString(
-                                R.string.error_file_exists_move,
-                                error.fileName,
-                                error.destinationPath
-                            )
+                        if (error is FileExistsException && !operation.overwrite) {
+                            skippedCount++
+                            skippedPaths.add(destPath)
+                            Timber.i("executeMove: SKIPPED - $destPath (already exists)")
                         } else {
-                            FileOperationError.formatTransferError(
-                                fileName = source.name,
-                                sourcePath = sourcePath,
-                                destinationPath = destPath,
-                                errorMessage = error.message ?: "Unknown error"
-                            )
+                            val errorMsg = if (error is FileExistsException) {
+                                // Use localized string for file exists error
+                                context.getString(
+                                    R.string.error_file_exists_move,
+                                    error.fileName,
+                                    error.destinationPath
+                                )
+                            } else {
+                                FileOperationError.formatTransferError(
+                                    fileName = source.name,
+                                    sourcePath = sourcePath,
+                                    destinationPath = destPath,
+                                    errorMessage = error.message ?: "Unknown error"
+                                )
+                            }
+                            Timber.e("executeMove: FAILED - $errorMsg")
+                            errors.add(errorMsg)
                         }
-                        Timber.e("executeMove: FAILED - $errorMsg")
-                        errors.add(errorMsg)
                     }
                 )
             } catch (e: Exception) {
-                val error = if (e is FileExistsException) {
-                    // Use localized string for file exists error
-                    context.getString(
-                        R.string.error_file_exists_move,
-                        e.fileName,
-                        e.destinationPath
-                    )
+                if (e is FileExistsException && !operation.overwrite) {
+                    val destPath = joinPath(destinationPath, extractFileName(getSafePath(source), source.name))
+                    skippedCount++
+                    skippedPaths.add(destPath)
+                    Timber.i("executeMove: SKIPPED - $destPath (already exists)")
                 } else {
-                    FileOperationError.formatTransferError(
-                        fileName = source.name,
-                        sourcePath = getSafePath(source),
-                        destinationPath = joinPath(destinationPath, source.name),
-                        errorMessage = FileOperationError.extractErrorMessage(e)
-                    )
+                    val error = if (e is FileExistsException) {
+                        // Use localized string for file exists error
+                        context.getString(
+                            R.string.error_file_exists_move,
+                            e.fileName,
+                            e.destinationPath
+                        )
+                    } else {
+                        FileOperationError.formatTransferError(
+                            fileName = source.name,
+                            sourcePath = getSafePath(source),
+                            destinationPath = joinPath(destinationPath, source.name),
+                            errorMessage = FileOperationError.extractErrorMessage(e)
+                        )
+                    }
+                    Timber.e(e, "executeMove: ERROR - $error")
+                    errors.add(error)
                 }
-                Timber.e(e, "executeMove: ERROR - $error")
-                errors.add(error)
             }
         }
         
-        return@withContext buildMoveResult(successCount, operation, movedPaths, errors)
+        return@withContext buildMoveResult(successCount, operation, movedPaths, errors, skippedCount, skippedPaths)
     }
     
     /**
@@ -798,16 +828,19 @@ abstract class BaseFileOperationHandler(
         successCount: Int,
         operation: FileOperation.Copy,
         copiedPaths: List<String>,
-        errors: List<String>
+        errors: List<String>,
+        skippedCount: Int = 0,
+        skippedPaths: List<String> = emptyList()
     ): FileOperationResult {
+        val totalProcessed = successCount + skippedCount
         return when {
-            successCount == operation.sources.size -> {
-                Timber.i("executeCopy: All $successCount files copied successfully")
-                FileOperationResult.Success(successCount, operation, copiedPaths)
+            totalProcessed == operation.sources.size -> {
+                Timber.i("executeCopy: All ${operation.sources.size} files processed (copied: $successCount, skipped: $skippedCount)")
+                FileOperationResult.Success(successCount, operation, copiedPaths, skippedCount, skippedPaths)
             }
-            successCount > 0 -> {
-                Timber.w("executeCopy: Partial success - $successCount/${operation.sources.size} files copied. Errors: $errors")
-                FileOperationResult.PartialSuccess(successCount, errors.size, errors)
+            totalProcessed > 0 -> {
+                Timber.w("executeCopy: Partial success - $totalProcessed/${operation.sources.size} processed. Errors: $errors")
+                FileOperationResult.PartialSuccess(successCount, errors.size, errors, emptyList(), skippedCount, skippedPaths)
             }
             else -> {
                 Timber.e("executeCopy: All copy operations failed. Errors: $errors")
@@ -829,16 +862,19 @@ abstract class BaseFileOperationHandler(
         successCount: Int,
         operation: FileOperation.Move,
         movedPaths: List<String>,
-        errors: List<String>
+        errors: List<String>,
+        skippedCount: Int = 0,
+        skippedPaths: List<String> = emptyList()
     ): FileOperationResult {
+        val totalProcessed = successCount + skippedCount
         return when {
-            successCount == operation.sources.size -> {
-                Timber.i("executeMove: All $successCount files moved successfully")
-                FileOperationResult.Success(successCount, operation, movedPaths)
+            totalProcessed == operation.sources.size -> {
+                Timber.i("executeMove: All ${operation.sources.size} files processed (moved: $successCount, skipped: $skippedCount)")
+                FileOperationResult.Success(successCount, operation, movedPaths, skippedCount, skippedPaths)
             }
-            successCount > 0 -> {
-                Timber.w("executeMove: Partial success - $successCount/${operation.sources.size} files moved. Errors: $errors")
-                FileOperationResult.PartialSuccess(successCount, errors.size, errors)
+            totalProcessed > 0 -> {
+                Timber.w("executeMove: Partial success - $totalProcessed/${operation.sources.size} processed. Errors: $errors")
+                FileOperationResult.PartialSuccess(successCount, errors.size, errors, movedPaths, skippedCount, skippedPaths)
             }
             else -> {
                 Timber.e("executeMove: All move operations failed. Errors: $errors")

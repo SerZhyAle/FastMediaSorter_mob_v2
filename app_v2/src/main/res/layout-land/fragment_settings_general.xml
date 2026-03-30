@@ -117,13 +117,21 @@
 
                         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false">
 
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnLocalFilesPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/grant_local_files_permission" />
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btnLocalFilesPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginEnd="@dimen/resource_field_margin_end" android:text="@string/grant_local_files_permission" android:textSize="10sp" />
 
-                            <com.google.android.material.button.MaterialButton android:id="@+id/btnNetworkPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="@dimen/settings_help_icon_margin" android:text="@string/grant_network_permission" />
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btnNetworkPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="@dimen/settings_help_icon_margin" android:text="@string/grant_network_permission" android:textSize="10sp" />
 
                         </LinearLayout>
 
-                        <com.google.android.material.button.MaterialButton android:id="@+id/btnManageMediaPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/grant_manage_media_permission" android:visibility="gone" />
+                        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:baselineAligned="false" android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btnManageMediaPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginEnd="@dimen/resource_field_margin_end" android:layout_weight="1" android:text="@string/grant_manage_media_permission" android:textSize="10sp" android:visibility="gone" />
+
+                            <com.google.android.material.button.MaterialButton android:id="@+id/btnNotificationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="match_parent" android:layout_marginStart="@dimen/settings_help_icon_margin" android:layout_weight="1" android:text="@string/grant_notifications_permission" android:textSize="10sp" android:visibility="gone" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnBatteryOptimizationPermission" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/grant_battery_optimization_permission" android:textSize="10sp" />
 
                     </LinearLayout>
 

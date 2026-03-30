@@ -123,15 +123,25 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                             )
                         )
                         when {
-                            result is FileOperationResult.Success ||
-                            result is FileOperationResult.PartialSuccess -> {
-                                successCount++
-                                logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                Timber.d("ScheduledOp[$operationId] COPY OK ${file.name}")
+                            result is FileOperationResult.Success -> {
+                                if (result.skippedCount > 0) {
+                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] COPY SKIP ${file.name}")
+                                } else {
+                                    successCount++
+                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] COPY OK ${file.name}")
+                                }
                             }
-                            result is FileOperationResult.Failure && isFileExistsError(result.error) -> {
-                                logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
-                                Timber.d("ScheduledOp[$operationId] COPY SKIP ${file.name}")
+                            result is FileOperationResult.PartialSuccess -> {
+                                if (result.skippedCount > 0) {
+                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] COPY SKIP ${file.name}")
+                                } else {
+                                    successCount++
+                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] COPY OK ${file.name}")
+                                }
                             }
                             result is FileOperationResult.Failure -> {
                                 errors.add(result.error)
@@ -159,21 +169,37 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
                             )
                         )
                         when {
-                            result is FileOperationResult.Success ||
-                            result is FileOperationResult.PartialSuccess -> {
-                                fileOperationUseCase.execute(
-                                    FileOperation.Delete(
-                                        files = listOf(File(file.path)),
-                                        softDelete = false
+                            result is FileOperationResult.Success -> {
+                                if (result.skippedCount > 0) {
+                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
+                                } else {
+                                    fileOperationUseCase.execute(
+                                        FileOperation.Delete(
+                                            files = listOf(File(file.path)),
+                                            softDelete = false
+                                        )
                                     )
-                                )
-                                successCount++
-                                logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
-                                Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
+                                    successCount++
+                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
+                                }
                             }
-                            result is FileOperationResult.Failure && isFileExistsError(result.error) -> {
-                                logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
-                                Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
+                            result is FileOperationResult.PartialSuccess -> {
+                                if (result.skippedCount > 0) {
+                                    logOp(ts, opName, srcLabel, dstLabel, "SKIP: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] MOVE SKIP ${file.name}")
+                                } else {
+                                    fileOperationUseCase.execute(
+                                        FileOperation.Delete(
+                                            files = listOf(File(file.path)),
+                                            softDelete = false
+                                        )
+                                    )
+                                    successCount++
+                                    logOp(ts, opName, srcLabel, dstLabel, "OK: ${file.name}")
+                                    Timber.d("ScheduledOp[$operationId] MOVE OK ${file.name}")
+                                }
                             }
                             result is FileOperationResult.Failure -> {
                                 errors.add(result.error)
@@ -273,12 +299,6 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         TimeFilter.LAST_HOUR -> file.createdDate > now - 3_600_000L
         TimeFilter.LAST_DAY -> file.createdDate > now - 86_400_000L
     }
-
-    /** Returns true when the error string indicates the destination file already exists. */
-    private fun isFileExistsError(error: String): Boolean =
-        error.contains("already exists", ignoreCase = true) ||
-        error.contains("уже существует", ignoreCase = true) ||
-        error.contains("вже існує", ignoreCase = true)
 
     /** Appends one line to the user-visible operations log. */
     private fun logOp(ts: String, opName: String, src: String, dst: String, message: String) {
