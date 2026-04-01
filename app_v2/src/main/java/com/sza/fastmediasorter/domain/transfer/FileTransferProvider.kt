@@ -96,9 +96,9 @@ interface FileTransferProvider {
      * Create directory at remote path.
      * 
      * @param path Protocol-specific path
-     * @return Result<Unit> Success or failure with exception
+     * @return Result<String> Created path or failure with exception
      */
-    suspend fun createDirectory(path: String): Result<Unit>
+    suspend fun createDirectory(path: String): Result<String>
     
     /**
      * Check if path represents a file (not directory).

@@ -94,14 +94,13 @@
 | X.11 | Background thumbnail preload | WorkManager-based thumbnail pre-generation | Network traffic management; cache coordination |
 | X.2 | Cast / Screen Mirror | Chromecast slideshow output | Google Cast SDK; receiver app needed |
 | III.3+ | Favorites cloud sync | Auto-sync favorites via GDrive/Dropbox | Conflict resolution logic |
-| X.1 | Duplicate detection | Find duplicate files across resources | Hashing large files across network |
-
 ---
 
 ## TIER 5 — Complex (16-50h, high risk)
 
 | # | Item | Description | Why hard |
 |---|------|-------------|---------|
+| X.1 | Duplicate detection | Find duplicate files across resources (local/SMB/SFTP/FTP/cloud); Resource Ops menu in Browse with 4 operations | 29 impl steps; 26 new files; hashing across all protocols incl. cloud; 3-phase algorithm; WorkManager integration |
 | IV.1 | Refactor giant files | Decompose 11+ files exceeding 1000 LOC (25k+ total) | Touches core flows; BrowseViewModel 3.4k LOC |
 | III.5 | RAW formats | CR2/NEF/ARW/DNG preview support | Native decoders / LibRaw; device-specific failures |
 | II.3 | Tablet / large screen | Two-pane layouts for Browse + Player | Full regression across key screens |

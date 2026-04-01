@@ -80,10 +80,20 @@ data class BrowseState(
     val isCloudResource: Boolean = false, // True for cloud resources (to show animated dots)
     val isScanCancellable: Boolean = false, // True when scan runs >5 seconds, shows STOP button
     val showSmallControls: Boolean = false, // True if "Small controls" setting is enabled
+    val extractionState: ExtractionState = ExtractionState(),
     // Subfolder navigation state
     val currentPath: String? = null, // Current browsed path (null = root of resource)
     val pathStack: List<String> = emptyList(), // Stack of visited paths for back navigation
     val isSubfolderMode: Boolean = false // True when subfolder navigation is enabled
+)
+
+data class ExtractionState(
+    val isExtracting: Boolean = false,
+    val currentEntry: String = "",
+    val progressPercent: Int = 0,
+    val doneEntries: Int = 0,
+    val totalEntries: Int = 0,
+    val targetPath: String = ""
 )
 
 sealed class BrowseEvent {
@@ -95,6 +105,32 @@ sealed class BrowseEvent {
     data class CloudAuthRequired(val provider: String, val message: String) : BrowseEvent()
     data class PermissionRequired(val pendingIntent: PendingIntent) : BrowseEvent()
     data class NoFilesFound(val message: String? = null, val messageResId: Int? = null) : BrowseEvent()  // Return to main screen with toast
+    /**
+     * Fired after scanning files for delete-by-size so the UI can show a confirmation dialog.
+     * [matchedFiles] holds the candidate list; the UI passes it back via [executeBySizeDeleteConfirmed].
+     */
+    data class ShowDeleteBySizePreview(
+        val count: Int,
+        val totalBytes: Long,
+        val matchedFiles: List<com.sza.fastmediasorter.domain.model.MediaFile>
+    ) : BrowseEvent()
+    /** Archive operation progress — emitted during ZIP creation. */
+    data class ArchiveProgress(val current: Int, val total: Int, val fileName: String) : BrowseEvent()
+    /** Archive completed successfully. */
+    data class ArchiveSuccess(val archivePath: String, val archivedCount: Int) : BrowseEvent()
+    /** Archive failed or had a fatal error. */
+    data class ArchiveError(val message: String) : BrowseEvent()
+    data class ShowExtractConfirmDialog(val file: MediaFile, val targetDirName: String) : BrowseEvent()
+    data class ExtractionProgress(
+        val entryName: String,
+        val done: Int,
+        val total: Int,
+        val percent: Int
+    ) : BrowseEvent()
+    data class ExtractionSuccess(val targetPath: String, val extractedCount: Int) : BrowseEvent()
+    data class ExtractionFailed(val message: String) : BrowseEvent()
+    /** Fired after the current resource was successfully added as a Quick Sort destination. */
+    data class ResourceAddedAsDestination(val resourceId: Long) : BrowseEvent()
 }
 
 // --- Inline Audio Player ---
@@ -123,6 +159,7 @@ class BrowseViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val getResourcesUseCase: GetResourcesUseCase,
     private val getMediaFilesUseCase: GetMediaFilesUseCase,
+    private val deleteByFileSizeUseCase: com.sza.fastmediasorter.domain.usecase.DeleteByFileSizeUseCase,
     private val mediaScannerFactory: MediaScannerFactory,
     private val settingsRepository: SettingsRepository,
     private val cachedFileListRepository: CachedFileListRepository,
@@ -143,6 +180,10 @@ class BrowseViewModel @Inject constructor(
     private val clearResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase,
     private val getResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase,
     private val saveResumeStateUseCase: com.sza.fastmediasorter.domain.usecase.SaveResumeStateUseCase,
+    private val createDirectoryUseCase: com.sza.fastmediasorter.domain.usecase.CreateDirectoryUseCase,
+    private val archiveFilesUseCase: com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase,
+    private val extractArchiveUseCase: com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase,
+    private val addResourceAsDestinationUseCase: com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -358,7 +399,11 @@ class BrowseViewModel @Inject constructor(
             cachedSettings = it
         }
     }
-    
+
+    /** True if scheduled operations are enabled in user settings (runtime flag). */
+    val scheduledOperationsEnabled: Boolean
+        get() = cachedSettings?.enableScheduledOperations == true
+
     /**
      * Observe selection changes from SelectionManager and sync to state.
      */
@@ -803,6 +848,34 @@ class BrowseViewModel @Inject constructor(
         if (resource?.rememberFileList == true) {
             viewModelScope.launch(ioDispatcher) {
                 cachedFileListRepository.updateFile(resource.id, oldPath, newFile)
+            }
+        }
+    }
+    
+    /**
+     * Creates a new directory in the current browsing context.
+     * 
+     * @param name Name of the new directory
+     */
+    fun createFolder(name: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val resource = state.value.resource ?: return@launch
+            val currentPath = state.value.currentPath ?: resource.path
+            
+            Timber.d("BrowseViewModel.createFolder: name=$name, currentPath=$currentPath")
+            
+            val result = createDirectoryUseCase(resource, currentPath, name)
+            
+            withContext(Dispatchers.Main) {
+                result.onSuccess { newFolderPath ->
+                    Timber.i("BrowseViewModel.createFolder: SUCCESS, path=$newFolderPath")
+                    // Full reload to ensure UI is in sync and cache is refreshed
+                    loadResource()
+                    sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.msg_folder_created, name)))
+                }.onFailure { e ->
+                    Timber.e(e, "BrowseViewModel.createFolder: FAILED")
+                    sendEvent(BrowseEvent.ShowError(e.message ?: "Failed to create folder"))
+                }
             }
         }
     }
@@ -3516,6 +3589,355 @@ class BrowseViewModel @Inject constructor(
         // Load directory contents
         viewModelScope.launch(ioDispatcher + exceptionHandler) {
             loadDirectoryContents(targetPath)
+        }
+    }
+
+    fun deleteBySize(minSizeMb: Float?, maxSizeMb: Float?) {
+        scanBySize(minSizeMb = minSizeMb, maxSizeMb = maxSizeMb)
+    }
+
+    /**
+     * Phase 1: scans the resource for files matching the size criteria.
+     * Fires [BrowseEvent.ShowDeleteBySizePreview] on success or [BrowseEvent.ShowError] on failure.
+     */
+    fun scanBySize(minSizeMb: Float?, maxSizeMb: Float?) {
+        val resource = state.value.resource ?: return
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            Timber.d("BrowseViewModel.scanBySize: start — minSizeMb=$minSizeMb, maxSizeMb=$maxSizeMb")
+            setLoading(true)
+            val scanResult = try {
+                deleteByFileSizeUseCase.scan(
+                    resource,
+                    maxSizeMb = maxSizeMb,
+                    minSizeMb = minSizeMb
+                )
+            } finally {
+                setLoading(false)
+            }
+            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                if (scanResult.files.isEmpty()) {
+                    sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.delete_by_size_no_matches)))
+                } else {
+                    sendEvent(
+                        BrowseEvent.ShowDeleteBySizePreview(
+                            count = scanResult.files.size,
+                            totalBytes = scanResult.totalBytes,
+                            matchedFiles = scanResult.files
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Phase 2: deletes the [files] list previously returned by [scanBySize].
+     */
+    fun executeBySizeDeleteConfirmed(files: List<com.sza.fastmediasorter.domain.model.MediaFile>) {
+        if (files.isEmpty()) return
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            Timber.d("BrowseViewModel.executeBySizeDeleteConfirmed: deleting ${files.size} files")
+            when (val result = deleteByFileSizeUseCase.execute(files)) {
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success -> {
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        sendEvent(BrowseEvent.ShowMessage(
+                            context.getString(R.string.deleted_n_files, result.processedCount)
+                        ))
+                        loadResource()
+                    }
+                }
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PartialSuccess -> {
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        sendEvent(BrowseEvent.ShowError(
+                            context.getString(R.string.error_partial_success),
+                            context.getString(R.string.deleted_n_of_m_files, result.processedCount, result.processedCount + result.failedCount)
+                        ))
+                        loadResource()
+                    }
+                }
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Failure -> {
+                    Timber.e("executeBySizeDeleteConfirmed: failure — ${result.error}")
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        sendEvent(BrowseEvent.ShowError(
+                            context.getString(R.string.error_deletion_failed),
+                            result.error
+                        ))
+                    }
+                }
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PermissionRequired -> {
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        sendEvent(BrowseEvent.PermissionRequired(result.pendingIntent))
+                    }
+                }
+                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.AuthenticationRequired -> {
+                    withContext(kotlinx.coroutines.Dispatchers.Main) {
+                        sendEvent(BrowseEvent.CloudAuthRequired(result.provider, result.message))
+                    }
+                }
+            }
+        }
+    }
+
+    // =========================================================================
+    // Archive selected files (task_1_3)
+    // =========================================================================
+
+    /** Active archive job — allows cancellation from UI. */
+    private var archiveJob: kotlinx.coroutines.Job? = null
+    /** Active extraction job — allows cancellation from UI. */
+    private var extractionJob: kotlinx.coroutines.Job? = null
+    @Volatile
+    private var extractionCancelRequested: Boolean = false
+
+    /**
+     * Archives the currently selected files into a single ZIP file.
+     *
+     * @param archiveName  Desired archive base name (e.g. "vacation_2026"; ".zip" appended if absent).
+     * @param destinationPath  Absolute path to the directory where the archive will be saved.
+     */
+    fun archiveSelectedFiles(archiveName: String, destinationPath: String) {
+        val selectedPaths = state.value.selectedFiles.toList()
+        if (selectedPaths.isEmpty()) {
+            Timber.w("archiveSelectedFiles: no files selected")
+            return
+        }
+
+        // Reject non-local resources up-front
+        val resource = state.value.resource
+        if (resource != null && resource.type.isNetworkResource) {
+            sendEvent(BrowseEvent.ArchiveError(
+                context.getString(R.string.archive_error_network_not_supported)
+            ))
+            return
+        }
+
+        archiveJob?.cancel()
+        archiveJob = viewModelScope.launch(ioDispatcher) {
+            Timber.i("archiveSelectedFiles: starting for ${selectedPaths.size} files → $destinationPath/$archiveName")
+            try {
+                archiveFilesUseCase(selectedPaths, archiveName, destinationPath).collect { progress ->
+                    when (progress) {
+                        is com.sza.fastmediasorter.domain.usecase.ArchiveProgress.Started -> {
+                            Timber.d("archiveSelectedFiles: started, total=${progress.totalFiles}")
+                        }
+                        is com.sza.fastmediasorter.domain.usecase.ArchiveProgress.FileDone -> {
+                            sendEvent(BrowseEvent.ArchiveProgress(progress.current, progress.total, progress.fileName))
+                        }
+                        is com.sza.fastmediasorter.domain.usecase.ArchiveProgress.FileWarning -> {
+                            Timber.w("archiveSelectedFiles: warning for ${progress.fileName}: ${progress.reason}")
+                        }
+                        is com.sza.fastmediasorter.domain.usecase.ArchiveProgress.Success -> {
+                            Timber.i("archiveSelectedFiles: success — ${progress.archivePath}")
+                            clearSelection()
+                            // Refresh file list if archive landed in the current directory
+                            val currentDir = state.value.currentPath ?: state.value.resource?.path
+                            if (currentDir != null && java.io.File(progress.archivePath).parent == currentDir) {
+                                reloadFiles()
+                            }
+                            sendEvent(BrowseEvent.ArchiveSuccess(progress.archivePath, progress.archivedCount))
+                        }
+                        is com.sza.fastmediasorter.domain.usecase.ArchiveProgress.Error -> {
+                            Timber.e(progress.exception, "archiveSelectedFiles: error — ${progress.message}")
+                            sendEvent(BrowseEvent.ArchiveError(progress.message))
+                        }
+                    }
+                }
+            } catch (e: kotlinx.coroutines.CancellationException) {
+                Timber.i("archiveSelectedFiles: cancelled")
+                // No event — UI dismisses the dialog itself
+            }
+        }
+    }
+
+    /** Cancels an in-progress archive operation. Partial archive file is deleted by the UseCase. */
+    fun cancelArchive() {
+        archiveJob?.cancel()
+        archiveJob = null
+    }
+
+    fun prepareExtraction(file: MediaFile) {
+        val resource = state.value.resource ?: return
+        if (resource.type != ResourceType.LOCAL) {
+            sendEvent(BrowseEvent.ExtractionFailed(context.getString(R.string.unarchive_network_not_supported)))
+            return
+        }
+        if (!isZipArchive(file)) {
+            sendEvent(BrowseEvent.ExtractionFailed(context.getString(R.string.unarchive_only_zip_supported)))
+            return
+        }
+
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val parentPath = state.value.currentPath ?: resource.path
+            val targetDirName = resolveUniqueExtractionDirName(file.name, parentPath)
+            withContext(Dispatchers.Main) {
+                sendEvent(BrowseEvent.ShowExtractConfirmDialog(file, targetDirName))
+            }
+        }
+    }
+
+    fun extractArchive(file: MediaFile) {
+        val resource = state.value.resource ?: return
+        if (resource.type != ResourceType.LOCAL) {
+            sendEvent(BrowseEvent.ExtractionFailed(context.getString(R.string.unarchive_network_not_supported)))
+            return
+        }
+        if (!isZipArchive(file)) {
+            sendEvent(BrowseEvent.ExtractionFailed(context.getString(R.string.unarchive_only_zip_supported)))
+            return
+        }
+
+        extractionJob?.cancel()
+        extractionCancelRequested = false
+
+        extractionJob = viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            val parentPath = state.value.currentPath ?: resource.path
+            val targetDirName = resolveUniqueExtractionDirName(file.name, parentPath)
+
+            val createdDirPath = createDirectoryUseCase(resource, parentPath, targetDirName).getOrElse { error ->
+                sendEvent(BrowseEvent.ExtractionFailed(error.message ?: context.getString(R.string.unarchive_error_create_dir)))
+                return@launch
+            }
+
+            updateState {
+                it.copy(
+                    extractionState = ExtractionState(
+                        isExtracting = true,
+                        currentEntry = "",
+                        progressPercent = 0,
+                        doneEntries = 0,
+                        totalEntries = 0,
+                        targetPath = createdDirPath
+                    )
+                )
+            }
+
+            extractArchiveUseCase.invoke(
+                archivePath = file.path,
+                targetDirPath = createdDirPath,
+                onCancel = { extractionCancelRequested }
+            ).collect { progress ->
+                when (progress) {
+                    is com.sza.fastmediasorter.domain.usecase.ExtractProgress.Started -> {
+                        updateState {
+                            it.copy(
+                                extractionState = it.extractionState.copy(
+                                    isExtracting = true,
+                                    totalEntries = progress.totalEntries,
+                                    doneEntries = 0,
+                                    progressPercent = 0
+                                )
+                            )
+                        }
+                    }
+
+                    is com.sza.fastmediasorter.domain.usecase.ExtractProgress.EntryDone -> {
+                        updateState {
+                            it.copy(
+                                extractionState = it.extractionState.copy(
+                                    isExtracting = true,
+                                    currentEntry = progress.entryName,
+                                    doneEntries = progress.done,
+                                    totalEntries = progress.total,
+                                    progressPercent = progress.percent
+                                )
+                            )
+                        }
+                        sendEvent(
+                            BrowseEvent.ExtractionProgress(
+                                entryName = progress.entryName,
+                                done = progress.done,
+                                total = progress.total,
+                                percent = progress.percent
+                            )
+                        )
+                    }
+
+                    is com.sza.fastmediasorter.domain.usecase.ExtractProgress.Success -> {
+                        updateState {
+                            it.copy(
+                                extractionState = it.extractionState.copy(
+                                    isExtracting = false,
+                                    progressPercent = 100,
+                                    targetPath = progress.targetPath
+                                )
+                            )
+                        }
+                        reloadFiles(clearList = false)
+                        sendEvent(BrowseEvent.ExtractionSuccess(progress.targetPath, progress.extractedCount))
+                    }
+
+                    is com.sza.fastmediasorter.domain.usecase.ExtractProgress.Failure -> {
+                        updateState {
+                            it.copy(
+                                extractionState = it.extractionState.copy(isExtracting = false)
+                            )
+                        }
+                        if (progress.error != "cancelled") {
+                            val message = when (progress.error) {
+                                "zip_bomb" -> context.getString(R.string.unarchive_error_zip_bomb)
+                                "no_space" -> context.getString(R.string.unarchive_error_no_space)
+                                else -> context.getString(R.string.unarchive_error_generic, progress.error)
+                            }
+                            sendEvent(BrowseEvent.ExtractionFailed(message))
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun cancelExtraction() {
+        extractionCancelRequested = true
+        extractionJob?.cancel()
+        extractionJob = null
+        updateState {
+            it.copy(extractionState = it.extractionState.copy(isExtracting = false))
+        }
+    }
+
+    private suspend fun resolveUniqueExtractionDirName(archiveFileName: String, parentPath: String): String {
+        val base = archiveFileName.replaceFirst(Regex("(?i)\\.zip$"), "").ifBlank { "extracted" }
+        for (index in 0..99) {
+            val candidate = if (index == 0) base else "${base}_$index"
+            if (!folderExists(parentPath, candidate)) {
+                return candidate
+            }
+        }
+        return "${base}_99"
+    }
+
+    private suspend fun folderExists(parentPath: String, folderName: String): Boolean = withContext(Dispatchers.IO) {
+        if (parentPath.startsWith("content:/")) {
+            val dirUri = com.sza.fastmediasorter.utils.SafHelper.parseUri(parentPath)
+            val parentDoc = com.sza.fastmediasorter.utils.SafHelper.getDocumentFileFromUri(context, dirUri)
+                ?: return@withContext false
+            parentDoc.findFile(folderName)?.isDirectory == true
+        } else {
+            File(parentPath, folderName).exists()
+        }
+    }
+
+    private fun isZipArchive(file: MediaFile): Boolean {
+        if (file.type != MediaType.BINARY_ARCHIVE) return false
+        val extension = file.name.substringAfterLast('.', "").lowercase()
+        return extension == "zip"
+    }
+
+    /**
+     * Marks the currently open resource as a Quick Sort destination.
+     * Fires [BrowseEvent.ResourceAddedAsDestination] on success or [BrowseEvent.ShowError] on failure.
+     */
+    fun addCurrentResourceAsDestination() {
+        val resource = state.value.resource ?: return
+        viewModelScope.launch {
+            val result = withContext(ioDispatcher) {
+                addResourceAsDestinationUseCase(resource)
+            }
+            result.onSuccess {
+                sendEvent(BrowseEvent.ResourceAddedAsDestination(resource.id))
+            }.onFailure { e ->
+                sendEvent(BrowseEvent.ShowError(e.message ?: "Failed to add as destination"))
+            }
         }
     }
 }

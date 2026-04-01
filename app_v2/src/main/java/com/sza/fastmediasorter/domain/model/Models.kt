@@ -223,6 +223,7 @@ data class MediaFile(
     // Directory support for subfolder navigation
     val isDirectory: Boolean = false, // True if this is a folder (for subfolder navigation)
     val childCount: Int? = null, // Number of children in directory (files + folders), null for files
+    val lastModified: Long = 0L, // File last modified timestamp (ms); 0 if unavailable
     // Cloud display metadata (for CLOUD resources)
     val cloudDisplayPath: String? = null, // Human-readable cloud path (folders + file name)
     val cloudItemId: String? = null // Provider-specific internal file/folder ID

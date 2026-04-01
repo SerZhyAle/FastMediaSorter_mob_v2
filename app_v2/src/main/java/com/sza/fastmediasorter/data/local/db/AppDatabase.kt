@@ -17,9 +17,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         CachedFileListEntity::class,
         FileMetadataCacheEntity::class,
         PendingRevocationEntity::class,
-        ScheduledOperationEntity::class
+        ScheduledOperationEntity::class,
+        DuplicateHashCacheEntity::class
     ],
-    version = 20,
+    version = 21,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -33,6 +34,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun cachedFileListDao(): CachedFileListDao
     abstract fun fileMetadataCacheDao(): FileMetadataCacheDao
     abstract fun scheduledOperationDao(): ScheduledOperationDao
+    abstract fun duplicateHashCacheDao(): DuplicateHashCacheDao
 
     companion object {
         /**
@@ -190,6 +192,37 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP TABLE IF EXISTS pending_revocations")
                 createFinalPendingRevocationsTable(db)
+            }
+        }
+
+        val MIGRATION_20_21 = object : Migration(20, 21) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `duplicate_hash_cache` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `resourceId` INTEGER NOT NULL,
+                        `filePath` TEXT NOT NULL,
+                        `lastModified` INTEGER NOT NULL,
+                        `fileSize` INTEGER NOT NULL,
+                        `quickHash` TEXT,
+                        `fullHash` TEXT,
+                        `cachedAt` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_duplicate_hash_cache_resourceId_filePath_lastModified_fileSize` " +
+                    "ON `duplicate_hash_cache` (`resourceId`, `filePath`, `lastModified`, `fileSize`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_duplicate_hash_cache_resourceId` " +
+                    "ON `duplicate_hash_cache` (`resourceId`)"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_duplicate_hash_cache_cachedAt` " +
+                    "ON `duplicate_hash_cache` (`cachedAt`)"
+                )
             }
         }
 

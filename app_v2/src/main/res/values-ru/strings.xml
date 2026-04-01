@@ -1248,6 +1248,7 @@
     <string name="toast_unexpected_result">Неожиданный результат</string>
     <string name="toast_rename_error">Ошибка переименования: %1$s</string>
     <string name="toast_delete_error">Ошибка удаления: %1$s</string>
+    <string name="error_deletion_failed">Удаление не выполнено</string>
     <string name="toast_multiple_rename_not_implemented">Массовое переименование пока не реализовано</string>
     <string name="toast_filter_applied">Фильтр применён</string>
     <string name="toast_filter_failed">Не удалось применить фильтр: %1$s</string>
@@ -2129,6 +2130,13 @@
     <string name="perm_battery_optim_grant">Разрешить работу в фоне</string>
     <string name="perm_battery_optim_manage">Управление оптимизацией батареи</string>
     <string name="perm_battery_optim_hint">Требуется для надёжной работы операций по расписанию</string>
+    <!-- Print -->
+    <string name="menu_print">Печать</string>
+    <string name="error_print_unavailable">Службы печати недоступны на этом устройстве</string>
+    <string name="print_job_label">Печать: %s</string>
+    <string name="error_print_file_too_large">Файл слишком большой для печати (макс. 30 МБ)</string>
+    <string name="error_print_download_failed">Не удалось загрузить файл для печати</string>
+
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Трансляция…</string>
     <string name="cast_connected">Трансляция на %s</string>
@@ -2153,4 +2161,77 @@
     <string name="now_playing_next_desc">Следующий трек</string>
     <string name="now_playing_seek_bar_desc">Перемотка</string>
     <string name="now_playing_mini_bar_desc">Сейчас играет — нажмите, чтобы открыть управление</string>
+
+    <!-- Duplicate Detection -->
+    <string name="action_find_duplicates">Найти дубликаты</string>
+    <string name="action_delete_duplicates">Найти и удалить дубликаты</string>
+    <string name="action_delete_by_size">Удаление по размеру…</string>
+    <string name="delete_by_size_smaller">Меньше чем</string>
+    <string name="delete_by_size_larger">Больше чем</string>
+    <string name="delete_by_size_unit_kb">КБ</string>
+    <string name="delete_by_size_unit_mb">МБ</string>
+    <string name="delete_by_size_unit_gb">ГБ</string>
+    <string name="delete_by_size_analyze">Анализ</string>
+    <string name="delete_by_size_scanning">Сканирование…</string>
+    <string name="delete_by_size_preview_title">Подтвердить удаление</string>
+    <string name="delete_by_size_preview_result">Найдено файлов: &lt;b&gt;%1$d&lt;/b&gt;\nОсвобождаемое место: &lt;b&gt;%2$s&lt;/b&gt;</string>
+    <string name="delete_by_size_no_matches">Подходящих файлов не найдено</string>
+    <string name="delete_by_size_warning_no_trash">Внимание: корзина не поддерживается для этого ресурса. Удаление будет безвозвратным!</string>
+    <string name="delete_by_size_confirm_btn">Удалить файлы</string>
+    <string name="cd_resource_ops_menu">Меню операций с ресурсом</string>
+    <string name="duplicate_detection_title">Дубликаты</string>
+    <string name="duplicate_scan_start">Начать сканирование</string>
+    <string name="duplicate_none_found">Дубликаты не найдены.</string>
+    <string name="scanning_for_duplicates">Поиск дубликатов…</string>
+    <string name="duplicates_found_format">Найдено %1$d групп дубликатов (всего %2$s)</string>
+    <string name="group_title_format">Группа %1$d</string>
+    <string name="select_duplicates">Выбрать дубликаты</string>
+    <string name="cd_delete_file">Удалить файл</string>
+    <string name="cd_expand_group">Развернуть группу</string>
+    <string name="duplicate_group_count">%1$d файлов</string>
+    <string name="cd_collapse_group">Свернуть группу</string>
+    <string name="duplicate_wasted_bytes">Занято впустую: %1$s</string>
+    <string name="duplicate_scan_network_warning">Сканирование сети может занять много времени и трафика. Продолжить?</string>
+    <string name="duplicate_scan_notif_title">Поиск дубликатов</string>
+    <string name="duplicate_scan_notif_running">Выполняется поиск дубликатов...</string>
+    <string name="duplicate_scan_notif_channel_name">Сканнер дубликатов</string>
+    <string name="action_create_folder">Создать папку</string>
+    <string name="menu_automate_source">Автоматизация..</string>
+    <string name="menu_add_receiver">В получатели</string>
+    <string name="msg_added_as_receiver">Ресурс добавлен как получатель</string>
+    <string name="btn_edit_receiver">Настроить</string>
+    <string name="create_folder">Создать папку</string>
+    <string name="create_folder_title">Новая папка</string>
+    <string name="create_folder_hint">Имя папки</string>
+    <string name="error_invalid_folder_name">Недопустимое имя папки</string>
+    <string name="error_folder_already_exists">Папка уже существует</string>
+    <string name="msg_folder_created">Папка "%1$s" создана</string>
+
+    <!-- Archive selected files (task_1_3) -->
+    <string name="archive_files">Архив</string>
+    <string name="archive_dialog_title">Архивировать выбранные файлы</string>
+    <string name="archive_name_hint">Имя архива (без .zip)</string>
+    <string name="archive_name_empty_error">Имя архива не может быть пустым</string>
+    <string name="archive_name_invalid_chars_error">Имя содержит недопустимые символы</string>
+    <string name="archive_destination_label">Папка назначения: %1$s</string>
+    <string name="archive_action_btn">Архивировать</string>
+    <string name="archive_progress_title">Создание архива…</string>
+    <string name="archive_progress_message">%1$d из %2$d: %3$s</string>
+    <string name="archive_success">Архив создан: %1$s (%2$d файлов)</string>
+    <string name="archive_error">Ошибка архивации: %1$s</string>
+    <string name="archive_error_network_not_supported">Архивация поддерживается только для локальных файлов. Сетевые и облачные источники не поддерживаются.</string>
+    <string name="unarchive_dialog_title">Распаковать архив?</string>
+    <string name="unarchive_dialog_message">"%1$s" -> папка "%2$s"</string>
+    <string name="unarchive_action_extract">Распаковать</string>
+    <string name="unarchive_progress_title">Распаковка архива…</string>
+    <string name="unarchive_progress_entry">Извлечение: %1$s</string>
+    <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
+    <string name="unarchive_success">Архив распакован</string>
+    <string name="unarchive_error_zip_bomb">Архив слишком большой или слишком глубокий</string>
+    <string name="unarchive_error_no_space">Недостаточно места</string>
+    <string name="unarchive_error_create_dir">Не удалось создать папку распаковки</string>
+    <string name="unarchive_error_generic">Ошибка распаковки: %1$s</string>
+    <string name="unarchive_network_not_supported">Распаковка поддерживается только для локальных ресурсов и SD-карты.</string>
+    <string name="unarchive_only_zip_supported">Поддерживаются только ZIP-архивы.</string>
+    <string name="action_open">Открыть</string>
 </resources>

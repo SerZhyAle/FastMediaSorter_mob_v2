@@ -27,6 +27,7 @@ class ScheduledOperationDialog(
     private val resources: List<MediaResource>,
     private val destinations: List<MediaResource>,
     private val existing: ScheduledOperation? = null,
+    private val prefilledSourceId: Long? = null,
     private val onSave: (ScheduledOperation) -> Unit
 ) : Dialog(context) {
 
@@ -45,6 +46,7 @@ class ScheduledOperationDialog(
         setupDropdowns()
         setupNextRunPreview()
         populateExisting()
+        applyPrefilledSource()
         setupTimePicker()
         setupIntervalPicker()
         b.btnCancel.setOnClickListener { dismiss() }
@@ -212,6 +214,14 @@ class ScheduledOperationDialog(
         val label = context.getString(R.string.scheduled_ops_next_run)
         b.tvNextRun.text = "$label ${nextRunFormat.format(next.time)}"
         b.tvNextRun.visibility = View.VISIBLE
+    }
+
+    /** Pre-fill source dropdown when opening dialog from Browse with a pre-selected resource. */
+    private fun applyPrefilledSource() {
+        if (existing != null || prefilledSourceId == null) return
+        val srcResource = resources.find { it.id == prefilledSourceId } ?: return
+        b.actvSource.setText(srcResource.name, false)
+        applyReadOnlySourceConstraint(srcResource)
     }
 
     private fun populateExisting() {

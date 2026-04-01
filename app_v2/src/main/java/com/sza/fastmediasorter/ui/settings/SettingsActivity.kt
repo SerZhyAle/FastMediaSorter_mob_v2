@@ -35,6 +35,10 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
     private var setupStartUptimeMs: Long = 0L
     
     companion object {
+        /** Intent extra: Long — pre-select this resource as source in the new scheduled operation dialog. */
+        const val EXTRA_SOURCE_RESOURCE_ID = "extra_source_resource_id"
+        /** Intent extra: Int — open Settings on this tab index (0=General, 1=Media, 2=Playback, 3=Destinations). */
+        const val EXTRA_INITIAL_TAB = "extra_initial_tab"
         private const val PREFS_NAME = "settings_state"
         private const val KEY_LAST_TAB_POSITION = "last_tab_position"
     }
@@ -82,12 +86,25 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
         }.attach()
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] TabLayoutMediator attached")
 
-        // Restore last opened tab position
-        val lastTabPosition = getLastTabPosition()
-        if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] lastTabPosition=$lastTabPosition read (disk)")
-        if (lastTabPosition in 0 until (adapter.itemCount)) {
-            binding.viewPager.post {
-                binding.viewPager.setCurrentItem(lastTabPosition, false)
+        // If opened to create a new scheduled operation from Browse, jump to Operations tab
+        val sourceResourceId = intent.getLongExtra(EXTRA_SOURCE_RESOURCE_ID, -1L)
+        val initialTab = intent.getIntExtra(EXTRA_INITIAL_TAB, -1)
+        when {
+            sourceResourceId != -1L && BuildConfig.ENABLE_SCHEDULED_OPERATIONS -> {
+                binding.viewPager.post { binding.viewPager.setCurrentItem(3, false) }
+            }
+            initialTab in 0 until adapter.itemCount -> {
+                binding.viewPager.post { binding.viewPager.setCurrentItem(initialTab, false) }
+            }
+            else -> {
+                // Restore last opened tab position
+                val lastTabPosition = getLastTabPosition()
+                if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] lastTabPosition=$lastTabPosition read (disk)")
+                if (lastTabPosition in 0 until (adapter.itemCount)) {
+                    binding.viewPager.post {
+                        binding.viewPager.setCurrentItem(lastTabPosition, false)
+                    }
+                }
             }
         }
 

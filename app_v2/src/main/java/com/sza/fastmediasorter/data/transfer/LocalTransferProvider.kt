@@ -336,20 +336,41 @@ class LocalTransferProvider @Inject constructor(
         }
     }
     
-    override suspend fun createDirectory(path: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun createDirectory(path: String): Result<String> = withContext(Dispatchers.IO) {
         try {
              if (path.startsWith("content://")) {
-                 // Creating directory via SAF URI? 
-                 // Usually we create via Tree URI. 
-                 // If path is a Tree URI, we are good?
-                 // We can't "create" the uri itself.
-                 // We assume path is parent URI?
-                 // Complex. For now validation only.
-                 Result.success(Unit) 
+                 val uri = Uri.parse(path)
+                 val parentDoc = SafHelper.getDocumentFileFromUri(context, uri)
+                     ?: return@withContext Result.failure(Exception("Parent SAF directory not found: $path"))
+                 
+                 // If the folder name is already in the path, extract name and use parent.
+                 // Assuming path is where we want the directory.
+                 // This method usually expects the path TO BE CREATED.
+                 
+                 // If createDirectory(path) means "ensure path exists", we find parent and create child.
+                 val parentUri = uri.toString().substringBeforeLast('/')
+                 val folderName = uri.toString().substringAfterLast('/')
+                 
+                 val parentFile = DocumentFile.fromTreeUri(context, Uri.parse(parentUri))
+                 val newDir = parentFile?.createDirectory(folderName)
+                 
+                 if (newDir != null) {
+                     Timber.d("Created SAF directory: ${newDir.uri}")
+                     Result.success(newDir.uri.toString())
+                 } else {
+                     Result.failure(Exception("Failed to create SAF directory: $folderName in $parentUri"))
+                 }
             } else {
                 val dir = File(path)
-                if (dir.mkdirs() || dir.exists()) Result.success(Unit)
-                else Result.failure(Exception("Failed to create directory: $path"))
+                if (dir.exists()) {
+                    Result.success(dir.absolutePath)
+                } else if (dir.mkdirs()) {
+                    Timber.d("Created local directory: $path")
+                    MediaStoreNotifier.notifyFile(context, path, "createDirectory")
+                    Result.success(dir.absolutePath)
+                } else {
+                    Result.failure(Exception("Failed to create directory: $path"))
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Error creating directory: $path")

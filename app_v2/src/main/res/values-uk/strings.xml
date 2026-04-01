@@ -1244,6 +1244,7 @@
     <string name="toast_unexpected_result">Неочікуваний результат</string>
     <string name="toast_rename_error">Помилка перейменування: %1$s</string>
     <string name="toast_delete_error">Помилка видалення: %1$s</string>
+    <string name="error_deletion_failed">Видалення не виконано</string>
     <string name="toast_multiple_rename_not_implemented">Масове перейменування ще не реалізовано</string>
     <string name="toast_filter_applied">Фільтр застосовано</string>
     <string name="toast_filter_failed">Не вдалося застосувати фільтр: %1$s</string>
@@ -2131,6 +2132,13 @@
     <string name="perm_battery_optim_grant">Дозволити роботу у фоні</string>
     <string name="perm_battery_optim_manage">Керування оптимізацією батареї</string>
     <string name="perm_battery_optim_hint">Потрібно для надійної роботи операцій за розкладом</string>
+    <!-- Print -->
+    <string name="menu_print">Друк</string>
+    <string name="error_print_unavailable">Служби друку недоступні на цьому пристрої</string>
+    <string name="print_job_label">Друк: %s</string>
+    <string name="error_print_file_too_large">Файл завеликий для друку (макс. 30 МБ)</string>
+    <string name="error_print_download_failed">Не вдалося завантажити файл для друку</string>
+
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Трансляція…</string>
     <string name="cast_connected">Трансляція на %s</string>
@@ -2155,4 +2163,77 @@
     <string name="now_playing_next_desc">Наступний трек</string>
     <string name="now_playing_seek_bar_desc">Перемотування</string>
     <string name="now_playing_mini_bar_desc">Зараз грає — торкніться, щоб відкрити керування</string>
+
+    <!-- Duplicate Detection -->
+    <string name="action_find_duplicates">Знайти дублікати</string>
+    <string name="action_delete_duplicates">Знайти та видалити дублікати</string>
+    <string name="action_delete_by_size">Видалення за розміром…</string>
+    <string name="delete_by_size_smaller">Менше ніж</string>
+    <string name="delete_by_size_larger">Більше ніж</string>
+    <string name="delete_by_size_unit_kb">КБ</string>
+    <string name="delete_by_size_unit_mb">МБ</string>
+    <string name="delete_by_size_unit_gb">ГБ</string>
+    <string name="delete_by_size_analyze">Аналіз</string>
+    <string name="delete_by_size_scanning">Сканування…</string>
+    <string name="delete_by_size_preview_title">Підтвердити видалення</string>
+    <string name="delete_by_size_preview_result">Знайдено файлів: &lt;b&gt;%1$d&lt;/b&gt;\nЗвільняється місця: &lt;b&gt;%2$s&lt;/b&gt;</string>
+    <string name="delete_by_size_no_matches">Підходящих файлів не знайдено</string>
+    <string name="delete_by_size_warning_no_trash">Увага: кошик не підтримується для цього ресурсу. Видалення буде безповоротним!</string>
+    <string name="delete_by_size_confirm_btn">Видалити файли</string>
+    <string name="cd_resource_ops_menu">Меню операцій з ресурсом</string>
+    <string name="duplicate_detection_title">Дублікати</string>
+    <string name="duplicate_scan_start">Почати сканування</string>
+    <string name="scanning_for_duplicates">Пошук дублікатів…</string>
+    <string name="duplicate_none_found">Дублікати не знайдено.</string>
+    <string name="duplicates_found_format">Знайдено %1$d груп дублікатів (загалом %2$s)</string>
+    <string name="group_title_format">Група %1$d</string>
+    <string name="select_duplicates">Вибрати дублікати</string>
+    <string name="cd_delete_file">Видалити файл</string>
+    <string name="cd_expand_group">Розгорнути групу</string>
+    <string name="duplicate_group_count">%1$d файлів</string>
+    <string name="cd_collapse_group">Згорнути групу</string>
+    <string name="duplicate_wasted_bytes">Витрачено даремно: %1$s</string>
+    <string name="duplicate_scan_network_warning">Сканування мережі може зайняти багато часу та трафіку. Продовжити?</string>
+    <string name="duplicate_scan_notif_title">Пошук дублікатів</string>
+    <string name="duplicate_scan_notif_running">Виконується пошук дублікатів...</string>
+    <string name="duplicate_scan_notif_channel_name">Сканер дублікатів</string>
+    <string name="action_create_folder">Створити папку</string>
+    <string name="menu_automate_source">Автоматизація..</string>
+    <string name="menu_add_receiver">До отримувачів</string>
+    <string name="msg_added_as_receiver">Ресурс додано як отримувач</string>
+    <string name="btn_edit_receiver">Налаштувати</string>
+    <string name="create_folder">Створити папку</string>
+    <string name="create_folder_title">Нова папка</string>
+    <string name="create_folder_hint">Ім\'я папки</string>
+    <string name="error_invalid_folder_name">Недопустиме ім\'я папки</string>
+    <string name="error_folder_already_exists">Папка вже існує</string>
+    <string name="msg_folder_created">Папка "%1$s" створена</string>
+
+    <!-- Archive selected files (task_1_3) -->
+    <string name="archive_files">Архів</string>
+    <string name="archive_dialog_title">Архівувати вибрані файли</string>
+    <string name="archive_name_hint">Ім\'я архіву (без .zip)</string>
+    <string name="archive_name_empty_error">Ім\'я архіву не може бути порожнім</string>
+    <string name="archive_name_invalid_chars_error">Ім\'я містить недопустимі символи</string>
+    <string name="archive_destination_label">Тека призначення: %1$s</string>
+    <string name="archive_action_btn">Архівувати</string>
+    <string name="archive_progress_title">Створення архіву…</string>
+    <string name="archive_progress_message">%1$d з %2$d: %3$s</string>
+    <string name="archive_success">Архів створено: %1$s (%2$d файлів)</string>
+    <string name="archive_error">Помилка архівації: %1$s</string>
+    <string name="archive_error_network_not_supported">Архівація підтримується лише для локальних файлів. Мережеві та хмарні джерела не підтримуються.</string>
+    <string name="unarchive_dialog_title">Розпакувати архів?</string>
+    <string name="unarchive_dialog_message">"%1$s" -> тека "%2$s"</string>
+    <string name="unarchive_action_extract">Розпакувати</string>
+    <string name="unarchive_progress_title">Розпакування архіву…</string>
+    <string name="unarchive_progress_entry">Вилучення: %1$s</string>
+    <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
+    <string name="unarchive_success">Архів розпаковано</string>
+    <string name="unarchive_error_zip_bomb">Архів занадто великий або занадто глибокий</string>
+    <string name="unarchive_error_no_space">Недостатньо місця</string>
+    <string name="unarchive_error_create_dir">Не вдалося створити теку розпакування</string>
+    <string name="unarchive_error_generic">Помилка розпакування: %1$s</string>
+    <string name="unarchive_network_not_supported">Розпакування підтримується лише для локальних ресурсів і SD-карти.</string>
+    <string name="unarchive_only_zip_supported">Підтримуються лише ZIP-архіви.</string>
+    <string name="action_open">Відкрити</string>
 </resources>

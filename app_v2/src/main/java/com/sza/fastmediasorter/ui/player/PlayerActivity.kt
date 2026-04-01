@@ -181,6 +181,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     private lateinit var systemBarsManager: com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
     internal lateinit var imageTranslationManager: com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager
     internal lateinit var shareManager: com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager
+    internal lateinit var printManager: com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager
     internal lateinit var eventHandler: com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler
     internal lateinit var castMediaManager: com.sza.fastmediasorter.ui.player.helpers.CastMediaManager
 
@@ -604,6 +605,7 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
 
         imageTranslationManager = com.sza.fastmediasorter.ui.player.helpers.PlayerImageTranslationManager(activity = this)
         shareManager = com.sza.fastmediasorter.ui.player.helpers.PlayerShareManager(activity = this)
+        printManager = com.sza.fastmediasorter.ui.player.helpers.DocumentPrintManager(activity = this)
         eventHandler = com.sza.fastmediasorter.ui.player.helpers.PlayerEventHandler(activity = this)
     }
 
@@ -2011,7 +2013,18 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         // Skip pause logic when entering PiP (video should keep playing)
         if (isInPictureInPictureMode) return
         lifecycleManager.onPause()
-        viewModel.togglePause()
+
+        // Detach PlayerView from the service MediaController BEFORE any pause logic.
+        // TextureView loses its surface when Activity goes to background; if a MediaController
+        // is still bound at that point, PlayerView automatically calls player.pause() on it,
+        // which sets playWhenReady=false in AudioPlaybackService and breaks background audio.
+        val serviceAudioActiveOnPause = ::mediaLoaderManager.isInitialized && mediaLoaderManager.isServiceAudioActive
+        if (serviceAudioActiveOnPause) {
+            binding.playerView.player = null
+        } else {
+            viewModel.togglePause()
+        }
+
         audioEmptyStateController?.onPause()
         
         // Save playback position for video/audio
@@ -2061,6 +2074,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
         lifecycleManager.onResume()
         audioEmptyStateController?.onResume()
         nowPlayingManager?.onStart()
+
+        // Re-attach PlayerView to the service MediaController if audio was playing in background.
+        // This restores UI control visibility (seek bar, play/pause button) after the Activity
+        // returns from background, without having interrupted service playback.
+        if (::mediaLoaderManager.isInitialized) mediaLoaderManager.reattachServicePlayerToView()
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {

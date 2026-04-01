@@ -20,6 +20,11 @@
     <string name="cancel">Cancel</string>
     <string name="sign_in">Sign In</string>
     <string name="ok">OK</string>
+    <string name="create_folder">Create Folder</string>
+    <string name="create_folder_title">New Folder</string>
+    <string name="create_folder_hint">Folder name</string>
+    <string name="error_invalid_folder_name">Invalid folder name</string>
+    <string name="error_folder_already_exists">Folder already exists</string>
     <string name="help">Help</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
@@ -697,6 +702,13 @@
     <string name="error_timeout_lyrics">Request timed out. Please check your internet connection and try again.</string>
     <string name="search_in_youtube_music">In YouMusic</string>
     <string name="search_in_youtube_music_no_app">No app found to open YouTube Music</string>
+    <!-- Print -->
+    <string name="menu_print">Print</string>
+    <string name="error_print_unavailable">No print service available on this device</string>
+    <string name="print_job_label">Printing: %s</string>
+    <string name="error_print_file_too_large">File too large to print (max 30 MB)</string>
+    <string name="error_print_download_failed">Could not download file for printing</string>
+
     <!-- Chromecast / Cast -->
     <string name="cast_to_chromecast">Cast to…</string>
     <string name="cast_connected">Casting to %s</string>
@@ -1505,6 +1517,7 @@
     <string name="toast_unexpected_result">Unexpected result</string>
     <string name="toast_rename_error">Rename error: %1$s</string>
     <string name="toast_delete_error">Delete error: %1$s</string>
+    <string name="error_deletion_failed">Deletion failed</string>
     <string name="toast_multiple_rename_not_implemented">Multiple file rename not yet implemented</string>
     <string name="toast_filter_applied">Filter applied successfully</string>
     <string name="toast_filter_failed">Failed to apply filter: %1$s</string>
@@ -2197,7 +2210,76 @@
     <string name="now_playing_next_desc">Next track</string>
     <string name="now_playing_seek_bar_desc">Seek bar</string>
     <string name="now_playing_mini_bar_desc">Now Playing — tap to open player controls</string>
-</resources>
 
+    <!-- Duplicate Detection -->
+    <string name="action_find_duplicates">Find Duplicates</string>
+    <string name="action_delete_duplicates">Find and Delete Duplicates</string>
+    <string name="action_delete_smaller_than">Delete Smaller Than…</string>
+    <string name="action_delete_larger_than">Delete Larger Than…</string>
+    <string name="action_delete_by_size">Delete by Size…</string>
+    <string name="delete_by_size_smaller">Smaller than</string>
+    <string name="delete_by_size_larger">Larger than</string>
+    <string name="delete_by_size_unit_kb">KB</string>
+    <string name="delete_by_size_unit_mb">MB</string>
+    <string name="delete_by_size_unit_gb">GB</string>
+    <string name="delete_by_size_analyze">Analyze</string>
+    <string name="delete_by_size_scanning">Scanning…</string>
+    <string name="delete_by_size_preview_title">Confirm Deletion</string>
+    <string name="delete_by_size_preview_result">Files found: &lt;b&gt;%1$d&lt;/b&gt;\nSpace to free: &lt;b&gt;%2$s&lt;/b&gt;</string>
+    <string name="delete_by_size_no_matches">No matching files found</string>
+    <string name="delete_by_size_warning_no_trash">Warning: trash is not supported for this resource. Deletion will be permanent!</string>
+    <string name="delete_by_size_confirm_btn">Delete Files</string>
+    <string name="cd_resource_ops_menu">Resource Operations Menu</string>
+    <string name="duplicate_detection_title">Duplicates</string>
+    <string name="duplicate_scan_start">Start Scan</string>
+    <string name="duplicate_none_found">No duplicates found.</string>
+    <string name="scanning_for_duplicates">Scanning for duplicates…</string>
+    <string name="duplicates_found_format">Found %1$d duplicate groups (%2$s total)</string>
+    <string name="group_title_format">Group %1$d</string>
+    <string name="select_duplicates">Select Duplicates</string>
+    <string name="cd_delete_file">Delete file</string>
+    <string name="cd_expand_group">Expand group</string>
+    <string name="duplicate_group_count">%1$d files</string>
+    <string name="cd_collapse_group">Collapse group</string>
+    <string name="duplicate_wasted_bytes">Wasted space: %1$s</string>
+    <string name="duplicate_scan_network_warning">Network scan may take a long time and consume a lot of traffic. Continue?</string>
+    <string name="duplicate_scan_notif_title">Duplicate scan</string>
+    <string name="duplicate_scan_notif_running">Scanning for duplicates...</string>
+    <string name="duplicate_scan_notif_channel_name">Duplicate scanner</string>
+    <string name="action_create_folder">Create Folder</string>
+    <string name="msg_folder_created">Folder "%1$s" created</string>
+    <string name="menu_automate_source">Automation..</string>
+    <string name="menu_add_receiver">Add to Quick Sort</string>
+    <string name="msg_added_as_receiver">Resource added as Quick Sort destination</string>
+    <string name="btn_edit_receiver">Configure</string>
+
+    <!-- Archive selected files (task_1_3) -->
+    <string name="archive_files">Archive</string>
+    <string name="archive_dialog_title">Archive Selected Files</string>
+    <string name="archive_name_hint">Archive name (without .zip)</string>
+    <string name="archive_name_empty_error">Archive name cannot be empty</string>
+    <string name="archive_name_invalid_chars_error">Name contains invalid characters</string>
+    <string name="archive_destination_label">Destination folder: %1$s</string>
+    <string name="archive_action_btn">Archive</string>
+    <string name="archive_progress_title">Creating archive…</string>
+    <string name="archive_progress_message">%1$d of %2$d: %3$s</string>
+    <string name="archive_success">Archive created: %1$s (%2$d files)</string>
+    <string name="archive_error">Archive error: %1$s</string>
+    <string name="archive_error_network_not_supported">Archiving is only supported for local files. Network and cloud sources are not supported.</string>
+    <string name="unarchive_dialog_title">Extract archive?</string>
+    <string name="unarchive_dialog_message">"%1$s" -> folder "%2$s"</string>
+    <string name="unarchive_action_extract">Extract</string>
+    <string name="unarchive_progress_title">Extracting archive…</string>
+    <string name="unarchive_progress_entry">Extracting: %1$s</string>
+    <string name="unarchive_progress_message">%1$d/%2$d (%3$d%%): %4$s</string>
+    <string name="unarchive_success">Archive extracted</string>
+    <string name="unarchive_error_zip_bomb">Archive too large or too deep</string>
+    <string name="unarchive_error_no_space">Not enough storage space</string>
+    <string name="unarchive_error_create_dir">Failed to create extraction folder</string>
+    <string name="unarchive_error_generic">Extraction failed: %1$s</string>
+    <string name="unarchive_network_not_supported">Extraction is only supported for local and SD-card resources.</string>
+    <string name="unarchive_only_zip_supported">Only ZIP archives are supported.</string>
+    <string name="action_open">Open</string>
+</resources>
 
 

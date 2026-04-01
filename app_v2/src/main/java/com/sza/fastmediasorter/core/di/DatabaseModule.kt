@@ -79,7 +79,8 @@ object DatabaseModule {
                 AppDatabase.MIGRATION_16_17,
                 AppDatabase.MIGRATION_17_18,
                 AppDatabase.MIGRATION_18_19,
-                AppDatabase.MIGRATION_19_20
+                AppDatabase.MIGRATION_19_20,
+                AppDatabase.MIGRATION_20_21
             )
             .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
@@ -137,6 +138,12 @@ object DatabaseModule {
     @Singleton
     fun provideScheduledOperationDao(database: AppDatabase): ScheduledOperationDao {
         return database.scheduledOperationDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideDuplicateHashCacheDao(database: AppDatabase): com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao {
+        return database.duplicateHashCacheDao()
     }
 
     @Provides

@@ -233,6 +233,25 @@ class UnifiedFileOperationHandler @Inject constructor(
     }
     
     /**
+     * Create directory at specified path.
+     * 
+     * @param path Full protocol-specific path to create
+     * @return Result with actual path created
+     */
+    suspend fun executeCreateDirectory(
+        path: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val provider = getProvider(path)
+            provider.createDirectory(path)
+        } catch (e: Exception) {
+            val errorMsg = errorHandler.handleError(e, "create_directory", path)
+            Timber.e(e, "Create directory failed: $errorMsg")
+            Result.failure(Exception(errorMsg, e))
+        }
+    }
+
+    /**
      * Soft delete file (move to .trash/ folder).
      * 
      * @return Result with trash path
@@ -249,7 +268,7 @@ class UnifiedFileOperationHandler @Inject constructor(
         
         // Ensure .trash/ directory exists
         val trashDir = trashPath.substringBeforeLast('/')
-        provider.createDirectory(trashDir)
+        executeCreateDirectory(trashDir)
         
         // Move to trash
         return provider.moveFile(filePath, trashPath)

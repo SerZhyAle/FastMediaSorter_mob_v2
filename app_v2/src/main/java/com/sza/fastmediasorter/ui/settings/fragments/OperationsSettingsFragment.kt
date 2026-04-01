@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.ui.dialog.ScheduledLogDialog
 import com.sza.fastmediasorter.ui.dialog.ScheduledOperationDialog
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsAdapter
 import com.sza.fastmediasorter.ui.settings.ScheduledOperationsViewModel
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import kotlinx.coroutines.launch
 
@@ -75,6 +76,32 @@ class OperationsSettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         updateScheduledNotificationPermissionButton()
+        checkAndOpenAutomateDialog()
+    }
+
+    /**
+     * If SettingsActivity was launched from Browse with EXTRA_SOURCE_RESOURCE_ID,
+     * auto-open ScheduledOperationDialog with that resource pre-selected as source.
+     * The extra is consumed (removed) so it doesn't re-trigger on orientation change.
+     */
+    private fun checkAndOpenAutomateDialog() {
+        if (!BuildConfig.ENABLE_SCHEDULED_OPERATIONS) return
+        if (!viewModel.settings.value.enableScheduledOperations) return
+        val sourceId = requireActivity().intent.getLongExtra(
+            SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, -1L
+        )
+        if (sourceId == -1L) return
+        requireActivity().intent.removeExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID)
+        val allResources = viewModel.resources.value
+        val destinations = viewModel.destinations.value
+        ScheduledOperationDialog(
+            context = requireContext(),
+            resources = allResources,
+            destinations = destinations,
+            existing = null,
+            prefilledSourceId = sourceId,
+            onSave = { op -> scheduledViewModel.upsert(op) }
+        ).show()
     }
 
     override fun onDestroyView() {

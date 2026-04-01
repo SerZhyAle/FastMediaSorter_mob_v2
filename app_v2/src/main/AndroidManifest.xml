@@ -63,6 +63,8 @@
 
         <activity android:name=".ui.browse.BrowseActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
 
+        <activity android:name=".ui.duplicates.DuplicatesActivity" android:exported="false" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />
+
         <activity android:name=".ui.player.PlayerActivity" android:exported="false" android:screenOrientation="sensor" android:supportsPictureInPicture="true" android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboardHidden" android:theme="@style/Theme.FastMediaSorter.FullScreen" />
 
         <activity android:name=".ui.settings.SettingsActivity" android:exported="false" android:label="@string/settings" android:screenOrientation="sensor" android:configChanges="orientation|screenSize|keyboardHidden" />

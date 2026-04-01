@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_find_duplicates"
+        android:title="@string/action_find_duplicates" />
+    <item
+        android:id="@+id/action_delete_duplicates"
+        android:title="@string/action_delete_duplicates" />
+    <item
+        android:id="@+id/action_delete_by_size"
+        android:title="@string/action_delete_by_size" />
+    <item
+        android:id="@+id/action_create_folder"
+        android:title="@string/action_create_folder" />
+    <item
+        android:id="@+id/action_automate_resource"
+        android:title="@string/menu_automate_source" />
+    <item
+        android:id="@+id/action_add_to_receivers"
+        android:title="@string/menu_add_receiver" />
+</menu>

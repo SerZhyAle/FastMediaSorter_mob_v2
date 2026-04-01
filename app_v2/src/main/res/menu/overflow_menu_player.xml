@@ -2,6 +2,13 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- Print (PDF/TXT/IMAGE) -->
+    <item
+        android:id="@+id/menu_print"
+        android:icon="@drawable/ic_print"
+        android:title="@string/menu_print"
+        app:showAsAction="never" />
+
     <!-- Search (PDF/TXT/EPUB) -->
     <item
         android:id="@+id/menu_search"

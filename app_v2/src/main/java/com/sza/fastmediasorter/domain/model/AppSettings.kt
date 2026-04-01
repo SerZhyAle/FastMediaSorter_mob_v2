@@ -99,7 +99,7 @@ data class AppSettings(
     val enableSafeMode: Boolean = true, // When ON: show confirmDelete/confirmMove dialogs. When OFF: skip confirmations
     
     // Scheduled operations
-    val enableScheduledOperations: Boolean = false,
+    val enableScheduledOperations: Boolean = true,
 
     // Destinations settings
     val enableCopying: Boolean = true,

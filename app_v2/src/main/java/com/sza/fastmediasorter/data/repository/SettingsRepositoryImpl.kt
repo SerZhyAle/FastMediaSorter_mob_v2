@@ -297,7 +297,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     enableSafeMode = preferences[KEY_ENABLE_SAFE_MODE] ?: true,
                     
                     // Scheduled operations
-                    enableScheduledOperations = preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] ?: false,
+                    enableScheduledOperations = preferences[KEY_ENABLE_SCHEDULED_OPERATIONS] ?: true,
 
                     // Destinations
                     enableCopying = preferences[KEY_ENABLE_COPYING] ?: true,

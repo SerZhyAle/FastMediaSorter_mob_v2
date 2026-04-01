@@ -51,6 +51,8 @@ import com.sza.fastmediasorter.ui.browse.managers.BrowseRecyclerViewManager
 import com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager
 import com.sza.fastmediasorter.utils.UserActionLogger
 import dagger.hilt.android.AndroidEntryPoint
+import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.setBadgeText
 import com.sza.fastmediasorter.utils.clearBadge
 import kotlinx.coroutines.flow.combine
@@ -82,6 +84,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     @Inject
     lateinit var googleDriveClient: GoogleDriveRestClient
+    
+    @Inject
+    lateinit var resourceOpsMenuManager: com.sza.fastmediasorter.ui.browse.managers.ResourceOpsMenuManager
     
     @Inject
     lateinit var dropboxClient: com.sza.fastmediasorter.data.cloud.DropboxClient
@@ -188,16 +193,22 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private var showVideoThumbnails = true // Cached setting value
     private var showPdfThumbnails = false // Cached PDF thumbnail setting
     private var shouldScrollToLastViewed = false // Flag for scroll restoration after PlayerActivity return
-    // True on fresh Activity creation; consumed on first submitList with items to restore lastScrollPosition.
-    // Unlike isFirstResume (cleared in onResume before async files arrive), this flag survives until
-    // the actual file list is ready, fixing the race that caused position to reset on reopen.
     private var pendingScrollRestore = true
+
+    /** Progress dialog shown while archive ZIP is being created. */
+    private var archiveProgressDialog: androidx.appcompat.app.AlertDialog? = null
+    /** Progress dialog shown while archive ZIP is being extracted. */
+    private var extractProgressDialog: com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog? = null
 
     override fun onDestroy() {
         Timber.d("BrowseActivity.onDestroy: isFinishing=$isFinishing, isChangingConfigurations=$isChangingConfigurations")
         // Log Glide cache statistics before destroying activity
         com.sza.fastmediasorter.utils.GlideCacheStats.logStats()
         stopMediaStoreObserver()
+        // Clear scroll listeners BEFORE super.onDestroy() nulls _binding.
+        // RecyclerView.onDetachedFromWindow() fires AFTER onDestroy via WindowManager.removeViewImmediate(),
+        // triggering setScrollState(IDLE) → onScrollStateChanged → updateScrollButtonsVisibility → binding crash.
+        binding.rvMediaFiles.clearOnScrollListeners()
         super.onDestroy()
         Timber.d("BrowseActivity.onDestroy: COMPLETE")
     }
@@ -690,9 +701,36 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             shareSelectedFiles()
         }
 
+        binding.btnArchive?.setOnClickListener {
+            UserActionLogger.logButtonClick("Archive", "BrowseActivity")
+            showArchiveConfigurationDialog()
+        }
+
         binding.btnPlay.setOnClickListener {
             UserActionLogger.logButtonClick("Play", "BrowseActivity - Toolbar")
             startSlideshow()
+        }
+        
+        binding.btnResourceOps?.setOnClickListener {
+            UserActionLogger.logButtonClick("ResourceOps", "BrowseActivity - Toolbar")
+            val isScheduleEnabled = BuildConfig.ENABLE_SCHEDULED_OPERATIONS
+                    && viewModel.scheduledOperationsEnabled
+            resourceOpsMenuManager.showMenu(
+                anchor = it,
+                viewModel = viewModel,
+                isScheduleEnabled = isScheduleEnabled,
+                onAutomateSource = if (isScheduleEnabled) {
+                    {
+                        val resourceId = viewModel.state.value.resource?.id ?: return@showMenu
+                        startActivity(
+                            Intent(this, SettingsActivity::class.java).apply {
+                                putExtra(SettingsActivity.EXTRA_SOURCE_RESOURCE_ID, resourceId)
+                            }
+                        )
+                    }
+                } else null,
+                onAddToDestinations = { viewModel.addCurrentResourceAsDestination() }
+            )
         }
         
         binding.btnRetry.setOnClickListener {
@@ -793,6 +831,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             binding.btnToggleView.text = null
             binding.btnSelectAll.text = null
             binding.btnPlay.text = null
+            binding.btnResourceOps?.text = null
         }
     }
 
@@ -1206,6 +1245,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnDelete.isVisible = hasSelection && isWritable
                     binding.btnUndo.isVisible = state.lastOperation != null
                     binding.btnShare.isVisible = hasSelection
+                    binding.btnArchive?.isVisible = hasSelection
 
                     val shouldDisableToggle = resource?.isAudioOnly() == true
                     updateToggleViewAvailability(shouldDisableToggle)
@@ -1518,12 +1558,80 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                             }
                             Timber.i("BrowseActivity: ========================================")
                         }
+                        is BrowseEvent.ShowDeleteBySizePreview -> {
+                            resourceOpsMenuManager.showDeleteBySizeConfirm(
+                                viewModel,
+                                event.count,
+                                event.totalBytes,
+                                event.matchedFiles
+                            )
+                        }
+                        is BrowseEvent.ArchiveProgress -> {
+                            archiveProgressDialog?.setMessage(
+                                getString(
+                                    R.string.archive_progress_message,
+                                    event.current,
+                                    event.total,
+                                    event.fileName
+                                )
+                            )
+                        }
+                        is BrowseEvent.ArchiveSuccess -> {
+                            dismissArchiveProgressDialog()
+                            val msg = getString(R.string.archive_success, event.archivePath, event.archivedCount)
+                            Toast.makeText(this@BrowseActivity, msg, Toast.LENGTH_LONG).show()
+                        }
+                        is BrowseEvent.ArchiveError -> {
+                            dismissArchiveProgressDialog()
+                            Toast.makeText(
+                                this@BrowseActivity,
+                                getString(R.string.archive_error, event.message),
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                        is BrowseEvent.ShowExtractConfirmDialog -> {
+                            showUnarchiveConfirmDialog(event.file, event.targetDirName)
+                        }
+                        is BrowseEvent.ExtractionProgress -> {
+                            updateExtractProgressDialog(event)
+                        }
+                        is BrowseEvent.ExtractionSuccess -> {
+                            dismissExtractProgressDialog()
+                            com.google.android.material.snackbar.Snackbar
+                                .make(binding.root, getString(R.string.unarchive_success), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+                                .setAction(getString(R.string.action_open)) {
+                                    viewModel.navigateToFolder(event.targetPath)
+                                }
+                                .show()
+                        }
+                        is BrowseEvent.ExtractionFailed -> {
+                            dismissExtractProgressDialog()
+                            Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_LONG).show()
+                        }
+                        is BrowseEvent.ResourceAddedAsDestination -> {
+                            showAddedAsDestinationSnackbar()
+                        }
                     }
                 }
             }
         }
     }
     
+    /**
+     * Shows a Snackbar confirming that the current resource was added as a Quick Sort destination.
+     * The action button navigates to the Destinations tab in Settings.
+     */
+    private fun showAddedAsDestinationSnackbar() {
+        com.google.android.material.snackbar.Snackbar
+            .make(binding.root, getString(R.string.msg_added_as_receiver), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
+            .setAction(getString(R.string.btn_edit_receiver)) {
+                startActivity(Intent(this, SettingsActivity::class.java).apply {
+                    putExtra(SettingsActivity.EXTRA_INITIAL_TAB, 3)
+                })
+            }
+            .show()
+    }
+
     /**
      * Show error message respecting showDetailedErrors setting
      * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
@@ -1909,19 +2017,103 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
+    // =========================================================================
+    // Archive selected files (task_1_3)
+    // =========================================================================
+
+    private fun showArchiveConfigurationDialog() {
+        val state = viewModel.state.value
+        val currentDir = state.currentPath ?: state.resource?.path ?: ""
+        val selectedFiles = state.selectedFiles.toList()
+
+        if (selectedFiles.isEmpty()) return
+
+        // Pre-fill archive name from first selected file's base name
+        val firstName = state.mediaFiles
+            .firstOrNull { it.path in state.selectedFiles }?.name
+            ?: java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
+        val defaultName = firstName.substringBeforeLast('.')
+
+        val dp16 = (16 * resources.displayMetrics.density).toInt()
+        val dp64 = dp16 * 4
+
+        val root = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(dp64, dp16, dp64, dp16)
+        }
+
+        val etName = android.widget.EditText(this).apply {
+            setText(defaultName)
+            hint = getString(R.string.archive_name_hint)
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+            selectAll()
+        }
+        root.addView(etName)
+
+        val tvDest = android.widget.TextView(this).apply {
+            text = getString(R.string.archive_destination_label, currentDir)
+            setPadding(0, dp16 / 2, 0, 0)
+            textSize = 13f
+        }
+        root.addView(tvDest)
+
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.archive_dialog_title)
+            .setView(root)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.archive_action_btn, null) // Set listener below to prevent auto-dismiss on error
+            .show()
+
+        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+            val name = etName.text.toString().trim()
+
+            if (name.isEmpty()) {
+                etName.error = getString(R.string.archive_name_empty_error)
+                return@setOnClickListener
+            }
+            // Reject filesystem-unsafe characters
+            val invalidChars = Regex("""[/\\:*?"<>|]""")
+            if (invalidChars.containsMatchIn(name)) {
+                etName.error = getString(R.string.archive_name_invalid_chars_error)
+                return@setOnClickListener
+            }
+
+            dialog.dismiss()
+            showArchiveProgressDialog()
+            viewModel.archiveSelectedFiles(name, currentDir)
+        }
+    }
+
+    private fun showArchiveProgressDialog() {
+        dismissArchiveProgressDialog()
+        archiveProgressDialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.archive_progress_title)
+            .setMessage(getString(R.string.archive_progress_message, 0, 0, ""))
+            .setNegativeButton(android.R.string.cancel) { _, _ ->
+                viewModel.cancelArchive()
+            }
+            .setCancelable(false)
+            .show()
+    }
+
+    private fun dismissArchiveProgressDialog() {
+        archiveProgressDialog?.dismiss()
+        archiveProgressDialog = null
+    }
+
     private fun showDeleteConfirmation() {
         val state = viewModel.state.value
         val resource = state.resource
-        
+
         if (resource?.isReadOnly == true) {
             Toast.makeText(this, R.string.error_read_only, Toast.LENGTH_SHORT).show()
             return
         }
-        
+
         val count = state.selectedFiles.size
         // We need to fetch the actual MediaFile objects
         val selectedFiles = state.mediaFiles.filter { it.path in state.selectedFiles }
-        
+
         lifecycleScope.launch {
             val settings = viewModel.getSettings()
             dialogHelper.showDeleteConfirmation(selectedFiles, resource, settings)
@@ -1930,6 +2122,13 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     // Task 6: Show bottom sheet menu for binary files
     private fun showBinaryFileMenu(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {
+        if (mediaFile.type == com.sza.fastmediasorter.domain.model.MediaType.BINARY_ARCHIVE &&
+            mediaFile.name.substringAfterLast('.', "").equals("zip", ignoreCase = true)
+        ) {
+            viewModel.prepareExtraction(mediaFile)
+            return
+        }
+
         val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
         val root = findViewById<android.view.ViewGroup>(android.R.id.content)
         val view = layoutInflater.inflate(R.layout.bottom_sheet_binary_file, root, false)
@@ -1972,6 +2171,47 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         bottomSheet.setContentView(view)
         bottomSheet.show()
+    }
+
+    private fun showUnarchiveConfirmDialog(mediaFile: MediaFile, targetDirName: String) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.unarchive_dialog_title)
+            .setMessage(getString(R.string.unarchive_dialog_message, mediaFile.name, targetDirName))
+            .setPositiveButton(R.string.unarchive_action_extract) { _, _ ->
+                showExtractProgressDialog()
+                viewModel.extractArchive(mediaFile)
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
+    }
+
+    private fun showExtractProgressDialog() {
+        dismissExtractProgressDialog()
+        extractProgressDialog = com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog.show(
+            context = this,
+            operationType = getString(R.string.unarchive_progress_title),
+            onCancel = { viewModel.cancelExtraction() }
+        )
+    }
+
+    private fun updateExtractProgressDialog(event: BrowseEvent.ExtractionProgress) {
+        val total = event.total.coerceAtLeast(1)
+        val currentIndex = (event.done - 1).coerceIn(0, total - 1)
+        extractProgressDialog?.updateProgress(
+            com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Processing(
+                currentFile = getString(R.string.unarchive_progress_entry, event.entryName) + " (${event.percent}%)",
+                currentIndex = currentIndex,
+                totalFiles = total,
+                bytesTransferred = 0L,
+                totalBytes = 0L,
+                speedBytesPerSecond = 0L
+            )
+        )
+    }
+
+    private fun dismissExtractProgressDialog() {
+        extractProgressDialog?.dismiss()
+        extractProgressDialog = null
     }
     
     // Task 6: Open binary file with default app

@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.ui.player.CommandPanelController
 import com.sza.fastmediasorter.ui.player.PlayerActivity
 import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import timber.log.Timber
+import androidx.core.net.toUri
 
 /**
  * Implementation of CommandPanelController.CommandPanelCallback extracted from PlayerActivity.
@@ -223,5 +224,11 @@ class PlayerCommandPanelCallbackImpl(
 
     override fun onEpubSearchAllClicked() {
         activity.epubViewerManager.showCrossChapterSearch()
+    }
+
+    override fun onPrintClicked() {
+        val currentFile = viewModel.state.value.currentFile ?: return
+            val uri = currentFile.path.toUri()
+        activity.printManager.printCurrentFile(uri, currentFile.type, currentFile.name)
     }
 }

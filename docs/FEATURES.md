@@ -87,6 +87,9 @@ This document is the canonical, up-to-date inventory of all user-facing features
 - **Overwrite policies**: Specify on a per-direction basis how the app should handle copying or moving files that already exist in the destination. This helps automate conflict resolution without stalling your progress.
 - **Detailed progress dialogs**: Monitor lengthy transfers with precision. The dialog displays byte-level progress, real-time transfer speeds, and time estimates, allowing you to track heavy network operations.
 - **Cross-protocol transfers**: Seamlessly copy or move files between entirely different connection types. Directly transfer data between Local, SMB, FTP, and SFTP endpoints effortlessly, using the app as a robust intermediary.
+- **Duplicate file detection**: Locate and permanently remove identical files scattered across your massive local, network, or cloud storage. The highly optimized 3-phase scanning engine (Size -> Partial Hash -> Full SHA-256) guarantees perfect byte-for-byte matches while minimizing slow network reads.
+- **ZIP archiving**: Pack any number of selected local files into a single ZIP archive directly from the file browser. Choose a custom name and destination folder; the archive is created asynchronously in background with a real-time file-by-file progress indicator. Duplicate archive names are resolved automatically (e.g., `archive_1.zip`).
+- **ZIP extraction on click**: Tap a ZIP archive in Browse to extract it in one flow: confirmation dialog, real-time percentage progress, and a one-tap action to open the extracted folder. Extraction supports local and SD-card SAF resources, applies secure path validation, and auto-resolves destination folder conflicts via `_1.._99` suffixes.
 
 
 ## 4. Destination Management

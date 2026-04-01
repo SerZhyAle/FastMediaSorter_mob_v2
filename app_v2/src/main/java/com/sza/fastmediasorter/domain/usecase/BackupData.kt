@@ -113,7 +113,7 @@ data class BackupSettings(
     val rendererMigrationEnabled: Boolean = false,
     val enableSafeMode: Boolean = true,
     // Scheduled operations
-    val enableScheduledOperations: Boolean = false,
+    val enableScheduledOperations: Boolean = true,
     // Destinations
     val enableCopying: Boolean = true,
     val goToNextAfterCopy: Boolean = true,

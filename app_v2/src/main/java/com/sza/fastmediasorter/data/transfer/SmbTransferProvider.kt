@@ -306,13 +306,13 @@ class SmbTransferProvider @Inject constructor(
         }
     }
     
-    override suspend fun createDirectory(path: String): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun createDirectory(path: String): Result<String> = withContext(Dispatchers.IO) {
         return@withContext try {
             val (_, _, remotePath) = parseSmbPath(path)
             val connectionInfo = getConnectionInfo(path)
             
             when (val result = smbClient.createDirectory(connectionInfo, remotePath)) {
-                is SmbResult.Success -> Result.success(Unit)
+                is SmbResult.Success -> Result.success(path)
                 is SmbResult.Error -> {
                     Timber.e(result.exception, "SMB createDirectory failed: ${result.message}")
                     Result.failure(result.exception ?: Exception(result.message))

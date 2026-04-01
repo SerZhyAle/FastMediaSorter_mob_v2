@@ -241,6 +241,40 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     // -------------------------------------------------------------------------
+    // X.1: Duplicate detection scan (one-time)
+    // -------------------------------------------------------------------------
+
+    fun enqueueDuplicateScan(resourceIds: List<Long>) {
+        try {
+            val inputData = androidx.work.Data.Builder()
+                .putLongArray(DuplicateDetectionWorker.KEY_RESOURCE_IDS, resourceIds.toLongArray())
+                .build()
+            val request = OneTimeWorkRequestBuilder<DuplicateDetectionWorker>()
+                .setInputData(inputData)
+                .addTag("duplicate_scan")
+                .build()
+            WorkManager.getInstance(context).enqueueUniqueWork(
+                DuplicateDetectionWorker.UNIQUE_WORK_NAME,
+                ExistingWorkPolicy.REPLACE,
+                request
+            )
+            Timber.i("WorkManagerScheduler: duplicate scan enqueued for ${resourceIds.size} resource(s)")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: failed to enqueue duplicate scan")
+        }
+    }
+
+    fun cancelDuplicateScan() {
+        try {
+            WorkManager.getInstance(context)
+                .cancelUniqueWork(DuplicateDetectionWorker.UNIQUE_WORK_NAME)
+            Timber.i("WorkManagerScheduler: duplicate scan cancelled")
+        } catch (e: Exception) {
+            Timber.e(e, "WorkManagerScheduler: failed to cancel duplicate scan")
+        }
+    }
+
+    // -------------------------------------------------------------------------
     // X.11: Background thumbnail preload (one-time per resource)
     // -------------------------------------------------------------------------
 

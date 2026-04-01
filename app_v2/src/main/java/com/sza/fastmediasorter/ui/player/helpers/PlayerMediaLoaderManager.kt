@@ -525,12 +525,24 @@ class PlayerMediaLoaderManager(
         return buildLocalUri(mediaFile.path)
     }
 
-    private fun bindServicePlayerToView(player: Player) {
+    internal fun bindServicePlayerToView(player: Player) {
         bindServicePlaybackListener(player)
         binding.playerView.player = player
         loadingIndicatorHandler.removeCallbacks(showLoadingIndicatorRunnable)
         binding.progressBar.isVisible = false
         Timber.d("PlayerMediaLoaderManager: service player bound to PlayerView")
+    }
+
+    /**
+     * Re-attach PlayerView to the service MediaController after Activity resumes.
+     * Must be called in onResume() when service audio is active.
+     */
+    internal fun reattachServicePlayerToView() {
+        val player = audioServiceController?.player ?: return
+        if (isServiceAudioActive) {
+            Timber.d("PlayerMediaLoaderManager: re-attaching service player to PlayerView after resume")
+            bindServicePlayerToView(player)
+        }
     }
 
     fun bindServicePlaybackListener(player: Player) {

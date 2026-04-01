@@ -76,6 +76,7 @@ class CommandPanelController(
         fun onPdfThumbnailsClicked()
         fun onEpubReaderSettingsClicked()
         fun onEpubSearchAllClicked()
+        fun onPrintClicked()
     }
     
     private val originalCommandButtonHeights = mutableMapOf<Int, Int>()
@@ -706,6 +707,7 @@ class CommandPanelController(
         
         // Apply dark tint to white icons for popup menu visibility
         val iconColor = android.graphics.Color.DKGRAY
+        popup.menu.findItem(R.id.menu_print)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_google_lens)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_rename)?.icon?.setTint(iconColor)
         popup.menu.findItem(R.id.menu_edit)?.icon?.setTint(iconColor)
@@ -775,6 +777,7 @@ class CommandPanelController(
         popup.menu.findItem(R.id.menu_pdf_thumbnails)?.isVisible = isPdf
         popup.menu.findItem(R.id.menu_epub_reader_settings)?.isVisible = isEpub
         popup.menu.findItem(R.id.menu_epub_search_all)?.isVisible = isEpub
+        popup.menu.findItem(R.id.menu_print)?.isVisible = isPdf || isText || isImage
         
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -804,6 +807,7 @@ class CommandPanelController(
                 R.id.menu_pdf_thumbnails -> callback.onPdfThumbnailsClicked()
                 R.id.menu_epub_reader_settings -> callback.onEpubReaderSettingsClicked()
                 R.id.menu_epub_search_all -> callback.onEpubSearchAllClicked()
+                R.id.menu_print -> callback.onPrintClicked()
             }
             true
         }
