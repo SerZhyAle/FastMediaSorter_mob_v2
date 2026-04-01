@@ -35,8 +35,11 @@
         <com.google.android.material.button.MaterialButton android:id="@+id/btnDeselectAll" style="?attr/materialIconButtonStyle" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/deselect_all" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:textSize="12sp" app:icon="@drawable/ic_deselect_all" app:iconTint="?attr/colorControlNormal" />
 
 
+        <!-- Resource Operations -->
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnResourceOps" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:contentDescription="@string/cd_resource_ops_menu" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@drawable/ic_more_vert" app:iconTint="?attr/colorControlNormal" />
+
         <!-- Play/Slideshow -->
-        <com.google.android.material.button.MaterialButton android:id="@+id/btnPlay" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="@dimen/control_button_size" android:gravity="start|center_vertical" android:maxWidth="100dp" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:text="@string/slideshow" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@android:drawable/ic_media_play" app:iconTint="?attr/colorControlNormal" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/btnPlay" style="@style/Widget.Material3.Button.TextButton" android:layout_width="0dp" android:layout_height="@dimen/control_button_size" android:layout_weight="1" android:gravity="start|center_vertical" android:maxHeight="20dp" android:minWidth="20dp" android:minHeight="20dp" android:paddingLeft="10dp" android:paddingTop="0dp" android:paddingRight="10dp" android:paddingBottom="0dp" android:text="@string/slideshow" android:textColor="?attr/colorControlNormal" android:textSize="12sp" app:icon="@android:drawable/ic_media_play" app:iconTint="?attr/colorControlNormal" />
 
     </LinearLayout>
 
@@ -67,7 +70,7 @@
     <ImageButton android:id="@+id/fabScrollToBottom" android:layout_width="@dimen/browse_scroll_button_size" android:layout_height="@dimen/browse_scroll_button_size" android:layout_marginEnd="@dimen/browse_scroll_button_margin" android:layout_marginBottom="@dimen/margin_small" android:background="@drawable/bg_scroll_button" android:contentDescription="@string/scroll_to_bottom" android:padding="@dimen/browse_scroll_button_padding" android:scaleType="centerInside" android:visibility="gone" android:src="@drawable/ic_arrow_downward" app:tint="@color/white" app:layout_constraintBottom_toBottomOf="@id/swipeRefreshLayout" app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Operations bar at bottom -->
-    <LinearLayout android:id="@+id/layoutOperations" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/control_bar_padding" android:background="?attr/colorSurface" android:elevation="@dimen/elevation_operations_bar" android:visibility="visible" app:layout_constraintBottom_toTopOf="@id/tvFilterWarning" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
+    <LinearLayout android:id="@+id/layoutOperations" android:layout_width="0dp" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="@dimen/control_bar_padding" android:background="?attr/colorSurface" android:elevation="@dimen/elevation_operations_bar" android:visibility="gone" app:layout_constraintBottom_toTopOf="@id/tvFilterWarning" app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toEndOf="parent">
 
         <!-- Copy -->
         <ImageButton android:id="@+id/btnCopy" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/copy" android:src="@android:drawable/ic_menu_save" app:tint="?attr/colorControlNormal" android:visibility="gone" />
@@ -86,6 +89,9 @@
 
         <!-- Share -->
         <ImageButton android:id="@+id/btnShare" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/share" android:src="@drawable/ic_share" app:tint="?attr/colorControlNormal" android:visibility="gone" />
+
+        <!-- Archive selected files to ZIP -->
+        <ImageButton android:id="@+id/btnArchive" android:layout_width="@dimen/control_button_size" android:layout_height="@dimen/control_button_size" android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/archive_files" android:src="@android:drawable/ic_menu_upload" app:tint="?attr/colorControlNormal" android:visibility="gone" />
 
     </LinearLayout>
 

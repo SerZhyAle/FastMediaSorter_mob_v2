@@ -6,7 +6,7 @@ data class ScheduledOperation(
     val sourceResourceId: Long,
     val operationType: ScheduledOpType,
     val targetResourceId: Long?,          // null when operationType == DELETE
-    val fileTypeFilter: FileTypeFilter,
+    val fileTypeMask: Int = FileTypeFlags.DEFAULT, // bitmask of FileTypeFlags constants
     val timeFilter: TimeFilter,
     val startTimeHour: Int,               // 0..23
     val startTimeMinute: Int,             // 0..59

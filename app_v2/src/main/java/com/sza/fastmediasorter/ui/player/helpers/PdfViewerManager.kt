@@ -1083,7 +1083,13 @@ class PdfViewerManager(
                 
                 // CRITICAL: Render page in background (this is the heavy operation)
                 page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                
+
+                // Close page immediately after render — PdfRenderer allows only ONE page open at
+                // a time. Leaving it open blocks PdfRendererWrapper used by thumbnail navigation,
+                // causing thumbnails to never load (openPage throws, returns null silently).
+                currentPdfPage?.close()
+                currentPdfPage = null
+
                 // Switch to main thread to update UI
                 withContext(Dispatchers.Main) {
                     // Clear PhotoView BEFORE recycling old bitmap (M3 fix)

@@ -3,7 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import android.os.Build
 import com.sza.fastmediasorter.data.local.db.FavoritesEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
@@ -58,7 +58,8 @@ object BackupMapper {
             operationType = op.operationType.name,
             targetResourcePath = dst?.path,
             targetResourceType = dst?.type?.name,
-            fileTypeFilter = op.fileTypeFilter.name,
+            fileTypeMask = op.fileTypeMask,
+            fileTypeFilter = null,
             timeFilter = op.timeFilter.name,
             startTimeHour = op.startTimeHour,
             startTimeMinute = op.startTimeMinute,
@@ -95,8 +96,8 @@ object BackupMapper {
             sourceResourceId = src.id,
             operationType = opType,
             targetResourceId = dst?.id,
-            fileTypeFilter = runCatching { FileTypeFilter.valueOf(backup.fileTypeFilter) }
-                .getOrElse { FileTypeFilter.ALL },
+            fileTypeMask = backup.fileTypeMask
+                ?: FileTypeFlags.fromLegacyName(backup.fileTypeFilter ?: ""),
             timeFilter = runCatching { TimeFilter.valueOf(backup.timeFilter) }
                 .getOrElse { TimeFilter.ALL },
             startTimeHour = backup.startTimeHour,

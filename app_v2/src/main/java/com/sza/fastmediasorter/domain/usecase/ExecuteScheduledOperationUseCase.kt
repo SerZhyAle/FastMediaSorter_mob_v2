@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.BuildConfig
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -83,7 +83,7 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         return try {
             // Step 1: Load and filter source files.
             val allFiles = getMediaFilesUseCase(
-                resource = sourceResource,
+                resource = buildEffectiveResource(sourceResource, operation.fileTypeMask),
                 sortMode = SortMode.NAME_ASC,
                 forceFullScan = true
             ).first()
@@ -278,19 +278,42 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
         }
     }
 
+    /**
+     * Returns the source resource with supportedMediaTypes adjusted for the file type mask.
+     * When ALL_FILES flag is set, passes all MediaType values to the scanner which activates
+     * the isAllFilesMode (null-extensions) path in SmbMediaScanner, CloudMediaScanner, etc.
+     * Subdirectory recursion is governed by resource.scanSubdirectories as configured by the user.
+     */
+    private fun buildEffectiveResource(resource: MediaResource, mask: Int): MediaResource {
+        return if (FileTypeFlags.isAllFiles(mask)) {
+            resource.copy(
+                supportedMediaTypes = MediaType.entries.toSet(),
+                allFiles = true
+            )
+        } else {
+            val types = mutableSetOf<MediaType>()
+            if (FileTypeFlags.hasImages(mask))    types += setOf(MediaType.IMAGE, MediaType.GIF)
+            if (FileTypeFlags.hasAudio(mask))     types += MediaType.AUDIO
+            if (FileTypeFlags.hasVideo(mask))     types += MediaType.VIDEO
+            if (FileTypeFlags.hasDocuments(mask)) types += setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)
+            resource.copy(supportedMediaTypes = types)
+        }
+    }
+
     private fun applyFilters(files: List<MediaFile>, op: ScheduledOperation): List<MediaFile> {
         val now = System.currentTimeMillis()
         return files
-            .filter { matchesTypeFilter(it, op.fileTypeFilter) }
+            // When ALL_FILES — type filtering was already applied at the scanner level via buildEffectiveResource
+            .filter { if (FileTypeFlags.isAllFiles(op.fileTypeMask)) true else matchesTypeMask(it, op.fileTypeMask) }
             .filter { matchesTimeFilter(it, op.timeFilter, op.lastRunAt, now) }
     }
 
-    private fun matchesTypeFilter(file: MediaFile, filter: FileTypeFilter): Boolean = when (filter) {
-        FileTypeFilter.ALL -> true
-        FileTypeFilter.AUDIO -> file.type == MediaType.AUDIO
-        FileTypeFilter.IMAGES -> file.type == MediaType.IMAGE || file.type == MediaType.GIF
-        FileTypeFilter.VIDEO -> file.type == MediaType.VIDEO
-        FileTypeFilter.DOCUMENTS -> file.type in setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)
+    private fun matchesTypeMask(file: MediaFile, mask: Int): Boolean {
+        if (FileTypeFlags.hasImages(mask)    && (file.type == MediaType.IMAGE || file.type == MediaType.GIF)) return true
+        if (FileTypeFlags.hasAudio(mask)     && file.type == MediaType.AUDIO)  return true
+        if (FileTypeFlags.hasVideo(mask)     && file.type == MediaType.VIDEO)  return true
+        if (FileTypeFlags.hasDocuments(mask) && file.type in setOf(MediaType.PDF, MediaType.EPUB, MediaType.TEXT)) return true
+        return false
     }
 
     private fun matchesTimeFilter(file: MediaFile, filter: TimeFilter, lastRunAt: Long?, now: Long): Boolean = when (filter) {

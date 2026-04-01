@@ -5,6 +5,7 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 
 @Entity(
     tableName = "scheduled_operations",
@@ -44,8 +45,8 @@ data class ScheduledOperationEntity(
     @ColumnInfo(name = "target_resource_id")
     val targetResourceId: Long?,       // null when operationType == DELETE
 
-    @ColumnInfo(name = "file_type_filter")
-    val fileTypeFilter: String,        // FileTypeFilter.name()
+    @ColumnInfo(name = "file_type_mask")
+    val fileTypeMask: Int = FileTypeFlags.DEFAULT, // bitmask of FileTypeFlags constants
 
     @ColumnInfo(name = "time_filter")
     val timeFilter: String,            // TimeFilter.name()

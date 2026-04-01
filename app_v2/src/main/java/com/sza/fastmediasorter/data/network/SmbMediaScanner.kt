@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.network
 
 import android.media.MediaMetadataRetriever
+import android.os.Build
 import android.util.LruCache
 import androidx.exifinterface.media.ExifInterface
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -97,7 +98,7 @@ class SmbMediaScanner @Inject constructor(
             }
 
             // Determine if we are in "All Files" mode (all 7 types supported)
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
 
             // Get all supported extensions or null if in All Files mode (to disable filtering)
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
@@ -121,7 +122,7 @@ class SmbMediaScanner @Inject constructor(
                 is SmbResult.Success -> {
                     // Convert SmbFileInfo to MediaFile
                     // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
-                    // val isAllFilesMode = supportedTypes.size == 7 // Already calculated above
+                    // val isAllFilesMode = supportedTypes.size >= 7 // Already calculated above
                     // Skip per-file metadata extraction for large folders to avoid
                     // tens of minutes of individual SMB reads (EXIF / video probes).
                     val skipMetadataExtraction = result.data.size > METADATA_SKIP_THRESHOLD
@@ -266,7 +267,7 @@ class SmbMediaScanner @Inject constructor(
 
             Timber.d("scanFolderChunked: Parsed path - share=${connectionInfo.connectionInfo.shareName}, remotePath=${connectionInfo.remotePath}")
 
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
             
             Timber.d("scanFolderChunked: Extensions=${if (extensions == null) "ALL (null)" else extensions.size}")
@@ -282,7 +283,7 @@ class SmbMediaScanner @Inject constructor(
                 is SmbResult.Success -> {
                     Timber.d("scanFolderChunked: Got ${result.data.size} files from smbClient")
                     
-                    // val isAllFilesMode = supportedTypes.size == 7 // Already calculated above
+                    // val isAllFilesMode = supportedTypes.size >= 7 // Already calculated above
                     val mediaFiles = result.data.mapNotNull { fileInfo ->
                         // Skip hidden files if not requested (files starting with ".")
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
@@ -343,7 +344,7 @@ class SmbMediaScanner @Inject constructor(
 
 
 
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
 
             // Use optimized paged scan with native offset/limit support
@@ -357,7 +358,7 @@ class SmbMediaScanner @Inject constructor(
             )) {
                 is SmbResult.Success -> {
                     // Convert to MediaFile list with optional size filtering
-                    // val isAllFilesMode = supportedTypes.size == 7 // Already calculated above
+                    // val isAllFilesMode = supportedTypes.size >= 7 // Already calculated above
                     val mediaFiles = result.data.mapNotNull { fileInfo ->
                         // Skip hidden files if not requested (files starting with ".")
                         if (!showHiddenFiles && fileInfo.name.startsWith(".")) {
@@ -418,7 +419,7 @@ class SmbMediaScanner @Inject constructor(
             }
 
             // Get all supported extensions
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
 
             // Use optimized count method (no SmbFileInfo objects created)
@@ -454,7 +455,7 @@ class SmbMediaScanner @Inject constructor(
                 return@withContext emptyList()
             }
 
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val extensions = if (isAllFilesMode) null else MediaTypeUtils.buildExtensionsSet(supportedTypes)
 
             // List immediate children (non-recursive)
@@ -665,7 +666,8 @@ class SmbMediaScanner @Inject constructor(
                     tempFile = File.createTempFile("smb_video_header_", ".tmp")
                     tempFile.writeBytes(bytes)
 
-                    val metadata = MediaMetadataRetriever().use { retriever ->
+                    val retriever = MediaMetadataRetriever()
+                    val metadata = try {
                         retriever.setDataSource(tempFile.absolutePath)
                         VideoMetadata(
                             duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull(),
@@ -676,6 +678,12 @@ class SmbMediaScanner @Inject constructor(
                             frameRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE)?.toFloatOrNull(),
                             rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)?.toIntOrNull()
                         )
+                    } finally {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            retriever.close()
+                        } else {
+                            retriever.release()
+                        }
                     }
 
                     if (

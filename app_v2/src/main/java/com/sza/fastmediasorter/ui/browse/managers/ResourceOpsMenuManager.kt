@@ -55,8 +55,21 @@ class ResourceOpsMenuManager @Inject constructor(
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.action_find_duplicates, R.id.action_delete_duplicates -> {
-                    context.startActivity(Intent(context, DuplicatesActivity::class.java))
+                R.id.action_find_duplicates -> {
+                    context.startActivity(
+                        Intent(context, DuplicatesActivity::class.java).apply {
+                            resource?.id?.let { putExtra(DuplicatesActivity.EXTRA_RESOURCE_ID, it) }
+                        }
+                    )
+                    true
+                }
+                R.id.action_delete_duplicates -> {
+                    context.startActivity(
+                        Intent(context, DuplicatesActivity::class.java).apply {
+                            resource?.id?.let { putExtra(DuplicatesActivity.EXTRA_RESOURCE_ID, it) }
+                            putExtra(DuplicatesActivity.EXTRA_AUTO_DELETE, true)
+                        }
+                    )
                     true
                 }
                 R.id.action_delete_by_size -> {

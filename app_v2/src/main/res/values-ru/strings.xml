@@ -98,6 +98,10 @@
     <string name="export_logs_no_files">Нет файлов логов для экспорта</string>
     <string name="export_logs_no_share_target">Нет приложения для отправки архива логов</string>
     <string name="export_logs_failed">Не удалось экспортировать логи</string>
+    <string name="share_debug_logs">Поделиться логами</string>
+    <string name="save_debug_logs">Сохранить логи</string>
+    <string name="save_logs_success">Логи сохранены на устройство</string>
+    <string name="save_logs_failed">Не удалось сохранить логи</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопировано %1$d файл(ов)</string>
@@ -2074,11 +2078,12 @@
     <string name="scheduled_ops_op_move">Перемещение</string>
     <string name="scheduled_ops_op_delete">Удаление</string>
     <string name="scheduled_ops_target">Получатель</string>
-    <string name="scheduled_ops_filter_all_files">Все файлы</string>
-    <string name="scheduled_ops_filter_audio">Только аудио</string>
-    <string name="scheduled_ops_filter_images">Только изображения</string>
-    <string name="scheduled_ops_filter_video">Только видео</string>
-    <string name="scheduled_ops_filter_documents">Только документы</string>
+    <string name="scheduled_ops_filter_all_files">Все файлы (включая немедиафайлы)</string>
+    <string name="scheduled_ops_filter_audio">Аудио</string>
+    <string name="scheduled_ops_filter_images">Изображения (включая GIF)</string>
+    <string name="scheduled_ops_filter_video">Видео</string>
+    <string name="scheduled_ops_filter_documents">Документы (PDF, EPUB, текст)</string>
+    <string name="scheduled_ops_filter_select_at_least_one">Выберите хотя бы один тип файла</string>
     <string name="scheduled_ops_time_all">Все</string>
     <string name="scheduled_ops_time_since_last">Новые с прошлой операции</string>
     <string name="scheduled_ops_time_last_hour">Новые за час</string>
@@ -2115,6 +2120,7 @@
     <string name="scheduled_op_unknown_resource">(удалён)</string>
     <string name="scheduled_op_run_now">Запустить</string>
     <string name="scheduled_op_filter_all">Все файлы</string>
+    <string name="scheduled_op_filter_none">(не выбрано)</string>
     <string name="scheduled_op_filter_audio">Аудио</string>
     <string name="scheduled_op_filter_images">Изображения</string>
     <string name="scheduled_op_filter_video">Видео</string>

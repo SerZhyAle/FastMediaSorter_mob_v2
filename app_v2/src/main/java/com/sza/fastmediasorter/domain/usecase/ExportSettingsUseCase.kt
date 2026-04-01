@@ -231,7 +231,7 @@ class ExportSettingsUseCase @Inject constructor(
                         appendLine("      <targetResourcePath>${dst.path.escapeXml()}</targetResourcePath>")
                         appendLine("      <targetResourceType>${dst.type.name}</targetResourceType>")
                     }
-                    appendLine("      <fileTypeFilter>${op.fileTypeFilter.name}</fileTypeFilter>")
+                    appendLine("      <fileTypeMask>${op.fileTypeMask}</fileTypeMask>")
                     appendLine("      <timeFilter>${op.timeFilter.name}</timeFilter>")
                     appendLine("      <startTimeHour>${op.startTimeHour}</startTimeHour>")
                     appendLine("      <startTimeMinute>${op.startTimeMinute}</startTimeMinute>")

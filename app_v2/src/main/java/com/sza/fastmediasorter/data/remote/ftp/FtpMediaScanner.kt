@@ -79,7 +79,7 @@ class FtpMediaScanner @Inject constructor(
 
             // Filter and convert to MediaFile with real size/date from FTPFile
             // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             filesResult.getOrNull()?.mapNotNull { ftpFile ->
                 // Skip trash folders created by soft-delete
                 if (ftpFile.name.startsWith(".trash")) {
@@ -278,7 +278,7 @@ class FtpMediaScanner @Inject constructor(
             }
 
             // Count only matching files without creating MediaFile objects
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val count = filesResult.getOrNull()?.count { ftpFile ->
                 val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
                 if (mediaType == null || !supportedTypes.contains(mediaType)) {
@@ -356,7 +356,7 @@ class FtpMediaScanner @Inject constructor(
                 return@withContext emptyList()
             }
 
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             filesResult.getOrNull()?.mapNotNull { ftpFile ->
                 val fileName = ftpFile.name
 
@@ -537,7 +537,7 @@ class FtpMediaScanner @Inject constructor(
         if (ftpFile.name.startsWith(".trash")) return null
         if (!showHiddenFiles && ftpFile.name.startsWith(".")) return null
 
-        val isAllFilesMode = supportedTypes.size == 7
+        val isAllFilesMode = supportedTypes.size >= 7
         val mediaType = getMediaType(ftpFile.name) ?: if (isAllFilesMode) MediaType.TEXT else null
         if (mediaType == null || !supportedTypes.contains(mediaType)) return null
 

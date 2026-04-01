@@ -119,7 +119,7 @@ sealed class BrowseEvent {
     /** Archive completed successfully. */
     data class ArchiveSuccess(val archivePath: String, val archivedCount: Int) : BrowseEvent()
     /** Archive failed or had a fatal error. */
-    data class ArchiveError(val message: String) : BrowseEvent()
+    data class ArchiveError(val message: String, val exception: Throwable? = null) : BrowseEvent()
     data class ShowExtractConfirmDialog(val file: MediaFile, val targetDirName: String) : BrowseEvent()
     data class ExtractionProgress(
         val entryName: String,
@@ -795,15 +795,32 @@ class BrowseViewModel @Inject constructor(
      */
     fun removeFiles(filePaths: List<String>) {
         if (filePaths.isEmpty()) return
-        
+
         // Notify selection manager about removed files
         selectionManager.onFilesRemoved(filePaths)
-        
+
+        val pathsSet = filePaths.toSet()
+        val currentFiles = state.value.mediaFiles
+        val updatedFiles = fileListManager.removeFiles(currentFiles, filePaths)
+
         updateState { state ->
-            val updatedFiles = fileListManager.removeFiles(state.mediaFiles, filePaths)
-            state.copy(mediaFiles = updatedFiles)
+            state.copy(mediaFiles = updatedFiles, totalFileCount = updatedFiles.size)
         }
-        
+
+        // Keep in-memory file-list cache in sync so that cache-serve paths
+        // (BrowseCacheManager.checkCache → UseCache) never return deleted files.
+        MediaFilesCacheManager.setCachedList(resourceId, updatedFiles)
+
+        // For resources that persist the file list to DB, drop deleted entries
+        val resource = state.value.resource
+        if (resource?.rememberFileList == true) {
+            viewModelScope.launch(ioDispatcher) {
+                pathsSet.forEach { path ->
+                    cachedFileListRepository.deleteFile(resource.id, path)
+                }
+            }
+        }
+
         // Invalidate directory cache after removing files
         invalidateDirectoryCache()
     }
@@ -3738,7 +3755,7 @@ class BrowseViewModel @Inject constructor(
                         }
                         is com.sza.fastmediasorter.domain.usecase.ArchiveProgress.Error -> {
                             Timber.e(progress.exception, "archiveSelectedFiles: error — ${progress.message}")
-                            sendEvent(BrowseEvent.ArchiveError(progress.message))
+                            sendEvent(BrowseEvent.ArchiveError(progress.message, progress.exception))
                         }
                     }
                 }

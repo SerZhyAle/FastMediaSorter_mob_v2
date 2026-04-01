@@ -100,6 +100,23 @@ class GeneralSettingsFragment : Fragment() {
         }
     }
 
+    private val saveLogsLauncher = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri ->
+        if (uri != null) {
+            val result = com.sza.fastmediasorter.core.logging.LogExportHelper.writeZipToUri(requireContext(), uri)
+            when (result) {
+                com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.SaveSuccess ->
+                    Toast.makeText(requireContext(), R.string.save_logs_success, Toast.LENGTH_SHORT).show()
+                com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.NoLogs ->
+                    Toast.makeText(requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
+                is com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.Error ->
+                    Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
+                else -> Unit
+            }
+        }
+    }
+
     private val mediaPermissionsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) {
@@ -244,7 +261,7 @@ class GeneralSettingsFragment : Fragment() {
                 Toast.makeText(requireContext(), R.string.export_logs_no_files, Toast.LENGTH_SHORT).show()
             is LogExportHelper.ExportResult.Error ->
                 Toast.makeText(requireContext(), result.message, Toast.LENGTH_LONG).show()
-            is LogExportHelper.ExportResult.Success -> { /* share chooser launched */ }
+            else -> { /* share chooser launched */ }
         }
     }
 
@@ -770,7 +787,7 @@ class GeneralSettingsFragment : Fragment() {
             showLogDialog(fullLog = false)
         }
 
-        binding.btnExportLogs?.setOnClickListener {
+        binding.btnShareLogs?.setOnClickListener {
             when (val result = com.sza.fastmediasorter.core.logging.LogExportHelper.exportLogs(requireContext())) {
                 com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.Success -> {
                     Unit
@@ -781,7 +798,12 @@ class GeneralSettingsFragment : Fragment() {
                 is com.sza.fastmediasorter.core.logging.LogExportHelper.ExportResult.Error -> {
                     Toast.makeText(requireContext(), result.message, Toast.LENGTH_SHORT).show()
                 }
+                else -> Unit
             }
+        }
+
+        binding.btnSaveLogs?.setOnClickListener {
+            saveLogsLauncher.launch("fastmediasorter_logs.zip")
         }
         
         // Cache Management

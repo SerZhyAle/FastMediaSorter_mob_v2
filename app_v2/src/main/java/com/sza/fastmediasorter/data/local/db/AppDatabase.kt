@@ -20,7 +20,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ScheduledOperationEntity::class,
         DuplicateHashCacheEntity::class
     ],
-    version = 21,
+    version = 22,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -192,6 +192,68 @@ abstract class AppDatabase : RoomDatabase() {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("DROP TABLE IF EXISTS pending_revocations")
                 createFinalPendingRevocationsTable(db)
+            }
+        }
+
+        val MIGRATION_21_22 = object : Migration(21, 22) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Recreate scheduled_operations table replacing TEXT file_type_filter → INTEGER file_type_mask.
+                // Using table recreation to satisfy Room schema hash validation.
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS scheduled_operations_new (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        is_enabled INTEGER NOT NULL DEFAULT 1,
+                        source_resource_id INTEGER NOT NULL,
+                        operation_type TEXT NOT NULL,
+                        target_resource_id INTEGER,
+                        file_type_mask INTEGER NOT NULL DEFAULT 31,
+                        time_filter TEXT NOT NULL,
+                        start_time_hour INTEGER NOT NULL,
+                        start_time_minute INTEGER NOT NULL,
+                        interval_hours INTEGER NOT NULL,
+                        interval_minutes INTEGER NOT NULL,
+                        overwrite INTEGER NOT NULL DEFAULT 0,
+                        silent_mode INTEGER NOT NULL DEFAULT 0,
+                        last_run_at INTEGER,
+                        next_run_at INTEGER,
+                        last_run_status TEXT,
+                        worker_id TEXT,
+                        FOREIGN KEY(source_resource_id) REFERENCES resources(id) ON DELETE CASCADE,
+                        FOREIGN KEY(target_resource_id) REFERENCES resources(id) ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                // Copy rows, converting old TEXT enum to bitmask integer
+                db.execSQL(
+                    """
+                    INSERT INTO scheduled_operations_new
+                        (id, is_enabled, source_resource_id, operation_type, target_resource_id,
+                         file_type_mask, time_filter, start_time_hour, start_time_minute,
+                         interval_hours, interval_minutes, overwrite, silent_mode,
+                         last_run_at, next_run_at, last_run_status, worker_id)
+                    SELECT
+                        id, is_enabled, source_resource_id, operation_type, target_resource_id,
+                        CASE file_type_filter
+                            WHEN 'ALL'       THEN 30
+                            WHEN 'IMAGES'    THEN 2
+                            WHEN 'AUDIO'     THEN 4
+                            WHEN 'VIDEO'     THEN 8
+                            WHEN 'DOCUMENTS' THEN 16
+                            ELSE 31
+                        END,
+                        time_filter, start_time_hour, start_time_minute,
+                        interval_hours, interval_minutes,
+                        COALESCE(overwrite, 0), COALESCE(silent_mode, 0),
+                        last_run_at, next_run_at, last_run_status, worker_id
+                    FROM scheduled_operations
+                    """.trimIndent()
+                )
+                db.execSQL("DROP TABLE scheduled_operations")
+                db.execSQL("ALTER TABLE scheduled_operations_new RENAME TO scheduled_operations")
+                ensureIndex(db, "idx_sched_ops_source",  "CREATE INDEX idx_sched_ops_source  ON scheduled_operations (source_resource_id)")
+                ensureIndex(db, "idx_sched_ops_target",  "CREATE INDEX idx_sched_ops_target  ON scheduled_operations (target_resource_id)")
+                ensureIndex(db, "idx_sched_ops_enabled", "CREATE INDEX idx_sched_ops_enabled ON scheduled_operations (is_enabled)")
             }
         }
 

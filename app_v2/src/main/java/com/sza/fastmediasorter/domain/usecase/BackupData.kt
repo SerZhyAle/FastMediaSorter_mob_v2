@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.domain.model.DisplayMode
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
@@ -182,7 +181,8 @@ data class BackupScheduledOperation(
     val operationType: String = "COPY",
     val targetResourcePath: String? = null,
     val targetResourceType: String? = null,
-    val fileTypeFilter: String = "ALL",
+    val fileTypeFilter: String? = null,
+    val fileTypeMask: Int? = null,
     val timeFilter: String = "ALL",
     val startTimeHour: Int = 0,
     val startTimeMinute: Int = 0,

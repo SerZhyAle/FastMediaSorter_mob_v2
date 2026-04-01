@@ -1,6 +1,22 @@
 # FastMediaSorter v2 - GitHub Copilot Instructions
 
-**Last Updated**: March 8, 2026
+**Last Updated**: April 1, 2026
+
+---
+
+## Skill Rules (MANDATORY — Auto-invoke on trigger)
+
+These prompt files MUST be used automatically — load them via the `/` slash command before proceeding:
+
+| Trigger | Prompt | Rule |
+|---------|--------|------|
+| Creating or updating any `PLAN/spec_*.md` file | `/spec` | **Mandatory** — enforces full project spec template including flavor scope, API-level analysis, architecture compliance, testing plan, accessibility, and ADRs |
+| Updating documentation files (`docs/FEATURES*.md`, `docs/TECH_STACK.md`, or any feature/help docs) | `/doc-update` | **Mandatory** — ensures EN/RU/UK mirrors stay in sync and all doc categories are checked |
+| User asks to analyze logs, read `logs/current.log`, or diagnose a runtime issue from logcat | `/log-reader` | **Mandatory** — provides structured Android logcat analysis with the search-log.ps1 scripts |
+| User asks how to build, which build command to use, or wants to trigger a build | `/build` | **Mandatory** — routes to the correct flavor/variant build command |
+| User asks about git commits, staging, pushing, diffs, old file versions, or "what should I commit" | `/git` | **Mandatory** — provides project-aware git workflow guidance |
+
+Prompt files are located in `.github/prompts/`. Do NOT handle these tasks ad-hoc — always route through the corresponding prompt.
 
 ---
 

@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import java.io.BufferedOutputStream
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import java.io.File
@@ -22,6 +23,7 @@ object LogExportHelper {
 
     sealed class ExportResult {
         data object Success : ExportResult()
+        data object SaveSuccess : ExportResult()
         data object NoLogs : ExportResult()
         data class Error(val message: String) : ExportResult()
     }
@@ -61,6 +63,35 @@ object LogExportHelper {
         } ?: return ExportResult.NoLogs
 
         return shareZipFile(context, zipFile)
+    }
+
+    /**
+     * Write all log files as a ZIP directly into a URI chosen by the user (SAF).
+     */
+    fun writeZipToUri(context: Context, destUri: Uri): ExportResult {
+        return try {
+            val logFiles = StrictModeHelper.allowDiskIO { LoggingHelper.getLogFiles() }
+            if (logFiles.isNullOrEmpty()) return ExportResult.NoLogs
+
+            context.contentResolver.openOutputStream(destUri)?.use { out ->
+                ZipOutputStream(BufferedOutputStream(out)).use { zos ->
+                    for (file in logFiles) {
+                        StrictModeHelper.allowDiskIO {
+                            if (file.exists()) {
+                                zos.putNextEntry(ZipEntry(file.name))
+                                FileInputStream(file).use { fis -> fis.copyTo(zos) }
+                                zos.closeEntry()
+                            }
+                        }
+                    }
+                }
+            } ?: return ExportResult.Error(context.getString(R.string.save_logs_failed))
+
+            ExportResult.SaveSuccess
+        } catch (e: Exception) {
+            Timber.e(e, "LogExportHelper: failed to write ZIP to URI")
+            ExportResult.Error(context.getString(R.string.save_logs_failed))
+        }
     }
 
     private fun shareZipFile(context: Context, zipFile: File): ExportResult {

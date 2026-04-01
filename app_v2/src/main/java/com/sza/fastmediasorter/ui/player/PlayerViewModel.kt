@@ -136,6 +136,15 @@ class PlayerViewModel @Inject constructor(
         sendEvent(PlayerEvent.CastStateChanged(isCasting, deviceName))
     }
 
+    private fun isPlayerSupportedType(type: MediaType): Boolean {
+        // Player can handle media and document types, but must skip binary/unknown payloads.
+        return !type.isBinaryFile()
+    }
+
+    private fun isPlayerBrowsableFile(file: MediaFile): Boolean {
+        return !file.isDirectory && isPlayerSupportedType(file.type)
+    }
+
     private fun loadSettings() {
         viewModelScope.launch {
             try {
@@ -323,22 +332,31 @@ class PlayerViewModel @Inject constructor(
                 ).first()
             }
                 
-                Timber.d("PlayerViewModel: resource.supportedMediaTypes = ${resource.supportedMediaTypes}")
+                Timber.d("PlayerViewModel: resource.supportedMediaTypes = ${resource.supportedMediaTypes}, allFiles=${resource.allFiles}")
                 Timber.d("PlayerViewModel: allFiles count = ${allFiles.size}")
                 
-                // Filter files by resource's supportedMediaTypes and ensure no directories are included
-                val files = if (resource.supportedMediaTypes.size < 7) { // Not all types selected (IVAGTPE = 7 types)
+                // Match Browse behavior: resource-level allFiles overrides supportedMediaTypes filtering.
+                // Player must not re-apply type filter when resource is configured to show all files.
+                val files = if (resource.allFiles) {
+                    val filtered = allFiles.filter { isPlayerBrowsableFile(it) }
+                    Timber.d("PlayerViewModel: resource.allFiles=true, keeping all player-supported types: ${allFiles.size} → ${filtered.size}")
+                    filtered
+                } else if (resource.supportedMediaTypes.size < 7) { // Not all types selected (IVAGTPE = 7 types)
                     val filtered = allFiles.filter { file ->
-                        !file.isDirectory && resource.supportedMediaTypes.contains(file.type)
+                        isPlayerBrowsableFile(file) && resource.supportedMediaTypes.contains(file.type)
                     }
                     Timber.d("Filtered files by supportedMediaTypes ${resource.supportedMediaTypes}: ${allFiles.size} → ${filtered.size}")
                     filtered
                 } else {
-                    // Even if all types are supported, we must filter out directories
-                    val filtered = allFiles.filter { !it.isDirectory }
-                    Timber.d("All types supported (${resource.supportedMediaTypes.size}), filtered directories: ${allFiles.size} → ${filtered.size}")
+                    // Even if all types are supported, Player excludes unsupported/binary files.
+                    val filtered = allFiles.filter { isPlayerBrowsableFile(it) }
+                    Timber.d("All types supported (${resource.supportedMediaTypes.size}), filtered non-playable entries: ${allFiles.size} → ${filtered.size}")
                     filtered
                 }
+
+                val initialFileExistsInUnfiltered = initialFilePath?.let { targetPath ->
+                    allFiles.any { file -> !file.isDirectory && file.path == targetPath }
+                } ?: false
 
                 val filesWithFavorites = try {
                     if (files.isEmpty()) {
@@ -383,9 +401,11 @@ class PlayerViewModel @Inject constructor(
                             foundIndex
                         } else {
                             Timber.w("File not found by path: $initialFilePath, using index 0")
-                            if (resource.rememberFileList) {
+                            if (resource.rememberFileList && !initialFileExistsInUnfiltered) {
                                 val missingName = initialFilePath.substringAfterLast('/').ifBlank { initialFilePath }
                                 sendEvent(PlayerEvent.ShowMissingFileDialog(missingName, initialFilePath))
+                            } else if (resource.rememberFileList && initialFileExistsInUnfiltered) {
+                                Timber.w("Initial file exists in source list but was filtered out by supportedMediaTypes, skipping missing file dialog")
                             }
                             0
                         }

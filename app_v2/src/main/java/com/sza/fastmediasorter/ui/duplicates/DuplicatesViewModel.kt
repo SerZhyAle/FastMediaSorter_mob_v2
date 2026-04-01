@@ -35,7 +35,9 @@ data class DuplicatesState(
     val selectedResourceIds: Set<Long> = emptySet(),
     val scanState: ScanState = ScanState.Idle,
     val result: DuplicateDetectionResult? = null,
-    val selectedFilePaths: Set<String> = emptySet()
+    val selectedFilePaths: Set<String> = emptySet(),
+    /** ID ресурса, переданного при запуске — выводится первым в списке и предвыбирается. */
+    val pinnedResourceId: Long? = null
 )
 
 sealed class ScanState {
@@ -67,8 +69,38 @@ class DuplicatesViewModel @Inject constructor(
     private val _events = MutableSharedFlow<DuplicatesEvent>()
     val events: SharedFlow<DuplicatesEvent> = _events.asSharedFlow()
 
+    /** Установлен из Fragment при запуске с EXTRA_RESOURCE_ID. */
+    private var pendingPinnedResourceId: Long? = null
+
+    /** true — после завершения скана автоматически удалить выбранные дубликаты. */
+    var autoDeleteMode: Boolean = false
+        private set
+
     init {
         loadResources()
+    }
+
+    /**
+     * Вызывается из Fragment при наличии EXTRA_RESOURCE_ID / EXTRA_AUTO_DELETE.
+     * Предвыбирает переданный ресурс и помечает его как «прикреплённый» (отображается первым).
+     */
+    fun initWithResource(resourceId: Long, autoDelete: Boolean) {
+        autoDeleteMode = autoDelete
+        pendingPinnedResourceId = resourceId
+        // Если ресурсы уже загружены — применяем сразу
+        if (_state.value.availableResources.isNotEmpty()) {
+            applyPinnedResource(resourceId)
+        }
+    }
+
+    private fun applyPinnedResource(resourceId: Long) {
+        _state.update { current ->
+            current.copy(
+                pinnedResourceId = resourceId,
+                selectedResourceIds = setOf(resourceId)
+            )
+        }
+        Timber.d("DuplicatesViewModel: pinned resourceId=$resourceId, autoDelete=$autoDeleteMode")
     }
 
     private fun loadResources() {
@@ -76,6 +108,9 @@ class DuplicatesViewModel @Inject constructor(
             try {
                 val resources = resourceRepository.getAllResourcesSync()
                 _state.update { it.copy(availableResources = resources) }
+                // Применяем отложенный pinned-ресурс, если был установлен до загрузки
+                val pending = pendingPinnedResourceId
+                if (pending != null) applyPinnedResource(pending)
             } catch (e: Exception) {
                 Timber.e(e, "DuplicatesViewModel: failed to load resources")
             }

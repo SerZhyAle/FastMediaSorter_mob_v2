@@ -2,7 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationEntity
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.TimeFilter
@@ -47,7 +47,7 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
         sourceResourceId = sourceResourceId,
         operationType = ScheduledOpType.valueOf(operationType),
         targetResourceId = targetResourceId,
-        fileTypeFilter = FileTypeFilter.valueOf(fileTypeFilter),
+        fileTypeMask = fileTypeMask,
         timeFilter = TimeFilter.valueOf(timeFilter),
         startTimeHour = startTimeHour,
         startTimeMinute = startTimeMinute,
@@ -67,7 +67,7 @@ class ScheduledOperationRepositoryImpl @Inject constructor(
         sourceResourceId = sourceResourceId,
         operationType = operationType.name,
         targetResourceId = targetResourceId,
-        fileTypeFilter = fileTypeFilter.name,
+        fileTypeMask = fileTypeMask,
         timeFilter = timeFilter.name,
         startTimeHour = startTimeHour,
         startTimeMinute = startTimeMinute,

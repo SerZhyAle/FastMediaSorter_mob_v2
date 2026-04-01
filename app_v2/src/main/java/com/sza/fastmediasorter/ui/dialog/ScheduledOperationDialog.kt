@@ -11,9 +11,10 @@ import android.widget.ArrayAdapter
 import android.widget.LinearLayout
 import android.widget.NumberPicker
 import android.widget.Toast
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogScheduledOperationBinding
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
@@ -45,6 +46,8 @@ class ScheduledOperationDialog(
         )
         setupDropdowns()
         setupNextRunPreview()
+        // Default file type mask for new operations: ALL_FILES
+        if (existing == null) applyFileTypeMask(FileTypeFlags.DEFAULT)
         populateExisting()
         applyPrefilledSource()
         setupTimePicker()
@@ -84,16 +87,9 @@ class ScheduledOperationDialog(
             b.actvTarget.setText(destinations[0].name, false)
         }
 
-        // File type filters
-        val typeLabels = listOf(
-            context.getString(R.string.scheduled_ops_filter_all_files),
-            context.getString(R.string.scheduled_ops_filter_audio),
-            context.getString(R.string.scheduled_ops_filter_images),
-            context.getString(R.string.scheduled_ops_filter_video),
-            context.getString(R.string.scheduled_ops_filter_documents)
-        )
-        b.actvFileTypeFilter.setAdapter(ArrayAdapter(context, android.R.layout.simple_dropdown_item_1line, typeLabels))
-        b.actvFileTypeFilter.setText(typeLabels[0], false)
+        // File type filters — checkboxes with ALL_FILES interlock
+        updateFileTypeCheckboxVisibility()
+        setupFileTypeInterlock()
 
         // Time filters
         val timeLabels = listOf(
@@ -164,6 +160,67 @@ class ScheduledOperationDialog(
                 .setNegativeButton(android.R.string.cancel, null)
                 .show()
         }
+    }
+
+    private fun updateFileTypeCheckboxVisibility() {
+        b.cbFileTypeAudio.visibility = if (BuildConfig.SUPPORT_AUDIO) View.VISIBLE else View.GONE
+        b.cbFileTypeVideo.visibility = if (BuildConfig.SUPPORT_VIDEO) View.VISIBLE else View.GONE
+        b.cbFileTypeDocs.visibility  = if (BuildConfig.SUPPORT_DOCUMENTS) View.VISIBLE else View.GONE
+        // Hidden options must not remain selected or be persisted on unsupported flavors.
+        if (!BuildConfig.SUPPORT_AUDIO) b.cbFileTypeAudio.isChecked = false
+        if (!BuildConfig.SUPPORT_VIDEO) b.cbFileTypeVideo.isChecked = false
+        if (!BuildConfig.SUPPORT_DOCUMENTS) b.cbFileTypeDocs.isChecked = false
+    }
+
+    private fun setupFileTypeInterlock() {
+        // When ALL_FILES is checked, disable and uncheck other type checkboxes
+        b.cbFileTypeAllFiles.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                listOf(b.cbFileTypeImages, b.cbFileTypeAudio, b.cbFileTypeVideo, b.cbFileTypeDocs).forEach {
+                    it.isChecked = false
+                    it.isEnabled = false
+                }
+            } else {
+                listOf(b.cbFileTypeImages, b.cbFileTypeAudio, b.cbFileTypeVideo, b.cbFileTypeDocs).forEach {
+                    it.isEnabled = true
+                }
+            }
+        }
+    }
+
+    /** Reads checked checkboxes and builds the bitmask. Returns 0 if nothing is selected. */
+    private fun buildFileTypeMask(): Int {
+        var mask = 0
+        if (b.cbFileTypeAllFiles.isChecked) mask = mask or FileTypeFlags.ALL_FILES
+        if (b.cbFileTypeImages.isChecked)   mask = mask or FileTypeFlags.IMAGES
+        if (BuildConfig.SUPPORT_AUDIO && b.cbFileTypeAudio.isChecked)    mask = mask or FileTypeFlags.AUDIO
+        if (BuildConfig.SUPPORT_VIDEO && b.cbFileTypeVideo.isChecked)    mask = mask or FileTypeFlags.VIDEO
+        if (BuildConfig.SUPPORT_DOCUMENTS && b.cbFileTypeDocs.isChecked) mask = mask or FileTypeFlags.DOCUMENTS
+        return mask
+    }
+
+    /** Restores checkbox state from a saved bitmask. */
+    private fun applyFileTypeMask(mask: Int) {
+        val normalizedMask = normalizeMaskForFlavor(mask)
+        val allFiles = FileTypeFlags.isAllFiles(normalizedMask)
+        b.cbFileTypeAllFiles.isChecked = allFiles
+        if (allFiles) {
+            // interlock will fire via setOnCheckedChangeListener
+        } else {
+            b.cbFileTypeImages.isChecked = FileTypeFlags.hasImages(normalizedMask)
+            b.cbFileTypeAudio.isChecked  = BuildConfig.SUPPORT_AUDIO && FileTypeFlags.hasAudio(normalizedMask)
+            b.cbFileTypeVideo.isChecked  = BuildConfig.SUPPORT_VIDEO && FileTypeFlags.hasVideo(normalizedMask)
+            b.cbFileTypeDocs.isChecked   = BuildConfig.SUPPORT_DOCUMENTS && FileTypeFlags.hasDocuments(normalizedMask)
+        }
+    }
+
+    private fun normalizeMaskForFlavor(mask: Int): Int {
+        if (FileTypeFlags.isAllFiles(mask)) return FileTypeFlags.ALL_FILES
+        var result = mask and FileTypeFlags.IMAGES
+        if (BuildConfig.SUPPORT_AUDIO) result = result or (mask and FileTypeFlags.AUDIO)
+        if (BuildConfig.SUPPORT_VIDEO) result = result or (mask and FileTypeFlags.VIDEO)
+        if (BuildConfig.SUPPORT_DOCUMENTS) result = result or (mask and FileTypeFlags.DOCUMENTS)
+        return result
     }
 
     private fun applyReadOnlySourceConstraint(source: MediaResource?) {
@@ -256,15 +313,7 @@ class ScheduledOperationDialog(
         b.actvTarget.setText(destResource?.name ?: "", false)
 
         // Filters
-        val typeIdx = op.fileTypeFilter.ordinal
-        val typeLabels = listOf(
-            context.getString(R.string.scheduled_ops_filter_all_files),
-            context.getString(R.string.scheduled_ops_filter_audio),
-            context.getString(R.string.scheduled_ops_filter_images),
-            context.getString(R.string.scheduled_ops_filter_video),
-            context.getString(R.string.scheduled_ops_filter_documents)
-        )
-        b.actvFileTypeFilter.setText(typeLabels.getOrNull(typeIdx) ?: typeLabels[0], false)
+        applyFileTypeMask(op.fileTypeMask)
 
         val timeIdx = op.timeFilter.ordinal
         val timeLabels = listOf(
@@ -310,13 +359,10 @@ class ScheduledOperationDialog(
             targetId = destinations[destIdx].id
         }
 
-        val typeText = b.actvFileTypeFilter.text.toString()
-        val typeFilter = when (typeText) {
-            context.getString(R.string.scheduled_ops_filter_audio) -> FileTypeFilter.AUDIO
-            context.getString(R.string.scheduled_ops_filter_images) -> FileTypeFilter.IMAGES
-            context.getString(R.string.scheduled_ops_filter_video) -> FileTypeFilter.VIDEO
-            context.getString(R.string.scheduled_ops_filter_documents) -> FileTypeFilter.DOCUMENTS
-            else -> FileTypeFilter.ALL
+        val fileTypeMask = buildFileTypeMask()
+        if (fileTypeMask == 0) {
+            Toast.makeText(context, R.string.scheduled_ops_filter_select_at_least_one, Toast.LENGTH_SHORT).show()
+            return
         }
 
         val timeText = b.actvTimeFilter.text.toString()
@@ -347,7 +393,7 @@ class ScheduledOperationDialog(
             sourceResourceId = sourceResource.id,
             operationType = opType,
             targetResourceId = targetId,
-            fileTypeFilter = typeFilter,
+            fileTypeMask = fileTypeMask,
             timeFilter = timeFilter,
             startTimeHour = startHour,
             startTimeMinute = startMinute,

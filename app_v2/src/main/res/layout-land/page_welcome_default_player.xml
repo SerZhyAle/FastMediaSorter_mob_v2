@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Default Player page — landscape variant.
-     Left column: app icon + title + description (scrollable).
-     Right column: 4 action buttons, vertically centred. -->
+     Keep two-column UX: instructions on the left, action buttons on the right.
+     Left side is scrollable so text remains readable on short screens. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -9,11 +9,10 @@
     android:orientation="horizontal"
     android:padding="@dimen/welcome_page_padding">
 
-    <!-- Left column: header + scrollable description -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1"
+        android:layout_weight="1.2"
         android:fillViewport="true">
 
         <LinearLayout
@@ -22,20 +21,10 @@
             android:orientation="vertical"
             android:paddingEnd="@dimen/margin_large">
 
-            <ImageView
-                android:id="@+id/ivIcon"
-                android:layout_width="@dimen/welcome_icon_size"
-                android:layout_height="@dimen/welcome_icon_size"
-                android:layout_marginTop="@dimen/welcome_icon_margin_top"
-                android:contentDescription="@string/welcome_default_player_title"
-                android:src="@drawable/ic_audio"
-                app:tint="?attr/colorPrimary" />
-
             <TextView
                 android:id="@+id/tvTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/welcome_title_margin_top"
                 android:text="@string/welcome_default_player_title"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="@dimen/welcome_title_text_size"
@@ -51,17 +40,34 @@
                 android:textSize="@dimen/welcome_description_text_size"
                 android:lineSpacingMultiplier="1.3" />
 
+            <TextView
+                android:id="@+id/tvHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:text="@string/welcome_default_player_hint"
+                android:textColor="?attr/colorPrimary"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:id="@+id/ivIcon"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginTop="@dimen/margin_large"
+                android:contentDescription="@string/welcome_default_player_title"
+                android:src="@drawable/ic_audio"
+                app:tint="?attr/colorPrimary" />
+
         </LinearLayout>
 
     </ScrollView>
 
-    <!-- Right column: action buttons, vertically centred -->
     <LinearLayout
         android:id="@+id/layoutTypeButtons"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:layout_gravity="center_vertical"
+        android:layout_weight="0.8"
+        android:layout_gravity="top"
         android:orientation="vertical"
         android:paddingStart="@dimen/margin_large">
 

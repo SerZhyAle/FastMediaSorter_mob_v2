@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.utils
 import android.content.Context
 import android.media.MediaScannerConnection
 import android.os.Environment
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
 import java.io.File
@@ -47,6 +48,11 @@ object MediaStoreNotifier {
                     }
                 }
             }
+        } catch (e: CancellationException) {
+            if (shouldLogDetails) {
+                Timber.d("MediaStoreNotifier: scan cancelled for ${file.absolutePath}$tag")
+            }
+            throw e
         } catch (e: Exception) {
             Timber.e(e, "MediaStoreNotifier: scan failed for ${file.absolutePath}$tag")
         }

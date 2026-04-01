@@ -629,12 +629,14 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
 
             // Root padding for nav bar at bottom (ConstraintLayout with scrollable content)
             binding.root.setPadding(
-                binding.root.paddingLeft, binding.root.paddingTop,
-                binding.root.paddingRight, navBar.bottom
+                0, 0, 0, navBar.bottom
             )
 
             insets
         }
+        // The listener was registered after the first frame (via post{}), so the initial
+        // insets dispatch was already missed. Force a re-dispatch to apply correct values.
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.root)
     }
 
     override fun observeData() {

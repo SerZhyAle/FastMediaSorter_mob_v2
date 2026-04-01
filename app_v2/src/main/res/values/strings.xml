@@ -112,6 +112,10 @@
     <string name="export_logs_no_files">No log files available for export</string>
     <string name="export_logs_no_share_target">No app available to share log archive</string>
     <string name="export_logs_failed">Failed to export logs</string>
+    <string name="share_debug_logs">Share Debug Logs</string>
+    <string name="save_debug_logs">Save Debug Logs</string>
+    <string name="save_logs_success">Logs saved to device</string>
+    <string name="save_logs_failed">Failed to save logs</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Copied %1$d file(s)</string>
@@ -2140,11 +2144,12 @@
     <string name="scheduled_ops_op_move">Move</string>
     <string name="scheduled_ops_op_delete">Delete</string>
     <string name="scheduled_ops_target">Destination</string>
-    <string name="scheduled_ops_filter_all_files">All files</string>
-    <string name="scheduled_ops_filter_audio">Audio only</string>
-    <string name="scheduled_ops_filter_images">Images only</string>
-    <string name="scheduled_ops_filter_video">Video only</string>
-    <string name="scheduled_ops_filter_documents">Documents only</string>
+    <string name="scheduled_ops_filter_all_files">All files (incl. non-media)</string>
+    <string name="scheduled_ops_filter_audio">Audio</string>
+    <string name="scheduled_ops_filter_images">Images (incl. GIF)</string>
+    <string name="scheduled_ops_filter_video">Video</string>
+    <string name="scheduled_ops_filter_documents">Documents (PDF, EPUB, text)</string>
+    <string name="scheduled_ops_filter_select_at_least_one">Select at least one file type</string>
     <string name="scheduled_ops_time_all">All</string>
     <string name="scheduled_ops_time_since_last">New since last run</string>
     <string name="scheduled_ops_time_last_hour">New in last hour</string>
@@ -2181,6 +2186,7 @@
     <string name="scheduled_op_unknown_resource">(deleted)</string>
     <string name="scheduled_op_run_now">Run now</string>
     <string name="scheduled_op_filter_all">All files</string>
+    <string name="scheduled_op_filter_none">(none)</string>
     <string name="scheduled_op_filter_audio">Audio</string>
     <string name="scheduled_op_filter_images">Images</string>
     <string name="scheduled_op_filter_video">Video</string>

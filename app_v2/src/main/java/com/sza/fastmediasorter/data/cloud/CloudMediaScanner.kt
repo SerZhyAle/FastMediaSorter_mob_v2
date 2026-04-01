@@ -118,7 +118,7 @@ class CloudMediaScanner @Inject constructor(
             
             // Filter and convert to MediaFile
             // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val provider = resource.cloudProvider?.name?.lowercase() ?: "unknown"
             
             allCloudFiles.mapNotNull { cloudFile ->

@@ -71,7 +71,7 @@ class SftpMediaScanner @Inject constructor(
 
             // Filter and convert to MediaFile
             // When all 7 media types are supported (allFiles mode), treat unknown files as TEXT
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val mediaFiles = filesResult.getOrNull()?.mapNotNull { filePath ->
                 // Extract just the filename from the full path
                 val fileName = filePath.substringAfterLast('/')
@@ -190,7 +190,7 @@ class SftpMediaScanner @Inject constructor(
             }
 
             // Filter and convert to MediaFile (all files first)
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             val allMediaFiles = filesResult.getOrNull()?.mapNotNull { filePath ->
                 // Extract just the filename from the full path
                 val fileName = filePath.substringAfterLast('/')
@@ -321,7 +321,7 @@ class SftpMediaScanner @Inject constructor(
                 throw IOException("SFTP error: ${e.message}", e)
             }
 
-            val isAllFilesMode = supportedTypes.size == 7
+            val isAllFilesMode = supportedTypes.size >= 7
             filesResult.getOrNull()?.mapNotNull { filePath ->
                 val fileName = filePath.substringAfterLast('/')
 

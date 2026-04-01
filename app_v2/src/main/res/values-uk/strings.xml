@@ -97,6 +97,10 @@
     <string name="export_logs_no_files">Немає файлів логів для експорту</string>
     <string name="export_logs_no_share_target">Немає застосунку для надсилання архіву логів</string>
     <string name="export_logs_failed">Не вдалося експортувати логи</string>
+    <string name="share_debug_logs">Поділитися логами</string>
+    <string name="save_debug_logs">Зберегти логи</string>
+    <string name="save_logs_success">Логи збережено на пристрій</string>
+    <string name="save_logs_failed">Не вдалося зберегти логи</string>
 
     <!-- Success Messages -->
     <string name="copied_n_file_s">Скопійовано %1$d файл(ів)</string>
@@ -2076,11 +2080,12 @@
     <string name="scheduled_ops_op_move">Переміщення</string>
     <string name="scheduled_ops_op_delete">Видалення</string>
     <string name="scheduled_ops_target">Отримувач</string>
-    <string name="scheduled_ops_filter_all_files">Усі файли</string>
-    <string name="scheduled_ops_filter_audio">Тільки аудіо</string>
-    <string name="scheduled_ops_filter_images">Тільки зображення</string>
-    <string name="scheduled_ops_filter_video">Тільки відео</string>
-    <string name="scheduled_ops_filter_documents">Тільки документи</string>
+    <string name="scheduled_ops_filter_all_files">Усі файли (включаючи немедіафайли)</string>
+    <string name="scheduled_ops_filter_audio">Аудіо</string>
+    <string name="scheduled_ops_filter_images">Зображення (включаючи GIF)</string>
+    <string name="scheduled_ops_filter_video">Відео</string>
+    <string name="scheduled_ops_filter_documents">Документи (PDF, EPUB, текст)</string>
+    <string name="scheduled_ops_filter_select_at_least_one">Виберіть хоча б один тип файлу</string>
     <string name="scheduled_ops_time_all">Усі</string>
     <string name="scheduled_ops_time_since_last">Нові з попередньої операції</string>
     <string name="scheduled_ops_time_last_hour">Нові за годину</string>
@@ -2117,6 +2122,7 @@
     <string name="scheduled_op_unknown_resource">(видалено)</string>
     <string name="scheduled_op_run_now">Запустити</string>
     <string name="scheduled_op_filter_all">Усі файли</string>
+    <string name="scheduled_op_filter_none">(не вибрано)</string>
     <string name="scheduled_op_filter_audio">Аудіо</string>
     <string name="scheduled_op_filter_images">Зображення</string>
     <string name="scheduled_op_filter_video">Відео</string>

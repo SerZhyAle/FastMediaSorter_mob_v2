@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ItemScheduledOperationBinding
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.TimeFilter
@@ -73,13 +73,7 @@ class ScheduledOperationsAdapter(
             b.tvScheduleInfo.text = ctx.getString(R.string.scheduled_op_schedule_summary, "$hh:$mm", intervalStr)
 
             // Filters
-            val typeLabel = when (op.fileTypeFilter) {
-                FileTypeFilter.ALL -> ctx.getString(R.string.scheduled_op_filter_all)
-                FileTypeFilter.AUDIO -> ctx.getString(R.string.scheduled_op_filter_audio)
-                FileTypeFilter.IMAGES -> ctx.getString(R.string.scheduled_op_filter_images)
-                FileTypeFilter.VIDEO -> ctx.getString(R.string.scheduled_op_filter_video)
-                FileTypeFilter.DOCUMENTS -> ctx.getString(R.string.scheduled_op_filter_docs)
-            }
+            val typeLabel = buildFileTypeMaskLabel(ctx, op.fileTypeMask)
             val timeLabel = when (op.timeFilter) {
                 TimeFilter.ALL -> ""
                 TimeFilter.SINCE_LAST -> " · ${ctx.getString(R.string.scheduled_op_time_since_last)}"
@@ -92,6 +86,16 @@ class ScheduledOperationsAdapter(
             b.btnRunNow.setOnClickListener { onRunNow(op) }
             b.btnEdit.setOnClickListener { onEdit(op) }
             b.btnDelete.setOnClickListener { onDelete(op) }
+        }
+
+        private fun buildFileTypeMaskLabel(ctx: android.content.Context, mask: Int): String {
+            if (FileTypeFlags.isAllFiles(mask)) return ctx.getString(R.string.scheduled_op_filter_all)
+            val parts = mutableListOf<String>()
+            if (mask and FileTypeFlags.IMAGES    != 0) parts += ctx.getString(R.string.scheduled_op_filter_images)
+            if (mask and FileTypeFlags.AUDIO     != 0) parts += ctx.getString(R.string.scheduled_op_filter_audio)
+            if (mask and FileTypeFlags.VIDEO     != 0) parts += ctx.getString(R.string.scheduled_op_filter_video)
+            if (mask and FileTypeFlags.DOCUMENTS != 0) parts += ctx.getString(R.string.scheduled_op_filter_docs)
+            return parts.ifEmpty { listOf(ctx.getString(R.string.scheduled_op_filter_none)) }.joinToString(", ")
         }
 
         private fun buildIntervalString(ctx: android.content.Context, hours: Int, minutes: Int): String {

@@ -43,6 +43,15 @@ class DuplicatesFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         observeViewModel()
+
+        // Применяем параметры запуска (только при первом создании)
+        if (savedInstanceState == null) {
+            val resourceId = arguments?.getLong(DuplicatesActivity.EXTRA_RESOURCE_ID, -1L) ?: -1L
+            val autoDelete = arguments?.getBoolean(DuplicatesActivity.EXTRA_AUTO_DELETE, false) ?: false
+            if (resourceId != -1L) {
+                viewModel.initWithResource(resourceId, autoDelete)
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -91,7 +100,7 @@ class DuplicatesFragment : Fragment() {
 
     private fun updateUi(state: DuplicatesState) {
         if (binding.cgResources.childCount == 0 && state.availableResources.isNotEmpty()) {
-            buildResourceChips(state.availableResources, state.selectedResourceIds)
+            buildResourceChips(state.availableResources, state.selectedResourceIds, state.pinnedResourceId)
         } else {
             for (i in 0 until binding.cgResources.childCount) {
                 val chip = binding.cgResources.getChildAt(i) as? Chip
@@ -152,9 +161,17 @@ class DuplicatesFragment : Fragment() {
         }
     }
 
-    private fun buildResourceChips(resources: List<MediaResource>, selectedIds: Set<Long>) {
+    private fun buildResourceChips(
+        resources: List<MediaResource>,
+        selectedIds: Set<Long>,
+        pinnedId: Long? = null
+    ) {
         binding.cgResources.removeAllViews()
-        resources.forEach { resource ->
+        // Прикреплённый ресурс (из которого открыли меню) выводим первым
+        val sorted = if (pinnedId != null) {
+            resources.sortedByDescending { it.id == pinnedId }
+        } else resources
+        sorted.forEach { resource ->
             val chip = Chip(requireContext()).apply {
                 text = "${resource.name} (${resource.type})"
                 isCheckable = true
@@ -180,7 +197,12 @@ class DuplicatesFragment : Fragment() {
             }
             is DuplicatesEvent.ShowError -> Toast.makeText(requireContext(), event.message, Toast.LENGTH_SHORT).show()
             is DuplicatesEvent.FileDeleted -> Toast.makeText(requireContext(), "Deleted", Toast.LENGTH_SHORT).show()
-            is DuplicatesEvent.ScanComplete -> { /* Handled in updateUi */ }
+            is DuplicatesEvent.ScanComplete -> {
+                // Режим «Найти и удалить»: автоматически запускаем удаление без дополнительного подтверждения
+                if (viewModel.autoDeleteMode && viewModel.state.value.selectedFilePaths.isNotEmpty()) {
+                    viewModel.deleteSelectedFiles()
+                }
+            }
             is DuplicatesEvent.BatchDeletionComplete -> {
                 Toast.makeText(requireContext(), "Selected files deleted successfully", Toast.LENGTH_SHORT).show()
                 requireActivity().finish()

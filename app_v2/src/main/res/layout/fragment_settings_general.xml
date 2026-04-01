@@ -229,7 +229,13 @@
                     </androidx.constraintlayout.widget.ConstraintLayout>
 
                     <!-- Debug Logs Export -->
-                    <com.google.android.material.button.MaterialButton android:id="@+id/btnExportLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/margin_small" android:text="@string/export_logs" android:textSize="12sp" app:icon="@android:drawable/ic_menu_save" />
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="@dimen/margin_small">
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnShareLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginEnd="4dp" android:text="@string/share_debug_logs" android:textSize="11sp" app:icon="@android:drawable/ic_menu_share" />
+
+                        <com.google.android.material.button.MaterialButton android:id="@+id/btnSaveLogs" style="@style/Widget.MaterialComponents.Button.OutlinedButton" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="@string/save_debug_logs" android:textSize="11sp" app:icon="@android:drawable/ic_menu_save" />
+
+                    </LinearLayout>
 
                     <!-- Google Drive Backup/Restore -->
                     <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginTop="@dimen/margin_small" android:layout_marginBottom="@dimen/margin_small" android:background="?attr/colorOutlineVariant" />

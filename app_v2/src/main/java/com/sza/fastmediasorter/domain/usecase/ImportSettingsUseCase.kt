@@ -10,7 +10,7 @@ import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.model.FileTypeFilter
+import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.TimeFilter
@@ -430,8 +430,8 @@ class ImportSettingsUseCase @Inject constructor(
                         sourceResourceId = srcResource.id,
                         operationType = opType,
                         targetResourceId = dstResource?.id,
-                        fileTypeFilter = runCatching { FileTypeFilter.valueOf(data["fileTypeFilter"] ?: "") }
-                            .getOrElse { FileTypeFilter.ALL },
+                        fileTypeMask = data["fileTypeMask"]?.toIntOrNull()
+                            ?: FileTypeFlags.fromLegacyName(data["fileTypeFilter"] ?: ""),
                         timeFilter = runCatching { TimeFilter.valueOf(data["timeFilter"] ?: "") }
                             .getOrElse { TimeFilter.ALL },
                         startTimeHour = data["startTimeHour"]?.toIntOrNull() ?: 0,

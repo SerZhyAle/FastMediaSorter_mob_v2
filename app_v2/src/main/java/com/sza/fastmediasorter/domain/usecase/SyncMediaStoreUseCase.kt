@@ -76,6 +76,9 @@ class SyncMediaStoreUseCase @Inject constructor(
                         reason = "sync-mediastore"
                     )
                     syncedCount++
+                } catch (e: CancellationException) {
+                    Timber.i("SyncMediaStore: Cancelled while notifying ${file.name}")
+                    throw e
                 } catch (e: Exception) {
                     Timber.e(e, "SyncMediaStore: Failed to notify MediaStore for ${file.name}")
                 }

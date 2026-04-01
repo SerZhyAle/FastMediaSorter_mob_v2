@@ -441,7 +441,7 @@ class GetMediaFilesUseCase @Inject constructor(
                 MediaType.TEXT -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.PDF -> BuildConfig.SUPPORT_DOCUMENTS
                 MediaType.EPUB -> BuildConfig.ENABLE_EPUB
-                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> false
+                MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
             }
         }.toSet()
     }

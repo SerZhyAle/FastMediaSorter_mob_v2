@@ -848,6 +848,40 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
+    private fun notifyItemRangeChangedSafely(start: Int, count: Int, payload: Any, source: String) {
+        if (start < 0 || count <= 0) {
+            Timber.w("$source: skipped notifyItemRangeChanged with invalid range start=$start, count=$count")
+            return
+        }
+
+        val recyclerView = binding.rvMediaFiles
+        val runNotify: () -> Unit = {
+            if (isDestroyed || isFinishing) {
+                Timber.w("$source: Activity destroyed/finishing, skipping notifyItemRangeChanged")
+            } else {
+                val itemCount = mediaFileAdapter.itemCount
+                if (start >= itemCount) {
+                    Timber.w("$source: start=$start out of bounds for itemCount=$itemCount")
+                } else {
+                    val safeCount = minOf(count, itemCount - start)
+                    if (safeCount <= 0) {
+                        Timber.w("$source: safeCount became $safeCount, skipping notify")
+                    } else {
+                        Timber.d("$source: notifyItemRangeChanged($start, $safeCount, $payload)")
+                        mediaFileAdapter.notifyItemRangeChanged(start, safeCount, payload)
+                    }
+                }
+            }
+        }
+
+        if (recyclerView.isComputingLayout || recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
+            Timber.d("$source: RecyclerView busy (isComputingLayout=${recyclerView.isComputingLayout}, scrollState=${recyclerView.scrollState}), posting notify")
+            recyclerView.post { runNotify() }
+        } else {
+            runNotify()
+        }
+    }
+
     private fun applyEdgeToEdgeInsets() {
         // Capture original padding values from XML before any insets are applied.
         // These are used as the base so repeated insets dispatches don't accumulate.
@@ -994,9 +1028,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                     
                                     if (firstVisible >= 0 && lastVisible >= firstVisible) {
                                         val visibleCount = lastVisible - firstVisible + 1
-                                        Timber.d(">>> Calling notifyItemRangeChanged($firstVisible, $visibleCount, LOAD_THUMBNAILS)")
-                                        mediaFileAdapter.notifyItemRangeChanged(firstVisible, visibleCount, "LOAD_THUMBNAILS")
-                                        Timber.d("<<< notifyItemRangeChanged completed")
+                                        notifyItemRangeChangedSafely(
+                                            start = firstVisible,
+                                            count = visibleCount,
+                                            payload = "LOAD_THUMBNAILS",
+                                            source = "submitList immediate"
+                                        )
                                     } else {
                                         Timber.w("NOT calling notifyItemRangeChanged - invalid range: $firstVisible to $lastVisible")
                                         Timber.w("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
@@ -1035,9 +1072,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                         
                                         if (firstVisible >= 0 && lastVisible >= firstVisible) {
                                             val visibleCount = lastVisible - firstVisible + 1
-                                            Timber.d(">>> Calling notifyItemRangeChanged($firstVisible, $visibleCount, LOAD_THUMBNAILS)")
-                                            mediaFileAdapter.notifyItemRangeChanged(firstVisible, visibleCount, "LOAD_THUMBNAILS")
-                                            Timber.d("<<< notifyItemRangeChanged completed")
+                                            notifyItemRangeChangedSafely(
+                                                start = firstVisible,
+                                                count = visibleCount,
+                                                payload = "LOAD_THUMBNAILS",
+                                                source = "submitList post"
+                                            )
                                         } else {
                                             Timber.d("notifyItemRangeChanged in post: no children yet ($firstVisible..$lastVisible), retrying on first child attach")
                                             Timber.d("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
@@ -1046,11 +1086,23 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                                     binding.rvMediaFiles.removeOnChildAttachStateChangeListener(this)
                                                     if (isDestroyed || isFinishing) return
                                                     val lm = binding.rvMediaFiles.layoutManager
-                                                    val f = (lm as? LinearLayoutManager)?.findFirstVisibleItemPosition() ?: 0
-                                                    val l = (lm as? LinearLayoutManager)?.findLastVisibleItemPosition() ?: minOf(20, mediaFileAdapter.itemCount - 1)
+                                                    val f = when (lm) {
+                                                        is LinearLayoutManager -> lm.findFirstVisibleItemPosition()
+                                                        is GridLayoutManager -> lm.findFirstVisibleItemPosition()
+                                                        else -> 0
+                                                    }
+                                                    val l = when (lm) {
+                                                        is LinearLayoutManager -> lm.findLastVisibleItemPosition()
+                                                        is GridLayoutManager -> lm.findLastVisibleItemPosition()
+                                                        else -> minOf(20, mediaFileAdapter.itemCount - 1)
+                                                    }
                                                     if (f >= 0 && l >= f) {
-                                                        Timber.d("Child attach retry: notifyItemRangeChanged($f, ${l - f + 1}, LOAD_THUMBNAILS)")
-                                                        mediaFileAdapter.notifyItemRangeChanged(f, l - f + 1, "LOAD_THUMBNAILS")
+                                                        notifyItemRangeChangedSafely(
+                                                            start = f,
+                                                            count = l - f + 1,
+                                                            payload = "LOAD_THUMBNAILS",
+                                                            source = "submitList childAttach"
+                                                        )
                                                     }
                                                 }
                                                 override fun onChildViewDetachedFromWindow(view: View) {}
@@ -1245,7 +1297,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     binding.btnDelete.isVisible = hasSelection && isWritable
                     binding.btnUndo.isVisible = state.lastOperation != null
                     binding.btnShare.isVisible = hasSelection
-                    binding.btnArchive?.isVisible = hasSelection
+                    val isLocalResource = resource?.type == ResourceType.LOCAL
+                    binding.btnArchive?.isVisible = hasSelection && isLocalResource
 
                     val shouldDisableToggle = resource?.isAudioOnly() == true
                     updateToggleViewAvailability(shouldDisableToggle)
@@ -1410,7 +1463,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     // If PDF thumbnail setting changed, refresh visible items to load/hide thumbnails
                     if (pdfThumbnailsChanged && mediaFileAdapter.itemCount > 0) {
                         Timber.d("PDF_THUMB_DEBUG: Triggering notifyItemRangeChanged for ${mediaFileAdapter.itemCount} items")
-                        mediaFileAdapter.notifyItemRangeChanged(0, mediaFileAdapter.itemCount, "LOAD_THUMBNAILS")
+                        notifyItemRangeChangedSafely(
+                            start = 0,
+                            count = mediaFileAdapter.itemCount,
+                            payload = "LOAD_THUMBNAILS",
+                            source = "settings pdf toggle"
+                        )
                     }
                     
                     // Update grid cell size when thumbnail size changes in settings
@@ -1583,11 +1641,11 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         }
                         is BrowseEvent.ArchiveError -> {
                             dismissArchiveProgressDialog()
-                            Toast.makeText(
-                                this@BrowseActivity,
+                            showError(
                                 getString(R.string.archive_error, event.message),
-                                Toast.LENGTH_LONG
-                            ).show()
+                                details = null,
+                                exception = event.exception
+                            )
                         }
                         is BrowseEvent.ShowExtractConfirmDialog -> {
                             showUnarchiveConfirmDialog(event.file, event.targetDirName)
