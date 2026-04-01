@@ -2075,6 +2075,7 @@
     <string name="file_not_found_title">File Not Found</string>
     <string name="file_not_found_message">The file "%1$s" no longer exists. It may have been deleted or moved outside the app. Refresh this resource?</string>
     <string name="refresh_resource">Refresh Resource</string>
+    <string name="player_file_not_found_message">The file \u201c%1$s\u201d can no longer be played \u2014 it has been deleted or moved.</string>
 
     <!-- Picture-in-Picture -->
     <string name="picture_in_picture">Picture in Picture</string>
@@ -2255,8 +2256,8 @@
     <string name="action_create_folder">Create Folder</string>
     <string name="msg_folder_created">Folder "%1$s" created</string>
     <string name="menu_automate_source">Automation..</string>
-    <string name="menu_add_receiver">Add to Quick Sort</string>
-    <string name="msg_added_as_receiver">Resource added as Quick Sort destination</string>
+    <string name="menu_add_receiver">Add to Sort List</string>
+    <string name="msg_added_as_receiver">Resource added to Sort List</string>
     <string name="btn_edit_receiver">Configure</string>
 
     <!-- Archive selected files (task_1_3) -->

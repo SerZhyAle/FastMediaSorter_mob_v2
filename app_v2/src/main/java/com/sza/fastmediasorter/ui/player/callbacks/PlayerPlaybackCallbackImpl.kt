@@ -92,7 +92,11 @@ class PlayerPlaybackCallbackImpl(
     override fun showError(message: String) {
         activity.showError(message)
     }
-    
+
+    override fun showFileNotFound(fileName: String) {
+        activity.showFileNotFound(fileName)
+    }
+
     override fun isActivityDestroyed(): Boolean {
         return activity.isDestroyed || activity.isFinishing
     }

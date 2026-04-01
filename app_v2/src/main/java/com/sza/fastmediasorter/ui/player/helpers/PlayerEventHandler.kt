@@ -105,6 +105,15 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
         }
     }
 
+    fun showFileNotFound(fileName: String) {
+        if (activity.isFinishing || activity.isDestroyed) return
+        AlertDialog.Builder(activity)
+            .setTitle(R.string.file_not_found_title)
+            .setMessage(activity.getString(R.string.player_file_not_found_message, fileName))
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
+    }
+
     fun showCloudAuthenticationError(providerName: String? = null) {
         activity.dialogHelper.showCloudAuthError(providerName) {
             when (providerName?.lowercase()) {

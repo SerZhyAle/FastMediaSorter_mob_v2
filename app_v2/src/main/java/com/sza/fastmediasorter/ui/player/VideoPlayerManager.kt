@@ -91,6 +91,7 @@ class VideoPlayerManager(
         fun onPlaybackEnded()
         fun onAudioFormatChanged(format: AudioFormat?)
         fun showError(message: String)
+        fun showFileNotFound(fileName: String)
         fun isActivityDestroyed(): Boolean
         fun showUnsupportedFormatError(message: String, filePath: String, isLocalFile: Boolean)
     }
@@ -547,8 +548,8 @@ class VideoPlayerManager(
             }
 
             if (!fileCheck.first) {
-                Timber.e("VideoPlayerManager: Local file does not exist: $normalizedPath (originalPath=$path)")
-                playerCallback.showError(context.getString(R.string.file_not_found_name, file.name))
+                Timber.w("VideoPlayerManager: Local file does not exist: $normalizedPath (originalPath=$path)")
+                playerCallback.showFileNotFound(file.name)
                 return
             }
             if (!fileCheck.second) {

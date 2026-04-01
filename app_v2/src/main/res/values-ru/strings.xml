@@ -1618,6 +1618,7 @@
     <string name="file_not_found_title">Файл не найден</string>
     <string name="file_not_found_message">Файл "%1$s" больше не существует. Возможно, он был удалён или перемещён вне приложения. Обновить ресурс?</string>
     <string name="refresh_resource">Обновить ресурс</string>
+    <string name="player_file_not_found_message">Файл \u00ab%1$s\u00bb невозможно воспроизвести \u2014 он был удалён или перемещён.</string>
 
     <!-- Sleep Timer -->
     <string name="menu_sleep_timer">Таймер сна</string>
@@ -2203,8 +2204,8 @@
     <string name="duplicate_scan_notif_channel_name">Сканнер дубликатов</string>
     <string name="action_create_folder">Создать папку</string>
     <string name="menu_automate_source">Автоматизация..</string>
-    <string name="menu_add_receiver">В получатели</string>
-    <string name="msg_added_as_receiver">Ресурс добавлен как получатель</string>
+    <string name="menu_add_receiver">В список сортировки</string>
+    <string name="msg_added_as_receiver">Ресурс добавлен в список сортировки</string>
     <string name="btn_edit_receiver">Настроить</string>
     <string name="create_folder">Создать папку</string>
     <string name="create_folder_title">Новая папка</string>

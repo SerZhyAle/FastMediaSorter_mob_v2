@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.ui.common.MediaGroupPalette
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import timber.log.Timber
 
 @android.annotation.SuppressLint("SetTextI18n")
@@ -540,6 +541,8 @@ class ResourceAdapter(
                     btnMoreActions.visibility = android.view.View.GONE
                     layoutInlineActions.visibility = android.view.View.GONE
                 } else {
+                    val isPredefinedVirtualResource = resource.path in VirtualPathUtils.ALL_VIRTUAL_PATHS
+
                     // Check if we should show inline actions (Landscape/Tablet)
                     val showInlineActions = root.resources.getBoolean(R.bool.is_resource_actions_inline)
                     
@@ -549,6 +552,7 @@ class ResourceAdapter(
                         
                         // Bind inline button listeners with debounce protection
                         btnEdit.setOnClickListenerDebounced { onEditClick(resource) }
+                        btnCopy.visibility = if (isPredefinedVirtualResource) android.view.View.GONE else android.view.View.VISIBLE
                         btnCopy.setOnClickListenerDebounced { onCopyFromClick(resource) }
                         btnMoveUp.setOnClickListenerDebounced { onMoveUpClick(resource) }
                         btnMoveDown.setOnClickListenerDebounced { onMoveDownClick(resource) }
@@ -561,6 +565,7 @@ class ResourceAdapter(
                         btnMoreActions.setOnClickListenerDebounced { view ->
                             val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                             popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
+                            popup.menu.findItem(R.id.action_copy)?.isVisible = !isPredefinedVirtualResource
                             popup.setForceShowIcon(true)
                             
                             popup.setOnMenuItemClickListener { item ->

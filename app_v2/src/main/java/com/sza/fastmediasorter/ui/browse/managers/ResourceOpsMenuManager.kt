@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ActivityContext
 import javax.inject.Inject
 
@@ -49,9 +50,13 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_automate_resource)?.isVisible =
             isScheduleEnabled && onAutomateSource != null
 
-        // Show "Add to receivers" only when the resource is writable and not yet a destination
+        // Show "Add to Sort List" only when:
+        // 1. Resource is not read-only
+        // 2. Resource is not yet a destination
+        // 3. Resource is not a virtual/predefined resource (no target folder)
         popup.menu.findItem(R.id.action_add_to_receivers)?.isVisible =
-            resource != null && !resource.isReadOnly && !resource.isDestination
+            resource != null && !resource.isReadOnly && !resource.isDestination && 
+            !VirtualPathUtils.isVirtualPath(resource.path)
 
         popup.setOnMenuItemClickListener { item ->
             when (item.itemId) {

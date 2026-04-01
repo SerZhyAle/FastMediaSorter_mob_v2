@@ -1916,6 +1916,9 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal fun showError(message: String, throwable: Throwable? = null) =
         eventHandler.showError(message, throwable)
 
+    internal fun showFileNotFound(fileName: String) =
+        eventHandler.showFileNotFound(fileName)
+
     private fun showCloudAuthenticationError(providerName: String? = null) =
         eventHandler.showCloudAuthenticationError(providerName)
 
