@@ -1097,6 +1097,8 @@
     <string name="msg_already_authenticated">Вже авторизований</string>
     <string name="select_folder_copy_location">Виберіть папку для копіювання</string>
     <string name="select_cloud_folder_copy">Виберіть хмарну папку для копіювання</string>
+    <string name="error_folder_not_writable">Обрана папка недоступна для запису. Виберіть інше місце.</string>
+    <string name="select_folder_network_hint">Виберіть локальну папку для копіювання/переміщення файлів з мережевого ресурсу</string>
 
     <!-- Player Messages -->
     <string name="image_edit_title">Редагування зображення</string>
@@ -2215,6 +2217,12 @@
     <string name="error_invalid_folder_name">Недопустиме ім\'я папки</string>
     <string name="error_folder_already_exists">Папка вже існує</string>
     <string name="msg_folder_created">Папка "%1$s" створена</string>
+    <string name="msg_folder_renamed">Папку перейменовано</string>
+    <string name="delete_folder_confirm">Видалити папку «%1$s» та весь її вміст? Скасувати не можна.</string>
+    <string name="delete_n_folders_confirm">Видалити %1$d папок та весь їхній вміст? Скасувати не можна.</string>
+    <string name="error_cross_protocol_dir_not_supported">Копіювання/переміщення папок між різними типами сховищ не підтримується.</string>
+    <string name="operation_completed">Операцію виконано</string>
+    <string name="error_some_operations_failed">%1$d з %2$d операцій не виконано</string>
 
     <!-- Archive selected files (task_1_3) -->
     <string name="archive_files">Архів</string>

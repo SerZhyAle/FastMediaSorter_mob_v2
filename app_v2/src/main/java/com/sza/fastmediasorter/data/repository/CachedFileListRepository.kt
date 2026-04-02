@@ -17,7 +17,7 @@ class CachedFileListRepository @Inject constructor(
     private val cachedFileListDao: CachedFileListDao
 ) {
     private val gson = Gson()
-    private val mediaFileListType = object : TypeToken<List<MediaFile>>() {}.type
+    private val mediaFileListType = TypeToken.getParameterized(List::class.java, MediaFile::class.java).type
 
     // ── Compression helpers ───────────────────────────────────────────────────
 

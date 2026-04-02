@@ -18,15 +18,18 @@ import javax.inject.Singleton
 /**
  * Unified file operation handler for all protocols.
  * Orchestrates file transfers using protocol-specific providers.
- * 
+ *
  * Eliminates duplication across SMB/SFTP/FTP/Cloud handlers.
+ * Also exposes directory-level operations (delete, rename, copy, move)
+ * by routing to the injected [FileOperationStrategy] map.
  */
 @Singleton
 class UnifiedFileOperationHandler @Inject constructor(
     private val localProvider: LocalTransferProvider,
     private val tempFileManager: TempFileManager,
     private val progressTracker: ProgressTracker,
-    private val errorHandler: FileOperationErrorHandler
+    private val errorHandler: FileOperationErrorHandler,
+    private val operationStrategies: Map<String, @JvmSuppressWildcards FileOperationStrategy>
 ) {
     
     // Providers map (will be populated as providers are created)
@@ -393,6 +396,135 @@ class UnifiedFileOperationHandler @Inject constructor(
         } else {
             "$destResourcePath/$fileName"
         }
+    }
+
+    // ==================== Directory Operations ====================
+
+    /**
+     * Delete a directory and all its contents recursively.
+     *
+     * @param dirPath Protocol-specific path of the directory.
+     * @param progressCallback Optional callback (deletedCount, total, currentName).
+     * @return Result<Int> — total number of entries deleted.
+     */
+    suspend fun executeDeleteDirectory(
+        dirPath: String,
+        progressCallback: ((Int, Int, String) -> Unit)? = null
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val strategy = getStrategy(dirPath)
+            strategy.deleteDirectory(dirPath, progressCallback)
+        } catch (e: Exception) {
+            val msg = errorHandler.handleError(e, "delete_directory", dirPath)
+            Timber.e(e, "Delete directory failed: $msg")
+            Result.failure(Exception(msg, e))
+        }
+    }
+
+    /**
+     * Rename a directory in place (same parent). [newName] must not contain path separators.
+     *
+     * @return Result<String> — new full path on success.
+     */
+    suspend fun executeRenameDirectory(
+        oldPath: String,
+        newName: String
+    ): Result<String> = withContext(Dispatchers.IO) {
+        try {
+            val strategy = getStrategy(oldPath)
+            val parentDir = oldPath.substringBeforeLast('/')
+            val newPath = "$parentDir/$newName"
+            strategy.renameDirectory(oldPath, newPath)
+        } catch (e: Exception) {
+            val msg = errorHandler.handleError(e, "rename_directory", oldPath, newName)
+            Timber.e(e, "Rename directory failed: $msg")
+            Result.failure(Exception(msg, e))
+        }
+    }
+
+    /**
+     * Copy a directory tree to [destParentPath]/dirName.
+     * Returns [Result.failure] when source and destination protocols differ.
+     *
+     * @return Result<Int> — total files copied.
+     */
+    suspend fun executeCopyDirectory(
+        sourcePath: String,
+        destParentPath: String,
+        progressCallback: ((Int, Int, String) -> Unit)? = null
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val sourceProtocol = getProtocolKey(sourcePath)
+            val destProtocol = getProtocolKey(destParentPath)
+            if (sourceProtocol != destProtocol) {
+                Timber.w("executeCopyDirectory: cross-protocol not supported ($sourceProtocol → $destProtocol)")
+                return@withContext Result.failure(
+                    UnsupportedOperationException("Cross-protocol directory copy is not supported")
+                )
+            }
+            val strategy = getStrategy(sourcePath)
+            val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
+            val destination = if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
+            strategy.copyDirectory(sourcePath, destination, progressCallback)
+        } catch (e: UnsupportedOperationException) {
+            Timber.w(e, "executeCopyDirectory: unsupported operation")
+            Result.failure(e)
+        } catch (e: Exception) {
+            val msg = errorHandler.handleError(e, "copy_directory", sourcePath, destParentPath)
+            Timber.e(e, "Copy directory failed: $msg")
+            Result.failure(Exception(msg, e))
+        }
+    }
+
+    /**
+     * Move a directory tree (copy + delete source) to [destParentPath]/dirName.
+     * Returns [Result.failure] when source and destination protocols differ.
+     *
+     * @return Result<Int> — total files moved.
+     */
+    suspend fun executeMoveDirectory(
+        sourcePath: String,
+        destParentPath: String,
+        progressCallback: ((Int, Int, String) -> Unit)? = null
+    ): Result<Int> = withContext(Dispatchers.IO) {
+        try {
+            val sourceProtocol = getProtocolKey(sourcePath)
+            val destProtocol = getProtocolKey(destParentPath)
+            if (sourceProtocol != destProtocol) {
+                Timber.w("executeMoveDirectory: cross-protocol not supported ($sourceProtocol → $destProtocol)")
+                return@withContext Result.failure(
+                    UnsupportedOperationException("Cross-protocol directory move is not supported")
+                )
+            }
+            val strategy = getStrategy(sourcePath)
+            val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
+            val destination = if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
+            strategy.moveDirectory(sourcePath, destination, progressCallback)
+        } catch (e: UnsupportedOperationException) {
+            Timber.w(e, "executeMoveDirectory: unsupported operation")
+            Result.failure(e)
+        } catch (e: Exception) {
+            val msg = errorHandler.handleError(e, "move_directory", sourcePath, destParentPath)
+            Timber.e(e, "Move directory failed: $msg")
+            Result.failure(Exception(msg, e))
+        }
+    }
+
+    /**
+     * Resolve the [FileOperationStrategy] for [path] based on its protocol prefix.
+     */
+    private fun getStrategy(path: String): FileOperationStrategy {
+        val key = getProtocolKey(path)
+        return operationStrategies[key]
+            ?: throw IllegalStateException("No FileOperationStrategy registered for protocol: $key")
+    }
+
+    private fun getProtocolKey(path: String): String = when {
+        path.startsWith("smb://") -> "smb"
+        path.startsWith("sftp://") -> "sftp"
+        path.startsWith("ftp://") -> "ftp"
+        path.startsWith("cloud://") -> "cloud"
+        else -> "local"
     }
 }
 

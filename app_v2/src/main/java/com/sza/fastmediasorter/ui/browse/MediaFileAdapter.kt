@@ -829,9 +829,9 @@ class MediaFileAdapter(
                 // HIDE buttons if: (It's Grid Mode AND HideGridActions is ON) OR it's a folder
                 val shouldHideActions = (isGridMode && hideGridActionButtons) || isFolder
                 
-                btnCopyItem.isVisible = hasDestinations && !shouldHideActions
+                btnCopyItem.isVisible = !shouldHideActions
                 
-                btnMoveItem.isVisible = hasDestinations && isWritable && !shouldHideActions
+                btnMoveItem.isVisible = isWritable && !shouldHideActions
                 
                 btnRenameItem.isVisible = isWritable && !shouldHideActions
                 
@@ -1859,14 +1859,14 @@ class MediaFileAdapter(
                 )
 
                 // Setup operation buttons with visibility
-                val shouldShowAnyOperation = hasDestinations || isWritable
+                val shouldShowAnyOperation = true // Copy is always available (select folder option)
                 if (shouldShowAnyOperation) {
                     ensureOperationsInflated()
                 }
 
                 operationsContainer?.isVisible = shouldShowAnyOperation && !hideGridActionButtons
-                btnCopyItem?.isVisible = hasDestinations && !hideGridActionButtons
-                btnMoveItem?.isVisible = hasDestinations && isWritable && !hideGridActionButtons
+                btnCopyItem?.isVisible = !hideGridActionButtons
+                btnMoveItem?.isVisible = isWritable && !hideGridActionButtons
                 btnRenameItem?.isVisible = isWritable && !hideGridActionButtons
                 btnDeleteItem?.isVisible = isWritable && !hideGridActionButtons
             }

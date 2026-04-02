@@ -51,6 +51,7 @@ class BrowseDialogHelper(
         fun onSortModeSelected(sortMode: SortMode)
         fun onRenameConfirmed(oldName: String, newName: String)
         fun onRenameMultipleConfirmed(files: List<Pair<String, String>>)
+        fun onDirectoryRenameConfirmed(oldPath: String, newName: String)
         fun onCopyDestinationSelected(destinationPath: String)
         fun onMoveDestinationSelected(destinationPath: String)
         fun onDeleteConfirmed(fileCount: Int)
@@ -328,9 +329,20 @@ class BrowseDialogHelper(
         val shouldConfirmDelete = settings.enableSafeMode && settings.confirmDelete
         
         if (shouldConfirmDelete) {
+            val dirCount = files.count { it.isDirectory }
+            val message = when {
+                dirCount == 1 && fileCount == 1 -> {
+                    val folderName = files.first { it.isDirectory }.name
+                    activity.getString(R.string.delete_folder_confirm, folderName)
+                }
+                dirCount > 0 && dirCount == fileCount -> {
+                    activity.getString(R.string.delete_n_folders_confirm, dirCount)
+                }
+                else -> activity.getString(R.string.confirm_delete_message, fileCount)
+            }
             AlertDialog.Builder(activity)
                 .setTitle(R.string.confirm_delete_title)
-                .setMessage(activity.getString(R.string.confirm_delete_message, fileCount))
+                .setMessage(message)
                 .setPositiveButton(R.string.delete) { _, _ ->
                     callbacks.onDeleteConfirmed(fileCount)
                 }
@@ -450,11 +462,33 @@ class BrowseDialogHelper(
             return
         }
         
-        if (selectedFiles.size == 1) {
+        if (selectedFiles.size == 1 && selectedFiles.first().isDirectory) {
+            showRenameDirectoryDialog(selectedFiles.first())
+        } else if (selectedFiles.size == 1) {
             showRenameSingleDialog(selectedFiles.first().path)
         } else {
             showRenameMultipleDialog(selectedFiles.map { it.path })
         }
+    }
+
+    private fun showRenameDirectoryDialog(file: MediaFile) {
+        val currentName = file.path.trimEnd('/').substringAfterLast('/')
+        val editText = android.widget.EditText(activity).apply {
+            setText(currentName)
+            selectAll()
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+        MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.rename)
+            .setView(editText)
+            .setPositiveButton(R.string.ok) { _, _ ->
+                val newName = editText.text.toString().trim()
+                if (newName.isNotEmpty() && newName != currentName) {
+                    callbacks.onDirectoryRenameConfirmed(file.path, newName)
+                }
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .show()
     }
     
     private fun showRenameSingleDialog(filePath: String) {

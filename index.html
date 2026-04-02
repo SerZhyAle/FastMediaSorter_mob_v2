@@ -43,6 +43,7 @@
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -108,6 +109,15 @@
                 <li>Advanced Touch Gestures</li>
             </ul>
         </div>
+
+        <!-- Full Feature List (auto-loaded from docs/FEATURES.md) -->
+        <details class="full-features-panel" open>
+            <summary>📋 Complete Feature List (22 sections)</summary>
+            <div id="full-features-content" class="full-features-content">
+                <em>Loading feature list…</em>
+            </div>
+            <a class="full-features-link" href="docs/FEATURES.html" target="_blank">Open as full page →</a>
+        </details>
 
         <h2 class="section-title">💡 Usage Scenarios</h2>
         <div class="cards-grid">
@@ -469,6 +479,19 @@
       },
       "inLanguage": ["en", "ru", "uk"]
     }
+    </script>
+
+    <script>
+        // Load full feature list from docs/FEATURES.md
+        fetch('docs/FEATURES.md')
+            .then(function(r) { return r.text(); })
+            .then(function(text) {
+                document.getElementById('full-features-content').innerHTML = marked.parse(text);
+            })
+            .catch(function() {
+                document.getElementById('full-features-content').innerHTML =
+                    '<em>Could not load feature list. <a href="docs/FEATURES.html">Open directly</a>.</em>';
+            });
     </script>
 
 </body>

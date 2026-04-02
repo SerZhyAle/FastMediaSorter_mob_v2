@@ -29,7 +29,7 @@ class NetworkSourceRepositoryImpl(
     override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {
         try {
             val json = encryptedPrefs.getString(sourcesKey, null) ?: return@withContext emptyList()
-            val type = object : TypeToken<List<NetworkSource>>() {}.type
+            val type = TypeToken.getParameterized(List::class.java, NetworkSource::class.java).type
             gson.fromJson<List<NetworkSource>>(json, type)
         } catch (e: Exception) {
             Timber.e(e, "Failed to load network sources")

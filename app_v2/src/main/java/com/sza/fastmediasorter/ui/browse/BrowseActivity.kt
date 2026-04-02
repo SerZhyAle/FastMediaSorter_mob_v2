@@ -142,6 +142,93 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }
+
+    /** System folder tree picker for local storage (API 21+). */
+    private val folderPickerLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            Timber.i("folderPickerLauncher: selected uri=$uri")
+            // Persist read+write permission for the selected tree so subsequent
+            // access within the same process works without re-prompting.
+            try {
+                contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                )
+            } catch (e: SecurityException) {
+                Timber.w(e, "takePersistableUriPermission failed (non-fatal)")
+            }
+            // Resolve the real filesystem path (needed by FileOperationUseCase)
+            val path = com.sza.fastmediasorter.core.util.UriPathResolver.getPath(this, uri) ?: uri.path
+            if (path != null) {
+                // Validate writability — on restricted storage/SD cards the resolved
+                // path may not be accessible via java.io.File even though SAF granted it.
+                val destDir = java.io.File(path)
+                if (!destDir.exists() || !destDir.canWrite()) {
+                    Timber.w("folderPickerLauncher: path=$path is not writable (exists=${destDir.exists()}, canWrite=${destDir.canWrite()})")
+                    Toast.makeText(this, getString(R.string.error_folder_not_writable), Toast.LENGTH_LONG).show()
+                    pendingFolderPickerOp = null
+                    return@registerForActivityResult
+                }
+                val op = pendingFolderPickerOp
+                if (op != null) {
+                    pendingFolderPickerOp = null
+                    // Persist last selected local folder (store the content:// URI, not the filesystem path,
+                    // so OpenDocumentTree can re-use it as initialUri on the next launch)
+                    lifecycleScope.launch {
+                        try {
+                            val current = settingsRepository.getSettings().first()
+                            settingsRepository.updateSettings(current.copy(lastSelectedLocalFolder = uri.toString()))
+                        } catch (e: Exception) {
+                            Timber.w(e, "Failed to save last local folder")
+                        }
+                    }
+                    fileOperationsManager.executeOperationToPath(
+                        operationType = op.operationType,
+                        sourceFiles = op.sourceFiles,
+                        destinationPath = path,
+                        sourceCredentialsId = op.sourceCredentialsId,
+                        overwriteFiles = op.overwriteFiles
+                    )
+                    // Dispatch directory items via directory-aware handler
+                    if (op.dirItems.isNotEmpty()) {
+                        lifecycleScope.launch {
+                            var dirSucceeded = 0
+                            var dirFailed = 0
+                            for (dir in op.dirItems) {
+                                val dirResult = when (op.operationType) {
+                                    com.sza.fastmediasorter.domain.model.FileOperationType.COPY ->
+                                        unifiedFileOperationHandler.executeCopyDirectory(dir.path, path)
+                                    com.sza.fastmediasorter.domain.model.FileOperationType.MOVE ->
+                                        unifiedFileOperationHandler.executeMoveDirectory(dir.path, path)
+                                    else -> Result.failure(IllegalArgumentException("Unsupported dir op: ${op.operationType}"))
+                                }
+                                dirResult
+                                    .onSuccess { dirSucceeded++ }
+                                    .onFailure { e ->
+                                        Timber.e(e, "folderPickerLauncher: dir op failed for ${dir.path}")
+                                        dirFailed++
+                                    }
+                            }
+                            if (dirFailed > 0) {
+                                Toast.makeText(
+                                    this@BrowseActivity,
+                                    getString(R.string.error_some_operations_failed, dirFailed, dirSucceeded + dirFailed),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                }
+            } else {
+                Timber.w("folderPickerLauncher: could not resolve path from uri=$uri")
+                Toast.makeText(this, getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Timber.d("folderPickerLauncher: user cancelled folder picker")
+        }
+    }
     
     // Flag to prevent duplicate file loading on first onResume after onCreate
     private var isFirstResume = true
@@ -188,6 +275,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     lateinit var credentialsRepository: com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 
     @Inject
+    lateinit var unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
+
+    @Inject
     lateinit var audioMetadataLoader: com.sza.fastmediasorter.core.util.AudioMetadataLoader
 
     private var showVideoThumbnails = true // Cached setting value
@@ -199,6 +289,17 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private var archiveProgressDialog: androidx.appcompat.app.AlertDialog? = null
     /** Progress dialog shown while archive ZIP is being extracted. */
     private var extractProgressDialog: com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog? = null
+
+    /** Pending folder picker operation: stored while the system/network picker is open. */
+    private data class PendingFolderPickerOp(
+        val operationType: com.sza.fastmediasorter.domain.model.FileOperationType,
+        val sourceFiles: List<java.io.File>,
+        val sourceCredentialsId: String?,
+        val overwriteFiles: Boolean,
+        val resource: com.sza.fastmediasorter.domain.model.MediaResource,
+        val dirItems: List<com.sza.fastmediasorter.domain.model.MediaFile> = emptyList()
+    )
+    private var pendingFolderPickerOp: PendingFolderPickerOp? = null
 
     override fun onDestroy() {
         Timber.d("BrowseActivity.onDestroy: isFinishing=$isFinishing, isChangingConfigurations=$isChangingConfigurations")
@@ -255,6 +356,9 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
             override fun onRenameMultipleConfirmed(files: List<Pair<String, String>>) {
                 // Not used - handled internally in showRenameMultipleDialog
+            }
+            override fun onDirectoryRenameConfirmed(oldPath: String, newName: String) {
+                viewModel.renameDirectory(oldPath, newName)
             }
             override fun onCopyDestinationSelected(destinationPath: String) {
                 // Not used - handled by CopyToDialog
@@ -490,6 +594,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             sftpClient = sftpClient,
             ftpClient = ftpClient,
             credentialsRepository = credentialsRepository,
+            dirOperationHandler = unifiedFileOperationHandler,
             callbacks = object : com.sza.fastmediasorter.ui.browse.managers.BrowseFileOperationsManager.FileOperationCallbacks {
                 override fun onOperationCompleted() {
                     viewModel.reloadFiles()
@@ -518,6 +623,76 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     } catch (e: Exception) {
                         Timber.e(e, "Failed to launch permission request from callback")
                         Toast.makeText(this@BrowseActivity, "Failed to request permission", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onShowMessage(message: String) {
+                    Toast.makeText(this@BrowseActivity, message, Toast.LENGTH_SHORT).show()
+                }
+                override fun onShowError(message: String, details: String?) {
+                    val text = if (details != null) "$message\n$details" else message
+                    Toast.makeText(this@BrowseActivity, text, Toast.LENGTH_LONG).show()
+                }
+                override fun onFolderPickerRequested(
+                    operationType: com.sza.fastmediasorter.domain.model.FileOperationType,
+                    sourceFiles: List<java.io.File>,
+                    sourceCredentialsId: String?,
+                    resourceType: com.sza.fastmediasorter.domain.model.ResourceType,
+                    resource: com.sza.fastmediasorter.domain.model.MediaResource,
+                    dirItems: List<com.sza.fastmediasorter.domain.model.MediaFile>
+                ) {
+                    // Store pending operation; fetch overwrite flag asynchronously
+                    lifecycleScope.launch {
+                        val settings = try {
+                            settingsRepository.getSettings().first()
+                        } catch (e: Exception) {
+                            com.sza.fastmediasorter.domain.model.AppSettings()
+                        }
+                        val overwrite = if (operationType == com.sza.fastmediasorter.domain.model.FileOperationType.COPY)
+                            settings.overwriteOnCopy else settings.overwriteOnMove
+                        pendingFolderPickerOp = PendingFolderPickerOp(
+                            operationType = operationType,
+                            sourceFiles = sourceFiles,
+                            sourceCredentialsId = sourceCredentialsId,
+                            overwriteFiles = overwrite,
+                            resource = resource,
+                            dirItems = dirItems
+                        )
+                        when (resourceType) {
+                            com.sza.fastmediasorter.domain.model.ResourceType.LOCAL -> {
+                                val initialUri = settings.lastSelectedLocalFolder?.let {
+                                    try { android.net.Uri.parse(it) } catch (e: Exception) { null }
+                                }
+                                try {
+                                    folderPickerLauncher.launch(initialUri)
+                                } catch (e: Exception) {
+                                    Timber.e(e, "Failed to launch folder picker")
+                                    Toast.makeText(this@BrowseActivity, getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
+                                    pendingFolderPickerOp = null
+                                }
+                            }
+                            com.sza.fastmediasorter.domain.model.ResourceType.SMB,
+                            com.sza.fastmediasorter.domain.model.ResourceType.SFTP,
+                            com.sza.fastmediasorter.domain.model.ResourceType.FTP,
+                            com.sza.fastmediasorter.domain.model.ResourceType.CLOUD -> {
+                                // Network/Cloud: launch the local folder picker so the user can
+                                // copy/move network files to local storage.
+                                Toast.makeText(
+                                    this@BrowseActivity,
+                                    getString(R.string.select_folder_network_hint),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                val initialUri = settings.lastSelectedLocalFolder?.let {
+                                    try { android.net.Uri.parse(it) } catch (e: Exception) { null }
+                                }
+                                try {
+                                    folderPickerLauncher.launch(initialUri)
+                                } catch (e: Exception) {
+                                    Timber.e(e, "Failed to launch folder picker for network resource")
+                                    Toast.makeText(this@BrowseActivity, getString(R.string.error_unknown), Toast.LENGTH_SHORT).show()
+                                    pendingFolderPickerOp = null
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -184,6 +184,8 @@ class BrowseViewModel @Inject constructor(
     private val archiveFilesUseCase: com.sza.fastmediasorter.domain.usecase.ArchiveFilesUseCase,
     private val extractArchiveUseCase: com.sza.fastmediasorter.domain.usecase.ExtractArchiveUseCase,
     private val addResourceAsDestinationUseCase: com.sza.fastmediasorter.domain.usecase.AddResourceAsDestinationUseCase,
+    private val deleteDirectoriesUseCase: com.sza.fastmediasorter.domain.usecase.DeleteDirectoriesUseCase,
+    private val unifiedFileOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
     savedStateHandle: SavedStateHandle
 ) : BaseViewModel<BrowseState, BrowseEvent>() {
@@ -892,6 +894,27 @@ class BrowseViewModel @Inject constructor(
                 }.onFailure { e ->
                     Timber.e(e, "BrowseViewModel.createFolder: FAILED")
                     sendEvent(BrowseEvent.ShowError(e.message ?: "Failed to create folder"))
+                }
+            }
+        }
+    }
+
+    /**
+     * Rename a directory item to [newName] (same parent location).
+     * Calls [UnifiedFileOperationHandler.executeRenameDirectory] and triggers a full reload on success.
+     */
+    fun renameDirectory(path: String, newName: String) {
+        viewModelScope.launch(ioDispatcher + exceptionHandler) {
+            Timber.d("BrowseViewModel.renameDirectory: path=$path, newName=$newName")
+            val result = unifiedFileOperationHandler.executeRenameDirectory(path, newName)
+            withContext(Dispatchers.Main) {
+                result.onSuccess {
+                    Timber.i("BrowseViewModel.renameDirectory: SUCCESS → $it")
+                    loadResource()
+                    sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.msg_folder_renamed)))
+                }.onFailure { e ->
+                    Timber.e(e, "BrowseViewModel.renameDirectory: FAILED")
+                    sendEvent(BrowseEvent.ShowError(e.message ?: "Failed to rename folder"))
                 }
             }
         }
@@ -2432,125 +2455,139 @@ class BrowseViewModel @Inject constructor(
                 sendEvent(BrowseEvent.ShowMessage("No files selected"))
                 return@launch
             }
-            
+
             setLoading(true)
-            
-            // Convert all paths to File objects (works for both local, network, and cloud)
-            val filesToDelete = selectedPaths.map { path ->
+
+            // Partition selection into directories and regular files
+            val allFiles = state.value.mediaFiles
+            val selectedSet = state.value.selectedFiles
+            val (dirItems, fileItems) = allFiles
+                .filter { it.path in selectedSet }
+                .partition { it.isDirectory }
+
+            // Paths not resolved via mediaFiles (e.g. paths that no longer exist in state)
+            val resolvedPaths = (dirItems + fileItems).map { it.path }.toSet()
+            val unresolvedFilePaths = selectedPaths.filter { it !in resolvedPaths }
+
+            // Include unresolved paths in fileItems for backward compatibility
+            val filesToDelete = (fileItems.map { it.path } + unresolvedFilePaths).map { path ->
                 if (path.startsWith("smb://") || path.startsWith("sftp://") || path.startsWith("ftp://") || path.startsWith("cloud://")) {
-                    // Network/cloud file - wrap in File object with original path
                     object : java.io.File(path) {
                         override fun getAbsolutePath(): String = path
                         override fun getPath(): String = path
                     }
                 } else {
-                    // Local file or SAF URI
                     java.io.File(path)
                 }
             }
-            
+
             // Determine if soft-delete is possible (only for local files, not SAF/network/cloud)
             val canUseSoftDelete = DeletePathPolicy.canUseSoftDelete(selectedPaths)
-            
-            // Use FileOperationUseCase for delete (soft-delete for local, hard-delete for SAF/network/cloud)
-            Timber.d("Deleting ${filesToDelete.size} files via FileOperationUseCase (softDelete=$canUseSoftDelete)")
-            
+
             // Show progress message for large operations
-            if (filesToDelete.size > 10) {
-                sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, filesToDelete.size)))
+            if (selectedPaths.size > 10) {
+                sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleting_n_files, selectedPaths.size)))
             }
-            
+
             // Block FileObserver to avoid duplicate removal from list
             setIgnoringFileChanges(true)
-            
-            val deleteOperation = FileOperation.Delete(
-                files = filesToDelete,
-                softDelete = canUseSoftDelete // Use trash only for local files
-            )
-            
-            Timber.d("deleteSelectedFiles: Calling fileOperationUseCase.execute() with ${filesToDelete.size} files")
-            when (val result = fileOperationUseCase.execute(deleteOperation)) {
-                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success -> {
-                    val deletedCount = result.processedCount
-                    Timber.i("Successfully deleted $deletedCount files (softDelete=$canUseSoftDelete)")
-                    
-                    // Save undo operation only for soft-delete (trash)
-                    if (canUseSoftDelete) {
-                        // result.copiedFilePaths format: [trashDirPath, originalPath1, originalPath2, ...]
-                        val undoOp = UndoOperation(
-                            type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
-                            sourceFiles = selectedPaths,
-                            destinationFolder = null,
-                            copiedFiles = result.copiedFilePaths, // Contains trash dir + original paths
-                            oldNames = null
-                        )
-                        saveUndoOperation(undoOp)
-                    } else {
-                        Timber.d("Hard delete used - no undo available for SAF/network/cloud files")
+
+            var totalFileCount = 0
+            var dirDeleteError: String? = null
+
+            // --- Delete regular files ---
+            if (filesToDelete.isNotEmpty()) {
+                val deleteOperation = FileOperation.Delete(
+                    files = filesToDelete,
+                    softDelete = canUseSoftDelete
+                )
+                Timber.d("deleteSelectedFiles: Calling fileOperationUseCase.execute() with ${filesToDelete.size} files")
+                when (val result = fileOperationUseCase.execute(deleteOperation)) {
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success -> {
+                        totalFileCount += result.processedCount
+                        Timber.i("Successfully deleted ${result.processedCount} files")
+                        if (canUseSoftDelete) {
+                            val undoOp = UndoOperation(
+                                type = com.sza.fastmediasorter.domain.model.FileOperationType.DELETE,
+                                sourceFiles = fileItems.map { it.path } + unresolvedFilePaths,
+                                destinationFolder = null,
+                                copiedFiles = result.copiedFilePaths,
+                                oldNames = null
+                            )
+                            saveUndoOperation(undoOp)
+                        }
                     }
-                    
-                    // Clear selection and remove deleted files from list
-                    clearSelection()
-                    removeFiles(selectedPaths)
-                    
-                    // Re-enable FileObserver after operation complete
-                    viewModelScope.launch {
-                        delay(200) // Wait for OS events to settle
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PartialSuccess -> {
+                        totalFileCount += result.processedCount
+                        Timber.w("Partial delete: ${result.processedCount} of ${filesToDelete.size}")
+                    }
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Failure -> {
+                        Timber.e("Failed to delete files: ${result.error}")
                         setIgnoringFileChanges(false)
+                        setLoading(false)
+                        sendEvent(BrowseEvent.ShowError(message = "Failed to delete files", details = result.error))
+                        return@launch
                     }
-                    
-                    sendEvent(BrowseEvent.ShowMessage(context.getString(R.string.deleted_n_files, deletedCount)))
-                }
-                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PartialSuccess -> {
-                    val message = context.getString(R.string.deleted_n_of_m_files, result.processedCount, filesToDelete.size) + ". Errors: ${result.errors.take(3).joinToString(", ")}"
-                    Timber.w(message)
-                    
-                    // PartialSuccess now provides deletedPaths - remove only actually deleted files from list
-                    clearSelection()
-                    removeFiles(result.deletedPaths)
-                    
-                    // Re-enable FileObserver after operation complete
-                    viewModelScope.launch {
-                        delay(200)
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.AuthenticationRequired -> {
                         setIgnoringFileChanges(false)
+                        setLoading(false)
+                        sendEvent(BrowseEvent.CloudAuthRequired(result.provider, result.message))
+                        return@launch
                     }
-                    
-                    sendEvent(BrowseEvent.ShowMessage(message))
-                }
-                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Failure -> {
-                    Timber.e("Failed to delete files: ${result.error}")
-                    
-                    // Re-enable FileObserver even on failure
-                    setIgnoringFileChanges(false)
-                    
-                    sendEvent(BrowseEvent.ShowError(
-                        message = "Failed to delete files",
-                        details = result.error
-                    ))
-                }
-                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.AuthenticationRequired -> {
-                    Timber.w("Cloud authentication required: ${result.provider}")
-                    
-                    // Re-enable FileObserver (operation not executed)
-                    setIgnoringFileChanges(false)
-                    
-                    sendEvent(BrowseEvent.CloudAuthRequired(result.provider, result.message))
-                }
-                is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PermissionRequired -> {
-                    Timber.i("deleteSelectedFiles: ========================================")
-                    Timber.i("deleteSelectedFiles: PERMISSION REQUIRED DETECTED")
-                    Timber.i("deleteSelectedFiles: PendingIntent: ${result.pendingIntent}")
-                    Timber.i("deleteSelectedFiles: URIs count: ${result.fileUris.size}")
-                    result.fileUris.forEachIndexed { idx, uri ->
-                        Timber.i("deleteSelectedFiles:   [$idx] $uri")
+                    is com.sza.fastmediasorter.domain.usecase.FileOperationResult.PermissionRequired -> {
+                        Timber.i("deleteSelectedFiles: PERMISSION REQUIRED DETECTED")
+                        Timber.i("deleteSelectedFiles: PendingIntent: ${result.pendingIntent}")
+                        Timber.i("deleteSelectedFiles: URIs count: ${result.fileUris.size}")
+                        result.fileUris.forEachIndexed { idx, uri ->
+                            Timber.i("deleteSelectedFiles:   [$idx] $uri")
+                        }
+                        Timber.i("deleteSelectedFiles: Sending BrowseEvent.PermissionRequired...")
+                        sendEvent(BrowseEvent.PermissionRequired(result.pendingIntent))
+                        Timber.i("deleteSelectedFiles: Event sent successfully")
+                        setIgnoringFileChanges(false)
+                        setLoading(false)
+                        return@launch
                     }
-                    Timber.i("deleteSelectedFiles: Sending BrowseEvent.PermissionRequired...")
-                    sendEvent(BrowseEvent.PermissionRequired(result.pendingIntent))
-                    Timber.i("deleteSelectedFiles: Event sent successfully")
-                    Timber.i("deleteSelectedFiles: ========================================")
                 }
             }
-            
+
+            // --- Delete directories ---
+            if (dirItems.isNotEmpty()) {
+                Timber.d("deleteSelectedFiles: Deleting ${dirItems.size} directories via DeleteDirectoriesUseCase")
+                val dirResult = deleteDirectoriesUseCase(dirItems)
+                dirResult
+                    .onSuccess { count ->
+                        totalFileCount += count
+                        Timber.i("Deleted $count entries from ${dirItems.size} directories")
+                    }
+                    .onFailure { e ->
+                        dirDeleteError = e.message
+                        Timber.e(e, "Failed to delete directories")
+                    }
+            }
+
+            // --- Update UI ---
+            clearSelection()
+            removeFiles(selectedPaths)
+
+            viewModelScope.launch {
+                delay(200)
+                setIgnoringFileChanges(false)
+            }
+
+            if (dirDeleteError != null) {
+                sendEvent(BrowseEvent.ShowError(message = "Some folders could not be deleted", details = dirDeleteError))
+            } else {
+                val msg = if (dirItems.isNotEmpty() && filesToDelete.isNotEmpty()) {
+                    context.getString(R.string.deleted_n_files, totalFileCount)
+                } else if (dirItems.isNotEmpty()) {
+                    context.getString(R.string.deleted_n_files, dirItems.size)
+                } else {
+                    context.getString(R.string.deleted_n_files, totalFileCount)
+                }
+                sendEvent(BrowseEvent.ShowMessage(msg))
+            }
+
             setLoading(false)
         }
     }
@@ -3197,6 +3234,19 @@ class BrowseViewModel @Inject constructor(
      * without full network reload.
      */
     fun syncWithCache() {
+        // If user is inside a subfolder, the resource-level cache holds root content only.
+        // Overwriting mediaFiles with it would reset the list to root while the breadcrumb
+        // still shows the deep path (TorrentsReady > … > 2005 - Jarre In China bug).
+        // Instead, reload the current subfolder from its own per-path directoryCache.
+        val currentSubPath = state.value.currentPath
+        if (state.value.isSubfolderMode && currentSubPath != null) {
+            Timber.d("syncWithCache: In subfolder mode at '$currentSubPath', reloading directory instead of syncing root cache")
+            viewModelScope.launch(ioDispatcher + exceptionHandler) {
+                loadDirectoryContents(currentSubPath)
+            }
+            return
+        }
+
         val cachedFiles = MediaFilesCacheManager.getCachedList(resourceId)
         val resource = state.value.resource
         if (cachedFiles != null) {

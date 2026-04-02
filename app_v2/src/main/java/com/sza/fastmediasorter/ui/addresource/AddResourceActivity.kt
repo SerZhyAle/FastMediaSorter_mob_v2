@@ -1296,7 +1296,9 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * Add manually entered SMB resource (when user types share name directly)
      */
     private fun addSmbResourceManually(isReadOnly: Boolean = false) {
-        val server = binding.etSmbServer.text.toString()
+        // Strip port suffix if the user typed "host:port" into the server field — the port
+        // is stored separately, and including it in the server field breaks credential lookups.
+        val server = binding.etSmbServer.text.toString().trim().substringBefore(':')
         val shareName = binding.etSmbShareName.text.toString()
         val username = binding.etSmbUsername.text.toString()
         val password = binding.etSmbPassword.text.toString()

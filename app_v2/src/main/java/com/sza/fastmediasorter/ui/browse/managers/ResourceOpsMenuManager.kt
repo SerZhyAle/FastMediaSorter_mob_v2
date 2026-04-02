@@ -40,11 +40,13 @@ class ResourceOpsMenuManager @Inject constructor(
         val popup = PopupMenu(context, anchor)
         popup.inflate(R.menu.menu_resource_ops)
 
-        // Hide "Create folder" if the resource doesn't support subfolder navigation or is read-only
+        // Hide "Create folder" if the resource doesn't support subfolder navigation, is read-only,
+        // or is a virtual resource (e.g. "All Video", "Recent") that has no real path to write to.
         val resource = viewModel.state.value.resource
         val canCreateFolder = resource != null
                 && resource.showSubfoldersAsItems
                 && !resource.isReadOnly
+                && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible = canCreateFolder
 
         popup.menu.findItem(R.id.action_automate_resource)?.isVisible =

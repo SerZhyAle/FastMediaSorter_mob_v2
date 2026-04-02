@@ -32,6 +32,16 @@
         android:layout_marginTop="@dimen/margin_large"
         android:orientation="vertical" />
 
+    <!-- Select folder button: always visible; lets user pick any accessible folder -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSelectFolder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:contentDescription="@string/select_folder"
+        android:text="@string/select_folder"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCancel"
         android:layout_width="wrap_content"

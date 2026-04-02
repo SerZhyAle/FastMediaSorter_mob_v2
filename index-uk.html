@@ -43,6 +43,7 @@
     <link rel="alternate" hreflang="uk" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/index-uk.html">
     <link rel="alternate" hreflang="x-default" href="https://serzhyale.github.io/FastMediaSorter_mob_v2/">
     <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -108,6 +109,15 @@
                 <li>Продвинуті сенсорні жести</li>
             </ul>
         </div>
+
+        <!-- Повний список функцій (автозавантаження з docs/FEATURES_UK.md) -->
+        <details class="full-features-panel" open>
+            <summary>📋 Повний список функцій (22 розділи)</summary>
+            <div id="full-features-content" class="full-features-content">
+                <em>Завантаження…</em>
+            </div>
+            <a class="full-features-link" href="docs/FEATURES_UK.html" target="_blank">Відкрити повну сторінку →</a>
+        </details>
 
         <h2 class="section-title">💡 Сценарії використання</h2>
         <div class="cards-grid">
@@ -472,6 +482,19 @@
       },
       "inLanguage": ["en", "ru", "uk"]
     }
+    </script>
+
+    <script>
+        // Завантаження повного списку функцій з docs/FEATURES_UK.md
+        fetch('docs/FEATURES_UK.md')
+            .then(function(r) { return r.text(); })
+            .then(function(text) {
+                document.getElementById('full-features-content').innerHTML = marked.parse(text);
+            })
+            .catch(function() {
+                document.getElementById('full-features-content').innerHTML =
+                    '<em>Не вдалося завантажити. <a href="docs/FEATURES_UK.html">Відкрити напряму</a>.</em>';
+            });
     </script>
 
 </body>

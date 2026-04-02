@@ -163,6 +163,9 @@ class SettingsRepositoryImpl @Inject constructor(
         // X.11: Background thumbnail pre-generation
         private val KEY_ENABLE_THUMBNAIL_PRELOAD = booleanPreferencesKey("enable_thumbnail_preload")
         private val KEY_THUMBNAIL_PRELOAD_WIFI_ONLY = booleanPreferencesKey("thumbnail_preload_wifi_only")
+
+        // FR-8: Folder picker persistence (stores content:// URI string)
+        private val KEY_LAST_SELECTED_LOCAL_FOLDER = stringPreferencesKey("last_selected_local_folder")
     }
 
     // Cached once per singleton — avoids repeated getSharedPreferences() calls inside DataStore map {}
@@ -332,7 +335,10 @@ class SettingsRepositoryImpl @Inject constructor(
 
                     // X.11: Background thumbnail pre-generation
                     enableThumbnailPreload = preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] ?: false,
-                    thumbnailPreloadWifiOnly = preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] ?: true
+                    thumbnailPreloadWifiOnly = preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] ?: true,
+
+                    // FR-8: Folder picker persistence
+                    lastSelectedLocalFolder = preferences[KEY_LAST_SELECTED_LOCAL_FOLDER]
                 )
             }
             .distinctUntilChanged() // OPTIMIZATION: Prevent redundant reads when settings unchanged
@@ -509,6 +515,13 @@ class SettingsRepositoryImpl @Inject constructor(
             // X.11: Background thumbnail pre-generation
             preferences[KEY_ENABLE_THUMBNAIL_PRELOAD] = settings.enableThumbnailPreload
             preferences[KEY_THUMBNAIL_PRELOAD_WIFI_ONLY] = settings.thumbnailPreloadWifiOnly
+
+            // FR-8: Folder picker persistence
+            if (settings.lastSelectedLocalFolder != null) {
+                preferences[KEY_LAST_SELECTED_LOCAL_FOLDER] = settings.lastSelectedLocalFolder
+            } else {
+                preferences.remove(KEY_LAST_SELECTED_LOCAL_FOLDER)
+            }
         }
     }
 

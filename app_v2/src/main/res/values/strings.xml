@@ -1336,6 +1336,8 @@
     <string name="msg_already_authenticated">Already authenticated</string>
     <string name="select_folder_copy_location">Select folder location for the copy</string>
     <string name="select_cloud_folder_copy">Select cloud folder for the copy</string>
+    <string name="error_folder_not_writable">Selected folder is not writable. Choose a different location.</string>
+    <string name="select_folder_network_hint">Select a local folder to copy/move files from this network resource</string>
 
     <!-- Player Messages -->
     <string name="image_edit_title">Image Edit</string>
@@ -2255,6 +2257,12 @@
     <string name="duplicate_scan_notif_channel_name">Duplicate scanner</string>
     <string name="action_create_folder">Create Folder</string>
     <string name="msg_folder_created">Folder "%1$s" created</string>
+    <string name="msg_folder_renamed">Folder renamed</string>
+    <string name="delete_folder_confirm">Delete folder \"%1$s\" and all its contents? This cannot be undone.</string>
+    <string name="delete_n_folders_confirm">Delete %1$d folders and all their contents? This cannot be undone.</string>
+    <string name="error_cross_protocol_dir_not_supported">Folder copy/move between different storage types is not supported.</string>
+    <string name="operation_completed">Operation completed</string>
+    <string name="error_some_operations_failed">%1$d of %2$d operations failed</string>
     <string name="menu_automate_source">Automation..</string>
     <string name="menu_add_receiver">Add to Sort List</string>
     <string name="msg_added_as_receiver">Resource added to Sort List</string>

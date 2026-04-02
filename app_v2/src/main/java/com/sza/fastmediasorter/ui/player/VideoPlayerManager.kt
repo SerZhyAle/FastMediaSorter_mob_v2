@@ -270,13 +270,28 @@ class VideoPlayerManager(
                                error.errorCode == PlaybackException.ERROR_CODE_PARSING_CONTAINER_MALFORMED ||
                                error.errorCode == PlaybackException.ERROR_CODE_DECODING_FAILED
 
-            if (isFormatError && currentFilePath != null && !isUsingMediaPlayer) {
+            // MediaPlayer cannot handle network protocols (smb://, sftp://, ftp://, etc.)
+            // setDataSource() with such URIs fails immediately (what=1, extra=Integer.MIN_VALUE).
+            // Only attempt fallback for local file:// paths.
+            val isLocalPath = currentFilePath?.let { p ->
+                !p.startsWith("smb://") && !p.startsWith("sftp://") &&
+                !p.startsWith("ftp://") && !p.startsWith("ftps://") &&
+                !p.startsWith("http://") && !p.startsWith("https://") &&
+                !p.startsWith("gdrive://") && !p.startsWith("onedrive://") &&
+                !p.startsWith("dropbox://")
+            } ?: false
+
+            if (isFormatError && currentFilePath != null && !isUsingMediaPlayer && isLocalPath) {
                 Timber.i("VideoPlayerManager: ExoPlayer failed with format error, trying MediaPlayer fallback...")
                 // Run on main thread to be safe with UI/Player updates
                 Handler(Looper.getMainLooper()).post {
                     playWithMediaPlayer(currentFilePath!!)
                 }
                 return
+            }
+
+            if (isFormatError && currentFilePath != null && !isLocalPath) {
+                Timber.w("VideoPlayerManager: ExoPlayer format error on network path – MediaPlayer fallback skipped (unsupported protocol)")
             }
             
             // Hide loading indicator

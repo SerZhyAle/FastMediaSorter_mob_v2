@@ -47,7 +47,12 @@ class FileOperationDestinationDialog(
 
     private val onAuthRequest: ((String) -> Unit)? = null,
     // Extended callback includes destination for Move retry after permission grant
-    private val onPermissionRequired: ((android.app.PendingIntent, com.sza.fastmediasorter.domain.model.MediaResource?) -> Unit)? = null
+    private val onPermissionRequired: ((android.app.PendingIntent, com.sza.fastmediasorter.domain.model.MediaResource?) -> Unit)? = null,
+    // Callback invoked when user clicks "Select folder" button (folder picker delegated to Activity)
+    private val onSelectFolderClicked: ((FileOperationType, List<File>, String?) -> Unit)? = null,
+    // Callback invoked immediately when the user selects a destination (before the operation runs).
+    // Used by BrowseFileOperationsManager to dispatch directory copy/move to the same destination.
+    private val onDestinationSelected: ((com.sza.fastmediasorter.domain.model.MediaResource) -> Unit)? = null
 ) : Dialog(context) {
     
     private val scope = CoroutineScope(Dispatchers.Main)
@@ -90,6 +95,13 @@ class FileOperationDestinationDialog(
             }
             
             btnCancel.setOnClickListenerDebounced { dismiss() }
+            
+            // "Select folder" button — always visible; dismiss dialog and delegate to Activity
+            btnSelectFolder.setOnClickListenerDebounced {
+                Timber.tag(TAG).d("Select folder button clicked")
+                onSelectFolderClicked?.invoke(operationType, sourceFiles, sourceCredentialsId)
+                dismiss()
+            }
         }
     }
 
@@ -107,12 +119,8 @@ class FileOperationDestinationDialog(
                 }
                 
                 if (destinations.isEmpty()) {
-                    Toast.makeText(
-                        context,
-                        context.getString(R.string.no_destinations_available),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    dismiss()
+                    // No registered destinations — show dialog with only "Select folder" button
+                    Timber.tag(TAG).d("No destinations: showing dialog with Select Folder button only")
                 } else {
                     createDestinationButtons(destinations)
                 }
@@ -216,7 +224,10 @@ class FileOperationDestinationDialog(
         sourceFiles.forEachIndexed { index, file ->
             Timber.d("performOperation: Source[$index]: path=${file.path}, length=${file.length()}")
         }
-        
+
+        // Notify caller of selected destination before executing the operation.
+        onDestinationSelected?.invoke(destination)
+
         binding.progressBar.visibility = View.VISIBLE
         binding.layoutDestinations.isEnabled = false
         

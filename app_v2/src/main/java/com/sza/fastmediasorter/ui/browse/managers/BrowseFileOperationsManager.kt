@@ -61,7 +61,8 @@ class BrowseFileOperationsManager(
     private val sftpClient: SftpClient,
     private val ftpClient: FtpClient,
     private val credentialsRepository: NetworkCredentialsRepository,
-    private val callbacks: FileOperationCallbacks
+    private val callbacks: FileOperationCallbacks,
+    private val dirOperationHandler: com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler? = null
 ) {
     
     // Pending move operation for retry after permission grant
@@ -75,6 +76,17 @@ class BrowseFileOperationsManager(
         fun getExternalCacheDir(): File?
         fun onAuthRequest(provider: String)
         fun onPermissionRequired(pendingIntent: android.app.PendingIntent)
+        fun onShowMessage(message: String)
+        fun onShowError(message: String, details: String? = null)
+        /** Called when user clicks "Select folder" in the destination dialog. */
+        fun onFolderPickerRequested(
+            operationType: FileOperationType,
+            sourceFiles: List<File>,
+            sourceCredentialsId: String?,
+            resourceType: com.sza.fastmediasorter.domain.model.ResourceType,
+            resource: MediaResource,
+            dirItems: List<MediaFile> = emptyList()
+        )
     }
     
     /**
@@ -106,8 +118,16 @@ class BrowseFileOperationsManager(
      */
     private fun executeMoveDirectly(pending: PendingMoveOperation) {
         val mediaFilesMap = pending.mediaFiles.associateBy { it.path }
-        
-        val selectedFiles = pending.selectedPaths.map { path ->
+        val selectedSet = pending.selectedPaths.toSet()
+
+        // Partition into directory items and regular file items
+        val (dirItems, fileItems) = pending.mediaFiles
+            .filter { it.path in selectedSet }
+            .partition { it.isDirectory }
+        val unresolvedPaths = selectedSet - pending.mediaFiles.map { it.path }.toSet()
+        val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
+
+        val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
             if (path.startsWith("smb://") || path.startsWith("sftp://") || 
                 path.startsWith("ftp://") || path.startsWith("cloud://")) {
@@ -130,53 +150,82 @@ class BrowseFileOperationsManager(
         
         coroutineScope.launch {
             try {
-                val destinationFolder = File(pending.destinationResource.path)
-                
-                val operation = FileOperation.Move(
-                    sources = selectedFiles,
-                    destination = destinationFolder,
-                    overwrite = pending.settings.overwriteOnMove,
-                    sourceCredentialsId = pending.sourceResource.credentialsId
-                )
-                
-                Timber.i("executeMoveDirectly: Executing Move to ${pending.destinationResource.path}")
-                val result = fileOperationUseCase.execute(operation)
-                
-                when (result) {
-                    is FileOperationResult.Success -> {
-                        Timber.i("executeMoveDirectly: SUCCESS - ${result.processedCount} files moved")
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.moved_n_files, result.processedCount),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.clearSelection()
-                        callbacks.onOperationCompleted()
-                    }
-                    is FileOperationResult.PartialSuccess -> {
-                        Timber.w("executeMoveDirectly: PARTIAL - ${result.processedCount} of ${result.processedCount + result.failedCount}")
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.moved_n_files, result.processedCount),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        callbacks.clearSelection()
-                        callbacks.onOperationCompleted()
-                    }
-                    is FileOperationResult.Failure -> {
-                        Timber.e("executeMoveDirectly: FAILURE - ${result.error}")
-                        Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
-                    }
-                    is FileOperationResult.PermissionRequired -> {
-                        // Should not happen after permission was granted
-                        Timber.e("executeMoveDirectly: UNEXPECTED PermissionRequired after grant!")
-                        Toast.makeText(context, "Permission error - please try again", Toast.LENGTH_LONG).show()
-                    }
-                    is FileOperationResult.AuthenticationRequired -> {
-                        Timber.w("executeMoveDirectly: Auth required for ${result.provider}")
-                        callbacks.onAuthRequest(result.provider)
+                // Move regular files via FileOperationUseCase
+                if (selectedFiles.isNotEmpty()) {
+                    val destinationFolder = File(pending.destinationResource.path)
+                    
+                    val operation = FileOperation.Move(
+                        sources = selectedFiles,
+                        destination = destinationFolder,
+                        overwrite = pending.settings.overwriteOnMove,
+                        sourceCredentialsId = pending.sourceResource.credentialsId
+                    )
+                    
+                    Timber.i("executeMoveDirectly: Executing Move for ${selectedFiles.size} files to ${pending.destinationResource.path}")
+                    val result = fileOperationUseCase.execute(operation)
+                    
+                    when (result) {
+                        is FileOperationResult.Success -> {
+                            Timber.i("executeMoveDirectly: SUCCESS - ${result.processedCount} files moved")
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.moved_n_files, result.processedCount),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        is FileOperationResult.PartialSuccess -> {
+                            Timber.w("executeMoveDirectly: PARTIAL - ${result.processedCount} of ${result.processedCount + result.failedCount}")
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.moved_n_files, result.processedCount),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        is FileOperationResult.Failure -> {
+                            Timber.e("executeMoveDirectly: FAILURE - ${result.error}")
+                            Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
+                        }
+                        is FileOperationResult.PermissionRequired -> {
+                            Timber.e("executeMoveDirectly: UNEXPECTED PermissionRequired after grant!")
+                            Toast.makeText(context, "Permission error - please try again", Toast.LENGTH_LONG).show()
+                        }
+                        is FileOperationResult.AuthenticationRequired -> {
+                            Timber.w("executeMoveDirectly: Auth required for ${result.provider}")
+                            callbacks.onAuthRequest(result.provider)
+                        }
                     }
                 }
+
+                // Move directory items via dirOperationHandler
+                if (dirItems.isNotEmpty() && dirOperationHandler != null) {
+                    val destPath = pending.destinationResource.path
+                    var dirSucceeded = 0
+                    var dirFailed = 0
+                    var crossProtocol = false
+                    for (dir in dirItems) {
+                        dirOperationHandler.executeMoveDirectory(dir.path, destPath)
+                            .onSuccess { dirSucceeded++ }
+                            .onFailure { e ->
+                                Timber.e(e, "executeMoveDirectly: dir move failed for ${dir.path}")
+                                if (e is UnsupportedOperationException) crossProtocol = true
+                                dirFailed++
+                            }
+                    }
+                    withContext(Dispatchers.Main) {
+                        if (dirFailed > 0) {
+                            if (crossProtocol) {
+                                callbacks.onShowError(context.getString(R.string.error_cross_protocol_dir_not_supported))
+                            } else {
+                                callbacks.onShowError(
+                                    context.getString(R.string.error_some_operations_failed, dirFailed, dirSucceeded + dirFailed)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                callbacks.clearSelection()
+                callbacks.onOperationCompleted()
             } catch (e: Exception) {
                 Timber.e(e, "executeMoveDirectly: Exception during move")
                 Toast.makeText(context, "Move failed: ${e.message}", Toast.LENGTH_LONG).show()
@@ -190,7 +239,125 @@ class BrowseFileOperationsManager(
     fun clearPendingMoveOperation() {
         pendingMoveOperation = null
     }
-    
+
+    /**
+     * Execute a copy or move operation to a custom folder path selected via folder picker.
+     * Called from BrowseActivity after the system/network/cloud picker returns a result.
+     *
+     * @param operationType COPY or MOVE
+     * @param sourceFiles   The list of source files to operate on
+     * @param destinationPath The absolute path (local) or protocol-prefixed path for the destination
+     * @param sourceCredentialsId Credentials ID for the source resource (may be null for local)
+     * @param overwriteFiles Whether to overwrite existing files at destination
+     */
+    fun executeOperationToPath(
+        operationType: FileOperationType,
+        sourceFiles: List<File>,
+        destinationPath: String,
+        sourceCredentialsId: String?,
+        overwriteFiles: Boolean = false
+    ) {
+        Timber.i("executeOperationToPath: $operationType → $destinationPath (${sourceFiles.size} files)")
+
+        // Show start toast for large operations
+        val totalSize = sourceFiles.sumOf { runCatching { it.length() }.getOrDefault(0L) }
+        if (totalSize > 1024 * 1024) {
+            val msgRes = when (operationType) {
+                FileOperationType.COPY -> R.string.msg_copy_started
+                FileOperationType.MOVE -> R.string.msg_move_started
+                else -> R.string.msg_copy_started
+            }
+            val folderName = destinationPath.substringAfterLast('/')
+            Toast.makeText(context, context.getString(msgRes, folderName), Toast.LENGTH_LONG).show()
+        }
+
+        coroutineScope.launch {
+            try {
+                val destinationFolder = if (destinationPath.startsWith("smb://") ||
+                    destinationPath.startsWith("sftp://") ||
+                    destinationPath.startsWith("ftp://") ||
+                    destinationPath.startsWith("cloud://")
+                ) {
+                    object : File(destinationPath) {
+                        override fun getAbsolutePath(): String = destinationPath
+                        override fun getPath(): String = destinationPath
+                    }
+                } else {
+                    File(destinationPath)
+                }
+
+                val operation = when (operationType) {
+                    FileOperationType.COPY -> FileOperation.Copy(
+                        sources = sourceFiles,
+                        destination = destinationFolder,
+                        overwrite = overwriteFiles,
+                        sourceCredentialsId = sourceCredentialsId
+                    )
+                    FileOperationType.MOVE -> FileOperation.Move(
+                        sources = sourceFiles,
+                        destination = destinationFolder,
+                        overwrite = overwriteFiles,
+                        sourceCredentialsId = sourceCredentialsId
+                    )
+                    else -> throw IllegalArgumentException("Unsupported operation: $operationType")
+                }
+
+                val result = withContext(Dispatchers.IO) { fileOperationUseCase.execute(operation) }
+
+                when (result) {
+                    is FileOperationResult.Success -> {
+                        Timber.i("executeOperationToPath: SUCCESS - ${result.processedCount} files")
+                        val msgRes = when (operationType) {
+                            FileOperationType.COPY -> R.string.copied_n_files
+                            FileOperationType.MOVE -> R.string.moved_n_files
+                            else -> R.string.copied_n_files
+                        }
+                        Toast.makeText(context, context.getString(msgRes, result.processedCount), Toast.LENGTH_SHORT).show()
+                        val undoOp = UndoOperation(
+                            type = operationType,
+                            sourceFiles = sourceFiles.map { it.absolutePath },
+                            destinationFolder = destinationPath,
+                            copiedFiles = result.copiedFilePaths,
+                            oldNames = null,
+                            timestamp = System.currentTimeMillis()
+                        )
+                        callbacks.saveUndoOperation(undoOp)
+                        callbacks.clearSelection()
+                        callbacks.onOperationCompleted()
+                    }
+                    is FileOperationResult.PartialSuccess -> {
+                        Timber.w("executeOperationToPath: PARTIAL - ${result.processedCount} of ${result.processedCount + result.failedCount}")
+                        val msgRes = when (operationType) {
+                            FileOperationType.COPY -> R.string.copied_n_files
+                            FileOperationType.MOVE -> R.string.moved_n_files
+                            else -> R.string.copied_n_files
+                        }
+                        Toast.makeText(context, context.getString(msgRes, result.processedCount), Toast.LENGTH_SHORT).show()
+                        callbacks.clearSelection()
+                        callbacks.onOperationCompleted()
+                    }
+                    is FileOperationResult.Failure -> {
+                        Timber.e("executeOperationToPath: FAILURE - ${result.error}")
+                        Toast.makeText(context, result.error, Toast.LENGTH_LONG).show()
+                    }
+                    is FileOperationResult.AuthenticationRequired -> {
+                        Timber.w("executeOperationToPath: Auth required for ${result.provider}")
+                        callbacks.onAuthRequest(result.provider)
+                    }
+                    is FileOperationResult.PermissionRequired -> {
+                        Timber.w("executeOperationToPath: Permission required")
+                        callbacks.onPermissionRequired(result.pendingIntent)
+                    }
+                }
+            } catch (e: CancellationException) {
+                Timber.w("executeOperationToPath: cancelled")
+            } catch (e: Exception) {
+                Timber.e(e, "executeOperationToPath: exception")
+                Toast.makeText(context, "Operation failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
     fun showCopyDialog(
         selectedPaths: List<String>,
         mediaFiles: List<MediaFile>,
@@ -204,9 +371,20 @@ class BrowseFileOperationsManager(
         }
         
         val mediaFilesMap = mediaFiles.associateBy { it.path }
-        
+        val selectedSet = selectedPaths.toSet()
+
+        // Partition into directory items and regular file items
+        val (dirItems, fileItems) = mediaFiles
+            .filter { it.path in selectedSet }
+            .partition { it.isDirectory }
+        val unresolvedPaths = selectedSet - mediaFiles.map { it.path }.toSet()
+        val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
+
+        // Capture destination for directory operations
+        var capturedDestination: MediaResource? = null
+
         // For network/cloud paths, create File with URI-compatible scheme
-        val selectedFiles = selectedPaths.map { path ->
+        val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
             if (path.startsWith("smb://") || path.startsWith("sftp://") || 
                 path.startsWith("ftp://") || path.startsWith("cloud://")) {
@@ -237,9 +415,41 @@ class BrowseFileOperationsManager(
             getDestinationsUseCase = getDestinationsUseCase,
             overwriteFiles = false,
             showDetailedErrors = settings.showDetailedErrors,
+            onDestinationSelected = { destination -> capturedDestination = destination },
             onComplete = { undoOp ->
                 undoOp?.let { callbacks.saveUndoOperation(it) }
                 callbacks.clearSelection()
+                // Copy directory items to the captured destination
+                if (dirItems.isNotEmpty() && dirOperationHandler != null) {
+                    val destPath = capturedDestination?.path
+                    if (destPath != null) {
+                        coroutineScope.launch {
+                            var succeeded = 0
+                            var failed = 0
+                            var crossProtocol = false
+                            for (dir in dirItems) {
+                                dirOperationHandler.executeCopyDirectory(dir.path, destPath)
+                                    .onSuccess { succeeded++ }
+                                    .onFailure { e ->
+                                        Timber.e(e, "showCopyDialog: dir copy failed for ${dir.path}")
+                                        if (e is UnsupportedOperationException) crossProtocol = true
+                                        failed++
+                                    }
+                            }
+                            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                if (failed == 0) {
+                                    callbacks.onShowMessage(context.getString(R.string.operation_completed))
+                                } else if (crossProtocol) {
+                                    callbacks.onShowError(context.getString(R.string.error_cross_protocol_dir_not_supported))
+                                } else {
+                                    callbacks.onShowError(
+                                        context.getString(R.string.error_some_operations_failed, failed, succeeded + failed)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             },
             onAuthRequest = { provider ->
                 callbacks.onAuthRequest(provider)
@@ -247,6 +457,9 @@ class BrowseFileOperationsManager(
             onPermissionRequired = { pendingIntent, _ ->
                 // Copy operation shouldn't need delete permission, but handle it anyway
                 callbacks.onPermissionRequired(pendingIntent)
+            },
+            onSelectFolderClicked = { opType, files, credId ->
+                callbacks.onFolderPickerRequested(opType, files, credId, resource.type, resource, dirItems)
             }
         )
         dialog.show()
@@ -288,10 +501,20 @@ class BrowseFileOperationsManager(
         resource: MediaResource,
         settings: AppSettings
     ) {
-        
         val mediaFilesMap = mediaFiles.associateBy { it.path }
+        val selectedSet = selectedPaths.toSet()
+
+        // Partition into directory items and regular file items
+        val (dirItems, fileItems) = mediaFiles
+            .filter { it.path in selectedSet }
+            .partition { it.isDirectory }
+        val unresolvedPaths = selectedSet - mediaFiles.map { it.path }.toSet()
+        val fileOnlyPaths = fileItems.map { it.path } + unresolvedPaths
+
+        // Capture destination for directory move operations
+        var capturedDestination: MediaResource? = null
         
-        val selectedFiles = selectedPaths.map { path ->
+        val selectedFiles = fileOnlyPaths.map { path ->
             val size = mediaFilesMap[path]?.size ?: 0L
             if (path.startsWith("smb://") || path.startsWith("sftp://") || 
                 path.startsWith("ftp://") || path.startsWith("cloud://")) {
@@ -322,11 +545,43 @@ class BrowseFileOperationsManager(
             getDestinationsUseCase = getDestinationsUseCase,
             overwriteFiles = settings.overwriteOnMove,
             showDetailedErrors = settings.showDetailedErrors,
+            onDestinationSelected = { destination -> capturedDestination = destination },
             onComplete = { undoOp ->
                 // Clear pending operation on success
                 pendingMoveOperation = null
                 undoOp?.let { callbacks.saveUndoOperation(it) }
                 callbacks.clearSelection()
+                // Move directory items to the captured destination
+                if (dirItems.isNotEmpty() && dirOperationHandler != null) {
+                    val destPath = capturedDestination?.path
+                    if (destPath != null) {
+                        coroutineScope.launch {
+                            var succeeded = 0
+                            var failed = 0
+                            var crossProtocol = false
+                            for (dir in dirItems) {
+                                dirOperationHandler.executeMoveDirectory(dir.path, destPath)
+                                    .onSuccess { succeeded++ }
+                                    .onFailure { e ->
+                                        Timber.e(e, "showMoveDialogInternal: dir move failed for ${dir.path}")
+                                        if (e is UnsupportedOperationException) crossProtocol = true
+                                        failed++
+                                    }
+                            }
+                            withContext(kotlinx.coroutines.Dispatchers.Main) {
+                                if (failed == 0) {
+                                    callbacks.onShowMessage(context.getString(R.string.operation_completed))
+                                } else if (crossProtocol) {
+                                    callbacks.onShowError(context.getString(R.string.error_cross_protocol_dir_not_supported))
+                                } else {
+                                    callbacks.onShowError(
+                                        context.getString(R.string.error_some_operations_failed, failed, succeeded + failed)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
             },
             onAuthRequest = { provider ->
                 callbacks.onAuthRequest(provider)
@@ -342,6 +597,9 @@ class BrowseFileOperationsManager(
                     pendingMoveOperation = null
                 }
                 callbacks.onPermissionRequired(pendingIntent)
+            },
+            onSelectFolderClicked = { opType, files, credId ->
+                callbacks.onFolderPickerRequested(opType, files, credId, resource.type, resource, dirItems)
             }
         )
         dialog.show()

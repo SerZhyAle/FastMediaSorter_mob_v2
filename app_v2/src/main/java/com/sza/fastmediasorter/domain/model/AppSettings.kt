@@ -133,7 +133,11 @@ data class AppSettings(
 
     // X.11: Background thumbnail pre-generation
     val enableThumbnailPreload: Boolean = false,       // Background thumbnail pre-generation (opt-in, consumes network bandwidth)
-    val thumbnailPreloadWifiOnly: Boolean = true       // Restrict preload to unmetered (Wi-Fi) connections
+    val thumbnailPreloadWifiOnly: Boolean = true,       // Restrict preload to unmetered (Wi-Fi) connections
+
+    // Last selected folder for folder picker persistence (FR-8).
+    // Stores the content:// URI string from OpenDocumentTree.
+    val lastSelectedLocalFolder: String? = null
 ) {
     /**
      * Returns set of MediaTypes that are globally enabled in app settings.

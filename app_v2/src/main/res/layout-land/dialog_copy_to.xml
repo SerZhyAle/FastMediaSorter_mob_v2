@@ -40,6 +40,16 @@
 
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Select folder button — shown when no destinations are configured or to pick a custom path -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSelectFolder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:contentDescription="@string/select_folder"
+        android:text="@string/select_folder"
+        style="@style/Widget.Material3.Button.OutlinedButton" />
+
     <!-- Cancel always visible below scroll -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCancel"

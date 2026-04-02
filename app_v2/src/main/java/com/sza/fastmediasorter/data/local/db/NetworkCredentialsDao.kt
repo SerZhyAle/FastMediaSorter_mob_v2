@@ -19,7 +19,8 @@ interface NetworkCredentialsDao {
     @Query("SELECT * FROM network_credentials WHERE credentialId = :credentialId")
     suspend fun getCredentialsById(credentialId: String): NetworkCredentialsEntity?
     
-    @Query("SELECT * FROM network_credentials WHERE server = :server AND shareName = :shareName LIMIT 1")
+    // Match server stored with or without port suffix (e.g. "192.168.1.110" or "192.168.1.110:445").
+    @Query("SELECT * FROM network_credentials WHERE (server = :server OR server LIKE :server || ':%') AND shareName = :shareName LIMIT 1")
     suspend fun getByServerAndShare(server: String, shareName: String): NetworkCredentialsEntity?
     
     @Query("SELECT * FROM network_credentials WHERE type = :type COLLATE NOCASE AND server = :server AND port = :port LIMIT 1")
