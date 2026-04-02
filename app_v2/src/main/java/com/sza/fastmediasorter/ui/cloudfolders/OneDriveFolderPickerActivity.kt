@@ -90,6 +90,8 @@ class OneDriveFolderPickerActivity : BaseActivity<ActivityOnedriveFolderPickerBi
             (view as? android.view.ViewGroup)?.clipToPadding = false
             insets
         }
+        // setupViews() runs inside post{} — initial insets dispatch was already missed.
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.rvFolders)
     }
 
     override fun observeData() {

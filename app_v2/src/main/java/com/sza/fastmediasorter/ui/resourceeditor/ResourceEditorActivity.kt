@@ -25,6 +25,9 @@ class ResourceEditorActivity : BaseActivity<ActivityResourceEditorBinding>() {
             view.setPadding(0, statusBar.top, 0, navBar.bottom)
             insets
         }
+        // setupViews() runs inside post{} — initial insets dispatch was already missed.
+        // Force a re-dispatch so the listener fires and padding is applied correctly.
+        androidx.core.view.ViewCompat.requestApplyInsets(binding.fragmentContainer)
     }
 
     override fun observeData() {
