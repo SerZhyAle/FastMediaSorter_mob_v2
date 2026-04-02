@@ -477,8 +477,10 @@ class MediaStoreRepositoryImpl @Inject constructor(
 
         // Append slash if missing to match children
         val pathArg = if (folderPath.endsWith("/")) folderPath else "$folderPath/"
-        val selection = "${MediaStore.Files.FileColumns.DATA} LIKE ?"
-        val selectionArgs = arrayOf("$pathArg%")
+        // Escape SQLite LIKE wildcards (% and _) in the path to prevent matching unrelated files
+        val escapedPathArg = pathArg.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        val selection = "${MediaStore.Files.FileColumns.DATA} LIKE ? ESCAPE '\\'"
+        val selectionArgs = arrayOf("$escapedPathArg%")
         
         try {
             context.contentResolver.query(

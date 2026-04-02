@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.fragment.app.Fragment
 import androidx.viewbinding.ViewBinding
 import timber.log.Timber
@@ -44,5 +45,21 @@ abstract class BaseFragment<VB : ViewBinding> : Fragment() {
         super.onDestroyView()
         _binding = null
         Timber.d("onDestroyView: ${this::class.simpleName}")
+    }
+
+    /**
+     * Safely show a dialog. Skips if fragment is not attached or Activity is finishing/destroyed.
+     * Use instead of directly calling [android.app.Dialog.show] in fragments.
+     */
+    protected fun safeShowDialog(buildDialog: () -> android.app.Dialog) {
+        if (!isAdded || activity?.isFinishing == true || activity?.isDestroyed == true) {
+            Timber.w("safeShowDialog: skipping — fragment not attached or Activity finishing (${this::class.simpleName})")
+            return
+        }
+        try {
+            buildDialog().show()
+        } catch (e: WindowManager.BadTokenException) {
+            Timber.e(e, "safeShowDialog: show failed — bad window token (${this::class.simpleName})")
+        }
     }
 }

@@ -302,12 +302,23 @@ class AddResourceViewModel @Inject constructor(
             }
             else -> return null
         }
+
+        val comment = when (virtualPath) {
+            LocalMediaScanner.VIRTUAL_PATH_RECENT -> context.getString(R.string.virtual_comment_recent)
+            LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO -> context.getString(R.string.virtual_comment_all_music)
+            LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO -> context.getString(R.string.virtual_comment_all_video)
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS -> context.getString(R.string.virtual_comment_camera_photos)
+            LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES -> context.getString(R.string.virtual_comment_all_images)
+            LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS -> context.getString(R.string.virtual_comment_all_docs)
+            else -> null
+        }
         
         val defaultSortMode = if (virtualPath == LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS) SortMode.DATE_DESC else SortMode.NAME_ASC
 
         return MediaResource(
             id = 0,
             name = name,
+            comment = comment,
             path = virtualPath,
             type = ResourceType.LOCAL,
             createdDate = System.currentTimeMillis(),

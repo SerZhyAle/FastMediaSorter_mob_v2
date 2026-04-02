@@ -95,7 +95,7 @@ class PlayerViewModel @Inject constructor(
         data class FileModified(val filePath: String) : PlayerEvent()
         data class ShowUndoSnackbar(val operation: UndoOperation) : PlayerEvent()
         data class CloudAuthRequired(val provider: String, val message: String) : PlayerEvent()
-        data class ShowMissingFileDialog(val fileName: String, val filePath: String) : PlayerEvent()
+        data class ShowMissingFileInfo(val fileName: String) : PlayerEvent()
         // Removed: LoadingProgress event (dialog not needed for single file loads)
         object FinishActivity : PlayerEvent()
         data class CastStateChanged(val isCasting: Boolean, val deviceName: String?) : PlayerEvent()
@@ -296,20 +296,30 @@ class PlayerViewModel @Inject constructor(
             
             // Check if cached files are all directories (indicates we're in a subfolder but cache has parent folder data)
             val cacheHasOnlyDirectories = cachedFiles != null && cachedFiles.isNotEmpty() && cachedFiles.all { it.isDirectory }
+
+            // Detect subfolder mismatch: cache has root files but initialFilePath points to a subdirectory
+            val initialFileDir = initialFilePath?.let { path ->
+                val lastSlash = path.lastIndexOf('/')
+                if (lastSlash > 0) path.substring(0, lastSlash) else null
+            }
+            val cacheMatchesInitialFile = initialFilePath == null ||
+                (cachedFiles != null && cachedFiles.any { it.path == initialFilePath })
             
-            val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories) {
-                // Using cached list (valid file data)
+            val allFiles = if (cachedFiles != null && cachedFiles.isNotEmpty() && !cacheHasOnlyDirectories && cacheMatchesInitialFile) {
+                // Using cached list (valid file data matching requested file)
                 cachedFiles
             } else {
-                // Fallback: cache miss OR cache has only directories - load via UseCase
-                if (cacheHasOnlyDirectories) {
+                // Fallback: cache miss OR cache has only directories OR subfolder mismatch
+                if (!cacheMatchesInitialFile) {
+                    Timber.w("Cache does not contain initialFilePath=$initialFilePath (subfolder mismatch), reloading from $initialFileDir")
+                } else if (cacheHasOnlyDirectories) {
                     Timber.w("Cache contains only directories (${cachedFiles?.size} items), loading actual files from current path")
                 } else {
                     Timber.w("Cache miss! Loading files via UseCase (slow path)")
                 }
                 
-                // Extract current folder path from currentFile if available
-                val currentFolderPath = state.value.currentFile?.path?.let { filePath ->
+                // Use initialFilePath's parent directory if available, otherwise extract from currentFile
+                val currentFolderPath = initialFileDir ?: state.value.currentFile?.path?.let { filePath ->
                     // Extract parent directory path
                     val lastSlash = filePath.lastIndexOf('/')
                     if (lastSlash > 0) {
@@ -403,7 +413,10 @@ class PlayerViewModel @Inject constructor(
                             Timber.w("File not found by path: $initialFilePath, using index 0")
                             if (resource.rememberFileList && !initialFileExistsInUnfiltered) {
                                 val missingName = initialFilePath.substringAfterLast('/').ifBlank { initialFilePath }
-                                sendEvent(PlayerEvent.ShowMissingFileDialog(missingName, initialFilePath))
+                                // Auto-clean stale file reference (no blocking dialog)
+                                MediaFilesCacheManager.removeFile(resource.id, initialFilePath)
+                                cachedFileListRepository.deleteFile(resource.id, initialFilePath)
+                                sendEvent(PlayerEvent.ShowMissingFileInfo(missingName))
                             } else if (resource.rememberFileList && initialFileExistsInUnfiltered) {
                                 Timber.w("Initial file exists in source list but was filtered out by supportedMediaTypes, skipping missing file dialog")
                             }
@@ -466,18 +479,7 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
-    fun handleMissingFileRefresh(filePath: String) {
-        viewModelScope.launch {
-            val resource = state.value.resource
-            resource?.let {
-                MediaFilesCacheManager.removeFile(it.id, filePath)
-                if (it.rememberFileList) {
-                    cachedFileListRepository.deleteFile(it.id, filePath)
-                }
-            }
-            sendEvent(PlayerEvent.FinishActivity)
-        }
-    }
+
 
     // ════════════════════════════════════════════════════════════════════════
     // LOOKAHEAD MODEL for prefetch

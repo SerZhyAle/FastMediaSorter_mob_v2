@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.player
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -72,9 +74,43 @@ class PlayerDialogHelper(
 ) {
     
     private var onAuthRequestCallback: ((String) -> Unit)? = null
+    private val activeDialogs = mutableListOf<Dialog>()
 
     fun setAuthCallback(callback: (String) -> Unit) {
         onAuthRequestCallback = callback
+    }
+
+    /**
+     * Safely show a dialog with activity lifecycle check.
+     * Tracks the dialog for cleanup in [dismissAll].
+     */
+    private fun safeShow(dialog: Dialog) {
+        if (activity.isFinishing || activity.isDestroyed) {
+            Timber.w("PlayerDialogHelper: cannot show dialog — activity is finishing/destroyed")
+            return
+        }
+        try {
+            dialog.setOnDismissListener { activeDialogs.remove(dialog) }
+            activeDialogs.add(dialog)
+            dialog.show()
+        } catch (e: WindowManager.BadTokenException) {
+            Timber.e(e, "PlayerDialogHelper: dialog show failed — bad window token")
+            activeDialogs.remove(dialog)
+        }
+    }
+
+    /**
+     * Dismiss all tracked dialogs. Call from Activity.onDestroy().
+     */
+    fun dismissAll() {
+        activeDialogs.toList().forEach { dialog ->
+            try {
+                if (dialog.isShowing) dialog.dismiss()
+            } catch (e: Exception) {
+                Timber.w(e, "PlayerDialogHelper: error dismissing dialog")
+            }
+        }
+        activeDialogs.clear()
     }
     
     /**
@@ -154,7 +190,7 @@ class PlayerDialogHelper(
                     // I'll add a property to PlayerDialogHelper to hold the auth callback.
                     onAuthRequestCallback?.invoke(provider)
                 }
-            ).show()
+            ).also { safeShow(it) }
         }
     }
     
@@ -171,7 +207,7 @@ class PlayerDialogHelper(
             if (shouldConfirmMove) {
                 // Show confirmation dialog first
                 val resource = viewModel.state.value.resource
-                AlertDialog.Builder(activity)
+                safeShow(AlertDialog.Builder(activity)
                     .setTitle(R.string.confirm_move_title)
                     .setMessage(activity.getString(R.string.confirm_move_message, 1, resource?.name ?: "destination"))
                     .setPositiveButton(R.string.move) { _, _ ->
@@ -179,7 +215,7 @@ class PlayerDialogHelper(
                         showMoveDialogInternal(currentFile, resourceId, settings)
                     }
                     .setNegativeButton(R.string.cancel, null)
-                    .show()
+                    .create())
             } else {
                 // Skip confirmation - show move dialog directly
                 showMoveDialogInternal(currentFile, resourceId, settings)
@@ -238,7 +274,7 @@ class PlayerDialogHelper(
             onAuthRequest = { provider ->
                 onAuthRequestCallback?.invoke(provider)
             }
-        ).show()
+        ).also { safeShow(it) }
     }
     
     /**
@@ -272,7 +308,7 @@ class PlayerDialogHelper(
                 // Reload file in player after rename
                 dialogCallback.onRenameComplete()
             }
-        ).show()
+        ).also { safeShow(it) }
     }
     
     /**
@@ -289,7 +325,7 @@ class PlayerDialogHelper(
             unifiedCache,
             downloadNetworkFileUseCase
         )
-        dialog.show()
+        safeShow(dialog)
     }
     
     /**
@@ -313,7 +349,7 @@ class PlayerDialogHelper(
                 dialogCallback.onImageEditComplete()
             }
         )
-        dialog.show()
+        safeShow(dialog)
     }
     
     /**
@@ -336,7 +372,7 @@ class PlayerDialogHelper(
                 dialogCallback.onGifEditComplete()
             }
         )
-        dialog.show()
+        safeShow(dialog)
     }
 
     private fun isAnimatedImagePath(path: String): Boolean {
@@ -356,7 +392,7 @@ class PlayerDialogHelper(
             currentSettings = currentSettings,
             onSettingsApplied = onSettingsApplied
         )
-        dialog.show()
+        safeShow(dialog)
     }
     
     /**
@@ -393,7 +429,7 @@ class PlayerDialogHelper(
                  activity.finish()
              }
         }
-        builder.show()
+        safeShow(builder.create())
     }
     /**
      * Show PDF editing dialog with available export actions.
@@ -406,7 +442,7 @@ class PlayerDialogHelper(
 
         val options = arrayOf(activity.getString(R.string.pdf_export_to_jpg))
 
-        AlertDialog.Builder(activity)
+        safeShow(AlertDialog.Builder(activity)
             .setTitle(R.string.pdf_edit_title)
             .setItems(options) { _, which ->
                 when (which) {
@@ -414,7 +450,7 @@ class PlayerDialogHelper(
                 }
             }
             .setNegativeButton(R.string.cancel, null)
-            .show()
+            .create())
     }
 
     fun showEncodingDialog() {
@@ -424,13 +460,13 @@ class PlayerDialogHelper(
         val labels = charsets.map { (name, charset) ->
             if (charset.name() == currentCharset) "✓ $name" else name
         }.toTypedArray()
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+        safeShow(com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.select_encoding)
             .setItems(labels) { _, which ->
                 manager.reopenWithEncoding(charsets[which].second)
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create())
     }
 
     fun showReaderSettingsDialog() {
@@ -442,14 +478,14 @@ class PlayerDialogHelper(
             activity.getString(R.string.reader_theme_sepia)
         )
         val currentIndex = themes.indexOf(manager.getCurrentTheme()).coerceAtLeast(0)
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+        safeShow(com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.reader_settings)
             .setSingleChoiceItems(themeLabels, currentIndex) { dialog, which ->
                 manager.applyReaderTheme(themes[which])
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create())
     }
 
     fun showSleepTimerDialog() {
@@ -468,7 +504,7 @@ class PlayerDialogHelper(
             labels
         }
         val indexOffset = if (manager.isSleepTimerActive) 1 else 0
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+        safeShow(com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.sleep_timer_title)
             .setItems(items) { _, which ->
                 if (manager.isSleepTimerActive && which == 0) {
@@ -487,7 +523,7 @@ class PlayerDialogHelper(
                 }
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create())
     }
 
     fun showAudioTrackDialog() {
@@ -496,7 +532,7 @@ class PlayerDialogHelper(
         if (tracks.isEmpty()) return
         val labels = tracks.map { it.label }.toTypedArray()
         val selectedIndex = tracks.indexOfFirst { it.isSelected }.coerceAtLeast(0)
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+        safeShow(com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.select_audio_track)
             .setSingleChoiceItems(labels, selectedIndex) { dialog, which ->
                 val track = tracks[which]
@@ -505,7 +541,7 @@ class PlayerDialogHelper(
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create())
     }
 
     fun showSubtitleTrackDialog() {
@@ -518,7 +554,7 @@ class PlayerDialogHelper(
         } else {
             0
         }
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
+        safeShow(com.google.android.material.dialog.MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.select_subtitle_track)
             .setSingleChoiceItems(labels.toTypedArray(), selectedIndex) { dialog, which ->
                 if (which == 0) {
@@ -533,7 +569,7 @@ class PlayerDialogHelper(
                 dialog.dismiss()
             }
             .setNegativeButton(android.R.string.cancel, null)
-            .show()
+            .create())
     }
 
     private fun exportPdfToJpg(currentFile: MediaFile) {

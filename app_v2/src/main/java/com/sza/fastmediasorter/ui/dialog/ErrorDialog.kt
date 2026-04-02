@@ -1,13 +1,16 @@
 package com.sza.fastmediasorter.ui.dialog
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * Dialog for displaying detailed error messages
@@ -32,6 +35,10 @@ object ErrorDialog {
         actionButtonText: String? = null,
         onActionClick: (() -> Unit)? = null
     ) {
+        if (context is Activity && (context.isFinishing || context.isDestroyed)) {
+            Timber.w("ErrorDialog: skipping show — Activity is finishing/destroyed")
+            return
+        }
         val fullMessage = if (details != null) {
             "$message\n\nDetails:\n$details"
         } else {
@@ -62,12 +69,12 @@ object ErrorDialog {
             }
         }
         
-        builder.show()
+        try {
+            builder.show()
+        } catch (e: WindowManager.BadTokenException) {
+            Timber.e(e, "ErrorDialog: show failed — bad window token")
+        }
     }
-
-    /**
-     * Show error from Throwable
-     */
     fun show(
         context: Context,
         title: String = context.getString(R.string.error),

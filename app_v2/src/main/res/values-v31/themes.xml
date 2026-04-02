@@ -4,5 +4,7 @@
         <item name="android:windowSplashScreenBackground">@color/white</item>
         <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <!-- Disable preview on app launch - no icon/splash shown until app fully loads -->
+        <item name="android:windowDisablePreview">true</item>
     </style>
 </resources>

@@ -39,6 +39,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         // 1. Recent
         createVirtualResource(
             name = context.getString(R.string.recent_media),
+            comment = context.getString(R.string.virtual_comment_recent),
             path = LocalMediaScanner.VIRTUAL_PATH_RECENT,
             supportedMediaTypes = settings.getGloballyEnabledMediaTypes(),
             profile = ResourceProfile.NONE,
@@ -49,6 +50,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         if (BuildConfig.SUPPORT_AUDIO && settings.supportAudio) {
             createVirtualResource(
                 name = context.getString(R.string.virtual_all_music),
+                comment = context.getString(R.string.virtual_comment_all_music),
                 path = LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
                 supportedMediaTypes = setOf(MediaType.AUDIO),
                 profile = ResourceProfile.AUDIO_LIBRARY,
@@ -60,6 +62,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         if (settings.supportVideos) {
             createVirtualResource(
                 name = context.getString(R.string.virtual_all_video),
+                comment = context.getString(R.string.virtual_comment_all_video),
                 path = LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
                 supportedMediaTypes = setOf(MediaType.VIDEO),
                 profile = ResourceProfile.VIDEO_LIBRARY,
@@ -77,6 +80,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             if (cameraImageTypes.isNotEmpty()) {
                 createVirtualResource(
                     name = context.getString(R.string.virtual_camera_photos),
+                    comment = context.getString(R.string.virtual_comment_camera_photos),
                     path = LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
                     supportedMediaTypes = cameraImageTypes,
                     profile = ResourceProfile.PHOTO_STORAGE,
@@ -96,6 +100,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             if (imageTypes.isNotEmpty()) {
                 createVirtualResource(
                     name = context.getString(R.string.virtual_all_images),
+                    comment = context.getString(R.string.virtual_comment_all_images),
                     path = LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
                     supportedMediaTypes = imageTypes,
                     profile = ResourceProfile.PHOTO_STORAGE,
@@ -114,6 +119,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             if (docTypes.isNotEmpty()) {
                 createVirtualResource(
                     name = context.getString(R.string.virtual_all_docs),
+                    comment = context.getString(R.string.virtual_comment_all_docs),
                     path = LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS,
                     supportedMediaTypes = docTypes,
                     profile = ResourceProfile.DOCUMENTS,
@@ -128,6 +134,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
 
     private suspend fun createVirtualResource(
         name: String,
+        comment: String? = null,
         path: String,
         supportedMediaTypes: Set<MediaType>,
         profile: ResourceProfile,
@@ -138,6 +145,7 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         val resource = MediaResource(
             id = 0,
             name = name,
+            comment = comment,
             path = path,
             type = ResourceType.LOCAL,
             createdDate = System.currentTimeMillis(),

@@ -74,6 +74,7 @@ object DefaultPlayerHelper {
      * system chooser for the given MIME type (e.g. audio, video, image, application/pdf).
      */
     fun showSetDefaultDialogForType(fragment: Fragment, mimeType: String) {
+        if (!fragment.isAdded || fragment.activity?.isFinishing == true || fragment.activity?.isDestroyed == true) return
         val context = fragment.requireContext()
         DefaultPlayerManager.applyPrimaryPlayerState(context, true)
         MaterialAlertDialogBuilder(context)

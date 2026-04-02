@@ -151,6 +151,12 @@
     <string name="virtual_all_video">All Videos</string>
     <string name="virtual_all_images">All Images</string>
     <string name="virtual_all_docs">All Documents</string>
+    <string name="virtual_comment_recent">Recently accessed local media files</string>
+    <string name="virtual_comment_all_music">Local audio files (mp3, flac, ogg, aac…)</string>
+    <string name="virtual_comment_all_video">Local video files (mp4, mkv, mov, wmv…)</string>
+    <string name="virtual_comment_camera_photos">Photos and videos from the device camera</string>
+    <string name="virtual_comment_all_images">Local image files (jpg, png, gif, webp…)</string>
+    <string name="virtual_comment_all_docs">Local documents (pdf, epub, txt…)</string>
     <string name="special_virtual_folders">Special Folders</string>
     <string name="virtual_resource_already_added">Already added</string>
     <string name="virtual_resource_added">Resource "%1$s" added</string>
@@ -2076,6 +2082,7 @@
     <!-- Missing file -->
     <string name="file_not_found_title">File Not Found</string>
     <string name="file_not_found_message">The file "%1$s" no longer exists. It may have been deleted or moved outside the app. Refresh this resource?</string>
+    <string name="file_not_found_playing_from_start">File \u201c%1$s\u201d not found — playing from start</string>
     <string name="refresh_resource">Refresh Resource</string>
     <string name="player_file_not_found_message">The file \u201c%1$s\u201d can no longer be played \u2014 it has been deleted or moved.</string>
 

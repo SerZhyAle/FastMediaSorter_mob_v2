@@ -569,7 +569,9 @@ class GoogleDriveRestClient @Inject constructor(
                     "'root' in parents"
                 }
                 
-                val query = "$parentQuery and name = '$fileName' and trashed = false"
+                // Escape backslash and single quote per Drive API query language spec
+                val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
+                val query = "$parentQuery and name = '$escapedFileName' and trashed = false"
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("files(id)", "UTF-8")
                 
@@ -1001,7 +1003,9 @@ class GoogleDriveRestClient @Inject constructor(
             try {
                 val token = accessToken ?: return@withContext CloudResult.Error("Not authenticated")
                 
-                val query = "name = '$fileName' and '$parentId' in parents and trashed = false"
+                // Escape backslash and single quote per Drive API query language spec
+                val escapedFileName = fileName.replace("\\", "\\\\").replace("'", "\\'")
+                val query = "name = '$escapedFileName' and '$parentId' in parents and trashed = false"
                 val encodedQuery = URLEncoder.encode(query, "UTF-8")
                 val fields = URLEncoder.encode("files(id)", "UTF-8")
                 

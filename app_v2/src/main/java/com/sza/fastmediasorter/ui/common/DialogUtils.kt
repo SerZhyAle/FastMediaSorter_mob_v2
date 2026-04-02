@@ -1,16 +1,19 @@
 package com.sza.fastmediasorter.ui.common
 
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.view.LayoutInflater
+import android.view.WindowManager
 import android.widget.TextView
 import android.widget.Toast
 import androidx.annotation.StringRes
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 object DialogUtils {
 
@@ -24,6 +27,10 @@ object DialogUtils {
         onNegative: (() -> Unit)? = null,
         cancelable: Boolean = true
     ) {
+        if (context is Activity && (context.isFinishing || context.isDestroyed)) {
+            Timber.w("DialogUtils: skipping showScrollableDialog — Activity is finishing/destroyed")
+            return
+        }
         val view = LayoutInflater.from(context).inflate(R.layout.dialog_scrollable_text, null)
         val tvContent = view.findViewById<TextView>(R.id.tvDialogContent)
         val btnCopy = view.findViewById<MaterialButton>(R.id.btnCopyToClipboard)
@@ -71,7 +78,12 @@ object DialogUtils {
         }
 
         val dialog = builder.create()
-        dialog.show()
+        try {
+            dialog.show()
+        } catch (e: WindowManager.BadTokenException) {
+            Timber.e(e, "DialogUtils: dialog show failed — bad window token")
+            return
+        }
         
         // Resize dialog to 90% of screen width
         val displayMetrics = context.resources.displayMetrics

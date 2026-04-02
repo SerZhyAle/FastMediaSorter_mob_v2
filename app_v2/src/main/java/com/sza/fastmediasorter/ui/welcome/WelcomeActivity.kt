@@ -473,6 +473,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
 
         hasRequestedBatteryOptimizationInSession = true
 
+        if (isFinishing || isDestroyed) return false
         AlertDialog.Builder(this)
             .setTitle(R.string.battery_optimization_dialog_title)
             .setMessage(R.string.battery_optimization_dialog_message)
@@ -508,6 +509,7 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     }
 
     private fun showPermissionDeniedDialog() {
+        if (isFinishing || isDestroyed) return
         AlertDialog.Builder(this)
             .setTitle(R.string.permissions_denied_title)
             .setMessage(R.string.permissions_denied_warning)

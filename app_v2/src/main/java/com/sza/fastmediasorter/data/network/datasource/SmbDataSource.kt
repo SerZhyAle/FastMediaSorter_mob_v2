@@ -91,9 +91,11 @@ class SmbDataSource(
             val uri = dataSpec.uri
             this.uri = uri
             // Expected format: smb://server/share/path/to/file or smb://server/path/to/file (if share inferred)
-            val path = uri.path ?: throw IOException("Invalid SMB path: ${uri}")
+            // Use encodedPath to avoid double-decoding: uri.path already returns a decoded string,
+            // so calling Uri.decode() on it would double-decode any % sequences in filenames.
+            val path = uri.encodedPath ?: throw IOException("Invalid SMB path: ${uri}")
             
-            // Decode path segments
+            // Decode path segments (single round-trip: encodedPath → Uri.decode per segment)
             val decodedPath = path.trim('/').split("/").joinToString("/") { 
                 Uri.decode(it) 
             }

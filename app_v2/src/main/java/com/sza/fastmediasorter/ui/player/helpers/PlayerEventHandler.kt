@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.IntentSenderRequest
 import androidx.appcompat.app.AlertDialog
@@ -28,17 +29,12 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
                 activity.undoOperationManager.showUndoSnackbar(event.operation)
             is PlayerViewModel.PlayerEvent.CloudAuthRequired ->
                 showCloudAuthenticationError(event.provider)
-            is PlayerViewModel.PlayerEvent.ShowMissingFileDialog -> {
-                AlertDialog.Builder(activity)
-                    .setTitle(R.string.file_not_found_title)
-                    .setMessage(activity.getString(R.string.file_not_found_message, event.fileName))
-                    .setPositiveButton(R.string.refresh_resource) { _, _ ->
-                        activity.viewModel.handleMissingFileRefresh(event.filePath)
-                    }
-                    .setNegativeButton(android.R.string.cancel) { _, _ ->
-                        activity.finish()
-                    }
-                    .show()
+            is PlayerViewModel.PlayerEvent.ShowMissingFileInfo -> {
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.file_not_found_playing_from_start, event.fileName),
+                    Toast.LENGTH_LONG
+                ).show()
             }
             PlayerViewModel.PlayerEvent.FinishActivity -> activity.finish()
             is PlayerViewModel.PlayerEvent.CastStateChanged -> {
@@ -107,11 +103,15 @@ class PlayerEventHandler(private val activity: PlayerActivity) {
 
     fun showFileNotFound(fileName: String) {
         if (activity.isFinishing || activity.isDestroyed) return
-        AlertDialog.Builder(activity)
-            .setTitle(R.string.file_not_found_title)
-            .setMessage(activity.getString(R.string.player_file_not_found_message, fileName))
-            .setPositiveButton(android.R.string.ok, null)
-            .show()
+        try {
+            AlertDialog.Builder(activity)
+                .setTitle(R.string.file_not_found_title)
+                .setMessage(activity.getString(R.string.player_file_not_found_message, fileName))
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        } catch (e: WindowManager.BadTokenException) {
+            Timber.e(e, "PlayerEventHandler: showFileNotFound failed — bad window token")
+        }
     }
 
     fun showCloudAuthenticationError(providerName: String? = null) {

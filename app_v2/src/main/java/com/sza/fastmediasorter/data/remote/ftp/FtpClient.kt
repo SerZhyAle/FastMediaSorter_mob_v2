@@ -118,6 +118,7 @@ class FtpClient @Inject constructor() {
 
             client.enterLocalPassiveMode()
             client.setFileType(FTP.BINARY_FILE_TYPE)
+            client.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
 
             return ExoPlayerFtpConnection(client)
         } catch (e: InterruptedException) {
@@ -239,6 +240,7 @@ class FtpClient @Inject constructor() {
             
             // Set binary mode for file transfers
             client.setFileType(FTP.BINARY_FILE_TYPE)
+            client.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
             
             ftpClient = client
             
@@ -584,6 +586,7 @@ class FtpClient @Inject constructor() {
             
             // Enable passive mode
             testClient.enterLocalPassiveMode()
+            testClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
             
             // Test listing root directory
             testClient.listFiles("/")
@@ -1214,6 +1217,7 @@ class FtpClient @Inject constructor() {
             // Enable passive mode and binary transfer
             tempClient.enterLocalPassiveMode()
             tempClient.setFileType(FTP.BINARY_FILE_TYPE)
+            tempClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
             
             // Create parent directories if needed
             val parentDir = remotePath.substringBeforeLast('/', "")
@@ -1384,6 +1388,7 @@ class FtpClient @Inject constructor() {
             
             tempClient.enterLocalPassiveMode()
             tempClient.setFileType(FTP.BINARY_FILE_TYPE)
+            tempClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
             
             block(tempClient)
         } catch (e: Exception) {
@@ -1529,6 +1534,7 @@ class FtpClient @Inject constructor() {
             
             tempClient.enterLocalPassiveMode()
             tempClient.setFileType(FTP.BINARY_FILE_TYPE)
+            tempClient.controlEncoding = "UTF-8" // Ensure non-ASCII filenames are not garbled
             
             val stream = tempClient.retrieveFileStream(remotePath)
             if (stream == null) {

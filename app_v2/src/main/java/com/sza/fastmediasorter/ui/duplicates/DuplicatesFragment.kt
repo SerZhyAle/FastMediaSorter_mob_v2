@@ -70,7 +70,7 @@ class DuplicatesFragment : Fragment() {
         }
         binding.fabDeleteSelected.setOnClickListener {
             val count = viewModel.state.value.selectedFilePaths.size
-            if (count > 0) {
+            if (count > 0 && isAdded) {
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle("Delete Selected")
                     .setMessage("Are you sure you want to permanently delete $count items? This cannot be undone.")
@@ -188,6 +188,7 @@ class DuplicatesFragment : Fragment() {
     private fun handleEvent(event: DuplicatesEvent) {
         when (event) {
             is DuplicatesEvent.ShowNetworkWarning -> {
+                if (!isAdded) return
                 MaterialAlertDialogBuilder(requireContext())
                     .setTitle(R.string.duplicate_scan_start)
                     .setMessage(R.string.duplicate_scan_network_warning)

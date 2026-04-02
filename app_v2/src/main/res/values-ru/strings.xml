@@ -205,6 +205,12 @@
     <string name="virtual_all_video">Все видео</string>
     <string name="virtual_all_images">Все изображения</string>
     <string name="virtual_all_docs">Все документы</string>
+    <string name="virtual_comment_recent">Недавно открытые локальные медиафайлы</string>
+    <string name="virtual_comment_all_music">Локальные аудиофайлы (mp3, flac, ogg, aac…)</string>
+    <string name="virtual_comment_all_video">Локальные видеофайлы (mp4, mkv, mov, wmv…)</string>
+    <string name="virtual_comment_camera_photos">Фото и видео с камеры устройства</string>
+    <string name="virtual_comment_all_images">Локальные изображения (jpg, png, gif, webp…)</string>
+    <string name="virtual_comment_all_docs">Локальные документы (pdf, epub, txt…)</string>
     <string name="special_virtual_folders">Специальные папки</string>
     <string name="virtual_resource_already_added">Уже добавлен</string>
     <string name="virtual_resource_added">Ресурс «%1$s» добавлен</string>

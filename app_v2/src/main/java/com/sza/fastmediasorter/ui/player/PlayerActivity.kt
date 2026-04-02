@@ -2114,6 +2114,11 @@ class PlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>() {
     internal fun updateAudioSlideshowCurrentSongLabel() = audioSlideshowPhotoModeManager.updateCurrentSongLabel()
 
     override fun onDestroy() {
+        // Dismiss all tracked dialogs to prevent WindowLeaked
+        if (::dialogHelper.isInitialized) {
+            dialogHelper.dismissAll()
+        }
+
         // Release background music manager
         backgroundMusicManager.release()
         

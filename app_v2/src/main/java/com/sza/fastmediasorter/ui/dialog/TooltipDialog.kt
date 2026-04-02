@@ -1,8 +1,11 @@
 package com.sza.fastmediasorter.ui.dialog
 
+import android.app.Activity
 import android.app.AlertDialog
 import android.content.Context
+import android.view.WindowManager
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * Simple utility for showing context-sensitive tooltip dialogs.
@@ -17,14 +20,22 @@ object TooltipDialog {
      * @param message Explanation text
      */
     fun show(context: Context, title: String, message: String) {
-        AlertDialog.Builder(context)
-            .setTitle(title)
-            .setMessage(message)
-            .setPositiveButton(R.string.ok) { dialog, _ ->
-                dialog.dismiss()
-            }
-            .setCancelable(true)
-            .show()
+        if (context is Activity && (context.isFinishing || context.isDestroyed)) {
+            Timber.w("TooltipDialog: skipping show — Activity is finishing/destroyed")
+            return
+        }
+        try {
+            AlertDialog.Builder(context)
+                .setTitle(title)
+                .setMessage(message)
+                .setPositiveButton(R.string.ok) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setCancelable(true)
+                .show()
+        } catch (e: WindowManager.BadTokenException) {
+            Timber.e(e, "TooltipDialog: show failed — bad window token")
+        }
     }
     
     /**

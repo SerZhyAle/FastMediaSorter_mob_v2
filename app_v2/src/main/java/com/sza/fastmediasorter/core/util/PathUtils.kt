@@ -23,9 +23,10 @@ object PathUtils {
      * @return Parsed Uri with special characters properly encoded
      */
     fun safeParseUri(path: String): Uri {
-        // Encode # before parsing to prevent it being treated as fragment identifier
-        // Also encode ? to prevent it being treated as query string start
+        // % must be encoded first (before other replacements) to avoid double-encoding.
+        // Then encode # and ? which Uri.parse treats as fragment/query delimiters.
         val encodedPath = path
+            .replace("%", "%25")
             .replace("#", "%23")
             .replace("?", "%3F")
         return Uri.parse(encodedPath)

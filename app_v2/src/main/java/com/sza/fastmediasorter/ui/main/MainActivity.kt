@@ -588,6 +588,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
                             binding.scanProgressLayout.visibility = View.GONE
                         }
                         MainEvent.ConfirmRescanWithVirtualResources -> {
+                            if (isFinishing || isDestroyed) return@collect
                             android.app.AlertDialog.Builder(this@MainActivity)
                                 .setTitle(R.string.rescan_all_virtual_warning_title)
                                 .setMessage(R.string.rescan_all_virtual_warning_message)
@@ -774,6 +775,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
     
     private fun showDeleteConfirmation(resource: com.sza.fastmediasorter.domain.model.MediaResource) {
+        if (isFinishing || isDestroyed) return
         AlertDialog.Builder(this)
             .setTitle(R.string.delete_resource_title)
             .setMessage(getString(R.string.delete_resource_message, resource.name))
@@ -964,6 +966,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     }
 
     private fun showStoragePermissionRequestDialog() {
+        if (isFinishing || isDestroyed) return
         val message = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             getString(R.string.permission_storage_rationale_r)
         } else {
