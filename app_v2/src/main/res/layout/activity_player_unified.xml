@@ -152,7 +152,10 @@
 
         <ViewStub android:id="@+id/lyricsViewerStub" android:inflatedId="@+id/lyricsViewerContainer" android:layout="@layout/player_lyrics_viewer_container" android:layout_width="match_parent" android:layout_height="match_parent" />
 
-        <include layout="@layout/player_pdf_controls_overlay_content" />
+        <include layout="@layout/player_pdf_controls_overlay_content"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom" />
 
         <include layout="@layout/player_deprecated_translate_image_button_content" />
 
