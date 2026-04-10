@@ -80,6 +80,15 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     private lateinit var cloudAuthManager: com.sza.fastmediasorter.ui.browse.managers.BrowseCloudAuthManager
     private lateinit var utilityManager: com.sza.fastmediasorter.ui.browse.managers.BrowseUtilityManager
     private lateinit var stateManager: com.sza.fastmediasorter.ui.browse.managers.BrowseStateManager
+    private lateinit var sortMenuManager: com.sza.fastmediasorter.ui.browse.managers.BrowseSortMenuManager
+    private lateinit var archiveDialogManager: com.sza.fastmediasorter.ui.browse.managers.BrowseArchiveDialogManager
+    private lateinit var binaryFileHandler: com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileHandler
+    private lateinit var errorDisplayManager: com.sza.fastmediasorter.ui.browse.managers.BrowseErrorDisplayManager
+    private lateinit var scrollButtonManager: com.sza.fastmediasorter.ui.browse.managers.BrowseScrollButtonManager
+    private lateinit var eventHandler: com.sza.fastmediasorter.ui.browse.managers.BrowseEventHandler
+    private lateinit var stateUiUpdater: com.sza.fastmediasorter.ui.browse.managers.BrowseStateUiUpdater
+    private lateinit var buttonSetupHelper: com.sza.fastmediasorter.ui.browse.managers.BrowseButtonSetupHelper
+    private lateinit var lifecycleHelper: com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleHelper
     private lateinit var passwordManager: ResourcePasswordManager
     
     @Inject
@@ -282,13 +291,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     private var showVideoThumbnails = true // Cached setting value
     private var showPdfThumbnails = false // Cached PDF thumbnail setting
-    private var shouldScrollToLastViewed = false // Flag for scroll restoration after PlayerActivity return
-    private var pendingScrollRestore = true
-
-    /** Progress dialog shown while archive ZIP is being created. */
-    private var archiveProgressDialog: androidx.appcompat.app.AlertDialog? = null
-    /** Progress dialog shown while archive ZIP is being extracted. */
-    private var extractProgressDialog: com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog? = null
+    private lateinit var listSubmitManager: com.sza.fastmediasorter.ui.browse.managers.BrowseListSubmitManager
 
     /** Pending folder picker operation: stored while the system/network picker is open. */
     private data class PendingFolderPickerOp(
@@ -320,7 +323,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
 
     override fun setupViews() {
         // Apply edge-to-edge insets: push top bar below status bar, bottom bar above nav bar
-        applyEdgeToEdgeInsets()
+        com.sza.fastmediasorter.ui.browse.managers.BrowseEdgeToEdgeHelper.apply(binding)
 
         // Reset Glide cache stats for this browsing session
         com.sza.fastmediasorter.utils.GlideCacheStats.reset()
@@ -732,6 +735,75 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             }
         )
         
+        sortMenuManager = com.sza.fastmediasorter.ui.browse.managers.BrowseSortMenuManager(
+            context = this,
+            onSortModeSelected = { viewModel.setSortMode(it) },
+            getCurrentSortMode = { viewModel.state.value.sortMode },
+            getCurrentResource = { viewModel.state.value.resource }
+        )
+
+        archiveDialogManager = com.sza.fastmediasorter.ui.browse.managers.BrowseArchiveDialogManager(
+            context = this,
+            onArchiveRequested = { name, dir -> viewModel.archiveSelectedFiles(name, dir) },
+            onCancelArchive = { viewModel.cancelArchive() },
+            onExtractArchive = { viewModel.extractArchive(it) },
+            onCancelExtraction = { viewModel.cancelExtraction() },
+            onNavigateToFolder = { viewModel.navigateToFolder(it) }
+        )
+
+        binaryFileHandler = com.sza.fastmediasorter.ui.browse.managers.BrowseBinaryFileHandler(
+            activity = this,
+            onSelectFile = { viewModel.selectFile(it) },
+            onPrepareExtraction = { viewModel.prepareExtraction(it) },
+            onShowCopyDialog = { showCopyDialog() },
+            onShowMoveDialog = { showMoveDialog() },
+            onShowRenameDialog = { showRenameDialog() },
+            onShowDeleteConfirmation = { showDeleteConfirmation() }
+        )
+
+        errorDisplayManager = com.sza.fastmediasorter.ui.browse.managers.BrowseErrorDisplayManager(
+            activity = this,
+            rootView = binding.root,
+            anchorView = binding.layoutOperations,
+            settingsRepository = settingsRepository,
+            coroutineScope = lifecycleScope,
+            onShowCloudAuthDialog = { showCloudAuthenticationDialog(it) },
+            onUndoRequested = { viewModel.undoLastOperation() },
+            getCurrentCloudProvider = { viewModel.state.value.resource?.cloudProvider }
+        )
+
+        scrollButtonManager = com.sza.fastmediasorter.ui.browse.managers.BrowseScrollButtonManager(
+            activity = this,
+            recyclerView = binding.rvMediaFiles,
+            adapter = mediaFileAdapter,
+            fabScrollToTop = binding.fabScrollToTop,
+            fabScrollToBottom = binding.fabScrollToBottom,
+            fabPageUp = binding.fabPageUp,
+            fabPageDown = binding.fabPageDown
+        )
+
+        listSubmitManager = com.sza.fastmediasorter.ui.browse.managers.BrowseListSubmitManager(
+            activity = this,
+            recyclerView = binding.rvMediaFiles,
+            adapter = mediaFileAdapter,
+            emptyStateView = binding.emptyStateView,
+            scrollButtonManager = scrollButtonManager,
+            isLoadingProvider = { viewModel.loading.value }
+        )
+
+        lifecycleHelper = com.sza.fastmediasorter.ui.browse.managers.BrowseLifecycleHelper(
+            activity = this,
+            recyclerView = binding.rvMediaFiles,
+            adapter = mediaFileAdapter,
+            listSubmitManager = listSubmitManager
+        )
+
+        buttonSetupHelper = com.sza.fastmediasorter.ui.browse.managers.BrowseButtonSetupHelper(
+            binding = binding,
+            adapter = mediaFileAdapter,
+            scrollButtonManager = scrollButtonManager
+        )
+
         // Setup back press callback for subfolder navigation
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -1023,39 +1095,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
 
-    private fun notifyItemRangeChangedSafely(start: Int, count: Int, payload: Any, source: String) {
-        if (start < 0 || count <= 0) {
-            Timber.w("$source: skipped notifyItemRangeChanged with invalid range start=$start, count=$count")
-            return
-        }
-
-        val recyclerView = binding.rvMediaFiles
-        val runNotify: () -> Unit = {
-            if (isDestroyed || isFinishing) {
-                Timber.w("$source: Activity destroyed/finishing, skipping notifyItemRangeChanged")
-            } else {
-                val itemCount = mediaFileAdapter.itemCount
-                if (start >= itemCount) {
-                    Timber.w("$source: start=$start out of bounds for itemCount=$itemCount")
-                } else {
-                    val safeCount = minOf(count, itemCount - start)
-                    if (safeCount <= 0) {
-                        Timber.w("$source: safeCount became $safeCount, skipping notify")
-                    } else {
-                        Timber.d("$source: notifyItemRangeChanged($start, $safeCount, $payload)")
-                        mediaFileAdapter.notifyItemRangeChanged(start, safeCount, payload)
-                    }
-                }
-            }
-        }
-
-        if (recyclerView.isComputingLayout || recyclerView.scrollState != RecyclerView.SCROLL_STATE_IDLE) {
-            Timber.d("$source: RecyclerView busy (isComputingLayout=${recyclerView.isComputingLayout}, scrollState=${recyclerView.scrollState}), posting notify")
-            recyclerView.post { runNotify() }
-        } else {
-            runNotify()
-        }
-    }
+    private fun notifyItemRangeChangedSafely(start: Int, count: Int, payload: Any, source: String) =
+        scrollButtonManager.notifyItemRangeChangedSafely(start, count, payload, source)
 
     private fun applyEdgeToEdgeInsets() {
         // Capture original padding values from XML before any insets are applied.
@@ -1167,247 +1208,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         mediaFileAdapter.setSkipInitialThumbnailLoad(true)
                         
                         mediaFileAdapter.submitList(state.mediaFiles) {
-                            // CRITICAL: Check if Activity is still alive before accessing binding
-                            // submitList callback can be called AFTER onDestroy (race condition)
-                            if (isDestroyed || isFinishing) {
-                                Timber.w("submitList callback: Activity destroyed/finishing, skipping")
-                                return@submitList
-                            }
-                            
-                            Timber.d("=== submitList CALLBACK START ===")
-                            Timber.d("Adapter list submitted successfully, current itemCount=${mediaFileAdapter.itemCount}")
-                            Timber.d("skipInitialThumbnailLoad flag BEFORE check: ${mediaFileAdapter.getSkipInitialThumbnailLoad()}")
-                            
-                            // Trigger thumbnail loading after layout is complete (ONLY if we have items)
-                            if (mediaFileAdapter.itemCount > 0) {
-                                // Check if layout is already complete
-                                Timber.d("RecyclerView.isLaidOut = ${binding.rvMediaFiles.isLaidOut}")
-                                if (binding.rvMediaFiles.isLaidOut && binding.rvMediaFiles.childCount > 0) {
-                                    // Layout already done AND children are bound - trigger immediately
-                                    Timber.d("=== RecyclerView ALREADY LAID OUT WITH CHILDREN - triggering thumbnails immediately ===")
-                                    val layoutManager = binding.rvMediaFiles.layoutManager
-                                    Timber.d("LayoutManager type: ${layoutManager?.javaClass?.simpleName}")
-                                    
-                                    val firstVisible = when (layoutManager) {
-                                        is LinearLayoutManager -> layoutManager.findFirstVisibleItemPosition()
-                                        is GridLayoutManager -> layoutManager.findFirstVisibleItemPosition()
-                                        else -> 0
-                                    }
-                                    val lastVisible = when (layoutManager) {
-                                        is LinearLayoutManager -> layoutManager.findLastVisibleItemPosition()
-                                        is GridLayoutManager -> layoutManager.findLastVisibleItemPosition()
-                                        else -> minOf(20, mediaFileAdapter.itemCount - 1)
-                                    }
-                                    
-                                    Timber.d("Visible range: first=$firstVisible, last=$lastVisible, itemCount=${mediaFileAdapter.itemCount}")
-                                    
-                                    if (firstVisible >= 0 && lastVisible >= firstVisible) {
-                                        val visibleCount = lastVisible - firstVisible + 1
-                                        notifyItemRangeChangedSafely(
-                                            start = firstVisible,
-                                            count = visibleCount,
-                                            payload = "LOAD_THUMBNAILS",
-                                            source = "submitList immediate"
-                                        )
-                                    } else {
-                                        Timber.w("NOT calling notifyItemRangeChanged - invalid range: $firstVisible to $lastVisible")
-                                        Timber.w("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
-                                    }
-                                    
-                                    // Reset flag
-                                    Timber.d("Resetting skipInitialThumbnailLoad flag to false")
-                                    mediaFileAdapter.setSkipInitialThumbnailLoad(false)
-                                    Timber.d("skipInitialThumbnailLoad flag AFTER reset: ${mediaFileAdapter.getSkipInitialThumbnailLoad()}")
-                                } else {
-                                    // Layout ready but no children yet OR not laid out - use post {} to trigger after children are bound
-                                    Timber.d("=== RecyclerView laid out but childCount=${binding.rvMediaFiles.childCount} - using post {} ===")
-                                    binding.rvMediaFiles.post {
-                                        // Check if Activity still alive in post {} callback
-                                        if (isDestroyed || isFinishing) {
-                                            Timber.w("post callback: Activity destroyed/finishing, skipping")
-                                            return@post
-                                        }
-                                        
-                                        Timber.d("=== POST EXECUTED - checking for visible items ===")
-                                        val layoutManager = binding.rvMediaFiles.layoutManager
-                                        Timber.d("LayoutManager type: ${layoutManager?.javaClass?.simpleName}, childCount=${binding.rvMediaFiles.childCount}")
-                                        
-                                        val firstVisible = when (layoutManager) {
-                                            is LinearLayoutManager -> layoutManager.findFirstVisibleItemPosition()
-                                            is GridLayoutManager -> layoutManager.findFirstVisibleItemPosition()
-                                            else -> 0
-                                        }
-                                        val lastVisible = when (layoutManager) {
-                                            is LinearLayoutManager -> layoutManager.findLastVisibleItemPosition()
-                                            is GridLayoutManager -> layoutManager.findLastVisibleItemPosition()
-                                            else -> minOf(20, mediaFileAdapter.itemCount - 1)
-                                        }
-                                        
-                                        Timber.d("Visible range: first=$firstVisible, last=$lastVisible, itemCount=${mediaFileAdapter.itemCount}")
-                                        
-                                        if (firstVisible >= 0 && lastVisible >= firstVisible) {
-                                            val visibleCount = lastVisible - firstVisible + 1
-                                            notifyItemRangeChangedSafely(
-                                                start = firstVisible,
-                                                count = visibleCount,
-                                                payload = "LOAD_THUMBNAILS",
-                                                source = "submitList post"
-                                            )
-                                        } else {
-                                            Timber.d("notifyItemRangeChanged in post: no children yet ($firstVisible..$lastVisible), retrying on first child attach")
-                                            Timber.d("RV isAttachedToWindow=${binding.rvMediaFiles.isAttachedToWindow}, childCount=${binding.rvMediaFiles.childCount}")
-                                            binding.rvMediaFiles.addOnChildAttachStateChangeListener(object : RecyclerView.OnChildAttachStateChangeListener {
-                                                override fun onChildViewAttachedToWindow(view: View) {
-                                                    binding.rvMediaFiles.removeOnChildAttachStateChangeListener(this)
-                                                    if (isDestroyed || isFinishing) return
-                                                    val lm = binding.rvMediaFiles.layoutManager
-                                                    val f = when (lm) {
-                                                        is LinearLayoutManager -> lm.findFirstVisibleItemPosition()
-                                                        is GridLayoutManager -> lm.findFirstVisibleItemPosition()
-                                                        else -> 0
-                                                    }
-                                                    val l = when (lm) {
-                                                        is LinearLayoutManager -> lm.findLastVisibleItemPosition()
-                                                        is GridLayoutManager -> lm.findLastVisibleItemPosition()
-                                                        else -> minOf(20, mediaFileAdapter.itemCount - 1)
-                                                    }
-                                                    if (f >= 0 && l >= f) {
-                                                        notifyItemRangeChangedSafely(
-                                                            start = f,
-                                                            count = l - f + 1,
-                                                            payload = "LOAD_THUMBNAILS",
-                                                            source = "submitList childAttach"
-                                                        )
-                                                    }
-                                                }
-                                                override fun onChildViewDetachedFromWindow(view: View) {}
-                                            })
-                                        }
-                                        
-                                        // Reset flag after post execution
-                                        Timber.d("Resetting skipInitialThumbnailLoad flag to false (in post)")
-                                        mediaFileAdapter.setSkipInitialThumbnailLoad(false)
-                                        Timber.d("skipInitialThumbnailLoad flag AFTER reset: ${mediaFileAdapter.getSkipInitialThumbnailLoad()}")
-                                    }
-                                }
-                            } else {
-                                // Empty list - just reset flag
-                                Timber.d("Empty list (itemCount=0), resetting skipInitialThumbnailLoad flag")
-                                mediaFileAdapter.setSkipInitialThumbnailLoad(false)
-                            }
-                            
-                            // Update empty state AFTER adapter updates itemCount
-                            val itemCount = mediaFileAdapter.itemCount
-                            
-                            if (itemCount > 0) {
-                                // Files loaded - hide empty state
-                                binding.emptyStateView.isVisible = false
-                                Timber.d("Empty state: hidden (itemCount=$itemCount)")
-                            } else {
-                                // No items yet - check loading state
-                                val isLoading = viewModel.loading.value
-                                
-                                if (isLoading) {
-                                    // Loading in progress - hide empty state
-                                    binding.emptyStateView.isVisible = false
-                                    Timber.d("Empty state: hidden during loading (layoutProgress visible)")
-                                } else {
-                                    // Loading complete, no files - show empty state
-                                    binding.emptyStateView.isVisible = true
-                                    Timber.d("Empty state: shown (isLoading=false, itemCount=0)")
-                                }
-                            }
-                            Timber.d("UI visibility: rvMediaFiles.isVisible=${binding.rvMediaFiles.isVisible}")
-                            
-                            // Restore scroll position after adapter updates
-                            if (itemCount > 0) {
-                                // Priority 1: Restore to lastViewedFile (return from PlayerActivity)
-                                if (shouldScrollToLastViewed) {
-                                    state.resource?.lastViewedFile?.let { lastViewedPath ->
-                                        Timber.d("submitList callback: Restoring scroll to lastViewedFile: $lastViewedPath")
-                                        
-                                        val position = state.mediaFiles.indexOfFirst { it.path == lastViewedPath }
-                                        Timber.d("submitList callback: Found position=$position for file: ${lastViewedPath.substringAfterLast('/')}")
-                                        
-                                        if (position >= 0) {
-                                            binding.rvMediaFiles.post {
-                                                // Check if Activity still alive in post {} callback
-                                                if (isDestroyed || isFinishing) {
-                                                    Timber.w("post callback (scroll restore): Activity destroyed/finishing, skipping")
-                                                    return@post
-                                                }
-                                                
-                                                val layoutManager = binding.rvMediaFiles.layoutManager
-                                                when (layoutManager) {
-                                                    is LinearLayoutManager -> {
-                                                        layoutManager.scrollToPositionWithOffset(position, 0)
-                                                        Timber.i("submitList callback: ✓ Scrolled to '${state.mediaFiles[position].name}' at position $position (LinearLayoutManager)")
-                                                    }
-                                                    is GridLayoutManager -> {
-                                                        layoutManager.scrollToPositionWithOffset(position, 0)
-                                                        Timber.i("submitList callback: ✓ Scrolled to '${state.mediaFiles[position].name}' at position $position (GridLayoutManager)")
-                                                    }
-                                                    else -> {
-                                                        binding.rvMediaFiles.scrollToPosition(position)
-                                                        Timber.w("submitList callback: Scrolled to position $position (fallback)")
-                                                    }
-                                                }
-                                            }
-                                        } else {
-                                            Timber.w("submitList callback: File not found in list: $lastViewedPath")
-                                        }
-                                    } ?: Timber.w("submitList callback: lastViewedFile is null")
-                                    shouldScrollToLastViewed = false
-                                } 
-                                // Priority 2: Restore to lastScrollPosition (first open or reopen after back button).
-                                // Uses pendingScrollRestore instead of isFirstResume because isFirstResume is cleared
-                                // in onResume() BEFORE async file loading emits data, causing the flag to be false
-                                // by the time submitList actually fires with the loaded list.
-                                else if (pendingScrollRestore) {
-                                    pendingScrollRestore = false
-                                    val position = state.resource?.lastScrollPosition ?: 0
-                                    if (position > 0 && position < itemCount) {
-                                        binding.rvMediaFiles.post {
-                                            // Check if Activity still alive in post {} callback
-                                            if (isDestroyed || isFinishing) {
-                                                Timber.w("post callback (restore scroll position): Activity destroyed/finishing, skipping")
-                                                return@post
-                                            }
-                                            
-                                            val layoutManager = binding.rvMediaFiles.layoutManager
-                                            when (layoutManager) {
-                                                is LinearLayoutManager -> {
-                                                    layoutManager.scrollToPositionWithOffset(position, 0)
-                                                    Timber.i("submitList callback: ✓ Restored scroll to saved position $position (LinearLayoutManager)")
-                                                }
-                                                is GridLayoutManager -> {
-                                                    layoutManager.scrollToPositionWithOffset(position, 0)
-                                                    Timber.i("submitList callback: ✓ Restored scroll to saved position $position (GridLayoutManager)")
-                                                }
-                                                else -> {
-                                                    binding.rvMediaFiles.scrollToPosition(position)
-                                                    Timber.i("submitList callback: ✓ Restored scroll to saved position $position (fallback)")
-                                                }
-                                            }
-                                        }
-                                    } else if (position > 0) {
-                                        Timber.w("submitList callback: Saved position $position is out of bounds (itemCount=$itemCount)")
-                                    }
-                                }
-                            }
-                            
-                            // Update scroll buttons visibility; use post{} so layout positions are final
-                            binding.rvMediaFiles.post { updateScrollButtonsVisibility(itemCount) }
-
-                            // Heap protection: if heap >85% used after loading, trim Glide memory cache.
-                            // Prevents silent OOM kills on devices with limited heap (e.g., 512MB).
-                            val maxMem = Runtime.getRuntime().maxMemory()
-                            val usedMem = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
-                            val heapPct = (usedMem * 100L / maxMem).toInt()
-                            if (heapPct > 85) {
-                                Timber.w("HEAP_MONITOR: ${heapPct}% used (${usedMem/1024/1024}MB/${maxMem/1024/1024}MB) — clearing Glide memory cache")
-                                com.bumptech.glide.Glide.get(this@BrowseActivity).clearMemory()
-                            }
+                            listSubmitManager.onListSubmitted(state)
                         }
                     }
                     // No log for skipped submitList - reduces log spam during large folder loading
@@ -1799,48 +1600,23 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                                 event.matchedFiles
                             )
                         }
-                        is BrowseEvent.ArchiveProgress -> {
-                            archiveProgressDialog?.setMessage(
-                                getString(
-                                    R.string.archive_progress_message,
-                                    event.current,
-                                    event.total,
-                                    event.fileName
-                                )
-                            )
-                        }
+                        is BrowseEvent.ArchiveProgress ->
+                            archiveDialogManager.updateArchiveProgress(event.current, event.total, event.fileName)
                         is BrowseEvent.ArchiveSuccess -> {
-                            dismissArchiveProgressDialog()
-                            val msg = getString(R.string.archive_success, event.archivePath, event.archivedCount)
-                            Toast.makeText(this@BrowseActivity, msg, Toast.LENGTH_LONG).show()
+                            archiveDialogManager.onArchiveSuccess(event.archivePath, event.archivedCount)
                         }
                         is BrowseEvent.ArchiveError -> {
-                            dismissArchiveProgressDialog()
-                            showError(
-                                getString(R.string.archive_error, event.message),
-                                details = null,
-                                exception = event.exception
-                            )
+                            archiveDialogManager.onArchiveError(event.message)
+                            showError(getString(R.string.archive_error, event.message), details = null, exception = event.exception)
                         }
-                        is BrowseEvent.ShowExtractConfirmDialog -> {
-                            showUnarchiveConfirmDialog(event.file, event.targetDirName)
-                        }
-                        is BrowseEvent.ExtractionProgress -> {
-                            updateExtractProgressDialog(event)
-                        }
-                        is BrowseEvent.ExtractionSuccess -> {
-                            dismissExtractProgressDialog()
-                            com.google.android.material.snackbar.Snackbar
-                                .make(binding.root, getString(R.string.unarchive_success), com.google.android.material.snackbar.Snackbar.LENGTH_LONG)
-                                .setAction(getString(R.string.action_open)) {
-                                    viewModel.navigateToFolder(event.targetPath)
-                                }
-                                .show()
-                        }
-                        is BrowseEvent.ExtractionFailed -> {
-                            dismissExtractProgressDialog()
-                            Toast.makeText(this@BrowseActivity, event.message, Toast.LENGTH_LONG).show()
-                        }
+                        is BrowseEvent.ShowExtractConfirmDialog ->
+                            archiveDialogManager.showUnarchiveConfirmDialog(event.file, event.targetDirName)
+                        is BrowseEvent.ExtractionProgress ->
+                            archiveDialogManager.updateExtractProgress(event)
+                        is BrowseEvent.ExtractionSuccess ->
+                            archiveDialogManager.onExtractionSuccess(event.targetPath)
+                        is BrowseEvent.ExtractionFailed ->
+                            archiveDialogManager.onExtractionFailed(event.message)
                         is BrowseEvent.ResourceAddedAsDestination -> {
                             showAddedAsDestinationSnackbar()
                         }
@@ -1865,149 +1641,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             .show()
     }
 
-    /**
-     * Show error message respecting showDetailedErrors setting
-     * If showDetailedErrors=true: shows ErrorDialog with copyable text and detailed info
-     * If showDetailedErrors=false: shows Toast (short notification)
-     */
-    private fun showError(message: String, details: String?, exception: Throwable? = null) {
-        // Check if this is a Google Drive authentication error
-        if (message.contains("Google Drive authentication required", ignoreCase = true) ||
-            message.contains("Not authenticated", ignoreCase = true)) {
-            // Extract provider from message or use current resource's provider
-            val provider = viewModel.state.value.resource?.cloudProvider 
-                ?: com.sza.fastmediasorter.data.cloud.CloudProvider.GOOGLE_DRIVE
-            showCloudAuthenticationDialog(provider)
-            return
-        }
+    private fun showError(message: String, details: String?, exception: Throwable? = null) =
+        errorDisplayManager.showError(message, details, exception)
 
-        if (isNonCriticalNetworkImageError(message, details, exception)) {
-            Timber.d("BrowseActivity: Suppressed non-critical network image error: $message")
-            return
-        }
-        
-        lifecycleScope.launch {
-            val settings = settingsRepository.getSettings().first()
-            Timber.d("showError: showDetailedErrors=${settings.showDetailedErrors}, message=$message, hasDetails=${details != null}, hasException=${exception != null}")
-            
-            if (settings.showDetailedErrors) {
-                // Use ErrorDialog with full details
-                if (exception != null) {
-                    // Show exception with stack trace
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@BrowseActivity,
-                        title = getString(R.string.error),
-                        throwable = exception
-                    )
-                } else if (details != null) {
-                    // Show message with details
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@BrowseActivity,
-                        title = getString(R.string.error),
-                        message = message,
-                        details = details
-                    )
-                } else {
-                    // Show only message
-                    com.sza.fastmediasorter.ui.dialog.ErrorDialog.show(
-                        context = this@BrowseActivity,
-                        title = getString(R.string.error),
-                        message = message
-                    )
-                }
-            } else {
-                // Non-fatal network errors: debug-only toast, always logged
-                com.sza.fastmediasorter.util.ToastThrottler.showNetworkError(
-                    this@BrowseActivity, message
-                )
-            }
-        }
-    }
-
-    private fun isNonCriticalNetworkImageError(
-        message: String,
-        details: String?,
-        exception: Throwable?
-    ): Boolean {
-        val messages = mutableListOf<String>()
-        messages.add(message)
-        if (!details.isNullOrBlank()) {
-            messages.add(details)
-        }
-
-        var current = exception
-        var depth = 0
-        while (current != null && depth < 12) {
-            messages.add(current.message ?: "")
-            current = current.cause
-            depth++
-        }
-
-        val hasNetworkContext = messages.any { msg ->
-            msg.contains("NetworkFileDataFetcher", ignoreCase = true) ||
-            msg.contains("Failed to load network file:", ignoreCase = true) ||
-            msg.contains("smb://", ignoreCase = true) ||
-            msg.contains("sftp://", ignoreCase = true) ||
-            msg.contains("ftp://", ignoreCase = true)
-        }
-
-        if (!hasNetworkContext) return false
-
-        return messages.any { msg ->
-            msg.contains("Invalid/corrupted image data", ignoreCase = true) ||
-            msg.contains("Corrupted image data:", ignoreCase = true) ||
-            msg.contains("Request cancelled", ignoreCase = true) ||
-            msg.contains("Failed to decode", ignoreCase = true) ||
-            msg.contains("DecodeException", ignoreCase = true) ||
-            msg.contains("ImageDecoder", ignoreCase = true) ||
-            msg.contains("HEIC", ignoreCase = true) ||
-            msg.contains("HEIF", ignoreCase = true) ||
-            msg.contains("AVIF", ignoreCase = true)
-        }
-    }
-
-    /**
-     * Show Snackbar with operation description and Undo button
-     */
-    private fun showUndoSnackbar(operation: UndoOperation) {
-        if (isFinishing || isDestroyed) {
-            return
-        }
-        
-        val count = operation.sourceFiles.size
-        val description = when (operation.type) {
-            com.sza.fastmediasorter.domain.model.FileOperationType.DELETE -> {
-                getString(R.string.deleted_n_files, count)
-            }
-            com.sza.fastmediasorter.domain.model.FileOperationType.COPY -> {
-                val destination = operation.destinationFolder?.substringAfterLast('/') ?: "destination"
-                getString(R.string.msg_copy_success_count, count, destination)
-            }
-            com.sza.fastmediasorter.domain.model.FileOperationType.MOVE -> {
-                val destination = operation.destinationFolder?.substringAfterLast('/') ?: "destination"
-                getString(R.string.msg_move_success_count, count, destination)
-            }
-            com.sza.fastmediasorter.domain.model.FileOperationType.RENAME -> {
-                getString(R.string.renamed_n_files, count)
-            }
-        }
-
-        com.google.android.material.snackbar.Snackbar.make(
-            binding.root,
-            description,
-            com.google.android.material.snackbar.Snackbar.LENGTH_LONG
-        )
-            .setAction(getString(R.string.undo).uppercase()) {
-                viewModel.undoLastOperation()
-            }
-            .setAnchorView(binding.layoutOperations)
-            .show()
-    }
+    private fun showUndoSnackbar(operation: UndoOperation) =
+        errorDisplayManager.showUndoSnackbar(operation)
     
-    @Deprecated("Use showError() instead - respects showDetailedErrors setting")
-    private fun showErrorDialog(message: String, details: String?) {
-        dialogHelper.showErrorDialog(message, details)
-    }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         return keyboardNavigationManager.handleKeyDown(keyCode, event) || super.onKeyDown(keyCode, event)
@@ -2145,193 +1784,24 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     }
 
     private fun setupSortButton() {
-        // Update button text with current sort mode
         updateSortButtonText()
-        
-        // Setup click listener to show popup menu
         binding.btnSort.setOnClickListener {
             UserActionLogger.logButtonClick("SortButton", "BrowseActivity")
-            showSortPopupMenu()
+            sortMenuManager.showSortPopupMenu(binding.btnSort)
         }
     }
-    
+
     private fun updateSortButtonText() {
-        val currentMode = viewModel.state.value.sortMode
-        binding.btnSort.text = getSortModeShortName(currentMode)
+        binding.btnSort.text = sortMenuManager.getSortModeShortName(viewModel.state.value.sortMode)
     }
-    
-    private fun showSortPopupMenu() {
-        val popup = PopupMenu(this, binding.btnSort)
-        val resource = viewModel.state.value.resource
-        val sortModes = getRelevantSortModes(resource)
-
-        sortModes.forEachIndexed { index, mode ->
-            popup.menu.add(0, index, index, getSortModeName(mode))
-        }
-
-        popup.setOnMenuItemClickListener { menuItem ->
-            val selectedMode = sortModes[menuItem.itemId]
-            if (selectedMode != viewModel.state.value.sortMode) {
-                UserActionLogger.logButtonClick("SortMenu_${selectedMode.name}", "BrowseActivity")
-                viewModel.setSortMode(selectedMode)
-                updateSortButtonText()
-            }
-            true
-        }
-
-        popup.show()
-    }
-
-    /**
-     * Returns sort modes relevant for the given resource's media type configuration.
-     * Metadata-specific modes (artist, title, duration, dateTaken) are filtered
-     * to only appear when the resource actually supports the related media types.
-     */
-    private fun getRelevantSortModes(resource: MediaResource?): Array<SortMode> {
-        val types = resource?.supportedMediaTypes ?: emptySet()
-        val showAll = resource?.allFiles ?: true
-        return SortMode.values().filter { mode ->
-            when (mode) {
-                SortMode.ARTIST_ASC, SortMode.ARTIST_DESC,
-                SortMode.TITLE_ASC, SortMode.TITLE_DESC ->
-                    showAll || MediaType.AUDIO in types
-                SortMode.DURATION_ASC, SortMode.DURATION_DESC ->
-                    showAll || MediaType.AUDIO in types || MediaType.VIDEO in types
-                SortMode.DATE_TAKEN_ASC, SortMode.DATE_TAKEN_DESC ->
-                    showAll || MediaType.IMAGE in types || MediaType.GIF in types
-                else -> true
-            }
-        }.toTypedArray()
-    }
-    
-    private fun getSortModeShortName(mode: SortMode): String {
-        return when (mode) {
-            SortMode.MANUAL -> "Manual"
-            SortMode.NAME_ASC -> "A-Z"
-            SortMode.NAME_DESC -> "Z-A"
-            SortMode.DATE_ASC -> "Old ↑"
-            SortMode.DATE_DESC -> "New ↓"
-            SortMode.SIZE_ASC -> "Size ↑"
-            SortMode.SIZE_DESC -> "Size ↓"
-            SortMode.TYPE_ASC -> "Type ↑"
-            SortMode.TYPE_DESC -> "Type ↓"
-            SortMode.ARTIST_ASC -> "Artist ↑"
-            SortMode.ARTIST_DESC -> "Artist ↓"
-            SortMode.TITLE_ASC -> "Title ↑"
-            SortMode.TITLE_DESC -> "Title ↓"
-            SortMode.DURATION_ASC -> "Duration ↑"
-            SortMode.DURATION_DESC -> "Duration ↓"
-            SortMode.DATE_TAKEN_ASC -> "DateTaken ↑"
-            SortMode.DATE_TAKEN_DESC -> "DateTaken ↓"
-            SortMode.RANDOM -> "Random"
-        }
-    }
-    
-    private fun getSortModeName(mode: SortMode): String {
-        return when (mode) {
-            SortMode.MANUAL -> getString(R.string.sort_mode_manual)
-            SortMode.NAME_ASC -> getString(R.string.sort_mode_name_asc)
-            SortMode.NAME_DESC -> getString(R.string.sort_mode_name_desc)
-            SortMode.DATE_ASC -> getString(R.string.sort_mode_date_asc)
-            SortMode.DATE_DESC -> getString(R.string.sort_mode_date_desc)
-            SortMode.SIZE_ASC -> getString(R.string.sort_mode_size_asc)
-            SortMode.SIZE_DESC -> getString(R.string.sort_mode_size_desc)
-            SortMode.TYPE_ASC -> getString(R.string.sort_mode_type_asc)
-            SortMode.TYPE_DESC -> getString(R.string.sort_mode_type_desc)
-            SortMode.ARTIST_ASC -> getString(R.string.sort_mode_artist_asc)
-            SortMode.ARTIST_DESC -> getString(R.string.sort_mode_artist_desc)
-            SortMode.TITLE_ASC -> getString(R.string.sort_mode_title_asc)
-            SortMode.TITLE_DESC -> getString(R.string.sort_mode_title_desc)
-            SortMode.DURATION_ASC -> getString(R.string.sort_mode_duration_asc)
-            SortMode.DURATION_DESC -> getString(R.string.sort_mode_duration_desc)
-            SortMode.DATE_TAKEN_ASC -> getString(R.string.sort_mode_date_taken_asc)
-            SortMode.DATE_TAKEN_DESC -> getString(R.string.sort_mode_date_taken_desc)
-            SortMode.RANDOM -> getString(R.string.sort_mode_random)
-        }
-    }
-
-    // =========================================================================
-    // Archive selected files (task_1_3)
-    // =========================================================================
 
     private fun showArchiveConfigurationDialog() {
         val state = viewModel.state.value
-        val currentDir = state.currentPath ?: state.resource?.path ?: ""
-        val selectedFiles = state.selectedFiles.toList()
-
-        if (selectedFiles.isEmpty()) return
-
-        // Pre-fill archive name from first selected file's base name
-        val firstName = state.mediaFiles
-            .firstOrNull { it.path in state.selectedFiles }?.name
-            ?: java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
-        val defaultName = firstName.substringBeforeLast('.')
-
-        val dp16 = (16 * resources.displayMetrics.density).toInt()
-        val dp64 = dp16 * 4
-
-        val root = android.widget.LinearLayout(this).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(dp64, dp16, dp64, dp16)
-        }
-
-        val etName = android.widget.EditText(this).apply {
-            setText(defaultName)
-            hint = getString(R.string.archive_name_hint)
-            inputType = android.text.InputType.TYPE_CLASS_TEXT
-            selectAll()
-        }
-        root.addView(etName)
-
-        val tvDest = android.widget.TextView(this).apply {
-            text = getString(R.string.archive_destination_label, currentDir)
-            setPadding(0, dp16 / 2, 0, 0)
-            textSize = 13f
-        }
-        root.addView(tvDest)
-
-        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.archive_dialog_title)
-            .setView(root)
-            .setNegativeButton(android.R.string.cancel, null)
-            .setPositiveButton(R.string.archive_action_btn, null) // Set listener below to prevent auto-dismiss on error
-            .show()
-
-        dialog.getButton(android.app.AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-            val name = etName.text.toString().trim()
-
-            if (name.isEmpty()) {
-                etName.error = getString(R.string.archive_name_empty_error)
-                return@setOnClickListener
-            }
-            // Reject filesystem-unsafe characters
-            val invalidChars = Regex("""[/\\:*?"<>|]""")
-            if (invalidChars.containsMatchIn(name)) {
-                etName.error = getString(R.string.archive_name_invalid_chars_error)
-                return@setOnClickListener
-            }
-
-            dialog.dismiss()
-            showArchiveProgressDialog()
-            viewModel.archiveSelectedFiles(name, currentDir)
-        }
-    }
-
-    private fun showArchiveProgressDialog() {
-        dismissArchiveProgressDialog()
-        archiveProgressDialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.archive_progress_title)
-            .setMessage(getString(R.string.archive_progress_message, 0, 0, ""))
-            .setNegativeButton(android.R.string.cancel) { _, _ ->
-                viewModel.cancelArchive()
-            }
-            .setCancelable(false)
-            .show()
-    }
-
-    private fun dismissArchiveProgressDialog() {
-        archiveProgressDialog?.dismiss()
-        archiveProgressDialog = null
+        archiveDialogManager.showArchiveConfigurationDialog(
+            currentDir = state.currentPath ?: state.resource?.path ?: "",
+            selectedFiles = state.selectedFiles,
+            mediaFiles = state.mediaFiles
+        )
     }
 
     private fun showDeleteConfirmation() {
@@ -2353,155 +1823,12 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         }
     }
     
-    // Task 6: Show bottom sheet menu for binary files
-    private fun showBinaryFileMenu(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {
-        if (mediaFile.type == com.sza.fastmediasorter.domain.model.MediaType.BINARY_ARCHIVE &&
-            mediaFile.name.substringAfterLast('.', "").equals("zip", ignoreCase = true)
-        ) {
-            viewModel.prepareExtraction(mediaFile)
-            return
-        }
+    private fun showBinaryFileMenu(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) =
+        binaryFileHandler.showBinaryFileMenu(mediaFile)
 
-        val bottomSheet = com.google.android.material.bottomsheet.BottomSheetDialog(this)
-        val root = findViewById<android.view.ViewGroup>(android.R.id.content)
-        val view = layoutInflater.inflate(R.layout.bottom_sheet_binary_file, root, false)
-        
-        view.findViewById<android.widget.TextView>(R.id.tvFileName)?.text = mediaFile.name
-        
-        view.findViewById<android.view.View>(R.id.btnShare)?.setOnClickListener {
-            shareFile(mediaFile)
-            bottomSheet.dismiss()
-        }
-        
-        view.findViewById<android.view.View>(R.id.btnOpenWith)?.setOnClickListener {
-            openWithDefaultApp(mediaFile)
-            bottomSheet.dismiss()
-        }
-        
-        view.findViewById<android.view.View>(R.id.btnCopy)?.setOnClickListener {
-            viewModel.selectFile(mediaFile.path)
-            showCopyDialog()
-            bottomSheet.dismiss()
-        }
-        
-        view.findViewById<android.view.View>(R.id.btnMove)?.setOnClickListener {
-            viewModel.selectFile(mediaFile.path)
-            showMoveDialog()
-            bottomSheet.dismiss()
-        }
-        
-        view.findViewById<android.view.View>(R.id.btnRename)?.setOnClickListener {
-            viewModel.selectFile(mediaFile.path)
-            showRenameDialog()
-            bottomSheet.dismiss()
-        }
-        
-        view.findViewById<android.view.View>(R.id.btnDelete)?.setOnClickListener {
-            viewModel.selectFile(mediaFile.path)
-            showDeleteConfirmation()
-            bottomSheet.dismiss()
-        }
-        
-        bottomSheet.setContentView(view)
-        bottomSheet.show()
-    }
-
-    private fun showUnarchiveConfirmDialog(mediaFile: MediaFile, targetDirName: String) {
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
-            .setTitle(R.string.unarchive_dialog_title)
-            .setMessage(getString(R.string.unarchive_dialog_message, mediaFile.name, targetDirName))
-            .setPositiveButton(R.string.unarchive_action_extract) { _, _ ->
-                showExtractProgressDialog()
-                viewModel.extractArchive(mediaFile)
-            }
-            .setNegativeButton(android.R.string.cancel, null)
-            .show()
-    }
-
-    private fun showExtractProgressDialog() {
-        dismissExtractProgressDialog()
-        extractProgressDialog = com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog.show(
-            context = this,
-            operationType = getString(R.string.unarchive_progress_title),
-            onCancel = { viewModel.cancelExtraction() }
-        )
-    }
-
-    private fun updateExtractProgressDialog(event: BrowseEvent.ExtractionProgress) {
-        val total = event.total.coerceAtLeast(1)
-        val currentIndex = (event.done - 1).coerceIn(0, total - 1)
-        extractProgressDialog?.updateProgress(
-            com.sza.fastmediasorter.domain.usecase.FileOperationProgress.Processing(
-                currentFile = getString(R.string.unarchive_progress_entry, event.entryName) + " (${event.percent}%)",
-                currentIndex = currentIndex,
-                totalFiles = total,
-                bytesTransferred = 0L,
-                totalBytes = 0L,
-                speedBytesPerSecond = 0L
-            )
-        )
-    }
-
-    private fun dismissExtractProgressDialog() {
-        extractProgressDialog?.dismiss()
-        extractProgressDialog = null
-    }
+    private fun showUnarchiveConfirmDialog(mediaFile: MediaFile, targetDirName: String) =
+        archiveDialogManager.showUnarchiveConfirmDialog(mediaFile, targetDirName)
     
-    // Task 6: Open binary file with default app
-    private fun openWithDefaultApp(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {
-        try {
-            val uri = android.net.Uri.parse(mediaFile.path)
-            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
-                setDataAndType(uri, getMimeTypeForFile(mediaFile))
-                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivity(intent)
-            } else {
-                Toast.makeText(
-                    this,
-                    R.string.no_app_to_open,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to open file with default app")
-            Toast.makeText(this, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    // Task 6: Share binary file
-    private fun shareFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile) {
-        try {
-            val uri = android.net.Uri.parse(mediaFile.path)
-            val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                type = getMimeTypeForFile(mediaFile)
-                putExtra(android.content.Intent.EXTRA_STREAM, uri)
-                addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            }
-            
-            startActivity(android.content.Intent.createChooser(intent, getString(R.string.share)))
-        } catch (e: Exception) {
-            timber.log.Timber.e(e, "Failed to share file")
-            Toast.makeText(this, R.string.error_sharing_file, Toast.LENGTH_SHORT).show()
-        }
-    }
-    
-    // Task 6: Get MIME type for binary file
-    private fun getMimeTypeForFile(mediaFile: com.sza.fastmediasorter.domain.model.MediaFile): String {
-        val extension = mediaFile.name.substringAfterLast('.', "").lowercase()
-        return when (mediaFile.type) {
-            com.sza.fastmediasorter.domain.model.MediaType.BINARY_ARCHIVE -> "application/$extension"
-            com.sza.fastmediasorter.domain.model.MediaType.BINARY_EXECUTABLE -> when (extension) {
-                "apk" -> "application/vnd.android.package-archive"
-                "exe", "dll" -> "application/x-msdownload"
-                else -> "application/octet-stream"
-            }
-            com.sza.fastmediasorter.domain.model.MediaType.BINARY_DISK -> "application/$extension"
-            else -> "application/octet-stream"
-        }
-    }
     
     private fun showRenameDialog() {
         val state = viewModel.state.value
@@ -2594,7 +1921,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
     
     override fun onResume() {
         super.onResume()
-        Timber.d("BrowseActivity.onResume: isFirstResume=$isFirstResume, shouldScrollToLastViewed=$shouldScrollToLastViewed, resourceId=${viewModel.state.value.resource?.id}")
+        Timber.d("BrowseActivity.onResume: isFirstResume=$isFirstResume, listSubmitManager.shouldScrollToLastViewed=$listSubmitManager.shouldScrollToLastViewed, resourceId=${viewModel.state.value.resource?.id}")
         
         // Handle any pending cloud authentication results
         if (::cloudAuthManager.isInitialized) {
@@ -2623,7 +1950,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             // We post the restoration here so it runs on the next frame, before any async
             // reload's submitList could fire — the first one to execute resets the flag,
             // making the second attempt a no-op.
-            if (shouldScrollToLastViewed && mediaFileAdapter.itemCount > 0) {
+            if (listSubmitManager.shouldScrollToLastViewed && mediaFileAdapter.itemCount > 0) {
                 val currentState = viewModel.state.value
                 val lastViewedPath = currentState.resource?.lastViewedFile
                 val pathPosition = if (lastViewedPath != null)
@@ -2636,7 +1963,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                     if (savedPos > 0 && savedPos < mediaFileAdapter.itemCount) savedPos else -1
                 }
                 if (targetPosition >= 0) {
-                    shouldScrollToLastViewed = false
+                    listSubmitManager.shouldScrollToLastViewed = false
                     binding.rvMediaFiles.post {
                         if (isDestroyed || isFinishing) return@post
                         val lm = binding.rvMediaFiles.layoutManager
@@ -2648,7 +1975,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
                         Timber.i("onResume: ✓ Restored scroll to position $targetPosition (pathBased=${pathPosition >= 0}, file=${currentState.mediaFiles.getOrNull(targetPosition)?.name})")
                     }
                 } else {
-                    shouldScrollToLastViewed = false
+                    listSubmitManager.shouldScrollToLastViewed = false
                     Timber.d("onResume: No valid restore position (lastViewedPath=$lastViewedPath, itemCount=${mediaFileAdapter.itemCount})")
                 }
             }
@@ -2659,7 +1986,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         
         // Scroll restoration: primary path is submitList callback (handles first load + list changes).
         // Secondary path is the onResume block above (handles return from player with unchanged list).
-        Timber.d("BrowseActivity.onResume: shouldScrollToLastViewed=$shouldScrollToLastViewed (will restore in submitList callback if list changed)")
+        Timber.d("BrowseActivity.onResume: listSubmitManager.shouldScrollToLastViewed=$listSubmitManager.shouldScrollToLastViewed (will restore in submitList callback if list changed)")
         
         // Start MediaStore observer for local resources
         startMediaStoreObserver()
@@ -2677,7 +2004,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         stateManager.saveLastViewedFile()
         
         // Set flag to restore scroll position on next resume (return from PlayerActivity)
-        shouldScrollToLastViewed = true
+        listSubmitManager.shouldScrollToLastViewed = true
         
         // Cancel background thumbnail loading to free bandwidth for PlayerActivity
         Timber.d("BrowseActivity.onPause: Cancelling background thumbnail operations")
@@ -2773,10 +2100,6 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         mediaStoreObserver.stop()
     }
     
-    private fun saveLastViewedFile() {
-        stateManager.saveLastViewedFile()
-    }
-    
     private fun shareSelectedFiles() {
         val state = viewModel.state.value
         val resource = state.resource ?: return
@@ -2798,46 +2121,8 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         cloudAuthManager.handleGoogleSignInResult(data)
     }
     
-    /**
-     * Update scroll buttons visibility based on file count and current scroll position.
-     * All four buttons are hidden when there are 20 or fewer files.
-     * When shown, scroll-to-top/page-up are hidden at the top of the list,
-     * and scroll-to-bottom/page-down are hidden at the bottom.
-     */
-    private fun updateScrollButtonsVisibility(fileCount: Int) {
-        val layoutManager = binding.rvMediaFiles.layoutManager
-        val firstVisible = when (layoutManager) {
-            is LinearLayoutManager -> layoutManager.findFirstVisibleItemPosition()
-            else -> RecyclerView.NO_POSITION
-        }
-        val lastVisible = when (layoutManager) {
-            is LinearLayoutManager -> layoutManager.findLastVisibleItemPosition()
-            else -> RecyclerView.NO_POSITION
-        }
-        val itemCount = layoutManager?.itemCount ?: 0
-
-        // Hide all buttons when list is empty or all items fit on screen
-        val allVisible = firstVisible == RecyclerView.NO_POSITION ||
-            (firstVisible <= 0 && lastVisible != RecyclerView.NO_POSITION && lastVisible >= itemCount - 1)
-        if (fileCount == 0 || allVisible) {
-            binding.fabScrollToTop.isVisible = false
-            binding.fabScrollToBottom.isVisible = false
-            binding.fabPageUp.isVisible = false
-            binding.fabPageDown.isVisible = false
-            Timber.d("Scroll buttons: all hidden (fileCount=$fileCount, allVisible=$allVisible, first=$firstVisible, last=$lastVisible, total=$itemCount)")
-            return
-        }
-
-        val atTop = firstVisible <= 0
-        val atBottom = lastVisible >= itemCount - 1
-
-        binding.fabScrollToTop.isVisible = !atTop
-        binding.fabPageUp.isVisible = !atTop
-        binding.fabScrollToBottom.isVisible = !atBottom
-        binding.fabPageDown.isVisible = !atBottom
-
-        Timber.d("Scroll buttons: atTop=$atTop, atBottom=$atBottom, first=$firstVisible, last=$lastVisible, total=$itemCount")
-    }
+    private fun updateScrollButtonsVisibility(fileCount: Int) =
+        scrollButtonManager.updateScrollButtonsVisibility(fileCount)
     
     private fun getThemeColor(attrId: Int): Int {
         val typedValue = android.util.TypedValue()
